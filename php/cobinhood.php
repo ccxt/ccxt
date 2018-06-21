@@ -25,6 +25,7 @@ class cobinhood extends Exchange {
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
                 'withdraw' => true,
+                'fetchMyTrades' => true,
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -96,6 +97,7 @@ class cobinhood extends Exchange {
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/trades',
                         'trading/trades/{trade_id}',
                         'wallet/balances',
                         'wallet/ledger',
@@ -127,6 +129,11 @@ class cobinhood extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'exceptions' => array (
+                'insufficient_balance' => '\\ccxt\\InsufficientFunds',
+                'invalid_nonce' => '\\ccxt\\InvalidNonce',
+                'unauthorized_scope' => '\\ccxt\\PermissionDenied',
+            ),
         ));
     }
 
@@ -138,7 +145,7 @@ class cobinhood extends Exchange {
             $currency = $currencies[$i];
             $id = $currency['currency'];
             $code = $this->common_currency_code($id);
-            $minUnit = floatval ($currency['min_unit']);
+            $minUnit = $this->safe_float($currency, 'min_unit');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -167,10 +174,10 @@ class cobinhood extends Exchange {
                 ),
                 'funding' => array (
                     'withdraw' => array (
-                        'fee' => floatval ($currency['withdrawal_fee']),
+                        'fee' => $this->safe_float($currency, 'withdrawal_fee'),
                     ),
                     'deposit' => array (
-                        'fee' => floatval ($currency['deposit_fee']),
+                        'fee' => $this->safe_float($currency, 'deposit_fee'),
                     ),
                 ),
                 'info' => $currency,
@@ -206,8 +213,8 @@ class cobinhood extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => floatval ($market['base_min_size']),
-                        'max' => floatval ($market['base_max_size']),
+                        'min' => $this->safe_float($market, 'base_min_size'),
+                        'max' => $this->safe_float($market, 'base_max_size'),
                     ),
                     'price' => array (
                         'min' => null,
@@ -238,11 +245,11 @@ class cobinhood extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['24h_high']),
-            'low' => floatval ($ticker['24h_low']),
-            'bid' => floatval ($ticker['highest_bid']),
+            'high' => $this->safe_float($ticker, '24h_high'),
+            'low' => $this->safe_float($ticker, '24h_low'),
+            'bid' => $this->safe_float($ticker, 'highest_bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['lowest_ask']),
+            'ask' => $this->safe_float($ticker, 'lowest_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -252,7 +259,7 @@ class cobinhood extends Exchange {
             'change' => $this->safe_float($ticker, 'percentChanged24hr'),
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['24h_volume']),
+            'baseVolume' => $this->safe_float($ticker, '24h_volume'),
             'quoteVolume' => $this->safe_float($ticker, 'quote_volume'),
             'info' => $ticker,
         );
@@ -295,8 +302,8 @@ class cobinhood extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $timestamp = $trade['timestamp'];
-        $price = floatval ($trade['price']);
-        $amount = floatval ($trade['size']);
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
         $side = $trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return array (
@@ -384,42 +391,65 @@ class cobinhood extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'filled' => 'closed',
+            'rejected' => 'closed',
+            'partially_filled' => 'open',
+            'pending_cancellation' => 'open',
+            'pending_modification' => 'open',
+            'open' => 'open',
+            'new' => 'open',
+            'queued' => 'open',
+            'cancelled' => 'canceled',
+            'triggered' => 'triggered',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'trading_pair');
-            if ($marketId === null)
-                $marketId = $this->safe_string($order, 'trading_pair_id');
-            $market = $this->markets_by_id[$marketId];
+            $marketId = $this->safe_string($order, 'trading_pair_id', $marketId);
+            $market = $this->safe_value($this->markets_by_id, $marketId);
         }
         if ($market !== null)
             $symbol = $market['symbol'];
-        $timestamp = $order['timestamp'];
-        $price = floatval ($order['price']);
-        $amount = floatval ($order['size']);
-        $filled = floatval ($order['filled']);
-        $remaining = $amount - $filled;
-        // new, queued, open, partially_filled, $filled, cancelled
-        $status = $order['state'];
-        if ($status === 'filled') {
-            $status = 'closed';
-        } else if ($status === 'cancelled') {
-            $status = 'canceled';
-        } else {
-            $status = 'open';
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $price = $this->safe_float($order, 'eq_price');
+        $amount = $this->safe_float($order, 'size');
+        $filled = $this->safe_float($order, 'filled');
+        $remaining = null;
+        $cost = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+            }
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
         }
-        $side = ($order['side'] === 'bid') ? 'buy' : 'sell';
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $side = $this->safe_string($order, 'side');
+        if ($side === 'bid') {
+            $side = 'buy';
+        } else if ($side === 'ask') {
+            $side = 'sell';
+        }
         return array (
-            'id' => $order['id'],
+            'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'], // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
+            'type' => $this->safe_string($order, 'type'), // $market, limit, stop, stop_limit, trailing_stop, fill_or_kill
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -452,7 +482,9 @@ class cobinhood extends Exchange {
         $response = $this->privateDeleteTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
         ), $params));
-        return $response;
+        return $this->parse_order(array_merge ($response, array (
+            'id' => $id,
+        )));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -531,6 +563,17 @@ class cobinhood extends Exchange {
         );
     }
 
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array ();
+        if ($symbol !== null) {
+            $request['trading_pair_id'] = $market['id'];
+        }
+        $response = $this->privateGetTradingTrades (array_merge ($request, $params));
+        return $this->parse_trades($response['result']['trades'], $market, $since, $limit);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api']['web'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
@@ -560,7 +603,25 @@ class cobinhood extends Exchange {
             throw new ExchangeError ($this->id . ' ' . $body);
         }
         $response = json_decode ($body, $as_associative_array = true);
-        $message = $this->safe_value($response['error'], 'error_code');
-        throw new ExchangeError ($this->id . ' ' . $message);
+        $feedback = $this->id . ' ' . $this->json ($response);
+        $errorCode = $this->safe_value($response['error'], 'error_code');
+        if ($method === 'DELETE' || $method === 'GET') {
+            if ($errorCode === 'parameter_error') {
+                if (mb_strpos ($url, 'trading/orders/') !== false) {
+                    // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
+                    // for invalid order IDs as well as orders that are not "open"
+                    throw new InvalidOrder ($feedback);
+                }
+            }
+        }
+        $exceptions = $this->exceptions;
+        if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
+            throw new $exceptions[$errorCode] ($feedback);
+        }
+        throw new ExchangeError ($feedback);
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 }

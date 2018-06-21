@@ -2,9 +2,17 @@
 
 //-----------------------------------------------------------------------------
 
-const [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose')
-const cloudscrape = process.argv.includes ('--cloudscrape')
+let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
+    , verbose = process.argv.includes ('--verbose')
+    , cloudscrape = process.argv.includes ('--cloudscrape')
+    , cfscrape = process.argv.includes ('--cfscrape')
+    , poll = process.argv.includes ('--poll')
+    , no_send = process.argv.includes ('--no-send')
+    , loadMarkets = process.argv.includes ('--load-markets')
+    , no_details = process.argv.includes ('--no-details')
+    , no_table = process.argv.includes ('--no-table')
+    , iso8601 = process.argv.includes ('--iso8601')
+    , no_info = process.argv.includes ('--no-info')
 
 //-----------------------------------------------------------------------------
 
@@ -13,8 +21,10 @@ const ccxt         = require ('../../ccxt.js')
     , path         = require ('path')
     , asTable      = require ('as-table')
     , util         = require ('util')
+    , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false })
     , { ExchangeError, NetworkError } = ccxt
+
 
 //-----------------------------------------------------------------------------
 
@@ -47,10 +57,39 @@ const scrapeCloudflareHttpHeaderCookie = (url) =>
         })
     }))
 
+const cfscrapeCookies = (url) => {
+
+    const command = [
+        `python -c "`,
+        `import cfscrape; `,
+        `import json; `,
+        `tokens, user_agent = cfscrape.get_tokens('${url}'); `,
+        `print(json.dumps({`,
+            `'Cookie': '; '.join([key + '=' + tokens[key] for key in tokens]), `,
+            `'User-Agent': user_agent`,
+        `}));" 2> /dev/null`
+    ].join ('')
+
+    const output = execSync (command)
+    return JSON.parse (output.toString ('utf8'))
+}
+
 //-----------------------------------------------------------------------------
 
 const timeout = 30000
-const exchange = new (ccxt)[exchangeId] ({ verbose, timeout })
+let exchange = undefined
+const enableRateLimit = true
+
+try {
+
+    exchange = new (ccxt)[exchangeId] ({ verbose, timeout, enableRateLimit })
+
+} catch (e) {
+
+    log.red (e)
+    printUsage ()
+    process.exit ()
+}
 
 //-----------------------------------------------------------------------------
 
@@ -80,9 +119,67 @@ let printSupportedExchanges = function () {
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
+    log ('Supported options:')
+    log ('--verbose         Print verbose output')
+    log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
+    log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
+    log ('--poll            Repeat continuously in rate-limited mode')
+    log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
+    log ('--load-markets    Pre-load markets (for debugging)')
+    log ('--no-details      Do not print detailed fetch responses')
+    log ('--no-table        Do not print tabulated fetch responses')
+    log ('--iso8601         Print timestamps as ISO8601 datetimes')
 }
 
 //-----------------------------------------------------------------------------
+
+const printHumanReadable = (exchange, result) => {
+
+    if (Array.isArray (result)) {
+
+        let arrayOfObjects = (typeof result[0] === 'object')
+
+        if (!no_details)
+            result.forEach (object => {
+                if (arrayOfObjects)
+                    log ('-------------------------------------------')
+                log (object)
+            })
+
+        if (!no_table)
+            if (arrayOfObjects) {
+                log (result.length > 0 ? asTable (result.map (element => {
+                    let keys = Object.keys (element)
+                    if (no_info) {
+                        delete element['info']
+                    }
+                    keys.forEach (key => {
+                        if (typeof element[key] === 'number') {
+                            if (!iso8601)
+                                return element[key]
+                            try {
+                                const iso8601 = exchange.iso8601 (element[key])
+                                if (iso8601.match (/^20[0-9]{2}[-]?/))
+                                    element[key] = iso8601
+                                else
+                                    throw new Error ('wrong date')
+                            } catch (e) {
+                                return element[key]
+                            }
+                        }
+                    })
+                    return element
+                })) : result)
+            }
+
+    } else {
+
+        log.maxDepth (10).maxArrayLength (1000) (result)
+    }
+}
+
+//-----------------------------------------------------------------------------
+
 
 async function main () {
 
@@ -94,61 +191,90 @@ async function main () {
     } else {
 
         let args = params.map (param => {
+            if (param === 'undefined')
+                return undefined
             if (param[0] === '{' || param[0] === '[')
                 return JSON.parse (param)
-            return param.match (/[a-zA-Z]/g) ? param : parseFloat (param)
+            if (param.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g))
+                return exchange.parse8601 (param)
+            if (param.match (/[a-zA-Z-]/g))
+                return param
+            if (param.match (/^[+0-9\.-]+$/))
+                return parseFloat (param)
+            return param
         })
+
+        const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
+
+        if (cloudscrape)
+            exchange.headers = await scrapeCloudflareHttpHeaderCookie (www)
+
+        if (cfscrape)
+            exchange.headers = cfscrapeCookies (www)
+
+        loadMarkets = no_send ? true : loadMarkets
+
+        if (loadMarkets)
+            await exchange.loadMarkets ()
+
+        if (no_send) {
+
+            exchange.verbose = no_send
+            exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
+                log.dim.noLocate ('-------------------------------------------')
+                log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
+                log.green.unlimited ({
+                    url,
+                    method,
+                    headers,
+                    body,
+                })
+                process.exit ()
+            }
+        }
 
         if (typeof exchange[methodName] === 'function') {
 
-            if (cloudscrape)
-                exchange.headers = await scrapeCloudflareHttpHeaderCookie (exchange.urls.www)
+            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
-            try {
+            while (true) {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                try {
 
-                const result = await exchange[methodName] (... args)
+                    const result = await exchange[methodName] (... args)
+                    printHumanReadable (exchange, result)
 
-                if (Array.isArray (result)) {
+                } catch (e) {
 
-                    result.forEach (object => {
-                        log ('-------------------------------------------')
-                        log (object)
-                    })
+                    if (e instanceof ExchangeError) {
 
-                    log (result.length > 0 ? asTable (result) : result)
+                        log.red (e.constructor.name, e.message)
 
-                } else {
+                    } else if (e instanceof NetworkError) {
 
-                    log.maxDepth (10).maxArrayLength (1000) (result)
-                }
+                        log.yellow (e.constructor.name, e.message)
 
+                    }
 
-            } catch (e) {
+                    log.dim ('---------------------------------------------------')
 
-                if (e instanceof ExchangeError) {
-
-                    log.red (e.constructor.name, e.message)
-
-                } else if (e instanceof NetworkError) {
-
-                    log.yellow (e.constructor.name, e.message)
+                    // rethrow for call-stack // other errors
+                    throw e
 
                 }
 
-                log.dim ('---------------------------------------------------')
-
-                // rethrow for call-stack // other errors
-                throw e
-
+                if (!poll)
+                    break;
             }
-        } else if (typeof exchange[methodName] === 'undefined') {
-            log.red (exchange.id + '.' + methodName + ': no such property')
-        } else {
-            log (exchange[methodName])
-        }
 
+        } else if (typeof exchange[methodName] === 'undefined') {
+
+            log.red (exchange.id + '.' + methodName + ': no such property')
+
+        } else {
+
+            printHumanReadable (exchange, exchange[methodName])
+        }
     }
 }
 

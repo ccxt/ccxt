@@ -58,12 +58,13 @@ Welcome to the ccxt wiki!
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
       - Transaction History (Ledger)
-    - Fees *(wip)*
-      - Maker / Taker Order Fees
-      - Deposit / Withdraw
+    - [Fees](https://github.com/ccxt/ccxt/wiki/Manual#fees)
+      - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
+      - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
 
 ## Troubleshooting
 
+- [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)

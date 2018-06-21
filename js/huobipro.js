@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,11 +18,11 @@ module.exports = class huobipro extends Exchange {
             'version': 'v1',
             'accounts': undefined,
             'accountsById': undefined,
-            'hostname': 'api.huobipro.com',
+            'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': true,
-                'fetchOHCLV': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
@@ -44,10 +44,11 @@ module.exports = class huobipro extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobipro.com',
-                'www': 'https://www.huobipro.com',
+                'api': 'https://api.huobi.pro',
+                'www': 'https://www.huobi.pro',
+                'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees': 'https://www.huobipro.com/about/fee/',
+                'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
                 'market': {
@@ -80,6 +81,8 @@ module.exports = class huobipro extends Exchange {
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
                         'query/deposit-withdraw',
+                        'margin/loan-orders', // 借贷订单
+                        'margin/accounts/balance', // 借贷账户详情
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -92,6 +95,10 @@ module.exports = class huobipro extends Exchange {
                         'dw/withdraw-virtual/create', // 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
+                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
+                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
+                        'margin/orders', // 申请借贷
+                        'margin/orders/{id}/repay', // 归还借贷
                     ],
                 },
             },
@@ -104,31 +111,21 @@ module.exports = class huobipro extends Exchange {
                 },
             },
             'exceptions': {
+                'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                 'order-update-error': ExchangeNotAvailable, // undocumented error
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
             },
         });
-    }
-
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
-        if (reload || !('limitsLoaded' in this.options)) {
-            let response = await this.fetchTradingLimits (symbols);
-            let limits = response['limits'];
-            let keys = Object.keys (limits);
-            for (let i = 0; i < keys.length; i++) {
-                let symbol = keys[i];
-                this.markets[symbol] = this.extend (this.markets[symbol], {
-                    'limits': limits[symbol],
-                });
-            }
-        }
-        return this.markets;
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
@@ -330,7 +327,7 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 2000, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -363,7 +360,7 @@ module.exports = class huobipro extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 2000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -473,7 +470,8 @@ module.exports = class huobipro extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let response = await this.privateGetAccountAccountsIdBalance (this.extend ({
+        let method = this.options['fetchBalanceMethod'];
+        let response = await this[method] (this.extend ({
             'id': this.accounts[0]['id'],
         }, params));
         let balances = response['data']['list'];
@@ -505,7 +503,7 @@ module.exports = class huobipro extends Exchange {
         let response = await this.privateGetOrderOrders (this.extend ({
             'symbol': market['id'],
             'states': states,
-        }));
+        }, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -566,10 +564,10 @@ module.exports = class huobipro extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = order['created-at'];
-        let amount = parseFloat (order['amount']);
+        let amount = this.safeFloat (order, 'amount');
         let filled = parseFloat (order['field-amount']);
         let remaining = amount - filled;
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let cost = parseFloat (order['field-cash-amount']);
         let average = 0;
         if (filled)
@@ -605,9 +603,19 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'type': side + '-' + type,
         };
+        if (this.options['createMarketBuyOrderRequiresPrice']) {
+            if ((type === 'market') && (side === 'buy')) {
+                if (typeof price === 'undefined') {
+                    throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                } else {
+                    order['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                }
+            }
+        }
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
-        let response = await this.privatePostOrderOrdersPlace (this.extend (order, params));
+        let method = this.options['createOrderMethod'];
+        let response = await this[method] (this.extend (order, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
@@ -671,14 +679,16 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         this.checkAddress (address);
+        let currency = this.currency (code);
         let request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'].toLowerCase (),
         };
-        if (tag)
+        if (typeof tag !== 'undefined')
             request['addr-tag'] = tag; // only for XRP?
         let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         let id = undefined;

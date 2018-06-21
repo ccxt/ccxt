@@ -155,6 +155,9 @@ class zb extends Exchange {
                     'taker' => 0.2 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'ENT' => 'ENTCash',
+            ),
         ));
     }
 
@@ -259,16 +262,16 @@ class zb extends Exchange {
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $response['ticker'];
         $timestamp = $this->milliseconds ();
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['buy']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'buy'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['sell']),
+            'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -278,7 +281,7 @@ class zb extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['vol']),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -311,8 +314,8 @@ class zb extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
@@ -363,7 +366,7 @@ class zb extends Exchange {
         );
         $order = array_merge ($order, $params);
         $response = $this->privateGetGetOrder ($order);
-        return $this->parse_order($response, null, true);
+        return $this->parse_order($response, null);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
@@ -419,7 +422,7 @@ class zb extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $order['type'] === 1 ? 'buy' : 'sell';
+        $side = ($order['type'] === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = null;
         $createDateField = $this->get_create_date_field ();
@@ -433,7 +436,7 @@ class zb extends Exchange {
         if ($market)
             $symbol = $market['symbol'];
         $price = $order['price'];
-        $average = $order['trade_price'];
+        $average = null;
         $filled = $order['trade_amount'];
         $amount = $order['total_amount'];
         $remaining = $amount - $filled;
@@ -505,7 +508,7 @@ class zb extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

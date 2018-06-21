@@ -40,7 +40,7 @@ const {
 
 const { DECIMAL_PLACES } = functions.precisionConstants
 
-const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
+const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -104,6 +104,7 @@ module.exports = class Exchange extends EventEmitter{
                 'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTradingFees': false,
+                'fetchTradingLimits': false,
                 'withdraw': false,
             },
             'urls': {
@@ -162,10 +163,8 @@ module.exports = class Exchange extends EventEmitter{
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
-        if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
-
         // if (isNode) {
+        //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
         //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //             ' (+https://github.com/ccxt/ccxt)' +
@@ -174,6 +173,7 @@ module.exports = class Exchange extends EventEmitter{
         // }
 
         this.options = {} // exchange-specific options, if any
+        this.fetchOptions = {} // fetch implementation options (JS only)
 
         this.userAgents = {
             'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
@@ -186,15 +186,68 @@ module.exports = class Exchange extends EventEmitter{
         this.proxy = ''
         this.origin = '*' // CORS origin
 
-        this.iso8601          = timestamp => ((typeof timestamp === 'undefined') ? timestamp : new Date (timestamp).toISOString ())
-        this.parse8601        = x => Date.parse ((((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:')))
-        this.parseDate        = (x) => {
-            if (typeof x === 'undefined')
-                return x
-            return ((x.indexOf ('GMT') >= 0) ?
-                Date.parse (x) :
-                this.parse8601 (x))
+        this.iso8601 = (timestamp) => {
+            const _timestampNumber = parseInt (timestamp, 10);
+
+            // undefined, null and lots of nasty non-numeric values yield NaN
+            if (isNaN (_timestampNumber) || _timestampNumber < 0) {
+                return undefined;
+            }
+
+            if (_timestampNumber < 0) {
+                return undefined;
+            }
+
+            // last line of defence
+            try {
+                return new Date (_timestampNumber).toISOString ();
+            } catch (e) {
+                return undefined;
+            }
         }
+
+        this.parse8601 = (x) => {
+            if (typeof x !== 'string' || !x) {
+                return undefined;
+            }
+
+            if (x.match (/^[0-9]+$/)) {
+                // a valid number in a string, not a date.
+                return undefined;
+            }
+
+            if (x.indexOf ('-') < 0 || x.indexOf (':') < 0) { // no date can be without a dash and a colon
+                return undefined;
+            }
+
+            // last line of defence
+            try {
+                const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
+                if (isNaN (candidate)) {
+                    return undefined;
+                }
+                return candidate;
+            } catch (e) {
+                return undefined;
+            }
+        }
+
+        this.parseDate = (x) => {
+            if (typeof x !== 'string' || !x) {
+                return undefined;
+            }
+
+            if (x.indexOf ('GMT') >= 0) {
+                try {
+                    return Date.parse (x);
+                } catch (e) {
+                    return undefined;
+                }
+            }
+
+            return this.parse8601 (x);
+        }
+
         this.microseconds     = () => now () * 1000 // TODO: utilize performance.now for that purpose
         this.seconds          = () => Math.floor (now () / 1000)
 
@@ -322,7 +375,7 @@ module.exports = class Exchange extends EventEmitter{
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, { method, headers, body, 'agent': this.agent || null, timeout: this.timeout })
+                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -456,7 +509,7 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    handleErrors (statusCode, statusText, url, method, requestHeaders, responseBody, json) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
         // override me
     }
 
@@ -543,6 +596,7 @@ module.exports = class Exchange extends EventEmitter{
                 values.filter (market => 'base' in market)
                     .map (market => ({
                         id: market.baseId || market.base,
+                        numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
@@ -550,6 +604,7 @@ module.exports = class Exchange extends EventEmitter{
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
+                        numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
@@ -874,18 +929,36 @@ module.exports = class Exchange extends EventEmitter{
         return this.fetchPartialBalance ('total', params)
     }
 
+    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+        if (this.has['fetchTradingLimits']) {
+            if (reload || !('limitsLoaded' in this.options)) {
+                let response = await this.fetchTradingLimits (symbols);
+                let limits = response['limits'];
+                let keys = Object.keys (limits);
+                for (let i = 0; i < keys.length; i++) {
+                    let symbol = keys[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
+                        'limits': limits[symbol],
+                    });
+                }
+                this.options['limitsLoaded'] = this.milliseconds ();
+            }
+        }
+        return this.markets;
+    }
+
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined' && since !== null)
             array = array.filter (entry => entry.timestamp >= since)
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = array.slice (0, limit)
         return array
     }
 
     filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
 
-        const symbolIsDefined = typeof symbol !== 'undefined'
-        const sinceIsDefined = typeof since !== 'undefined'
+        const symbolIsDefined = typeof symbol !== 'undefined' && symbol !== null
+        const sinceIsDefined = typeof since !== 'undefined' && since !== null
 
         // single-pass filter for both symbol and since
         if (symbolIsDefined || sinceIsDefined)
@@ -893,7 +966,7 @@ module.exports = class Exchange extends EventEmitter{
                 ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
                  (sinceIsDefined  ? (entry.timestamp >= since) : true)))
 
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined' && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
@@ -904,7 +977,7 @@ module.exports = class Exchange extends EventEmitter{
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (typeof values === 'undefined')
+        if (typeof values === 'undefined' || values === null)
             return indexed ? indexBy (objects, key) : objects
 
         let result = []
@@ -1032,14 +1105,26 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    ymd (timestamp, infix = ' ') {
+    mdy (timestamp, infix = '-') {
+        infix = infix || ''
         let date = new Date (timestamp)
-        let Y = date.getUTCFullYear ()
+        let Y = date.getUTCFullYear ().toString ()
         let m = date.getUTCMonth () + 1
         let d = date.getUTCDate ()
-        m = m < 10 ? ('0' + m) : m
-        d = d < 10 ? ('0' + d) : d
-        return Y + '-' + m + '-' + d
+        m = m < 10 ? ('0' + m) : m.toString ()
+        d = d < 10 ? ('0' + d) : d.toString ()
+        return m + infix + d + infix + y
+    }
+
+    ymd (timestamp, infix = '-') {
+        infix = infix || ''
+        let date = new Date (timestamp)
+        let Y = date.getUTCFullYear ().toString ()
+        let m = date.getUTCMonth () + 1
+        let d = date.getUTCDate ()
+        m = m < 10 ? ('0' + m) : m.toString ()
+        d = d < 10 ? ('0' + d) : d.toString ()
+        return Y + infix + m + infix + d
     }
 
     ymdhms (timestamp, infix = ' ') {

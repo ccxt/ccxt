@@ -145,16 +145,16 @@ module.exports = class flowbtc extends Exchange {
             'productPair': market['id'],
         }, params));
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -164,8 +164,8 @@ module.exports = class flowbtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume24hr']),
-            'quoteVolume': parseFloat (ticker['volume24hrProduct2']),
+            'baseVolume': this.safeFloat (ticker, 'volume24hr'),
+            'quoteVolume': this.safeFloat (ticker, 'volume24hrProduct2'),
             'info': ticker,
         };
     }

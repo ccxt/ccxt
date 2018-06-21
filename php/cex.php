@@ -115,6 +115,9 @@ class cex extends Exchange {
                     ),
                 ),
             ),
+            'options' => array (
+                'fetchOHLCVWarning' => true,
+            ),
         ));
     }
 
@@ -143,8 +146,8 @@ class cex extends Exchange {
                         'max' => $market['maxLotSize'],
                     ),
                     'price' => array (
-                        'min' => floatval ($market['minPrice']),
-                        'max' => floatval ($market['maxPrice']),
+                        'min' => $this->safe_float($market, 'minPrice'),
+                        'max' => $this->safe_float($market, 'maxPrice'),
                     ),
                     'cost' => array (
                         'min' => $market['minLotSizeS2'],
@@ -180,9 +183,13 @@ class cex extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderBookPair (array_merge (array (
+        $request = array (
             'pair' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $request['depth'] = $limit;
+        }
+        $orderbook = $this->publicGetOrderBookPair (array_merge ($request, $params));
         $timestamp = $orderbook['timestamp'] * 1000;
         return $this->parse_order_book($orderbook, $timestamp);
     }
@@ -201,8 +208,13 @@ class cex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$since)
+        if (!$since) {
             $since = $this->milliseconds () - 86400000; // yesterday
+        } else {
+            if ($this->options['fetchOHLCVWarning']) {
+                throw new ExchangeError ($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array ( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
+            }
+        }
         $ymd = $this->ymd ($since);
         $ymd = explode ('-', $ymd);
         $ymd = implode ('', $ymd);
@@ -210,10 +222,16 @@ class cex extends Exchange {
             'pair' => $market['id'],
             'yyyymmdd' => $ymd,
         );
-        $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
-        $key = 'data' . $this->timeframes[$timeframe];
-        $ohlcvs = json_decode ($response[$key], $as_associative_array = true);
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        try {
+            $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
+            $key = 'data' . $this->timeframes[$timeframe];
+            $ohlcvs = json_decode ($response[$key], $as_associative_array = true);
+            return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        } catch (Exception $e) {
+            if ($e instanceof NullResponse) {
+                return array ();
+            }
+        }
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -292,8 +310,8 @@ class cex extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $trade['type'],
-            'price' => floatval ($trade['price']),
-            'amount' => floatval ($trade['amount']),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
@@ -341,7 +359,7 @@ class cex extends Exchange {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $order['time'];
-        if (gettype ($order['time']) == 'string' && mb_strpos ($order['time'], 'T') !== false) {
+        if (gettype ($order['time']) === 'string' && mb_strpos ($order['time'], 'T') !== false) {
             // ISO8601 string
             $timestamp = $this->parse8601 ($timestamp);
         } else {
@@ -495,7 +513,7 @@ class cex extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (!$response) {
-            throw new ExchangeError ($this->id . ' returned ' . $this->json ($response));
+            throw new NullResponse ($this->id . ' returned ' . $this->json ($response));
         } else if ($response === true) {
             return $response;
         } else if (is_array ($response) && array_key_exists ('e', $response)) {

@@ -15,11 +15,11 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 
@@ -40,6 +40,7 @@ class livecoin (Exchange):
                 'fetchCurrencies': True,
                 'fetchTradingFees': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
@@ -106,6 +107,8 @@ class livecoin (Exchange):
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
+                'TPI': 'ThaneCoin',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
@@ -244,8 +247,13 @@ class livecoin (Exchange):
         currencies = [
             {'id': 'USD', 'code': 'USD', 'name': 'US Dollar'},
             {'id': 'EUR', 'code': 'EUR', 'name': 'Euro'},
-            {'id': 'RUR', 'code': 'RUR', 'name': 'Russian ruble'},
+            # {'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble'},
         ]
+        currencies.append({
+            'id': 'RUR',
+            'code': self.common_currency_code('RUR'),
+            'name': 'Russian ruble',
+        })
         for i in range(0, len(currencies)):
             currency = currencies[i]
             code = currency['code']
@@ -300,21 +308,21 @@ class livecoin (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['best_bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'best_bid'),
             'bidVolume': None,
-            'ask': float(ticker['best_ask']),
+            'ask': self.safe_float(ticker, 'best_ask'),
             'askVolume': None,
-            'vwap': float(ticker['vwap']),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': None,
             'close': last,
             'last': last,
@@ -372,60 +380,96 @@ class livecoin (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        response = await self.privateGetExchangeOrder(self.extend(request, params))
+        return self.parse_order(response)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'lastModificationTime')
-        if not timestamp:
-            timestamp = self.parse8601(order['lastModificationTime'])
+        timestamp = None
+        datetime = None
+        if 'lastModificationTime' in order:
+            timestamp = self.safe_string(order, 'lastModificationTime')
+            if timestamp is not None:
+                if timestamp.find('T') >= 0:
+                    timestamp = self.parse8601(timestamp)
+                else:
+                    timestamp = self.safe_integer(order, 'lastModificationTime')
+        if timestamp:
+            datetime = self.iso8601(timestamp)
+        # TODO currently not supported by livecoin
+        # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
-        if 'trades' in order:
-            # TODO currently not supported by livecoin
-            # trades = self.parse_trades(order['trades'], market, since, limit)
-            trades = None
-        status = None
-        if order['orderStatus'] == 'OPEN' or order['orderStatus'] == 'PARTIALLY_FILLED':
-            status = 'open'
-        elif order['orderStatus'] == 'EXECUTED' or order['orderStatus'] == 'PARTIALLY_FILLED_AND_CANCELLED':
-            status = 'closed'
-        else:
-            status = 'canceled'
-        symbol = order['currencyPair']
-        parts = symbol.split('/')
-        quote = parts[1]
-        # base, quote = symbol.split('/')
+        status = self.safe_string(order, 'status')
+        status = self.safe_string(order, 'orderStatus', status)
+        status = self.parse_order_status(status)
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'currencyPair')
+            marketId = self.safe_string(order, 'symbol', marketId)
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         type = None
         side = None
-        if order['type'].find('MARKET') >= 0:
-            type = 'market'
-        else:
-            type = 'limit'
-        if order['type'].find('SELL') >= 0:
-            side = 'sell'
-        else:
-            side = 'buy'
-        price = self.safe_float(order, 'price', 0.0)
-        cost = self.safe_float(order, 'commissionByTrade', 0.0)
-        remaining = self.safe_float(order, 'remainingQuantity', 0.0)
+        if 'type' in order:
+            lowercaseType = order['type'].lower()
+            orderType = lowercaseType.split('_')
+            type = orderType[0]
+            side = orderType[1]
+        price = self.safe_float(order, 'price')
+        # of the next two lines the latter overrides the former, if present in the order structure
+        remaining = self.safe_float(order, 'remainingQuantity')
+        remaining = self.safe_float(order, 'remaining_quantity', remaining)
         amount = self.safe_float(order, 'quantity', remaining)
-        filled = amount - remaining
+        filled = None
+        if remaining is not None:
+            filled = amount - remaining
+        cost = None
+        if filled is not None and price is not None:
+            cost = filled * price
+        feeRate = self.safe_float(order, 'commission_rate')
+        feeCost = None
+        if cost is not None and feeRate is not None:
+            feeCost = cost * feeRate
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
         return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
             'fee': {
-                'cost': cost,
-                'currency': quote,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             },
         }
 
@@ -473,10 +517,14 @@ class livecoin (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(order, params))
-        return {
+        result = {
             'info': response,
             'id': str(response['orderId']),
         }
+        success = self.safe_value(response, 'success')
+        if success:
+            result['status'] = 'open'
+        return result
 
     async def cancel_order(self, id, symbol=None, params={}):
         if not symbol:
@@ -494,7 +542,10 @@ class livecoin (Exchange):
                 raise InvalidOrder(message)
             elif 'cancelled' in response:
                 if response['cancelled']:
-                    return response
+                    return {
+                        'status': 'canceled',
+                        'info': response,
+                    }
                 else:
                     raise OrderNotFound(message)
         raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
@@ -574,4 +625,7 @@ class livecoin (Exchange):
             # returns status code 200 even if success == False
             success = self.safe_value(response, 'success', True)
             if not success:
+                message = self.safe_string(response, 'message', '')
+                if message.find('Cannot find order') >= 0:
+                    raise OrderNotFound(self.id + ' ' + body)
                 raise ExchangeError(self.id + ' ' + body)

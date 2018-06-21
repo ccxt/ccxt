@@ -124,11 +124,11 @@ class zaif (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['item_unit_min']),
+                        'min': self.safe_float(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': float(market['aux_unit_min']),
+                        'min': self.safe_float(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {

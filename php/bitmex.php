@@ -130,6 +130,13 @@ class bitmex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                'Access Denied' => '\\ccxt\\PermissionDenied',
+            ),
+            'options' => array (
+                'fetchTickerQuotes' => true,
+            ),
         ));
     }
 
@@ -303,9 +310,15 @@ class bitmex extends Exchange {
             'count' => 1,
             'reverse' => true,
         ), $params);
-        $quotes = $this->publicGetQuoteBucketed ($request);
-        $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
-        $quote = $quotes[$quotesLength - 1];
+        $bid = null;
+        $ask = null;
+        if ($this->options['fetchTickerQuotes']) {
+            $quotes = $this->publicGetQuoteBucketed ($request);
+            $quotesLength = is_array ($quotes) ? count ($quotes) : 0;
+            $quote = $quotes[$quotesLength - 1];
+            $bid = $this->safe_float($quote, 'bidPrice');
+            $ask = $this->safe_float($quote, 'askPrice');
+        }
         $tickers = $this->publicGetTradeBucketed ($request);
         $ticker = $tickers[0];
         $timestamp = $this->milliseconds ();
@@ -316,13 +329,13 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($quote['bidPrice']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => floatval ($quote['askPrice']),
+            'ask' => $ask,
             'askVolume' => null,
-            'vwap' => floatval ($ticker['vwap']),
+            'vwap' => $this->safe_float($ticker, 'vwap'),
             'open' => $open,
             'close' => $close,
             'last' => $close,
@@ -330,8 +343,8 @@ class bitmex extends Exchange {
             'change' => $change,
             'percentage' => $change / $open * 100,
             'average' => $this->sum ($open, $close) / 2,
-            'baseVolume' => floatval ($ticker['homeNotional']),
-            'quoteVolume' => floatval ($ticker['foreignNotional']),
+            'baseVolume' => $this->safe_float($ticker, 'homeNotional'),
+            'quoteVolume' => $this->safe_float($ticker, 'foreignNotional'),
             'info' => $ticker,
         );
     }
@@ -440,7 +453,7 @@ class bitmex extends Exchange {
             $iso8601 = $this->iso8601 ($timestamp);
         }
         $price = $this->safe_float($order, 'price');
-        $amount = floatval ($order['orderQty']);
+        $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
         $remaining = max ($amount - $filled, 0.0);
         $cost = null;
@@ -562,13 +575,15 @@ class bitmex extends Exchange {
                     $response = json_decode ($body, $as_associative_array = true);
                     if (is_array ($response) && array_key_exists ('error', $response)) {
                         if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
+                            $feedback = $this->id . ' ' . $this->json ($response);
                             $message = $this->safe_value($response['error'], 'message');
+                            $exceptions = $this->exceptions;
                             if ($message !== null) {
-                                if ($message === 'Invalid API Key.')
-                                    throw new AuthenticationError ($this->id . ' ' . $this->json ($response));
+                                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                                    throw new $exceptions[$message] ($feedback);
+                                }
                             }
-                            // stub $code, need proper handling
-                            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                            throw new ExchangeError ($feedback);
                         }
                     }
                 }

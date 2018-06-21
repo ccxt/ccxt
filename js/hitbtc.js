@@ -12,7 +12,7 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': 'HK',
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -28,6 +28,7 @@ module.exports = class hitbtc extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
+                'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -115,7 +116,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'BET': 124,
+                        'DAO.Casino': 124, // id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -310,7 +311,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'BET': 0,
+                        'DAO.Casino': 0, // id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -483,11 +484,16 @@ module.exports = class hitbtc extends Exchange {
             },
             'commonCurrencies': {
                 'BCC': 'BCC',
-                'XBT': 'BTC',
-                'DRK': 'DASH',
+                'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
-                'USD': 'USDT',
+                'DRK': 'DASH',
                 'EMGO': 'MGO',
+                'GET': 'Themis',
+                'USD': 'USDT',
+                'XBT': 'BTC',
+            },
+            'options': {
+                'defaultTimeInForce': 'FOK',
             },
         });
     }
@@ -500,12 +506,13 @@ module.exports = class hitbtc extends Exchange {
             let id = market['symbol'];
             let baseId = market['commodity'];
             let quoteId = market['currency'];
-            let lot = parseFloat (market['lot']);
-            let step = parseFloat (market['step']);
+            let lot = this.safeFloat (market, 'lot');
+            let step = this.safeFloat (market, 'step');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -514,7 +521,7 @@ module.exports = class hitbtc extends Exchange {
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'info': market,
+                'active': true,
                 'maker': this.safeFloat (market, 'provideLiquidityRate'),
                 'taker': this.safeFloat (market, 'takeLiquidityRate'),
                 'precision': {
@@ -656,13 +663,13 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let amount = parseFloat (trade['execQuantity']);
+        let amount = this.safeFloat (trade, 'execQuantity');
         if (market)
             amount *= market['lot'];
-        let price = parseFloat (trade['execPrice']);
+        let price = this.safeFloat (trade, 'execPrice');
         let cost = price * amount;
         let fee = {
-            'cost': parseFloat (trade['fee']),
+            'cost': this.safeFloat (trade, 'fee'),
             'currency': undefined,
             'rate': undefined,
         };
@@ -726,7 +733,7 @@ module.exports = class hitbtc extends Exchange {
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = 'FOK';
+            order['timeInForce'] = this.options['defaultTimeInForce'];
         }
         let response = await this.tradingPostNewOrder (this.extend (order, params));
         return this.parseOrder (response['ExecutionReport'], market);
@@ -775,12 +782,16 @@ module.exports = class hitbtc extends Exchange {
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
         let remainingDefined = (typeof remaining !== 'undefined');
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if (amountDefined)
                 amount *= market['lot'];
             if (remainingDefined)
                 remaining *= market['lot'];
+        } else {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (amountDefined) {
             if (remainingDefined) {
@@ -788,6 +799,17 @@ module.exports = class hitbtc extends Exchange {
                 cost = averagePrice * filled;
             }
         }
+        let feeCost = this.safeFloat (order, 'fee');
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': undefined,
+        };
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,
@@ -803,7 +825,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 

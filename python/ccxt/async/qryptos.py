@@ -187,10 +187,19 @@ class qryptos (Exchange):
             if ticker['last_traded_price']:
                 length = len(ticker['last_traded_price'])
                 if length > 0:
-                    last = float(ticker['last_traded_price'])
+                    last = self.safe_float(ticker, 'last_traded_price')
         symbol = None
         if market:
             symbol = market['symbol']
+        change = None
+        percentage = None
+        average = None
+        open = self.safe_float(ticker, 'last_price_24h')
+        if open is not None and last is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
+            if open > 0:
+                percentage = change / open * 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -202,13 +211,13 @@ class qryptos (Exchange):
             'ask': self.safe_float(ticker, 'market_ask'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': self.safe_float(ticker, 'volume_24h'),
             'quoteVolume': None,
             'info': ticker,
@@ -261,8 +270,8 @@ class qryptos (Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': float(trade['price']),
-            'amount': float(trade['quantity']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'quantity'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -324,9 +333,9 @@ class qryptos (Exchange):
                 status = 'closed'
             elif order['status'] == 'cancelled':  # 'll' intended
                 status = 'canceled'
-        amount = float(order['quantity'])
-        filled = float(order['filled_quantity'])
-        price = float(order['price'])
+        amount = self.safe_float(order, 'quantity')
+        filled = self.safe_float(order, 'filled_quantity')
+        price = self.safe_float(order, 'price')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -346,7 +355,7 @@ class qryptos (Exchange):
             'trades': None,
             'fee': {
                 'currency': None,
-                'cost': float(order['order_fee']),
+                'cost': self.safe_float(order, 'order_fee'),
             },
             'info': order,
         }

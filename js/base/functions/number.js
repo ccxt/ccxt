@@ -133,7 +133,7 @@ const decimalToPrecision = (x, roundingMode
             afterDot = i--
 
         } else if ((c < ZERO) || (c > NINE)) {
-            throw new Error (`invalid number (contains an illegal character '${str[i - 1]}')`)
+            throw new Error (`${str}: invalid number (contains an illegal character '${str[i - 1]}')`)
 
         } else {
             chars[i] = c
@@ -162,6 +162,7 @@ const decimalToPrecision = (x, roundingMode
         chars =         0999     0999     0900     1000
         memo  =         ---0     --1-     -1--     0---                     */
 
+    let allZeros = true;
     for (let i = chars.length - 1, memo = 0; i >= 0; i--) {
 
         let c = chars[i]
@@ -185,6 +186,7 @@ const decimalToPrecision = (x, roundingMode
         chars[i] = c
 
         if (c !== ZERO) {
+            allZeros    = false
             digitsStart = i
             digitsEnd   = (digitsEnd < 0) ? (i + 1) : digitsEnd
         }
@@ -199,7 +201,7 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Determine the input character range     */
 
-    const readStart     = (digitsStart >= afterDot) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
+    const readStart     = ((digitsStart >= afterDot) || allZeros) ? (afterDot - 1) : digitsStart // 0.000(1)234  ----> (0).0001234
         , readEnd       = (digitsEnd    < afterDot) ? (afterDot    ) : digitsEnd   // 12(3)000     ----> 123000( )
 
 /*  Compute various sub-ranges       */

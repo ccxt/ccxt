@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
     describe () {
@@ -29,10 +29,6 @@ module.exports = class liqui extends Exchange {
                 'api': {
                     'public': 'https://api.liqui.io/api',
                     'private': 'https://api.liqui.io/tapi',
-                    'web': 'https://liqui.io',
-                    'cacheapi': 'https://cacheapi.liqui.io/Market',
-                    'webapi': 'https://webapi.liqui.io/Market',
-                    'charts': 'https://charts.liqui.io/chart',
                 },
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
@@ -59,37 +55,6 @@ module.exports = class liqui extends Exchange {
                         'WithdrawCoin',
                         'CreateCoupon',
                         'RedeemCoupon',
-                    ],
-                },
-                'web': {
-                    'get': [
-                        'User/Balances',
-                    ],
-                    'post': [
-                        'User/Login/',
-                        'User/Session/Activate/',
-                    ],
-                },
-                'cacheapi': {
-                    'get': [
-                        'Pairs',
-                        'Currencies',
-                        'depth', // ?id=228
-                        'Tickers',
-                    ],
-                },
-                'webapi': {
-                    'get': [
-                        'Last', // ?id=228
-                        'Info',
-                    ],
-                },
-                'charts': {
-                    'get': [
-                        'config',
-                        'history', // ?symbol=228&resolution=15&from=1524002997&to=1524011997'
-                        'symbols', // ?symbol=228
-                        'time',
                     ],
                 },
             },
@@ -186,189 +151,12 @@ module.exports = class liqui extends Exchange {
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
             });
         }
         return result;
-    }
-
-    async fetchMarketsFromCache () {
-        let markets = await this.cacheapiGetPairs ();
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            //
-            //  {              Id:  249,
-            //              Order:  62,
-            //     BaseCurrencyId:  110,
-            //    QuoteCurrencyId:  35,
-            //            IsTrade:  true,
-            //          IsVisible:  true,
-            //           MinTotal:  1,
-            //           MinPrice:  0.00001,
-            //           MaxPrice:  1000,
-            //         PricePoint:  8,
-            //          MinAmount:  1e-8,
-            //          MaxAmount:  1000000,
-            //        AmountPoint:  8,
-            //         DisableFee:  false,
-            //           MakerFee:  0.001,
-            //           TakerFee:  0.0025,
-            //           BaseName: "ENJ",
-            //          QuoteName: "USDT",
-            //               Name: "ENJ/USDT" }
-            //
-            let baseId = market['BaseName'];
-            let quoteId = market['QuoteName'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let id = baseId.toLowerCase () + '_' + quoteId.toLowerCase ();
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': this.safeInteger (market, 'AmountPoint'),
-                'price': this.safeInteger (market, 'PricePoint'),
-            };
-            let amountLimits = {
-                'min': this.safeFloat (market, 'MinAmount'),
-                'max': this.safeFloat (market, 'MaxAmount'),
-            };
-            let priceLimits = {
-                'min': this.safeFloat (market, 'MinPrice'),
-                'max': this.safeFloat (market, 'MaxPrice'),
-            };
-            let costLimits = {
-                'min': this.safeFloat (market, 'MinTotal'),
-            };
-            let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
-            };
-            let isTrading = this.safeValue (market, 'IsTrade');
-            let isVisible = this.safeValue (market, 'IsVisible');
-            let active = (isTrading && isVisible);
-            result.push ({
-                'id': id,
-                'marketId': market['Id'],
-                'baseNumericId': market['BaseCurrencyId'],
-                'quoteNumericId': market['QuoteCurrencyId'],
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'taker': market['TakerFee'],
-                'maker': market['MakerFee'],
-                'lot': amountLimits['min'],
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            });
-        }
-        return result;
-    }
-
-    async fetchCurrenciesFromCache (params = {}) {
-        let currencies = await this.cacheapiGetCurrencies (params);
-        let result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            //
-            //  {               Id:    12,
-            //              Symbol:   "ETH",
-            //                Type:    2,
-            //                Name:   "Ethereum",
-            //               Order:    9,
-            //         AmountPoint:    8,
-            //       DepositEnable:    true,
-            //    DepositMinAmount:    0.05,
-            //      WithdrawEnable:    true,
-            //         WithdrawFee:    0.01,
-            //    WithdrawMinAmout:    0.01,
-            //            Settings: {        Blockchain: "https://etherscan.io/",
-            //                                    TxUrl: "https://etherscan.io/tx/{0}",
-            //                                  AddrUrl: "https://etherscan.io/address/{0}",
-            //                        ConfirmationCount:  30,
-            //                                 NeedMemo:  false                              },
-            //
-            let id = currency['Symbol'];
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = currency['AmountPoint']; // default precision, todo: fix "magic constants"
-            let active = currency['DepositEnable'] && currency['WithdrawEnable'] && currency['Visible'];
-            result[code] = {
-                'id': id,
-                'code': code,
-                'numericId': currency['Id'],
-                'info': currency,
-                'name': currency['Name'],
-                'active': active,
-                'status': 'ok',
-                'type': 'crypto',
-                'fee': currency['WithdrawFee'], // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': currency['DepositMinAmount'],
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
-        }
-        return result;
-    }
-
-    async fetchBalanceFromWeb (params = {}) {
-        // this is an alternative implementation of Liqui website balances
-        // for use with numeric currency ids from their cache API
-        await this.loadMarkets ();
-        if (!('currenciesByNumericId' in this.options))
-            this.options['currenciesByNumericId'] = this.indexBy (this.currencies, 'numericId');
-        let balances = await this.webGetUserBalances (params);
-        let result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            //
-            //  { CurrencyId: 12,
-            //         Value: 1.1990027336966798,
-            //      InOrders: 0.11752418,
-            //    InInterest: 0,
-            //       Changes: 0                   }
-            //
-            let numericId = balance['CurrencyId'];
-            let code = numericId.toString ();
-            if (numericId in this.options['currenciesByNumericId']) {
-                code = this.options['currenciesByNumericId'][numericId]['code'];
-            }
-            let used = this.sum (balance['InOrders'], balance['InInterest']);
-            let total = balance['Value'];
-            let free = total - used;
-            let account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
-            result[code] = account;
-        }
-        return this.parseBalance (result);
     }
 
     async fetchBalance (params = {}) {
@@ -935,6 +723,8 @@ module.exports = class liqui extends Exchange {
                     // in fact, we can use the same .exceptions with string-keys to save some loc here
                     if (message === 'invalid api key') {
                         throw new AuthenticationError (feedback);
+                    } else if (message === 'invalid sign') {
+                        throw new AuthenticationError (feedback);
                     } else if (message === 'api key dont have trade permission') {
                         throw new AuthenticationError (feedback);
                     } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
@@ -944,11 +734,11 @@ module.exports = class liqui extends Exchange {
                     } else if (message === 'Requests too often') {
                         throw new DDoSProtection (feedback);
                     } else if (message === 'not available') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else if (message === 'data unavailable') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else if (message === 'external service unavailable') {
-                        throw new DDoSProtection (feedback);
+                        throw new ExchangeNotAvailable (feedback);
                     } else {
                         throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                     }

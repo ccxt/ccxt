@@ -64,11 +64,17 @@ class bitso extends Exchange {
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
                         'phone_withdrawal',
                         'spei_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                     ),
                     'delete' => array (
                         'orders/{oid}',
@@ -93,16 +99,16 @@ class bitso extends Exchange {
             list ($base, $quote) = explode ('/', $symbol);
             $limits = array (
                 'amount' => array (
-                    'min' => floatval ($market['minimum_amount']),
-                    'max' => floatval ($market['maximum_amount']),
+                    'min' => $this->safe_float($market, 'minimum_amount'),
+                    'max' => $this->safe_float($market, 'maximum_amount'),
                 ),
                 'price' => array (
-                    'min' => floatval ($market['minimum_price']),
-                    'max' => floatval ($market['maximum_price']),
+                    'min' => $this->safe_float($market, 'minimum_price'),
+                    'max' => $this->safe_float($market, 'maximum_price'),
                 ),
                 'cost' => array (
-                    'min' => floatval ($market['minimum_value']),
-                    'max' => floatval ($market['maximum_value']),
+                    'min' => $this->safe_float($market, 'minimum_value'),
+                    'max' => $this->safe_float($market, 'maximum_value'),
                 ),
             );
             $precision = array (
@@ -159,19 +165,19 @@ class bitso extends Exchange {
         ), $params));
         $ticker = $response['payload'];
         $timestamp = $this->parse8601 ($ticker['created_at']);
-        $vwap = floatval ($ticker['vwap']);
-        $baseVolume = floatval ($ticker['volume']);
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = $baseVolume * $vwap;
-        $last = floatval ($ticker['last']);
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => floatval ($ticker['high']),
-            'low' => floatval ($ticker['low']),
-            'bid' => floatval ($ticker['bid']),
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['ask']),
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -299,9 +305,10 @@ class bitso extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             'partial-fill' => 'open', // this is a common substitution in ccxt
+            'completed' => 'closed',
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses))
-            return $statuses['status'];
+            return $statuses[$status];
         return $status;
     }
 
@@ -318,8 +325,8 @@ class bitso extends Exchange {
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $timestamp = $this->parse8601 ($order['created_at']);
-        $amount = floatval ($order['original_amount']);
-        $remaining = floatval ($order['unfilled_amount']);
+        $amount = $this->safe_float($order, 'original_amount');
+        $remaining = $this->safe_float($order, 'unfilled_amount');
         $filled = $amount - $remaining;
         $result = array (
             'info' => $order,
@@ -368,6 +375,79 @@ class bitso extends Exchange {
         return $orders;
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrdersOid (array (
+            'oid' => $id,
+        ));
+        $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
+        if (!gettype ($response['payload']) === 'array' && count (array_filter (array_keys ($response['payload']), 'is_string')) == 0 || ($numOrders !== 1)) {
+            throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
+        }
+        return $this->parse_order($response['payload'][0], $market);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrderTradesOid (array (
+            'oid' => $id,
+        ));
+        return $this->parse_trades($response['payload'], $market);
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'fund_currency' => $currency['id'],
+        );
+        $response = $this->privateGetFundingDestination (array_merge ($request, $params));
+        $address = $this->safe_string($response['payload'], 'account_identifier');
+        $tag = null;
+        if ($code === 'XRP') {
+            $parts = explode ('?dt=', $address);
+            $address = $parts[0];
+            $tag = $parts[1];
+        }
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => 'ok',
+            'info' => $response,
+        );
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $methods = array (
+            'BTC' => 'Bitcoin',
+            'ETH' => 'Ether',
+            'XRP' => 'Ripple',
+            'BCH' => 'Bcash',
+            'LTC' => 'Litecoin',
+        );
+        $method = (is_array ($methods) && array_key_exists ($code, $methods)) ? $methods[$code] : null;
+        if ($method === null) {
+            throw new ExchangeError ($this->id . ' not valid withdraw coin => ' . $code);
+        }
+        $request = array (
+            'amount' => $amount,
+            'address' => $address,
+            'destination_tag' => $tag,
+        );
+        $classMethod = 'privatePost' . $method . 'Withdrawal';
+        $response = $this->$classMethod (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response['payload'], 'wid'),
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $endpoint = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
@@ -397,7 +477,7 @@ class bitso extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
@@ -408,7 +488,7 @@ class bitso extends Exchange {
                 //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
                 //
                 $success = $this->safe_value($response, 'success', false);
-                if (gettype ($success) == 'string') {
+                if (gettype ($success) === 'string') {
                     if (($success === 'true') || ($success === '1'))
                         $success = true;
                     else
