@@ -73,10 +73,6 @@ class tidex extends liqui {
             $code = strtoupper ($id);
             $code = $this->common_currency_code($code);
             $active = $currency['visible'] === true;
-            $status = 'ok';
-            if (!$active) {
-                $status = 'disabled';
-            }
             $canWithdraw = $currency['withdrawEnable'] === true;
             $canDeposit = $currency['depositEnable'] === true;
             if (!$canWithdraw || !$canDeposit) {
@@ -87,7 +83,6 @@ class tidex extends liqui {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => $status,
                 'precision' => $precision,
                 'funding' => array (
                     'withdraw' => array (

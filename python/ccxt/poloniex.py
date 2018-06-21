@@ -342,17 +342,13 @@ class poloniex (Exchange):
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
-            active = (currency['delisted'] == 0)
-            status = 'disabled' if (currency['disabled']) else 'ok'
-            if status != 'ok':
-                active = False
+            active = (currency['delisted'] == 0) or currency['disabled']
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {

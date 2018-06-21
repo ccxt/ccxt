@@ -155,7 +155,6 @@ class cobinhood (Exchange):
                 'code': code,
                 'name': currency['name'],
                 'active': True,
-                'status': 'ok',
                 'fiat': False,
                 'precision': self.precision_from_string(currency['min_unit']),
                 'limits': {

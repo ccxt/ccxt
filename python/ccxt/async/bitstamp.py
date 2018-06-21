@@ -543,7 +543,6 @@ class bitstamp (Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'tag': tag,
             'info': response,

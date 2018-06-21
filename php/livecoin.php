@@ -183,7 +183,6 @@ class livecoin extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => $currency['withdrawFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -219,7 +218,6 @@ class livecoin extends Exchange {
         $defaults = array (
             'info' => null,
             'active' => true,
-            'status' => 'ok',
             'fee' => null,
             'precision' => $precision,
             'limits' => array (

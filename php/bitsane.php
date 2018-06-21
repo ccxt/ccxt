@@ -98,7 +98,6 @@ class bitsane extends Exchange {
                 'code' => $code,
                 'name' => $this->safe_string($currency, 'full_name', $code),
                 'active' => $active,
-                'status' => 'ok',
                 'precision' => $precision,
                 'funding' => array (
                     'withdraw' => array (
@@ -396,7 +395,6 @@ class bitsane extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }

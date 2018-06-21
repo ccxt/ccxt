@@ -375,12 +375,10 @@ class bitbank (Exchange):
         # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
-        status = 'ok' if address else 'none'
         return {
             'currency': currency,
             'address': address,
             'tag': None,
-            'status': status,
             'info': response,
         }
 
