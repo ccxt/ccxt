@@ -488,7 +488,6 @@ class gateio extends Exchange {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => ($address !== null) ? 'ok' : 'none',
             'info' => $response,
         );
     }

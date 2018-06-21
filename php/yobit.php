@@ -158,7 +158,7 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response['info'],
         );
     }
@@ -176,7 +176,7 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }

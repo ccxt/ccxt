@@ -1055,7 +1055,6 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -1073,7 +1072,6 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

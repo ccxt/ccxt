@@ -290,6 +290,5 @@ class gemini (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }

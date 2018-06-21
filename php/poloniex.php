@@ -768,7 +768,7 @@ class poloniex extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -779,11 +779,10 @@ class poloniex extends Exchange {
         $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
         $this->check_address($address);
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => $status,
+            'tag' => null,
             'info' => $response,
         );
     }

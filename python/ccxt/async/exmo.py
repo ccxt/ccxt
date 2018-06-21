@@ -519,7 +519,6 @@ class exmo (Exchange):
         await self.load_markets()
         response = await self.privatePostDepositAddress(params)
         depositAddress = self.safe_string(response, code)
-        status = 'ok'
         address = None
         tag = None
         if depositAddress:
@@ -533,7 +532,6 @@ class exmo (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         }
 

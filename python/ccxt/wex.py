@@ -130,7 +130,6 @@ class wex (liqui):
             'currency': code,
             'address': response['return']['address'],
             'tag': None,
-            'status': 'ok',
             'info': response,
         }
 

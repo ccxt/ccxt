@@ -616,7 +616,6 @@ class huobipro (Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         }
