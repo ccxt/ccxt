@@ -267,7 +267,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined, // todo: redesign
                 'precision': precision,
                 'limits': {

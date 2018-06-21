@@ -436,7 +436,6 @@ module.exports = class huobipro extends Exchange {
                 // 'transfer': undefined,
                 'name': currency['display-name'],
                 'active': active,
-                'status': active ? 'ok' : 'disabled',
                 'fee': undefined, // todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {

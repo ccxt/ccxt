@@ -564,15 +564,11 @@ module.exports = class coinexchange extends Exchange {
             let id = currency['CurrencyID'];
             let code = this.commonCurrencyCode (currency['TickerCode']);
             let active = currency['WalletStatus'] === 'online';
-            let status = 'ok';
-            if (!active)
-                status = 'disabled';
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
