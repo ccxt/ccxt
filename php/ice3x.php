@@ -98,7 +98,6 @@ class ice3x extends Exchange {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => true,
-                'status' => 'ok',
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

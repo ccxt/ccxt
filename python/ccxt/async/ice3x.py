@@ -100,7 +100,6 @@ class ice3x (Exchange):
                 'code': code,
                 'name': currency['name'],
                 'active': True,
-                'status': 'ok',
                 'precision': precision,
                 'limits': {
                     'amount': {

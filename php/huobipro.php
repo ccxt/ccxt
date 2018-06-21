@@ -437,7 +437,6 @@ class huobipro extends Exchange {
                 // 'transfer' => null,
                 'name' => $currency['display-name'],
                 'active' => $active,
-                'status' => $active ? 'ok' : 'disabled',
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
                 'limits' => array (

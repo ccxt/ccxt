@@ -423,7 +423,6 @@ class huobipro (Exchange):
                 # 'transfer': None,
                 'name': currency['display-name'],
                 'active': active,
-                'status': 'ok' if active else 'disabled',
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {

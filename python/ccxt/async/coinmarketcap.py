@@ -256,7 +256,6 @@ class coinmarketcap (Exchange):
                 'info': currency,
                 'name': name,
                 'active': True,
-                'status': 'ok',
                 'fee': None,  # todo: redesign
                 'precision': precision,
                 'limits': {
