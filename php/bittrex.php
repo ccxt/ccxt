@@ -156,6 +156,9 @@ class bittrex extends Exchange {
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             ),
+            'commonCurrencies' => array (
+                'BITS' => 'SWIFT',
+            ),
         ));
     }
 

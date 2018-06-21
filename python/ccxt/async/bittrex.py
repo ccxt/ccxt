@@ -173,6 +173,9 @@ class bittrex (Exchange):
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             },
+            'commonCurrencies': {
+                'BITS': 'SWIFT',
+            },
         })
 
     def cost_to_precision(self, symbol, cost):
