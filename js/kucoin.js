@@ -440,7 +440,6 @@ module.exports = class kucoin extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawMinFee'], // todo: redesign
                 'precision': precision,
                 'limits': {

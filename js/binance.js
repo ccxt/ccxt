@@ -807,7 +807,6 @@ module.exports = class binance extends Exchange {
                     'currency': code,
                     'address': this.checkAddress (address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 };
             }

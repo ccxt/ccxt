@@ -390,12 +390,10 @@ module.exports = class bitbank extends Exchange {
         // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
-        let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
             'address': address,
             'tag': undefined,
-            'status': status,
             'info': response,
         };
     }

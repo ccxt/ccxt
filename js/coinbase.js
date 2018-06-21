@@ -173,7 +173,6 @@ module.exports = class coinbase extends Exchange {
                 'info': currency, // the original payload
                 'name': name,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
