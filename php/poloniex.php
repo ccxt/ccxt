@@ -343,7 +343,7 @@ class poloniex extends Exchange {
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
-            $active = ($currency['delisted'] === 0) || $currency['disabled'];
+            $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
