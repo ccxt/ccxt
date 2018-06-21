@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -627,9 +628,8 @@ class bittrex (Exchange):
         }, params))
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
-        status = 'ok'
         if not address or message == 'ADDRESS_GENERATING':
-            status = 'pending'
+            raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
         if (code == 'XRP') or (code == 'XLM'):
             tag = address
@@ -639,7 +639,6 @@ class bittrex (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         }
 

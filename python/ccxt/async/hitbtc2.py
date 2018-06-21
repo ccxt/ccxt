@@ -1029,7 +1029,6 @@ class hitbtc2 (hitbtc):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
@@ -1046,7 +1045,6 @@ class hitbtc2 (hitbtc):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

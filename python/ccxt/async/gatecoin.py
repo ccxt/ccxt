@@ -616,7 +616,6 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 
@@ -632,7 +631,6 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 
@@ -645,11 +643,8 @@ class gatecoin (Exchange):
             'Address': address,
             'Password': password,
         }
-        response = await self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
-        return {
-            'status': 'ok',
-            'info': response,
-        }
+        # not unified yet
+        return await self.privatePostElectronicWalletUserWalletsDigiCurrency(self.extend(request, params))
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if not isinstance(body, basestring):

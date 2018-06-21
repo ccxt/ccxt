@@ -1532,6 +1532,8 @@ To get the list of available timeframes for your exchange see the ``timeframes``
 
 Like with most other unified and implicit methods, the ``fetchOHLCV`` method accepts as its last argument an associative array (a dictionary) of extra ``params``, which is used to override default values that are sent in requests to the exchanges. The contents of ``params`` are exchange-specific, consult the exchanges’ API documentation for supported fields and values.
 
+If ``since`` is not specified the ``fetchOHLCV`` method will return the time range as is the default from the exchange itself. This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges’ default behaviour is expected. Thus, without specifying ``since`` the range of returned candles will be exchange-specific. One should pass the ``since`` argument to ensure getting precisely the history range needed.
+
 OHLCV Structure
 ~~~~~~~~~~~~~~~
 
@@ -2343,11 +2345,10 @@ Deposit
        'currency': currency, // currency code
        'address': address,   // address in terms of requested currency
        'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-       'status': status,     // 'ok' or other
        'info': response,     // raw unparsed data as returned from the exchange
    }
 
-With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
+With certain currencies, like AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP, an additional argument ``tag`` is usually required by exchanges. Other currencies will have the ``tag`` set to ``undefined / None / null``. The tag is a memo or a message or a payment id that is attached to a withdrawal transaction. The tag is mandatory for those currencies and it identifies the recipient user account.
 
 Be careful when specifying the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you’re working with, otherwise your withdrawal transaction might not arrive to its destination ever.
 

@@ -718,7 +718,7 @@ class poloniex (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -728,11 +728,10 @@ class poloniex (Exchange):
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         self.check_address(address)
-        status = 'ok' if address else 'none'
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': None,
             'info': response,
         }
 

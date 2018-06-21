@@ -79,11 +79,9 @@ class braziliex extends Exchange {
             $uppercase = strtoupper ($id);
             $code = $this->common_currency_code($uppercase);
             $active = $this->safe_integer($currency, 'active') === 1;
-            $status = 'ok';
             $maintenance = $this->safe_integer($currency, 'under_maintenance');
             if ($maintenance !== 0) {
                 $active = false;
-                $status = 'maintenance';
             }
             $canWithdraw = $this->safe_integer($currency, 'is_withdrawal_active') === 1;
             $canDeposit = $this->safe_integer($currency, 'is_deposit_active') === 1;
@@ -94,7 +92,6 @@ class braziliex extends Exchange {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => $status,
                 'precision' => $precision,
                 'funding' => array (
                     'withdraw' => array (
@@ -429,7 +426,6 @@ class braziliex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

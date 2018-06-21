@@ -545,7 +545,6 @@ class cex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
-            'status' => 'ok',
             'info' => $response,
         );
     }

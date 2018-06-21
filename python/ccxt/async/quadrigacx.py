@@ -11,6 +11,7 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -82,6 +83,9 @@ class quadrigacx (Exchange):
                 'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
                 'BTG/CAD': {'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'BTG/BTC': {'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
+            },
+            'exceptions': {
+                '101': AuthenticationError,
             },
         })
 
@@ -214,26 +218,21 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
-    async def fetch_deposit_address(self, currency, params={}):
-        method = 'privatePost' + self.get_currency_name(currency) + 'DepositAddress'
+    async def fetch_deposit_address(self, code, params={}):
+        method = 'privatePost' + self.get_currency_name(code) + 'DepositAddress'
         response = await getattr(self, method)(params)
-        address = None
-        status = None
         # [E|e]rror
         if response.find('rror') >= 0:
-            status = 'error'
-        else:
-            address = response
-            status = 'ok'
-        self.check_address(address)
+            raise ExchangeError(self.id + ' ' + response)
+        self.check_address(response)
         return {
-            'currency': currency,
-            'address': address,
-            'status': status,
-            'info': self.last_http_response,
+            'currency': code,
+            'address': response,
+            'tag': None,
+            'info': response,
         }
 
-    def get_currency_name(self, currency):
+    def get_currency_name(self, code):
         currencies = {
             'ETH': 'Ether',
             'BTC': 'Bitcoin',
@@ -241,16 +240,16 @@ class quadrigacx (Exchange):
             'BCH': 'Bitcoincash',
             'BTG': 'Bitcoingold',
         }
-        return currencies[currency]
+        return currencies[code]
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
         request = {
             'amount': amount,
             'address': address,
         }
-        method = 'privatePost' + self.get_currency_name(currency) + 'Withdrawal'
+        method = 'privatePost' + self.get_currency_name(code) + 'Withdrawal'
         response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -282,15 +281,17 @@ class quadrigacx (Exchange):
             return  # fallback to default error handler
         if len(body) < 2:
             return
-        # Here is a sample QuadrigaCX response in case of authentication failure:
-        # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
-        if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:
-            raise AuthenticationError(self.id + ' ' + body)
-
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if isinstance(response, basestring):
-            return response
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            error = self.safe_value(response, 'error')
+            if error is not None:
+                #
+                # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+                #
+                code = self.safe_string(error, 'code')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

@@ -465,7 +465,6 @@ class gateio (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok' if (address is not None) else 'none',
             'info': response,
         }
 
