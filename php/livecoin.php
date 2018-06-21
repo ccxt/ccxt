@@ -90,6 +90,7 @@ class livecoin extends Exchange {
                 'CRC' => 'CryCash',
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
+                'SCT' => 'SpaceCoin',
                 'TPI' => 'ThaneCoin',
                 'XBT' => 'Bricktox',
             ),

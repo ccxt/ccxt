@@ -107,6 +107,7 @@ class livecoin (Exchange):
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
                 'XBT': 'Bricktox',
             },
