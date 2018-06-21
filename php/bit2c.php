@@ -216,12 +216,13 @@ class bit2c extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'id');
+        $status = $this->safe_string($order, 'status');
         return array (
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,

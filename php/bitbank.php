@@ -391,12 +391,10 @@ class bitbank extends Exchange {
         // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
-            'status' => $status,
             'info' => $response,
         );
     }

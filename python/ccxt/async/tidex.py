@@ -72,9 +72,6 @@ class tidex (liqui):
             code = id.upper()
             code = self.common_currency_code(code)
             active = currency['visible'] is True
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
             if not canWithdraw or not canDeposit:
@@ -84,7 +81,6 @@ class tidex (liqui):
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {

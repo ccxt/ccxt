@@ -174,7 +174,6 @@ class coinbase extends Exchange {
                 'info' => $currency, // the original payload
                 'name' => $name,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => null,
                 'limits' => array (

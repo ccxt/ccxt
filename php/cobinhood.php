@@ -151,7 +151,6 @@ class cobinhood extends Exchange {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => true,
-                'status' => 'ok',
                 'fiat' => false,
                 'precision' => $this->precision_from_string($currency['min_unit']),
                 'limits' => array (

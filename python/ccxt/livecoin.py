@@ -196,7 +196,6 @@ class livecoin (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -230,7 +229,6 @@ class livecoin (Exchange):
         defaults = {
             'info': None,
             'active': True,
-            'status': 'ok',
             'fee': None,
             'precision': precision,
             'limits': {

@@ -350,7 +350,6 @@ class kraken extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (
