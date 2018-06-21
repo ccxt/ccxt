@@ -342,7 +342,7 @@ module.exports = class poloniex extends Exchange {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let active = (currency['delisted'] === 0) || currency['disabled'];
+            let active = (currency['delisted'] === 0) && !currency['disabled'];
             result[code] = {
                 'id': id,
                 'code': code,
