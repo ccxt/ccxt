@@ -37,6 +37,7 @@ __all__ = [
     'ExchangeNotAvailable',
     'InvalidNonce',
     'InvalidAddress',
+    'AddressNotReady',
     'BadResponse',
     'NullResponse',
 ]
@@ -96,6 +97,11 @@ class InvalidOrder(ExchangeError):
 
 class InvalidAddress(ExchangeError):
     """Raised on invalid funding address"""
+    pass
+
+
+class AddressPending(InvalidAddress):
+    """Raised when the address requested is pending (not ready yet, retry again later)"""
     pass
 
 
