@@ -3,8 +3,8 @@ Install
 
 The easiest way to install the ccxt library is to use builtin package managers:
 
--  `ccxt in **NPM** <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
--  `ccxt in **PyPI** <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
+-  `ccxt in NPM <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
+-  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -16,7 +16,7 @@ You can also clone it into your project directory from `ccxt GitHub repository <
 
 .. code:: shell
 
-    git clone https://github.com/ccxt/ccxt.git
+   git clone https://github.com/ccxt/ccxt.git
 
 An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
 
@@ -29,13 +29,13 @@ JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and
 
 .. code:: shell
 
-    npm install ccxt
+   npm install ccxt
 
 .. code:: javascript
 
-    var ccxt = require ('ccxt')
+   var ccxt = require ('ccxt')
 
-    console.log (ccxt.exchanges) // print all available exchanges
+   console.log (ccxt.exchanges) // print all available exchanges
 
 JavaScript (for use with the ``<script>`` tag):
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,13 +44,13 @@ JavaScript (for use with the ``<script>`` tag):
 
 .. code:: html
 
-    <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+   <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
 
 Creates a global ``ccxt`` object:
 
 .. code:: javascript
 
-    console.log (ccxt.exchanges) // print all available exchanges
+   console.log (ccxt.exchanges) // print all available exchanges
 
 Python
 ~~~~~~
@@ -59,25 +59,25 @@ Python
 
 .. code:: shell
 
-    pip install ccxt
+   pip install ccxt
 
 .. code:: python
 
-    import ccxt
-    print(ccxt.exchanges) # print a list of all available exchange classes
+   import ccxt
+   print(ccxt.exchanges) # print a list of all available exchange classes
 
 The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
 .. code:: python
 
-    import ccxt.async as ccxt # link against the asynchronous version of ccxt
+   import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 PHP
 ~~~
 
-The autoloadable version of ccxt can be installed with `**Packagist/Composer** <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+).
+The autoloadable version of ccxt can be installed with `Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+).
 
-It can also be installed from the source code: `**``ccxt.php``** <https://raw.githubusercontent.com/ccxt/ccxt/master/php>`__
+It can also be installed from the source code: ```ccxt.php`` <https://raw.githubusercontent.com/ccxt/ccxt/master/php>`__
 
 It requires common PHP modules:
 
@@ -88,8 +88,8 @@ It requires common PHP modules:
 
 .. code:: php
 
-    include "ccxt.php";
-    var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
+   include "ccxt.php";
+   var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 
 Proxy
 -----
@@ -103,12 +103,12 @@ Python Proxies
 
 The python version of the library uses the `python-requests <python-requests.org>`__ package for underlying HTTP and supports all means of customization available in the ``requests`` package, including proxies.
 
-You can configure proxies by setting the environment variables HTTP\_PROXY and HTTPS\_PROXY.
+You can configure proxies by setting the environment variables HTTP_PROXY and HTTPS_PROXY.
 
 .. code:: shell
 
-    $ export HTTP_PROXY="http://10.10.1.10:3128"
-    $ export HTTPS_PROXY="http://10.10.1.10:1080"
+   $ export HTTP_PROXY="http://10.10.1.10:3128"
+   $ export HTTPS_PROXY="http://10.10.1.10:1080"
 
 After exporting the above variables with your proxy settings, all reqeusts from within ccxt will be routed through those proxies.
 
@@ -116,24 +116,24 @@ You can also set them programmatically:
 
 .. code:: python
 
-    import ccxt
-    exchange = ccxt.poloniex({
-        'proxies': {
-            'http': 'http://10.10.1.10:3128',
-            'https': 'http://10.10.1.10:1080',
-        },
-    })
+   import ccxt
+   exchange = ccxt.poloniex({
+       'proxies': {
+           'http': 'http://10.10.1.10:3128',
+           'https': 'http://10.10.1.10:1080',
+       },
+   })
 
 Or
 
 .. code:: python
 
-    import ccxt
-    exchange = ccxt.poloniex()
-    exchange.proxies = {
-      'http': 'http://10.10.1.10:3128',
-      'https': 'http://10.10.1.10:1080',
-    }
+   import ccxt
+   exchange = ccxt.poloniex()
+   exchange.proxies = {
+     'http': 'http://10.10.1.10:3128',
+     'https': 'http://10.10.1.10:1080',
+   }
 
 Python 2 and 3 sync proxies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -142,40 +142,40 @@ Python 2 and 3 sync proxies
 
 .. code:: python
 
-    # -*- coding: utf-8 -*-
+   # -*- coding: utf-8 -*-
 
-    import os
-    import sys
-    import ccxt
-    from pprint import pprint
+   import os
+   import sys
+   import ccxt
+   from pprint import pprint
 
 
-    exchange = ccxt.poloniex({
-        #
-        # ↓ The "proxy" property setting below is for CORS-proxying only!
-        # Do not use it if you don't know what a CORS proxy is.
-        # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
-        # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
-        # In Python you rarely need to use it, if ever at all.
-        #
-        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
-        #
-        # ↓ On the other hand, the "proxies" setting is for HTTP(S)-proxying (SOCKS, etc...)
-        # It is a standard method of sending your requests through your proxies
-        # This gets passed to the `python-requests` implementation directly
-        # You can also enable this with environment variables, as described here:
-        # http://docs.python-requests.org/en/master/user/advanced/#proxies
-        # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
-        #
-        'proxies': {
-            'http': 'http://10.10.1.10:3128',
-            'https': 'http://10.10.1.10:1080',
-        },
-    })
+   exchange = ccxt.poloniex({
+       #
+       # ↓ The "proxy" property setting below is for CORS-proxying only!
+       # Do not use it if you don't know what a CORS proxy is.
+       # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+       # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+       # In Python you rarely need to use it, if ever at all.
+       #
+       # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+       #
+       # ↓ On the other hand, the "proxies" setting is for HTTP(S)-proxying (SOCKS, etc...)
+       # It is a standard method of sending your requests through your proxies
+       # This gets passed to the `python-requests` implementation directly
+       # You can also enable this with environment variables, as described here:
+       # http://docs.python-requests.org/en/master/user/advanced/#proxies
+       # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+       #
+       'proxies': {
+           'http': 'http://10.10.1.10:3128',
+           'https': 'http://10.10.1.10:1080',
+       },
+   })
 
-    # your code goes here...
+   # your code goes here...
 
-    pprint(exchange.fetch_ticker('ETH/BTC'))
+   pprint(exchange.fetch_ticker('ETH/BTC'))
 
 Python 3.5+ asyncio/aiohttp proxy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -184,50 +184,50 @@ Python 3.5+ asyncio/aiohttp proxy
 
 .. code:: python
 
-    # -*- coding: utf-8 -*-
+   # -*- coding: utf-8 -*-
 
-    import asyncio
-    import os
-    import sys
-    import ccxt.async as ccxt
-    from pprint import pprint
+   import asyncio
+   import os
+   import sys
+   import ccxt.async as ccxt
+   from pprint import pprint
 
 
-    async def test_gdax():
+   async def test_gdax():
 
-        exchange = ccxt.poloniex({
-            #
-            # ↓ The "proxy" property setting below is for CORS-proxying only!
-            # Do not use it if you don't know what a CORS proxy is.
-            # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
-            # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
-            # In Python you rarely need to use it, if ever at all.
-            #
-            # 'proxy': 'https://cors-anywhere.herokuapp.com/',
-            #
-            # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
-            # It is a standard method of sending your requests through your proxies
-            # This gets passed to the `asyncio` and `aiohttp` implementation directly
-            # You can use this setting as documented here:
-            # https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support
-            # This is the setting you should be using with async version of ccxt in Python 3.5+
-            #
-            'aiohttp_proxy': 'http://proxy.com',
-            # 'aiohttp_proxy': 'http://user:pass@some.proxy.com',
-            # 'aiohttp_proxy': 'http://10.10.1.10:3128',
-        })
+       exchange = ccxt.poloniex({
+           #
+           # ↓ The "proxy" property setting below is for CORS-proxying only!
+           # Do not use it if you don't know what a CORS proxy is.
+           # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+           # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+           # In Python you rarely need to use it, if ever at all.
+           #
+           # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+           #
+           # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
+           # It is a standard method of sending your requests through your proxies
+           # This gets passed to the `asyncio` and `aiohttp` implementation directly
+           # You can use this setting as documented here:
+           # https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support
+           # This is the setting you should be using with async version of ccxt in Python 3.5+
+           #
+           'aiohttp_proxy': 'http://proxy.com',
+           # 'aiohttp_proxy': 'http://user:pass@some.proxy.com',
+           # 'aiohttp_proxy': 'http://10.10.1.10:3128',
+       })
 
-        # your code goes here...
+       # your code goes here...
 
-        ticker = await exchange.fetch_ticker('ETH/BTC')
+       ticker = await exchange.fetch_ticker('ETH/BTC')
 
-        # don't forget to free the used resources, when you don't need them anymore
-        await exchange.close()
+       # don't forget to free the used resources, when you don't need them anymore
+       await exchange.close()
 
-        return ticker
+       return ticker
 
-    if __name__ == '__main__':
-        pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
+   if __name__ == '__main__':
+       pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
 
 A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
 
@@ -239,7 +239,7 @@ CORS (Access-Control-Allow-Origin)
 
 If you need a CORS proxy, use the ``proxy`` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
 
-CORS is `Cross-Origin Resource Sharing <https://en.wikipedia.org/wiki/Cross-origin_resource_sharing>`__. When accessing the HTTP REST API of an exchange from browser with ccxt library you may get a warning or an exception, saying ``No 'Access-Control-Allow-Origin' header is present on the requested resource``. That means that the exchange admins haven't enabled access to their API from arbitrary web browser pages.
+CORS is `Cross-Origin Resource Sharing <https://en.wikipedia.org/wiki/Cross-origin_resource_sharing>`__. When accessing the HTTP REST API of an exchange from browser with ccxt library you may get a warning or an exception, saying ``No 'Access-Control-Allow-Origin' header is present on the requested resource``. That means that the exchange admins haven’t enabled access to their API from arbitrary web browser pages.
 
 You can still use the ccxt library from your browser via a CORS-proxy, which is very easy to set up or install. There are also public CORS proxies on the internet.
 
@@ -255,37 +255,37 @@ Node.js CORS Proxy
 
 .. code:: javascript
 
-    // JavaScript CORS Proxy
-    // Save this in a file like cors.js and run with `node cors [port]`
-    // It will listen for your requests on the port you pass in command line or port 8080 by default
-    let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
-    require ('cors-anywhere').createServer ().listen (port, 'localhost')
+   // JavaScript CORS Proxy
+   // Save this in a file like cors.js and run with `node cors [port]`
+   // It will listen for your requests on the port you pass in command line or port 8080 by default
+   let port = (process.argv.length > 2) ? parseInt (process.argv[2]) : 8080; // default
+   require ('cors-anywhere').createServer ().listen (port, 'localhost')
 
 Python CORS Proxy
 ~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-    #!/usr/bin/env python
-    # Python CORS Proxy
-    # Save this in a file like cors.py and run with `python cors.py [port]` or `cors [port]`
-    try:
-        # Python 3
-        from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
-        import sys
-        def test (*args):
-            test_orig (*args, port = int (sys.argv[1]) if len (sys.argv) > 1 else 8080)
-    except ImportError: # Python 2
-        from BaseHTTPServer import HTTPServer, test
-        from SimpleHTTPServer import SimpleHTTPRequestHandler
+   #!/usr/bin/env python
+   # Python CORS Proxy
+   # Save this in a file like cors.py and run with `python cors.py [port]` or `cors [port]`
+   try:
+       # Python 3
+       from http.server import HTTPServer, SimpleHTTPRequestHandler, test as test_orig
+       import sys
+       def test (*args):
+           test_orig (*args, port = int (sys.argv[1]) if len (sys.argv) > 1 else 8080)
+   except ImportError: # Python 2
+       from BaseHTTPServer import HTTPServer, test
+       from SimpleHTTPServer import SimpleHTTPRequestHandler
 
-    class CORSRequestHandler (SimpleHTTPRequestHandler):
-        def end_headers (self):
-            self.send_header ('Access-Control-Allow-Origin', '*')
-            SimpleHTTPRequestHandler.end_headers (self)
+   class CORSRequestHandler (SimpleHTTPRequestHandler):
+       def end_headers (self):
+           self.send_header ('Access-Control-Allow-Origin', '*')
+           SimpleHTTPRequestHandler.end_headers (self)
 
-    if __name__ == '__main__':
-        test (CORSRequestHandler, HTTPServer)
+   if __name__ == '__main__':
+       test (CORSRequestHandler, HTTPServer)
 
 Testing CORS
 ~~~~~~~~~~~~
