@@ -4,6 +4,8 @@ const AsyncConnection = require ('./async_connection');
 const WebSocket = require('ws');
 
 const { sleep } = require ('../functions')
+const url = require('url');
+const HttpsProxyAgent = require('https-proxy-agent');
 
 module.exports = class WebsocketConnection extends AsyncConnection {
     constructor (options, timeout) {
@@ -26,8 +28,14 @@ module.exports = class WebsocketConnection extends AsyncConnection {
                 ws: null,
                 isClosing: false,
             };
-
-            client.ws = new WebSocket(this.options.url);
+            if (this.options.proxy) {
+                var proxyOptions = url.parse(this.options.proxy);
+                console.log(proxyOptions);
+                var agent = new HttpsProxyAgent(proxyOptions);
+                client.ws = new WebSocket(this.options.url, { agent: agent });
+            } else {
+                client.ws = new WebSocket(this.options.url);
+            }
 
             client.ws.on('open', async () => {
                 if (this.options['wait-after-connect']) {

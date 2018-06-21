@@ -19,6 +19,7 @@ async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
         secret: secret,
         enableRateLimit: true,
         verbose: true,
+        // wsproxy: 'http://185.93.3.123:8080/',
     });
     exchange.on ('err', (err, conxid) => {
         try {
