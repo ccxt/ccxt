@@ -205,7 +205,7 @@ module.exports = class gemini extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
         let timestamp = order['timestampms'];
         let amount = this.safeFloat (order, 'original_amount');
         let remaining = this.safeFloat (order, 'remaining_amount');
@@ -225,8 +225,16 @@ module.exports = class gemini extends Exchange {
             type = 'limit';
         }
         let fee = null;
-        let symbolString = order['symbol'];
-        let symbol = symbolString.substring (0, 3).toUpperCase () + '/' + symbolString.substring (3).toUpperCase ();
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }            
         return {
             'id': order['order_id'],
             'info': order,
