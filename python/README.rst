@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 119 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 120 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                            | ver | doc                                                                                             | countries                                |
@@ -113,6 +113,8 @@ The ccxt library currently supports the following 119 cryptocurrency exchange ma
 | cobinhood          | `COBINHOOD <https://cobinhood.com>`__                                           | \*  | `API <https://cobinhood.github.io/api-public>`__                                                | Taiwan                                   |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | coinbase           | `coinbase <https://www.coinbase.com>`__                                         | 2   | `API <https://developers.coinbase.com/api/v2>`__                                                | US                                       |
++--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
+| coinbasepro        | `Coinbase Pro <https://pro.coinbase.com/>`__                                    | \*  | `API <https://docs.gdax.com>`__                                                                 | US                                       |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | coincheck          | `coincheck <https://coincheck.com>`__                                           | \*  | `API <https://coincheck.com/documents/exchange/api>`__                                          | Japan, Indonesia                         |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -614,6 +616,7 @@ Thank you!
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
 .. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
+.. |coinbasepro| image:: https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg
