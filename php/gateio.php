@@ -327,6 +327,8 @@ class gateio extends Exchange {
         $id = $this->safe_string($trade, 'tradeID');
         $id = $this->safe_string($trade, 'id', $id);
         $orderId = $this->safe_string($trade, 'orderid');
+        if ($orderId !== null)
+            $orderId = $this->safe_string($trade, 'orderNumber');
         $price = $this->safe_float($trade, 'rate');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
