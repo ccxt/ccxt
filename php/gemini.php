@@ -23,7 +23,7 @@ class gemini extends Exchange {
                 'fetchBidsAsks' => false,
                 'fetchTickers' => false,
                 'fetchMyTrades' => true,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
                 'fetchOrders' => false,
                 'fetchOpenOrders' => false,
                 'fetchClosedOrders' => false,
@@ -204,6 +204,72 @@ class gemini extends Exchange {
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function parse_order ($order, $market = null) {
+        $timestamp = $order['timestampms'];
+        $amount = $this->safe_float($order, 'original_amount');
+        $remaining = $this->safe_float($order, 'remaining_amount');
+        $filled = $this->safe_float($order, 'executed_amount');
+        $status = 'closed';
+        if ($order['is_live']) {
+            $status = 'open';
+        }
+        if ($order['is_canceled']) {
+            $status = 'canceled';
+        }
+        $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'avg_execution_price', $price);
+        $cost = null;
+        if ($filled !== null) {
+            if ($price !== null) {
+                $cost = $filled * $price;
+            }
+        }
+        $type = $this->safe_string($order, 'type');
+        if ($type === 'exchange limit') {
+            $type = 'limit';
+        } else if ($type === 'market buy' || $type === 'market sell') {
+            $type = 'market';
+        } else {
+            $type = $order['type'];
+        }
+        $fee = null;
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array (
+            'id' => $order['order_id'],
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => $status,
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $order['side'],
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostOrderStatus (array_merge (array (
+            'order_id' => $id,
+        ), $params));
+        return $this->parse_order($response);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
