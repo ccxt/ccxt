@@ -22,7 +22,7 @@ module.exports = class gemini extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchTickers': false,
                 'fetchMyTrades': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': false,
                 'fetchClosedOrders': false,
@@ -203,6 +203,57 @@ module.exports = class gemini extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseOrder (order) {
+        let timestamp = order['timestampms'];
+        let amount = this.safeFloat(order, 'original_amount');
+        let remaining = this.safeFloat(order, 'remaining_amount');
+        let filled = this.safeFloat(order, 'executed_amount');
+        let status = 'closed';
+        if (order['is_live']) {
+            status = 'open';
+        }
+        if (order['is_canceled']) {
+            status = 'canceled';
+        }
+        let price = this.safeFloat(order, 'price');
+        let averagePrice = this.safeFloat(order, 'avg_execution_price');
+        let cost = filled * averagePrice;
+        let type = 'market';
+        if (order.type === 'exchange limit'){
+            type = 'limit';
+        }
+        let fee = null;
+        let symbolString = order['symbol'];
+        let symbol = symbolString.substring(0,3).toUpperCase() + '/' + 
+                     symbolString.substring(3).toUpperCase();
+        return {
+            'id': order['order_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': order['side'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+        }
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus (this.extend ({
+            'order_id': id,
+        }, params));
+        
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
