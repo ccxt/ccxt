@@ -218,11 +218,20 @@ module.exports = class gemini extends Exchange {
             status = 'canceled';
         }
         let price = this.safeFloat (order, 'price');
-        let averagePrice = this.safeFloat (order, 'avg_execution_price');
-        let cost = filled * averagePrice;
-        let type = 'market';
-        if (order.type === 'exchange limit') {
+        price = this.safeFloat (order, 'avg_execution_price', price);
+        let cost = undefined;
+        if (typeof filled !== 'undefined') {
+            if (typeof price !== 'undefined') {
+                cost = filled * price;
+            }
+        }
+        let type = this.safeString (order, 'type');
+        if (type === 'exchange limit') {
             type = 'limit';
+        } else if (type === 'market buy' || type === 'market sell') {
+            type = 'market';
+        } else {
+            type = order['type'];
         }
         let fee = undefined;
         let symbol = undefined;
