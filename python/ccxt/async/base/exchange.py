@@ -531,8 +531,8 @@ class Exchange(BaseExchange, EventEmitter):
             'ready': False,
             'conx': None,
         }
-        if self.wsproxy is not None:
-            async_config['proxy'] = self.wsproxy
+        if self.proxies is not None:
+            async_config['proxies'] = self.proxies
         if (async_config['type'] == 'ws'):
             async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
         elif (async_config['type'] == 'ws-s'):

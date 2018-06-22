@@ -64,8 +64,11 @@ class WebsocketConnection(AsyncConnection):
                 port = url_parsed.port if url_parsed.port is not None else 443 if ssl else 80
 
                 client = MyClientProtocol(self, future)
-                if 'proxy' in list(self.options.keys()):
-                    proxy_url_parsed = urlparse(self.options['proxy'])
+                if 'proxies' in list(self.options.keys()):
+                    if url_parsed.scheme == 'wss':
+                        proxy_url_parsed = urlparse(self.options['proxies']['https'])
+                    else:
+                        proxy_url_parsed = urlparse(self.options['proxies']['http'])                    
                     proxy = {'host': proxy_url_parsed.hostname, 'port': proxy_url_parsed.port}
                     factory = WebSocketClientFactory(self.options['url'], proxy=proxy)
                 else:
