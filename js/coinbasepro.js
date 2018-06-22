@@ -12,7 +12,7 @@ module.exports = class coinbasepro extends gdax {
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/8557965/41755899-8f904926-75a7-11e8-87b3-d73ed8012d14.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': 'https://api.pro.coinbase.com',
                 'www': 'https://pro.coinbase.com/',
                 'doc': 'https://docs.gdax.com',
