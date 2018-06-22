@@ -224,7 +224,7 @@ module.exports = class gemini extends Exchange {
         if (order.type === 'exchange limit') {
             type = 'limit';
         }
-        let fee = null;
+        let fee = undefined;
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'symbol');
