@@ -2221,7 +2221,7 @@ For example, an orderbook can have the following orders (whatever trading symbol
 
 ::
 
-       | price | amount
+       | price  | amount
    ----|----------------
      a |  1.200 | 200
      s |  1.100 | 300
@@ -2237,7 +2237,7 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 ::
 
-       | price | amount
+       | price  | amount
    ----|----------------  ↓
      a |  1.200 | 200     ↓
      s |  1.100 | 300     ↓
@@ -2249,7 +2249,7 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders ``b`` and ``i``), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order ``b`` is matched against the incoming sell because their prices intersect. Their volumes *“mutually annihilate”* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume of 100.
+1. Order ``b`` is matched against the incoming sell because their prices intersect. Their volumes *“mutually annihilate”* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for this filled part of the order the seller gets a better price than he asked for initially (0.8 instead of 0.7). Most conventional exchanges fill orders for the best price available.
 
 2. A trade is generated for the order ``b`` against the incoming sell order. That trade *“fills”* the entire order ``b`` and most of the sell order. One trade is generated pear each pair of matched orders, whether the amount was filled completely or partially. In this example the amount of 100 fills order ``b`` completely (closed the order ``b``) and also fills the selling order partially (leaves it open in the orderbook).
 
@@ -2267,7 +2267,7 @@ After the above sequence takes place, the updated orderbook will look like this.
 
 ::
 
-       | price | amount
+       | price  | amount
    ----|----------------
      a |  1.200 | 200
      s |  1.100 | 300
