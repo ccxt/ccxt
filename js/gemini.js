@@ -226,8 +226,7 @@ module.exports = class gemini extends Exchange {
         }
         let fee = null;
         let symbolString = order['symbol'];
-        let symbol = symbolString.substring (0, 3).toUpperCase () + '/' +
-                     symbolString.substring (3).toUpperCase ();
+        let symbol = symbolString.substring (0, 3).toUpperCase () + '/' + symbolString.substring (3).toUpperCase ();
         return {
             'id': order['order_id'],
             'info': order,
