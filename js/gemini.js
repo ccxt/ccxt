@@ -221,7 +221,7 @@ module.exports = class gemini extends Exchange {
         let averagePrice = this.safeFloat(order, 'avg_execution_price');
         let cost = filled * averagePrice;
         let type = 'market';
-        if (order.type === 'exchange limit'){
+        if (order.type === 'exchange limit') {
             type = 'limit';
         }
         let fee = null;
@@ -252,7 +252,6 @@ module.exports = class gemini extends Exchange {
         let response = await this.privatePostOrderStatus (this.extend ({
             'order_id': id,
         }, params));
-        
         return this.parseOrder (response);
     }
 
