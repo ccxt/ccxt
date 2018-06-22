@@ -207,9 +207,9 @@ module.exports = class gemini extends Exchange {
 
     parseOrder (order) {
         let timestamp = order['timestampms'];
-        let amount = this.safeFloat(order, 'original_amount');
-        let remaining = this.safeFloat(order, 'remaining_amount');
-        let filled = this.safeFloat(order, 'executed_amount');
+        let amount = this.safeFloat (order, 'original_amount');
+        let remaining = this.safeFloat (order, 'remaining_amount');
+        let filled = this.safeFloat (order, 'executed_amount');
         let status = 'closed';
         if (order['is_live']) {
             status = 'open';
@@ -217,8 +217,8 @@ module.exports = class gemini extends Exchange {
         if (order['is_canceled']) {
             status = 'canceled';
         }
-        let price = this.safeFloat(order, 'price');
-        let averagePrice = this.safeFloat(order, 'avg_execution_price');
+        let price = this.safeFloat (order, 'price');
+        let averagePrice = this.safeFloat (order, 'avg_execution_price');
         let cost = filled * averagePrice;
         let type = 'market';
         if (order.type === 'exchange limit') {
@@ -226,8 +226,8 @@ module.exports = class gemini extends Exchange {
         }
         let fee = null;
         let symbolString = order['symbol'];
-        let symbol = symbolString.substring(0,3).toUpperCase() + '/' + 
-                     symbolString.substring(3).toUpperCase();
+        let symbol = symbolString.substring (0, 3).toUpperCase () + '/' +
+                     symbolString.substring (3).toUpperCase ();
         return {
             'id': order['order_id'],
             'info': order,
@@ -244,7 +244,7 @@ module.exports = class gemini extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'fee': fee,
-        }
+        };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
