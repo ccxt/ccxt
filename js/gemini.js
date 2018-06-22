@@ -234,7 +234,7 @@ module.exports = class gemini extends Exchange {
         }
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        }            
+        }
         return {
             'id': order['order_id'],
             'info': order,
