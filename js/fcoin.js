@@ -242,11 +242,12 @@ module.exports = class fcoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    convertOrderBook (bidasks) {
+    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         let newbidasks = [];
         let length = bidasks.length / 2;
-        for (let i = 0; i < length; i++) {
-            newbidasks.push (bidasks.slice (0, 2));
+        for (let i = 0; i < parseInt (length); i++) {
+            let ba = bidasks.slice (0, 2);
+            newbidasks.push ([ba[priceKey], ba[amountKey]]);
             bidasks = bidasks.slice (2);
         }
         return newbidasks;
@@ -259,8 +260,7 @@ module.exports = class fcoin extends Exchange {
             'level': 'full',  // full
         };
         let orderbook = await this.marketGetDepthLevelSymbol (this.extend (request, params));
-        let bidasks = this.convertOrderBook (orderbook['data']);
-        return this.parseOrderBook (bidasks, orderbook['data']['ts'], 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (orderbook['data'], orderbook['data']['ts'], 'bids', 'asks', 0, 1);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -477,7 +477,7 @@ module.exports = class fcoin extends Exchange {
             'limit': limit,
         };
         let response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     nonce () {
