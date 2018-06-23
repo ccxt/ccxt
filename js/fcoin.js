@@ -246,7 +246,8 @@ module.exports = class fcoin extends Exchange {
         let newbidasks = [];
         let length = bidasks.length / 2;
         for (let i = 0; i < length; i++) {
-            newbidasks.push (bidasks.splice (0, 2));
+            newbidasks.push (bidasks.slice (0, 2));
+            bidasks = bidasks.slice (2);
         }
         return newbidasks;
     }
