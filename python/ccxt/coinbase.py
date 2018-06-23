@@ -182,7 +182,6 @@ class coinbase (Exchange):
                 'info': currency,  # the original payload
                 'name': name,
                 'active': True,
-                'status': 'ok',
                 'fee': None,
                 'precision': None,
                 'limits': {

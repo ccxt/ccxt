@@ -748,7 +748,6 @@ class bitfinex (Exchange):
         return {
             'currency': currency,
             'address': address,
-            'status': 'ok',
             'info': response['info'],
         }
 
@@ -770,7 +769,6 @@ class bitfinex (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

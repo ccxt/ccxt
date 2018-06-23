@@ -513,6 +513,5 @@ class cex (Exchange):
             'currency': code,
             'address': address,
             'tag': None,
-            'status': 'ok',
             'info': response,
         }

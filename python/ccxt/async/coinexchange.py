@@ -565,15 +565,11 @@ class coinexchange (Exchange):
             id = currency['CurrencyID']
             code = self.common_currency_code(currency['TickerCode'])
             active = currency['WalletStatus'] == 'online'
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {

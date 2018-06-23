@@ -565,15 +565,11 @@ class coinexchange extends Exchange {
             $id = $currency['CurrencyID'];
             $code = $this->common_currency_code($currency['TickerCode']);
             $active = $currency['WalletStatus'] === 'online';
-            $status = 'ok';
-            if (!$active)
-                $status = 'disabled';
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'name' => $currency['Name'],
                 'active' => $active,
-                'status' => $status,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

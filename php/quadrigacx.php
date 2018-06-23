@@ -75,6 +75,9 @@ class quadrigacx extends Exchange {
                 'BTG/CAD' => array ( 'id' => 'btg_cad', 'symbol' => 'BTG/CAD', 'base' => 'BTG', 'quote' => 'CAD', 'maker' => 0.005, 'taker' => 0.005 ),
                 'BTG/BTC' => array ( 'id' => 'btg_btc', 'symbol' => 'BTG/BTC', 'base' => 'BTG', 'quote' => 'BTC', 'maker' => 0.005, 'taker' => 0.005 ),
             ),
+            'exceptions' => array (
+                '101' => '\\ccxt\\AuthenticationError',
+            ),
         ));
     }
 
@@ -219,28 +222,23 @@ class quadrigacx extends Exchange {
         ), $params));
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $method = 'privatePost' . $this->get_currency_name ($currency) . 'DepositAddress';
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $method = 'privatePost' . $this->get_currency_name ($code) . 'DepositAddress';
         $response = $this->$method ($params);
-        $address = null;
-        $status = null;
         // [E|e]rror
         if (mb_strpos ($response, 'rror') !== false) {
-            $status = 'error';
-        } else {
-            $address = $response;
-            $status = 'ok';
+            throw new ExchangeError ($this->id . ' ' . $response);
         }
-        $this->check_address($address);
+        $this->check_address($response);
         return array (
-            'currency' => $currency,
-            'address' => $address,
-            'status' => $status,
-            'info' => $this->last_http_response,
+            'currency' => $code,
+            'address' => $response,
+            'tag' => null,
+            'info' => $response,
         );
     }
 
-    public function get_currency_name ($currency) {
+    public function get_currency_name ($code) {
         $currencies = array (
             'ETH' => 'Ether',
             'BTC' => 'Bitcoin',
@@ -248,17 +246,17 @@ class quadrigacx extends Exchange {
             'BCH' => 'Bitcoincash',
             'BTG' => 'Bitcoingold',
         );
-        return $currencies[$currency];
+        return $currencies[$code];
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $request = array (
             'amount' => $amount,
             'address' => $address,
         );
-        $method = 'privatePost' . $this->get_currency_name ($currency) . 'Withdrawal';
+        $method = 'privatePost' . $this->get_currency_name ($code) . 'Withdrawal';
         $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
@@ -290,22 +288,25 @@ class quadrigacx extends Exchange {
 
     public function handle_errors ($statusCode, $statusText, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         if (strlen ($body) < 2)
             return;
-        // Here is a sample QuadrigaCX response in case of authentication failure:
-        // array ("error":{"code":101,"message":"Invalid API Code or Invalid Signature")}
-        if ($statusCode === 200 && mb_strpos ($body, 'Invalid API Code or Invalid Signature') !== false) {
-            throw new AuthenticationError ($this->id . ' ' . $body);
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            $error = $this->safe_value($response, 'error');
+            if ($error !== null) {
+                //
+                // array ("$error":{"$code":101,"message":"Invalid API Code or Invalid Signature")}
+                //
+                $code = $this->safe_string($error, 'code');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                    throw new $exceptions[$code] ($feedback);
+                } else {
+                    throw new ExchangeError ($this->id . ' unknown "$error" value => ' . $this->json ($response));
+                }
+            }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (gettype ($response) === 'string')
-            return $response;
-        if (is_array ($response) && array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
     }
 }

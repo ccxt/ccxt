@@ -51,7 +51,7 @@ class bitbank extends Exchange {
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/array (candle-type)/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ),
                 ),
                 'private' => array (
@@ -228,9 +228,9 @@ class bitbank extends Exchange {
         $date = $this->milliseconds ();
         $date = $this->ymd ($date);
         $date = explode ('-', $date);
-        $response = $this->publicGetPairCandlestickCandleTypeYyyymmdd (array_merge (array (
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge (array (
             'pair' => $market['id'],
-            'candle-type' => $this->timeframes[$timeframe],
+            'candletype' => $this->timeframes[$timeframe],
             'yyyymmdd' => implode ('', $date),
         ), $params));
         $ohlcv = $response['data']['candlestick'][0]['ohlcv'];
@@ -391,12 +391,10 @@ class bitbank extends Exchange {
         // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
-            'status' => $status,
             'info' => $response,
         );
     }

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -154,6 +154,9 @@ module.exports = class bittrex extends Exchange {
             'options': {
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+            },
+            'commonCurrencies': {
+                'BITS': 'SWIFT',
             },
         });
     }
@@ -320,7 +323,6 @@ module.exports = class bittrex extends Exchange {
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'status': 'ok',
                 'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -658,9 +660,8 @@ module.exports = class bittrex extends Exchange {
         }, params));
         let address = this.safeString (response['result'], 'Address');
         let message = this.safeString (response, 'message');
-        let status = 'ok';
         if (!address || message === 'ADDRESS_GENERATING')
-            status = 'pending';
+            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
         let tag = undefined;
         if ((code === 'XRP') || (code === 'XLM')) {
             tag = address;
@@ -671,7 +672,6 @@ module.exports = class bittrex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         };
     }

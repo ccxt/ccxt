@@ -157,7 +157,7 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response['info'],
         };
     }
@@ -175,7 +175,7 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }

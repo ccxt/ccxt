@@ -570,7 +570,6 @@ module.exports = class bitstamp extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'tag': tag,
             'info': response,

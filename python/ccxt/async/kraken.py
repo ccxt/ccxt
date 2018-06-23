@@ -357,7 +357,6 @@ class kraken (Exchange):
                 'info': currency,
                 'name': code,
                 'active': True,
-                'status': 'ok',
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -782,7 +781,6 @@ class kraken (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 
@@ -813,7 +811,6 @@ class kraken (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 

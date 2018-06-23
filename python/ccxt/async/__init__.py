@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.236'
+__version__ = '1.14.255'
 
 # -----------------------------------------------------------------------------
 
@@ -36,6 +36,9 @@ from ccxt.base.errors import DDoSProtection                     # noqa: F401
 from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
 from ccxt.base.errors import InvalidAddress                     # noqa: F401
+from ccxt.base.errors import AddressPending                     # noqa: F401
+from ccxt.base.errors import BadResponse                        # noqa: F401
+from ccxt.base.errors import NullResponse                       # noqa: F401
 
 from ccxt.async._1broker import _1broker                        # noqa: F401
 from ccxt.async._1btcxe import _1btcxe                          # noqa: F401
@@ -80,6 +83,7 @@ from ccxt.async.chbtc import chbtc                              # noqa: F401
 from ccxt.async.chilebit import chilebit                        # noqa: F401
 from ccxt.async.cobinhood import cobinhood                      # noqa: F401
 from ccxt.async.coinbase import coinbase                        # noqa: F401
+from ccxt.async.coinbasepro import coinbasepro                  # noqa: F401
 from ccxt.async.coincheck import coincheck                      # noqa: F401
 from ccxt.async.coinegg import coinegg                          # noqa: F401
 from ccxt.async.coinex import coinex                            # noqa: F401
@@ -201,6 +205,7 @@ exchanges = [
     'chilebit',
     'cobinhood',
     'coinbase',
+    'coinbasepro',
     'coincheck',
     'coinegg',
     'coinex',

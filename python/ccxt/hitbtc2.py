@@ -625,10 +625,9 @@ class hitbtc2 (hitbtc):
             payout = self.safe_value(currency, 'payoutEnabled')
             transfer = self.safe_value(currency, 'transferEnabled')
             active = payin and payout and transfer
-            status = 'ok'
             if 'disabled' in currency:
                 if currency['disabled']:
-                    status = 'disabled'
+                    active = False
             type = 'fiat'
             if ('crypto' in list(currency.keys())) and currency['crypto']:
                 type = 'crypto'
@@ -642,7 +641,6 @@ class hitbtc2 (hitbtc):
                 'info': currency,
                 'name': currency['fullName'],
                 'active': active,
-                'status': status,
                 'fee': self.safe_float(currency, 'payoutFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -1031,7 +1029,6 @@ class hitbtc2 (hitbtc):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
@@ -1048,7 +1045,6 @@ class hitbtc2 (hitbtc):
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

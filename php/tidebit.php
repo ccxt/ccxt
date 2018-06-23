@@ -108,7 +108,6 @@ class tidebit extends Exchange {
                     'currency' => $code,
                     'address' => $this->check_address($address),
                     'tag' => $tag,
-                    'status' => 'ok',
                     'info' => $response,
                 );
             }

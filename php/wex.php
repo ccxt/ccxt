@@ -128,7 +128,6 @@ class wex extends liqui {
             'currency' => $code,
             'address' => $response['return']['address'],
             'tag' => null,
-            'status' => 'ok',
             'info' => $response,
         );
     }

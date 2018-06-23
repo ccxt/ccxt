@@ -22,7 +22,7 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': true,
-                'fetchOHCLV': true,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
@@ -114,6 +114,7 @@ module.exports = class huobipro extends Exchange {
                 'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
+                'order-limitorder-price-min-error': InvalidOrder, // limit order price error
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                 'order-update-error': ExchangeNotAvailable, // undocumented error
@@ -436,7 +437,6 @@ module.exports = class huobipro extends Exchange {
                 // 'transfer': undefined,
                 'name': currency['display-name'],
                 'active': active,
-                'status': active ? 'ok' : 'disabled',
                 'fee': undefined, // todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
@@ -651,7 +651,6 @@ module.exports = class huobipro extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         };

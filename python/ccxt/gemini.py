@@ -25,7 +25,7 @@ class gemini (Exchange):
                 'fetchBidsAsks': False,
                 'fetchTickers': False,
                 'fetchMyTrades': True,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchOpenOrders': False,
                 'fetchClosedOrders': False,
@@ -70,6 +70,7 @@ class gemini (Exchange):
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
                         'heartbeat',
+                        'transfers',
                     ],
                 },
             },
@@ -197,6 +198,62 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order(self, order, market=None):
+        timestamp = order['timestampms']
+        amount = self.safe_float(order, 'original_amount')
+        remaining = self.safe_float(order, 'remaining_amount')
+        filled = self.safe_float(order, 'executed_amount')
+        status = 'closed'
+        if order['is_live']:
+            status = 'open'
+        if order['is_canceled']:
+            status = 'canceled'
+        price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'avg_execution_price', price)
+        cost = None
+        if filled is not None:
+            if price is not None:
+                cost = filled * price
+        type = self.safe_string(order, 'type')
+        if type == 'exchange limit':
+            type = 'limit'
+        elif type == 'market buy' or type == 'market sell':
+            type = 'market'
+        else:
+            type = order['type']
+        fee = None
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'id': order['order_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': order['side'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostOrderStatus(self.extend({
+            'order_id': id,
+        }, params))
+        return self.parse_order(response)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
@@ -290,6 +347,5 @@ class gemini (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }

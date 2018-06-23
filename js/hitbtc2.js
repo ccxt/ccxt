@@ -614,10 +614,9 @@ module.exports = class hitbtc2 extends hitbtc {
             let payout = this.safeValue (currency, 'payoutEnabled');
             let transfer = this.safeValue (currency, 'transferEnabled');
             let active = payin && payout && transfer;
-            let status = 'ok';
             if ('disabled' in currency)
                 if (currency['disabled'])
-                    status = 'disabled';
+                    active = false;
             let type = 'fiat';
             if (('crypto' in currency) && currency['crypto'])
                 type = 'crypto';
@@ -631,7 +630,6 @@ module.exports = class hitbtc2 extends hitbtc {
                 'info': currency,
                 'name': currency['fullName'],
                 'active': active,
-                'status': status,
                 'fee': this.safeFloat (currency, 'payoutFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -1056,7 +1054,6 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -1074,7 +1071,6 @@ module.exports = class hitbtc2 extends hitbtc {
             'currency': currency['code'],
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

@@ -37,7 +37,7 @@ class huobipro (Exchange):
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': True,
-                'fetchOHCLV': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
@@ -129,6 +129,7 @@ class huobipro (Exchange):
                 'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
+                'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
@@ -423,7 +424,6 @@ class huobipro (Exchange):
                 # 'transfer': None,
                 'name': currency['display-name'],
                 'active': active,
-                'status': 'ok' if active else 'disabled',
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
@@ -617,7 +617,6 @@ class huobipro (Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         }

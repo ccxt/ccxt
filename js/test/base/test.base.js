@@ -16,10 +16,16 @@ describe ('ccxt base code', () => {
 /*  ------------------------------------------------------------------------ */
 
     require ('./functions/test.generic')
-    require ('./functions/test.number')
     require ('./functions/test.time')
     require ('./functions/test.type')
-    require ('./functions/test.datetime')
+    // Some test files are transpiled to other languages and must be kept very simple so we put `it` call externally to them
+    // Some mocha reporters will swallow `assert` failures if they are outside of `it` clause so we must call `it`
+    it ('decimalToPrecision() works', () => {
+        require ('./functions/test.number')
+    })
+    it ('date&time functions work', () => {
+        require('./functions/test.datetime')
+    })
 
 /*  ------------------------------------------------------------------------ */
 

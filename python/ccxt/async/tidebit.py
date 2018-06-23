@@ -109,7 +109,6 @@ class tidebit (Exchange):
                     'currency': code,
                     'address': self.check_address(address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 }
 

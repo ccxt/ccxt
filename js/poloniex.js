@@ -342,17 +342,13 @@ module.exports = class poloniex extends Exchange {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let active = (currency['delisted'] === 0);
-            let status = (currency['disabled']) ? 'disabled' : 'ok';
-            if (status !== 'ok')
-                active = false;
+            let active = (currency['delisted'] === 0) && !currency['disabled'];
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -771,7 +767,7 @@ module.exports = class poloniex extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
@@ -782,11 +778,10 @@ module.exports = class poloniex extends Exchange {
         let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
         this.checkAddress (address);
-        let status = address ? 'ok' : 'none';
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': undefined,
             'info': response,
         };
     }

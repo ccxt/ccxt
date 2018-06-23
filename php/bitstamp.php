@@ -571,7 +571,6 @@ class bitstamp extends Exchange {
         $this->check_address($address);
         return array (
             'currency' => $code,
-            'status' => 'ok',
             'address' => $address,
             'tag' => $tag,
             'info' => $response,

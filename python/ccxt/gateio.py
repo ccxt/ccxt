@@ -320,6 +320,8 @@ class gateio (Exchange):
         id = self.safe_string(trade, 'tradeID')
         id = self.safe_string(trade, 'id', id)
         orderId = self.safe_string(trade, 'orderid')
+        if orderId is not None:
+            orderId = self.safe_string(trade, 'orderNumber')
         price = self.safe_float(trade, 'rate')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -465,7 +467,6 @@ class gateio (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok' if (address is not None) else 'none',
             'info': response,
         }
 

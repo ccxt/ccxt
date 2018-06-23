@@ -150,7 +150,6 @@ module.exports = class cobinhood extends Exchange {
                 'code': code,
                 'name': currency['name'],
                 'active': true,
-                'status': 'ok',
                 'fiat': false,
                 'precision': this.precisionFromString (currency['min_unit']),
                 'limits': {
@@ -523,7 +522,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -543,7 +541,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }

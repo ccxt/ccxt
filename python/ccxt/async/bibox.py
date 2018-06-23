@@ -343,7 +343,6 @@ class bibox (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': None,
                 'precision': precision,
                 'limits': {

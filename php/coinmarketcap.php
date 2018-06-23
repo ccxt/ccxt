@@ -268,7 +268,6 @@ class coinmarketcap extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
                 'limits' => array (

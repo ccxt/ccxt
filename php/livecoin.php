@@ -90,6 +90,7 @@ class livecoin extends Exchange {
                 'CRC' => 'CryCash',
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
+                'SCT' => 'SpaceCoin',
                 'TPI' => 'ThaneCoin',
                 'XBT' => 'Bricktox',
             ),
@@ -182,7 +183,6 @@ class livecoin extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => $currency['withdrawFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -218,7 +218,6 @@ class livecoin extends Exchange {
         $defaults = array (
             'info' => null,
             'active' => true,
-            'status' => 'ok',
             'fee' => null,
             'precision' => $precision,
             'limits' => array (
@@ -614,7 +613,6 @@ class livecoin extends Exchange {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

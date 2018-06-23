@@ -34,6 +34,7 @@
     "coinbase":      { "skip": true },
     "coincheck":     { },
     "coinegg":       { "skip": true },
+    "coinex":        { "skip": true },
     "coingi":        { "skip": true, "apiKey": "6ZUYcF0BAABlKbb4oD5rNoOvnfhSzpls/zj4g+DstYCYm85aGuFh1LpsYug339PT", "secret": "6TLLWAqYkCSA68U+0oJ2GFCvNxZJgQntZnRbnN2b" },
     "coinmate":      { "skip": true, "apiKey": "c70ZRYf5xPzBPUozIAwa6utD5ad902lnp42uicTOju0", "secret": "7iWzX6etqLw3jMJ9BPVTA3fZaJfq9Nia-tuKGKVO8r4", "uid": "12092" },
     "coinmarketcap": { "skip": true },

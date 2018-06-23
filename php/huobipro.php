@@ -23,7 +23,7 @@ class huobipro extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => true,
-                'fetchOHCLV' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
@@ -115,6 +115,7 @@ class huobipro extends Exchange {
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
+                'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
@@ -437,7 +438,6 @@ class huobipro extends Exchange {
                 // 'transfer' => null,
                 'name' => $currency['display-name'],
                 'active' => $active,
-                'status' => $active ? 'ok' : 'disabled',
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
                 'limits' => array (
@@ -652,7 +652,6 @@ class huobipro extends Exchange {
         $this->check_address($address);
         return array (
             'currency' => $code,
-            'status' => 'ok',
             'address' => $address,
             'info' => $response,
         );

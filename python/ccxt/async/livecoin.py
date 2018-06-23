@@ -107,6 +107,7 @@ class livecoin (Exchange):
                 'CRC': 'CryCash',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
                 'XBT': 'Bricktox',
             },
@@ -195,7 +196,6 @@ class livecoin (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -229,7 +229,6 @@ class livecoin (Exchange):
         defaults = {
             'info': None,
             'active': True,
-            'status': 'ok',
             'fee': None,
             'precision': precision,
             'limits': {
@@ -587,7 +586,6 @@ class livecoin (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

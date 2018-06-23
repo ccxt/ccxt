@@ -154,7 +154,7 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response['info'],
         }
 
@@ -171,7 +171,7 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 

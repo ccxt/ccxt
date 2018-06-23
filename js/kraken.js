@@ -349,7 +349,6 @@ module.exports = class kraken extends Exchange {
                 'info': currency,
                 'name': code,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -815,7 +814,6 @@ module.exports = class kraken extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -849,7 +847,6 @@ module.exports = class kraken extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }

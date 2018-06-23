@@ -97,7 +97,6 @@ module.exports = class bitsane extends Exchange {
                 'code': code,
                 'name': this.safeString (currency, 'full_name', code),
                 'active': active,
-                'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -395,7 +394,6 @@ module.exports = class bitsane extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }

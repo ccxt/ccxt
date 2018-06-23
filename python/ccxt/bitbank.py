@@ -57,7 +57,7 @@ class bitbank (Exchange):
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
-                        '{pair}/candlestick/{candle-type}/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -225,9 +225,9 @@ class bitbank (Exchange):
         date = self.milliseconds()
         date = self.ymd(date)
         date = date.split('-')
-        response = self.publicGetPairCandlestickCandleTypeYyyymmdd(self.extend({
+        response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend({
             'pair': market['id'],
-            'candle-type': self.timeframes[timeframe],
+            'candletype': self.timeframes[timeframe],
             'yyyymmdd': ''.join(date),
         }, params))
         ohlcv = response['data']['candlestick'][0]['ohlcv']
@@ -375,12 +375,10 @@ class bitbank (Exchange):
         # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
-        status = 'ok' if address else 'none'
         return {
             'currency': currency,
             'address': address,
             'tag': None,
-            'status': status,
             'info': response,
         }
 
