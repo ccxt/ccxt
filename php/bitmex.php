@@ -455,7 +455,12 @@ class bitmex extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
-        $remaining = max ($amount - $filled, 0.0);
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = max ($amount - $filled, 0.0);
+            }
+        }
         $cost = null;
         if ($price !== null)
             if ($filled !== null)
