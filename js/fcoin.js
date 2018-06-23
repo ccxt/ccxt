@@ -244,10 +244,11 @@ module.exports = class fcoin extends Exchange {
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         let newbidasks = [];
-        let length = bidasks.length / 2;
-        for (let i = 0; i < parseInt (length); i++) {
+        let length = bidasks.length;
+        let halfLength = parseInt (length / 2);
+        for (let i = 0; i < halfLength; i++) {
             let ba = bidasks.slice (0, 2);
-            newbidasks.push ([ba[priceKey], ba[amountKey]]);
+            newbidasks.push ([ba[priceKey], ba[amountKey]]);    // sames a little ugly, just aim to pass eslint check
             bidasks = bidasks.slice (2);
         }
         return newbidasks;
@@ -278,8 +279,8 @@ module.exports = class fcoin extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
-            let id = ticker['type'];
-            id = id.split ('.')[1];
+            let idParts = ticker['type'].split ('.');
+            let id = idParts[1];
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
             }
@@ -401,6 +402,7 @@ module.exports = class fcoin extends Exchange {
         let timestamp = parseInt (parseFloat (order['created_at']));
         let amount = this.safeFloat (order, 'amount');
         let filled_amount = this.safeFloat (order, 'filled_amount');
+        let feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
         let result = {
             'info': order,
             'id': order['id'],
@@ -418,7 +420,7 @@ module.exports = class fcoin extends Exchange {
             'status': status,
             'fee': {
                 'cost': this.safeFloat (order, 'fill_fees'),
-                'currency': side === 'buy' ? market['base'] : market['quote'],
+                'currency': feeCurrency,
             },
         };
         return result;
@@ -448,7 +450,7 @@ module.exports = class fcoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrders (this.extend ({
-            'symbol': market.id,
+            'symbol': market['id'],
             'states': 'submitted',
         }, params));
         return this.parseOrders (response['data']);
@@ -501,14 +503,8 @@ module.exports = class fcoin extends Exchange {
             request = '/' + this.version + request;
             url += request;
             let paramsStr = '';
-            let keys = Object.keys (query);
-            keys = keys.sort ();
-            for (let i = 0; i < keys.length; i++) {
-                if (paramsStr !== '') {
-                    paramsStr += '&';
-                }
-                paramsStr += keys[i] + '=' + query[keys[i]];
-            }
+            let sortedQuery = this.keysort (query);
+            paramsStr = this.urlencode (sortedQuery);
             if (method === 'GET') {
                 url += paramsStr ? '?' + paramsStr : '';
             }
