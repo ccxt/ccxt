@@ -68,6 +68,7 @@ class gemini extends Exchange {
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
                         'heartbeat',
+                        'transfers',
                     ),
                 ),
             ),
