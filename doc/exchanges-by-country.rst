@@ -266,6 +266,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | UK                       | |coinegg|            | coinegg            | `CoinEgg <https://www.coinegg.com>`__                                           | \*  | `API <https://www.coinegg.com/explain.api.html>`__                                              |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
+| UK                       | |coinfalcon|         | coinfalcon         | `CoinFalcon <https://coinfalcon.com>`__                                         | \*  | `API <https://docs.coinfalcon.com>`__                                                           |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | UK                       | |coinfloor|          | coinfloor          | `coinfloor <https://www.coinfloor.co.uk>`__                                     | \*  | `API <https://github.com/coinfloor/api>`__                                                      |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | UK                       | |coinmate|           | coinmate           | `CoinMate <https://coinmate.io>`__                                              | \*  | `API <http://docs.coinmate.apiary.io>`__                                                        |
@@ -432,6 +434,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
 .. |bitstamp| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
 .. |bitstamp1| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
+.. |coinfalcon| image:: https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg
 .. |coinfloor| image:: https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
 .. |tidex| image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg

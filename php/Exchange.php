@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.260';
+$version = '1.14.261';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -95,6 +95,7 @@ class Exchange {
         'coinegg',
         'coinex',
         'coinexchange',
+        'coinfalcon',
         'coinfloor',
         'coingi',
         'coinmarketcap',

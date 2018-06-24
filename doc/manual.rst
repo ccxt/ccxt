@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 120 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                            | ver | doc                                                                                             | countries                                |
@@ -155,6 +155,8 @@ The ccxt library currently supports the following 120 cryptocurrency exchange ma
 | |coinex|             | coinex             | `CoinEx <https://www.coinex.com>`__                                             | 1   | `API <https://github.com/coinexcom/coinex_exchange_api/wiki>`__                                 | China                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinexchange|       | coinexchange       | `CoinExchange <https://www.coinexchange.io>`__                                  | \*  | `API <https://coinexchangeio.github.io/slate/>`__                                               | India, Japan, South Korea, Vietnam, US   |
++----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
+| |coinfalcon|         | coinfalcon         | `CoinFalcon <https://coinfalcon.com>`__                                         | \*  | `API <https://docs.coinfalcon.com>`__                                                           | UK                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinfloor|          | coinfloor          | `coinfloor <https://www.coinfloor.co.uk>`__                                     | \*  | `API <https://github.com/coinfloor/api>`__                                                      | UK                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -2786,6 +2788,7 @@ Notes
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg
 .. |coinexchange| image:: https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg
+.. |coinfalcon| image:: https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg
 .. |coinfloor| image:: https://user-images.githubusercontent.com/1294454/28246081-623fc164-6a1c-11e7-913f-bac0d5576c90.jpg
 .. |coingi| image:: https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg
