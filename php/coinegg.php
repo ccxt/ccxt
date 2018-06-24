@@ -143,7 +143,7 @@ class coinegg extends Exchange {
                 '405' => 'Currency transactions are temporarily closed',
             ),
             'options' => array (
-                'quoteIds' => array ( 'btc', 'eth', 'usc' ),
+                'quoteIds' => array ( 'btc', 'eth', 'usc', 'usdt' ),
             ),
         ));
     }
