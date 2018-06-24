@@ -275,27 +275,32 @@ class coinone (Exchange):
         price = None
         side = None
         if order is None:
+            if symbol is None:
+                # eslint-disable-next-line quotes
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             price = self.safe_float(params, 'price')
             if price is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             amount = self.safe_float(params, 'qty')
             if amount is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `qty`(amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
             side = self.safe_float(params, 'is_ask')
             if side is None:
                 # eslint-disable-next-line quotes
-                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
+                raise InvalidOrder(self.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of self class earlier. The `is_ask`(side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         else:
             price = order['price']
             amount = order['amount']
             side = 0 if (order['side'] == 'buy') else 1
+            symbol = order['symbol']
         request = {
             'order_id': id,
             'price': price,
             'qty': amount,
             'is_ask': side,
+            'currency': self.market_id(symbol),
         }
         return await self.privatePostOrderCancel(self.extend(request, params))
 
