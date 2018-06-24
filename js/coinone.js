@@ -300,12 +300,14 @@ module.exports = class coinone extends Exchange {
             price = order['price'];
             amount = order['amount'];
             side = (order['side'] === 'buy') ? 0 : 1;
+            symbol = order['symbol'];
         }
         let request = {
             'order_id': id,
             'price': price,
             'qty': amount,
             'is_ask': side,
+            'currency': this.marketId (symbol),
         };
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
