@@ -13,7 +13,7 @@ module.exports = class coinfalcon extends Exchange {
             'id': 'coinfalcon',
             'name': 'CoinFalcon',
             'countries': 'GB',
-            'rateLimit': 1000 / 3,
+            'rateLimit': 1000,
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
