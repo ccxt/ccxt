@@ -19,10 +19,10 @@ module.exports = class coinfalcon extends Exchange {
                 'fetchOpenOrders': true,
             },
             'urls': {
-                'logo': 'https://docs.coinfalcon.com/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
                 'api': 'https://coinfalcon.com/api/v1',
-                'www': 'https://coinfalcon.com/',
-                'doc': 'https://docs.coinfalcon.com/',
+                'www': 'https://coinfalcon.com',
+                'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
             },
             'api': {
