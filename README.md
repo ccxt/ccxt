@@ -223,7 +223,7 @@ import ccxt.async as ccxt # link against the asynchronous version of ccxt
 
 ### PHP
 
-The ccxt library in PHP: [**`ccxt.php`**](https://raw.githubusercontent.com/ccxt/ccxt/master/ccxt.php)
+[ccxt in PHP with **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+)
 
 It requires common PHP modules:
 
