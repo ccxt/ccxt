@@ -281,31 +281,37 @@ module.exports = class coinone extends Exchange {
         let price = undefined;
         let side = undefined;
         if (typeof order === 'undefined') {
+            if (typeof symbol === 'undefined') {
+                // eslint-disable-next-line quotes
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+            }
             price = this.safeFloat (params, 'price');
             if (typeof price === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             amount = this.safeFloat (params, 'qty');
             if (typeof amount === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             side = this.safeFloat (params, 'is_ask');
             if (typeof side === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
         } else {
             price = order['price'];
             amount = order['amount'];
             side = (order['side'] === 'buy') ? 0 : 1;
+            symbol = order['symbol'];
         }
         let request = {
             'order_id': id,
             'price': price,
             'qty': amount,
             'is_ask': side,
+            'currency': this.marketId (symbol),
         };
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
