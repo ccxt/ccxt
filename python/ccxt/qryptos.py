@@ -103,6 +103,9 @@ class qryptos (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'WIN': 'WCOIN',
+            },
         })
 
     def fetch_markets(self):
@@ -111,8 +114,10 @@ class qryptos (Exchange):
         for p in range(0, len(markets)):
             market = markets[p]
             id = str(market['id'])
-            base = market['base_currency']
-            quote = market['quoted_currency']
+            baseId = market['base_currency']
+            quoteId = market['quoted_currency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
@@ -148,6 +153,8 @@ class qryptos (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -163,14 +170,17 @@ class qryptos (Exchange):
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
-            currency = balance['currency']
+            currencyId = balance['currency']
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
             total = float(balance['balance'])
             account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -189,7 +199,20 @@ class qryptos (Exchange):
                 if length > 0:
                     last = self.safe_float(ticker, 'last_traded_price')
         symbol = None
-        if market:
+        if market is None:
+            marketId = self.safe_string(ticker, 'id')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId = self.safe_string(ticker, 'base_currency')
+                quoteId = self.safe_string(ticker, 'quoted_currency')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                if symbol in self.markets:
+                    market = self.markets[symbol]
+                else:
+                    symbol = base + '/' + quote
+        if market is not None:
             symbol = market['symbol']
         change = None
         percentage = None
