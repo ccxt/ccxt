@@ -142,7 +142,7 @@ module.exports = class coinegg extends Exchange {
                 '405': 'Currency transactions are temporarily closed',
             },
             'options': {
-                'quoteIds': [ 'btc', 'eth', 'usc' ],
+                'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
             },
         });
     }
