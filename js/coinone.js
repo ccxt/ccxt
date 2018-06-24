@@ -282,6 +282,7 @@ module.exports = class coinone extends Exchange {
         let side = undefined;
         if (typeof order === 'undefined') {
             if (typeof symbol === 'undefined') {
+                // eslint-disable-next-line quotes
                 throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             price = this.safeFloat (params, 'price');
