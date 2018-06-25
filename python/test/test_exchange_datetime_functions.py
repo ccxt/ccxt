@@ -23,6 +23,8 @@ exchange = ccxt.Exchange({
 # ----------------------------------------------------------------------------
 
 assert(exchange.iso8601(514862627000) == '1986-04-26T01:23:47.000Z')
+assert(exchange.iso8601(514862627559) == '1986-04-26T01:23:47.559Z')
+
 assert(exchange.iso8601(0) == '1970-01-01T00:00:00.000Z')
 
 assert(exchange.iso8601(-1) is None)
@@ -35,6 +37,7 @@ assert(exchange.iso8601({}) is None)
 # ----------------------------------------------------------------------------
 
 assert(exchange.parse8601('1986-04-26T01:23:47.000Z') == 514862627000)
+assert(exchange.parse8601('1986-04-26T01:23:47.559Z') == 514862627559)
 
 assert(exchange.parse8601('1977-13-13T00:00:00.000Z') is None)
 assert(exchange.parse8601('1986-04-26T25:71:47.000Z') is None)
