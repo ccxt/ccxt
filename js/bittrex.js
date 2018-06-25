@@ -583,8 +583,8 @@ module.exports = class bittrex extends Exchange {
             filled = amount - remaining;
         }
         if (!cost) {
-            if (price && amount)
-                cost = price * amount;
+            if (price && filled)
+                cost = price * filled;
         }
         if (!price) {
             if (cost && filled)

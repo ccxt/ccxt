@@ -28,3 +28,7 @@ We don't give promises or estimates on the open-source work. The reasoning behin
 ## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
 
 This type of questions is usually a waste of time, because answering it usually requires too much time for context-switching, and it often takes more time to answer this question, than to actually satisfy the request with code for a new feature or a new exchange. The progress of this open-source project is also open, so, whenever you're wondering how it is doing, take a look into commit history.
+
+## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
+
+Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one. Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. Just upgrade your version with `pip` or `composer` and you'll be fine. More about it here: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support

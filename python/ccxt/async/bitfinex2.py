@@ -245,7 +245,7 @@ class bitfinex2 (bitfinex):
                         account['free'] = 0
                         account['used'] = total
                     else:
-                        account['free'] = None
+                        account['free'] = total
                 else:
                     account['free'] = available
                     account['used'] = account['total'] - account['free']

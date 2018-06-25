@@ -246,7 +246,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         account['free'] = 0;
                         account['used'] = total;
                     } else {
-                        account['free'] = undefined;
+                        account['free'] = total;
                     }
                 } else {
                     account['free'] = available;

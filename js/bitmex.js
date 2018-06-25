@@ -454,7 +454,12 @@ module.exports = class bitmex extends Exchange {
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQty');
         let filled = this.safeFloat (order, 'cumQty', 0.0);
-        let remaining = Math.max (amount - filled, 0.0);
+        let remaining = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                remaining = Math.max (amount - filled, 0.0);
+            }
+        }
         let cost = undefined;
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')
