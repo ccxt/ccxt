@@ -449,6 +449,7 @@ class bibox extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderpending (array (
             'cmd' => 'orderpending/order',
             'body' => array_merge (array (

@@ -36,6 +36,7 @@ class poloniex (Exchange):
                 'editOrder': True,
                 'createMarketOrder': False,
                 'fetchOHLCV': True,
+                'fetchOrderTrades': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',

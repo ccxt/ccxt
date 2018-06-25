@@ -560,8 +560,8 @@ class bittrex (Exchange):
         if amount is not None and remaining is not None:
             filled = amount - remaining
         if not cost:
-            if price and amount:
-                cost = price * amount
+            if price and filled:
+                cost = price * filled
         if not price:
             if cost and filled:
                 price = cost / filled
