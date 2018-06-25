@@ -20,7 +20,7 @@ class bitz (Exchange):
             'id': 'bitz',
             'name': 'Bit-Z',
             'countries': 'HK',
-            'rateLimit': 1000,
+            'rateLimit': 2000,
             'version': 'v1',
             'userAgent': self.userAgents['chrome'],
             'has': {
