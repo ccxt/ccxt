@@ -88,6 +88,7 @@ class livecoin extends Exchange {
             'commonCurrencies' => array (
                 'CPC' => 'Capricoin',
                 'CRC' => 'CryCash',
+                'EDR' => 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'ORE' => 'Orectic',
                 'RUR' => 'RUB',
                 'SCT' => 'SpaceCoin',
