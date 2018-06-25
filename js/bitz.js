@@ -13,7 +13,7 @@ module.exports = class bitz extends Exchange {
             'id': 'bitz',
             'name': 'Bit-Z',
             'countries': 'HK',
-            'rateLimit': 1000,
+            'rateLimit': 2000,
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
             'has': {
