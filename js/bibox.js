@@ -448,6 +448,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/order',
             'body': this.extend ({
