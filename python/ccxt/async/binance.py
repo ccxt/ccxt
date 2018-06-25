@@ -281,6 +281,7 @@ class binance (Exchange):
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
+                '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'

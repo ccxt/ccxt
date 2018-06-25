@@ -272,6 +272,7 @@ class binance extends Exchange {
                 '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("code":-1000,"msg":"An unknown error occured while processing the request.")
                 '-1013' => '\\ccxt\\InvalidOrder', // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
+                '-1022' => '\\ccxt\\AuthenticationError', // array ("code":-1022,"msg":"Signature for this request is not valid.")
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
                 '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
