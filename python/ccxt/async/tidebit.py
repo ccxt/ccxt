@@ -40,7 +40,7 @@ class tidebit (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
-                'api': 'https://www.tidebit.com/api',
+                'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': 'https://www.tidebit.com/documents/api_v2',
             },
@@ -355,9 +355,9 @@ class tidebit (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = self.implode_params(path, params) + '.json'
+        request = '/' + 'api/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + request
+        url = self.urls['api'] + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
