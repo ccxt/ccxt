@@ -217,7 +217,7 @@ module.exports = class livecoin extends Exchange {
         return result;
     }
 
-    appendFiatCurrencies (result = []) {
+    appendFiatCurrencies (result) {
         let precision = 8;
         let defaults = {
             'info': undefined,
