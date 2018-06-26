@@ -29,7 +29,7 @@ module.exports = class deribit extends Exchange {
             'timeframes': {},
             'urls': {
                 // 'test': 'https://test.deribit.com',
-                'logo': 'https://user-images.githubusercontent.com/629338/35326678-d005069c-0110-11e8-8a4c-8c8e201da2a2.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
