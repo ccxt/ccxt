@@ -99,10 +99,10 @@ module.exports = class fcoin extends Exchange {
                 'limits': {
                     'BTC/USDT': {
                         'amount': {
-                             'min': 0.001,
-                             'max': 1000,
-                         },
-                     },
+                            'min': 0.001,
+                            'max': 1000,
+                        },
+                    },
                     'ETH/USDT': {
                         'amount': {
                             'min': 0.001,
