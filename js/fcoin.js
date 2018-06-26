@@ -90,82 +90,90 @@ module.exports = class fcoin extends Exchange {
                 },
             },
             'limits': {
-                'BTC/USDT': {
-                    'amount': {
-                        'min': 0.001,
-                        'max': 1000,
-                    },
+                'amount': {
+                    'min': 0.01,
+                    'max': 100000,
                 },
-                'ETH/USDT': {
-                    'amount': {
-                        'min': 0.001,
-                        'max': 10000,
+            },
+            'options': {
+                'limits': {
+                    'BTC/USDT': {
+                        'amount': {
+                             'min': 0.001,
+                             'max': 1000,
+                         },
+                     },
+                    'ETH/USDT': {
+                        'amount': {
+                            'min': 0.001,
+                            'max': 10000,
+                        },
                     },
-                },
-                'BCH/USDT': {
-                    'amount': {
-                        'min': 0.001,
-                        'max': 5000,
+                    'BCH/USDT': {
+                        'amount': {
+                            'min': 0.001,
+                            'max': 5000,
+                        },
                     },
-                },
-                'LTC/USDT': {
-                    'amount': {
-                        'min': 0.001,
-                        'max': 40000,
+                    'LTC/USDT': {
+                        'amount': {
+                            'min': 0.001,
+                            'max': 40000,
+                        },
                     },
-                },
-                'FT/ETH': {
-                    'amount': {
-                        'min': 1,
-                        'max': 10000000,
+                    'FT/ETH': {
+                        'amount': {
+                            'min': 1,
+                            'max': 10000000,
+                        },
                     },
-                },
-                'FT/USDT': {
-                    'amount': {
-                        'min': 1,
-                        'max': 10000000,
+                    'FT/USDT': {
+                        'amount': {
+                            'min': 1,
+                            'max': 10000000,
+                        },
                     },
-                },
-                'ZIP/ETH': {
-                    'amount': {
-                        'min': 1,
-                        'max': 10000000,
+                    'ZIP/ETH': {
+                        'amount': {
+                            'min': 1,
+                            'max': 10000000,
+                        },
                     },
-                },
-                'ETC/USDT': {
-                    'amount': {
-                        'min': 0.001,
-                        'max': 400000,
+                    'ETC/USDT': {
+                        'amount': {
+                            'min': 0.001,
+                            'max': 400000,
+                        },
                     },
-                },
-                'FT/BTC': {
-                    'amount': {
-                        'min': 1,
-                        'max': 10000000,
+                    'FT/BTC': {
+                        'amount': {
+                            'min': 1,
+                            'max': 10000000,
+                        },
                     },
-                },
-                'ZIL/ETH': {
-                    'amount': {
-                        'min': 1,
-                        'max': 10000000,
+                    'ZIL/ETH': {
+                        'amount': {
+                            'min': 1,
+                            'max': 10000000,
+                        },
                     },
-                },
-                'OMG/ETH': {
-                    'amount': {
-                        'min': 0.01,
-                        'max': 500000,
+                    'OMG/ETH': {
+                        'amount': {
+                            'min': 0.01,
+                            'max': 500000,
+                        },
                     },
-                },
-                'ICX/ETH': {
-                    'amount': {
-                        'min': 0.01,
-                        'max': 3000000,
+                    'ICX/ETH': {
+                        'amount': {
+                            'min': 0.01,
+                            'max': 3000000,
+                        },
                     },
-                },
-                'BTM/USDT': {
-                    'amount': {
-                        'min': 0.1,
-                        'max': 10000000,
+                    'BTM/USDT': {
+                        'amount': {
+                            'min': 0.1,
+                            'max': 10000000,
+                        },
                     },
                 },
             },
@@ -180,10 +188,10 @@ module.exports = class fcoin extends Exchange {
             for (let p = 0; p < markets.length; p++) {
                 let market = markets[p];
                 let id = market['name'];
-                let baseId = market['base_currency'].toUpperCase ();
-                let quoteId = market['quote_currency'].toUpperCase ();
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
+                let baseId = market['base_currency'];
+                let quoteId = market['quote_currency'];
+                let base = this.commonCurrencyCode (baseId.toUpperCase ());
+                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
                 let symbol = base + '/' + quote;
                 let precision = {
                     'price': market['price_decimal'],
@@ -195,16 +203,8 @@ module.exports = class fcoin extends Exchange {
                         'max': Math.pow (10, precision['price']),
                     },
                 };
-                if (symbol in this.limits) {
-                    limits['amount'] = {
-                        'min': this.safeFloat (this.limits[symbol]['amount'], 'min'),
-                        'max': this.safeFloat (this.limits[symbol]['amount'], 'max'),
-                    };
-                } else {
-                    limits['amount'] = {
-                        'min': 0.01,
-                        'max': 100000,
-                    };
+                if (symbol in this.options['limits']) {
+                    limits = this.extend (this.options['limits'][symbol], limits);
                 }
                 result.push ({
                     'id': id,
