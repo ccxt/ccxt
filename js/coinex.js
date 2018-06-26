@@ -217,12 +217,16 @@ module.exports = class coinex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = 20, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketDepth (this.extend ({
+        if (typeof limit === 'undefined')
+            limit = 20; // default
+        const request = {
             'market': this.marketId (symbol),
             'merge': '0.00000001',
-        }, params));
+            'limit': limit.toString (),
+        }
+        let response = await this.publicGetMarketDepth (this.extend (request, params));
         return this.parseOrderBook (response['data']);
     }
 
