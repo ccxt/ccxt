@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.14.278'
+__version__ = '1.14.279'
 
 # -----------------------------------------------------------------------------
 
@@ -101,6 +101,7 @@ from ccxt.async.cointiger import cointiger                      # noqa: F401
 from ccxt.async.coolcoin import coolcoin                        # noqa: F401
 from ccxt.async.crypton import crypton                          # noqa: F401
 from ccxt.async.cryptopia import cryptopia                      # noqa: F401
+from ccxt.async.deribit import deribit                          # noqa: F401
 from ccxt.async.dsx import dsx                                  # noqa: F401
 from ccxt.async.ethfinex import ethfinex                        # noqa: F401
 from ccxt.async.exmo import exmo                                # noqa: F401
@@ -224,6 +225,7 @@ exchanges = [
     'coolcoin',
     'crypton',
     'cryptopia',
+    'deribit',
     'dsx',
     'ethfinex',
     'exmo',

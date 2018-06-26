@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 121 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                            | ver | doc                                                                                             | countries                                |
@@ -149,6 +149,8 @@ The ccxt library currently supports the following 121 cryptocurrency exchange ma
 | crypton            | `Crypton <https://cryptonbtc.com>`__                                            | 1   | `API <https://cryptonbtc.docs.apiary.io/>`__                                                    | EU                                       |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | cryptopia          | `Cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__           | \*  | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                         | New Zealand                              |
++--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
+| deribit            | `Deribit <https://www.deribit.com>`__                                           | 1   | `API <https://www.deribit.com/pages/docs/api>`__                                                | Netherlands                              |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
 | dsx                | `DSX <https://dsx.uk>`__                                                        | 3   | `API <https://api.dsx.uk>`__                                                                    | UK                                       |
 +--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -636,6 +638,7 @@ Thank you!
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
 .. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
+.. |deribit| image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
 .. |dsx| image:: https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg
 .. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg
 .. |exmo| image:: https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg

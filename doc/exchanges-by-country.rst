@@ -180,6 +180,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | Netherlands              | |bl3p|               | bl3p               | `BL3P <https://bl3p.eu>`__                                                      | 1   | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
+| Netherlands              | |deribit|            | deribit            | `Deribit <https://www.deribit.com>`__                                           | 1   | `API <https://www.deribit.com/pages/docs/api>`__                                                |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | New Zealand              | |anxpro|             | anxpro             | `ANXPro <https://anxpro.com>`__                                                 | 2   | `API <http://docs.anxv2.apiary.io>`__                                                           |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | New Zealand              | |cryptopia|          | cryptopia          | `Cryptopia <https://www.cryptopia.co.nz/Register?referrer=kroitor>`__           | \*  | `API <https://www.cryptopia.co.nz/Forum/Category/45>`__                                         |
@@ -408,6 +410,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |zaif| image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg
 .. |bitso| image:: https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg
+.. |deribit| image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |wex| image:: https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg
 .. |urdubit| image:: https://user-images.githubusercontent.com/1294454/27991453-156bf3ae-6480-11e7-82eb-7295fe1b5bb4.jpg
