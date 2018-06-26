@@ -347,6 +347,9 @@ class kucoin (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CAN': 'CanYa',
+            },
         })
 
     def nonce(self):

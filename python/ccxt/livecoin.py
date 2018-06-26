@@ -103,13 +103,17 @@ class livecoin (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CPC': 'Capricoin',
+                'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
+                'eETT': 'EETT',
+                'FirstBlood': '1ST',
+                'FORTYTWO': '42',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
                 'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
             'exceptions': {

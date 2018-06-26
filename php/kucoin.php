@@ -338,6 +338,9 @@ class kucoin extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'CAN' => 'CanYa',
+            ),
         ));
     }
 
