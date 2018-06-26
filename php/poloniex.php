@@ -561,7 +561,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function parse_open_orders ($orders, $market, $result = []) {
+    public function parse_open_orders ($orders, $market, $result) {
         for ($i = 0; $i < count ($orders); $i++) {
             $order = $orders[$i];
             $extended = array_merge ($order, array (

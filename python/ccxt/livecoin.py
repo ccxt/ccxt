@@ -229,7 +229,7 @@ class livecoin (Exchange):
         result = self.append_fiat_currencies(result)
         return result
 
-    def append_fiat_currencies(self, result=[]):
+    def append_fiat_currencies(self, result):
         precision = 8
         defaults = {
             'info': None,

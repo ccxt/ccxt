@@ -537,7 +537,7 @@ class poloniex (Exchange):
             'fee': None,
         }
 
-    def parse_open_orders(self, orders, market, result=[]):
+    def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
             order = orders[i]
             extended = self.extend(order, {

@@ -307,7 +307,8 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function append_inactive_markets ($result = []) {
+    public function append_inactive_markets ($result) {
+        // $result should be an array to append to
         $precision = array ( 'amount' => 8, 'price' => 8 );
         $costLimits = array ( 'min' => 0, 'max' => null );
         $priceLimits = array ( 'min' => pow (10, -$precision['price']), 'max' => null );

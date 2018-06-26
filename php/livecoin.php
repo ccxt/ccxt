@@ -218,7 +218,7 @@ class livecoin extends Exchange {
         return $result;
     }
 
-    public function append_fiat_currencies ($result = []) {
+    public function append_fiat_currencies ($result) {
         $precision = 8;
         $defaults = array (
             'info' => null,
