@@ -125,9 +125,21 @@ class poloniex extends Exchange {
                 'price' => 8,
             ),
             'commonCurrencies' => array (
-                'BTM' => 'Bitmark',
-                'STR' => 'XLM',
+                'AIR' => 'AirCoin',
+                'APH' => 'AphroditeCoin',
                 'BCC' => 'BTCtalkcoin',
+                'BDG' => 'Badgercoin',
+                'BTM' => 'Bitmark',
+                'CON' => 'Coino',
+                'GOLD' => 'GoldEagles',
+                'GPUC' => 'GPU',
+                'HOT' => 'Hotcoin',
+                'ITC' => 'Information Coin',
+                'PLX' => 'ParallaxCoin',
+                'KEY' => 'KEYCoin',
+                'STR' => 'XLM',
+                'SOC' => 'SOCC',
+                'XAP' => 'API Coin',
             ),
             'options' => array (
                 'limits' => array (

@@ -139,7 +139,7 @@ class tidebit extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetV2Deposits ();
+        $response = $this->privateGetV2MembersMe ();
         $balances = $response['accounts'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {

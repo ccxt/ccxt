@@ -135,7 +135,7 @@ class tidebit (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetV2Deposits()
+        response = self.privateGetV2MembersMe()
         balances = response['accounts']
         result = {'info': balances}
         for b in range(0, len(balances)):
