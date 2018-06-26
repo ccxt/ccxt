@@ -145,6 +145,7 @@ class okcoinusd extends Exchange {
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
             ),
             'options' => array (
+                'defaultContractType' => 'this_week', // next_week, quarter
                 'warnOnFetchOHLCVLimitArgument' => true,
                 'fiats' => array ( 'USD', 'CNY' ),
                 'futures' => array (
@@ -249,7 +250,7 @@ class okcoinusd extends Exchange {
             $request['size'] = $limit;
         if ($market['future']) {
             $method .= 'Future';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         }
         $method .= 'Depth';
         $orderbook = $this->$method (array_merge ($request, $params));
@@ -302,7 +303,7 @@ class okcoinusd extends Exchange {
         );
         if ($market['future']) {
             $method .= 'Future';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         }
         $method .= 'Ticker';
         $response = $this->$method (array_merge ($request, $params));
@@ -344,7 +345,7 @@ class okcoinusd extends Exchange {
         );
         if ($market['future']) {
             $method .= 'Future';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         }
         $method .= 'Trades';
         $response = $this->$method (array_merge ($request, $params));
@@ -376,7 +377,7 @@ class okcoinusd extends Exchange {
         );
         if ($market['future']) {
             $method .= 'Future';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         }
         $method .= 'Kline';
         if ($limit !== null) {
@@ -421,7 +422,7 @@ class okcoinusd extends Exchange {
         if ($market['future']) {
             $method .= 'Future';
             $order = array_merge ($order, array (
-                'contract_type' => 'this_week', // next_week, quarter
+                'contract_type' => $this->options['defaultContractType'], // this_week, next_week, quarter
                 'match_price' => 0, // match best counter party $price? 0 or 1, ignores $price if 1
                 'lever_rate' => 10, // leverage rate value => 10 or 20 (10 by default)
                 'price' => $price,
@@ -478,7 +479,7 @@ class okcoinusd extends Exchange {
         $method = 'privatePost';
         if ($market['future']) {
             $method .= 'FutureCancel';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         } else {
             $method .= 'CancelOrder';
         }
@@ -604,7 +605,7 @@ class okcoinusd extends Exchange {
         );
         if ($market['future']) {
             $method .= 'Future';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
         }
         $method .= 'OrderInfo';
         $response = $this->$method (array_merge ($request, $params));
@@ -627,7 +628,7 @@ class okcoinusd extends Exchange {
         $order_id_in_params = (is_array ($params) && array_key_exists ('order_id', $params));
         if ($market['future']) {
             $method .= 'FutureOrdersInfo';
-            $request['contract_type'] = 'this_week'; // next_week, quarter
+            $request['contract_type'] = $this->options['defaultContractType']; // this_week, next_week, quarter
             if (!$order_id_in_params)
                 throw new ExchangeError ($this->id . ' fetchOrders() requires order_id param for futures $market ' . $symbol . ' (a string of one or more order ids, comma-separated)');
         } else {
