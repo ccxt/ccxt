@@ -225,7 +225,7 @@ module.exports = class coinex extends Exchange {
             'market': this.marketId (symbol),
             'merge': '0.00000001',
             'limit': limit.toString (),
-        }
+        };
         let response = await this.publicGetMarketDepth (this.extend (request, params));
         return this.parseOrderBook (response['data']);
     }
