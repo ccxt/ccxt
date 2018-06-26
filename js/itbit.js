@@ -162,13 +162,13 @@ module.exports = class itbit extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchWallets () {
+    async fetchWallets (params = {}) {
         if (!this.userId)
             throw new AuthenticationError (this.id + ' fetchWallets requires userId in API settings');
-        let params = {
+        let request = {
             'userId': this.userId,
         };
-        return this.privateGetWallets (params);
+        return this.privateGetWallets (this.extend (request, params));
     }
 
     async fetchWallet (walletId, params = {}) {
