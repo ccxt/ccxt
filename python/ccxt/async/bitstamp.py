@@ -15,6 +15,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import NotSupported
 
 
@@ -153,6 +154,9 @@ class bitstamp (Exchange):
                         'EUR': 0,
                     },
                 },
+            },
+            'exceptions': {
+                'No permission found': PermissionDenied,
             },
         })
 
@@ -605,10 +609,15 @@ class bitstamp (Exchange):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             response = json.loads(body)
+            # fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+            error = self.safe_string(response, 'error')
+            exceptions = self.exceptions
+            if error in exceptions:
+                raise exceptions[error](self.id + ' ' + body)
             status = self.safe_string(response, 'status')
             if status == 'error':
                 code = self.safe_string(response, 'code')
                 if code is not None:
                     if code == 'API0005':
                         raise AuthenticationError(self.id + ' invalid signature, use the uid for the main account if you have subaccounts')
-                raise ExchangeError(self.id + ' ' + self.json(response))
+                raise ExchangeError(self.id + ' ' + body)
