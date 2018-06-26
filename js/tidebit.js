@@ -391,10 +391,11 @@ module.exports = class tidebit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let query = this.urlencode (this.extend ({
+            let sortedByKey = this.keysort (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
+            let query = this.urlencode (sortedByKey);
             let payload = method + '|' + request + '|' + query;
             let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;
