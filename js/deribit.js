@@ -335,11 +335,9 @@ module.exports = class deribit extends Exchange {
         };
         if (typeof price !== 'undefined')
             request['price'] = price;
-        let handler = (side === 'buy') ? this.privatePostBuy : this.privatePostSell;
-        let response = await handler (this.extend (request, params));
-        let order = this.parseOrder (response['result']);
-        this.orders[order['id']] = order;
-        return this.extend ({ 'info': response['result'] }, order);
+        let method = 'privatePost' + this.capitalize (side);
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrder (response['result']);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -352,16 +350,13 @@ module.exports = class deribit extends Exchange {
         if (typeof price !== 'undefined')
             request['price'] = price;
         let response = await this.privatePostEdit (this.extend (request, params));
-        let order = this.parseOrder (response['result']);
-        this.orders[order['id']] = order;
-        return this.extend ({ 'info': response['result'] }, order);
+        return this.parseOrder (response['result']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
-        let order = this.parseOrder (response['result']);
-        return this.extend ({ 'info': response['result'] }, order);
+        return this.parseOrder (response['result']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -371,7 +366,7 @@ module.exports = class deribit extends Exchange {
             'instrument': market['id'],
         };
         let response = await this.privateGetGetopenorders (this.extend (request, params));
-        return this.parseOrders (response['result']);
+        return this.parseOrders (response['result'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -381,7 +376,7 @@ module.exports = class deribit extends Exchange {
             'instrument': market['id'],
         };
         let response = await this.privateGetOrderhistory (this.extend (request, params));
-        return this.parseOrders (response['result']);
+        return this.parseOrders (response['result'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -394,7 +389,7 @@ module.exports = class deribit extends Exchange {
             request['count'] = limit; // default = 20
         }
         let response = await this.privateGetTradehistory (this.extend (request, params));
-        return this.parseTrades (response['result']);
+        return this.parseTrades (response['result'], market, since, limit);
     }
 
     nonce () {
