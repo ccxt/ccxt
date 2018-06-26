@@ -23,7 +23,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTicker': false,
+                'fetchMyTrades': true,
                 'fetchTickers': false,
             },
             'timeframes': {},
@@ -142,12 +142,50 @@ module.exports = class deribit extends Exchange {
         };
     }
 
+    parseTicker (ticker, market = undefined) {
+        let timestamp = this.safeInteger (ticker, 'created');
+        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
+        let symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
+        let last = this.safeFloat (ticker, 'last');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bidPrice'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'askPrice'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'info': ticker,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetGetsummary (this.extend ({
+            'instrument': market['id'],
+        }, params));
+        return this.parseTicker (response['result'], market);
+    }
+
     parseTrade (trade, market = undefined) {
         let id = this.safeString (trade, 'tradeId');
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (trade, 'timestamp');
+        let timestamp = this.safeInteger (trade, 'timeStamp');
         return {
             'info': trade,
             'id': id,
@@ -181,7 +219,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetorderbook ({ 'instrument': market['id'] });
-        let timestamp = response['usOut'] / 1000000;
+        let timestamp = parseInt (response['usOut'] / 1000);
         let orderbook = this.parseOrderBook (response['result'], timestamp, 'bids', 'asks', 'price', 'quantity');
         return this.extend (orderbook, {
             'nonce': this.safeInteger (response, 'tstamp'),
@@ -288,11 +326,6 @@ module.exports = class deribit extends Exchange {
         return this.parseOrder (response['result']);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.privateGetTradeHistory ({ 'instrument': symbol });
-        return this.parseTrades (response['result']);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -333,22 +366,34 @@ module.exports = class deribit extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        params['instrument'] = this.marketId (symbol);
-        let response = await this.privateGetGetopenorders (params);
+        let market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+        };
+        let response = await this.privateGetGetopenorders (this.extend (request, params));
         return this.parseOrders (response['result']);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        params['instrument'] = this.marketId (symbol);
-        let response = await this.privateGetOrderhistory (params);
+        let market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+        };
+        let response = await this.privateGetOrderhistory (this.extend (request, params));
         return this.parseOrders (response['result']);
     }
 
-    async fetchMyTradesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        params['instrument'] = this.marketId (symbol);
-        let response = await this.privateGetGetopenorders (params);
+        let market = this.market (symbol);
+        let request = {
+            'instrument': market['id'],
+        };
+        if (typeof limit !== 'undefined') {
+            request['count'] = limit; // default = 20
+        }
+        let response = await this.privateGetTradehistory (this.extend (request, params));
         return this.parseTrades (response['result']);
     }
 
