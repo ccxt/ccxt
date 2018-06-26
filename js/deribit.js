@@ -20,7 +20,7 @@ module.exports = class deribit extends Exchange {
                 'CORS': true,
                 'editOrder': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchTicker': false,
@@ -81,36 +81,6 @@ module.exports = class deribit extends Exchange {
         });
     }
 
-    nonce () {
-        return this.milliseconds ();
-    }
-
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/' + 'api/' + this.version + '/' + api + '/' + path;
-        let url = this.urls['api'] + query;
-        if (api === 'public') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-        } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
-            if (method === 'POST') {
-                params = this.keysort (params);
-                auth += '&' + this.urlencode (params);
-            }
-            let hash = this.hash (this.encode (auth), 'sha256', 'base64');
-            let signature = this.apiKey + '.' + nonce + '.' + hash;
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'x-deribit-sig': signature,
-            };
-            body = this.urlencode (params);
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
     async fetchMarkets () {
         let marketsResponse = await this.publicGetGetinstruments ();
         let markets = marketsResponse['result'];
@@ -122,7 +92,7 @@ module.exports = class deribit extends Exchange {
             let quote = market['currency'];
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
-            let marketEntry = {
+            result.push ({
                 'id': id,
                 'symbol': id,
                 'base': base,
@@ -145,15 +115,7 @@ module.exports = class deribit extends Exchange {
                 'future': market['kind'] === 'future',
                 'option': market['kind'] === 'option',
                 'info': market,
-            };
-            if (marketEntry['option']) {
-                marketEntry = this.extend (marketEntry, {
-                    'optionCall': market['optionType'] === 'call',
-                    'optionPut': market['optionType'] === 'put',
-                    'optionStrike': market['strike'],
-                });
-            }
-            result.push (marketEntry);
+            });
         }
         return result;
     }
@@ -222,6 +184,30 @@ module.exports = class deribit extends Exchange {
     }
 
     parseOrder (order) {
+
+        // {
+        //     "success": true,  // true or false
+        //     "message": "",    // empty or text message, e.g. error message
+        //     "result": [       // list of open orders
+        //     {
+        //             "orderId": 5258039,          // ID of the order
+        //             "instrument": "BTC-26MAY17", // instrument name
+        //             "direction": "sell",         // order direction, "buy" or "sell"
+        //             "price": 1860,               // float, USD for futures, BTC for options
+        //             "label": "",                 // label set by the owner, up to 32 chars
+        //             "quantity": 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //             "filledQuantity": 3,         // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //             "avgPrice": 1860,            // average fill price of the order
+        //             "commission": -0.000001613,  // in BTC units
+        //             "created": 1494491899308,    // creation timestamp
+        //             "lastUpdate": 1494491988754, // timestamp of the last order state change
+        //                                          // (before this cancelorder of course)
+        //             "state": "open",             // open, cancelled, etc
+        //             "postOnly": false            // true for post-only orders only
+        //         }
+        //     ]
+        // }
+
         return {
             'info': order,
             'id': order['orderId'].toString (),
@@ -294,5 +280,49 @@ module.exports = class deribit extends Exchange {
         params['instrument'] = this.marketId (symbol);
         let response = await this.privateGetGetopenorders (params);
         return this.parseOrders (response['result']);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        params['instrument'] = this.marketId (symbol);
+        let response = await this.privateGetOrderhistory (params);
+        return this.parseOrders (response['result']);
+    }
+
+    async fetchMyTradesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        params['instrument'] = this.marketId (symbol);
+        let response = await this.privateGetGetopenorders (params);
+        return this.parseTrades (response['result']);
+    }
+
+    nonce () {
+        return this.milliseconds ();
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let query = '/' + 'api/' + this.version + '/' + api + '/' + path;
+        let url = this.urls['api'] + query;
+        if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ().toString ();
+            let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
+            if (method === 'POST') {
+                params = this.keysort (params);
+                auth += '&' + this.urlencode (params);
+            }
+            let hash = this.hash (this.encode (auth), 'sha256', 'base64');
+            let signature = this.apiKey + '.' + nonce + '.' + hash;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'x-deribit-sig': signature,
+            };
+            body = this.urlencode (params);
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
