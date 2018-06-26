@@ -315,12 +315,16 @@ class bitflyer (Exchange):
         return orders
 
     def fetch_open_orders(self, symbol=None, since=None, limit=100, params={}):
-        params['child_order_state'] = 'ACTIVE'
-        return self.fetch_orders(symbol, since, limit, params)
+        request = {
+            'child_order_state': 'ACTIVE',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=100, params={}):
-        params['child_order_state'] = 'COMPLETED'
-        return self.fetch_orders(symbol, since, limit, params)
+        request = {
+            'child_order_state': 'COMPLETED',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:

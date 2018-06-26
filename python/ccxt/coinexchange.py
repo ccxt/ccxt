@@ -688,9 +688,8 @@ class coinexchange (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
-            params = self.urlencode(params)
-            if len(params):
-                url += '?' + params
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

@@ -162,13 +162,13 @@ class itbit extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function fetch_wallets () {
+    public function fetch_wallets ($params = array ()) {
         if (!$this->userId)
             throw new AuthenticationError ($this->id . ' fetchWallets requires userId in API settings');
-        $params = array (
+        $request = array (
             'userId' => $this->userId,
         );
-        return $this->privateGetWallets ($params);
+        return $this->privateGetWallets (array_merge ($request, $params));
     }
 
     public function fetch_wallet ($walletId, $params = array ()) {

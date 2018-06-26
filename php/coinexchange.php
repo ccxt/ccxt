@@ -698,9 +698,8 @@ class coinexchange extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
-            $params = $this->urlencode ($params);
-            if (strlen ($params))
-                $url .= '?' . $params;
+            if ($params)
+                $url .= '?' . $this->urlencode ($params);
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
