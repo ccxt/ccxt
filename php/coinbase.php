@@ -52,6 +52,7 @@ class coinbase extends Exchange {
                 'www' => 'https://www.coinbase.com',
                 'doc' => 'https://developers.coinbase.com/api/v2',
                 'fees' => 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'referral' => 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
