@@ -31,7 +31,7 @@ class deribit (Exchange):
             'timeframes': {},
             'urls': {
                 # 'test': 'https://test.deribit.com',
-                'logo': 'https://user-images.githubusercontent.com/629338/35326678-d005069c-0110-11e8-8a4c-8c8e201da2a2.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
@@ -317,11 +317,9 @@ class deribit (Exchange):
         }
         if price is not None:
             request['price'] = price
-        handler = self.privatePostBuy if (side == 'buy') else self.privatePostSell
-        response = handler(self.extend(request, params))
-        order = self.parse_order(response['result'])
-        self.orders[order['id']] = order
-        return self.extend({'info': response['result']}, order)
+        method = 'privatePost' + self.capitalize(side)
+        response = getattr(self, method)(self.extend(request, params))
+        return self.parse_order(response['result'])
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
@@ -333,15 +331,12 @@ class deribit (Exchange):
         if price is not None:
             request['price'] = price
         response = self.privatePostEdit(self.extend(request, params))
-        order = self.parse_order(response['result'])
-        self.orders[order['id']] = order
-        return self.extend({'info': response['result']}, order)
+        return self.parse_order(response['result'])
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostCancel(self.extend({'orderId': id}, params))
-        order = self.parse_order(response['result'])
-        return self.extend({'info': response['result']}, order)
+        return self.parse_order(response['result'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -350,7 +345,7 @@ class deribit (Exchange):
             'instrument': market['id'],
         }
         response = self.privateGetGetopenorders(self.extend(request, params))
-        return self.parse_orders(response['result'])
+        return self.parse_orders(response['result'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -359,7 +354,7 @@ class deribit (Exchange):
             'instrument': market['id'],
         }
         response = self.privateGetOrderhistory(self.extend(request, params))
-        return self.parse_orders(response['result'])
+        return self.parse_orders(response['result'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -370,7 +365,7 @@ class deribit (Exchange):
         if limit is not None:
             request['count'] = limit  # default = 20
         response = self.privateGetTradehistory(self.extend(request, params))
-        return self.parse_trades(response['result'])
+        return self.parse_trades(response['result'], market, since, limit)
 
     def nonce(self):
         return self.milliseconds()

@@ -30,7 +30,7 @@ class deribit extends Exchange {
             'timeframes' => array (),
             'urls' => array (
                 // 'test' => 'https://test.deribit.com',
-                'logo' => 'https://user-images.githubusercontent.com/629338/35326678-d005069c-0110-11e8-8a4c-8c8e201da2a2.png',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
                 'api' => 'https://www.deribit.com',
                 'www' => 'https://www.deribit.com',
                 'doc' => array (
@@ -336,11 +336,9 @@ class deribit extends Exchange {
         );
         if ($price !== null)
             $request['price'] = $price;
-        $handler = ($side === 'buy') ? $this->privatePostBuy : $this->privatePostSell;
-        $response = $handler (array_merge ($request, $params));
-        $order = $this->parse_order($response['result']);
-        $this->orders[$order['id']] = $order;
-        return array_merge (array ( 'info' => $response['result'] ), $order);
+        $method = 'privatePost' . $this->capitalize ($side);
+        $response = $this->$method (array_merge ($request, $params));
+        return $this->parse_order($response['result']);
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -353,16 +351,13 @@ class deribit extends Exchange {
         if ($price !== null)
             $request['price'] = $price;
         $response = $this->privatePostEdit (array_merge ($request, $params));
-        $order = $this->parse_order($response['result']);
-        $this->orders[$order['id']] = $order;
-        return array_merge (array ( 'info' => $response['result'] ), $order);
+        return $this->parse_order($response['result']);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostCancel (array_merge (array ( 'orderId' => $id ), $params));
-        $order = $this->parse_order($response['result']);
-        return array_merge (array ( 'info' => $response['result'] ), $order);
+        return $this->parse_order($response['result']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -372,7 +367,7 @@ class deribit extends Exchange {
             'instrument' => $market['id'],
         );
         $response = $this->privateGetGetopenorders (array_merge ($request, $params));
-        return $this->parse_orders($response['result']);
+        return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -382,7 +377,7 @@ class deribit extends Exchange {
             'instrument' => $market['id'],
         );
         $response = $this->privateGetOrderhistory (array_merge ($request, $params));
-        return $this->parse_orders($response['result']);
+        return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -395,7 +390,7 @@ class deribit extends Exchange {
             $request['count'] = $limit; // default = 20
         }
         $response = $this->privateGetTradehistory (array_merge ($request, $params));
-        return $this->parse_trades($response['result']);
+        return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function nonce () {
