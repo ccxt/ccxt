@@ -697,9 +697,8 @@ module.exports = class coinexchange extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
-            if (params.length)
-                url += '?' + params;
+            if (Object.keys (params).length)
+                url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
