@@ -215,7 +215,7 @@ class coinex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         response = await self.publicGetMarketDepth(self.extend({
             'market': self.market_id(symbol),
