@@ -142,13 +142,18 @@ module.exports = class deribit extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
+        let id = this.safeString (trade, 'tradeId');
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger (trade, 'timestamp');
         return {
             'info': trade,
-            'timestamp': trade['timeStamp'],
-            'datetime': this.iso8601 (trade['timeStamp']),
-            'symbol': market['symbol'],
-            'id': trade['tradeId'].toString (),
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': trade['direction'],
@@ -183,6 +188,18 @@ module.exports = class deribit extends Exchange {
         });
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'open': 'open',
+            'cancelled': 'canceled',
+            'filled': 'closed',
+        };
+        if (status in statuses) {
+            return statuses['status'];
+        }
+        return status;
+    }
+
     parseOrder (order) {
 
         // {
@@ -208,6 +225,46 @@ module.exports = class deribit extends Exchange {
         //     ]
         // }
 
+        // {
+        //     "success": true,
+        //     "result": [ // list of orders from history, filled quantity > 0
+        //         {
+        //             "orderId": 5258039,         // ID of the order
+        //             "instrument": "BTC-26MAY17", // name of the instrument
+        //             "direction": "sell",         // direction of the order, "buy" or "sell"
+        //             "price": 1860,              // float, USD for futures, BTC for options
+        //             "label" : "",               // order label, if present,
+        //             "quantity": 10,             // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //             "filledQuantity": 3,        // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //             "avgPrice": 1860,           // average fill price of the order
+        //             "commission": -0.000001613, // in ฿
+        //             "created": 1494491899308,   // creation timestamp
+        //             "tstamp": 1494492913288,    // timestamp of the last order state change
+        //             "modified": 1494492913289,  // timestamp of the last db write operation,
+        //                                         // e.g. trade that doesn't change order status
+        //             "state": "cancelled",       // state of the order "open", "cancelled", "filled"
+        //             "postOnly": false,          // true for post-only orders only
+        //             "adv": false                // advanced type (false, or "usd" or "implv")
+        //        } ....
+        //     ]
+        // }
+
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'amount');
+        let filled = this.safeFloat (order, 'filledQuantity');
+        let remaining = undefined;
+        price = this.safeFloat (order, 'avgPrice', price);
+        let cost = undefined;
+        if (typeof filled !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+            }
+            if (typeof price !== 'undefined') {
+                cost = price * filled;
+            }
+        }
+        let status = this.safeString (order, 'state');
+        status = this.parseOrderStatus (status);
         return {
             'info': order,
             'id': order['orderId'].toString (),
@@ -217,13 +274,16 @@ module.exports = class deribit extends Exchange {
             'symbol': order['instrument'],
             'type': undefined,
             'side': order['direction'].toLowerCase (),
-            'price': order['price'],
-            'amount': order['quantity'],
-            'cost': order['commission'],
-            'filled': order['filledQuantity'],
-            'remaining': order['quantity'] - order['filledQuantity'],
-            'status': order['state'],
-            'fee': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': {
+                'cost': this.safeFloat (order, 'commission'),
+                'currency': 'BTC',
+            },
         };
     }
 
