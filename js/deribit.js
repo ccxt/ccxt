@@ -18,7 +18,6 @@ module.exports = class deribit extends Exchange {
             'rateLimit': 2000,
             'has': {
                 'CORS': true,
-                'futures': true,
                 'editOrder': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -29,7 +28,7 @@ module.exports = class deribit extends Exchange {
             },
             'timeframes': {},
             'urls': {
-                'test': 'https://test.deribit.com',
+                // 'test': 'https://test.deribit.com',
                 'logo': 'https://user-images.githubusercontent.com/629338/35326678-d005069c-0110-11e8-8a4c-8c8e201da2a2.png',
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
@@ -87,33 +86,29 @@ module.exports = class deribit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/a' + 'pi/' + this.version + '/' + api + '/' + path;
+        let query = '/' + 'api/' + this.version + '/' + api + '/' + path;
         let url = this.urls['api'] + query;
-        if (body) {
-            params = this.extend (params, body);
-        }
-        if (api === 'private') {
+        if (api === 'public') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let auth = (
-                '_=' + nonce + '&_ackey=' + this.apiKey +
-                '&_acsec=' + this.secret + '&_action=' + query);
+            let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
             if (method === 'POST') {
                 params = this.keysort (params);
                 auth += '&' + this.urlencode (params);
-                // TODO: concatenate arrays in params (only needed when websocket support is added)
             }
-            let sig = this.stringToBase64 (this.hash (this.encode (auth), 'sha256', 'binary'));
+            let hash = this.hash (this.encode (auth), 'sha256', 'base64');
+            let signature = this.apiKey + '.' + nonce + '.' + hash;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'x-deribit-sig': this.apiKey + '.' + nonce + '.' + this.binaryToString (sig),
+                'x-deribit-sig': signature,
             };
-        } else {
-            if (params) {
-                url += '?' + this.urlencode (params);
-            }
+            body = this.urlencode (params);
         }
-        return { 'url': url, 'method': method, 'body': this.urlencode (params), 'headers': headers };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async fetchMarkets () {
