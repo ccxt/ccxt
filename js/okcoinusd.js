@@ -478,7 +478,7 @@ module.exports = class okcoinusd extends Exchange {
         let method = 'privatePost';
         if (market['future']) {
             method += 'FutureCancel';
-            request['contract_type'] = this.options['defaultContractType'], // this_week, next_week, quarter
+            request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
         } else {
             method += 'CancelOrder';
         }
