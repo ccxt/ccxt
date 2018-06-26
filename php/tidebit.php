@@ -392,10 +392,11 @@ class tidebit extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $query = $this->urlencode (array_merge (array (
+            $sortedByKey = $this->keysort (array_merge (array (
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,
             ), $params));
+            $query = $this->urlencode ($sortedByKey);
             $payload = $method . '|' . $request . '|' . $query;
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
             $suffix = $query . '&$signature=' . $signature;

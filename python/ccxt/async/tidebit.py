@@ -364,10 +364,11 @@ class tidebit (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            query = self.urlencode(self.extend({
+            sortedByKey = self.keysort(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
             }, params))
+            query = self.urlencode(sortedByKey)
             payload = method + '|' + request + '|' + query
             signature = self.hmac(self.encode(payload), self.encode(self.secret))
             suffix = query + '&signature=' + signature
