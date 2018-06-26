@@ -157,6 +157,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
+                'CPC': 'CapriCoin',
             },
         });
     }

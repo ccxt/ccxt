@@ -135,7 +135,7 @@ class tidebit (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetV2Deposits()
+        response = await self.privateGetV2MembersMe()
         balances = response['accounts']
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -364,10 +364,11 @@ class tidebit (Exchange):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            query = self.urlencode(self.extend({
+            sortedByKey = self.keysort(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
             }, params))
+            query = self.urlencode(sortedByKey)
             payload = method + '|' + request + '|' + query
             signature = self.hmac(self.encode(payload), self.encode(self.secret))
             suffix = query + '&signature=' + signature

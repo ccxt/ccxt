@@ -283,7 +283,7 @@ class binance (Exchange):
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
+                '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
                 '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
@@ -883,6 +883,10 @@ class binance (Exchange):
                         message = self.safe_string(response, 'msg')
                         if message == 'Order would trigger immediately.':
                             raise InvalidOrder(self.id + ' ' + body)
+                        elif message == 'Account has insufficient balance for requested action.':
+                            raise InsufficientFunds(self.id + ' ' + body)
+                        elif message == 'Rest API trading is not enabled.':
+                            raise InsufficientFunds(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

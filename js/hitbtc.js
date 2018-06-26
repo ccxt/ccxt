@@ -489,6 +489,8 @@ module.exports = class hitbtc extends Exchange {
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'LNC': 'LinkerCoin',
+                'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },

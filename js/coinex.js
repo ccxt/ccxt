@@ -217,7 +217,7 @@ module.exports = class coinex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketDepth (this.extend ({
             'market': this.marketId (symbol),

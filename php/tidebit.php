@@ -139,7 +139,7 @@ class tidebit extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetV2Deposits ();
+        $response = $this->privateGetV2MembersMe ();
         $balances = $response['accounts'];
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -392,10 +392,11 @@ class tidebit extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $query = $this->urlencode (array_merge (array (
+            $sortedByKey = $this->keysort (array_merge (array (
                 'access_key' => $this->apiKey,
                 'tonce' => $nonce,
             ), $params));
+            $query = $this->urlencode ($sortedByKey);
             $payload = $method . '|' . $request . '|' . $query;
             $signature = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
             $suffix = $query . '&$signature=' . $signature;
