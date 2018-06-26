@@ -337,6 +337,9 @@ module.exports = class kucoin extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'CAN': 'CanYa',
+            },
         });
     }
 
