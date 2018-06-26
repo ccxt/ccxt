@@ -274,7 +274,7 @@ class binance extends Exchange {
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                 '-1022' => '\\ccxt\\AuthenticationError', // array ("code":-1022,"msg":"Signature for this request is not valid.")
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-2010' => '\\ccxt\\InsufficientFunds', // createOrder -> 'Account has insufficient balance for requested action.'
+                '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array ("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
                 '-2014' => '\\ccxt\\AuthenticationError', // array ( "code":-2014, "msg" => "API-key format invalid." )
@@ -935,8 +935,13 @@ class binance extends Exchange {
                             throw new DDoSProtection ($this->id . ' temporary banned => ' . $body);
                         }
                         $message = $this->safe_string($response, 'msg');
-                        if ($message === 'Order would trigger immediately.')
+                        if ($message === 'Order would trigger immediately.') {
                             throw new InvalidOrder ($this->id . ' ' . $body);
+                        } else if ($message === 'Account has insufficient balance for requested action.') {
+                            throw new InsufficientFunds ($this->id . ' ' . $body);
+                        } else if ($message === 'Rest API trading is not enabled.') {
+                            throw new InsufficientFunds ($this->id . ' ' . $body);
+                        }
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {
                         throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
