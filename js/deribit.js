@@ -200,55 +200,41 @@ module.exports = class deribit extends Exchange {
         return status;
     }
 
-    parseOrder (order) {
-
-        // {
-        //     "success": true,  // true or false
-        //     "message": "",    // empty or text message, e.g. error message
-        //     "result": [       // list of open orders
+    parseOrder (order, market = undefined) {
+        // .
         //     {
-        //             "orderId": 5258039,          // ID of the order
-        //             "instrument": "BTC-26MAY17", // instrument name
-        //             "direction": "sell",         // order direction, "buy" or "sell"
-        //             "price": 1860,               // float, USD for futures, BTC for options
-        //             "label": "",                 // label set by the owner, up to 32 chars
-        //             "quantity": 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //             "filledQuantity": 3,         // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //             "avgPrice": 1860,            // average fill price of the order
-        //             "commission": -0.000001613,  // in BTC units
-        //             "created": 1494491899308,    // creation timestamp
-        //             "lastUpdate": 1494491988754, // timestamp of the last order state change
-        //                                          // (before this cancelorder of course)
-        //             "state": "open",             // open, cancelled, etc
-        //             "postOnly": false            // true for post-only orders only
-        //         }
-        //     ]
-        // }
-
-        // {
-        //     "success": true,
-        //     "result": [ // list of orders from history, filled quantity > 0
+        //         "success": true,  // true or false
+        //         "message": "",    // empty or text message, e.g. error message
+        //         "result": [       // list of open orders
         //         {
-        //             "orderId": 5258039,         // ID of the order
-        //             "instrument": "BTC-26MAY17", // name of the instrument
-        //             "direction": "sell",         // direction of the order, "buy" or "sell"
-        //             "price": 1860,              // float, USD for futures, BTC for options
-        //             "label" : "",               // order label, if present,
-        //             "quantity": 10,             // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //             "filledQuantity": 3,        // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //             "avgPrice": 1860,           // average fill price of the order
-        //             "commission": -0.000001613, // in ฿
-        //             "created": 1494491899308,   // creation timestamp
-        //             "tstamp": 1494492913288,    // timestamp of the last order state change
-        //             "modified": 1494492913289,  // timestamp of the last db write operation,
-        //                                         // e.g. trade that doesn't change order status
-        //             "state": "cancelled",       // state of the order "open", "cancelled", "filled"
-        //             "postOnly": false,          // true for post-only orders only
-        //             "adv": false                // advanced type (false, or "usd" or "implv")
-        //        } ....
-        //     ]
-        // }
-
+        //                 "orderId": 5258039,          // ID of the order
+        //                 "instrument": "BTC-26MAY17", // instrument name
+        //                 "direction": "sell",         // order direction, "buy" or "sell"
+        //                 "price": 1860,               // float, USD for futures, BTC for options
+        //                 "label": "",                 // label set by the owner, up to 32 chars
+        //                 "quantity": 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //                 "filledQuantity": 3,         // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //                 "avgPrice": 1860,            // average fill price of the order
+        //                 "commission": -0.000001613,  // in BTC units
+        //                 "created": 1494491899308,    // creation timestamp
+        //                 "state": "open",             // open, cancelled, etc
+        //                 "postOnly": false            // true for post-only orders only
+        // open orders --------------------------------------------------------
+        //                 "lastUpdate": 1494491988754, // timestamp of the last order state change (before this cancelorder of course)
+        // closed orders ------------------------------------------------------
+        //                 "tstamp": 1494492913288,    // timestamp of the last order state change
+        //                 "modified": 1494492913289,  // timestamp of the last db write operation, e.g. trade that doesn't change order status
+        //                 "adv": false                // advanced type (false, or "usd" or "implv")
+        //             }
+        //         ]
+        //     }
+        //
+        let timestamp = this.safeInteger (order, 'created');
+        let lastUpdate = this.safeInteger (order, 'lastUpdate');
+        lastUpdate = this.safeInteger (order, 'tstamp', lastUpdate);
+        let modified = this.safeInteger (order, 'modified');
+        let lastTradeTimestamp = Math.max (lastUpdate, modified);
+        let id = this.safeString (order, 'orderId');
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'filledQuantity');
@@ -265,25 +251,35 @@ module.exports = class deribit extends Exchange {
         }
         let status = this.safeString (order, 'state');
         status = this.parseOrderStatus (status);
+        let side = this.safeString (order, 'direction');
+        if (typeof side !== 'undefined') {
+            side = side.toLowerCase ();
+        }
+        let feeCost = this.safeFloat (order, 'commission');
+        if (typeof feeCost !== 'undefined') {
+            feeCost = Math.abs (feeCost);
+        }
+        let fee = {
+            'cost': feeCost,
+            'currency': 'BTC',
+        };
         return {
             'info': order,
-            'id': order['orderId'].toString (),
-            'timestamp': order['created'],
-            'datetime': this.iso8601 (order['created']),
-            'lastTradeTimestamp': undefined,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': order['instrument'],
             'type': undefined,
-            'side': order['direction'].toLowerCase (),
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': {
-                'cost': this.safeFloat (order, 'commission'),
-                'currency': 'BTC',
-            },
+            'fee': fee,
+            'trades': undefined,
         };
     }
 
