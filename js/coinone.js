@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ module.exports = class coinone extends Exchange {
             },
             'exceptions': {
                 '405': ExchangeNotAvailable,
+                '104': OrderNotFound,
             },
         });
     }
@@ -267,12 +268,97 @@ module.exports = class coinone extends Exchange {
             'average': undefined,
             'amount': amount,
             'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
+            'remaining': amount,
+            'status': 'open',
             'fee': undefined,
         };
         this.orders[id] = order;
         return order;
+    }
+
+    async fetchOrder (id, market = undefined, params = {}) {
+        await this.loadMarkets ();
+        let result = undefined;
+        let currency = this.marketId (this.orders[id]['symbol']);
+        let response = await this.privatePostOrderOrderInfo (this.extend ({
+            'order_id': id,
+            'currency': currency,
+        }, params));
+        try {
+            response = await this.privatePostOrderOrderInfo (this.extend ({
+                'order_id': id,
+                'currency': currency,
+            }, params));
+            result = this.parseOrder (response);
+        } catch (e) {
+            if (this.last_json_response) {
+                let errorCode = this.safeString (this.last_json_response, 'errorCode');
+                if (errorCode === '104') {
+                    if (id in this.orders) {
+                        this.orders[id]['status'] = 'canceled';
+                        result = this.orders[id];
+                    } else {
+                        throw new OrderNotFound (this.id + ' fetchOrder() ' + this.last_http_response);
+                    }
+                } else {
+                    throw e;
+                }
+            } else {
+                throw e;
+            }
+        }
+        return result;
+    }
+
+    parseOrder (order, market = undefined) {
+        let filled = undefined;
+        let cost = undefined;
+        let symbol = undefined;
+        let info = this.safeValue (order, 'info');
+        let origStatus = this.safeString (order, 'status');
+        let status = (origStatus === 'live' || origStatus === 'partially_filled') ? 'open' : 'closed';
+        let side = (info['type'] === 'ask') ? 'sell' : 'buy';
+        let id = this.safeString (info, 'orderId');
+        let timestamp = parseInt (info['timestamp']) * 1000;
+        let price = this.safeFloat (info, 'price');
+        let amount = this.safeFloat (info, 'qty');
+        let remaining = this.safeFloat (info, 'remainQty');
+        if (typeof amount !== 'undefined' && typeof remaining === 'undefined' && price === 'undefined') {
+            filled = amount - remaining;
+            cost = price * amount;
+        }
+        let fee = {
+            'currency': this.safeString (info, 'currency'),
+            'cost': this.safeFloat (info, 'fee'),
+            'rate': this.safeFloat (info, 'feeRate'),
+        };
+        if (typeof market === 'undefined') {
+            let market_id = this.safeString (info, 'currency').toLowerCase ();
+            if (market_id in this.markets_by_id)
+                market = this.markets_by_id[id];
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        if (typeof id !== 'undefined')
+            this.orders[id] = result;
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
