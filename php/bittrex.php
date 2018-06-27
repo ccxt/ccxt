@@ -146,7 +146,7 @@ class bittrex extends Exchange {
                 'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
                 'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                 'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
-                'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
                 'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
