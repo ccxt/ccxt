@@ -218,12 +218,16 @@ class coinex extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = 20, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketDepth (array_merge (array (
+        if ($limit === null)
+            $limit = 20; // default
+        $request = array (
             'market' => $this->market_id($symbol),
             'merge' => '0.00000001',
-        ), $params));
+            'limit' => (string) $limit,
+        );
+        $response = $this->publicGetMarketDepth (array_merge ($request, $params));
         return $this->parse_order_book($response['data']);
     }
 

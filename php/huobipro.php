@@ -119,6 +119,7 @@ class huobipro extends Exchange {
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
+                'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,

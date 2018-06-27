@@ -215,12 +215,16 @@ class coinex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=20, params={}):
         self.load_markets()
-        response = self.publicGetMarketDepth(self.extend({
+        if limit is None:
+            limit = 20  # default
+        request = {
             'market': self.market_id(symbol),
             'merge': '0.00000001',
-        }, params))
+            'limit': str(limit),
+        }
+        response = self.publicGetMarketDepth(self.extend(request, params))
         return self.parse_order_book(response['data'])
 
     def parse_trade(self, trade, market=None):
