@@ -12,7 +12,7 @@ class coolcoin (coinegg):
         return self.deep_extend(super(coolcoin, self).describe(), {
             'id': 'coolcoin',
             'name': 'CoolCoin',
-            'countries': 'HK',
+            'countries': ['HK'],
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg',
                 'api': {

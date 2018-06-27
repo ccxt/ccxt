@@ -13,7 +13,7 @@ class tidex (liqui):
         return self.deep_extend(super(tidex, self).describe(), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': ['UK'],
             'rateLimit': 2000,
             'version': '3',
             'has': {

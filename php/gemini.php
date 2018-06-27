@@ -13,7 +13,7 @@ class gemini extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'gemini',
             'name' => 'Gemini',
-            'countries' => 'US',
+            'countries': array ( 'US' ),
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array (

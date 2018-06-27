@@ -13,7 +13,7 @@ class foxbit (Exchange):
         return self.deep_extend(super(foxbit, self).describe(), {
             'id': 'foxbit',
             'name': 'FoxBit',
-            'countries': 'BR',
+            'countries': ['BR'],
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,

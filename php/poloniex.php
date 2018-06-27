@@ -13,7 +13,7 @@ class poloniex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'poloniex',
             'name' => 'Poloniex',
-            'countries' => 'US',
+            'countries': array ( 'US' ),
             'rateLimit' => 1000, // up to 6 calls per second
             'has' => array (
                 'createDepositAddress' => true,

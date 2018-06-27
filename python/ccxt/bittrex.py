@@ -31,7 +31,7 @@ class bittrex (Exchange):
         return self.deep_extend(super(bittrex, self).describe(), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'v1.1',
             'rateLimit': 1500,
             # new metainfo interface

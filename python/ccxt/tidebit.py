@@ -15,7 +15,7 @@ class tidebit (Exchange):
         return self.deep_extend(super(tidebit, self).describe(), {
             'id': 'tidebit',
             'name': 'TideBit',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
