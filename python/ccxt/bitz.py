@@ -230,7 +230,9 @@ class bitz (Exchange):
             id = ids[i]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(tickers[id], market)
+            # they will return some rare tickers set to boolean False under their symbol key
+            if tickers[id]:
+                result[symbol] = self.parse_ticker(tickers[id], market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):

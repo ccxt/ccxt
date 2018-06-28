@@ -233,7 +233,10 @@ class bitz extends Exchange {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($tickers[$id], $market);
+            // they will return some rare $tickers set to boolean false under their $symbol key
+            if ($tickers[$id]) {
+                $result[$symbol] = $this->parse_ticker($tickers[$id], $market);
+            }
         }
         return $result;
     }
