@@ -481,7 +481,7 @@ module.exports = class gateio extends Exchange {
         if ((typeof address !== 'undefined') && (address.indexOf ('address') >= 0))
             throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         if (code === 'XRP') {
-            let parts = address.split ('/', 2);
+            let parts = address.split (' ');
             address = parts[0];
             tag = parts[1];
         }
