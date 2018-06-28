@@ -32,14 +32,14 @@ SOFTWARE.
 
 const Exchange  = require ('./js/base/Exchange')
     , functions = require ('./js/base/functions')
-    , errors    = require ('./js/base/errors')
+    , errors    = require ('./js/base/errors');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.14.172'
+const version = '1.14.172';
 
-Exchange.ccxtVersion = version
+Exchange.ccxtVersion = version;
 
 //-----------------------------------------------------------------------------
 
@@ -162,10 +162,10 @@ const exchanges = {
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),    
-}
+};
 
 //-----------------------------------------------------------------------------
 
-module.exports = Object.assign ({ version, Exchange, exchanges: Object.keys (exchanges) }, exchanges, functions, errors)
+module.exports = Object.assign ({ version, Exchange, exchanges: Object.keys (exchanges) }, exchanges, functions, errors);
 
 //-----------------------------------------------------------------------------

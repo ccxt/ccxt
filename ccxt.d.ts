@@ -205,7 +205,7 @@ declare module 'ccxt' {
         safeInteger: any;
         safeValue: any;
         capitalize: any;
-        json: JSON["stringify"]
+        json: JSON["stringify"];
         sum: any;
         ordered: any;
         aggregate: any;
@@ -223,7 +223,7 @@ declare module 'ccxt' {
         symbols: string[];
         id: string;
         proxy: string;
-        parse8601: typeof Date.parse
+        parse8601: typeof Date.parse;
         milliseconds: typeof Date.now;
         rateLimit: number;  // milliseconds = seconds * 1000
         timeout: number; // milliseconds

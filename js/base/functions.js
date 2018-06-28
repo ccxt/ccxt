@@ -11,8 +11,8 @@ const unCamelCasePropertyNames = (x) => {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = unCamelCasePropertyNames (Object.assign ({}
-
+module.exports = unCamelCasePropertyNames (Object.assign (
+    {}
     , require ('./functions/platform')
     , require ('./functions/generic')
     , require ('./functions/string')

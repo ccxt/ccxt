@@ -4,9 +4,9 @@
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
 
-    let amount = timeframe.slice (0, -1)
-    let unit = timeframe.slice (-1)
-    let scale = 60 // 1m by default
+    let amount = timeframe.slice (0, -1);
+    let unit = timeframe.slice (-1);
+    let scale = 60; // 1m by default
 
     if (unit === 'y') {
         scale = 60 * 60 * 24 * 365
@@ -21,7 +21,7 @@ const parseTimeframe = (timeframe) => {
     }
 
     return amount * scale
-}
+};
 
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
 const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
@@ -58,7 +58,7 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
         } // if
     } // for
     return ohlcvs;
-}
+};
 
 /*  ------------------------------------------------------------------------ */
 
@@ -66,7 +66,7 @@ module.exports = {
 
     aggregate (bidasks) {
 
-        let result = {}
+        let result = {};
 
         for (const [price, volume] of bidasks) {
             if (volume > 0)
@@ -78,6 +78,6 @@ module.exports = {
 
     parseTimeframe,
     buildOHLCVC,
-}
+};
 
 /*  ------------------------------------------------------------------------ */
