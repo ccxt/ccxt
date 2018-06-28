@@ -141,7 +141,7 @@ class bitmex (Exchange):
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': True,
+                'fetchTickerQuotes': False,
             },
         })
 
