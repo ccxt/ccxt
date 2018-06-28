@@ -898,7 +898,7 @@ The ccxt library supports asynchronous concurrency mode in Python 3.5+ with asyn
 # Python
 
 import asyncio
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 
 async def print_poloniex_ethbtc_ticker():
     poloniex = ccxt.poloniex()
@@ -1782,7 +1782,7 @@ if exchange.has['fetchOrder']:
 
 # Python 3.5+ asyncio (asynchronous)
 import asyncio
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 if exchange.has['fetchOrder']:
     order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
     print(order)

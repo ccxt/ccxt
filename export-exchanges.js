@@ -69,12 +69,12 @@ try {
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
-            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
+            file: './python/ccxt/async_support/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
