@@ -37,7 +37,7 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
-                '8h' => '12hour',
+                '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
             ),
