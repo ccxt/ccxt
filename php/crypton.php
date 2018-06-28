@@ -13,7 +13,7 @@ class crypton extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'crypton',
             'name' => 'Crypton',
-            'countries': array ( 'EU' ),
+            'countries' => 'EU',
             'rateLimit' => 500,
             'version' => '1',
             'has' => array (

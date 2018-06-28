@@ -12,7 +12,7 @@ class vbtc (foxbit):
         return self.deep_extend(super(vbtc, self).describe(), {
             'id': 'vbtc',
             'name': 'VBTC',
-            'countries': ['VN'],
+            'countries': 'VN',
             'has': {
                 'CORS': False,
             },

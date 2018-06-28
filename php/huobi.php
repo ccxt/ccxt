@@ -13,7 +13,7 @@ class huobi extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'huobi',
             'name' => 'Huobi',
-            'countries': array ( 'CN' ),
+            'countries' => 'CN',
             'rateLimit' => 2000,
             'version' => 'v3',
             'has' => array (

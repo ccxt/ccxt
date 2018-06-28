@@ -17,7 +17,7 @@ class braziliex (Exchange):
         return self.deep_extend(super(braziliex, self).describe(), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': ['BR'],
+            'countries': 'BR',
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,

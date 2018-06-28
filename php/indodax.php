@@ -13,7 +13,7 @@ class indodax extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'indodax',
             'name' => 'INDODAX',
-            'countries': array ( 'ID' ), // Indonesia
+            'countries' => 'ID', // Indonesia
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,

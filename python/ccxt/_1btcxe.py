@@ -13,7 +13,7 @@ class _1btcxe (Exchange):
         return self.deep_extend(super(_1btcxe, self).describe(), {
             'id': '_1btcxe',
             'name': '1BTCXE',
-            'countries': ['PA'],  # Panama
+            'countries': 'PA',  # Panama
             'comment': 'Crypto Capital API',
             'has': {
                 'CORS': True,

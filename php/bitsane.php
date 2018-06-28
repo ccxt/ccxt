@@ -13,7 +13,7 @@ class bitsane extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitsane',
             'name' => 'Bitsane',
-            'countries': array ( 'IE' ), // Ireland
+            'countries' => 'IE', // Ireland
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,

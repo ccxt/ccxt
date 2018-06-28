@@ -26,7 +26,7 @@ class bitsane (Exchange):
         return self.deep_extend(super(bitsane, self).describe(), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': ['IE'],  # Ireland
+            'countries': 'IE',  # Ireland
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,

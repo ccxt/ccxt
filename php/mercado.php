@@ -13,7 +13,7 @@ class mercado extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
-            'countries': array ( 'BR' ), // Brazil
+            'countries' => 'BR', // Brazil
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array (

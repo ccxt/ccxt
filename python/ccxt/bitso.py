@@ -24,7 +24,7 @@ class bitso (Exchange):
         return self.deep_extend(super(bitso, self).describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': ['MX'],  # Mexico
+            'countries': 'MX',  # Mexico
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {

@@ -13,7 +13,7 @@ class fybsg extends fybse {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'fybsg',
             'name' => 'FYB-SG',
-            'countries': array ( 'SG' ), // Singapore
+            'countries' => 'SG', // Singapore
             'has' => array (
                 'CORS' => false,
             ),

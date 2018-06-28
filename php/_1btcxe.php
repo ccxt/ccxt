@@ -13,7 +13,7 @@ class _1btcxe extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => '_1btcxe',
             'name' => '1BTCXE',
-            'countries': array ( 'PA' ), // Panama
+            'countries' => 'PA', // Panama
             'comment' => 'Crypto Capital API',
             'has' => array (
                 'CORS' => true,

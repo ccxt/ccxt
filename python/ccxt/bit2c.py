@@ -14,7 +14,7 @@ class bit2c (Exchange):
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': ['IL'],  # Israel
+            'countries': 'IL',  # Israel
             'rateLimit': 3000,
             'has': {
                 'CORS': False,

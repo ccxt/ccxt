@@ -28,7 +28,7 @@ class liqui (Exchange):
         return self.deep_extend(super(liqui, self).describe(), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': ['UA'],
+            'countries': 'UA',
             'rateLimit': 3000,
             'version': '3',
             'userAgent': self.userAgents['chrome'],

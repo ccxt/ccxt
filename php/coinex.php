@@ -14,7 +14,7 @@ class coinex extends Exchange {
             'id' => 'coinex',
             'name' => 'CoinEx',
             'version' => 'v1',
-            'countries': array ( 'CN' ),
+            'countries' => 'CN',
             'rateLimit' => 1000,
             'has' => array (
                 'fetchTickers' => true,

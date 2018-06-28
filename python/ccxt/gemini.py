@@ -15,7 +15,7 @@ class gemini (Exchange):
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
             'name': 'Gemini',
-            'countries': ['US'],
+            'countries': 'US',
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {

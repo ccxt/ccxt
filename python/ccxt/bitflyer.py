@@ -14,7 +14,7 @@ class bitflyer (Exchange):
         return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
-            'countries': ['JP'],
+            'countries': 'JP',
             'version': 'v1',
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
             'has': {

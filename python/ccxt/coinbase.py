@@ -23,7 +23,7 @@ class coinbase (Exchange):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
             'name': 'coinbase',
-            'countries': ['US'],
+            'countries': 'US',
             'rateLimit': 400,  # 10k calls per hour
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],

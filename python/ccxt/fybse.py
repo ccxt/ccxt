@@ -14,7 +14,7 @@ class fybse (Exchange):
         return self.deep_extend(super(fybse, self).describe(), {
             'id': 'fybse',
             'name': 'FYB-SE',
-            'countries': ['SE'],  # Sweden
+            'countries': 'SE',  # Sweden
             'has': {
                 'CORS': False,
             },

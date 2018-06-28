@@ -28,7 +28,7 @@ class huobipro (Exchange):
         return self.deep_extend(super(huobipro, self).describe(), {
             'id': 'huobipro',
             'name': 'Huobi Pro',
-            'countries': ['CN'],
+            'countries': 'CN',
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
             'version': 'v1',

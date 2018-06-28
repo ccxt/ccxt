@@ -16,7 +16,7 @@ class coinfalcon (Exchange):
         return self.deep_extend(super(coinfalcon, self).describe(), {
             'id': 'coinfalcon',
             'name': 'CoinFalcon',
-            'countries': ['GB'],
+            'countries': 'GB',
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': True,

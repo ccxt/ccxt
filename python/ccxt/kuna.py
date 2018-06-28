@@ -13,7 +13,7 @@ class kuna (acx):
         return self.deep_extend(super(kuna, self).describe(), {
             'id': 'kuna',
             'name': 'Kuna',
-            'countries': ['UA'],
+            'countries': 'UA',
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

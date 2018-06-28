@@ -18,7 +18,7 @@ class bitmex (Exchange):
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': ['SC'],  # Seychelles
+            'countries': 'SC',  # Seychelles
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,

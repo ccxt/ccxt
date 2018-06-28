@@ -15,7 +15,7 @@ class zaif (Exchange):
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
-            'countries': ['JP'],
+            'countries': 'JP',
             'rateLimit': 2000,
             'version': '1',
             'has': {

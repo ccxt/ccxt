@@ -19,7 +19,7 @@ class bitz (Exchange):
         return self.deep_extend(super(bitz, self).describe(), {
             'id': 'bitz',
             'name': 'Bit-Z',
-            'countries': ['HK'],
+            'countries': 'HK',
             'rateLimit': 2000,
             'version': 'v1',
             'userAgent': self.userAgents['chrome'],

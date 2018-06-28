@@ -13,7 +13,7 @@ class bitz extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitz',
             'name' => 'Bit-Z',
-            'countries': array ( 'HK' ),
+            'countries' => 'HK',
             'rateLimit' => 2000,
             'version' => 'v1',
             'userAgent' => $this->userAgents['chrome'],

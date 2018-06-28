@@ -13,7 +13,7 @@ class gdax extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'gdax',
             'name' => 'GDAX',
-            'countries': array ( 'US' ),
+            'countries' => 'US',
             'rateLimit' => 1000,
             'userAgent' => $this->userAgents['chrome'],
             'has' => array (

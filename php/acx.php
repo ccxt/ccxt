@@ -13,7 +13,7 @@ class acx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'acx',
             'name' => 'ACX',
-            'countries': array ( 'AU' ),
+            'countries' => 'AU',
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

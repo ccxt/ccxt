@@ -21,7 +21,7 @@ class gdax (Exchange):
         return self.deep_extend(super(gdax, self).describe(), {
             'id': 'gdax',
             'name': 'GDAX',
-            'countries': ['US'],
+            'countries': 'US',
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {

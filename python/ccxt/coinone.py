@@ -18,7 +18,7 @@ class coinone (Exchange):
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': ['KR'],  # Korea
+            'countries': 'KR',  # Korea
             'rateLimit': 667,
             'version': 'v2',
             'has': {

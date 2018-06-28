@@ -13,7 +13,7 @@ class binance extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'binance',
             'name' => 'Binance',
-            'countries': array ( 'JP' ), // Japan
+            'countries' => 'JP', // Japan
             'rateLimit' => 500,
             // new metainfo interface
             'has' => array (

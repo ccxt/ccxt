@@ -14,7 +14,7 @@ class negociecoins (Exchange):
         return self.deep_extend(super(negociecoins, self).describe(), {
             'id': 'negociecoins',
             'name': 'NegocieCoins',
-            'countries': ['BR'],
+            'countries': 'BR',
             'rateLimit': 1000,
             'version': 'v3',
             'has': {

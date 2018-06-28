@@ -21,7 +21,7 @@ class btcbox (Exchange):
         return self.deep_extend(super(btcbox, self).describe(), {
             'id': 'btcbox',
             'name': 'BtcBox',
-            'countries': ['JP'],
+            'countries': 'JP',
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

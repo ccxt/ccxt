@@ -13,7 +13,7 @@ class therock extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'therock',
             'name' => 'TheRockTrading',
-            'countries': array ( 'MT' ),
+            'countries' => 'MT',
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

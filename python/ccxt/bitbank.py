@@ -19,7 +19,7 @@ class bitbank (Exchange):
         return self.deep_extend(super(bitbank, self).describe(), {
             'id': 'bitbank',
             'name': 'bitbank',
-            'countries': ['JP'],
+            'countries': 'JP',
             'version': 'v1',
             'has': {
                 'fetchOHLCV': True,

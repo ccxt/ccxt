@@ -12,7 +12,7 @@ class anybits (bitsane):
         return self.deep_extend(super(anybits, self).describe(), {
             'id': 'anybits',
             'name': 'Anybits',
-            'countries': ['IE'],  # Ireland
+            'countries': 'IE',  # Ireland
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,

@@ -16,7 +16,7 @@ class yobit (liqui):
         return self.deep_extend(super(yobit, self).describe(), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': ['RU'],
+            'countries': 'RU',
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {

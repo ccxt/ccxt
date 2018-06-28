@@ -13,7 +13,7 @@ class flowbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'flowbtc',
             'name' => 'flowBTC',
-            'countries': array ( 'BR' ), // Brazil
+            'countries' => 'BR', // Brazil
             'version' => 'v1',
             'rateLimit' => 1000,
             'has' => array (

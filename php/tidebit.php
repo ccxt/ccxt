@@ -13,7 +13,7 @@ class tidebit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'tidebit',
             'name' => 'TideBit',
-            'countries': array ( 'HK' ),
+            'countries' => 'HK',
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

@@ -13,7 +13,7 @@ class exx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'exx',
             'name' => 'EXX',
-            'countries': array ( 'CN' ),
+            'countries' => 'CN',
             'rateLimit' => 1000 / 10,
             'has' => array (
                 'fetchOrder' => true,

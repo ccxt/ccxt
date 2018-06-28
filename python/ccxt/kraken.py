@@ -32,7 +32,7 @@ class kraken (Exchange):
         return self.deep_extend(super(kraken, self).describe(), {
             'id': 'kraken',
             'name': 'Kraken',
-            'countries': ['US'],
+            'countries': 'US',
             'version': '0',
             'rateLimit': 3000,
             'has': {

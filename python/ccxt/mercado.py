@@ -14,7 +14,7 @@ class mercado (Exchange):
         return self.deep_extend(super(mercado, self).describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': ['BR'],  # Brazil
+            'countries': 'BR',  # Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'has': {

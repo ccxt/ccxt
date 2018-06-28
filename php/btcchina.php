@@ -13,7 +13,7 @@ class btcchina extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcchina',
             'name' => 'BTCChina',
-            'countries': array ( 'CN' ),
+            'countries' => 'CN',
             'rateLimit' => 1500,
             'version' => 'v1',
             'has' => array (

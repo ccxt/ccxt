@@ -14,7 +14,7 @@ class coinfloor extends Exchange {
             'id' => 'coinfloor',
             'name' => 'coinfloor',
             'rateLimit' => 1000,
-            'countries': array ( 'UK' ),
+            'countries' => 'UK',
             'has' => array (
                 'CORS' => false,
                 'fetchOpenOrders' => true,

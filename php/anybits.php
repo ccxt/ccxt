@@ -13,7 +13,7 @@ class anybits extends bitsane {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'anybits',
             'name' => 'Anybits',
-            'countries': array ( 'IE' ), // Ireland
+            'countries' => 'IE', // Ireland
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,

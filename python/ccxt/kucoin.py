@@ -22,7 +22,7 @@ class kucoin (Exchange):
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': ['HK'],  # Hong Kong
+            'countries': 'HK',  # Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome'],

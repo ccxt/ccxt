@@ -13,7 +13,7 @@ class bittrex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bittrex',
             'name' => 'Bittrex',
-            'countries': array ( 'US' ),
+            'countries' => 'US',
             'version' => 'v1.1',
             'rateLimit' => 1500,
             // new metainfo interface

@@ -14,7 +14,7 @@ class _1broker (Exchange):
         return self.deep_extend(super(_1broker, self).describe(), {
             'id': '_1broker',
             'name': '1Broker',
-            'countries': ['US'],
+            'countries': 'US',
             'rateLimit': 1500,
             'version': 'v2',
             'has': {

@@ -29,7 +29,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': ['NZ'],  # New Zealand
+            'countries': 'NZ',  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,

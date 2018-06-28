@@ -13,7 +13,7 @@ class kucoin extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
             'name' => 'Kucoin',
-            'countries': array ( 'HK' ), // Hong Kong
+            'countries' => 'HK', // Hong Kong
             'version' => 'v1',
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome'],

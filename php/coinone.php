@@ -13,7 +13,7 @@ class coinone extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinone',
             'name' => 'CoinOne',
-            'countries': array ( 'KR' ), // Korea
+            'countries' => 'KR', // Korea
             'rateLimit' => 667,
             'version' => 'v2',
             'has' => array (

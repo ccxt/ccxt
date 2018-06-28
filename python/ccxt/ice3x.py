@@ -16,7 +16,7 @@ class ice3x (Exchange):
         return self.deep_extend(super(ice3x, self).describe(), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': ['ZA'],  # South Africa
+            'countries': 'ZA',  # South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,

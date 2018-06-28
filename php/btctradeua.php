@@ -13,7 +13,7 @@ class btctradeua extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btctradeua',
             'name' => 'BTC Trade UA',
-            'countries': array ( 'UA' ), // Ukraine,
+            'countries' => 'UA', // Ukraine,
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => true,

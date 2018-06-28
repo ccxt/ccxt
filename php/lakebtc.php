@@ -13,7 +13,7 @@ class lakebtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
-            'countries': array ( 'US' ),
+            'countries' => 'US',
             'version' => 'api_v2',
             'has' => array (
                 'CORS' => true,

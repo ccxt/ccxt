@@ -29,7 +29,7 @@ class zb (Exchange):
         return self.deep_extend(super(zb, self).describe(), {
             'id': 'zb',
             'name': 'ZB',
-            'countries': ['CN'],
+            'countries': 'CN',
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
