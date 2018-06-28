@@ -626,7 +626,6 @@ module.exports = class coinexchange extends Exchange {
                     'info': market,
                 });
             }
-
         }
         return result;
     }
