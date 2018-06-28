@@ -608,20 +608,22 @@ class coinexchange (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['MarketID']
-            base = self.common_currency_code(market['MarketAssetCode'])
-            quote = self.common_currency_code(market['BaseCurrencyCode'])
-            symbol = base + '/' + quote
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': None,
-                'info': market,
-            })
+            baseId = self.safe_string(market, 'MarketAssetCode')
+            quoteId = self.safe_string(market, 'BaseCurrencyCode')
+            if baseId is not None and quoteId is not None:
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                })
         return result
 
     def parse_ticker(self, ticker, market=None):

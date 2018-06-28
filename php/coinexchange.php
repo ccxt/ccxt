@@ -610,20 +610,23 @@ class coinexchange extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['MarketID'];
-            $base = $this->common_currency_code($market['MarketAssetCode']);
-            $quote = $this->common_currency_code($market['BaseCurrencyCode']);
-            $symbol = $base . '/' . $quote;
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $market['MarketAssetID'],
-                'quoteId' => $market['BaseCurrencyID'],
-                'active' => $market['Active'],
-                'lot' => null,
-                'info' => $market,
-            );
+            $baseId = $this->safe_string($market, 'MarketAssetCode');
+            $quoteId = $this->safe_string($market, 'BaseCurrencyCode');
+            if ($baseId !== null && $quoteId !== null) {
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'active' => $market['Active'],
+                    'info' => $market,
+                );
+            }
         }
         return $result;
     }
