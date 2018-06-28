@@ -460,7 +460,7 @@ class gateio (Exchange):
         if (address is not None) and(address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
-            parts = address.split('/', 2)
+            parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
