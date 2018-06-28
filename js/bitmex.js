@@ -135,7 +135,7 @@ module.exports = class bitmex extends Exchange {
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': true,
+                'fetchTickerQuotes': false,
             },
         });
     }
