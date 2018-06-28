@@ -15,6 +15,7 @@
     "bitmex":        { },
     "bitso":         { },
     "bittrex":       { "skip": true },
+    "bitz":          { "skip": true },
     "bl3p":          { "skip": true },
     "bleutrade":     { "skip": true },
     "btcchina":      { "skip": true },
