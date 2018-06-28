@@ -630,13 +630,17 @@ module.exports = class binance extends Exchange {
             trades = this.parseTrades (fills, market);
             let numTrades = trades.length;
             if (numTrades > 0) {
+                cost = trades[0]['cost']
                 fee = {
                     'cost': trades[0]['fee']['cost'],
                     'currency': trades[0]['fee']['currency'],
                 };
                 for (let i = 1; i < trades.length; i++) {
+                    cost = this.sum (cost, trades[i]['cost'])
                     fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
                 }
+                if (cost && filled)
+                    price = cost / filled
             }
         }
         let result = {
