@@ -2,8 +2,11 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+
 const { ZeroEx } = require ('0x.js');
 const { HttpClient } = require ('@0xproject/connect');
+const { BigNumber } = require ('@0xproject/utils');
+const Web3 = require ('web3');
 
 module.exports = class radarrelay extends Exchange {
     describe () {
@@ -28,7 +31,7 @@ module.exports = class radarrelay extends Exchange {
                 'createMarketOrder': false,
                 'createLimitOrder': false,
                 'fetchBalance': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchTicker': true,
@@ -60,6 +63,24 @@ module.exports = class radarrelay extends Exchange {
         });
     }
 
+    // TODO:
+    client () {
+        if (!this.zeroXClient) {
+            this.zeroXClient = new HttpClient (this.describe ()['urls']['api']);
+        }
+        return this.zeroXClient;
+    }
+
+    provider () {
+        if (!this.zeroExNetwork) {
+            const provider = new Web3.providers.HttpProvider ('https://mainnet.infura.io/krrAJZmXlhalDHthEiOR');
+            this.zeroXNetwork = new ZeroEx (provider, {
+                'networkId': 1,
+            });
+        }
+        return this.zeroXNetwork;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.implodeParams (path, params);
         const url = this.urls['api'] + request;
@@ -75,77 +96,78 @@ module.exports = class radarrelay extends Exchange {
         };
     }
 
-    async startInstantTransaction (symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
-        const [base, quote] = symbol.split ('/');
-        const pair = side === 'buy' ?
-            `${quote.toLowerCase ()}_${base.toLowerCase ()}` :
-            `${base.toLowerCase ()}_${quote.toLowerCase ()}`;
-        const request = {
-            'withdrawal': withdrawalAddress,
-            'pair': pair,
-            'returnAddress': withdrawalAddress,
-            'apiKey': affiliateAPIKey,
-        };
-        const response = await this.publicPostShift (this.extend (request, params));
-        if (response.error) throw new ExchangeError (response.error);
-        return {
-            'transactionId': response.deposit,
-            'depositAddress': response.deposit,
-            'info': response,
-        };
+    async fetchCurrencies () {
+        let tokens = null;
+        try {
+            tokens = await this.provider ().tokenRegistry.getTokensAsync ();
+        } catch (e) {
+            console.error (e);
+            return;
+        }
+        const result = {};
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            result[token.symbol] = {
+                'id': token.symbol,
+                'code': token.symbol,
+                'info': token,
+                'name': token.name,
+                'active': true,
+                'status': 'ok',
+                'precision': token.decimals,
+            };
+        }
+        return result;
     }
 
-    async cancelInstantTransaction (transactionId, params = {}) {
-        const request = {
-            'address': transactionId,
-        };
-        const response = await this.publicPostCancelpending (this.extend (request, params));
-        if (response.error) throw new ExchangeError (response.error);
-        return {
-            'success': true,
-            'info': response,
-        };
+    static sortOrders (bids) {
+        return bids.sort ((orderA, orderB) => {
+            const orderRateA = new BigNumber (orderA.makerTokenAmount).div (new BigNumber (orderA.takerTokenAmount));
+            const orderRateB = new BigNumber (orderB.makerTokenAmount).div (new BigNumber (orderB.takerTokenAmount));
+            return orderRateB.comparedTo (orderRateA);
+        });
     }
+
+    static calculateRates (orders, isBid, decimals) {
+        const orderCount = orders.length;
+        const rates = new Array (orderCount);
+        const one = new BigNumber (1.0);
+        for (let i = 0; i < orderCount; i++) {
+            const order = orders[i];
+            const { makerTokenAmount, takerTokenAmount } = order;
+            const rate = isBid ?
+                new BigNumber (makerTokenAmount).div (new BigNumber (takerTokenAmount)) :
+                one.div (new BigNumber (makerTokenAmount).div (new BigNumber (takerTokenAmount)));
+            const limit = ZeroEx.toUnitAmount (new BigNumber (takerTokenAmount), decimals);
+            rates[i] = [rate.toString (), limit.toString (), order];
+        }
+        return rates;
+    } // TODO: figure out the rules for the limit
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const [base, quote] = symbol.split ('/');
-        const bidSymbol = `${base.toLowerCase ()}_${quote.toLowerCase ()}`;
-        const askSymbol = `${quote.toLowerCase ()}_${base.toLowerCase ()}`;
-        const [bidResponse, askResponse] = await Promise.all ([
-            this.publicGetMarketinfoPair ({ 'pair': bidSymbol }),
-            this.publicGetMarketinfoPair ({ 'pair': askSymbol }),
-        ]);
+        await Promise.all ([this.loadMarkets (), this.fetchCurrencies ()]);
+        const marketEntry = this.markets[symbol];
+        const response = await this.client ().getOrderbookAsync ({
+            'baseTokenAddress': marketEntry.info.tokenB.address, // ZRX, eg
+            'quoteTokenAddress': marketEntry.info.tokenA.address, // WETH
+        });
+        const [baseSymbol, quoteSymbol] = symbol.split ('/');
+        const baseDecimals = this.currencies[baseSymbol].precision;
+        const quoteDecimals = this.currencies[quoteSymbol].precision;
+
+        const { asks, bids } = response;
+        const sortedBids = radarrelay.sortOrders (bids);
+        const sortedAsks = radarrelay.sortOrders (asks);
+
+        const bidRates = radarrelay.calculateRates (sortedBids, true, baseDecimals);
+        const askRates = radarrelay.calculateRates (sortedAsks, false, quoteDecimals);
         return {
             'timestamp': new Date ().getTime (),
-            'bids': [
-                [bidResponse.rate, bidResponse.limit],
-            ],
-            'asks': [
-                [(1.0 / askResponse.rate), (askResponse.rate * askResponse.limit)],
-            ],
+            'bids': bidRates,
+            'asks': askRates,
+            'info': response,
         };
     }
-
-    async calculateFee (symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
-        await this.loadMarkets ();
-        const [base, quote] = symbol.split ('/');
-        let fee = undefined;
-        if (side === 'sell') {
-            const { info } = this.markets[symbol];
-            fee = info.minerFee;
-        } else {
-            const { info } = this.markets[`${quote}/${base}`];
-            fee = info.minerFee / info.rate;
-        }
-        return {
-            'type': undefined,
-            'currency': quote,
-            'rate': undefined,
-            'cost': fee,
-        };
-    }
-
-    // httpClient.getOrderbookAsync(request)
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
@@ -155,7 +177,7 @@ module.exports = class radarrelay extends Exchange {
             orderbookResponse = await this.client ().getOrderbookAsync ({
                 'baseTokenAddress': marketEntry.info.tokenA.address,
                 'quoteTokenAddress': marketEntry.info.tokenB.address,
-            }, undefined);
+            });
         } catch (e) {
             console.error (e);
             return;
@@ -170,30 +192,11 @@ module.exports = class radarrelay extends Exchange {
             'info': orderbookResponse,
             'timestamp': now.getTime (),
             'datetime': now.toISOString (),
-            'high': undefined,
-            'low': undefined,
             'bid': bid,
             'bidVolume': ZeroEx.toUnitAmount (bestBid.takerTokenAmount, marketEntry.info.tokenB.precision),
             'ask': ask,
             'askVolume': ZeroEx.toUnitAmount (bestAsk.takerTokenAmount, marketEntry.info.tokenA.precision),
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'last': undefined,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
         };
-    }
-
-    client () {
-        if (!this.zeroXClient) {
-            this.zeroXClient = new HttpClient (this.describe ()['urls']['api']);
-        }
-        return this.zeroXClient;
     }
 
     async fetchMarkets () {
@@ -735,6 +738,8 @@ module.exports = class radarrelay extends Exchange {
             '0x6467882316dc6e206feef05fba6deaa69277f155': 'FAP',
             '0x6025f65f6b2f93d8ed1efedc752acfd4bdbcec3e': 'EGOLD',
             '0x6d5cac36c1ae39f41d52393b7a425d0a610ad9f2': 'LLT',
+            '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'WETH',
+
         };
     }
 };
