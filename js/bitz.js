@@ -232,7 +232,10 @@ module.exports = class bitz extends Exchange {
             let id = ids[i];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (tickers[id], market);
+            // they will return some rare tickers set to boolean false under their symbol key
+            if (tickers[id]) {
+                result[symbol] = this.parseTicker (tickers[id], market);
+            }
         }
         return result;
     }
