@@ -499,7 +499,9 @@ module.exports = class fcoin extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            body = this.json (query);
+            if (method === 'POST') {
+                body = this.urlencode (query);
+            }
             request = '/' + this.version + request;
             url += request;
             let paramsStr = '';
@@ -510,16 +512,17 @@ module.exports = class fcoin extends Exchange {
             }
             //  HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
             let timestamp = this.nonce ();
-            let signStr = method + url + timestamp;
+            let tsStr = timestamp.toString ();
+            let signStr = method + url + tsStr;
             signStr += (method === 'POST' && paramsStr) ? paramsStr : '';
-            let payload = this.stringToBase64 (signStr);
+            let payload = this.stringToBase64 (this.encode (signStr));
             let secret = this.encode (this.secret);
             let signature = this.hmac (payload, secret, 'sha1', 'binary');
-            signature = this.stringToBase64 (signature);
+            signature = this.decode (this.stringToBase64 (signature));
             headers = {};
             headers['FC-ACCESS-KEY'] = this.apiKey;
             headers['FC-ACCESS-SIGNATURE'] = signature;
-            headers['FC-ACCESS-TIMESTAMP'] = timestamp.toString ();
+            headers['FC-ACCESS-TIMESTAMP'] = tsStr;
             headers['Content-Type'] = 'application/json;charset=UTF-8';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -545,8 +548,8 @@ module.exports = class fcoin extends Exchange {
                 const response = JSON.parse (body);
                 const feedback = this.id + ' ' + this.json (response);
                 let message = undefined;
-                if ('message' in response) {
-                    message = response['message'];
+                if ('data' in response) {
+                    message = response['data'];
                 } else if ('error' in response) {
                     message = response['error'];
                 } else {
