@@ -1604,7 +1604,7 @@ module.exports = class Exchange extends EventEmitter{
         }), 'asyncFetchOrderBook');
     }
 
-    asyncSubscribe (event, symbol) {
+    asyncSubscribe (event, symbol,params) {
         let promise = new Promise (async (resolve, reject) => {
             try {
                 if (!this._asyncValidEvent(event)) {
@@ -1628,7 +1628,7 @@ module.exports = class Exchange extends EventEmitter{
                     }
                 });
                 this.asyncContext[event][symbol]['subscribing'] = true;
-                this._asyncSubscribe (event, symbol, oid);
+                this._asyncSubscribe (event, symbol, oid,params);
             } catch (ex) {
                 reject (ex);
             }
