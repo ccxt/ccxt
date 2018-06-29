@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -176,6 +176,17 @@ module.exports = class fcoin extends Exchange {
                         },
                     },
                 },
+            },
+            'exceptions': {
+                '400': NotSupported,           // Bad Request
+                '401': AuthenticationError,
+                '405': NotSupported,
+                '429': DDoSProtection,   // Too Many Requests, exceed api request limit
+                '1002': ExchangeNotAvailable,  // System busy
+                '1016': InsufficientFunds,
+                '3008': InvalidOrder,
+                '6004': InvalidNonce,
+                '6005': AuthenticationError,    // Illegal API Signature
             },
         });
     }
@@ -499,13 +510,13 @@ module.exports = class fcoin extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (method === 'POST') {
-                body = this.urlencode (query);
-            }
             request = '/' + this.version + request;
             url += request;
             let paramsStr = '';
             let sortedQuery = this.keysort (query);
+            if (method === 'POST' && !this.isEmpty (sortedQuery)) {
+                body = this.json (sortedQuery);
+            }
             paramsStr = this.urlencode (sortedQuery);
             if (method === 'GET') {
                 url += paramsStr ? '?' + paramsStr : '';
@@ -528,44 +539,26 @@ module.exports = class fcoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    findBroadlyMatchedKey (map, broadString) {
-        const partialKeys = Object.keys (map);
-        for (let i = 0; i < partialKeys.length; i++) {
-            const partialKey = partialKeys[i];
-            if (broadString.indexOf (partialKey) >= 0) {
-                return partialKey;
-            }
-        }
-        return undefined;
-    }
-
     handleErrors (code, reason, url, method, headers, body) {
         if (body.length < 2) {
             return;
         }
-        if (code >= 400) {
-            if (body[0] === '{') {
-                const response = JSON.parse (body);
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('data' in response) {
-                    message = response['data'];
-                } else if ('error' in response) {
-                    message = response['error'];
-                } else {
-                    throw new ExchangeError (feedback);   // malformed (to our knowledge) response
-                }
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (typeof broadKey !== 'undefined') {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
-            }
+        if (body[0] !== '{') {
+            throw new ExchangeError (body);
         }
+        const response = JSON.parse (body);
+        if (!('status' in response)) {
+            throw new ExchangeError (body);
+        }
+        let status = this.safeString (response, 'status');
+        if (status === '0') {
+            return;
+        }
+        const feedback = this.id + ' ' + this.json (response);
+        if (status in this.exceptions) {
+            const exceptions = this.exceptions;
+            throw new exceptions[status] (feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 };
