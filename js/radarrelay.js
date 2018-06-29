@@ -36,6 +36,7 @@ module.exports = class radarrelay extends StandardRelayer {
                 'fetchTrades': false,
                 'privateAPI': false,
                 'startInstantTransaction': false,
+                'ethIsWeth': true,
             },
         });
     }
