@@ -12,7 +12,7 @@ module.exports = class lbank extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',
             'name': 'LBank',
-            'countries': 'CN',
+            'countries': ['CN'],
             'version': 'v1',
             'has': {
                 'fetchTickers': true,
