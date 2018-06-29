@@ -398,8 +398,8 @@ module.exports = class acx extends Exchange {
                 'tonce': nonce,
             }, params));
             let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signed;
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {
