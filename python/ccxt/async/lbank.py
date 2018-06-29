@@ -45,7 +45,7 @@ class lbank (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
-                'doc': 'https://www.lbank.info/api/api-overview',
+                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
             },
             'api': {
