@@ -1,11 +1,11 @@
 'use strict';
 
-const ZeroExExchange = require ('./base/ZeroExExchange');
+const StandardRelayer = require ('./base/StandardRelayer');
 
 const { toUnitAmount } = require ('0x.js').ZeroEx;
 const { BigNumber } = require ('@0xproject/utils');
 
-module.exports = class radarrelay extends ZeroExExchange {
+module.exports = class radarrelay extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'radarrelay',
@@ -37,12 +37,11 @@ module.exports = class radarrelay extends ZeroExExchange {
                 'privateAPI': false,
                 'startInstantTransaction': false,
             },
-            'api': {},
         });
     }
 
     async fetchCurrencies () {
-        return await ZeroExExchange.tokenRegistry ();
+        return await StandardRelayer.tokenRegistry ();
     }
 
     static calculateRates (orders, isBid, decimals) {
@@ -73,8 +72,8 @@ module.exports = class radarrelay extends ZeroExExchange {
         const quoteDecimals = this.currencies[quoteSymbol].precision;
 
         const { asks, bids } = response;
-        const sortedBids = ZeroExExchange.sortOrders (bids);
-        const sortedAsks = ZeroExExchange.sortOrders (asks);
+        const sortedBids = StandardRelayer.sortOrders (bids);
+        const sortedAsks = StandardRelayer.sortOrders (asks);
 
         const bidRates = radarrelay.calculateRates (sortedBids, true, baseDecimals);
         const askRates = radarrelay.calculateRates (sortedAsks, false, quoteDecimals);

@@ -100,6 +100,7 @@ const exchanges = {
     'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
+    'ddex':                    require ('./js/ddex.js'),
     'dsx':                     require ('./js/dsx.js'),
     'ethfinex':                require ('./js/ethfinex.js'),
     'exmo':                    require ('./js/exmo.js'),
