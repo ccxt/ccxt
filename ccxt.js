@@ -172,12 +172,12 @@ module.exports = Object.assign (
     {
         version,
         Exchange,
-        exchanges: Object.keys (exchanges)
+        exchanges: Object.keys (exchanges),
+        StandardRelayer
     },
     exchanges,
     functions,
     errors,
-    StandardRelayer
 );
 
 //-----------------------------------------------------------------------------
