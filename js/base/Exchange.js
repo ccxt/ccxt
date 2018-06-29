@@ -1604,7 +1604,7 @@ module.exports = class Exchange extends EventEmitter{
         }), 'asyncFetchOrderBook');
     }
 
-    asyncSubscribe (event, symbol,params) {
+    asyncSubscribe (event, symbol,params={}) {
         let promise = new Promise (async (resolve, reject) => {
             try {
                 if (!this._asyncValidEvent(event)) {
@@ -1612,6 +1612,7 @@ module.exports = class Exchange extends EventEmitter{
                 }
                 await this._asyncEnsureConxActive (event, symbol, true);
                 const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                console.log('oid=',oid);
                 this.once (oid.toString(), (success, ex = null) => {
                     if (success) {
                         this.asyncContext[event][symbol]['subscribed'] = true;
@@ -1636,7 +1637,7 @@ module.exports = class Exchange extends EventEmitter{
         return this.timeoutPromise (promise, 'asyncSubscribe');
     }
 
-    asyncUnsubscribe (event, symbol) {
+    asyncUnsubscribe (event, symbol,params) {
         let promise = new Promise (async (resolve, reject) => {
             try {
                 if (!this._asyncValidEvent(event)) {
@@ -1657,7 +1658,7 @@ module.exports = class Exchange extends EventEmitter{
                         }
                     }
                 });
-                this._asyncUnsubscribe (event, symbol, oid);
+                this._asyncUnsubscribe (event, symbol, oid,params);
             } catch (ex) {
                 reject (ex);
             }
