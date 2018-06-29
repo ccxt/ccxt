@@ -534,7 +534,7 @@ module.exports = class fcoin extends Exchange {
             headers['FC-ACCESS-KEY'] = this.apiKey;
             headers['FC-ACCESS-SIGNATURE'] = signature;
             headers['FC-ACCESS-TIMESTAMP'] = tsStr;
-            headers['Content-Type'] = 'application/json;charset=UTF-8';
+            headers['Content-Type'] = 'application/json';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
