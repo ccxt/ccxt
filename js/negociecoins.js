@@ -11,7 +11,7 @@ module.exports = class negociecoins extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'negociecoins',
             'name': 'NegocieCoins',
-            'countries': 'BR',
+            'countries': [ 'BR' ],
             'rateLimit': 1000,
             'version': 'v3',
             'has': {

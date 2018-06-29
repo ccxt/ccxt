@@ -12,7 +12,7 @@ module.exports = class bitsane extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE', // Ireland
+            'countries': [ 'IE' ], // Ireland
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,

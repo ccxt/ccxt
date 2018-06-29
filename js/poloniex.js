@@ -12,7 +12,7 @@ module.exports = class poloniex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
             'has': {
                 'createDepositAddress': true,

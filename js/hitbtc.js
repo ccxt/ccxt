@@ -12,7 +12,7 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK',
+            'countries': [ 'HK' ],
             'rateLimit': 1500,
             'version': '1',
             'has': {

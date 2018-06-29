@@ -12,7 +12,7 @@ module.exports = class bitstamp1 extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp1',
             'name': 'Bitstamp v1',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

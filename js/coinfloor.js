@@ -13,7 +13,7 @@ module.exports = class coinfloor extends Exchange {
             'id': 'coinfloor',
             'name': 'coinfloor',
             'rateLimit': 1000,
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'has': {
                 'CORS': false,
                 'fetchOpenOrders': true,

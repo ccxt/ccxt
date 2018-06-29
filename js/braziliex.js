@@ -12,7 +12,7 @@ module.exports = class braziliex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': 'BR',
+            'countries': [ 'BR' ],
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': true,

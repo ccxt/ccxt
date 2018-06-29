@@ -12,7 +12,7 @@ module.exports = class tidebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'tidebit',
             'name': 'TideBit',
-            'countries': 'HK',
+            'countries': [ 'HK' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

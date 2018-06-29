@@ -12,7 +12,7 @@ module.exports = class bitmex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC', // Seychelles
+            'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,

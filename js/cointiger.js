@@ -13,7 +13,7 @@ module.exports = class cointiger extends huobipro {
         return this.deepExtend (super.describe (), {
             'id': 'cointiger',
             'name': 'CoinTiger',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'hostname': 'api.cointiger.pro',
             'has': {
                 'fetchCurrencies': false,

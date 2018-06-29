@@ -11,7 +11,7 @@ module.exports = class chilebit extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'chilebit',
             'name': 'ChileBit',
-            'countries': 'CL',
+            'countries': [ 'CL' ],
             'has': {
                 'CORS': false,
             },

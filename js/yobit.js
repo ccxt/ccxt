@@ -12,7 +12,7 @@ module.exports = class yobit extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {

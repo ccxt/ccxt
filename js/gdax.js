@@ -12,7 +12,7 @@ module.exports = class gdax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gdax',
             'name': 'GDAX',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
             'has': {

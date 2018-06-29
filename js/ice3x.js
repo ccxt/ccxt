@@ -12,7 +12,7 @@ module.exports = class ice3x extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA', // South Africa
+            'countries': [ 'ZA' ], // South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': true,

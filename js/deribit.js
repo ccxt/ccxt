@@ -12,7 +12,7 @@ module.exports = class deribit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'deribit',
             'name': 'Deribit',
-            'countries': 'NL', // Netherlands
+            'countries': [ 'NL' ], // Netherlands
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,

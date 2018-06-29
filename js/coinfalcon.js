@@ -12,7 +12,7 @@ module.exports = class coinfalcon extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinfalcon',
             'name': 'CoinFalcon',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': true,

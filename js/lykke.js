@@ -11,7 +11,7 @@ module.exports = class lykke extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'version': 'v1',
             'rateLimit': 200,
             'has': {

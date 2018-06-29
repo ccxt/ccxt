@@ -13,7 +13,7 @@ module.exports = class cryptopia extends Exchange {
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ', // New Zealand
+            'countries': [ 'NZ' ], // New Zealand
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,

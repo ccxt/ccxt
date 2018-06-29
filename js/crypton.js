@@ -12,7 +12,7 @@ module.exports = class crypton extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'crypton',
             'name': 'Crypton',
-            'countries': 'EU',
+            'countries': [ 'EU' ],
             'rateLimit': 500,
             'version': '1',
             'has': {

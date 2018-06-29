@@ -12,7 +12,7 @@ module.exports = class btcturk extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
             'name': 'BTCTurk',
-            'countries': 'TR', // Turkey
+            'countries': [ 'TR' ], // Turkey
             'rateLimit': 1000,
             'has': {
                 'CORS': true,

@@ -12,7 +12,7 @@ module.exports = class gemini extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {

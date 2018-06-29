@@ -8,7 +8,7 @@ module.exports = class liqui extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': [ 'UA' ],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': this.userAgents['chrome'],

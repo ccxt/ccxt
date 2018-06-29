@@ -12,7 +12,7 @@ module.exports = class bittrex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'v1.1',
             'rateLimit': 1500,
             // new metainfo interface

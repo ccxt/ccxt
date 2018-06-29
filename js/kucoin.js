@@ -12,7 +12,7 @@ module.exports = class kucoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': 'HK', // Hong Kong
+            'countries': [ 'HK' ], // Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome'],

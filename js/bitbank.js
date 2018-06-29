@@ -12,7 +12,7 @@ module.exports = class bitbank extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
             'name': 'bitbank',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
                 'fetchOHLCV': true,

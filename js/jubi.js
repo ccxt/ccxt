@@ -11,7 +11,7 @@ module.exports = class jubi extends btcbox {
         return this.deepExtend (super.describe (), {
             'id': 'jubi',
             'name': 'jubi.com',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
