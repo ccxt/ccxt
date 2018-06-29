@@ -247,6 +247,7 @@ class bitfinex extends Exchange {
             'commonCurrencies' => array (
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
+                'CTX' => 'CTXC',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
                 'IOS' => 'IOST',
