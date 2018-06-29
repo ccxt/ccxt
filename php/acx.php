@@ -399,8 +399,8 @@ class acx extends Exchange {
                 'tonce' => $nonce,
             ), $params));
             $auth = $method . '|' . $request . '|' . $query;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $suffix = $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&signature=' . $signed;
             if ($method === 'GET') {
                 $url .= '?' . $suffix;
             } else {
