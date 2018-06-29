@@ -371,8 +371,8 @@ class acx (Exchange):
                 'tonce': nonce,
             }, params))
             auth = method + '|' + request + '|' + query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signature
+            signed = self.hmac(self.encode(auth), self.encode(self.secret))
+            suffix = query + '&signature=' + signed
             if method == 'GET':
                 url += '?' + suffix
             else:
