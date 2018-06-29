@@ -47,8 +47,7 @@ class StandardRelayer extends Exchange {
         return this.zeroXClient;
     }
 
-    static provider (config = { providerURL: 'https://mainnet.infura.io/krrAJZmXlhalDHthEiOR', isTest: false }) {
-        // const provider = new Web3.providers.HttpProvider ('https://mainnet.infura.io/krrAJZmXlhalDHthEiOR');
+    static provider (config) {
         if (!this.zeroExNetwork) {
             const { providerURL, isTest } = config;
             const provider = new Web3.providers.HttpProvider (providerURL);
