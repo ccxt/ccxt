@@ -251,7 +251,7 @@ module.exports = class coinone extends Exchange {
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId');
+        let id = this.safeString (response, 'orderId').toLowerCase ();
         let timestamp = this.milliseconds ();
         let cost = price * amount;
         let order = {
@@ -277,13 +277,13 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOrder (id, market = undefined, params = {}) {
+        id = id.toLowerCase ();
         await this.loadMarkets ();
         let result = undefined;
-        let currency = this.marketId (this.orders[id]['symbol']);
-        let response = await this.privatePostOrderOrderInfo (this.extend ({
-            'order_id': id,
-            'currency': currency,
-        }, params));
+		if (typeof market === 'undefined') {
+			let currency = this.marketId (this.orders[id]['symbol']);
+		} else {
+			
         try {
             response = await this.privatePostOrderOrderInfo (this.extend ({
                 'order_id': id,
@@ -291,17 +291,13 @@ module.exports = class coinone extends Exchange {
             }, params));
             result = this.parseOrder (response);
         } catch (e) {
-            if (this.last_json_response) {
-                let errorCode = this.safeString (this.last_json_response, 'errorCode');
-                if (errorCode === '104') {
-                    if (id in this.orders) {
-                        this.orders[id]['status'] = 'canceled';
-                        result = this.orders[id];
-                    } else {
-                        throw new OrderNotFound (this.id + ' fetchOrder() ' + this.last_http_response);
-                    }
+            if (isinstance (e, OrderNotFound)) {
+                if (id in this.orders) {
+                    this.orders[id]['status'] = 'canceled';
+                    this.orders[id]['info'] = this.last_http_response;
+                    result = this.orders[id];
                 } else {
-                    throw e;
+                    throw new OrderNotFound (this.id + ' fetchOrder() ' + this.last_http_response);
                 }
             } else {
                 throw e;
@@ -318,7 +314,7 @@ module.exports = class coinone extends Exchange {
         let origStatus = this.safeString (order, 'status');
         let status = (origStatus === 'live' || origStatus === 'partially_filled') ? 'open' : 'closed';
         let side = (info['type'] === 'ask') ? 'sell' : 'buy';
-        let id = this.safeString (info, 'orderId');
+        let id = this.safeString (info, 'orderId').toLowerCase ();
         let timestamp = parseInt (info['timestamp']) * 1000;
         let price = this.safeFloat (info, 'price');
         let amount = this.safeFloat (info, 'qty');
@@ -335,7 +331,7 @@ module.exports = class coinone extends Exchange {
         if (typeof market === 'undefined') {
             let market_id = this.safeString (info, 'currency').toLowerCase ();
             if (market_id in this.markets_by_id)
-                market = this.markets_by_id[id];
+                market = this.markets_by_id[market_id];
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
