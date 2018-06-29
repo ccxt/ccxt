@@ -35,6 +35,9 @@ class btctradeim extends coinegg {
                     ),
                 ),
             ),
+            'options' => array (
+                'quoteIds' => array ( 'btc', 'eth', 'usc' ),
+            ),
         ));
     }
 

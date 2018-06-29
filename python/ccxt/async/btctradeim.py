@@ -35,6 +35,9 @@ class btctradeim (coinegg):
                     },
                 },
             },
+            'options': {
+                'quoteIds': ['btc', 'eth', 'usc'],
+            },
         })
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
