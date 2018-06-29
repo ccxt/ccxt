@@ -12,7 +12,7 @@ module.exports = class acx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': ['AU'],
+            'countries': [ 'AU' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
