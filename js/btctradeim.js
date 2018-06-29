@@ -34,6 +34,9 @@ module.exports = class btctradeim extends coinegg {
                     },
                 },
             },
+            'options': {
+                'quoteIds': [ 'btc', 'eth', 'usc' ],
+            },
         });
     }
 
