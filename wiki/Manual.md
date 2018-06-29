@@ -253,7 +253,7 @@ Here's an overview of base exchange properties with values added for example:
 {
     'id':   'exchange'                  // lowercase string exchange id
     'name': 'Exchange'                  // human-readable string
-    'countries': [ 'US', 'CN', 'EU' ],  // string or array of ISO country codes
+    'countries': [ 'US', 'CN', 'EU' ],  // array of ISO country codes
     'urls': {
         'api': 'https://api.example.com/data',  // string or dictionary of base API URLs
         'www': 'https://www.example.com'        // string website URL
@@ -317,7 +317,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `name`: This is a string literal containing the human-readable exchange name.
 
-- `countries`: A string literal or an array of string literals of 2-symbol ISO country codes, where the exchange is operating from.
+- `countries`: An array of string literals of 2-symbol ISO country codes, where the exchange is operating from.
 
 - `urls['api']`: The single string literal base URL for API calls or an associative array of separate URLs for private and public APIs.
 
