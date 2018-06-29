@@ -13,7 +13,7 @@ class zaif extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'zaif',
             'name' => 'Zaif',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'rateLimit' => 2000,
             'version' => '1',
             'has' => array (

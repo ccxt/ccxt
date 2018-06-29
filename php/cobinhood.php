@@ -13,7 +13,7 @@ class cobinhood extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cobinhood',
             'name' => 'COBINHOOD',
-            'countries' => 'TW',
+            'countries' => array ( 'TW' ),
             'rateLimit' => 1000 / 10,
             'has' => array (
                 'fetchCurrencies' => true,

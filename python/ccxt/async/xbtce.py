@@ -16,7 +16,7 @@ class xbtce (Exchange):
         return self.deep_extend(super(xbtce, self).describe(), {
             'id': 'xbtce',
             'name': 'xBTCe',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {

@@ -13,7 +13,7 @@ class southxchange extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'southxchange',
             'name' => 'SouthXchange',
-            'countries' => 'AR', // Argentina
+            'countries' => array ( 'AR' ), // Argentina
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,

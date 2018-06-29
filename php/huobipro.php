@@ -13,7 +13,7 @@ class huobipro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v1',

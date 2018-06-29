@@ -13,7 +13,7 @@ class deribit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'deribit',
             'name' => 'Deribit',
-            'countries' => 'NL', // Netherlands
+            'countries' => array ( 'NL' ), // Netherlands
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,

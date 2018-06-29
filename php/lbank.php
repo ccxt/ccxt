@@ -13,7 +13,7 @@ class lbank extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lbank',
             'name' => 'LBank',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'version' => 'v1',
             'has' => array (
                 'fetchTickers' => true,

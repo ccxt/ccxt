@@ -13,7 +13,7 @@ class vbtc extends foxbit {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'vbtc',
             'name' => 'VBTC',
-            'countries' => 'VN',
+            'countries' => array ( 'VN' ),
             'has' => array (
                 'CORS' => false,
             ),

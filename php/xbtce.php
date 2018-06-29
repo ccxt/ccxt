@@ -13,7 +13,7 @@ class xbtce extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'xbtce',
             'name' => 'xBTCe',
-            'countries' => 'RU',
+            'countries' => array ( 'RU' ),
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'has' => array (

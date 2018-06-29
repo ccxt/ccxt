@@ -13,7 +13,7 @@ class bitstamp1 extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitstamp1',
             'name' => 'Bitstamp v1',
-            'countries' => 'GB',
+            'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

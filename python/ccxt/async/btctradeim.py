@@ -13,7 +13,7 @@ class btctradeim (coinegg):
         return self.deep_extend(super(btctradeim, self).describe(), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
-            'countries': 'HK',
+            'countries': ['HK'],
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {

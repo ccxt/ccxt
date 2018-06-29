@@ -16,7 +16,7 @@ class coinmarketcap (Exchange):
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': ['US'],
             'has': {
                 'CORS': True,
                 'privateAPI': False,

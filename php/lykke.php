@@ -13,7 +13,7 @@ class lykke extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lykke',
             'name' => 'Lykke',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'version' => 'v1',
             'rateLimit' => 200,
             'has' => array (

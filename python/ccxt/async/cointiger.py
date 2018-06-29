@@ -29,7 +29,7 @@ class cointiger (huobipro):
         return self.deep_extend(super(cointiger, self).describe(), {
             'id': 'cointiger',
             'name': 'CoinTiger',
-            'countries': 'CN',
+            'countries': ['CN'],
             'hostname': 'api.cointiger.pro',
             'has': {
                 'fetchCurrencies': False,

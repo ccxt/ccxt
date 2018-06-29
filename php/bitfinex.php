@@ -13,7 +13,7 @@ class bitfinex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
             // new metainfo interface

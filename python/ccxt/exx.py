@@ -16,7 +16,7 @@ class exx (Exchange):
         return self.deep_extend(super(exx, self).describe(), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchOrder': True,

@@ -13,7 +13,7 @@ class negociecoins extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'negociecoins',
             'name' => 'NegocieCoins',
-            'countries' => 'BR',
+            'countries' => array ( 'BR' ),
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array (

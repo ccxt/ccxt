@@ -15,7 +15,7 @@ class coinmarketcap extends Exchange {
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'has' => array (
                 'CORS' => true,
                 'privateAPI' => false,

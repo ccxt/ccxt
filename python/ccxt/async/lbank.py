@@ -17,7 +17,7 @@ class lbank (Exchange):
         return self.deep_extend(super(lbank, self).describe(), {
             'id': 'lbank',
             'name': 'LBank',
-            'countries': 'CN',
+            'countries': ['CN'],
             'version': 'v1',
             'has': {
                 'fetchTickers': True,

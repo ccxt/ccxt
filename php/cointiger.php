@@ -13,7 +13,7 @@ class cointiger extends huobipro {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cointiger',
             'name' => 'CoinTiger',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'hostname' => 'api.cointiger.pro',
             'has' => array (
                 'fetchCurrencies' => false,

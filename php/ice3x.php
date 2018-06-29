@@ -13,7 +13,7 @@ class ice3x extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'ice3x',
             'name' => 'ICE3X',
-            'countries' => 'ZA', // South Africa
+            'countries' => array ( 'ZA' ), // South Africa
             'rateLimit' => 1000,
             'has' => array (
                 'fetchCurrencies' => true,

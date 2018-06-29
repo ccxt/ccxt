@@ -28,7 +28,7 @@ class bitfinex (Exchange):
         return self.deep_extend(super(bitfinex, self).describe(), {
             'id': 'bitfinex',
             'name': 'Bitfinex',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v1',
             'rateLimit': 1500,
             # new metainfo interface

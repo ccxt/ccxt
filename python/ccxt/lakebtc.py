@@ -15,7 +15,7 @@ class lakebtc (Exchange):
         return self.deep_extend(super(lakebtc, self).describe(), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'api_v2',
             'has': {
                 'CORS': True,

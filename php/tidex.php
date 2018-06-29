@@ -13,7 +13,7 @@ class tidex extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'tidex',
             'name' => 'Tidex',
-            'countries' => 'UK',
+            'countries' => array ( 'UK' ),
             'rateLimit' => 2000,
             'version' => '3',
             'has' => array (

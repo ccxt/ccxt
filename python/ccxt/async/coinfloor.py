@@ -15,7 +15,7 @@ class coinfloor (Exchange):
             'id': 'coinfloor',
             'name': 'coinfloor',
             'rateLimit': 1000,
-            'countries': 'UK',
+            'countries': ['UK'],
             'has': {
                 'CORS': False,
                 'fetchOpenOrders': True,

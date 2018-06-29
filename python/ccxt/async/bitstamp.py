@@ -25,7 +25,7 @@ class bitstamp (Exchange):
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
-            'countries': 'GB',
+            'countries': ['GB'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

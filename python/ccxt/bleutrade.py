@@ -17,7 +17,7 @@ class bleutrade (bittrex):
         return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

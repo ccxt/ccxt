@@ -13,7 +13,7 @@ class bitmex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmex',
             'name' => 'BitMEX',
-            'countries' => 'SC', // Seychelles
+            'countries' => array ( 'SC' ), // Seychelles
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,

@@ -20,7 +20,7 @@ class btcmarkets (Exchange):
         return self.deep_extend(super(btcmarkets, self).describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,  # market data cached for 1 second(trades cached for 2 seconds)
             'has': {
                 'CORS': False,

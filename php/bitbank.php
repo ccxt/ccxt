@@ -13,7 +13,7 @@ class bitbank extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitbank',
             'name' => 'bitbank',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'has' => array (
                 'fetchOHLCV' => true,

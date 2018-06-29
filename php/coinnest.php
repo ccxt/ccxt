@@ -13,7 +13,7 @@ class coinnest extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinnest',
             'name' => 'coinnest',
-            'countries' => 'KR',
+            'countries' => array ( 'KR' ),
             'rateLimit' => 1000,
             'has' => array (
                 'fetchOpenOrders' => true,

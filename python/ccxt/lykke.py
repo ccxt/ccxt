@@ -13,7 +13,7 @@ class lykke (Exchange):
         return self.deep_extend(super(lykke, self).describe(), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': 'CH',
+            'countries': ['CH'],
             'version': 'v1',
             'rateLimit': 200,
             'has': {

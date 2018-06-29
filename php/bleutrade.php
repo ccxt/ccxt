@@ -13,7 +13,7 @@ class bleutrade extends bittrex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
-            'countries' => 'BR', // Brazil
+            'countries' => array ( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

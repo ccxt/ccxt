@@ -13,7 +13,7 @@ class braziliex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'braziliex',
             'name' => 'Braziliex',
-            'countries' => 'BR',
+            'countries' => array ( 'BR' ),
             'rateLimit' => 1000,
             'has' => array (
                 'fetchCurrencies' => true,

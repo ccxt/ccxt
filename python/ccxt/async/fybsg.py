@@ -12,7 +12,7 @@ class fybsg (fybse):
         return self.deep_extend(super(fybsg, self).describe(), {
             'id': 'fybsg',
             'name': 'FYB-SG',
-            'countries': 'SG',  # Singapore
+            'countries': ['SG'],  # Singapore
             'has': {
                 'CORS': False,
             },

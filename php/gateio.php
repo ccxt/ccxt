@@ -13,7 +13,7 @@ class gateio extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'gateio',
             'name' => 'Gate.io',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'version' => '2',
             'rateLimit' => 1000,
             'has' => array (

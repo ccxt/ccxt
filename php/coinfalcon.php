@@ -13,7 +13,7 @@ class coinfalcon extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinfalcon',
             'name' => 'CoinFalcon',
-            'countries' => 'GB',
+            'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
             'has' => array (
                 'fetchTickers' => true,

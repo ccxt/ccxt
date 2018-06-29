@@ -13,7 +13,7 @@ class bitflyer extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
             'has' => array (

@@ -15,7 +15,7 @@ class coinnest (Exchange):
         return self.deep_extend(super(coinnest, self).describe(), {
             'id': 'coinnest',
             'name': 'coinnest',
-            'countries': 'KR',
+            'countries': ['KR'],
             'rateLimit': 1000,
             'has': {
                 'fetchOpenOrders': True,
