@@ -93,20 +93,30 @@ module.exports = class radarrelay extends StandardRelayer {
             'baseTokenAddress': marketEntry.info.tokenA.address,
             'quoteTokenAddress': marketEntry.info.tokenB.address,
         });
+        const [baseSymbol, quoteSymbol] = symbol.split ('/');
+        const baseDecimals = this.currencies[baseSymbol].precision;
+        const quoteDecimals = this.currencies[quoteSymbol].precision;
+
         const { asks, bids } = orderbookResponse;
-        const [bestAsk, bestBid] = [asks[0], bids[0]];
-        const ask = bestAsk.makerTokenAmount.div (bestAsk.takerTokenAmount).toNumber ();
-        const bid = bestBid.makerTokenAmount.div (bestBid.takerTokenAmount).toNumber ();
+        const sortedBids = StandardRelayer.sortOrders (bids);
+        const sortedAsks = StandardRelayer.sortOrders (asks);
+
+        const bidRates = radarrelay.calculateRates (sortedBids, true, baseDecimals);
+        const askRates = radarrelay.calculateRates (sortedAsks, false, quoteDecimals);
+
+        const bestBid = bidRates[0];
+        const bestAsk = askRates[0];
+
         const now = new Date ();
         return {
             'symbol': symbol,
-            'info': orderbookResponse,
             'timestamp': now.getTime (),
             'datetime': now.toISOString (),
-            'bid': bid,
-            'bidVolume': toUnitAmount (bestBid.takerTokenAmount, marketEntry.info.tokenB.precision),
-            'ask': ask,
-            'askVolume': toUnitAmount (bestAsk.takerTokenAmount, marketEntry.info.tokenA.precision),
+            'bid': bestBid[0],
+            'bidVolume': bestBid[1],
+            'ask': bestAsk[0],
+            'askVolume': bestAsk[1],
+            'info': orderbookResponse,
         };
     }
 
