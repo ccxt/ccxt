@@ -70,6 +70,7 @@ async function fetchOrderBook(id, apiKey, secret, depth, symbols, params) {
 
 (async function main() {
   try {
+    //depth must provide if you want all orderbook, otherwise, it will be incremental
     const ob = await fetchOrderBook('okex', '', '', 5, ['BTC/USDT'], {
       contract_type: 'next_week',
       depth: 20
