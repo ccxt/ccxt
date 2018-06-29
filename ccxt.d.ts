@@ -289,6 +289,15 @@ declare module 'ccxt' {
         microseconds (): number;
     }
 
+    export interface StandardRelayerConfig {
+        providerURL: string;
+        isTest: boolean
+    }
+
+    export class StandardRelayer extends Exchange {
+        static provider (config: StandardRelayerConfig): any;
+    }
+
     /* tslint:disable */
 
     export class _1broker extends Exchange {}
