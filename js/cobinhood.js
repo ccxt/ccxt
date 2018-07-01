@@ -631,7 +631,7 @@ module.exports = class cobinhood extends Exchange {
             },
         };
     }
-  
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
