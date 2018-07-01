@@ -332,7 +332,7 @@ module.exports = class gemini extends Exchange {
         };
     }
 
-    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let response = await this.privatePostTransfers (this.extend (request, params));
