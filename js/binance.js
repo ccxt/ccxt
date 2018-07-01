@@ -253,7 +253,6 @@ module.exports = class binance extends Exchange {
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             // exchange-specific options
             'options': {
