@@ -465,7 +465,7 @@ module.exports = class abucoins extends Exchange {
     handleErrors (code, reason, url, method, headers, body) {
         let response = JSON.parse (body);
         let message = this.safeString (response, 'message');
-        if (typeof message !== 'undefined) {
+        if (typeof message !== 'undefined') {
             let error = this.id + ' ' + message;
             if (message.indexOf ('Amount is too small') >= 0) {
                 throw new InvalidOrder (error);
