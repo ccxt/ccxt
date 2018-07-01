@@ -611,9 +611,6 @@ module.exports = class binance extends Exchange {
             }
             if (typeof price !== 'undefined') {
                 cost = price * filled;
-                if (this.options['parseOrderToPrecision']) {
-                    cost = parseFloat (this.costToPrecision (symbol, cost));
-                }
             }
         }
         let id = this.safeString (order, 'orderId');
@@ -643,6 +640,11 @@ module.exports = class binance extends Exchange {
                     price = cost / filled;
             }
         }
+        if (typeof cost !== 'undefined') {
+            if (this.options['parseOrderToPrecision']) {
+                cost = parseFloat (this.costToPrecision (symbol, cost));
+            }
+        }    
         let result = {
             'info': order,
             'id': id,
