@@ -613,9 +613,6 @@ class binance extends Exchange {
             }
             if ($price !== null) {
                 $cost = $price * $filled;
-                if ($this->options['parseOrderToPrecision']) {
-                    $cost = floatval ($this->cost_to_precision($symbol, $cost));
-                }
             }
         }
         $id = $this->safe_string($order, 'orderId');
@@ -632,13 +629,22 @@ class binance extends Exchange {
             $trades = $this->parse_trades($fills, $market);
             $numTrades = is_array ($trades) ? count ($trades) : 0;
             if ($numTrades > 0) {
+                $cost = $trades[0]['cost'];
                 $fee = array (
                     'cost' => $trades[0]['fee']['cost'],
                     'currency' => $trades[0]['fee']['currency'],
                 );
                 for ($i = 1; $i < count ($trades); $i++) {
+                    $cost = $this->sum ($cost, $trades[$i]['cost']);
                     $fee['cost'] = $this->sum ($fee['cost'], $trades[$i]['fee']['cost']);
                 }
+                if ($cost && $filled)
+                    $price = $cost / $filled;
+            }
+        }
+        if ($cost !== null) {
+            if ($this->options['parseOrderToPrecision']) {
+                $cost = floatval ($this->cost_to_precision($symbol, $cost));
             }
         }
         $result = array (

@@ -593,8 +593,6 @@ class binance (Exchange):
                 remaining = max(remaining, 0.0)
             if price is not None:
                 cost = price * filled
-                if self.options['parseOrderToPrecision']:
-                    cost = float(self.cost_to_precision(symbol, cost))
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
         if type is not None:
@@ -609,12 +607,19 @@ class binance (Exchange):
             trades = self.parse_trades(fills, market)
             numTrades = len(trades)
             if numTrades > 0:
+                cost = trades[0]['cost']
                 fee = {
                     'cost': trades[0]['fee']['cost'],
                     'currency': trades[0]['fee']['currency'],
                 }
                 for i in range(1, len(trades)):
+                    cost = self.sum(cost, trades[i]['cost'])
                     fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
+                if cost and filled:
+                    price = cost / filled
+        if cost is not None:
+            if self.options['parseOrderToPrecision']:
+                cost = float(self.cost_to_precision(symbol, cost))
         result = {
             'info': order,
             'id': id,
