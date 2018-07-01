@@ -286,7 +286,9 @@ class gemini (Exchange):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit_trades'] = limit
+        if since is not None:
+            request['timestamp'] = int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
