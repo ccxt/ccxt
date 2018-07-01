@@ -644,7 +644,7 @@ module.exports = class binance extends Exchange {
             if (this.options['parseOrderToPrecision']) {
                 cost = parseFloat (this.costToPrecision (symbol, cost));
             }
-        }    
+        }
         let result = {
             'info': order,
             'id': id,
