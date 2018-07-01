@@ -12,7 +12,7 @@ module.exports = class chbtc extends zb {
         return this.deepExtend (super.describe (), {
             'id': 'chbtc',
             'name': 'CHBTC',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

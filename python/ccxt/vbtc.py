@@ -12,7 +12,7 @@ class vbtc (foxbit):
         return self.deep_extend(super(vbtc, self).describe(), {
             'id': 'vbtc',
             'name': 'VBTC',
-            'countries': 'VN',
+            'countries': ['VN'],
             'has': {
                 'CORS': False,
             },
@@ -24,5 +24,8 @@ class vbtc (foxbit):
                 },
                 'www': 'https://vbtc.exchange',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '3',  # https://blinktrade.com/docs/#brokers
             },
         })

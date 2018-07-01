@@ -11,7 +11,7 @@ module.exports = class dsx extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'dsx',
             'name': 'DSX',
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'rateLimit': 1500,
             'has': {
                 'CORS': false,

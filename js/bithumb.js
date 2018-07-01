@@ -12,7 +12,7 @@ module.exports = class bithumb extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': 'KR', // South Korea
+            'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
                 'CORS': true,
@@ -35,8 +35,8 @@ module.exports = class bithumb extends Exchange {
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ],
                 },
                 'private': {
@@ -63,6 +63,9 @@ module.exports = class bithumb extends Exchange {
                     'maker': 0.15 / 100,
                     'taker': 0.15 / 100,
                 },
+            },
+            'exceptions': {
+                '5100': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             },
         });
     }
@@ -226,15 +229,15 @@ module.exports = class bithumb extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['units_traded']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'units_traded'),
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetRecentTransactionsCurrency (this.extend ({
+        let response = await this.publicGetTransactionHistoryCurrency (this.extend ({
             'currency': market['base'],
             'count': 100, // max = 100
         }, params));
@@ -275,16 +278,16 @@ module.exports = class bithumb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let side = ('side' in params);
-        if (!side)
+        let side_in_params = ('side' in params);
+        if (!side_in_params)
             throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy) and a currency parameter');
-        side = (side === 'buy') ? 'purchase' : 'sales';
         let currency = ('currency' in params);
         if (!currency)
             throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
+        let side = (params['side'] === 'buy') ? 'bid' : 'ask';
         return await this.privatePostTradeCancel ({
             'order_id': id,
-            'type': params['side'],
+            'type': side,
             'currency': params['currency'],
         });
     }
@@ -337,6 +340,33 @@ module.exports = class bithumb extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('status' in response) {
+                //
+                //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                //
+                let status = this.safeString (response, 'status');
+                if (typeof status !== 'undefined') {
+                    if (status === '0000')
+                        return; // no error
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (status in exceptions) {
+                        throw new exceptions[status] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

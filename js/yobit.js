@@ -12,7 +12,7 @@ module.exports = class yobit extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
@@ -65,21 +65,71 @@ module.exports = class yobit extends liqui {
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
-                'ANT': 'AntsCoin',
+                'ANT': 'AntsCoin',  // what is this, a coin for ants?
+                'ATMCHA': 'ATM',
+                'ASN': 'Ascension',
+                'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
+                'BLN': 'Bulleon',
+                'BOT': 'BOTcoin',
+                'BON': 'BONES',
+                'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'CMT': 'CometCoin',
+                'COV': 'Coven Coin',
+                'COVX': 'COV',
+                'CPC': 'Capricoin',
+                'CRC': 'CryCash',
+                'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DIRT': 'DIRTY',
+                'DROP': 'FaucetCoin',
+                'EKO': 'EkoCoin',
+                'ENTER': 'ENTRC',
+                'EPC': 'ExperienceCoin',
+                'ERT': 'Eristica Token',
+                'ESC': 'EdwardSnowden',
+                'EUROPE': 'EUROP',
+                'EXT': 'LifeExtension',
+                'FUNK': 'FUNKCoin',
+                'GCC': 'GlobalCryptocurrency',
+                'GEN': 'Genstake',
+                'GENE': 'Genesiscoin',
+                'GOLD': 'GoldMint',
+                'HTML5': 'HTML',
+                'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
+                'INSANE': 'INSN',
+                'JNT': 'JointCoin',
+                'JPC': 'JupiterCoin',
+                'KNC': 'KingN Coin',
+                'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
-                'LUN': 'LunarCoin',
+                'LOC': 'LocoCoin',
+                'LOCX': 'LOC',
+                'LUNYR': 'LUN',
+                'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'PAC': '$PAC',
+                'PLAY': 'PlayCoin',
+                'PIVX': 'Darknet',
+                'PRS': 'PRE',
+                'PUTIN': 'PUT',
+                'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
+                'PLC': 'Platin Coin',
+                'RCN': 'RCoin',
                 'REP': 'Republicoin',
+                'RUR': 'RUB',
+                'XIN': 'XINCoin',
             },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
@@ -122,7 +172,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if (account['total'] && account['free'])
+                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }
@@ -140,12 +190,13 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response['info'],
         };
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'coinName': currency['id'],
@@ -157,16 +208,17 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdrawCoinsToAddress (this.extend ({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params));
@@ -176,21 +228,23 @@ module.exports = class yobit extends liqui {
         };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (!response['success']) {
-                if (response['error'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
-                    throw new InsufficientFunds (this.id + ' ' + this.json (response));
-                } else if (response['error'] === 'Requests too often') {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else if ((response['error'] === 'not available') || (response['error'] === 'external service unavailable')) {
-                    throw new DDoSProtection (this.id + ' ' + this.json (response));
-                } else {
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body[0] === '{') {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                if (!response['success']) {
+                    if ('error_log' in response) {
+                        if (response['error_log'].indexOf ('Insufficient funds') >= 0) { // not enougTh is a typo inside Liqui's own API...
+                            throw new InsufficientFunds (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Requests too often') {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
+                            throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        }
+                    }
                     throw new ExchangeError (this.id + ' ' + this.json (response));
                 }
             }
         }
-        return response;
     }
 };

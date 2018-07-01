@@ -6,8 +6,8 @@
 from ccxt.async.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class xbtce (Exchange):
@@ -16,7 +16,7 @@ class xbtce (Exchange):
         return self.deep_extend(super(xbtce, self).describe(), {
             'id': 'xbtce',
             'name': 'xBTCe',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {

@@ -15,7 +15,7 @@ class zaif (Exchange):
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
-            'countries': 'JP',
+            'countries': ['JP'],
             'rateLimit': 2000,
             'version': '1',
             'has': {
@@ -36,6 +36,14 @@ class zaif (Exchange):
                     'https://www.npmjs.com/package/zaif.jp',
                     'https://github.com/you21979/node-zaif',
                 ],
+                'fees': 'https://zaif.jp/fee?lang=en',
+            },
+            'fees': {
+                'trading': {
+                    'percentage': True,
+                    'taker': -0.0001,
+                    'maker': -0.0005,
+                },
             },
             'api': {
                 'public': {
@@ -116,11 +124,11 @@ class zaif (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['item_unit_min']),
+                        'min': self.safe_float(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': float(market['aux_unit_min']),
+                        'min': self.safe_float(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {
@@ -252,6 +260,7 @@ class zaif (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': market['symbol'],
             'type': 'limit',

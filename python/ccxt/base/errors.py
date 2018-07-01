@@ -26,6 +26,7 @@ __all__ = [
     'NotSupported',
     'AuthenticationError',
     'PermissionDenied',
+    'AccountSuspended',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -35,7 +36,10 @@ __all__ = [
     'RequestTimeout',
     'ExchangeNotAvailable',
     'InvalidNonce',
-    'InvalidAddress'
+    'InvalidAddress',
+    'AddressPending',
+    'BadResponse',
+    'NullResponse',
 ]
 
 # -----------------------------------------------------------------------------
@@ -56,6 +60,16 @@ class NotSupported(ExchangeError):
     pass
 
 
+class BadResponse(ExchangeError):
+    """Raised if the endpoint returns a bad response from the exchange API"""
+    pass
+
+
+class NullResponse(BadResponse):
+    """Raised if the endpoint returns a null response from the exchange API"""
+    pass
+
+
 class AuthenticationError(ExchangeError):
     """Raised when API credentials are required but missing or wrong"""
     pass
@@ -63,6 +77,11 @@ class AuthenticationError(ExchangeError):
 
 class PermissionDenied(AuthenticationError):
     """Raised when API credentials are required but missing or wrong"""
+    pass
+
+
+class AccountSuspended(AuthenticationError):
+    """Raised when user account has been suspended or deactivated by the exchange"""
     pass
 
 
@@ -78,6 +97,11 @@ class InvalidOrder(ExchangeError):
 
 class InvalidAddress(ExchangeError):
     """Raised on invalid funding address"""
+    pass
+
+
+class AddressPending(InvalidAddress):
+    """Raised when the address requested is pending (not ready yet, retry again later)"""
     pass
 
 

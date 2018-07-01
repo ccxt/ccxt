@@ -4,9 +4,22 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class huobipro (Exchange):
@@ -15,21 +28,24 @@ class huobipro (Exchange):
         return self.deep_extend(super(huobipro, self).describe(), {
             'id': 'huobipro',
             'name': 'Huobi Pro',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.huobipro.com',
+            'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': False,
-                'fetchOHCLV': True,
-                'fetchOrders': True,
-                'fetchOrder': True,
-                'fetchOpenOrders': True,
                 'fetchDepositAddress': True,
+                'fetchOHLCV': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrder': True,
+                'fetchOrders': False,
+                'fetchTradingLimits': True,
                 'withdraw': True,
+                'fetchCurrencies': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -44,10 +60,11 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobipro.com',
-                'www': 'https://www.huobipro.com',
+                'api': 'https://api.huobi.pro',
+                'www': 'https://www.huobi.pro',
+                'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees': 'https://www.huobipro.com/about/fee/',
+                'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
                 'market': {
@@ -65,6 +82,8 @@ class huobipro (Exchange):
                         'common/symbols',  # 查询系统支持的所有交易对
                         'common/currencys',  # 查询系统支持的所有币种
                         'common/timestamp',  # 查询系统当前时间
+                        'common/exchange',  # order limits
+                        'settings/currencys',  # ?language=en-US
                     ],
                 },
                 'private': {
@@ -77,6 +96,9 @@ class huobipro (Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'query/deposit-withdraw',
+                        'margin/loan-orders',  # 借贷订单
+                        'margin/accounts/balance',  # 借贷账户详情
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -89,6 +111,10 @@ class huobipro (Exchange):
                         'dw/withdraw-virtual/create',  # 申请提现虚拟币
                         'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现
                         'dw/withdraw-virtual/{id}/cancel',  # 申请取消提现虚拟币
+                        'dw/transfer-in/margin',  # 现货账户划入至借贷账户
+                        'dw/transfer-out/margin',  # 借贷账户划出至现货账户
+                        'margin/orders',  # 申请借贷
+                        'margin/orders/{id}/repay',  # 归还借贷
                     ],
                 },
             },
@@ -100,14 +126,65 @@ class huobipro (Exchange):
                     'taker': 0.002,
                 },
             },
+            'exceptions': {
+                'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
+                'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
+                'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
+                'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
+                'order-update-error': ExchangeNotAvailable,  # undocumented error
+                'api-signature-check-failed': AuthenticationError,
+            },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': True,
+                'fetchMarketsMethod': 'publicGetCommonSymbols',
+                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
+                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'language': 'en-US',
+            },
         })
 
+    def fetch_trading_limits(self, symbols=None, params={}):
+        #  by default it will try load withdrawal fees of all currencies(with separate requests)
+        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        self.load_markets()
+        info = {}
+        limits = {}
+        if symbols is None:
+            symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            response = self.publicGetCommonExchange(self.extend({
+                'symbol': market['id'],
+            }))
+            limit = self.parse_trading_limits(response)
+            info[symbol] = response
+            limits[symbol] = limit
+        return {
+            'limits': limits,
+            'info': info,
+        }
+
+    def parse_trading_limits(self, response, symbol=None, params={}):
+        data = response['data']
+        if data is None:
+            return None
+        return {
+            'amount': {
+                'min': data['limit-order-must-greater-than'],
+                'max': data['limit-order-must-less-than'],
+            },
+        }
+
     def fetch_markets(self):
-        response = self.publicGetCommonSymbols()
+        method = self.options['fetchMarketsMethod']
+        response = getattr(self, method)()
         markets = response['data']
         numMarkets = len(markets)
         if numMarkets < 1:
-            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(response))
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -132,6 +209,7 @@ class huobipro (Exchange):
                 'base': base,
                 'quote': quote,
                 'lot': lot,
+                'active': True,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
@@ -220,7 +298,10 @@ class huobipro (Exchange):
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            return self.parse_order_book(response['tick'], response['tick']['ts'])
+            orderbook = response['tick']
+            timestamp = orderbook['ts']
+            orderbook['nonce'] = orderbook['version']
+            return self.parse_order_book(orderbook, timestamp)
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     def fetch_ticker(self, symbol, params={}):
@@ -246,13 +327,15 @@ class huobipro (Exchange):
             'amount': trade['amount'],
         }
 
-    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+    def fetch_trades(self, symbol, since=None, limit=1000, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetHistoryTrade(self.extend({
+        request = {
             'symbol': market['id'],
-            'size': 2000,
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = self.marketGetHistoryTrade(self.extend(request, params))
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -273,14 +356,16 @@ class huobipro (Exchange):
             ohlcv['amount'],
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetHistoryKline(self.extend({
+        request = {
             'symbol': market['id'],
             'period': self.timeframes[timeframe],
-            'size': 2000,  # max = 2000
-        }, params))
+        }
+        if limit is not None:
+            request['size'] = limit
+        response = self.marketGetHistoryKline(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def load_accounts(self, reload=False):
@@ -299,10 +384,81 @@ class huobipro (Exchange):
         response = self.privateGetAccountAccounts()
         return response['data']
 
+    def fetch_currencies(self, params={}):
+        response = self.publicGetSettingsCurrencys(self.extend({
+            'language': self.options['language'],
+        }, params))
+        currencies = response['data']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            #
+            #  {                    name: "ctxc",
+            #              'display-name': "CTXC",
+            #        'withdraw-precision':  8,
+            #             'currency-type': "eth",
+            #        'currency-partition': "pro",
+            #             'support-sites':  null,
+            #                'otc-enable':  0,
+            #        'deposit-min-amount': "2",
+            #       'withdraw-min-amount': "4",
+            #            'show-precision': "8",
+            #                      weight: "2988",
+            #                     visible:  True,
+            #              'deposit-desc': "Please don’t deposit any other digital assets except CTXC t…",
+            #             'withdraw-desc': "Minimum withdrawal amount: 4 CTXC. not >_<not For security reason…",
+            #           'deposit-enabled':  True,
+            #          'withdraw-enabled':  True,
+            #    'currency-addr-with-tag':  False,
+            #             'fast-confirms':  15,
+            #             'safe-confirms':  30                                                             }
+            #
+            id = self.safe_value(currency, 'name')
+            precision = self.safe_integer(currency, 'withdraw-precision')
+            code = self.common_currency_code(id.upper())
+            active = currency['visible'] and currency['deposit-enabled'] and currency['withdraw-enabled']
+            result[code] = {
+                'id': id,
+                'code': code,
+                'type': 'crypto',
+                # 'payin': currency['deposit-enabled'],
+                # 'payout': currency['withdraw-enabled'],
+                # 'transfer': None,
+                'name': currency['display-name'],
+                'active': active,
+                'fee': None,  # todo need to fetch from fee endpoint
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision),
+                        'max': math.pow(10, precision),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_float(currency, 'deposit-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                    'withdraw': {
+                        'min': self.safe_float(currency, 'withdraw-min-amount'),
+                        'max': math.pow(10, precision),
+                    },
+                },
+                'info': currency,
+            }
+        return result
+
     def fetch_balance(self, params={}):
         self.load_markets()
         self.load_accounts()
-        response = self.privateGetAccountAccountsIdBalance(self.extend({
+        method = self.options['fetchBalanceMethod']
+        response = getattr(self, method)(self.extend({
             'id': self.accounts[0]['id'],
         }, params))
         balances = response['data']['list']
@@ -324,35 +480,25 @@ class huobipro (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
         if not symbol:
             raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
-        status = None
-        if 'type' in params:
-            status = params['type']
-        elif 'status' in params:
-            status = params['status']
-        else:
-            raise ExchangeError(self.id + ' fetchOrders() requires a type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
-        if (status == 0) or (status == 'open'):
-            status = 'submitted,partial-filled'
-        elif (status == 1) or (status == 'closed'):
-            status = 'filled,partial-canceled'
-        else:
-            raise ExchangeError(self.id + ' fetchOrders() wrong type param or status param for spot market ' + symbol + '(0 or "open" for unfilled or partial filled orders, 1 or "closed" for filled orders)')
         response = self.privateGetOrderOrders(self.extend({
             'symbol': market['id'],
-            'states': status,
-        }))
+            'states': states,
+        }, params))
         return self.parse_orders(response['data'], market, since, limit)
 
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        open = 0  # 0 for unfilled orders, 1 for filled orders
-        return self.fetch_orders(symbol, None, None, self.extend({
-            'status': open,
-        }, params))
+        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -364,6 +510,8 @@ class huobipro (Exchange):
     def parse_order_status(self, status):
         if status == 'partial-filled':
             return 'open'
+        elif status == 'partial-canceled':
+            return 'canceled'
         elif status == 'filled':
             return 'closed'
         elif status == 'canceled':
@@ -390,10 +538,10 @@ class huobipro (Exchange):
         if market:
             symbol = market['symbol']
         timestamp = order['created-at']
-        amount = float(order['amount'])
+        amount = self.safe_float(order, 'amount')
         filled = float(order['field-amount'])
         remaining = amount - filled
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = float(order['field-cash-amount'])
         average = 0
         if filled:
@@ -403,6 +551,7 @@ class huobipro (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -427,12 +576,34 @@ class huobipro (Exchange):
             'symbol': market['id'],
             'type': side + '-' + type,
         }
+        if self.options['createMarketBuyOrderRequiresPrice']:
+            if (type == 'market') and(side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
+                else:
+                    order['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrderOrdersPlace(self.extend(order, params))
+        method = self.options['createOrderMethod']
+        response = getattr(self, method)(self.extend(order, params))
+        timestamp = self.milliseconds()
         return {
             'info': response,
             'id': response['data'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': None,
+            'remaining': None,
+            'cost': None,
+            'trades': None,
+            'fee': None,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -448,15 +619,17 @@ class huobipro (Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         }
 
+    def fee_to_precision(self, currency, fee):
+        return float(self.decimal_to_precision(fee, 0, self.currencies[currency]['precision']))
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
         key = 'quote'
         if side == 'sell':
             cost *= price
@@ -466,17 +639,19 @@ class huobipro (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(self.fee_to_precision(market[key], cost)),
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
         self.check_address(address)
+        currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency.lower(),
+            'currency': currency['id'].lower(),
         }
-        if tag:
+        if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
         response = self.privatePostDwWithdrawApiCreate(self.extend(request, params))
         id = None
@@ -526,9 +701,22 @@ class huobipro (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'status' in response:
-            if response['status'] == 'error':
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            if 'status' in response:
+                #
+                #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+                #
+                status = self.safe_string(response, 'status')
+                if status == 'error':
+                    code = self.safe_string(response, 'err-code')
+                    feedback = self.id + ' ' + self.json(response)
+                    exceptions = self.exceptions
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    raise ExchangeError(feedback)

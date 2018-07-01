@@ -17,11 +17,12 @@ class wex (liqui):
         return self.deep_extend(super(wex, self).describe(), {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'version': '3',
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
@@ -88,6 +89,9 @@ class wex (liqui):
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         })
 
     def parse_ticker(self, ticker, market=None):
@@ -119,6 +123,16 @@ class wex (liqui):
             'info': ticker,
         }
 
+    def fetch_deposit_address(self, code, params={}):
+        request = {'coinName': self.common_currency_code(code)}
+        response = self.privatePostCoinDepositAddress(self.extend(request, params))
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': None,
+            'info': response,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body):
         if code == 200:
             if body[0] != '{':
@@ -134,7 +148,7 @@ class wex (liqui):
                         # returned by fetchOpenOrders if no open orders(fix for  #489) -> not an error
                         return
                     feedback = self.id + ' ' + self.json(response)
-                    messages = self.exceptions.messages
+                    messages = self.exceptions['messages']
                     if error in messages:
                         raise messages[error](feedback)
                     if error.find('It is not enough') >= 0:

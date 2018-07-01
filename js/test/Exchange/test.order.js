@@ -16,6 +16,7 @@ module.exports = (exchange, order, symbol, now) => {
     assert (typeof order.timestamp === 'number')
     assert (order.timestamp > 1230940800000) // 03 Jan 2009 - first block
     assert (order.timestamp < now)
+    assert ('lastTradeTimestamp' in order)
     assert (order.datetime === exchange.iso8601 (order.timestamp))
     assert (order.status === 'open' || order.status === 'closed' || order.status === 'canceled')
     assert (order.symbol === symbol)

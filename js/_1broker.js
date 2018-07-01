@@ -12,7 +12,7 @@ module.exports = class _1broker extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': '_1broker',
             'name': '1Broker',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1500,
             'version': 'v2',
             'has': {
@@ -22,7 +22,7 @@ module.exports = class _1broker extends Exchange {
                 'fetchOHLCV': true,
             },
             'timeframes': {
-                '1m': '60',
+                '1m': '60', // not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -131,7 +131,7 @@ module.exports = class _1broker extends Exchange {
             let currency = currencies[c];
             result[currency] = this.account ();
         }
-        let total = parseFloat (response['balance']);
+        let total = this.safeFloat (response, 'balance');
         result['BTC']['free'] = total;
         result['BTC']['total'] = total;
         return this.parseBalance (result);
@@ -144,8 +144,8 @@ module.exports = class _1broker extends Exchange {
         }, params));
         let orderbook = response['response'][0];
         let timestamp = this.parse8601 (orderbook['updated']);
-        let bidPrice = parseFloat (orderbook['bid']);
-        let askPrice = parseFloat (orderbook['ask']);
+        let bidPrice = this.safeFloat (orderbook, 'bid');
+        let askPrice = this.safeFloat (orderbook, 'ask');
         let bid = [ bidPrice, undefined ];
         let ask = [ askPrice, undefined ];
         return {
@@ -153,6 +153,7 @@ module.exports = class _1broker extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'bids': [ bid ],
             'asks': [ ask ],
+            'nonce': undefined,
         };
     }
 
@@ -169,15 +170,15 @@ module.exports = class _1broker extends Exchange {
         }, params));
         let ticker = result['response'][0];
         let timestamp = this.parse8601 (ticker['date']);
-        let open = parseFloat (ticker['o']);
-        let close = parseFloat (ticker['c']);
+        let open = this.safeFloat (ticker, 'o');
+        let close = this.safeFloat (ticker, 'c');
         let change = close - open;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['h']),
-            'low': parseFloat (ticker['l']),
+            'high': this.safeFloat (ticker, 'h'),
+            'low': this.safeFloat (ticker, 'l'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,

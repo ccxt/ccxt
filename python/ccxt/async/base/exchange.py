@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.164'
+__version__ = '1.15.1'
 
 # -----------------------------------------------------------------------------
 
@@ -159,6 +159,21 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    async def load_fees(self):
+        await self.load_markets()
+        self.populate_fees()
+        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
+            return self.fees
+
+        fetched_fees = self.fetch_fees()
+        if fetched_fees['funding']:
+            self.fees['funding']['fee_loaded'] = True
+        if fetched_fees['trading']:
+            self.fees['trading']['fee_loaded'] = True
+
+        self.fees = self.deep_extend(self.fees, fetched_fees)
+        return self.fees
+
     async def fetch_markets(self):
         return self.markets
 
@@ -177,6 +192,15 @@ class Exchange(BaseExchange):
             'asks': self.sort_by(self.aggregate(orderbook['asks']), 0),
         })
 
+    async def perform_order_book_request(self, market, limit=None, params={}):
+        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
+
+    async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        orderbook = await self.perform_order_book_request(market, limit, params)
+        return self.parse_order_book(orderbook, market, limit, params)
+
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
@@ -193,3 +217,17 @@ class Exchange(BaseExchange):
             self.raise_error(ExchangeError, details='updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
+
+    async def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = await self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets

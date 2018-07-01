@@ -125,6 +125,11 @@ function try_all_proxies ($exchange, $proxies) {
         try {
 
             $exchange->proxy = $proxies[$current_proxy];
+
+            // add random origin to proxied requests
+            if (strlen ($exchange->proxy) > 0)
+                $exchange->origin = $exchange->uuid ();
+
             $current_proxy = (++$current_proxy) % count ($proxies);
 
             load_exchange ($exchange);

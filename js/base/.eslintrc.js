@@ -17,7 +17,7 @@ module.exports = {
       "quote-props": "off",
       "func-call-spacing": ["error", "always"],
       "one-var": "off",
-      "indent": "error",
+      "indent": ["warn", 4, { "ignoredNodes": ["ObjectPattern"] }],
       "comma-style": "off",
       "no-multi-spaces": "off",
       "comma-dangle": "off",

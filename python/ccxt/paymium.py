@@ -95,17 +95,15 @@ class paymium (Exchange):
         orderbook = self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(symbol),
         }, params))
-        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        return result
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetDataIdTicker(self.extend({
             'id': self.market_id(symbol),
         }, params))
         timestamp = ticker['at'] * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'price')
         return {
@@ -154,14 +152,14 @@ class paymium (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         order = {
             'type': self.capitalize(type) + 'Order',
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
-        if type == 'market':
+        if type != 'market':
             order['price'] = price
         response = self.privatePostUserOrders(self.extend(order, params))
         return {
@@ -170,8 +168,8 @@ class paymium (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
+        return self.privateDeleteUserOrdersUUIDCancel(self.extend({
+            'UUID': id,
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -182,9 +180,12 @@ class paymium (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            body = self.json(params)
             nonce = str(self.nonce())
-            auth = nonce + url + body
+            auth = nonce + url
+            if method == 'POST':
+                if query:
+                    body = self.json(query)
+                    auth += body
             headers = {
                 'Api-Key': self.apiKey,
                 'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),

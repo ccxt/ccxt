@@ -83,21 +83,28 @@ It requires common PHP modules:
 
 ```PHP
 include "ccxt.php";
-var_dump (\cxxt\Exchange::$exchanges); // print a list of all available exchange classes
+var_dump (\ccxt\Exchange::$exchanges); // print a list of all available exchange classes
 ```
 
 ## Proxy
 
 In some specific cases you may want a proxy, if you experience issues with [DDoS protection by Cloudflare](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare) or your network / country / IP is rejected by their filters.
 
-If you need a proxy, use the `proxy` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
-
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
-The absolute exchange endpoint URL is appended to `proxy` string before HTTP request is sent to exchange. The proxy setting is an empty string `''` by default. Below are examples of a non-empty proxy string (last slash is mandatory!):
+### JavaScript Proxies
 
-- `kraken.proxy = 'https://crossorigin.me/'`
-- `gdax.proxy   = 'https://cors-anywhere.herokuapp.com/'`
+In order to use proxies with JavaScript, one needs to pass the proxying `agent` option to the exchange class instance constructor (or set the `exchange.agent` property later after instantiation in runtime):
+
+```JavaScript
+const ccxt = require ('ccxt')
+    , HttpsProxyAgent = require ('https-proxy-agent')
+
+const proxy = process.env.http_proxy || 'http://168.63.76.32:3128' // HTTP/HTTPS proxy to connect to
+const agent = new HttpsProxyAgent (proxy)
+
+const kraken = new ccxt.kraken ({ agent })
+```
 
 ### Python Proxies
 
@@ -135,6 +142,98 @@ exchange.proxies = {
 }
 ```
 
+#### Python 2 and 3 sync proxies
+
+- https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-sync-python-requests-2-and-3.py
+
+```Python
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import ccxt
+from pprint import pprint
+
+
+exchange = ccxt.poloniex({
+    #
+    # ↓ The "proxy" property setting below is for CORS-proxying only!
+    # Do not use it if you don't know what a CORS proxy is.
+    # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+    # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+    # In Python you rarely need to use it, if ever at all.
+    #
+    # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+    #
+    # ↓ On the other hand, the "proxies" setting is for HTTP(S)-proxying (SOCKS, etc...)
+    # It is a standard method of sending your requests through your proxies
+    # This gets passed to the `python-requests` implementation directly
+    # You can also enable this with environment variables, as described here:
+    # http://docs.python-requests.org/en/master/user/advanced/#proxies
+    # This is the setting you should be using with synchronous version of ccxt in Python 2 and 3
+    #
+    'proxies': {
+        'http': 'http://10.10.1.10:3128',
+        'https': 'http://10.10.1.10:1080',
+    },
+})
+
+# your code goes here...
+
+pprint(exchange.fetch_ticker('ETH/BTC'))
+```
+
+#### Python 3.5+ asyncio/aiohttp proxy
+
+- https://github.com/ccxt/ccxt/blob/master/examples/py/proxy-asyncio-aiohttp-python-3.py
+
+```Python
+# -*- coding: utf-8 -*-
+
+import asyncio
+import os
+import sys
+import ccxt.async as ccxt
+from pprint import pprint
+
+
+async def test_gdax():
+
+    exchange = ccxt.poloniex({
+        #
+        # ↓ The "proxy" property setting below is for CORS-proxying only!
+        # Do not use it if you don't know what a CORS proxy is.
+        # https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin
+        # You should only use the "proxy" setting if you're having a problem with Access-Control-Allow-Origin
+        # In Python you rarely need to use it, if ever at all.
+        #
+        # 'proxy': 'https://cors-anywhere.herokuapp.com/',
+        #
+        # ↓ The "aiohttp_proxy" setting is for HTTP(S)-proxying (SOCKS, etc...)
+        # It is a standard method of sending your requests through your proxies
+        # This gets passed to the `asyncio` and `aiohttp` implementation directly
+        # You can use this setting as documented here:
+        # https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support
+        # This is the setting you should be using with async version of ccxt in Python 3.5+
+        #
+        'aiohttp_proxy': 'http://proxy.com',
+        # 'aiohttp_proxy': 'http://user:pass@some.proxy.com',
+        # 'aiohttp_proxy': 'http://10.10.1.10:3128',
+    })
+
+    # your code goes here...
+
+    ticker = await exchange.fetch_ticker('ETH/BTC')
+
+    # don't forget to free the used resources, when you don't need them anymore
+    await exchange.close()
+
+    return ticker
+
+if __name__ == '__main__':
+    pprint(asyncio.get_event_loop().run_until_complete(test_gdax()))
+```
+
 A more detailed documentation on using proxies with the sync python version of the ccxt library can be found here:
 
 - [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
@@ -142,9 +241,16 @@ A more detailed documentation on using proxies with the sync python version of t
 
 ## CORS (Access-Control-Allow-Origin)
 
+If you need a CORS proxy, use the `proxy` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
+
 CORS is [Cross-Origin Resource Sharing](https://en.wikipedia.org/wiki/Cross-origin_resource_sharing). When accessing the HTTP REST API of an exchange from browser with ccxt library you may get a warning or an exception, saying `No 'Access-Control-Allow-Origin' header is present on the requested resource`. That means that the exchange admins haven't enabled access to their API from arbitrary web browser pages.
 
-You can still use the ccxt library from your browser via a CORS-proxy, which is very easy to set up or install. There are also public CORS proxies on the internet, like [https://crossorigin.me](https://crossorigin.me).
+You can still use the ccxt library from your browser via a CORS-proxy, which is very easy to set up or install. There are also public CORS proxies on the internet.
+
+The absolute exchange endpoint URL is appended to `proxy` string before HTTP request is sent to exchange. The `proxy` setting is an empty string `''` by default. Below are examples of a non-empty `proxy` string (last slash is mandatory!):
+
+- `kraken.proxy = 'https://crossorigin.me/'`
+- `gdax.proxy   = 'https://cors-anywhere.herokuapp.com/'`
 
 To run your own CORS proxy locally you can either set up one of the existing ones or make a quick script of your own, like shown below.
 

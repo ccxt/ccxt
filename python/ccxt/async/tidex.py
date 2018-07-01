@@ -13,7 +13,7 @@ class tidex (liqui):
         return self.deep_extend(super(tidex, self).describe(), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': ['UK'],
             'rateLimit': 2000,
             'version': '3',
             'has': {
@@ -72,9 +72,6 @@ class tidex (liqui):
             code = id.upper()
             code = self.common_currency_code(code)
             active = currency['visible'] is True
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
             if not canWithdraw or not canDeposit:
@@ -84,7 +81,6 @@ class tidex (liqui):
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -124,3 +120,36 @@ class tidex (liqui):
 
     def get_version_string(self):
         return ''
+
+    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api]
+        query = self.omit(params, self.extract_params(path))
+        if api == 'private':
+            self.check_required_credentials()
+            nonce = self.nonce()
+            body = self.urlencode(self.extend({
+                'nonce': nonce,
+                'method': path,
+            }, query))
+            signature = self.sign_body_with_secret(body)
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': self.apiKey,
+                'Sign': signature,
+            }
+        elif api == 'public':
+            url += self.get_version_string() + '/' + self.implode_params(path, params)
+            if query:
+                url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.urlencode(query)
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

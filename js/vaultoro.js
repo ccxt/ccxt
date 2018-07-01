@@ -11,7 +11,7 @@ module.exports = class vaultoro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'rateLimit': 1000,
             'version': '1',
             'has': {
@@ -22,6 +22,9 @@ module.exports = class vaultoro extends Exchange {
                 'api': 'https://api.vaultoro.com',
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
+            },
+            'commonCurrencies': {
+                'GLD': 'Gold',
             },
             'api': {
                 'public': {
@@ -59,11 +62,11 @@ module.exports = class vaultoro extends Exchange {
         let result = [];
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];
-        let base = market['BaseCurrency'];
-        let quote = market['MarketCurrency'];
+        let baseId = market['MarketCurrency'];
+        let quoteId = market['BaseCurrency'];
+        let base = this.commonCurrencyCode (baseId);
+        let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;
-        let baseId = base;
-        let quoteId = quote;
         let id = market['MarketName'];
         result.push ({
             'id': id,
@@ -84,8 +87,10 @@ module.exports = class vaultoro extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency_code'];
-            let uppercase = currency.toUpperCase ();
+            let currencyId = balance['currency_code'].toUpperCase ();
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id[currencyId])
+                code = this.currencies_by_id[currencyId]['code'];
             let free = balance['cash'];
             let used = balance['reserved'];
             let total = this.sum (free, used);
@@ -94,7 +99,7 @@ module.exports = class vaultoro extends Exchange {
                 'used': used,
                 'total': total,
             };
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -106,9 +111,7 @@ module.exports = class vaultoro extends Exchange {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -120,13 +123,13 @@ module.exports = class vaultoro extends Exchange {
         let response = await this.publicGetMarkets (params);
         let ticker = response['data'];
         let timestamp = this.milliseconds ();
-        let last = parseFloat (ticker['LastPrice']);
+        let last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['24hHigh']),
-            'low': parseFloat (ticker['24hLow']),
+            'high': this.safeFloat (ticker, '24hHigh'),
+            'low': this.safeFloat (ticker, '24hLow'),
             'bid': bid[0],
             'bidVolume': undefined,
             'ask': ask[0],
@@ -140,7 +143,7 @@ module.exports = class vaultoro extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['24hVolume']),
+            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
             'info': ticker,
         };
     }

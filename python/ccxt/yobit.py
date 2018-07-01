@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.liqui import liqui
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import DDoSProtection
@@ -15,7 +16,7 @@ class yobit (liqui):
         return self.deep_extend(super(yobit, self).describe(), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
@@ -68,21 +69,71 @@ class yobit (liqui):
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
-                'ANT': 'AntsCoin',
+                'ANT': 'AntsCoin',  # what is self, a coin for ants?
+                'ATMCHA': 'ATM',
+                'ASN': 'Ascension',
+                'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
+                'BLN': 'Bulleon',
+                'BOT': 'BOTcoin',
+                'BON': 'BONES',
+                'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
+                'CAT': 'BitClave',
+                'CMT': 'CometCoin',
+                'COV': 'Coven Coin',
+                'COVX': 'COV',
+                'CPC': 'Capricoin',
+                'CRC': 'CryCash',
+                'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DIRT': 'DIRTY',
+                'DROP': 'FaucetCoin',
+                'EKO': 'EkoCoin',
+                'ENTER': 'ENTRC',
+                'EPC': 'ExperienceCoin',
+                'ERT': 'Eristica Token',
+                'ESC': 'EdwardSnowden',
+                'EUROPE': 'EUROP',
+                'EXT': 'LifeExtension',
+                'FUNK': 'FUNKCoin',
+                'GCC': 'GlobalCryptocurrency',
+                'GEN': 'Genstake',
+                'GENE': 'Genesiscoin',
+                'GOLD': 'GoldMint',
+                'HTML5': 'HTML',
+                'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
+                'INSANE': 'INSN',
+                'JNT': 'JointCoin',
+                'JPC': 'JupiterCoin',
+                'KNC': 'KingN Coin',
+                'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
-                'LUN': 'LunarCoin',
+                'LOC': 'LocoCoin',
+                'LOCX': 'LOC',
+                'LUNYR': 'LUN',
+                'LUN': 'LunarCoin',  # they just change the ticker if it is already taken
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'PAC': '$PAC',
+                'PLAY': 'PlayCoin',
+                'PIVX': 'Darknet',
+                'PRS': 'PRE',
+                'PUTIN': 'PUT',
+                'STK': 'StakeCoin',
+                'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
+                'PLC': 'Platin Coin',
+                'RCN': 'RCoin',
                 'REP': 'Republicoin',
+                'RUR': 'RUB',
+                'XIN': 'XINCoin',
             },
             'options': {
                 'fetchOrdersRequiresSymbol': True,
@@ -122,7 +173,7 @@ class yobit (liqui):
                     else:
                         account = self.account()
                     account[key] = balances[side][lowercase]
-                    if account['total'] and account['free']:
+                    if (account['total'] is not None) and(account['free'] is not None):
                         account['used'] = account['total'] - account['free']
                     result[currency] = account
         return self.parse_balance(result)
@@ -136,11 +187,12 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response['info'],
         }
 
     def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         request = {
             'coinName': currency['id'],
@@ -152,15 +204,16 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
+        currency = self.currency(code)
         response = self.privatePostWithdrawCoinsToAddress(self.extend({
-            'coinName': currency,
+            'coinName': currency['id'],
             'amount': amount,
             'address': address,
         }, params))
@@ -169,16 +222,16 @@ class yobit (liqui):
             'id': None,
         }
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'success' in response:
-            if not response['success']:
-                if response['error'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
-                    raise InsufficientFunds(self.id + ' ' + self.json(response))
-                elif response['error'] == 'Requests too often':
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                elif (response['error'] == 'not available') or (response['error'] == 'external service unavailable'):
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if body[0] == '{':
+            response = json.loads(body)
+            if 'success' in response:
+                if not response['success']:
+                    if 'error_log' in response:
+                        if response['error_log'].find('Insufficient funds') >= 0:  # not enougTh is a typo inside Liqui's own API...
+                            raise InsufficientFunds(self.id + ' ' + self.json(response))
+                        elif response['error_log'] == 'Requests too often':
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
+                        elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
+                            raise DDoSProtection(self.id + ' ' + self.json(response))
                     raise ExchangeError(self.id + ' ' + self.json(response))
-        return response

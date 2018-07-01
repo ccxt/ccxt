@@ -12,7 +12,7 @@ class jubi (btcbox):
         return self.deep_extend(super(jubi, self).describe(), {
             'id': 'jubi',
             'name': 'jubi.com',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1500,
             'version': 'v1',
             'has': {

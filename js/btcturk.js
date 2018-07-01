@@ -12,7 +12,7 @@ module.exports = class btcturk extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btcturk',
             'name': 'BTCTurk',
-            'countries': 'TR', // Turkey
+            'countries': [ 'TR' ], // Turkey
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
@@ -49,32 +49,80 @@ module.exports = class btcturk extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/TRY': { 'id': 'BTCTRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/TRY': { 'id': 'ETHTRY', 'symbol': 'ETH/TRY', 'base': 'ETH', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'XRP/TRY': { 'id': 'XRPTRY', 'symbol': 'XRP/TRY', 'base': 'XRP', 'quote': 'TRY', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
-                'ETH/BTC': { 'id': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.002 * 1.18, 'taker': 0.0035 * 1.18 },
+            'fees': {
+                'trading': {
+                    'maker': 0.002 * 1.18,
+                    'taker': 0.0035 * 1.18,
+                },
             },
         });
+    }
+
+    async fetchMarkets () {
+        let response = await this.publicGetTicker ();
+        let result = [];
+        for (let i = 0; i < response.length; i++) {
+            let market = response[i];
+            let id = market['pair'];
+            let baseId = id.slice (0, 3);
+            let quoteId = id.slice (3, 6);
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            baseId = baseId.toLowerCase ();
+            quoteId = quoteId.toLowerCase ();
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            let active = true;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
         let result = { 'info': response };
-        let base = {
-            'free': response['bitcoin_available'],
-            'used': response['bitcoin_reserved'],
-            'total': response['bitcoin_balance'],
-        };
-        let quote = {
-            'free': response['money_available'],
-            'used': response['money_reserved'],
-            'total': response['money_balance'],
-        };
-        let symbol = this.symbols[0];
-        let market = this.markets[symbol];
-        result[market['base']] = base;
-        result[market['quote']] = quote;
+        let codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currencies[code];
+            let account = this.account ();
+            let free = currency['id'] + '_available';
+            let total = currency['id'] + '_balance';
+            let used = currency['id'] + '_reserved';
+            if (free in response) {
+                account['free'] = this.safeFloat (response, free);
+                account['total'] = this.safeFloat (response, total);
+                account['used'] = this.safeFloat (response, used);
+            }
+            result[code] = account;
+        }
         return this.parseBalance (result);
     }
 
@@ -92,26 +140,26 @@ module.exports = class btcturk extends Exchange {
         if (market)
             symbol = market['symbol'];
         let timestamp = parseInt (ticker['timestamp']) * 1000;
-        let last = parseFloat (ticker['last']);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['ask']),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': parseFloat (ticker['average']),
-            'baseVolume': parseFloat (ticker['volume']),
+            'average': this.safeFloat (ticker, 'average'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };

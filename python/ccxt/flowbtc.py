@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class flowbtc (Exchange):
@@ -13,7 +14,7 @@ class flowbtc (Exchange):
         return self.deep_extend(super(flowbtc, self).describe(), {
             'id': 'flowbtc',
             'name': 'flowBTC',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
@@ -23,7 +24,7 @@ class flowbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api': 'https://api.flowbtc.com:8405/ajax',
                 'www': 'https://trader.flowbtc.com',
-                'doc': 'http://www.flowbtc.com.br/api/',
+                'doc': 'https://www.flowbtc.com.br/api.html',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -59,6 +60,14 @@ class flowbtc (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.0035,
+                    'taker': 0.0035,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -70,12 +79,31 @@ class flowbtc (Exchange):
             id = market['name']
             base = market['product1Label']
             quote = market['product2Label']
+            precision = {
+                'amount': self.safe_integer(market, 'product1DecimalPlaces'),
+                'price': self.safe_integer(market, 'product2DecimalPlaces'),
+            }
             symbol = base + '/' + quote
             result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             }
         return result
@@ -112,16 +140,16 @@ class flowbtc (Exchange):
             'productPair': market['id'],
         }, params))
         timestamp = self.milliseconds()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -131,8 +159,8 @@ class flowbtc (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume24hr']),
-            'quoteVolume': float(ticker['volume24hrProduct2']),
+            'baseVolume': self.safe_float(ticker, 'volume24hr'),
+            'quoteVolume': self.safe_float(ticker, 'volume24hrProduct2'),
             'info': ticker,
         }
 
@@ -161,6 +189,9 @@ class flowbtc (Exchange):
         }, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         orderType = 1 if (type == 'market') else 0
@@ -169,7 +200,7 @@ class flowbtc (Exchange):
             'side': side,
             'orderType': orderType,
             'qty': amount,
-            'px': price,
+            'px': self.price_to_precision(symbol, price),
         }
         response = self.privatePostCreateOrder(self.extend(order, params))
         return {

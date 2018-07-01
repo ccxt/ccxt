@@ -11,7 +11,7 @@ module.exports = class vbtc extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'vbtc',
             'name': 'VBTC',
-            'countries': 'VN',
+            'countries': [ 'VN' ],
             'has': {
                 'CORS': false,
             },
@@ -23,6 +23,9 @@ module.exports = class vbtc extends foxbit {
                 },
                 'www': 'https://vbtc.exchange',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '3', // https://blinktrade.com/docs/#brokers
             },
         });
     }

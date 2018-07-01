@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.11.164'
+__version__ = '1.15.1'
 
 # -----------------------------------------------------------------------------
 
@@ -15,6 +15,11 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+
+# -----------------------------------------------------------------------------
+
+from ccxt.base.decimal_to_precision import decimal_to_precision
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 # -----------------------------------------------------------------------------
 
@@ -101,7 +106,6 @@ class Exchange(object):
         },
     }
     ids = None
-    currencies = None
     tickers = None
     api = None
     parseJsonResponse = True
@@ -133,6 +137,7 @@ class Exchange(object):
         'uid': False,
         'login': False,
         'password': False,
+        'twofa': False,  # 2-factor authentication (one-time password key)
     }
 
     # API method metainfo
@@ -152,7 +157,7 @@ class Exchange(object):
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
-        'fetchFees': False,
+        'fetchFundingFees': False,
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
         'fetchMyTrades': False,
@@ -165,10 +170,13 @@ class Exchange(object):
         'fetchTicker': True,
         'fetchTickers': False,
         'fetchTrades': True,
+        'fetchTradingFees': False,
+        'fetchTradingLimits': False,
         'withdraw': False,
     }
 
-    minFundingAddressLength = 10  # used in check_address
+    precisionMode = DECIMAL_PLACES
+    minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     lastRestRequestTimestamp = 0
     lastRestPollTimestamp = 0
@@ -199,6 +207,8 @@ class Exchange(object):
         self.trades = {} if self.trades is None else self.trades
         self.currencies = {} if self.currencies is None else self.currencies
         self.options = {} if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+
+        self.decimalToPrecision = self.decimal_to_precision = decimal_to_precision
 
         # version = '.'.join(map(str, sys.version_info[:3]))
         # self.userAgent = {
@@ -400,8 +410,9 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                self.last_json_response = json.loads(response) if len(response) > 1 else None
-                return self.last_json_response
+                last_json_response = json.loads(response) if len(response) > 1 else None
+                self.last_json_response = last_json_response
+                return last_json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
@@ -543,11 +554,19 @@ class Exchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False):
-        return sorted(array, key=lambda k: k[key], reverse=descending)
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
         return a + b
+
+    @staticmethod
+    def in_array(needle, haystack):
+        return needle in haystack
+
+    @staticmethod
+    def is_empty(object):
+        return not object
 
     @staticmethod
     def extract_params(string):
@@ -651,16 +670,29 @@ class Exchange(object):
         return int(time.time() * 1000000)
 
     @staticmethod
-    def iso8601(timestamp):
+    def iso8601(timestamp=None):
         if timestamp is None:
             return timestamp
-        utc = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:<03d}".format(int(timestamp) % 1000) + 'Z'
+        if not isinstance(timestamp, int):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            return None
 
     @staticmethod
-    def ymd(timestamp):
+    def dmy(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
-        return utc_datetime.strftime('%Y-%m-%d')
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
+
+    @staticmethod
+    def ymd(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
 
     @staticmethod
     def ymdhms(timestamp, infix=' '):
@@ -668,18 +700,25 @@ class Exchange(object):
         return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
 
     @staticmethod
-    def parse_date(timestamp):
+    def parse_date(timestamp=None):
         if timestamp is None:
             return timestamp
+        if not isinstance(timestamp, str):
+            return None
         if 'GMT' in timestamp:
-            string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            return calendar.timegm(dt.utctimetuple()) * 1000
+            try:
+                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+                return calendar.timegm(dt.utctimetuple()) * 1000
+            except (TypeError, OverflowError, OSError):
+                return None
         else:
             return Exchange.parse8601(timestamp)
 
     @staticmethod
-    def parse8601(timestamp):
+    def parse8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
         yyyy = '([0-9]{4})-?'
         mm = '([0-9]{2})-?'
         dd = '([0-9]{2})(?:T|[\\s])?'
@@ -689,19 +728,24 @@ class Exchange(object):
         ms = '(\\.[0-9]{1,3})?'
         tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
         regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
-        match = re.search(regex, timestamp, re.IGNORECASE)
-        yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-        ms = ms or '.000'
-        msint = int(ms[1:])
-        sign = sign or ''
-        sign = int(sign + '1')
-        hours = int(hours or 0) * sign
-        minutes = int(minutes or 0) * sign
-        offset = datetime.timedelta(hours=hours, minutes=minutes)
-        string = yyyy + mm + dd + h + m + s + ms + 'Z'
-        dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-        dt = dt + offset
-        return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        try:
+            match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
+            yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+            ms = ms or '.000'
+            msint = int(ms[1:])
+            sign = sign or ''
+            sign = int(sign + '1')
+            hours = int(hours or 0) * sign
+            minutes = int(minutes or 0) * sign
+            offset = datetime.timedelta(hours=hours, minutes=minutes)
+            string = yyyy + mm + dd + h + m + s + ms + 'Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            dt = dt + offset
+            return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        except (TypeError, OverflowError, OSError, ValueError):
+            return None
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
@@ -843,11 +887,23 @@ class Exchange(object):
         else:
             base_currencies = [{
                 'id': market['baseId'] if 'baseId' in market else market['base'],
+                'numericId': market['baseNumericId'] if 'baseNumericId' in market else None,
                 'code': market['base'],
+                'precision': (
+                    market['precision']['base'] if 'base' in market['precision'] else (
+                        market['precision']['amount'] if 'amount' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'base' in market]
             quote_currencies = [{
                 'id': market['quoteId'] if 'quoteId' in market else market['quote'],
+                'numericId': market['quoteNumericId'] if 'quoteNumericId' in market else None,
                 'code': market['quote'],
+                'precision': (
+                    market['precision']['quote'] if 'quote' in market['precision'] else (
+                        market['precision']['price'] if 'price' in market['precision'] else None
+                    )
+                ) if 'precision' in market else 8,
             } for market in values if 'quote' in market]
             currencies = self.sort_by(base_currencies + quote_currencies, 'code')
             self.currencies = self.deep_extend(self.index_by(currencies, 'code'), self.currencies)
@@ -880,7 +936,7 @@ class Exchange(object):
     def load_fees(self):
         self.load_markets()
         self.populate_fees()
-        if not self.has['fetchFees']:
+        if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
             return self.fees
 
         fetched_fees = self.fetch_fees()
@@ -893,7 +949,7 @@ class Exchange(object):
         return self.fees
 
     def fetch_markets(self):
-        return self.markets
+        return self.to_array(self.markets)
 
     def fetch_fees(self):
         trading = {}
@@ -924,7 +980,7 @@ class Exchange(object):
         self.raise_error(NotSupported, details='cancel_order() not implemented yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
-        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bid_asks() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
@@ -1001,12 +1057,12 @@ class Exchange(object):
         })
 
     def parse_order_book(self, orderbook, timestamp=None, bids_key='bids', asks_key='asks', price_key=0, amount_key=1):
-        timestamp = timestamp or self.milliseconds()
         return {
             'bids': self.sort_by(self.parse_bids_asks(orderbook[bids_key], price_key, amount_key) if (bids_key in orderbook) and isinstance(orderbook[bids_key], list) else [], 0, True),
             'asks': self.sort_by(self.parse_bids_asks(orderbook[asks_key], price_key, amount_key) if (asks_key in orderbook) and isinstance(orderbook[asks_key], list) else [], 0),
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': self.iso8601(timestamp) if timestamp is not None else None,
+            'nonce': None,
         }
 
     def parse_balance(self, balance):
@@ -1030,12 +1086,57 @@ class Exchange(object):
     def fetch_total_balance(self, params={}):
         return self.fetch_partial_balance('total', params)
 
+    def load_trading_limits(self, symbols=None, reload=False, params={}):
+        if self.has['fetchTradingLimits']:
+            if reload or not('limitsLoaded' in list(self.options.keys())):
+                response = self.fetch_trading_limits(symbols)
+                limits = response['limits']
+                keys = list(limits.keys())
+                for i in range(0, len(keys)):
+                    symbol = keys[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
+                        'limits': limits[symbol],
+                    })
+                self.options['limitsLoaded'] = self.milliseconds()
+        return self.markets
+
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
             self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def convert_trading_view_to_ohlcv(self, ohlcvs):
+        result = []
+        for i in range(0, len(ohlcvs['t'])):
+            result.append([
+                ohlcvs['t'][i] * 1000,
+                ohlcvs['o'][i],
+                ohlcvs['h'][i],
+                ohlcvs['l'][i],
+                ohlcvs['c'][i],
+                ohlcvs['v'][i],
+            ])
+        return result
+
+    def convert_ohlcv_to_trading_view(self, ohlcvs):
+        result = {
+            't': [],
+            'o': [],
+            'h': [],
+            'l': [],
+            'c': [],
+            'v': [],
+        }
+        for i in range(0, len(ohlcvs)):
+            result['t'].append(int(ohlcvs[i][0] / 1000))
+            result['o'].append(ohlcvs[i][1])
+            result['h'].append(ohlcvs[i][2])
+            result['l'].append(ohlcvs[i][3])
+            result['c'].append(ohlcvs[i][4])
+            result['v'].append(ohlcvs[i][5])
+        return result
 
     def build_ohlcv(self, trades, timeframe='1m', since=None, limit=None):
         ms = self.parse_timeframe(timeframe) * 1000
@@ -1195,10 +1296,10 @@ class Exchange(object):
         }
 
     def edit_limit_buy_order(self, id, symbol, *args):
-        return self.edit_limit_order(symbol, 'buy', *args)
+        return self.edit_limit_order(id, symbol, 'buy', *args)
 
     def edit_limit_sell_order(self, id, symbol, *args):
-        return self.edit_limit_order(symbol, 'sell', *args)
+        return self.edit_limit_order(id, symbol, 'sell', *args)
 
     def edit_limit_order(self, id, symbol, *args):
         return self.edit_order(id, symbol, 'limit', *args)

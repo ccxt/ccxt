@@ -22,7 +22,6 @@ module.exports = (exchange, currency, method) => {
         // 'withdraw': true,     // can withdraw
         // 'deposit': true,      // can deposit
         // 'active': true,       // can both withdraw & deposit
-        // 'status': 'ok',       // ?
         // 'precision': 8,       // number of decimal digits "after the dot"
         // 'limits': {           // value limits when placing orders on this market
         //     'amount': {

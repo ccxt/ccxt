@@ -14,7 +14,7 @@ class _1broker (Exchange):
         return self.deep_extend(super(_1broker, self).describe(), {
             'id': '_1broker',
             'name': '1Broker',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1500,
             'version': 'v2',
             'has': {
@@ -24,7 +24,7 @@ class _1broker (Exchange):
                 'fetchOHLCV': True,
             },
             'timeframes': {
-                '1m': '60',
+                '1m': '60',  # not working for some reason, returns {"server_time":"2018-03-26T03:52:27.912Z","error":true,"warning":false,"response":null,"error_code":-1,"error_message":"Error while trying to fetch historical market data. An invalid resolution was probably used."}
                 '15m': '900',
                 '1h': '3600',
                 '1d': '86400',
@@ -125,7 +125,7 @@ class _1broker (Exchange):
         for c in range(0, len(currencies)):
             currency = currencies[c]
             result[currency] = self.account()
-        total = float(response['balance'])
+        total = self.safe_float(response, 'balance')
         result['BTC']['free'] = total
         result['BTC']['total'] = total
         return self.parse_balance(result)
@@ -137,8 +137,8 @@ class _1broker (Exchange):
         }, params))
         orderbook = response['response'][0]
         timestamp = self.parse8601(orderbook['updated'])
-        bidPrice = float(orderbook['bid'])
-        askPrice = float(orderbook['ask'])
+        bidPrice = self.safe_float(orderbook, 'bid')
+        askPrice = self.safe_float(orderbook, 'ask')
         bid = [bidPrice, None]
         ask = [askPrice, None]
         return {
@@ -146,6 +146,7 @@ class _1broker (Exchange):
             'datetime': self.iso8601(timestamp),
             'bids': [bid],
             'asks': [ask],
+            'nonce': None,
         }
 
     def fetch_trades(self, symbol):
@@ -160,15 +161,15 @@ class _1broker (Exchange):
         }, params))
         ticker = result['response'][0]
         timestamp = self.parse8601(ticker['date'])
-        open = float(ticker['o'])
-        close = float(ticker['c'])
+        open = self.safe_float(ticker, 'o')
+        close = self.safe_float(ticker, 'c')
         change = close - open
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['h']),
-            'low': float(ticker['l']),
+            'high': self.safe_float(ticker, 'h'),
+            'low': self.safe_float(ticker, 'l'),
             'bid': None,
             'bidVolume': None,
             'ask': None,

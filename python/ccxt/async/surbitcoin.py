@@ -12,7 +12,7 @@ class surbitcoin (foxbit):
         return self.deep_extend(super(surbitcoin, self).describe(), {
             'id': 'surbitcoin',
             'name': 'SurBitcoin',
-            'countries': 'VE',
+            'countries': ['VE'],
             'has': {
                 'CORS': False,
             },
@@ -24,5 +24,8 @@ class surbitcoin (foxbit):
                 },
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '1',  # https://blinktrade.com/docs/#brokers
             },
         })

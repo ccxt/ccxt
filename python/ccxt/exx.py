@@ -16,9 +16,10 @@ class exx (Exchange):
         return self.deep_extend(super(exx, self).describe(), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000 / 10,
             'has': {
+                'fetchOrder': True,
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
             },
@@ -83,6 +84,9 @@ class exx (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CAN': 'Content and AD Network',
+            },
         })
 
     def fetch_markets(self):
@@ -136,26 +140,26 @@ class exx (Exchange):
         symbol = market['symbol']
         timestamp = int(ticker['date'])
         ticker = ticker['ticker']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': float(ticker['riseRate']),
+            'change': self.safe_float(ticker, 'riseRate'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -187,7 +191,7 @@ class exx (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         orderbook = self.publicGetDepth(self.extend({
             'currency': self.market_id(symbol),
@@ -196,8 +200,8 @@ class exx (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         return {
@@ -225,7 +229,7 @@ class exx (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetBalance(params)
+        balances = self.privateGetGetBalance(params)
         result = {'info': balances}
         balances = balances['funds']
         currencies = list(balances.keys())
@@ -244,7 +248,7 @@ class exx (Exchange):
     def parse_order(self, order, market=None):
         symbol = market['symbol']
         timestamp = int(order['trade_date'])
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'trade_money')
         amount = self.safe_float(order, 'total_amount')
         filled = self.safe_float(order, 'trade_amount', 0.0)
@@ -266,6 +270,7 @@ class exx (Exchange):
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -341,7 +346,7 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

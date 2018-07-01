@@ -14,8 +14,9 @@ except NameError:
 import math
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 
 
 class cex (Exchange):
@@ -30,9 +31,9 @@ class cex (Exchange):
                 'CORS': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchOrders': True,
                 'fetchDepositAddress': True,
             },
             'timeframes': {
@@ -126,6 +127,9 @@ class cex (Exchange):
                     },
                 },
             },
+            'options': {
+                'fetchOHLCVWarning': True,
+            },
         })
 
     def fetch_markets(self):
@@ -153,8 +157,8 @@ class cex (Exchange):
                         'max': market['maxLotSize'],
                     },
                     'price': {
-                        'min': float(market['minPrice']),
-                        'max': float(market['maxPrice']),
+                        'min': self.safe_float(market, 'minPrice'),
+                        'max': self.safe_float(market, 'maxPrice'),
                     },
                     'cost': {
                         'min': market['minLotSizeS2'],
@@ -185,9 +189,12 @@ class cex (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderBookPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        if limit is not None:
+            request['depth'] = limit
+        orderbook = self.publicGetOrderBookPair(self.extend(request, params))
         timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp)
 
@@ -206,6 +213,9 @@ class cex (Exchange):
         market = self.market(symbol)
         if not since:
             since = self.milliseconds() - 86400000  # yesterday
+        else:
+            if self.options['fetchOHLCVWarning']:
+                raise ExchangeError(self.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, self might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = False or add({'options': {'fetchOHLCVWarning': False}}) to constructor params to suppress self warning message.")
         ymd = self.ymd(since)
         ymd = ymd.split('-')
         ymd = ''.join(ymd)
@@ -213,10 +223,14 @@ class cex (Exchange):
             'pair': market['id'],
             'yyyymmdd': ymd,
         }
-        response = self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
-        key = 'data' + self.timeframes[timeframe]
-        ohlcvs = json.loads(response[key])
-        return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        try:
+            response = self.publicGetOhlcvHdYyyymmddPair(self.extend(request, params))
+            key = 'data' + self.timeframes[timeframe]
+            ohlcvs = json.loads(response[key])
+            return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
+        except Exception as e:
+            if isinstance(e, NullResponse):
+                return []
 
     def parse_ticker(self, ticker, market=None):
         timestamp = None
@@ -289,8 +303,8 @@ class cex (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -397,6 +411,7 @@ class cex (Exchange):
             'id': order['id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
@@ -469,7 +484,7 @@ class cex (Exchange):
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         if not response:
-            raise ExchangeError(self.id + ' returned ' + self.json(response))
+            raise NullResponse(self.id + ' returned ' + self.json(response))
         elif response is True:
             return response
         elif 'e' in response:
@@ -483,9 +498,9 @@ class cex (Exchange):
         return response
 
     def fetch_deposit_address(self, code, params={}):
-        if code == 'XRP':
+        if code == 'XRP' or code == 'XLM':
             # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP addresses yet(awaiting docs from CEX.io)')
+            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -498,6 +513,5 @@ class cex (Exchange):
             'currency': code,
             'address': address,
             'tag': None,
-            'status': 'ok',
             'info': response,
         }

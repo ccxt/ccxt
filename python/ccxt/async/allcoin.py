@@ -12,7 +12,7 @@ class allcoin (okcoinusd):
         return self.deep_extend(super(allcoin, self).describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': ['CA'],
             'has': {
                 'CORS': False,
             },
@@ -55,7 +55,6 @@ class allcoin (okcoinusd):
                     ],
                 },
             },
-            'markets': None,
         })
 
     async def fetch_markets(self):
@@ -68,7 +67,9 @@ class allcoin (okcoinusd):
                 market = markets[k]['Market']
                 base = market['Primary']
                 quote = market['Secondary']
-                id = base.lower() + '_' + quote.lower()
+                baseId = base.lower()
+                quoteId = quote.lower()
+                id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
                 active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']
                 result.append({
@@ -76,6 +77,8 @@ class allcoin (okcoinusd):
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
                     'active': active,
                     'type': 'spot',
                     'spot': True,

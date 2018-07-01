@@ -14,6 +14,7 @@ except NameError:
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
@@ -23,11 +24,13 @@ class bitso (Exchange):
         return self.deep_extend(super(bitso, self).describe(), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX',  # Mexico
+            'countries': ['MX'],  # Mexico
             'rateLimit': 2000,  # 30 requests per minute
             'version': 'v3',
             'has': {
                 'CORS': True,
+                'fetchMyTrades': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -72,11 +75,17 @@ class bitso (Exchange):
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                         'orders',
                         'phone_number',
                         'phone_verification',
                         'phone_withdrawal',
                         'spei_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                     ],
                     'delete': [
                         'orders/{oid}',
@@ -100,16 +109,16 @@ class bitso (Exchange):
             base, quote = symbol.split('/')
             limits = {
                 'amount': {
-                    'min': float(market['minimum_amount']),
-                    'max': float(market['maximum_amount']),
+                    'min': self.safe_float(market, 'minimum_amount'),
+                    'max': self.safe_float(market, 'maximum_amount'),
                 },
                 'price': {
-                    'min': float(market['minimum_price']),
-                    'max': float(market['maximum_price']),
+                    'min': self.safe_float(market, 'minimum_price'),
+                    'max': self.safe_float(market, 'maximum_price'),
                 },
                 'cost': {
-                    'min': float(market['minimum_value']),
-                    'max': float(market['maximum_value']),
+                    'min': self.safe_float(market, 'minimum_value'),
+                    'max': self.safe_float(market, 'maximum_value'),
                 },
             }
             precision = {
@@ -161,19 +170,19 @@ class bitso (Exchange):
         }, params))
         ticker = response['payload']
         timestamp = self.parse8601(ticker['created_at'])
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -292,9 +301,10 @@ class bitso (Exchange):
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
+            'completed': 'closed',
         }
         if status in statuses:
-            return statuses['status']
+            return statuses[status]
         return status
 
     def parse_order(self, order, market=None):
@@ -309,14 +319,15 @@ class bitso (Exchange):
             symbol = market['symbol']
         orderType = order['type']
         timestamp = self.parse8601(order['created_at'])
-        amount = float(order['original_amount'])
-        remaining = float(order['unfilled_amount'])
+        amount = self.safe_float(order, 'original_amount')
+        remaining = self.safe_float(order, 'unfilled_amount')
         filled = amount - remaining
         result = {
             'info': order,
             'id': order['oid'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': orderType,
             'side': side,
@@ -355,6 +366,71 @@ class bitso (Exchange):
         response = await self.privateGetOpenOrders(self.extend(request, params))
         orders = self.parse_orders(response['payload'], market, since, limit)
         return orders
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.privateGetOrdersOid({
+            'oid': id,
+        })
+        numOrders = len(response['payload'])
+        if not isinstance(response['payload'], list) or (numOrders != 1):
+            raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
+        return self.parse_order(response['payload'][0], market)
+
+    async def fetch_order_trades(self, id, symbol=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.privateGetOrderTradesOid({
+            'oid': id,
+        })
+        return self.parse_trades(response['payload'], market)
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'fund_currency': currency['id'],
+        }
+        response = await self.privateGetFundingDestination(self.extend(request, params))
+        address = self.safe_string(response['payload'], 'account_identifier')
+        tag = None
+        if code == 'XRP':
+            parts = address.split('?dt=')
+            address = parts[0]
+            tag = parts[1]
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        methods = {
+            'BTC': 'Bitcoin',
+            'ETH': 'Ether',
+            'XRP': 'Ripple',
+            'BCH': 'Bcash',
+            'LTC': 'Litecoin',
+        }
+        method = methods[code] if (code in list(methods.keys())) else None
+        if method is None:
+            raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
+        request = {
+            'amount': amount,
+            'address': address,
+            'destination_tag': tag,
+        }
+        classMethod = 'privatePost' + method + 'Withdrawal'
+        response = await getattr(self, classMethod)(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response['payload'], 'wid'),
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
