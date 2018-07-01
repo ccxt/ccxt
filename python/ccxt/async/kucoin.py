@@ -349,6 +349,7 @@ class kucoin (Exchange):
             },
             'commonCurrencies': {
                 'CAN': 'CanYa',
+                'XRB': 'NANO',
             },
         })
 

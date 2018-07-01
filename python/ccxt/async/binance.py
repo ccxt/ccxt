@@ -263,7 +263,6 @@ class binance (Exchange):
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             # exchange-specific options
             'options': {

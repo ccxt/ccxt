@@ -135,6 +135,7 @@ class bitz (Exchange):
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
         })

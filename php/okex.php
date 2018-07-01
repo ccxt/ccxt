@@ -33,7 +33,6 @@ class okex extends okcoinusd {
             'commonCurrencies' => array (
                 'FAIR' => 'FairGame',
                 'MAG' => 'Maggie',
-                'NANO' => 'XRB',
                 'YOYO' => 'YOYOW',
             ),
         ));
