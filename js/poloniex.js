@@ -769,6 +769,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
             'currency': currency['id'],
@@ -786,6 +787,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = currency['id'];
