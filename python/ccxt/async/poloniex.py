@@ -720,6 +720,7 @@ class poloniex (Exchange):
         return self.parse_trades(trades)
 
     async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostGenerateNewAddress({
             'currency': currency['id'],
@@ -736,6 +737,7 @@ class poloniex (Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         currency = self.currency(code)
         response = await self.privatePostReturnDepositAddresses()
         currencyId = currency['id']
