@@ -128,6 +128,7 @@ module.exports = class bitz extends Exchange {
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
         });
