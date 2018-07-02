@@ -232,23 +232,26 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'create_time');
+        let timestamp = this.safeInteger (trade, 'create_time') * 1000;
         let tradeId = this.safeString (trade, 'id');
-        let orderId = this.safeString (trade, 'id');
-        if (!timestamp) {
-            timestamp = trade['date'];
-            orderId = undefined;
-        } else {
-            tradeId = undefined;
-        }
-        timestamp *= 1000;
+        let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let symbol = market['symbol'];
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost)
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        let fee = this.safeFloat (trade, 'fee');
+        let fee = {
+          cost: this.safeFloat (trade, 'fee')
+        , currency: this.safeString (trade, 'fee_asset')
+        }
+        let type = trade['role']
+        if (type === 'taker') {
+          type = 'market'
+        } else {
+          type = 'limit'
+        }
+
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -256,7 +259,7 @@ module.exports = class coinex extends Exchange {
             'symbol': symbol,
             'id': tradeId,
             'order': orderId,
-            'type': 'limit',
+            'type': type,
             'side': trade['type'],
             'price': price,
             'amount': amount,
