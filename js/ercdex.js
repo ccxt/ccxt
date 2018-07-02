@@ -2,21 +2,22 @@
 
 const StandardRelayer = require ('./base/StandardRelayer');
 
-module.exports = class radarrelay extends StandardRelayer {
+module.exports = class ercdex extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'radarrelay',
-            'name': 'Radar Relay',
+            'id': 'ercdex',
+            'name': 'ERC dEX',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
             'rateLimit': 2000,
             'urls': {
                 'logo': 'https://radarrelay.com/img/radar-logo-beta.svg',
-                'api': 'https://api.radarrelay.com/0x/v0/',
-                'www': 'https://radarrelay.com',
+                'api': 'https://api.ercdex.com/api/standard/1/v0',
+                'www': 'https://ercdex.com',
                 'doc': [
-                    'https://radarrelay.com/standard-relayer-api/',
+                    'https://0xproject.com/docs/connect',
+                    'https://aqueduct.ercdex.com/rest.html',
                 ],
             },
             'has': {
@@ -32,11 +33,16 @@ module.exports = class radarrelay extends StandardRelayer {
                 'fetchTrades': false,
                 'privateAPI': false,
             },
+            'perPage': 99,
         });
     }
 
     fetchCurrencies () {
         return this.listedCurrencies ();
+    }
+
+    fetchMarkets () {
+        return this.tokenPairs ();
     }
 
     fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -45,9 +51,5 @@ module.exports = class radarrelay extends StandardRelayer {
 
     fetchTicker (symbol, params = {}) {
         return this.ticker (symbol);
-    }
-
-    fetchMarkets () {
-        return this.tokenPairs ();
     }
 };

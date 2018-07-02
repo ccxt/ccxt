@@ -118,6 +118,7 @@ module.exports = class Exchange {
                 'login':    false,
                 'password': false,
                 'twofa':    false, // 2-factor authentication (one-time password key)
+                'ethereumNodeAddress': false,
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
