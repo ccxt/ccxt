@@ -382,14 +382,12 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = undefined;
-        result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted' });
+        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted' });
         return result;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = undefined;
-        result = await this.fetchOrders (symbol, since, limit, { 'states': 'filled' });
+        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'filled' });
         return result;
     }
 
