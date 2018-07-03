@@ -7,6 +7,7 @@ const { HttpClient } = require ('@0xproject/connect');
 const { BigNumber } = require ('@0xproject/utils');
 
 const Exchange = require ('./Exchange');
+const TokenInfo = require ('./TokenInfo');
 
 class StandardRelayer extends Exchange {
 
@@ -51,13 +52,35 @@ class StandardRelayer extends Exchange {
         return this.zeroXClient;
     }
 
-    static provider (ethereumNodeAddress) {
+    static web3 () {
+        if (!this.web3Client) {
+            // TODO: change default
+            const provider = new Web3.providers.HttpProvider ('https://mainnet.infura.io/krrAJZmXlhalDHthEiOR');
+            this.web3Client = new Web3 (provider);
+        }
+        return this.web3Client;
+    }
+
+    static provider (ethereumNodeAddress = 'https://mainnet.infura.io/krrAJZmXlhalDHthEiOR') {
         if (!this.zeroExNetwork) {
             const provider = new Web3.providers.HttpProvider (ethereumNodeAddress);
             this.zeroExNetwork = new ZeroEx (provider, { 'networkId': this.networkId });
         }
         return this.zeroExNetwork;
     }
+
+    // static async currencyInfo (address) {
+    //     if (!this.erc20ContractCache) {
+    //         this.erc20ContractCache = {};
+    //     }
+    //     if (!this.erc20ContractCache[address]) {
+    //         this.erc20ContractCache[address] = {};
+    //         const contract = new ERC20 (StandardRelayer.web3 (), address);
+    //         const decimals = await  contract.decimals ().call ();
+    //         this.erc20ContractCache[address] = { decimals };
+    //     }
+    //     return this.erc20ContractCache[address];
+    // }
 
     // ccxt equivalents -----------------------------------------
 
@@ -132,31 +155,32 @@ class StandardRelayer extends Exchange {
         const result = {};
         for (let i = 0; i < marketsResponse.length; i++) {
             const { tokenA, tokenB } = marketsResponse[i];
-            const tokenASymbol = StandardRelayer.symbolFromAddress (tokenA.address);
-            const tokenBSymbol = StandardRelayer.symbolFromAddress (tokenB.address);
-            if (!currencies.has (tokenASymbol)) {
-                result[tokenASymbol] = {
-                    'id': tokenASymbol,
-                    'code': tokenASymbol,
+            const tokenAInfo = TokenInfo.getFromAddress (tokenA.address);
+            const tokenBInfo = TokenInfo.getFromAddress (tokenB.address);
+            if (!tokenAInfo || !tokenBInfo) continue;
+            if (!currencies.has (tokenAInfo.symbol)) {
+                result[tokenAInfo.symbol] = {
+                    'id': tokenAInfo.symbol,
+                    'code': tokenAInfo.symbol,
                     'info': tokenA,
-                    'name': tokenA.name,
+                    'name': tokenAInfo.name,
                     'active': true,
                     'status': 'ok',
-                    'precision': tokenA.precision,
+                    'precision': tokenAInfo.decimals,
                 };
-                currencies.add (tokenASymbol);
+                currencies.add (tokenAInfo.symbol);
             }
-            if (!currencies.has (tokenBSymbol)) {
-                result[tokenBSymbol] = {
-                    'id': tokenBSymbol,
-                    'code': tokenBSymbol,
+            if (!currencies.has (tokenBInfo.symbol)) {
+                result[tokenBInfo.symbol] = {
+                    'id': tokenBInfo.symbol,
+                    'code': tokenBInfo.symbol,
                     'info': tokenB,
-                    'name': tokenB.name,
+                    'name': tokenBInfo.name,
                     'active': true,
                     'status': 'ok',
-                    'precision': tokenB.precision,
+                    'precision': tokenBInfo.decimals,
                 };
-                currencies.add (tokenBSymbol);
+                currencies.add (tokenBInfo.symbol);
             }
         }
         return result;
@@ -230,21 +254,22 @@ class StandardRelayer extends Exchange {
 
     }
 
-    static calculateRates (orders, isBid, decimals) {
+    static calculateRates (orders, baseDecimals, quoteDecimals, isBid) {
         const orderCount = orders.length;
         const rates = new Array (orderCount);
         const one = new BigNumber (1.0);
         for (let i = 0; i < orderCount; i++) {
             const order = orders[i];
             const { makerTokenAmount, takerTokenAmount } = order;
-            const rate = isBid ?
-                new BigNumber (makerTokenAmount).div (new BigNumber (takerTokenAmount)) :
-                one.div (new BigNumber (makerTokenAmount).div (new BigNumber (takerTokenAmount)));
-            const limit = toUnitAmount (new BigNumber (takerTokenAmount), decimals);
-            rates[i] = [rate.toString (), limit.toString (), order];
+            const unitMaker = toUnitAmount (makerTokenAmount, baseDecimals);
+            const unitTaker = toUnitAmount (takerTokenAmount, quoteDecimals);
+            let rate = unitMaker.div (unitTaker);
+            if (!isBid) rate = one.div (rate);
+            const limit = toUnitAmount (new BigNumber (takerTokenAmount), quoteDecimals);
+            rates[i] = [rate.toNumber (), limit.toNumber (), order];
         }
         return rates;
-    } // TODO: figure out the rules for the limit
+    }
 
     static sortOrders (orders) {
         return orders.sort ((orderA, orderB) => {
@@ -258,11 +283,10 @@ class StandardRelayer extends Exchange {
         const { asks, bids } = response;
         const sortedBids = StandardRelayer.sortOrders (bids);
         const sortedAsks = StandardRelayer.sortOrders (asks);
-        const bidRates = StandardRelayer.calculateRates (sortedBids, true, baseDecimals);
-        const askRates = StandardRelayer.calculateRates (sortedAsks, false, quoteDecimals);
+        const bidRates = StandardRelayer.calculateRates (sortedBids, quoteDecimals, baseDecimals, true);
+        const askRates = StandardRelayer.calculateRates (sortedAsks, baseDecimals, quoteDecimals, false);
         return { bidRates, askRates };
     }
-
 
     static symbolFromAddress (address) {
         if (!this.knownAddresses) {

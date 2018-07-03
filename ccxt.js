@@ -33,7 +33,8 @@ SOFTWARE.
 const Exchange        = require ('./js/base/Exchange')
     , functions       = require ('./js/base/functions')
     , errors          = require ('./js/base/errors')
-    , StandardRelayer = require ('./js/base/StandardRelayer');
+    , StandardRelayer = require ('./js/base/StandardRelayer')
+    , TokenInfo       = require ('./js/base/TokenInfo');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -176,7 +177,8 @@ module.exports = Object.assign (
         version,
         Exchange,
         exchanges: Object.keys (exchanges),
-        StandardRelayer
+        StandardRelayer,
+        TokenInfo
     },
     exchanges,
     functions,
