@@ -488,7 +488,6 @@ module.exports = class fcoin extends Exchange {
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
-                    auth += url;
                 }
             }
             // HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
@@ -498,7 +497,7 @@ module.exports = class fcoin extends Exchange {
                     body = this.json (query);
                     auth += this.urlencode (query);
                 }
-            }            
+            }  
             let payload = this.stringToBase64 (this.encode (auth));
             let signature = this.hmac (payload, this.encode (this.secret), 'sha1', 'binary');
             signature = this.decode (this.stringToBase64 (signature));
