@@ -333,6 +333,18 @@ module.exports = class coinex extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         // TODO: check if it's actually milliseconds, since examples were in seconds
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
@@ -342,14 +354,7 @@ module.exports = class coinex extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
         let remaining = this.amountToPrecision (symbol, amount - filled);
-        let status = order['status'];
-        if (status === 'done') {
-            status = 'closed';
-        } else {
-            // not_deal
-            // part_deal
-            status = 'open';
-        }
+        let status = this.parseOrderStatus (order['status']);
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
