@@ -481,32 +481,33 @@ module.exports = class fcoin extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        }
-        if (api === 'private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let paramsStr = '';
-            let sortedQuery = this.keysort (query);
-            if (method === 'POST' && !this.isEmpty (sortedQuery)) {
-                body = this.json (sortedQuery);
-            }
-            paramsStr = this.urlencode (sortedQuery);
+            let timestamp = this.nonce ().toString ();
+            query = this.keysort (query);
             if (method === 'GET') {
-                url += paramsStr ? '?' + paramsStr : '';
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                    auth += url;
+                }
             }
-            //  HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
-            let timestamp = this.nonce ();
-            let tsStr = timestamp.toString ();
-            let signStr = method + url + tsStr;
-            signStr += (method === 'POST' && paramsStr) ? paramsStr : '';
-            let payload = this.stringToBase64 (this.encode (signStr));
-            let secret = this.encode (this.secret);
-            let signature = this.hmac (payload, secret, 'sha1', 'binary');
+            // HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
+            let auth = method + url + timestamp;
+            if (method === 'POST') {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    auth += this.urlencode (query);
+                }
+            }            
+            let payload = this.stringToBase64 (this.encode (auth));
+            let signature = this.hmac (payload, this.encode (this.secret), 'sha1', 'binary');
             signature = this.decode (this.stringToBase64 (signature));
-            headers = {};
-            headers['FC-ACCESS-KEY'] = this.apiKey;
-            headers['FC-ACCESS-SIGNATURE'] = signature;
-            headers['FC-ACCESS-TIMESTAMP'] = tsStr;
-            headers['Content-Type'] = 'application/json';
+            headers = {
+                'FC-ACCESS-KEY': this.apiKey,
+                'FC-ACCESS-SIGNATURE': signature,
+                'FC-ACCESS-TIMESTAMP': timestamp,
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
