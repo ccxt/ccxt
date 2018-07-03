@@ -1397,7 +1397,7 @@ A price ticker contains statistics for a particular market/symbol for some perio
                DASH / ETH
                        ↑ quote currency
 
-Timestamp and datetime are both Universal Time Coordinated (UTC).
+Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
 Although some exchanges do mix-in orderbook’s top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as “live 24h OHLCV”. It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
 
@@ -1414,7 +1414,7 @@ To get the individual ticker data from an exchange for each particular trading p
    (async () => {
        console.log (await (exchange.fetchTicker ('BTC/USD'))) // ticker for BTC/USD
        let symbols = Object.keys (exchange.markets)
-       let random = Math.floor ((Math.random () * symbols.length)) - 1
+       let random = Math.floor (Math.random () * (symbols.length - 1))
        console.log (exchange.fetchTicker (symbols[random])) // ticker for a random symbol
    }) ()
 
