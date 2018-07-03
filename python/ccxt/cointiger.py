@@ -534,7 +534,7 @@ class cointiger (huobipro):
             keys = list(query.keys())
             auth = ''
             for i in range(0, len(keys)):
-                auth += keys[i] + query[keys[i]]
+                auth += keys[i] + str(query[keys[i]])
             auth += self.secret
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             isCreateOrderMethod = (path == 'order') and(method == 'POST')

@@ -553,7 +553,7 @@ class cointiger extends huobipro {
             $keys = is_array ($query) ? array_keys ($query) : array ();
             $auth = '';
             for ($i = 0; $i < count ($keys); $i++) {
-                $auth .= $keys[$i] . $query[$keys[$i]];
+                $auth .= $keys[$i] . (string) $query[$keys[$i]];
             }
             $auth .= $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
