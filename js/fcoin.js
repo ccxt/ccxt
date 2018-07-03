@@ -227,7 +227,7 @@ module.exports = class fcoin extends Exchange {
         let ticker = await this.marketGetTickerSymbol (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTicker (ticker['data'], market);
     }
 
     parseTicker (ticker, market = undefined) {
