@@ -45,7 +45,7 @@ module.exports = class fcoin extends Exchange {
                 '1M': 'MN',
             },
             'urls': {
-                'logo': 'https://developer.fcoin.com/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
                 'api': 'https://api.fcoin.com',
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/W9VvE',
@@ -73,11 +73,11 @@ module.exports = class fcoin extends Exchange {
                         'accounts/balance',
                         'orders',
                         'orders/{order_id}',
-                        'orders/{order_id}/match-results',    // check order result
+                        'orders/{order_id}/match-results', // check order result
                     ],
                     'post': [
                         'orders',
-                        'orders/{order_id}/submit-cancel',    // cancel order
+                        'orders/{order_id}/submit-cancel', // cancel order
                     ],
                 },
             },
@@ -90,103 +90,35 @@ module.exports = class fcoin extends Exchange {
                 },
             },
             'limits': {
-                'amount': {
-                    'min': 0.01,
-                    'max': 100000,
-                },
+                'amount': { 'min': 0.01, 'max': 100000 },
             },
             'options': {
                 'limits': {
-                    'BTC/USDT': {
-                        'amount': {
-                            'min': 0.001,
-                            'max': 1000,
-                        },
-                    },
-                    'ETH/USDT': {
-                        'amount': {
-                            'min': 0.001,
-                            'max': 10000,
-                        },
-                    },
-                    'BCH/USDT': {
-                        'amount': {
-                            'min': 0.001,
-                            'max': 5000,
-                        },
-                    },
-                    'LTC/USDT': {
-                        'amount': {
-                            'min': 0.001,
-                            'max': 40000,
-                        },
-                    },
-                    'FT/ETH': {
-                        'amount': {
-                            'min': 1,
-                            'max': 10000000,
-                        },
-                    },
-                    'FT/USDT': {
-                        'amount': {
-                            'min': 1,
-                            'max': 10000000,
-                        },
-                    },
-                    'ZIP/ETH': {
-                        'amount': {
-                            'min': 1,
-                            'max': 10000000,
-                        },
-                    },
-                    'ETC/USDT': {
-                        'amount': {
-                            'min': 0.001,
-                            'max': 400000,
-                        },
-                    },
-                    'FT/BTC': {
-                        'amount': {
-                            'min': 1,
-                            'max': 10000000,
-                        },
-                    },
-                    'ZIL/ETH': {
-                        'amount': {
-                            'min': 1,
-                            'max': 10000000,
-                        },
-                    },
-                    'OMG/ETH': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 500000,
-                        },
-                    },
-                    'ICX/ETH': {
-                        'amount': {
-                            'min': 0.01,
-                            'max': 3000000,
-                        },
-                    },
-                    'BTM/USDT': {
-                        'amount': {
-                            'min': 0.1,
-                            'max': 10000000,
-                        },
-                    },
+                    'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
+                    'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
+                    'ETH/USDT': { 'amount': { 'min': 0.001, 'max': 10000 }},
+                    'LTC/USDT': { 'amount': { 'min': 0.001, 'max': 40000 }},
+                    'BCH/USDT': { 'amount': { 'min': 0.001, 'max': 5000 }},
+                    'BTC/USDT': { 'amount': { 'min': 0.001, 'max': 1000 }},
+                    'FT/BTC': { 'amount': { 'min': 1, 'max': 10000000 }},
+                    'FT/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
+                    'FT/USDT': { 'amount': { 'min': 1, 'max': 10000000 }},
+                    'ZIL/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
+                    'ZIP/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
+                    'OMG/ETH': { 'amount': { 'min': 0.01, 'max': 500000 }},
+                    'ICX/ETH': { 'amount': { 'min': 0.01, 'max': 3000000 }},
                 },
             },
             'exceptions': {
-                '400': NotSupported,           // Bad Request
+                '400': NotSupported, // Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
-                '429': DDoSProtection,   // Too Many Requests, exceed api request limit
-                '1002': ExchangeNotAvailable,  // System busy
+                '429': DDoSProtection, // Too Many Requests, exceed api request limit
+                '1002': ExchangeNotAvailable, // System busy
                 '1016': InsufficientFunds,
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
-                '6005': AuthenticationError,    // Illegal API Signature
+                '6005': AuthenticationError, // Illegal API Signature
             },
         });
     }
