@@ -11,7 +11,7 @@ module.exports = class shapeshift extends Exchange {
             'countries': 'CHE',
             'version': undefined,
             'userAgent': undefined,
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'urls': {
                 'logo': 'https://shapeshift.io/logo.png',
                 'api': 'https://shapeshift.io',

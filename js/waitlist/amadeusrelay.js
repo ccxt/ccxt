@@ -1,22 +1,27 @@
 'use strict';
 
-const StandardRelayer = require ('./base/StandardRelayer');
+const StandardRelayer = require ('../base/StandardRelayer');
 
-module.exports = class radarrelay extends StandardRelayer {
+/**
+ * Amadeus relay is currently only live on the test RPC network right now.
+ */
+
+module.exports = class amadeusrelay extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'radarrelay',
-            'name': 'Radar Relay',
+            'id': 'amadeusrelay',
+            'name': 'Amadeus Relay',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
             'rateLimit': 1000,
             'urls': {
-                'logo': 'https://radarrelay.com/img/radar-logo-beta.svg',
-                'api': 'https://api.radarrelay.com/0x/v0/',
-                'www': 'https://radarrelay.com',
+                'logo': 'https://amadeusrelay.org/img/logo_branco.svg',
+                'api': 'https://kovan.amadeusrelay.org/api/v0',
+                'www': 'https://amadeusrelay.org/',
                 'doc': [
-                    'https://radarrelay.com/standard-relayer-api/',
+                    'https://0xproject.com/docs/connect',
+                    'https://amadeusrelay.github.io/AmadeusRelayFrontend/',
                 ],
             },
             'has': {
@@ -32,11 +37,17 @@ module.exports = class radarrelay extends StandardRelayer {
                 'fetchTrades': false,
                 'privateAPI': false,
             },
+            'perPage': 100,
+            'networkId': 42,
         });
     }
 
     fetchCurrencies () {
         return this.listedCurrencies ();
+    }
+
+    fetchMarkets () {
+        return this.tokenPairs ();
     }
 
     fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -45,9 +56,5 @@ module.exports = class radarrelay extends StandardRelayer {
 
     fetchTicker (symbol, params = {}) {
         return this.ticker (symbol);
-    }
-
-    fetchMarkets () {
-        return this.tokenPairs ();
     }
 };

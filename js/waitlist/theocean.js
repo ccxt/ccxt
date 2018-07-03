@@ -1,22 +1,27 @@
 'use strict';
 
-const StandardRelayer = require ('./base/StandardRelayer');
+const StandardRelayer = require ('../base/StandardRelayer');
 
-module.exports = class radarrelay extends StandardRelayer {
+/**
+ * This does not work as advertised. It uses the same routes as the Standard Relayer spec
+ * but has renamed some of the field keys, rendering it useless.
+ */
+
+module.exports = class theocean extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'radarrelay',
-            'name': 'Radar Relay',
-            'countries': 'USA',
+            'id': 'theocean',
+            'name': 'The Ocean',
             'version': undefined,
             'userAgent': undefined,
             'rateLimit': 1000,
             'urls': {
-                'logo': 'https://radarrelay.com/img/radar-logo-beta.svg',
-                'api': 'https://api.radarrelay.com/0x/v0/',
-                'www': 'https://radarrelay.com',
+                'logo': 'https://theocean.trade/assets/images/the-ocean-x-logo.svg',
+                'api': 'https://kovan.theoceanx.com/api/v0',
+                'www': 'https://theocean.trade/',
                 'doc': [
-                    'https://radarrelay.com/standard-relayer-api/',
+                    'https://0xproject.com/docs/connect',
+                    'https://docs.theocean.trade/',
                 ],
             },
             'has': {
@@ -32,11 +37,18 @@ module.exports = class radarrelay extends StandardRelayer {
                 'fetchTrades': false,
                 'privateAPI': false,
             },
+            'perPage': 99,
+            'baseTokenSym': 'baseToken',
+            'quoteTokenSym': 'quoteToken',
         });
     }
 
     fetchCurrencies () {
         return this.listedCurrencies ();
+    }
+
+    fetchMarkets () {
+        return this.tokenPairs ();
     }
 
     fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -45,9 +57,5 @@ module.exports = class radarrelay extends StandardRelayer {
 
     fetchTicker (symbol, params = {}) {
         return this.ticker (symbol);
-    }
-
-    fetchMarkets () {
-        return this.tokenPairs ();
     }
 };

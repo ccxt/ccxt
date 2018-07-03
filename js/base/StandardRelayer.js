@@ -38,6 +38,7 @@ class StandardRelayer extends Exchange {
                 'ethereumNodeAddress': true,
             },
             'perPage': 500,
+            'networkId': 1,
         });
     }
 
@@ -53,9 +54,7 @@ class StandardRelayer extends Exchange {
     static provider (ethereumNodeAddress) {
         if (!this.zeroExNetwork) {
             const provider = new Web3.providers.HttpProvider (ethereumNodeAddress);
-            // const networkId = isTest ? 50 : 1; // TODO: revisit
-            const networkId = 1;
-            this.zeroExNetwork = new ZeroEx (provider, { networkId });
+            this.zeroExNetwork = new ZeroEx (provider, { 'networkId': this.networkId });
         }
         return this.zeroExNetwork;
     }
@@ -84,7 +83,7 @@ class StandardRelayer extends Exchange {
         const response = await this.client ().getOrderbookAsync ({
             'baseTokenAddress': baseAddress,
             'quoteTokenAddress': quoteAddress,
-        });
+        }, {});
         const baseDecimals = this.currencies[baseSymbol].precision;
         const quoteDecimals = this.currencies[quoteSymbol].precision;
         const { bidRates, askRates } = StandardRelayer
@@ -128,8 +127,7 @@ class StandardRelayer extends Exchange {
     }
 
     async listedCurrencies () {
-        const marketsResponse = await this.client ()
-            .getTokenPairsAsync ({ 'page': 1, 'perPage': this.perPage });
+        const marketsResponse = await this.paginateTokenPairs ();
         const currencies = new Set ();
         const result = {};
         for (let i = 0; i < marketsResponse.length; i++) {
@@ -164,9 +162,28 @@ class StandardRelayer extends Exchange {
         return result;
     }
 
+    async paginateTokenPairs () {
+        let pageNumber = 1;
+        let response = [];
+        let nextPage = await this.client ().getTokenPairsAsync ({
+            'page': pageNumber,
+            'perPage': this.perPage
+        });
+        response = response.concat (nextPage);
+        while (nextPage.length) {
+            pageNumber++;
+            nextPage = await this.client ().getTokenPairsAsync ({
+                'page': pageNumber,
+                'perPage': this.perPage
+            });
+            response = response.concat (nextPage);
+            if (nextPage.length < this.perPage) break;
+        }
+        return response;
+    }
+
     async tokenPairs () {
-        const marketsResponse = await this.client ()
-            .getTokenPairsAsync ({ 'page': 1, 'perPage': this.perPage });
+        const marketsResponse = await this.paginateTokenPairs ();
         const result = [];
         for (let i = 0; i < marketsResponse.length; i++) {
             const market = marketsResponse[i];
@@ -208,6 +225,10 @@ class StandardRelayer extends Exchange {
     }
 
     // helpers --------------------------------------------------
+
+    static paginateResults () {
+
+    }
 
     static calculateRates (orders, isBid, decimals) {
         const orderCount = orders.length;

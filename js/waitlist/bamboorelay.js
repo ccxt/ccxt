@@ -1,22 +1,27 @@
 'use strict';
 
-const StandardRelayer = require ('./base/StandardRelayer');
+const StandardRelayer = require ('../base/StandardRelayer');
 
-module.exports = class radarrelay extends StandardRelayer {
+/**
+ * This API is inconsistent and seems to hang half the time. Rife with 502 errors...
+ */
+
+module.exports = class bamboorelay extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'radarrelay',
-            'name': 'Radar Relay',
+            'id': 'bamboorelay',
+            'name': 'Bamboo Relay',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
             'rateLimit': 1000,
             'urls': {
-                'logo': 'https://radarrelay.com/img/radar-logo-beta.svg',
-                'api': 'https://api.radarrelay.com/0x/v0/',
-                'www': 'https://radarrelay.com',
+                'logo': 'https://sra.bamboorelay.com/logo-stacked.svg',
+                'api': 'https://sra.bamboorelay.com/main/v0/',
+                'www': 'https://bamboorelay.com/',
                 'doc': [
-                    'https://radarrelay.com/standard-relayer-api/',
+                    'https://0xproject.com/docs/connect',
+                    'https://sra.bamboorelay.com/',
                 ],
             },
             'has': {
@@ -32,11 +37,16 @@ module.exports = class radarrelay extends StandardRelayer {
                 'fetchTrades': false,
                 'privateAPI': false,
             },
+            'perPage': 99,
         });
     }
 
     fetchCurrencies () {
         return this.listedCurrencies ();
+    }
+
+    fetchMarkets () {
+        return this.tokenPairs ();
     }
 
     fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -45,9 +55,5 @@ module.exports = class radarrelay extends StandardRelayer {
 
     fetchTicker (symbol, params = {}) {
         return this.ticker (symbol);
-    }
-
-    fetchMarkets () {
-        return this.tokenPairs ();
     }
 };

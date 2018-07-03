@@ -10,9 +10,9 @@ module.exports = class ercdex extends StandardRelayer {
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
-            'rateLimit': 2000,
+            'rateLimit': 1000,
             'urls': {
-                'logo': 'https://radarrelay.com/img/radar-logo-beta.svg',
+                'logo': 'https://pbs.twimg.com/profile_images/941139790916861953/Q7GLIM7D_400x400.jpg',
                 'api': 'https://api.ercdex.com/api/standard/1/v0',
                 'www': 'https://ercdex.com',
                 'doc': [
