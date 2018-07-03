@@ -320,6 +320,17 @@ class coinex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         # TODO: check if it's actually milliseconds, since examples were in seconds
         timestamp = self.safe_integer(order, 'create_time') * 1000
@@ -329,13 +340,7 @@ class coinex (Exchange):
         filled = self.safe_float(order, 'deal_amount')
         symbol = market['symbol']
         remaining = self.amount_to_precision(symbol, amount - filled)
-        status = order['status']
-        if status == 'done':
-            status = 'closed'
-        else:
-            # not_deal
-            # part_deal
-            status = 'open'
+        status = self.parse_order_status(order['status'])
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
