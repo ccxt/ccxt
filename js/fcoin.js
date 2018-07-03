@@ -414,9 +414,10 @@ module.exports = class fcoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrdersOrderId (this.extend ({
+        let request = this.extend ({
             'order_id': id,
-        }, params));
+        }, params);
+        let response = await this.privateGetOrdersOrderId (request);
         return this.parseOrder (response);
     }
 
@@ -457,12 +458,12 @@ module.exports = class fcoin extends Exchange {
             throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         }
         let market = this.market (symbol);
-        let request = {
+        let request = this.extend ({
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
             'limit': limit,
-        };
-        let response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
+        }, params);
+        let response = await this.marketGetCandlesTimeframeSymbol (request);
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
@@ -511,25 +512,21 @@ module.exports = class fcoin extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body.length < 2) {
-            return;
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            const response = JSON.parse (body);
+            let status = this.safeString (response, 'status');
+            if (status !== '0') {
+                const feedback = this.id + ' ' + body;
+                if (status in this.exceptions) {
+                    const exceptions = this.exceptions;
+                    throw new exceptions[status] (feedback);
+                }
+                throw new ExchangeError (feedback);
+            }
         }
-        if (body[0] !== '{') {
-            throw new ExchangeError (body);
-        }
-        const response = JSON.parse (body);
-        if (!('status' in response)) {
-            throw new ExchangeError (body);
-        }
-        let status = this.safeString (response, 'status');
-        if (status === '0') {
-            return;
-        }
-        const feedback = this.id + ' ' + this.json (response);
-        if (status in this.exceptions) {
-            const exceptions = this.exceptions;
-            throw new exceptions[status] (feedback);
-        }
-        throw new ExchangeError (feedback);
     }
 };
