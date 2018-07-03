@@ -124,44 +124,42 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchMarkets () {
-        let res = await this.publicGetSymbols ();
+        let response = await this.publicGetSymbols ();
         let result = [];
-        if (res['status'] === 0) {
-            let markets = res['data'];
-            for (let p = 0; p < markets.length; p++) {
-                let market = markets[p];
-                let id = market['name'];
-                let baseId = market['base_currency'];
-                let quoteId = market['quote_currency'];
-                let base = this.commonCurrencyCode (baseId.toUpperCase ());
-                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
-                let symbol = base + '/' + quote;
-                let precision = {
-                    'price': market['price_decimal'],
-                    'amount': market['amount_decimal'],
-                };
-                let limits = {
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
-                    },
-                };
-                if (symbol in this.options['limits']) {
-                    limits = this.extend (this.options['limits'][symbol], limits);
-                }
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': true,
-                    'precision': precision,
-                    'limits': limits,
-                    'info': market,
-                });
+        let markets = response['data'];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['name'];
+            let baseId = market['base_currency'];
+            let quoteId = market['quote_currency'];
+            let base = this.commonCurrencyCode (baseId.toUpperCase ());
+            let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            let symbol = base + '/' + quote;
+            let precision = {
+                'price': market['price_decimal'],
+                'amount': market['amount_decimal'],
+            };
+            let limits = {
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': Math.pow (10, precision['price']),
+                },
+            };
+            if (symbol in this.options['limits']) {
+                limits = this.extend (this.options['limits'][symbol], limits);
             }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
         }
         return result;
     }
