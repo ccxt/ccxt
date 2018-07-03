@@ -203,12 +203,22 @@ module.exports = class fcoin extends Exchange {
 
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        if (typeof limit !== 'undefined') {
+            if ((limit === 20) && (limit === 100)) {
+                limit = 'L' + limit.toString ();
+            } else {
+                throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted');
+            }
+        } else {
+            limit = 'full';
+        }
+        let request = this.extend ({
             'symbol': this.marketId (symbol),
-            'level': 'full',  // full
-        };
-        let orderbook = await this.marketGetDepthLevelSymbol (this.extend (request, params));
-        return this.parseOrderBook (orderbook['data'], orderbook['data']['ts'], 'bids', 'asks', 0, 1);
+            'level': limit, // L20, L100, full
+        }, params);
+        let response = await this.marketGetDepthLevelSymbol (request);
+        let orderbook = response['data'];
+        return this.parseOrderBook (orderbook, orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
     async fetchTicker (symbol, params = {}) {
