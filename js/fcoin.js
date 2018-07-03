@@ -231,32 +231,34 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.nonce ();  // better to use server time, but fcoin server response 'seq'
+        let timestamp = undefined;
         let symbol = undefined;
+        if (typeof market === 'undefined') {
+            symbol = market['symbol'];
+        } else {
+            let tickerType = this.safeString (ticker, 'type');
+            if (typeof tickerType !== 'undefined') {
+                let parts = tickerType.split ('.');
+                let id = parts[1];
+                if (id in this.markets_by_id) {
+                    market = this.markets_by_id[id];
+                }
+        }
+        let values = ticker['ticker'];
+        let last = values[0];
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        } else if ('pair' in ticker) {
-            let idParts = ticker['type'].split ('.');
-            let id = idParts[1];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-            }
-            if (typeof market !== 'undefined') {
-                symbol = market['symbol'];
-            }
         }
-        let ts = ticker['data']['ticker'];
-        let last = ts[0];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ts[7],
-            'low': ts[8],
-            'bid': ts[2],
-            'bidVolume': ts[3],
-            'ask': ts[4],
-            'askVolume': ts[5],
+            'high': values[7],
+            'low': values[8],
+            'bid': values[2],
+            'bidVolume': values[3],
+            'ask': values[4],
+            'askVolume': values[5],
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -265,8 +267,8 @@ module.exports = class fcoin extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': ts[9],
-            'quoteVolume': ts[10],
+            'baseVolume': values[9],
+            'quoteVolume': values[10],
             'info': ticker,
         };
     }
