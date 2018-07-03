@@ -168,7 +168,7 @@ module.exports = class fcoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccountsBalance ();
+        let response = await this.privateGetAccountsBalance (params);
         let result = { 'info': response };
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
