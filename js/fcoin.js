@@ -339,7 +339,7 @@ module.exports = class fcoin extends Exchange {
             'order_id': id,
         }, params));
     }
-   
+
     parseOrderStatus (status) {
         const statuses = {
             'submitted': 'open',
