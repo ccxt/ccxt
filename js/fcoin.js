@@ -132,8 +132,10 @@ module.exports = class fcoin extends Exchange {
             let id = market['name'];
             let baseId = market['base_currency'];
             let quoteId = market['quote_currency'];
-            let base = this.commonCurrencyCode (baseId.toUpperCase ());
-            let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            let base = baseId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            let quote = quoteId.toUpperCase ();
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
                 'price': market['price_decimal'],
@@ -166,19 +168,23 @@ module.exports = class fcoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let res = await this.privateGetAccountsBalance ();
-        let result = { 'info': res };
-        let balances = res['data'];
+        let response = await this.privateGetAccountsBalance ();
+        let result = { 'info': response };
+        let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currency = balance['currency'];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
+            let currencyId = balance['currency'];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = this.account ();
             account['free'] = parseFloat (balance['available']);
             account['total'] = parseFloat (balance['balance']);
             account['used'] = parseFloat (balance['frozen']);
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
