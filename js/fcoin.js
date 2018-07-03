@@ -48,7 +48,7 @@ module.exports = class fcoin extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
                 'api': 'https://api.fcoin.com',
                 'www': 'https://www.fcoin.com',
-                'referral': 'https://www.fcoin.com/i/W9VvE',
+                'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
                 'fees': 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
             },
@@ -339,7 +339,7 @@ module.exports = class fcoin extends Exchange {
             'order_id': id,
         }, params));
     }
-        
+   
     parseOrderStatus (status) {
         const statuses = {
             'submitted': 'open',
@@ -372,6 +372,7 @@ module.exports = class fcoin extends Exchange {
         let filled = this.safeFloat (order, 'filled_amount');
         let remaining = undefined;
         let price = this.safeFloat (order, 'price');
+        let cost = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
@@ -396,10 +397,11 @@ module.exports = class fcoin extends Exchange {
             'type': orderType,
             'side': side,
             'price': price,
-            'average': undefined,
+            'cost': cost,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
+            'average': undefined,
             'status': status,
             'fee': {
                 'cost': feeCost,
