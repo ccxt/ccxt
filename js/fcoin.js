@@ -334,53 +334,73 @@ module.exports = class fcoin extends Exchange {
             'order_id': id,
         }, params));
     }
+        
+    parseOrderStatus (status) {
+        const statuses = {
+            'submitted': 'open',
+            'canceled': 'canceled',
+            'partial_filled': 'open',
+            'partial_canceled': 'canceled',
+            'filled': 'closed',
+            'pending_cancel': 'canceled',
+        };
+        if (status in statuses) {
+            return statuses[status];
+        }
+        return status;
+    }
 
     parseOrder (order, market = undefined) {
+        let id = order['id'];
         let side = order['side'];
-        let open = order['state'] === 'submitted';
-        let canceled = order['state'] === 'canceled';
-        let status = undefined;
-        if (open) {
-            status = 'open';
-        } else if (canceled) {
-            status = 'canceled';
-        } else {
-            status = 'closed';
-        }
+        let status = this.parseOrderStatus (order['state']);
         let symbol = undefined;
-        if (!market) {
-            let exchange = order['symbol'];
-            if (exchange in this.markets_by_id) {
-                market = this.markets_by_id[exchange];
+        if (typeof market === 'undefined') {
+            let marketId = order['symbol'];
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             }
         }
-        if (market) {
-            symbol = market['symbol'];
-        }
         let orderType = order['type'];
-        let timestamp = parseInt (parseFloat (order['created_at']));
+        let timestamp = parseInt (order['created_at']);
         let amount = this.safeFloat (order, 'amount');
-        let filled_amount = this.safeFloat (order, 'filled_amount');
-        let feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+        let filled = this.safeFloat (order, 'filled_amount');
+        let remaining = undefined;
+        let price = this.safeFloat (order, 'price');
+        if (typeof filled !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+            }
+            if (typeof price !== 'undefined') {
+                cost = price * filled;
+            }
+        }
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+        }
+        let feeCost = this.safeFloat (order, 'fill_fees');
         let result = {
             'info': order,
-            'id': order['id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
             'average': undefined,
             'amount': amount,
-            'remaining': amount - filled_amount,
-            'filled': filled_amount,
+            'remaining': remaining,
+            'filled': filled,
             'status': status,
             'fee': {
-                'cost': this.safeFloat (order, 'fill_fees'),
+                'cost': feeCost,
                 'currency': feeCurrency,
             },
+            'trades': undefined,
         };
         return result;
     }
