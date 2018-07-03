@@ -333,6 +333,18 @@ class coinex extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'not_deal' => 'open',
+            'part_deal' => 'open',
+            'done' => 'closed',
+            'cancel' => 'canceled',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
         // TODO => check if it's actually milliseconds, since examples were in seconds
         $timestamp = $this->safe_integer($order, 'create_time') * 1000;
@@ -342,14 +354,7 @@ class coinex extends Exchange {
         $filled = $this->safe_float($order, 'deal_amount');
         $symbol = $market['symbol'];
         $remaining = $this->amount_to_precision($symbol, $amount - $filled);
-        $status = $order['status'];
-        if ($status === 'done') {
-            $status = 'closed';
-        } else {
-            // not_deal
-            // part_deal
-            $status = 'open';
-        }
+        $status = $this->parse_order_status($order['status']);
         return array (
             'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
