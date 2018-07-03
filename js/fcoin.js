@@ -243,6 +243,7 @@ module.exports = class fcoin extends Exchange {
                 if (id in this.markets_by_id) {
                     market = this.markets_by_id[id];
                 }
+            }
         }
         let values = ticker['ticker'];
         let last = values[0];
@@ -273,8 +274,12 @@ module.exports = class fcoin extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = parseInt (parseFloat (trade['ts']));
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let timestamp = parseInt (trade['ts']);
         let side = trade['side'].toLowerCase ();
         let orderId = this.safeString (trade, 'id');
         let price = this.safeFloat (trade, 'price');
@@ -286,7 +291,7 @@ module.exports = class fcoin extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'order': orderId,
             'side': side,
