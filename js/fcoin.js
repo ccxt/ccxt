@@ -414,10 +414,10 @@ module.exports = class fcoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         if (typeof limit === 'undefined') {
-            limit = 100;
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         }
         let market = this.market (symbol);
         let request = {
