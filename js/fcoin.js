@@ -471,20 +471,18 @@ module.exports = class fcoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let request = '/' + this.version + '/';
+        request += (api === 'private') ? '' : (api + '/');
+        request += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'];
-        if ((api === 'public') || (api === 'market') || (path.indexOf ('/hist') >= 0)) {
-            request = '/' + this.version + '/' + api + request;
-            url += request;
+        let url = this.urls['api'] + request;
+        if ((api === 'public') || (api === 'market')) {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            request = '/' + this.version + request;
-            url += request;
             let paramsStr = '';
             let sortedQuery = this.keysort (query);
             if (method === 'POST' && !this.isEmpty (sortedQuery)) {
