@@ -553,7 +553,7 @@ module.exports = class cointiger extends huobipro {
             let keys = Object.keys (query);
             let auth = '';
             for (let i = 0; i < keys.length; i++) {
-                auth += keys[i] + query[keys[i]];
+                auth += keys[i] + query[keys[i]].toString ();
             }
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
