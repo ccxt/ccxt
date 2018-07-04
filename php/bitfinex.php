@@ -274,6 +274,7 @@ class bitfinex extends Exchange {
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
+                    'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
