@@ -12,7 +12,7 @@ module.exports = class btctradeim extends coinegg {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
-            'countries': 'HK',
+            'countries': [ 'HK' ],
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
@@ -33,6 +33,9 @@ module.exports = class btctradeim extends coinegg {
                         'BTC': 0.001,
                     },
                 },
+            },
+            'options': {
+                'quoteIds': [ 'btc', 'eth', 'usc' ],
             },
         });
     }

@@ -12,7 +12,7 @@ module.exports = class cobinhood extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'cobinhood',
             'name': 'COBINHOOD',
-            'countries': 'TW',
+            'countries': [ 'TW' ],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchCurrencies': true,
@@ -41,8 +41,8 @@ module.exports = class cobinhood extends Exchange {
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
-                '7d': '7D',
-                '14d': '14D',
+                '1w': '7D',
+                '2w': '14D',
                 '1M': '1M',
             },
             'urls': {
@@ -150,7 +150,6 @@ module.exports = class cobinhood extends Exchange {
                 'code': code,
                 'name': currency['name'],
                 'active': true,
-                'status': 'ok',
                 'fiat': false,
                 'precision': this.precisionFromString (currency['min_unit']),
                 'limits': {
@@ -523,7 +522,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }
@@ -543,7 +541,6 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         };
     }

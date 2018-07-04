@@ -13,7 +13,7 @@ class dsx (liqui):
         return self.deep_extend(super(dsx, self).describe(), {
             'id': 'dsx',
             'name': 'DSX',
-            'countries': 'UK',
+            'countries': ['UK'],
             'rateLimit': 1500,
             'has': {
                 'CORS': False,

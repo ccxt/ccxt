@@ -13,7 +13,7 @@ class lykke extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lykke',
             'name' => 'Lykke',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'version' => 'v1',
             'rateLimit' => 200,
             'has' => array (
@@ -204,8 +204,8 @@ class lykke extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume24H']),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume24H']),
             'info' => $ticker,
         );
     }

@@ -13,7 +13,7 @@ class hitbtc2 extends hitbtc {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
             'name' => 'HitBTC v2',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '2',
             'has' => array (
@@ -615,10 +615,9 @@ class hitbtc2 extends hitbtc {
             $payout = $this->safe_value($currency, 'payoutEnabled');
             $transfer = $this->safe_value($currency, 'transferEnabled');
             $active = $payin && $payout && $transfer;
-            $status = 'ok';
             if (is_array ($currency) && array_key_exists ('disabled', $currency))
                 if ($currency['disabled'])
-                    $status = 'disabled';
+                    $active = false;
             $type = 'fiat';
             if ((is_array ($currency) && array_key_exists ('crypto', $currency)) && $currency['crypto'])
                 $type = 'crypto';
@@ -632,7 +631,6 @@ class hitbtc2 extends hitbtc {
                 'info' => $currency,
                 'name' => $currency['fullName'],
                 'active' => $active,
-                'status' => $status,
                 'fee' => $this->safe_float($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -1057,7 +1055,6 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -1075,7 +1072,6 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

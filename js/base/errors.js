@@ -21,7 +21,9 @@ module.exports = subclass (
                     'NullResponse': {},
                 },
                 'InsufficientFunds': {},
-                'InvalidAddress': {},
+                'InvalidAddress': {
+                    'AddressPending': {},
+                },
                 'InvalidOrder': {
                     'OrderNotFound': {},
                     'OrderNotCached': {},

@@ -32,7 +32,6 @@ class okex (okcoinusd):
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'MAG': 'Maggie',
-                'NANO': 'XRB',
                 'YOYO': 'YOYOW',
             },
         })

@@ -15,7 +15,7 @@ class acx (Exchange):
         return self.deep_extend(super(acx, self).describe(), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': ['AU'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -371,8 +371,8 @@ class acx (Exchange):
                 'tonce': nonce,
             }, params))
             auth = method + '|' + request + '|' + query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signature
+            signed = self.hmac(self.encode(auth), self.encode(self.secret))
+            suffix = query + '&signature=' + signed
             if method == 'GET':
                 url += '?' + suffix
             else:

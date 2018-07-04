@@ -26,7 +26,7 @@ class indodax (Exchange):
         return self.deep_extend(super(indodax, self).describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
-            'countries': 'ID',  # Indonesia
+            'countries': ['ID'],  # Indonesia
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,

@@ -12,7 +12,7 @@ module.exports = class indodax extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'indodax',
             'name': 'INDODAX',
-            'countries': 'ID', // Indonesia
+            'countries': [ 'ID' ], // Indonesia
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,

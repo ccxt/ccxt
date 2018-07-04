@@ -13,7 +13,7 @@ class lykke (Exchange):
         return self.deep_extend(super(lykke, self).describe(), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': 'CH',
+            'countries': ['CH'],
             'version': 'v1',
             'rateLimit': 200,
             'has': {
@@ -196,8 +196,8 @@ class lykke (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume24H']),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': float(ticker['volume24H']),
             'info': ticker,
         }
 

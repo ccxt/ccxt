@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class bittrex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'v1.1',
             'rateLimit': 1500,
             // new metainfo interface
@@ -145,7 +145,7 @@ module.exports = class bittrex extends Exchange {
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': InvalidOrder,
+                'ORDER_NOT_OPEN': OrderNotFound,
                 'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
@@ -154,6 +154,10 @@ module.exports = class bittrex extends Exchange {
             'options': {
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+            },
+            'commonCurrencies': {
+                'BITS': 'SWIFT',
+                'CPC': 'CapriCoin',
             },
         });
     }
@@ -320,7 +324,6 @@ module.exports = class bittrex extends Exchange {
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'status': 'ok',
                 'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -581,8 +584,8 @@ module.exports = class bittrex extends Exchange {
             filled = amount - remaining;
         }
         if (!cost) {
-            if (price && amount)
-                cost = price * amount;
+            if (price && filled)
+                cost = price * filled;
         }
         if (!price) {
             if (cost && filled)
@@ -658,9 +661,8 @@ module.exports = class bittrex extends Exchange {
         }, params));
         let address = this.safeString (response['result'], 'Address');
         let message = this.safeString (response, 'message');
-        let status = 'ok';
         if (!address || message === 'ADDRESS_GENERATING')
-            status = 'pending';
+            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
         let tag = undefined;
         if ((code === 'XRP') || (code === 'XLM')) {
             tag = address;
@@ -671,7 +673,6 @@ module.exports = class bittrex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         };
     }

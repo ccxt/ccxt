@@ -12,7 +12,7 @@ module.exports = class zaif extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
             'name': 'Zaif',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'rateLimit': 2000,
             'version': '1',
             'has': {

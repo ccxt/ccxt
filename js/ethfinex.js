@@ -11,7 +11,7 @@ module.exports = class ethfinex extends bitfinex {
         return this.deepExtend (super.describe (), {
             'id': 'ethfinex',
             'name': 'Ethfinex',
-            'countries': 'VG',
+            'countries': [ 'VG' ],
             'version': 'v1',
             'rateLimit': 1500,
             // new metainfo interface

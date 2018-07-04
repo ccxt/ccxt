@@ -13,7 +13,7 @@ class acx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'acx',
             'name' => 'ACX',
-            'countries' => 'AU',
+            'countries' => array ( 'AU' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
@@ -399,8 +399,8 @@ class acx extends Exchange {
                 'tonce' => $nonce,
             ), $params));
             $auth = $method . '|' . $request . '|' . $query;
-            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
-            $suffix = $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
+            $suffix = $query . '&signature=' . $signed;
             if ($method === 'GET') {
                 $url .= '?' . $suffix;
             } else {

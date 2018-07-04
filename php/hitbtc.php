@@ -13,7 +13,7 @@ class hitbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '1',
             'has' => array (
@@ -490,6 +490,8 @@ class hitbtc extends Exchange {
                 'DRK' => 'DASH',
                 'EMGO' => 'MGO',
                 'GET' => 'Themis',
+                'LNC' => 'LinkerCoin',
+                'UNC' => 'Unigame',
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
             ),

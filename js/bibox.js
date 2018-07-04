@@ -36,7 +36,7 @@ module.exports = class bibox extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
+                '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
             },
@@ -116,7 +116,7 @@ module.exports = class bibox extends Exchange {
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             };
             result.push ({
@@ -346,7 +346,6 @@ module.exports = class bibox extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': undefined,
                 'precision': precision,
                 'limits': {
@@ -449,6 +448,7 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/order',
             'body': this.extend ({
@@ -479,9 +479,11 @@ module.exports = class bibox extends Exchange {
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'deal_price', price);
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'money');
+        cost = this.safeFloat (order, 'deal_money', cost);
         let remaining = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined')
@@ -516,7 +518,7 @@ module.exports = class bibox extends Exchange {
     parseOrderStatus (status) {
         let statuses = {
             // original comments from bibox:
-            '1': 'pending', // pending
+            '1': 'open', // pending
             '2': 'open', // part completed
             '3': 'closed', // completed
             '4': 'canceled', // part canceled

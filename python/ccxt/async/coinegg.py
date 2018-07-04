@@ -59,18 +59,18 @@ class coinegg (Exchange):
                 },
                 'public': {
                     'get': [
-                        'ticker/{quote}',
-                        'depth/{quote}',
-                        'orders/{quote}',
+                        'ticker/region/{quote}',
+                        'depth/region/{quote}',
+                        'orders/region/{quote}',
                     ],
                 },
                 'private': {
                     'post': [
                         'balance',
-                        'trade_add/{quote}',
-                        'trade_cancel/{quote}',
-                        'trade_view/{quote}',
-                        'trade_list/{quote}',
+                        'trade_add/region/{quote}',
+                        'trade_cancel/region/{quote}',
+                        'trade_view/region/{quote}',
+                        'trade_list/region/{quote}',
                     ],
                 },
             },
@@ -159,7 +159,7 @@ class coinegg (Exchange):
                 '405': 'Currency transactions are temporarily closed',
             },
             'options': {
-                'quoteIds': ['btc', 'eth', 'usc'],
+                'quoteIds': ['btc', 'eth', 'usc', 'usdt'],
             },
         })
 
@@ -258,7 +258,7 @@ class coinegg (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerQuote(self.extend({
+        ticker = await self.publicGetTickerRegionQuote(self.extend({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
@@ -298,7 +298,7 @@ class coinegg (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepthQuote(self.extend({
+        orderbook = await self.publicGetDepthRegionQuote(self.extend({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
@@ -328,7 +328,7 @@ class coinegg (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        trades = await self.publicGetOrdersQuote(self.extend({
+        trades = await self.publicGetOrdersRegionQuote(self.extend({
             'coin': market['baseId'],
             'quote': market['quoteId'],
         }, params))
@@ -395,7 +395,7 @@ class coinegg (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeAddQuote(self.extend({
+        response = await self.privatePostTradeAddRegionQuote(self.extend({
             'coin': market['baseId'],
             'quote': market['quoteId'],
             'type': side,
@@ -418,7 +418,7 @@ class coinegg (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeCancelQuote(self.extend({
+        response = await self.privatePostTradeCancelRegionQuote(self.extend({
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
@@ -428,7 +428,7 @@ class coinegg (Exchange):
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeViewQuote(self.extend({
+        response = await self.privatePostTradeViewRegionQuote(self.extend({
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
@@ -444,7 +444,7 @@ class coinegg (Exchange):
         }
         if since is not None:
             request['since'] = since / 1000
-        orders = await self.privatePostTradeListQuote(self.extend(request, params))
+        orders = await self.privatePostTradeListRegionQuote(self.extend(request, params))
         return self.parse_orders(orders['data'], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

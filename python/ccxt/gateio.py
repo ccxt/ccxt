@@ -28,7 +28,7 @@ class gateio (Exchange):
         return self.deep_extend(super(gateio, self).describe(), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'countries': 'CN',
+            'countries': ['CN'],
             'version': '2',
             'rateLimit': 1000,
             'has': {
@@ -311,18 +311,36 @@ class gateio (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        # exchange reports local time(UTC+8)
-        timestamp = self.parse8601(trade['date']) - 8 * 60 * 60 * 1000
+        # public fetchTrades
+        timestamp = self.safe_integer(trade, 'timestamp')
+        # private fetchMyTrades
+        timestamp = self.safe_integer(trade, 'time_unix', timestamp)
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'tradeID')
+        id = self.safe_string(trade, 'id', id)
+        orderId = self.safe_string(trade, 'orderid')
+        if orderId is not None:
+            orderId = self.safe_string(trade, 'orderNumber')
+        price = self.safe_float(trade, 'rate')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
-            'id': trade['tradeID'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
+            'order': orderId,
             'type': None,
             'side': trade['type'],
-            'price': self.safe_float(trade, 'rate'),
-            'amount': self.safe_float(trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -442,14 +460,13 @@ class gateio (Exchange):
         if (address is not None) and(address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
-            parts = address.split('/', 2)
+            parts = address.split(' ')
             address = parts[0]
             tag = parts[1]
         return {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok' if (address is not None) else 'none',
             'info': response,
         }
 

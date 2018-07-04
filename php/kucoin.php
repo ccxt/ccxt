@@ -13,7 +13,7 @@ class kucoin extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
             'name' => 'Kucoin',
-            'countries' => 'HK', // Hong Kong
+            'countries' => array ( 'HK' ), // Hong Kong
             'version' => 'v1',
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome'],
@@ -338,6 +338,10 @@ class kucoin extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'CAN' => 'CanYa',
+                'XRB' => 'NANO',
+            ),
         ));
     }
 
@@ -413,7 +417,6 @@ class kucoin extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -441,7 +444,6 @@ class kucoin extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => $currency['withdrawMinFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -687,12 +689,17 @@ class kucoin extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $marketId = null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $marketId = $market['id'];
+        } else {
+            $marketId = '';
+        }
         $request = array (
-            'symbol' => $market['id'],
+            'symbol' => $marketId,
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
         $sell = $this->safe_value($response['data'], 'SELL');

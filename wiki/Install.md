@@ -92,6 +92,20 @@ In some specific cases you may want a proxy, if you experience issues with [DDoS
 
 **Bear in mind that each added intermediary contributes to the overall latency and roundtrip time. Longer delays can result in price slippage.**
 
+### JavaScript Proxies
+
+In order to use proxies with JavaScript, one needs to pass the proxying `agent` option to the exchange class instance constructor (or set the `exchange.agent` property later after instantiation in runtime):
+
+```JavaScript
+const ccxt = require ('ccxt')
+    , HttpsProxyAgent = require ('https-proxy-agent')
+
+const proxy = process.env.http_proxy || 'http://168.63.76.32:3128' // HTTP/HTTPS proxy to connect to
+const agent = new HttpsProxyAgent (proxy)
+
+const kraken = new ccxt.kraken ({ agent })
+```
+
 ### Python Proxies
 
 The python version of the library uses the [python-requests](python-requests.org) package for underlying HTTP and supports all means of customization available in the `requests` package, including proxies.

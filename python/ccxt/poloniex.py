@@ -27,7 +27,7 @@ class poloniex (Exchange):
         return self.deep_extend(super(poloniex, self).describe(), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'has': {
                 'createDepositAddress': True,
@@ -36,6 +36,7 @@ class poloniex (Exchange):
                 'editOrder': True,
                 'createMarketOrder': False,
                 'fetchOHLCV': True,
+                'fetchOrderTrades': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -138,9 +139,21 @@ class poloniex (Exchange):
                 'price': 8,
             },
             'commonCurrencies': {
-                'BTM': 'Bitmark',
-                'STR': 'XLM',
+                'AIR': 'AirCoin',
+                'APH': 'AphroditeCoin',
                 'BCC': 'BTCtalkcoin',
+                'BDG': 'Badgercoin',
+                'BTM': 'Bitmark',
+                'CON': 'Coino',
+                'GOLD': 'GoldEagles',
+                'GPUC': 'GPU',
+                'HOT': 'Hotcoin',
+                'ITC': 'Information Coin',
+                'PLX': 'ParallaxCoin',
+                'KEY': 'KEYCoin',
+                'STR': 'XLM',
+                'SOC': 'SOCC',
+                'XAP': 'API Coin',
             },
             'options': {
                 'limits': {
@@ -342,17 +355,13 @@ class poloniex (Exchange):
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
-            active = (currency['delisted'] == 0)
-            status = 'disabled' if (currency['disabled']) else 'ok'
-            if status != 'ok':
-                active = False
+            active = (currency['delisted'] == 0) and not currency['disabled']
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -528,7 +537,7 @@ class poloniex (Exchange):
             'fee': None,
         }
 
-    def parse_open_orders(self, orders, market, result=[]):
+    def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
             order = orders[i]
             extended = self.extend(order, {
@@ -711,6 +720,7 @@ class poloniex (Exchange):
         return self.parse_trades(trades)
 
     def create_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostGenerateNewAddress({
             'currency': currency['id'],
@@ -722,21 +732,21 @@ class poloniex (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
     def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostReturnDepositAddresses()
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         self.check_address(address)
-        status = 'ok' if address else 'none'
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': None,
             'info': response,
         }
 

@@ -12,7 +12,7 @@ module.exports = class bleutrade extends bittrex {
         return this.deepExtend (super.describe (), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR', // Brazil
+            'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

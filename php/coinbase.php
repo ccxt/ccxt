@@ -13,7 +13,7 @@ class coinbase extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinbase',
             'name' => 'coinbase',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 400, // 10k calls per hour
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],
@@ -52,6 +52,7 @@ class coinbase extends Exchange {
                 'www' => 'https://www.coinbase.com',
                 'doc' => 'https://developers.coinbase.com/api/v2',
                 'fees' => 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'referral' => 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -174,7 +175,6 @@ class coinbase extends Exchange {
                 'info' => $currency, // the original payload
                 'name' => $name,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => null,
                 'limits' => array (

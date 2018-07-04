@@ -12,7 +12,7 @@ module.exports = class zb extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'zb',
             'name': 'ZB',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

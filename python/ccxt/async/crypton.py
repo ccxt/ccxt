@@ -15,7 +15,7 @@ class crypton (Exchange):
         return self.deep_extend(super(crypton, self).describe(), {
             'id': 'crypton',
             'name': 'Crypton',
-            'countries': 'EU',
+            'countries': ['EU'],
             'rateLimit': 500,
             'version': '1',
             'has': {
@@ -343,7 +343,6 @@ class crypton (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

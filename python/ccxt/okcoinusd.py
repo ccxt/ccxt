@@ -151,6 +151,7 @@ class okcoinusd (Exchange):
                 '10008': ExchangeError,  # Illegal URL parameter
             },
             'options': {
+                'defaultContractType': 'this_week',  # next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': True,
                 'fiats': ['USD', 'CNY'],
                 'futures': {
@@ -250,7 +251,7 @@ class okcoinusd (Exchange):
             request['size'] = limit
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Depth'
         orderbook = getattr(self, method)(self.extend(request, params))
         return self.parse_order_book(orderbook)
@@ -298,7 +299,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Ticker'
         response = getattr(self, method)(self.extend(request, params))
         ticker = self.safe_value(response, 'ticker')
@@ -336,7 +337,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Trades'
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -365,7 +366,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'Kline'
         if limit is not None:
             if self.options['warnOnFetchOHLCVLimitArgument']:
@@ -405,7 +406,7 @@ class okcoinusd (Exchange):
         if market['future']:
             method += 'Future'
             order = self.extend(order, {
-                'contract_type': 'this_week',  # next_week, quarter
+                'contract_type': self.options['defaultContractType'],  # self_week, next_week, quarter
                 'match_price': 0,  # match best counter party price? 0 or 1, ignores price if 1
                 'lever_rate': 10,  # leverage rate value: 10 or 20(10 by default)
                 'price': price,
@@ -458,7 +459,7 @@ class okcoinusd (Exchange):
         method = 'privatePost'
         if market['future']:
             method += 'FutureCancel'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         else:
             method += 'CancelOrder'
         response = getattr(self, method)(self.extend(request, params))
@@ -573,7 +574,7 @@ class okcoinusd (Exchange):
         }
         if market['future']:
             method += 'Future'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
         method += 'OrderInfo'
         response = getattr(self, method)(self.extend(request, params))
         ordersField = self.get_orders_field()
@@ -594,7 +595,7 @@ class okcoinusd (Exchange):
         order_id_in_params = ('order_id' in list(params.keys()))
         if market['future']:
             method += 'FutureOrdersInfo'
-            request['contract_type'] = 'this_week'  # next_week, quarter
+            request['contract_type'] = self.options['defaultContractType']  # self_week, next_week, quarter
             if not order_id_in_params:
                 raise ExchangeError(self.id + ' fetchOrders() requires order_id param for futures market ' + symbol + '(a string of one or more order ids, comma-separated)')
         else:

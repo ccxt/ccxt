@@ -13,7 +13,7 @@ class bitbank extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitbank',
             'name' => 'bitbank',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'has' => array (
                 'fetchOHLCV' => true,
@@ -50,8 +50,8 @@ class bitbank extends Exchange {
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/array (candle-type)/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ),
                 ),
                 'private' => array (
@@ -228,10 +228,10 @@ class bitbank extends Exchange {
         $date = $this->milliseconds ();
         $date = $this->ymd ($date);
         $date = explode ('-', $date);
-        $response = $this->publicGetPairCandlestickCandleTypeYYYYMMDD (array_merge (array (
+        $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge (array (
             'pair' => $market['id'],
-            'candle-type' => $this->timeframes[$timeframe],
-            'YYYYMMDD' => implode ('', $date),
+            'candletype' => $this->timeframes[$timeframe],
+            'yyyymmdd' => implode ('', $date),
         ), $params));
         $ohlcv = $response['data']['candlestick'][0]['ohlcv'];
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
@@ -391,12 +391,10 @@ class bitbank extends Exchange {
         // Not sure about this if there could be more than one account...
         $accounts = $response['data']['accounts'];
         $address = $this->safe_string($accounts[0], 'address');
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $currency,
             'address' => $address,
             'tag' => null,
-            'status' => $status,
             'info' => $response,
         );
     }

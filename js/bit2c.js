@@ -12,7 +12,7 @@ module.exports = class bit2c extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': 'IL', // Israel
+            'countries': [ 'IL' ], // Israel
             'rateLimit': 3000,
             'has': {
                 'CORS': false,
@@ -215,12 +215,13 @@ module.exports = class bit2c extends Exchange {
             side = 'sell';
         }
         let id = this.safeString (order, 'id');
+        let status = this.safeString (order, 'status');
         return {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': this.safeString (order, 'status'),
+            'status': status,
             'symbol': symbol,
             'type': undefined,
             'side': side,

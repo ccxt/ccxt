@@ -54,7 +54,7 @@ class bibox (Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
+                '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
             },
@@ -133,7 +133,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             }
             result.append({
@@ -343,7 +343,6 @@ class bibox (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -436,6 +435,7 @@ class bibox (Exchange):
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privatePostOrderpending({
             'cmd': 'orderpending/order',
             'body': self.extend({
@@ -462,9 +462,11 @@ class bibox (Exchange):
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'deal_price', price)
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
+        cost = self.safe_float(order, 'deal_money', cost)
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -497,7 +499,7 @@ class bibox (Exchange):
     def parse_order_status(self, status):
         statuses = {
             # original comments from bibox:
-            '1': 'pending',  # pending
+            '1': 'open',  # pending
             '2': 'open',  # part completed
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled

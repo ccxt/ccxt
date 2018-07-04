@@ -29,7 +29,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -115,16 +115,21 @@ class cryptopia (Exchange):
                 'BAT': 'BatCoin',
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
+                'CAN': 'CanYa',
+                'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
+                'RED': 'RedCoin',
+                'STC': 'StopTrumpCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
@@ -480,11 +485,10 @@ class cryptopia (Exchange):
                 else:
                     filled = amount
                     status = 'closed'
-        timestamp = self.milliseconds()
         order = {
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
@@ -647,7 +651,6 @@ class cryptopia (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 
@@ -704,21 +707,22 @@ class cryptopia (Exchange):
         if fixedJSONString[0] == '{':
             response = json.loads(fixedJSONString)
             if 'Success' in response:
-                success = self.safe_string(response, 'Success')
-                if success == 'false':
-                    error = self.safe_string(response, 'Error')
-                    feedback = self.id
-                    if isinstance(error, basestring):
-                        feedback = feedback + ' ' + error
-                        if error.find('does not exist') >= 0:
-                            raise OrderNotFound(feedback)
-                        if error.find('Insufficient Funds') >= 0:
-                            raise InsufficientFunds(feedback)
-                        if error.find('Nonce has already been used') >= 0:
-                            raise InvalidNonce(feedback)
-                    else:
-                        feedback = feedback + ' ' + fixedJSONString
-                    raise ExchangeError(feedback)
+                success = self.safe_value(response, 'Success')
+                if success is not None:
+                    if not success:
+                        error = self.safe_string(response, 'Error')
+                        feedback = self.id
+                        if isinstance(error, basestring):
+                            feedback = feedback + ' ' + error
+                            if error.find('does not exist') >= 0:
+                                raise OrderNotFound(feedback)
+                            if error.find('Insufficient Funds') >= 0:
+                                raise InsufficientFunds(feedback)
+                            if error.find('Nonce has already been used') >= 0:
+                                raise InvalidNonce(feedback)
+                        else:
+                            feedback = feedback + ' ' + fixedJSONString
+                        raise ExchangeError(feedback)
 
     def sanitize_broken_json_string(self, jsonString):
         # sometimes cryptopia will return a unicode symbol before actual JSON string.

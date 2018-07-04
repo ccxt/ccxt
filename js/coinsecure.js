@@ -12,7 +12,7 @@ module.exports = class coinsecure extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinsecure',
             'name': 'Coinsecure',
-            'countries': 'IN', // India
+            'countries': [ 'IN' ], // India
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

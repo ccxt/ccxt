@@ -12,7 +12,7 @@ module.exports = class poloniex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
             'has': {
                 'createDepositAddress': true,
@@ -21,6 +21,7 @@ module.exports = class poloniex extends Exchange {
                 'editOrder': true,
                 'createMarketOrder': false,
                 'fetchOHLCV': true,
+                'fetchOrderTrades': true,
                 'fetchMyTrades': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
@@ -123,9 +124,21 @@ module.exports = class poloniex extends Exchange {
                 'price': 8,
             },
             'commonCurrencies': {
-                'BTM': 'Bitmark',
-                'STR': 'XLM',
+                'AIR': 'AirCoin',
+                'APH': 'AphroditeCoin',
                 'BCC': 'BTCtalkcoin',
+                'BDG': 'Badgercoin',
+                'BTM': 'Bitmark',
+                'CON': 'Coino',
+                'GOLD': 'GoldEagles',
+                'GPUC': 'GPU',
+                'HOT': 'Hotcoin',
+                'ITC': 'Information Coin',
+                'PLX': 'ParallaxCoin',
+                'KEY': 'KEYCoin',
+                'STR': 'XLM',
+                'SOC': 'SOCC',
+                'XAP': 'API Coin',
             },
             'options': {
                 'limits': {
@@ -342,17 +355,13 @@ module.exports = class poloniex extends Exchange {
             // differentiated fees for each particular method
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.commonCurrencyCode (id);
-            let active = (currency['delisted'] === 0);
-            let status = (currency['disabled']) ? 'disabled' : 'ok';
-            if (status !== 'ok')
-                active = false;
+            let active = (currency['delisted'] === 0) && !currency['disabled'];
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -551,7 +560,7 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    parseOpenOrders (orders, market, result = []) {
+    parseOpenOrders (orders, market, result) {
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
             let extended = this.extend (order, {
@@ -760,6 +769,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
             'currency': currency['id'],
@@ -771,22 +781,22 @@ module.exports = class poloniex extends Exchange {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
         this.checkAddress (address);
-        let status = address ? 'ok' : 'none';
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': undefined,
             'info': response,
         };
     }

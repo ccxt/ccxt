@@ -26,7 +26,7 @@ class bitsane (Exchange):
         return self.deep_extend(super(bitsane, self).describe(), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE',  # Ireland
+            'countries': ['IE'],  # Ireland
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -110,7 +110,6 @@ class bitsane (Exchange):
                 'code': code,
                 'name': self.safe_string(currency, 'full_name', code),
                 'active': active,
-                'status': 'ok',
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -385,7 +384,6 @@ class bitsane (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 

@@ -16,7 +16,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -493,6 +493,8 @@ class hitbtc (Exchange):
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'LNC': 'LinkerCoin',
+                'UNC': 'Unigame',
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },

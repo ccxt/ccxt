@@ -13,7 +13,7 @@ class zb extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'zb',
             'name' => 'ZB',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

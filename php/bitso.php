@@ -13,7 +13,7 @@ class bitso extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitso',
             'name' => 'Bitso',
-            'countries' => 'MX', // Mexico
+            'countries' => array ( 'MX' ), // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array (
@@ -416,7 +416,6 @@ class bitso extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

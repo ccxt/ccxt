@@ -13,7 +13,7 @@ class cobinhood extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cobinhood',
             'name' => 'COBINHOOD',
-            'countries' => 'TW',
+            'countries' => array ( 'TW' ),
             'rateLimit' => 1000 / 10,
             'has' => array (
                 'fetchCurrencies' => true,
@@ -42,8 +42,8 @@ class cobinhood extends Exchange {
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
-                '7d' => '7D',
-                '14d' => '14D',
+                '1w' => '7D',
+                '2w' => '14D',
                 '1M' => '1M',
             ),
             'urls' => array (
@@ -151,7 +151,6 @@ class cobinhood extends Exchange {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => true,
-                'status' => 'ok',
                 'fiat' => false,
                 'precision' => $this->precision_from_string($currency['min_unit']),
                 'limits' => array (
@@ -524,7 +523,6 @@ class cobinhood extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -544,7 +542,6 @@ class cobinhood extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }

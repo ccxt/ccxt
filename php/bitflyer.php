@@ -13,7 +13,7 @@ class bitflyer extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
             'has' => array (
@@ -336,13 +336,17 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        $params['child_order_state'] = 'ACTIVE';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $request = array (
+            'child_order_state' => 'ACTIVE',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        $params['child_order_state'] = 'COMPLETED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $request = array (
+            'child_order_state' => 'COMPLETED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {

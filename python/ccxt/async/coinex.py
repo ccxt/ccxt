@@ -9,6 +9,8 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class coinex (Exchange):
@@ -18,7 +20,7 @@ class coinex (Exchange):
             'id': 'coinex',
             'name': 'CoinEx',
             'version': 'v1',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': True,
@@ -53,6 +55,7 @@ class coinex (Exchange):
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
+                'referral': 'https://www.coinex.com/account/signup?refer_code=yw5fz',
             },
             'api': {
                 'web': {
@@ -115,6 +118,18 @@ class coinex (Exchange):
                 'price': 8,
             },
         })
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
 
     async def fetch_markets(self):
         response = await self.webGetResMarket()
@@ -215,12 +230,16 @@ class coinex (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=20, params={}):
         await self.load_markets()
-        response = await self.publicGetMarketDepth(self.extend({
+        if limit is None:
+            limit = 20  # default
+        request = {
             'market': self.market_id(symbol),
             'merge': '0.00000001',
-        }, params))
+            'limit': str(limit),
+        }
+        response = await self.publicGetMarketDepth(self.extend(request, params))
         return self.parse_order_book(response['data'])
 
     def parse_trade(self, trade, market=None):
@@ -301,6 +320,17 @@ class coinex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         # TODO: check if it's actually milliseconds, since examples were in seconds
         timestamp = self.safe_integer(order, 'create_time') * 1000
@@ -310,13 +340,7 @@ class coinex (Exchange):
         filled = self.safe_float(order, 'deal_amount')
         symbol = market['symbol']
         remaining = self.amount_to_precision(symbol, amount - filled)
-        status = order['status']
-        if status == 'done':
-            status = 'closed'
-        else:
-            # not_deal
-            # part_deal
-            status = 'open'
+        status = self.parse_order_status(order['status'])
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),

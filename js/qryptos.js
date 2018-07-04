@@ -96,6 +96,9 @@ module.exports = class qryptos extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'WIN': 'WCOIN',
+            },
         });
     }
 
@@ -105,8 +108,10 @@ module.exports = class qryptos extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'].toString ();
-            let base = market['base_currency'];
-            let quote = market['quoted_currency'];
+            let baseId = market['base_currency'];
+            let quoteId = market['quoted_currency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
@@ -144,6 +149,8 @@ module.exports = class qryptos extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -161,14 +168,18 @@ module.exports = class qryptos extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
+            let currencyId = balance['currency'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            }
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -192,7 +203,23 @@ module.exports = class qryptos extends Exchange {
             }
         }
         let symbol = undefined;
-        if (market)
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'id');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let baseId = this.safeString (ticker, 'base_currency');
+                let quoteId = this.safeString (ticker, 'quoted_currency');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                if (symbol in this.markets) {
+                    market = this.markets[symbol];
+                } else {
+                    symbol = base + '/' + quote;
+                }
+            }
+        }
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let change = undefined;
         let percentage = undefined;

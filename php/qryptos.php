@@ -97,6 +97,9 @@ class qryptos extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'WIN' => 'WCOIN',
+            ),
         ));
     }
 
@@ -106,8 +109,10 @@ class qryptos extends Exchange {
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = (string) $market['id'];
-            $base = $market['base_currency'];
-            $quote = $market['quoted_currency'];
+            $baseId = $market['base_currency'];
+            $quoteId = $market['quoted_currency'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $maker = $this->safe_float($market, 'maker_fee');
             $taker = $this->safe_float($market, 'taker_fee');
@@ -145,6 +150,8 @@ class qryptos extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'maker' => $maker,
                 'taker' => $taker,
                 'limits' => $limits,
@@ -162,14 +169,18 @@ class qryptos extends Exchange {
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = $balance['currency'];
+            $currencyId = $balance['currency'];
+            $code = $currencyId;
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            }
             $total = floatval ($balance['balance']);
             $account = array (
                 'free' => $total,
                 'used' => 0.0,
                 'total' => $total,
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -193,7 +204,23 @@ class qryptos extends Exchange {
             }
         }
         $symbol = null;
-        if ($market)
+        if ($market === null) {
+            $marketId = $this->safe_string($ticker, 'id');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                $baseId = $this->safe_string($ticker, 'base_currency');
+                $quoteId = $this->safe_string($ticker, 'quoted_currency');
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets)) {
+                    $market = $this->markets[$symbol];
+                } else {
+                    $symbol = $base . '/' . $quote;
+                }
+            }
+        }
+        if ($market !== null)
             $symbol = $market['symbol'];
         $change = null;
         $percentage = null;

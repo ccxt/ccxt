@@ -12,7 +12,7 @@ module.exports = class bxinth extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bxinth',
             'name': 'BX.in.th',
-            'countries': 'TH', // Thailand
+            'countries': [ 'TH' ], // Thailand
             'rateLimit': 1500,
             'has': {
                 'CORS': false,

@@ -12,7 +12,7 @@ module.exports = class coinbase extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
             'name': 'coinbase',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
             'userAgent': this.userAgents['chrome'],
@@ -51,6 +51,7 @@ module.exports = class coinbase extends Exchange {
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -173,7 +174,6 @@ module.exports = class coinbase extends Exchange {
                 'info': currency, // the original payload
                 'name': name,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {

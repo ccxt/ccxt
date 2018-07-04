@@ -14,7 +14,7 @@ class bit2c (Exchange):
         return self.deep_extend(super(bit2c, self).describe(), {
             'id': 'bit2c',
             'name': 'Bit2C',
-            'countries': 'IL',  # Israel
+            'countries': ['IL'],  # Israel
             'rateLimit': 3000,
             'has': {
                 'CORS': False,
@@ -203,12 +203,13 @@ class bit2c (Exchange):
         elif side == 1:
             side = 'sell'
         id = self.safe_string(order, 'id')
+        status = self.safe_string(order, 'status')
         return {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'status': self.safe_string(order, 'status'),
+            'status': status,
             'symbol': symbol,
             'type': None,
             'side': side,

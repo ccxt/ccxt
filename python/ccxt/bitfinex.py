@@ -28,7 +28,7 @@ class bitfinex (Exchange):
         return self.deep_extend(super(bitfinex, self).describe(), {
             'id': 'bitfinex',
             'name': 'Bitfinex',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v1',
             'rateLimit': 1500,
             # new metainfo interface
@@ -262,6 +262,7 @@ class bitfinex (Exchange):
             'commonCurrencies': {
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
+                'CTX': 'CTXC',
                 'DAT': 'DATA',
                 'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
                 'IOS': 'IOST',
@@ -297,6 +298,74 @@ class bitfinex (Exchange):
                 },
             },
             'precisionMode': SIGNIFICANT_DIGITS,
+            'options': {
+                'currencyNames': {
+                    'AGI': 'agi',
+                    'AID': 'aid',
+                    'AIO': 'aio',
+                    'ANT': 'ant',
+                    'AVT': 'aventus',  # #1811
+                    'BAT': 'bat',
+                    'BCH': 'bcash',  # undocumented
+                    'BCI': 'bci',
+                    'BFT': 'bft',
+                    'BTC': 'bitcoin',
+                    'BTG': 'bgold',
+                    'CFI': 'cfi',
+                    'DAI': 'dai',
+                    'DADI': 'dad',
+                    'DASH': 'dash',
+                    'DATA': 'datacoin',
+                    'DTH': 'dth',
+                    'EDO': 'eidoo',  # #1811
+                    'ELF': 'elf',
+                    'EOS': 'eos',
+                    'ETC': 'ethereumc',
+                    'ETH': 'ethereum',
+                    'ETP': 'metaverse',
+                    'FUN': 'fun',
+                    'GNT': 'golem',
+                    'IOST': 'ios',
+                    'IOTA': 'iota',
+                    'LRC': 'lrc',
+                    'LTC': 'litecoin',
+                    'LYM': 'lym',
+                    'MANA': 'mna',
+                    'MIT': 'mit',
+                    'MKR': 'mkr',
+                    'MTN': 'mtn',
+                    'NEO': 'neo',
+                    'ODE': 'ode',
+                    'OMG': 'omisego',
+                    'OMNI': 'mastercoin',
+                    'QASH': 'qash',
+                    'QTUM': 'qtum',  # #1811
+                    'RCN': 'rcn',
+                    'RDN': 'rdn',
+                    'REP': 'rep',
+                    'REQ': 'req',
+                    'RLC': 'rlc',
+                    'SAN': 'santiment',
+                    'SNGLS': 'sng',
+                    'SNT': 'status',
+                    'SPANK': 'spk',
+                    'STORJ': 'stj',
+                    'TNB': 'tnb',
+                    'TRX': 'trx',
+                    'USD': 'wire',
+                    'UTK': 'utk',
+                    'USDT': 'tetheruso',  # undocumented
+                    'VEE': 'vee',
+                    'WAX': 'wax',
+                    'XLM': 'xlm',
+                    'XMR': 'monero',
+                    'XRP': 'ripple',
+                    'XVG': 'xvg',
+                    'YOYOW': 'yoyow',
+                    'ZEC': 'zcash',
+                    'ZRX': 'zrx',
+                },
+            },
         })
 
     def fetch_funding_fees(self, params={}):
@@ -669,74 +738,8 @@ class bitfinex (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def get_currency_name(self, currency):
-        names = {
-            'AGI': 'agi',
-            'AID': 'aid',
-            'AIO': 'aio',
-            'ANT': 'ant',
-            'AVT': 'aventus',  # #1811
-            'BAT': 'bat',
-            'BCH': 'bcash',  # undocumented
-            'BCI': 'bci',
-            'BFT': 'bft',
-            'BTC': 'bitcoin',
-            'BTG': 'bgold',
-            'CFI': 'cfi',
-            'DAI': 'dai',
-            'DADI': 'dad',
-            'DASH': 'dash',
-            'DATA': 'datacoin',
-            'DTH': 'dth',
-            'EDO': 'eidoo',  # #1811
-            'ELF': 'elf',
-            'EOS': 'eos',
-            'ETC': 'ethereumc',
-            'ETH': 'ethereum',
-            'ETP': 'metaverse',
-            'FUN': 'fun',
-            'GNT': 'golem',
-            'IOST': 'ios',
-            'IOTA': 'iota',
-            'LRC': 'lrc',
-            'LTC': 'litecoin',
-            'LYM': 'lym',
-            'MANA': 'mna',
-            'MIT': 'mit',
-            'MKR': 'mkr',
-            'MTN': 'mtn',
-            'NEO': 'neo',
-            'ODE': 'ode',
-            'OMG': 'omisego',
-            'OMNI': 'mastercoin',
-            'QASH': 'qash',
-            'QTUM': 'qtum',  # #1811
-            'RCN': 'rcn',
-            'RDN': 'rdn',
-            'REP': 'rep',
-            'REQ': 'req',
-            'RLC': 'rlc',
-            'SAN': 'santiment',
-            'SNGLS': 'sng',
-            'SNT': 'status',
-            'SPANK': 'spk',
-            'STJ': 'stj',
-            'TNB': 'tnb',
-            'TRX': 'trx',
-            'USD': 'wire',
-            'UTK': 'utk',
-            'USDT': 'tetheruso',  # undocumented
-            'VEE': 'vee',
-            'WAX': 'wax',
-            'XLM': 'xlm',
-            'XMR': 'monero',
-            'XRP': 'ripple',
-            'XVG': 'xvg',
-            'YOYOW': 'yoyow',
-            'ZEC': 'zcash',
-            'ZRX': 'zrx',
-        }
-        if currency in names:
-            return names[currency]
+        if currency in self.options['currencyNames']:
+            return self.options['currencyNames'][currency]
         raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
 
     def create_deposit_address(self, currency, params={}):
@@ -748,7 +751,6 @@ class bitfinex (Exchange):
         return {
             'currency': currency,
             'address': address,
-            'status': 'ok',
             'info': response['info'],
         }
 
@@ -770,7 +772,6 @@ class bitfinex (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

@@ -547,7 +547,6 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostDepositAddress (params);
         let depositAddress = this.safeString (response, code);
-        let status = 'ok';
         let address = undefined;
         let tag = undefined;
         if (depositAddress) {
@@ -563,7 +562,6 @@ module.exports = class exmo extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         };
     }

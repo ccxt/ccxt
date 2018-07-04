@@ -15,7 +15,7 @@ class coinsecure (Exchange):
         return self.deep_extend(super(coinsecure, self).describe(), {
             'id': 'coinsecure',
             'name': 'Coinsecure',
-            'countries': 'IN',  # India
+            'countries': ['IN'],  # India
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

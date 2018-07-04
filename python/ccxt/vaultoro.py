@@ -12,7 +12,7 @@ class vaultoro (Exchange):
         return self.deep_extend(super(vaultoro, self).describe(), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': ['CH'],
             'rateLimit': 1000,
             'version': '1',
             'has': {

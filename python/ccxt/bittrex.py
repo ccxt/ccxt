@@ -18,6 +18,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
@@ -30,7 +31,7 @@ class bittrex (Exchange):
         return self.deep_extend(super(bittrex, self).describe(), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'v1.1',
             'rateLimit': 1500,
             # new metainfo interface
@@ -163,7 +164,7 @@ class bittrex (Exchange):
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': InvalidOrder,
+                'ORDER_NOT_OPEN': OrderNotFound,
                 'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
@@ -172,6 +173,10 @@ class bittrex (Exchange):
             'options': {
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
+            },
+            'commonCurrencies': {
+                'BITS': 'SWIFT',
+                'CPC': 'CapriCoin',
             },
         })
 
@@ -324,7 +329,6 @@ class bittrex (Exchange):
                 'type': currency['CoinType'],
                 'name': currency['CurrencyLong'],
                 'active': currency['IsActive'],
-                'status': 'ok',
                 'fee': self.safe_float(currency, 'TxFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -557,8 +561,8 @@ class bittrex (Exchange):
         if amount is not None and remaining is not None:
             filled = amount - remaining
         if not cost:
-            if price and amount:
-                cost = price * amount
+            if price and filled:
+                cost = price * filled
         if not price:
             if cost and filled:
                 price = cost / filled
@@ -625,9 +629,8 @@ class bittrex (Exchange):
         }, params))
         address = self.safe_string(response['result'], 'Address')
         message = self.safe_string(response, 'message')
-        status = 'ok'
         if not address or message == 'ADDRESS_GENERATING':
-            status = 'pending'
+            raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
         if (code == 'XRP') or (code == 'XLM'):
             tag = address
@@ -637,7 +640,6 @@ class bittrex (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         }
 

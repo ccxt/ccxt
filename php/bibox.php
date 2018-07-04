@@ -37,7 +37,7 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
-                '8h' => '12hour',
+                '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
             ),
@@ -117,7 +117,7 @@ class bibox extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $base . '_' . $quote;
             $precision = array (
-                'amount' => 8,
+                'amount' => 4,
                 'price' => 8,
             );
             $result[] = array (
@@ -347,7 +347,6 @@ class bibox extends Exchange {
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (
@@ -450,6 +449,7 @@ class bibox extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderpending (array (
             'cmd' => 'orderpending/order',
             'body' => array_merge (array (
@@ -480,9 +480,11 @@ class bibox extends Exchange {
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'deal_price', $price);
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'money');
+        $cost = $this->safe_float($order, 'deal_money', $cost);
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
@@ -517,7 +519,7 @@ class bibox extends Exchange {
     public function parse_order_status ($status) {
         $statuses = array (
             // original comments from bibox:
-            '1' => 'pending', // pending
+            '1' => 'open', // pending
             '2' => 'open', // part completed
             '3' => 'closed', // completed
             '4' => 'canceled', // part canceled

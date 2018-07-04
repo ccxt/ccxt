@@ -13,7 +13,7 @@ class bit2c extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bit2c',
             'name' => 'Bit2C',
-            'countries' => 'IL', // Israel
+            'countries' => array ( 'IL' ), // Israel
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => false,
@@ -216,12 +216,13 @@ class bit2c extends Exchange {
             $side = 'sell';
         }
         $id = $this->safe_string($order, 'id');
+        $status = $this->safe_string($order, 'status');
         return array (
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'status' => $this->safe_string($order, 'status'),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,

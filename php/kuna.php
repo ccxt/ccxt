@@ -13,7 +13,7 @@ class kuna extends acx {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kuna',
             'name' => 'Kuna',
-            'countries' => 'UA',
+            'countries' => array ( 'UA' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

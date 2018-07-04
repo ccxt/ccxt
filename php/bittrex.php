@@ -13,7 +13,7 @@ class bittrex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bittrex',
             'name' => 'Bittrex',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => 'v1.1',
             'rateLimit' => 1500,
             // new metainfo interface
@@ -146,7 +146,7 @@ class bittrex extends Exchange {
                 'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
                 'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                 'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
-                'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
                 'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
@@ -155,6 +155,10 @@ class bittrex extends Exchange {
             'options' => array (
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
+            ),
+            'commonCurrencies' => array (
+                'BITS' => 'SWIFT',
+                'CPC' => 'CapriCoin',
             ),
         ));
     }
@@ -321,7 +325,6 @@ class bittrex extends Exchange {
                 'type' => $currency['CoinType'],
                 'name' => $currency['CurrencyLong'],
                 'active' => $currency['IsActive'],
-                'status' => 'ok',
                 'fee' => $this->safe_float($currency, 'TxFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -582,8 +585,8 @@ class bittrex extends Exchange {
             $filled = $amount - $remaining;
         }
         if (!$cost) {
-            if ($price && $amount)
-                $cost = $price * $amount;
+            if ($price && $filled)
+                $cost = $price * $filled;
         }
         if (!$price) {
             if ($cost && $filled)
@@ -659,9 +662,8 @@ class bittrex extends Exchange {
         ), $params));
         $address = $this->safe_string($response['result'], 'Address');
         $message = $this->safe_string($response, 'message');
-        $status = 'ok';
         if (!$address || $message === 'ADDRESS_GENERATING')
-            $status = 'pending';
+            throw new AddressPending ($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         $tag = null;
         if (($code === 'XRP') || ($code === 'XLM')) {
             $tag = $address;
@@ -672,7 +674,6 @@ class bittrex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => $status,
             'info' => $response,
         );
     }

@@ -31,7 +31,6 @@ module.exports = class okex extends okcoinusd {
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'MAG': 'Maggie',
-                'NANO': 'XRB',
                 'YOYO': 'YOYOW',
             },
         });

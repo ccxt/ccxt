@@ -14,7 +14,7 @@ class gatecoin extends Exchange {
             'id' => 'gatecoin',
             'name' => 'Gatecoin',
             'rateLimit' => 2000,
-            'countries' => 'HK', // Hong Kong
+            'countries' => array ( 'HK' ), // Hong Kong
             'comment' => 'a regulated/licensed exchange',
             'has' => array (
                 'CORS' => false,
@@ -639,7 +639,6 @@ class gatecoin extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -656,7 +655,6 @@ class gatecoin extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -670,11 +668,8 @@ class gatecoin extends Exchange {
             'Address' => $address,
             'Password' => $password,
         );
-        $response = $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
-        return array (
-            'status' => 'ok',
-            'info' => $response,
-        );
+        // not unified yet
+        return $this->privatePostElectronicWalletUserWalletsDigiCurrency (array_merge ($request, $params));
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {

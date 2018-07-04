@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, NotSupported, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class bitstamp extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -141,6 +141,9 @@ module.exports = class bitstamp extends Exchange {
                         'EUR': 0,
                     },
                 },
+            },
+            'exceptions': {
+                'No permission found': PermissionDenied,
             },
         });
     }
@@ -570,7 +573,6 @@ module.exports = class bitstamp extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'tag': tag,
             'info': response,
@@ -639,6 +641,12 @@ module.exports = class bitstamp extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
+            // fetchDepositAddress returns {"error": "No permission found"} on apiKeys that don't have the permission required
+            let error = this.safeString (response, 'error');
+            let exceptions = this.exceptions;
+            if (error in exceptions) {
+                throw new exceptions[error] (this.id + ' ' + body);
+            }
             let status = this.safeString (response, 'status');
             if (status === 'error') {
                 let code = this.safeString (response, 'code');
@@ -646,7 +654,7 @@ module.exports = class bitstamp extends Exchange {
                     if (code === 'API0005')
                         throw new AuthenticationError (this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
                 }
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError (this.id + ' ' + body);
             }
         }
     }

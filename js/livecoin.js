@@ -85,11 +85,17 @@ module.exports = class livecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CPC': 'Capricoin',
+                'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
+                'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
+                'eETT': 'EETT',
+                'FirstBlood': '1ST',
+                'FORTYTWO': '42',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
@@ -181,7 +187,6 @@ module.exports = class livecoin extends Exchange {
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawFee'], // todo: redesign
                 'precision': precision,
                 'limits': {
@@ -212,12 +217,11 @@ module.exports = class livecoin extends Exchange {
         return result;
     }
 
-    appendFiatCurrencies (result = []) {
+    appendFiatCurrencies (result) {
         let precision = 8;
         let defaults = {
             'info': undefined,
             'active': true,
-            'status': 'ok',
             'fee': undefined,
             'precision': precision,
             'limits': {
@@ -393,6 +397,7 @@ module.exports = class livecoin extends Exchange {
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         };
         if (status in statuses)
@@ -452,7 +457,7 @@ module.exports = class livecoin extends Exchange {
         }
         const feeRate = this.safeFloat (order, 'commission_rate');
         let feeCost = undefined;
-        if (typeof cost !== 'undefined') {
+        if (typeof cost !== 'undefined' && typeof feeRate !== 'undefined') {
             feeCost = cost * feeRate;
         }
         let feeCurrency = undefined;
@@ -612,7 +617,6 @@ module.exports = class livecoin extends Exchange {
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

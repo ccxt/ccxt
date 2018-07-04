@@ -13,7 +13,7 @@ class btcmarkets extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcmarkets',
             'name' => 'BTC Markets',
-            'countries' => 'AU', // Australia
+            'countries' => array ( 'AU' ), // Australia
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'has' => array (
                 'CORS' => false,

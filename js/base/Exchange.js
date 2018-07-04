@@ -39,7 +39,7 @@ const {
 
 const { DECIMAL_PLACES } = functions.precisionConstants
 
-const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch
+const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -157,10 +157,8 @@ module.exports = class Exchange {
 
         Object.assign (this, functions, { encode: string => string, decode: string => string })
 
-        if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0]
-
         // if (isNode) {
+        //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
         //         'User-Agent': 'ccxt/' + Exchange.ccxtVersion +
         //             ' (+https://github.com/ccxt/ccxt)' +
@@ -343,7 +341,7 @@ module.exports = class Exchange {
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' '))
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"')
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
 
         return address
     }

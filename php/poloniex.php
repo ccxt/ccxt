@@ -13,7 +13,7 @@ class poloniex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'poloniex',
             'name' => 'Poloniex',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 1000, // up to 6 calls per second
             'has' => array (
                 'createDepositAddress' => true,
@@ -22,6 +22,7 @@ class poloniex extends Exchange {
                 'editOrder' => true,
                 'createMarketOrder' => false,
                 'fetchOHLCV' => true,
+                'fetchOrderTrades' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
@@ -124,9 +125,21 @@ class poloniex extends Exchange {
                 'price' => 8,
             ),
             'commonCurrencies' => array (
-                'BTM' => 'Bitmark',
-                'STR' => 'XLM',
+                'AIR' => 'AirCoin',
+                'APH' => 'AphroditeCoin',
                 'BCC' => 'BTCtalkcoin',
+                'BDG' => 'Badgercoin',
+                'BTM' => 'Bitmark',
+                'CON' => 'Coino',
+                'GOLD' => 'GoldEagles',
+                'GPUC' => 'GPU',
+                'HOT' => 'Hotcoin',
+                'ITC' => 'Information Coin',
+                'PLX' => 'ParallaxCoin',
+                'KEY' => 'KEYCoin',
+                'STR' => 'XLM',
+                'SOC' => 'SOCC',
+                'XAP' => 'API Coin',
             ),
             'options' => array (
                 'limits' => array (
@@ -343,17 +356,13 @@ class poloniex extends Exchange {
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
             $code = $this->common_currency_code($id);
-            $active = ($currency['delisted'] === 0);
-            $status = ($currency['disabled']) ? 'disabled' : 'ok';
-            if ($status !== 'ok')
-                $active = false;
+            $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => $status,
                 'fee' => $this->safe_float($currency, 'txFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -552,7 +561,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function parse_open_orders ($orders, $market, $result = []) {
+    public function parse_open_orders ($orders, $market, $result) {
         for ($i = 0; $i < count ($orders); $i++) {
             $order = $orders[$i];
             $extended = array_merge ($order, array (
@@ -761,6 +770,7 @@ class poloniex extends Exchange {
     }
 
     public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostGenerateNewAddress (array (
             'currency' => $currency['id'],
@@ -772,22 +782,22 @@ class poloniex extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostReturnDepositAddresses ();
         $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
         $this->check_address($address);
-        $status = $address ? 'ok' : 'none';
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => $status,
+            'tag' => null,
             'info' => $response,
         );
     }

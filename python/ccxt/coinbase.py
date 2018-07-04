@@ -23,7 +23,7 @@ class coinbase (Exchange):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
             'name': 'coinbase',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 400,  # 10k calls per hour
             'version': 'v2',
             'userAgent': self.userAgents['chrome'],
@@ -62,6 +62,7 @@ class coinbase (Exchange):
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -182,7 +183,6 @@ class coinbase (Exchange):
                 'info': currency,  # the original payload
                 'name': name,
                 'active': True,
-                'status': 'ok',
                 'fee': None,
                 'precision': None,
                 'limits': {

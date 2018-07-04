@@ -12,7 +12,7 @@ module.exports = class coinnest extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinnest',
             'name': 'coinnest',
-            'countries': 'KR',
+            'countries': [ 'KR' ],
             'rateLimit': 1000,
             'has': {
                 'fetchOpenOrders': true,

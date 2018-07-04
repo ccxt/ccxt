@@ -12,7 +12,7 @@ module.exports = class bitflyer extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'has': {
@@ -335,13 +335,17 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        params['child_order_state'] = 'ACTIVE';
-        return await this.fetchOrders (symbol, since, limit, params);
+        let request = {
+            'child_order_state': 'ACTIVE',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        params['child_order_state'] = 'COMPLETED';
-        return await this.fetchOrders (symbol, since, limit, params);
+        let request = {
+            'child_order_state': 'COMPLETED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

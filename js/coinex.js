@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,7 +14,7 @@ module.exports = class coinex extends Exchange {
             'id': 'coinex',
             'name': 'CoinEx',
             'version': 'v1',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': true,
@@ -48,6 +49,7 @@ module.exports = class coinex extends Exchange {
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
+                'referral': 'https://www.coinex.com/account/signup?refer_code=yw5fz',
             },
             'api': {
                 'web': {
@@ -110,6 +112,22 @@ module.exports = class coinex extends Exchange {
                 'price': 8,
             },
         });
+    }
+
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
+    }
+
+    feeToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
     }
 
     async fetchMarkets () {
@@ -217,12 +235,16 @@ module.exports = class coinex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = 20, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketDepth (this.extend ({
+        if (typeof limit === 'undefined')
+            limit = 20; // default
+        const request = {
             'market': this.marketId (symbol),
             'merge': '0.00000001',
-        }, params));
+            'limit': limit.toString (),
+        };
+        let response = await this.publicGetMarketDepth (this.extend (request, params));
         return this.parseOrderBook (response['data']);
     }
 
@@ -311,6 +333,18 @@ module.exports = class coinex extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         // TODO: check if it's actually milliseconds, since examples were in seconds
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
@@ -320,14 +354,7 @@ module.exports = class coinex extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
         let remaining = this.amountToPrecision (symbol, amount - filled);
-        let status = order['status'];
-        if (status === 'done') {
-            status = 'closed';
-        } else {
-            // not_deal
-            // part_deal
-            status = 'open';
-        }
+        let status = this.parseOrderStatus (order['status']);
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),

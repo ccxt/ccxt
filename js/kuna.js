@@ -12,7 +12,7 @@ module.exports = class kuna extends acx {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
             'name': 'Kuna',
-            'countries': 'UA',
+            'countries': [ 'UA' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

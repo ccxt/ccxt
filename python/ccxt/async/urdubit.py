@@ -12,7 +12,7 @@ class urdubit (foxbit):
         return self.deep_extend(super(urdubit, self).describe(), {
             'id': 'urdubit',
             'name': 'UrduBit',
-            'countries': 'PK',
+            'countries': ['PK'],
             'has': {
                 'CORS': False,
             },

@@ -13,7 +13,7 @@ class btctradeim extends coinegg {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btctradeim',
             'name' => 'BtcTrade.im',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api' => array (
@@ -34,6 +34,9 @@ class btctradeim extends coinegg {
                         'BTC' => 0.001,
                     ),
                 ),
+            ),
+            'options' => array (
+                'quoteIds' => array ( 'btc', 'eth', 'usc' ),
             ),
         ));
     }

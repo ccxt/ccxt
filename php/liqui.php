@@ -13,7 +13,7 @@ class liqui extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'liqui',
             'name' => 'Liqui',
-            'countries' => 'UA',
+            'countries' => array ( 'UA' ),
             'rateLimit' => 3000,
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],

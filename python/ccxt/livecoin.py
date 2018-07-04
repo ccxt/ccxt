@@ -103,11 +103,17 @@ class livecoin (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CPC': 'Capricoin',
+                'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
+                'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
+                'eETT': 'EETT',
+                'FirstBlood': '1ST',
+                'FORTYTWO': '42',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
                 'TPI': 'ThaneCoin',
+                'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
@@ -195,7 +201,6 @@ class livecoin (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -224,12 +229,11 @@ class livecoin (Exchange):
         result = self.append_fiat_currencies(result)
         return result
 
-    def append_fiat_currencies(self, result=[]):
+    def append_fiat_currencies(self, result):
         precision = 8
         defaults = {
             'info': None,
             'active': True,
-            'status': 'ok',
             'fee': None,
             'precision': precision,
             'limits': {
@@ -392,6 +396,7 @@ class livecoin (Exchange):
             'OPEN': 'open',
             'PARTIALLY_FILLED': 'open',
             'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
             'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
         }
         if status in statuses:
@@ -442,7 +447,7 @@ class livecoin (Exchange):
             cost = filled * price
         feeRate = self.safe_float(order, 'commission_rate')
         feeCost = None
-        if cost is not None:
+        if cost is not None and feeRate is not None:
             feeCost = cost * feeRate
         feeCurrency = None
         if market is not None:
@@ -586,7 +591,6 @@ class livecoin (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

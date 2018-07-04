@@ -16,7 +16,7 @@ class ice3x (Exchange):
         return self.deep_extend(super(ice3x, self).describe(), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA',  # South Africa
+            'countries': ['ZA'],  # South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,
@@ -100,7 +100,6 @@ class ice3x (Exchange):
                 'code': code,
                 'name': currency['name'],
                 'active': True,
-                'status': 'ok',
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -377,9 +376,8 @@ class ice3x (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
-            params = self.urlencode(params)
-            if len(params):
-                url += '?' + params
+            if params:
+                url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
             body = self.urlencode(self.extend({
