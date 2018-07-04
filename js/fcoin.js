@@ -189,16 +189,21 @@ module.exports = class fcoin extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        let newbidasks = [];
-        let length = bidasks.length;
+    parseBidsAsks (orders, priceKey = 0, amountKey = 1) {
+        let result = [];
+        let length = orders.length;
         let halfLength = parseInt (length / 2);
+        // += 2 in the for loop below won't transpile
         for (let i = 0; i < halfLength; i++) {
-            let ba = bidasks.slice (0, 2);
-            newbidasks.push ([ba[priceKey], ba[amountKey]]);    // sames a little ugly, just aim to pass eslint check
-            bidasks = bidasks.slice (2);
+            let index = i * 2;
+            let priceField = this.sum (index, priceKey);
+            let amountField = this.sum (index, amountKey);
+            result.push ([ 
+                orders[priceField], 
+                orders[amountField],
+            ]);
         }
-        return newbidasks;
+        return result;
     }
 
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
@@ -434,11 +439,14 @@ module.exports = class fcoin extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
             'states': 'submitted',
-        }, params));
-        return this.parseOrders (response['data']);
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -497,7 +505,7 @@ module.exports = class fcoin extends Exchange {
                     body = this.json (query);
                     auth += this.urlencode (query);
                 }
-            }  
+            }
             let payload = this.stringToBase64 (this.encode (auth));
             let signature = this.hmac (payload, this.encode (this.secret), 'sha1', 'binary');
             signature = this.decode (this.stringToBase64 (signature));
