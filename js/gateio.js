@@ -615,7 +615,7 @@ module.exports = class gateio extends Exchange {
             let data = this._contextGetSymbolData (contextId, 'ob', symbol);
             data['ob'] = ob;
             this._contextSetSymbolData (contextId, 'ob', symbol, data);
-            this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
+            this.emit ('ob', symbol, this._cloneOrderBook (ob, data['limit']));
         } else {
             let data = this._contextGetSymbolData (contextId, 'ob', symbol);
             let obMerged = this.mergeOrderBookDelta (data['ob'], ob, undefined);
@@ -657,7 +657,7 @@ module.exports = class gateio extends Exchange {
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
-            return this._cloneOrderBook(data['ob'], limit);
+            return this._cloneOrderBook (data['ob'], limit);
         }
         return undefined;
     }

@@ -321,7 +321,7 @@ class Exchange(BaseExchange, EventEmitter):
     def _websocketValidEvent(self, event):
         return ('events' in self.wsconf) and (event in self.wsconf['events'])
 
-    def _websocket_reset_context(self, conxid, conxtpl = None):
+    def _websocket_reset_context(self, conxid, conxtpl=None):
         if (not (conxid in self.websocketContexts)):
             self.websocketContexts[conxid] = {
                 '_': {},
@@ -342,16 +342,16 @@ class Exchange(BaseExchange, EventEmitter):
         return self.websocketContexts[conxid]['conx-tpl']
 
     def _contextGetConnection(self, conxid):
-        if (self.websocketContexts[conxid]['conx'] == None):
+        if (self.websocketContexts[conxid]['conx'] is None):
             return None
         return self.websocketContexts[conxid]['conx']['conx']
 
-    def _contextGetConnectionInfo (self, conxid):
-        if (self.websocketContexts[conxid]['conx'] == None):
-            raise NotSupported ("websocket <" + conxid + "> not found in this exchange: " + self.id)
+    def _contextGetConnectionInfo(self, conxid):
+        if (self.websocketContexts[conxid]['conx'] is None):
+            raise NotSupported("websocket <" + conxid + "> not found in this exchange: " + self.id)
         return self.websocketContexts[conxid]['conx']
 
-    def _contextIsConnectionReady(self,conxid):
+    def _contextIsConnectionReady(self, conxid):
         return self.websocketContexts[conxid]['conx']['ready']
 
     def _contextSetConnectionReady(self, conxid, ready):
@@ -366,10 +366,10 @@ class Exchange(BaseExchange, EventEmitter):
     def _contextSetConnectionInfo(self, conxid, info):
         self.websocketContexts[conxid]['conx'] = info
 
-    def _contextSet (self, conxid, key, data):
+    def _contextSet(self, conxid, key, data):
         self.websocketContexts[conxid]['_'][key] = data
 
-    def _contextGet (self, conxid, key):
+    def _contextGet(self, conxid, key):
         if (key not in self.websocketContexts[conxid]['_']):
             return None
         return self.websocketContexts[conxid]['_'][key]
@@ -396,34 +396,34 @@ class Exchange(BaseExchange, EventEmitter):
     def _contextSetSymbolData(self, conxid, event, symbol, data):
         self.websocketContexts[conxid]['events'][event][symbol]['data'] = data
 
-    def _contextSetSubscribed (self, conxid, event, symbol, subscribed):
+    def _contextSetSubscribed(self, conxid, event, symbol, subscribed):
         self.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed
 
-    def _contextIsSubscribed (self, conxid, event, symbol):
+    def _contextIsSubscribed(self, conxid, event, symbol):
         return (event in self.websocketContexts[conxid]['events']) and \
             (symbol in self.websocketContexts[conxid]['events'][event]) and \
             self.websocketContexts[conxid]['events'][event][symbol]['subscribed']
 
-    def _contextSetSubscribing (self, conxid, event, symbol, subscribing):
+    def _contextSetSubscribing(self, conxid, event, symbol, subscribing):
         self.websocketContexts[conxid]['events'][event][symbol]['subscribing'] = subscribing
 
-    def _contextIsSubscribing (self, conxid, event, symbol):
+    def _contextIsSubscribing(self, conxid, event, symbol):
         return (event in self.websocketContexts[conxid]['events']) and \
             (symbol in self.websocketContexts[conxid]['events'][event]) and \
             self.websocketContexts[conxid]['events'][event][symbol]['subscribing']
 
-    def _websocketGetConxid4Event (self, event, symbol):
+    def _websocketGetConxid4Event(self, event, symbol):
         eventConf = self.safe_value(self.wsconf['events'], event)
-        conxParam = self.safe_value (eventConf, 'conx-param', {
+        conxParam = self.safe_value(eventConf, 'conx-param', {
             'id': '{id}'
         })
         return {
-            'conxid' : self.implode_params (conxParam['id'], { 
+            'conxid': self.implode_params(conxParam['id'], {
                 'event': event,
                 'symbol': symbol,
                 'id': eventConf['conx-tpl']
             }),
-            'conxtpl' : eventConf['conx-tpl']
+            'conxtpl': eventConf['conx-tpl']
         }
 
     def _websocket_get_action_for_event(self, conxid, event, symbol, subscription=True):
@@ -506,7 +506,7 @@ class Exchange(BaseExchange, EventEmitter):
     async def _websocket_ensure_conx_active(self, event, symbol, subscribe):
         await self.load_markets()
         # self.load_markets()
-        ret = self._websocketGetConxid4Event (event, symbol)
+        ret = self._websocketGetConxid4Event(event, symbol)
         conxid = ret['conxid']
         conxtpl = ret['conxtpl']
         if (not(conxid in self.websocketContexts)):
@@ -524,17 +524,17 @@ class Exchange(BaseExchange, EventEmitter):
                     conx.close()
                 if (action['reset-context'] == 'onreconnect'):
                     self._websocket_reset_context(conxid, conxtpl)
-                self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
+                self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'connect'):
                 conx = self._contextGetConnection(conxid)
                 if (conx is not None):
                     if (not conx.isActive()):
                         conx.close()
                         self._websocket_reset_context(conxid, conxtpl)
-                        self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
+                        self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
                 else:
                     self._websocket_reset_context(conxid, conxtpl)
-                    self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
+                    self._contextSetConnectionInfo(conxid, self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'disconnect'):
                 conx = self._contextGetConnection(conxid)
                 if (conx is not None):
@@ -554,7 +554,7 @@ class Exchange(BaseExchange, EventEmitter):
 
     async def websocket_connect(self, conxid='default'):
         websocket_conx_info = self._contextGetConnectionInfo(conxid)
-        conx_tpl = self._contextGetConxTpl (conxid)
+        conx_tpl = self._contextGetConxTpl(conxid)
         websocket_connection = websocket_conx_info['conx']
         await self.load_markets()
         # self.load_markets()
@@ -690,7 +690,7 @@ class Exchange(BaseExchange, EventEmitter):
         if not self._websocketValidEvent('ob'):
             raise ExchangeError('Not valid event ob for exchange ' + self.id)
         conxid = await self._websocket_ensure_conx_active('ob', symbol, True)
-        ob = self._get_current_websocket_orderbook (conxid, symbol, limit)
+        ob = self._get_current_websocket_orderbook(conxid, symbol, limit)
         if (ob is not None):
             return ob
 
@@ -699,7 +699,7 @@ class Exchange(BaseExchange, EventEmitter):
         def wait4orderbook(symbol_r, ob):
             if symbol_r == symbol:
                 self.remove_listener('ob', wait4orderbook)
-                future.done() or future.set_result(self._get_current_websocket_orderbook (conxid, symbol, limit))
+                future.done() or future.set_result(self._get_current_websocket_orderbook(conxid, symbol, limit))
 
         self.on('ob', wait4orderbook)
         self.timeout_future(future, 'websocket_fetch_order_book')
@@ -750,16 +750,16 @@ class Exchange(BaseExchange, EventEmitter):
         self._websocket_unsubscribe(conxid, event, symbol, oid, params)
         await future
 
-    def _websocket_on_open (self, contextId, websocketConexConfig):
+    def _websocket_on_open(self, contextId, websocketConexConfig):
         pass
 
-    def _websocket_on_message (self, contextId, data):
+    def _websocket_on_message(self, contextId, data):
         pass
 
-    def _websocket_on_close (self, contextId):
+    def _websocket_on_close(self, contextId):
         pass
 
-    def _websocket_on_error (self, contextId):
+    def _websocket_on_error(self, contextId):
         pass
 
     def _websocketMarketId(self, symbol):
@@ -779,7 +779,7 @@ class Exchange(BaseExchange, EventEmitter):
             raise ExchangeError(self.id + ': ' + key + ' not found in websocket methodmap')
         return self.wsconf['methodmap'][key]
 
-    def _setTimeout (self, mseconds, method, params, this_param=None):
+    def _setTimeout(self, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
@@ -792,7 +792,7 @@ class Exchange(BaseExchange, EventEmitter):
     def _cancelTimeout(self, handle):
         handle.cancel()
 
-    def _setTimer (self, mseconds, method, params, this_param=None):
+    def _setTimer(self, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
@@ -800,7 +800,7 @@ class Exchange(BaseExchange, EventEmitter):
                 getattr(this_param, method)(*params)
             except Exception as ex:
                 self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
-        return self.call_periodic (mseconds / 1000, f)
+        return self.call_periodic(mseconds / 1000, f)
 
     def _cancelTimer(self, handle):
         handle.cancel()

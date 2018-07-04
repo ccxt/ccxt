@@ -1,11 +1,11 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, NotSupported } = require ('./base/errors');
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 module.exports = class lbank extends Exchange {
     describe () {
@@ -577,7 +577,7 @@ module.exports = class lbank extends Exchange {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         data['ob'] = ob;
         this._contextSetSymbolData (contextId, 'ob', symbol, data);
-        this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
+        this.emit ('ob', symbol, this._cloneOrderBook (ob, data['limit']));
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
@@ -636,9 +636,8 @@ module.exports = class lbank extends Exchange {
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
-            return this._cloneOrderBook(data['ob'], limit);
+            return this._cloneOrderBook (data['ob'], limit);
         }
         return undefined;
     }
-
 };

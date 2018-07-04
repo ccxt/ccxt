@@ -565,7 +565,7 @@ module.exports = class zb extends Exchange {
             // could not determine channel
             return;
         }
-        let pairIdList = this._contextGet(contextId, 'pairids');
+        let pairIdList = this._contextGet (contextId, 'pairids');
         if (typeof pairIdList === 'undefined') {
             this.emit ('err', new ExchangeError (this.id + ' internal error: unitialized pairids dict in context '));
             return;
@@ -612,7 +612,7 @@ module.exports = class zb extends Exchange {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         data['ob'] = ob;
         this._contextSetSymbolData (contextId, 'ob', symbol, data);
-        this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
+        this.emit ('ob', symbol, this._cloneOrderBook (ob, data['limit']));
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
@@ -625,12 +625,12 @@ module.exports = class zb extends Exchange {
             'event': 'addChannel',
             'channel': pairId + '_depth',
         };
-        let pairIdList = this._contextGet(contextId, 'pairids');
+        let pairIdList = this._contextGet (contextId, 'pairids');
         if (typeof pairIdList === 'undefined') {
             pairIdList = {};
         }
         pairIdList[pairId] = id;
-        this._contextSet(contextId, 'pairids', pairIdList);
+        this._contextSet (contextId, 'pairids', pairIdList);
         let data = this._contextGetSymbolData (contextId, event, symbol);
         if (!('sub-nonces' in data)) {
             data['sub-nonces'] = {};
@@ -661,7 +661,7 @@ module.exports = class zb extends Exchange {
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
-            return this._cloneOrderBook(data['ob'], limit);
+            return this._cloneOrderBook (data['ob'], limit);
         }
         return undefined;
     }

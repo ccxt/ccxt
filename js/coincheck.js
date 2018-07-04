@@ -281,10 +281,10 @@ module.exports = class coincheck extends Exchange {
         if (!('ob' in data)) {
             ob = this.parseOrderBook (ob, undefined);
             data['ob'] = ob;
-            this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
+            this.emit ('ob', symbol, this._cloneOrderBook (ob, data['limit']));
         } else {
             data['ob'] = this.mergeOrderBookDelta (data['ob'], ob, undefined);
-            this.emit ('ob', symbol, this._cloneOrderBook(data['ob'], data['limit']));
+            this.emit ('ob', symbol, this._cloneOrderBook (data['ob'], data['limit']));
         }
         this._contextSetSymbolData (contextId, 'ob', symbol, data);
     }
@@ -312,7 +312,7 @@ module.exports = class coincheck extends Exchange {
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
-            return this._cloneOrderBook(data['ob'], limit);
+            return this._cloneOrderBook (data['ob'], limit);
         }
         return undefined;
     }

@@ -38,8 +38,6 @@ class MyClientProtocol(WebSocketClientProtocol):
             self.event_emitter.emit('close')
 
 
-
-
 class WebsocketConnection(WebsocketBaseConnection):
     def __init__(self, options, timeout, loop):
         super(WebsocketConnection, self).__init__()
@@ -68,7 +66,7 @@ class WebsocketConnection(WebsocketBaseConnection):
                     if url_parsed.scheme == 'wss':
                         proxy_url_parsed = urlparse(self.options['proxies']['https'])
                     else:
-                        proxy_url_parsed = urlparse(self.options['proxies']['http'])                    
+                        proxy_url_parsed = urlparse(self.options['proxies']['http'])
                     proxy = {'host': proxy_url_parsed.hostname, 'port': proxy_url_parsed.port}
                     factory = WebSocketClientFactory(self.options['url'], proxy=proxy)
                 else:

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -727,7 +727,6 @@ module.exports = class bitmex extends Exchange {
             }
         }
     }
-
 
     _asyncHandleOb (msg, conxid = 'default') {
         let action = this.safeString (msg, 'action');

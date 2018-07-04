@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -1004,7 +1004,7 @@ module.exports = class binance extends Exchange {
             let partsLen = deltas.length;
             if (partsLen > 50) {
                 this.emit ('err', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
-                this.websocketClose (conxid);
+                this.websocketClose (contextId);
             } else {
                 symbolData['deltas'].push (data);
                 if (!('snaplaunched' in data)) {
@@ -1042,7 +1042,7 @@ module.exports = class binance extends Exchange {
                     break;
                 }
                 this.emit ('err', new ExchangeError (this.id + ': error in update ids in deltas for ' + symbol));
-                this.websocketClose (conxid);
+                this.websocketClose (contextId);
                 return;
             }
             // process orderbook
@@ -1118,7 +1118,7 @@ module.exports = class binance extends Exchange {
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
-            return this._cloneOrderBook(data['ob'], limit);
+            return this._cloneOrderBook (data['ob'], limit);
         }
         return undefined;
     }
