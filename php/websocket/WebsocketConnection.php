@@ -7,7 +7,7 @@ use Clue;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-include 'AsyncConnection.php';
+include 'WebsocketBaseConnection.php';
 
 class WsEnvelop {
     public $ws;
@@ -23,7 +23,7 @@ class WsEnvelop {
     }
 }
 
-class WebsocketConnection extends AsyncConnection {
+class WebsocketConnection extends WebsocketBaseConnection {
 
     public $options;
     private $timeout;

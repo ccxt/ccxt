@@ -5,7 +5,7 @@ const {
     NotSupported
 } = require('../errors')
 
-module.exports = class AsyncConnection extends EventEmitter {
+module.exports = class WebsocketBaseConnection extends EventEmitter {
     /*
     Events: 
         on('open')

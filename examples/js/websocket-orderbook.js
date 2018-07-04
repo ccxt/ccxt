@@ -8,23 +8,23 @@ const asTable   = require ('as-table')
 
 
 function printUsage () {
-    log ('Usage: node', process.argv[1], 'exchange', 'apiKey', 'secret', 'depth', 'symbol', '...')
+    log ('Usage: node', process.argv[1], 'exchange', 'apiKey', 'secret', 'limit', 'symbol', '...')
 }
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
 let exchange;
-async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
+async function fetchOrderBook (id, apiKey, secret, limit, symbols) {
     exchange = new ccxt[id] ({
         apiKey: apiKey,
         secret: secret,
         enableRateLimit: true,
-        verbose: true,
+        verbose: false,
         // wsproxy: 'http://185.93.3.123:8080/',
     });
     exchange.on ('err', (err, conxid) => {
         try {
             console.log (err);
-            exchange.asyncClose(conxid);
+            exchange.websocketClose(conxid);
         } catch (ex){
             console.log(ex);
         }
@@ -40,9 +40,9 @@ async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
         for (let i = 0; i < symbols.length ; i++) {
             let symbol = symbols[i];
             console.log('subscribe: ' + symbol);
-            await exchange.asyncSubscribe ('ob', symbol);
+            await exchange.websocketSubscribe ('ob', symbol, {'limit':limit});
             console.log('subscribed: ' + symbol);
-            let ob = await exchange.asyncFetchOrderBook(symbol, depth);
+            let ob = await exchange.websocketFetchOrderBook(symbol, limit);
             console.log('ob fetched: ' + symbol);
             // console.log (ob);
             await sleep(5*1000);    
@@ -51,7 +51,7 @@ async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
         for (let i = 0; i < symbols.length ; i++) {
             let symbol = symbols[i];
             console.log('unsubscribe: ' + symbol);
-            await exchange.asyncUnsubscribe ('ob', symbol);
+            await exchange.websocketUnsubscribe ('ob', symbol);
             console.log('unsubscribed: ' + symbol);
             await sleep(5*1000);    
         }
@@ -65,12 +65,12 @@ async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
             const id = process.argv[2]
             const apiKey = process.argv[3]
             const secret = process.argv[4]
-            const depth = parseInt (process.argv[5])
+            const limit = parseInt (process.argv[5])
             const symbols = [];
             for (let i = 6 ; i < process.argv.length; i++) {
                 symbols.push (process.argv[i].toUpperCase ())
             }
-            const ob = await fetchOrderBook (id, apiKey, secret, depth, symbols);
+            const ob = await fetchOrderBook (id, apiKey, secret, limit, symbols);
 
         } else {
 
@@ -79,7 +79,7 @@ async function fetchOrderBook (id, apiKey, secret, depth, symbols) {
     } catch (ex) {
         log ('Error:'.red, ex);
         log (ex.stack);
-        exchange.asyncClose();
+        exchange.websocketClose();
     }
     // process.exit ()
 

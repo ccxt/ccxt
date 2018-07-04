@@ -63,7 +63,7 @@ module.exports = class lbank extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
@@ -72,12 +72,12 @@ module.exports = class lbank extends Exchange {
                     },
                 },
                 'methodmap': {
-                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                         },
@@ -515,7 +515,7 @@ module.exports = class lbank extends Exchange {
         return response;
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
+    _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
         let success = this.safeString (msg, 'success');
         let channel = this.safeString (msg, 'channel');
@@ -529,31 +529,33 @@ module.exports = class lbank extends Exchange {
                     let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
                     // try to match with subscription
                     let found = false;
-                    if ('sub-nonces' in this.asyncContext['ob'][symbol]['data']) {
-                        let nonces = this.asyncContext['ob'][symbol]['data']['sub-nonces'];
+                    let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+                    if ('sub-nonces' in data) {
+                        let nonces = data['sub-nonces'];
                         const keys = Object.keys (nonces);
                         for (let i = 0; i < keys.length; i++) {
                             found = true;
                             let nonce = keys[i];
-                            this._asyncTimeoutCancel (nonces[nonce]);
+                            this._cancelTimeout (nonces[nonce]);
                             this.emit (nonce, success === 'true');
                         }
-                        this.asyncContext['ob'][symbol]['data']['sub-nonces'] = {};
+                        data['sub-nonces'] = {};
                     }
                     // if not found try unsubscription
                     if (!found) {
-                        if ('unsub-nonces' in this.asyncContext['ob'][symbol]['data']) {
-                            let nonces = this.asyncContext['ob'][symbol]['data']['unsub-nonces'];
+                        if ('unsub-nonces' in data) {
+                            let nonces = data['unsub-nonces'];
                             const keys = Object.keys (nonces);
                             for (let i = 0; i < keys.length; i++) {
                                 found = true;
                                 let nonce = keys[i];
-                                this._asyncTimeoutCancel (nonces[nonce]);
+                                this._cancelTimeout (nonces[nonce]);
                                 this.emit (nonce, success === 'true');
                             }
-                            this.asyncContext['ob'][symbol]['data']['unsub-nonces'] = {};
+                            data['unsub-nonces'] = {};
                         }
                     }
+                    this._contextSetSymbolData (contextId, 'ob', symbol, data);
                 }
             }
         } else {
@@ -562,7 +564,7 @@ module.exports = class lbank extends Exchange {
             if (partsLen > 5) {
                 if (parts[5] === 'depth') {
                     let symbol = this.findSymbol (parts[3] + '_' + parts[4]);
-                    this._asyncHandleOb (msg, symbol, conxid);
+                    this._websocketHandleOb (contextId, msg, symbol);
                 }
             } else {
                 this.emit ('err', new ExchangeError (this.id + ' invalid channel ' + channel));
@@ -570,13 +572,15 @@ module.exports = class lbank extends Exchange {
         }
     }
 
-    _asyncHandleOb (msg, symbol, conxid = 'default') {
+    _websocketHandleOb (contextId, msg, symbol) {
         let ob = this.parseOrderBook (msg);
-        this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-        this.emit ('ob', symbol, ob);
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        data['ob'] = ob;
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
+        this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -585,16 +589,19 @@ module.exports = class lbank extends Exchange {
             'event': 'addChannel',
             'channel': 'lh_sub_spot_' + id + '_depth_60',
         };
-        if (!('sub-nonces' in this.asyncContext[event][symbol]['data'])) {
-            this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
+        let data = this._contextGetSymbolData (contextId, event, symbol);
+        data['limit'] = this.safeInteger (params, 'limit', undefined);
+        if (!('sub-nonces' in data)) {
+            data['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'sub-nonces']);
-        this.asyncContext[event][symbol]['data']['sub-nonces'][nonceStr] = handle;
-        this.asyncSendJson (payload);
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
+        data['sub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, data);
+        this.websocketSendJson (payload);
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -604,21 +611,34 @@ module.exports = class lbank extends Exchange {
             'channel': 'lh_sub_spot_' + id + '_depth_60',
             'id': nonce,
         };
-        if (!('unsub-nonces' in this.asyncContext[event][symbol]['data'])) {
-            this.asyncContext[event][symbol]['data']['unsub-nonces'] = {};
+        let data = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('unsub-nonces' in data)) {
+            data['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'unsub-nonces']);
-        this.asyncContext[event][symbol]['data']['unsub-nonces'][nonceStr] = handle;
-        this.asyncSendJson (payload);
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        data['unsub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, data);
+        this.websocketSendJson (payload);
     }
 
-    _asyncTimeoutRemoveNonce (timerNonce, event, symbol, key) {
-        if (key in this.asyncContext[event][symbol]['data']) {
-            let nonces = this.asyncContext[event][symbol]['data'][key];
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let data = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in data) {
+            let nonces = data[key];
             if (timerNonce in nonces) {
-                this.omit (this.asyncContext[event][symbol]['data'][key], timerNonce);
+                this.omit (data[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol, data);
             }
         }
     }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook(data['ob'], limit);
+        }
+        return undefined;
+    }
+
 };

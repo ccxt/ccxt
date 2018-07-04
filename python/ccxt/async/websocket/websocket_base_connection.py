@@ -3,7 +3,7 @@
 """ AsyncConnection """
 
 __all__ = [
-    'AsyncConnection'
+    'WebsocketBaseConnection'
 ]
 
 from pyee import EventEmitter
@@ -11,9 +11,9 @@ from abc import ABC, abstractmethod
 import json
 
 
-class AsyncConnection (ABC, EventEmitter):
+class WebsocketBaseConnection (ABC, EventEmitter):
     def __init__(self):
-        super(AsyncConnection, self).__init__()
+        super(WebsocketBaseConnection, self).__init__()
 
     @abstractmethod
     def connect(self):

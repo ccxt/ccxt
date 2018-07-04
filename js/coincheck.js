@@ -66,7 +66,7 @@ module.exports = class coincheck extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
@@ -76,7 +76,7 @@ module.exports = class coincheck extends Exchange {
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                         },
@@ -262,34 +262,34 @@ module.exports = class coincheck extends Exchange {
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
-        let msg = this.asyncParseJson (data);
+    _websocketOnMessage (contextId, data) {
+        let msg = this.websocketParseJson (data);
         let id = this.safeInteger ({
             'a': msg[0],
         }, 'a');
         if (typeof id === 'undefined') {
             // orderbook
-            this._asyncHandleOb (msg, conxid);
+            this._websocketHandleOb (contextId, msg);
         }
     }
 
-    _asyncHandleOb (msg, conxid = 'default') {
+    _websocketHandleOb (contextId, msg) {
         let symbol = this.findSymbol (msg[0]);
         let ob = msg[1];
         // just testing
-        if (!('ob' in this.asyncContext['ob'][symbol]['data'])) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (!('ob' in data)) {
             ob = this.parseOrderBook (ob, undefined);
-            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-            this.emit ('ob', symbol, ob);
+            data['ob'] = ob;
+            this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
         } else {
-            let curob = this.asyncContext['ob'][symbol]['data']['ob'];
-            curob = this.mergeOrderBookDelta (curob, ob, undefined);
-            this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-            this.emit ('ob', symbol, ob);
+            data['ob'] = this.mergeOrderBookDelta (data['ob'], ob, undefined);
+            this.emit ('ob', symbol, this._cloneOrderBook(data['ob'], data['limit']));
         }
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -297,12 +297,23 @@ module.exports = class coincheck extends Exchange {
             'type': 'subscribe',
             'channel': this.marketId (symbol) + '-orderbook',
         };
-        this.asyncSendJson (payload);
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        data['limit'] = this.safeInteger (params, 'limit', undefined);
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
+        this.websocketSendJson (payload);
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook(data['ob'], limit);
+        }
+        return undefined;
     }
 };

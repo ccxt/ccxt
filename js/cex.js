@@ -79,7 +79,7 @@ module.exports = class cex extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
@@ -88,17 +88,17 @@ module.exports = class cex extends Exchange {
                     },
                 },
                 'methodmap': {
-                    'connected': '_asyncHandleConnected',
-                    'auth': '_asyncHandleAuth',
-                    'ping': '_asyncHandlePing',
-                    'order-book-subscribe': '_asyncHandleObSubscribe',
-                    'order-book-unsubscribe': '_asyncHandleObUnsubscribe',
-                    'md_update': '_asyncHandleObUpdate',
+                    'connected': '_websocketHandleConnected',
+                    'auth': '_websocketHandleAuth',
+                    'ping': '_websocketHandlePing',
+                    'order-book-subscribe': '_websocketHandleObSubscribe',
+                    'order-book-unsubscribe': '_websocketHandleObUnsubscribe',
+                    'md_update': '_websocketHandleObUpdate',
                 },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                         },
@@ -581,23 +581,23 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
-        let msg = this.asyncParseJson (data);
+    _websocketOnMessage (contextId, data) {
+        let msg = JSON.parse (data);
         let e = this.safeString (msg, 'e');
         let oid = this.safeString (msg, 'oid');
         let resData = this.safeValue (msg, 'data', {});
-        if (e in this.asyncconf['methodmap']) {
-            let method = this.asyncconf['methodmap'][e];
-            this[method] (msg, oid, resData, conxid);
+        if (e in this.wsconf['methodmap']) {
+            let method = this.wsconf['methodmap'][e];
+            this[method] (contextId, msg, oid, resData);
         }
     }
 
-    _asyncHandleConnected (msg, oid, resData, conxid = 'default') {
-        this.asyncSendJson (this._asyncAuthPayload ());
+    _websocketHandleConnected (contextId, msg, oid, resData) {
+        this.websocketSendJson (this._websocketAuthPayload ());
     }
 
-    _asyncHandleAuth (msg, oid, resData, conxid = 'default') {
-        this.asyncConnectionPool[conxid]['auth'] = true;
+    _websocketHandleAuth (contextId, msg, oid, resData) {
+        this._contextSetConnectionAuth(contextId, true);
         if (msg['ok'] === 'ok') {
             this.emit ('auth', true);
         } else {
@@ -605,26 +605,28 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandlePing (msg, oid, resData, conxid = 'default') {
-        this.asyncSendJson ({ 'e': 'pong' });
+    _websocketHandlePing (contextId, msg, oid, resData) {
+        this.websocketSendJson ({ 'e': 'pong' });
     }
 
-    _asyncHandleObSubscribe (msg, oid, resData, conxid = 'default') {
+    _websocketHandleObSubscribe (contextId, msg, oid, resData) {
         if (msg['ok'] === 'ok') {
             let symbol = resData['pair'].replace (':', '/');
             let timestamp = resData['timestamp'] * 1000;
             let ob = this.parseOrderBook (resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
+            let data = this._contextGetSymbolData(contextId, 'ob', symbol);
+            data['ob'] = ob;
+            this._contextSetSymbolData(contextId, 'ob', symbol, data);
             this.emit (oid, true);
-            this.emit ('ob', symbol, ob);
+            this.emit ('ob', symbol, this._cloneOrderBook(data['ob'], data['limit']));
         } else {
             let error = new ExchangeError (this.safeString (resData, 'error', 'orderbook error'));
             this.emit (oid, false, error);
         }
     }
 
-    _asyncHandleObUnsubscribe (msg, oid, resData, conxid = 'default') {
+    _websocketHandleObUnsubscribe (contextId, msg, oid, resData) {
         if (msg['ok'] === 'ok') {
             let data = this.safeValue (msg, 'data');
             if (typeof data !== 'undefined') {
@@ -640,22 +642,23 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _asyncHandleObUpdate (msg, oid, resData, conxid = 'default') {
+    _websocketHandleObUpdate (contextId, msg, oid, resData) {
         let symbol = resData['pair'].replace (':', '/');
         let timestamp = resData['time'];
-        let ob = this.asyncContext['ob'][symbol]['data']['ob'];
-        if (ob['nonce'] !== (resData['id'] - 1)) {
-            this.asyncClose ();
-            this.emit ('err', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + ob['nonce'] + ' !== ' + resData['id'] + ' -1'));
+        let data = this._contextGetSymbolData(contextId, 'ob', symbol);
+        if (data['ob']['nonce'] !== (resData['id'] - 1)) {
+            this.websocketClose ();
+            this.emit ('err', new ExchangeError ('invalid orderbook sequence in ' + this.id + ' ' + data['ob']['nonce'] + ' !== ' + resData['id'] + ' -1'));
         } else {
-            ob = this.mergeOrderBookDelta (ob, resData, timestamp);
+            let ob = this.mergeOrderBookDelta (data['ob'], resData, timestamp);
             ob['nonce'] = resData['id'];
-            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-            this.emit ('ob', symbol, this._cloneOrderBook (ob));
+            data['ob'] = ob;
+            this._contextSetSymbolData(contextId, 'ob', symbol, data);
+            this.emit ('ob', symbol, this._cloneOrderBook(data['ob'], data['limit']));
         }
     }
 
-    _asyncAuthPayload () {
+    _websocketAuthPayload () {
         let timestamp = Math.floor (this.milliseconds () / 1000);
         timestamp = timestamp.toString ();
         return {
@@ -668,12 +671,15 @@ module.exports = class cex extends Exchange {
         };
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let [currencyBase, currencyQuote] = symbol.split ('/');
-        this.asyncSendJson ({
+        let data = this._contextGetSymbolData(contextId, event, symbol);
+        data['limit'] = this.safeValue (params, 'limit');
+        this._contextSetSymbolData(contextId, event, symbol, data);
+        this.websocketSendJson ({
             'e': 'order-book-subscribe',
             'data': {
                 'pair': [currencyBase, currencyQuote],
@@ -684,17 +690,25 @@ module.exports = class cex extends Exchange {
         });
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let [currencyBase, currencyQuote] = symbol.split ('/');
-        this.asyncSendJson ({
+        this.websocketSendJson ({
             'e': 'order-book-unsubscribe',
             'data': {
                 'pair': [currencyBase, currencyQuote],
             },
             'oid': nonce,
         });
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook(data['ob'], limit);
+        }
+        return undefined;
     }
 };

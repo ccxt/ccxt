@@ -4,7 +4,7 @@ namespace ccxt;
 
 include 'CcxtEventEmitter.php';
 
-abstract class AsyncConnection extends CcxtEventEmitter {
+abstract class WebsocketBaseConnection extends CcxtEventEmitter {
 
 
     public function __construct () {

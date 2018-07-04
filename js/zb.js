@@ -118,7 +118,7 @@ module.exports = class zb extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
@@ -126,12 +126,12 @@ module.exports = class zb extends Exchange {
                     },
                 },
                 'methodmap': {
-                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                         },
@@ -552,29 +552,29 @@ module.exports = class zb extends Exchange {
         return (index === (strLen - s2.length));
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
-        // {"message":"频道为空","no":"0","code":1007,"channel":"eth_btc_depth","success":false}
+    _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
         let success = this.safeValue (msg, 'success', true);
         let channel = this.safeString (msg, 'channel');
-        let idWs = undefined;
+        let pairId = undefined;
         let channelType = undefined;
         if (this.endsWith (channel, '_depth')) {
             channelType = 'ob';
-            idWs = channel.replace ('_depth', '');
+            pairId = channel.replace ('_depth', '');
         } else {
             // could not determine channel
             return;
         }
-        if (!('idws' in this.asyncContext['_'])) {
-            this.emit ('err', new ExchangeError (this.id + ' internal error: unitialized idws dict in context '));
+        let pairIdList = this._contextGet(contextId, 'pairids');
+        if (typeof pairIdList === 'undefined') {
+            this.emit ('err', new ExchangeError (this.id + ' internal error: unitialized pairids dict in context '));
             return;
         }
-        if (!(idWs in this.asyncContext['_']['idws'])) {
-            this.emit ('err', new ExchangeError (this.id + ' error receiving unexpected market id ' + idWs));
+        if (!(pairId in pairIdList)) {
+            this.emit ('err', new ExchangeError (this.id + ' error receiving unexpected market id ' + pairId));
             return;
         }
-        let id = this.asyncContext['_']['idws'][idWs];
+        let id = pairIdList[pairId];
         let symbol = this.findSymbol (id);
         if (!success) {
             let code = this.safeString (msg, 'code', '0');
@@ -582,68 +582,87 @@ module.exports = class zb extends Exchange {
             // error?
             if (channelType === 'ob') {
                 let ex = new ExchangeError (this.id + ' subscribing error (code: ' + code + ' error: ' + errMsg + ')');
-                this._asyncEmitObSubscription (symbol, false, ex);
+                this._websocketEmitObSubscription (contextId, symbol, false, ex);
             }
             return;
         }
         if (channelType === 'ob') {
-            this._asyncEmitObSubscription (symbol, true, undefined);
-            this._asyncHandleOb (msg, symbol, conxid);
+            this._websocketEmitObSubscription (contextId, symbol, true, undefined);
+            this._websocketHandleOb (contextId, msg, symbol);
         }
     }
 
-    _asyncEmitObSubscription (symbol, success, exception) {
-        if ('sub-nonces' in this.asyncContext['ob'][symbol]['data']) {
-            let nonces = this.asyncContext['ob'][symbol]['data']['sub-nonces'];
+    _websocketEmitObSubscription (contextId, symbol, success, exception) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if ('sub-nonces' in data) {
+            let nonces = data['sub-nonces'];
             const keys = Object.keys (nonces);
             for (let i = 0; i < keys.length; i++) {
                 let nonce = keys[i];
-                this._asyncTimeoutCancel (nonces[nonce]);
+                this._cancelTimeout (nonces[nonce]);
                 this.emit (nonce, success, exception);
             }
-            this.asyncContext['ob'][symbol]['data']['sub-nonces'] = {};
+            data['sub-nonces'] = {};
+            this._contextSetSymbolData (contextId, 'ob', symbol, data);
         }
     }
 
-    _asyncHandleOb (msg, symbol, conxid = 'default') {
+    _websocketHandleOb (contextId, msg, symbol) {
         let ob = this.parseOrderBook (msg);
-        this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-        this.emit ('ob', symbol, ob);
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        data['ob'] = ob;
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
+        this.emit ('ob', symbol, this._cloneOrderBook(ob, data['limit']));
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let id = this.market_id (symbol);
-        let idWs = id.replace ('_', '');
+        let pairId = id.replace ('_', '');
         let payload = {
             'event': 'addChannel',
-            'channel': idWs + '_depth',
+            'channel': pairId + '_depth',
         };
-        if (!('idws' in this.asyncContext['_'])) {
-            this.asyncContext['_']['idws'] = {};
+        let pairIdList = this._contextGet(contextId, 'pairids');
+        if (typeof pairIdList === 'undefined') {
+            pairIdList = {};
         }
-        this.asyncContext['_']['idws'][idWs] = id;
-        if (!('sub-nonces' in this.asyncContext['ob'][symbol]['data'])) {
-            this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
+        pairIdList[pairId] = id;
+        this._contextSet(contextId, 'pairids', pairIdList);
+        let data = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('sub-nonces' in data)) {
+            data['sub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'sub-nonces']);
-        this.asyncContext[event][symbol]['data']['sub-nonces'][nonceStr] = handle;
-        this.asyncSendJson (payload);
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonces']);
+        data['sub-nonces'][nonceStr] = handle;
+        data['limit'] = this.safeValue (params, 'limit');
+        this._contextSetSymbolData (contextId, event, symbol, data);
+        this.websocketSendJson (payload);
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
     }
 
-    _asyncTimeoutRemoveNonce (timerNonce, event, symbol, key) {
-        if (key in this.asyncContext[event][symbol]['data']) {
-            let nonces = this.asyncContext[event][symbol]['data'][key];
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let data = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in data) {
+            let nonces = data[key];
             if (timerNonce in nonces) {
-                this.omit (this.asyncContext[event][symbol]['data'][key], timerNonce);
+                this.omit (data[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol);
             }
         }
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook(data['ob'], limit);
+        }
+        return undefined;
     }
 };

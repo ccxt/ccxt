@@ -5,7 +5,7 @@ const asTable = require('as-table'),
   ansi = require('ansicolor').nice,
   ccxt = require('../../ccxt.js'),
   cex = require('../../js/cex');
-const HttpsProxyAgent = require('https-proxy-agent');
+//const HttpsProxyAgent = require('https-proxy-agent');
 
 function printUsage() {
   log(
@@ -14,7 +14,7 @@ function printUsage() {
     'exchange',
     'apiKey',
     'secret',
-    'depth',
+    'limit',
     'symbol',
     '...'
   );
@@ -22,20 +22,20 @@ function printUsage() {
 let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 let exchange;
-async function fetchOrderBook(id, apiKey, secret, depth, symbols, params) {
-  const proxy = process.env.http_proxy || 'http://localhost:7080'; // HTTP/HTTPS proxy to connect to（only local http proxy work at "here"）
-  const agent = new HttpsProxyAgent(proxy);
+async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
+  // const proxy = process.env.http_proxy || 'http://localhost:7080'; // HTTP/HTTPS proxy to connect to（only local http proxy work at "here"）
+  // const agent = new HttpsProxyAgent(proxy);
   exchange = new ccxt[id]({
     apiKey: apiKey,
     secret: secret,
     enableRateLimit: true,
-    verbose: true,
-    agent: agent
+    verbose: false,
+    // agent: agent
   });
   exchange.on('err', (err, conxid) => {
     try {
       console.log(err);
-      exchange.asyncClose(conxid);
+      exchange.websocketClose(conxid);
     } catch (ex) {
       console.log(ex);
     }
@@ -50,9 +50,9 @@ async function fetchOrderBook(id, apiKey, secret, depth, symbols, params) {
     for (let i = 0; i < symbols.length; i++) {
       let symbol = symbols[i];
       console.log('subscribe: ' + symbol);
-      await exchange.asyncSubscribe('ob', symbol, params);
+      await exchange.websocketSubscribe('ob', symbol, params);
       console.log('subscribed: ' + symbol);
-      let ob = await exchange.asyncFetchOrderBook(symbol, depth);
+      let ob = await exchange.websocketFetchOrderBook(symbol, limit);
       console.log('ob fetched: ' + symbol, ob);
       // console.log (ob);
       await sleep(5 * 1000);
@@ -61,7 +61,7 @@ async function fetchOrderBook(id, apiKey, secret, depth, symbols, params) {
     for (let i = 0; i < symbols.length; i++) {
       let symbol = symbols[i];
       console.log('unsubscribe: ' + symbol);
-      await exchange.asyncUnsubscribe('ob', symbol, params);
+      await exchange.websocketUnsubscribe('ob', symbol, params);
       console.log('unsubscribed: ' + symbol);
       await sleep(5 * 1000);
     }
@@ -70,15 +70,28 @@ async function fetchOrderBook(id, apiKey, secret, depth, symbols, params) {
 
 (async function main() {
   try {
-    //depth must provide if you want all orderbook, otherwise, it will be incremental
-    const ob = await fetchOrderBook('okex', '', '', 5, ['BTC/USDT'], {
-      contract_type: 'next_week',
-      depth: 20
-    });
+    if (process.argv.length > 6) {
+      const id = process.argv[2]
+      const apiKey = process.argv[3]
+      const secret = process.argv[4]
+      const limit = parseInt (process.argv[5])
+      const symbols = [];
+      for (let i = 6 ; i < process.argv.length; i++) {
+          symbols.push (process.argv[i].toUpperCase ())
+      }
+      //
+      // this call gets live orderbook 
+      const ob = await fetchOrderBook(id, apiKey, secret, limit, symbols, {
+        // contract_type: 'next_week',
+        'limit': limit,
+      });
+    } else {
+      printUsage ()
+    }
   } catch (ex) {
     log('Error:'.red, ex);
     log(ex.stack);
-    exchange.asyncClose();
+    exchange.websocketClose();
   }
   // process.exit ()
 })();

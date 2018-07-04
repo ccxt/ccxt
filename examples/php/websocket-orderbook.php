@@ -48,16 +48,16 @@ $exchange->on ('ob', function ($symbol, $ob) {
 
 foreach ($symbols as $symbol) {
     echo ("subscribe: " . $symbol . "\n");
-    $exchange->async_subscribe ('ob', $symbol);
+    $exchange->websocket_subscribe ('ob', $symbol, array('limit'=>$limit));
     echo ("subscribed: " . $symbol . "\n");
-    $exchange->async_fetch_order_book($symbol, $limit);
+    $exchange->websocket_fetch_order_book($symbol, $limit);
     echo ("ob fetched: " . $symbol . "\n");
     // print_r ($ob);
     Clue\React\Block\sleep(5, $loop);
 }
 foreach ($symbols as $symbol) {
     echo ("unsubscribe: " . $symbol . "\n");
-    $exchange->async_unsubscribe ('ob', $symbol);
+    $exchange->websocket_unsubscribe ('ob', $symbol);
     echo ("unsubscribed: " . $symbol . "\n");
     Clue\React\Block\sleep(5, $loop);
 }

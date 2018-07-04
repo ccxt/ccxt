@@ -39,14 +39,14 @@ async def main():
     })
 
     @exchange.on('err')
-    def async_error(err, conxid):  # pylint: disable=W0612
+    def websocket_error(err, conxid):  # pylint: disable=W0612
         print(type(err).__name__ + ":" + str(err))
         traceback.print_tb(err.__traceback__)
         traceback.print_stack()
         loop.stop()
 
     @exchange.on('ob')
-    def async_ob(symbol, ob):  # pylint: disable=W0612
+    def websocket_ob(symbol, ob):  # pylint: disable=W0612
         print("ob received from: " + symbol)
         sys.stdout.flush()
         # pp.pprint(ob)
@@ -58,10 +58,10 @@ async def main():
             symbol = symbols[i]
             print("subscribe: " + symbol)
             sys.stdout.flush()
-            await exchange.async_subscribe('ob', symbol)
+            await exchange.websocket_subscribe('ob', symbol, {'limit' : limit})
             print("subscribed: " + symbol)
             sys.stdout.flush()
-            ob = await exchange.async_fetch_order_book(symbol, limit)  # noqa: F841 pylint: disable=W0612
+            ob = await exchange.websocket_fetch_order_book(symbol, limit)  # noqa: F841 pylint: disable=W0612
             print("ob fetched: " + symbol)
             # print(ob)
             sys.stdout.flush()
@@ -71,7 +71,7 @@ async def main():
             symbol = symbols[i]
             print("unsubscribe: " + symbol)
             sys.stdout.flush()
-            await exchange.async_unsubscribe('ob', symbol)
+            await exchange.websocket_unsubscribe('ob', symbol)
             print("unsubscribed: " + symbol)
             sys.stdout.flush()
             await asyncio.sleep(5)

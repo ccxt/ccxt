@@ -45,7 +45,7 @@ const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill')
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
 const EventEmitter = require('events')
-const WebsocketConnection = require ('./async/websocket_connection')
+const WebsocketConnection = require ('./websocket/websocket_connection')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -115,7 +115,7 @@ module.exports = class Exchange extends EventEmitter{
                 'fees': undefined,
             },
             'api': undefined,
-            'asyncconf': undefined,
+            'wsconf': undefined,
             'requiredCredentials': {
                 'apiKey':   true,
                 'secret':   true,
@@ -307,8 +307,7 @@ module.exports = class Exchange extends EventEmitter{
         if (this.api)
             this.defineRestApi (this.api, 'request')
 
-        this.asyncConnectionPool = {};
-        this._asyncResetContext();
+        this.websocketContexts = {};
 
         this.initRestRateLimiter ()
 
@@ -879,6 +878,21 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
+    getCurrencyUsedOnOpenOrders (currency) {
+        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
+            let symbol = order['symbol'];
+            let market = this.markets[symbol];
+            let remaining = order['remaining']
+            if (currency === market['base'] && order['side'] === 'sell') {
+                return total + remaining
+            } else if (currency === market['quote'] && order['side'] === 'buy') {
+                return total + (order['price'] * remaining)
+            } else {
+                return total
+            }
+        }, 0)
+    }
+
     parseBalance (balance) {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
@@ -1143,7 +1157,7 @@ module.exports = class Exchange extends EventEmitter{
         return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
     }
 
-    // async methods
+    // websocket methods
     searchIndexToInsertOrUpdate (value, orderedArray, key, descending = false) {
         let i;
         let direction = descending ? -1 : 1;
@@ -1187,27 +1201,13 @@ module.exports = class Exchange extends EventEmitter{
         return currentOrderBook;
     }
 
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
-            let symbol = order['symbol'];
-            let market = this.markets[symbol];
-            let remaining = order['remaining']
-            if (currency === market['base'] && order['side'] === 'sell') {
-                return total + remaining
-            } else if (currency === market['quote'] && order['side'] === 'buy') {
-                return total + (order['price'] * remaining)
-            } else {
-                return total
-            }
-        }, 0)
-    }
-
-    _asyncContextGetSubscribedEventSymbols (conxid) {
+    _websocketContextGetSubscribedEventSymbols (conxid) {
         let ret = [];
-        for (let key in this.asyncContext) {
-            for (let symbol in this.asyncContext[key]) {
-                let symbolContext = this.asyncContext[key][symbol];
-                if ((symbolContext['conxid'] === conxid) && ((symbolContext['subscribed']) ||(symbolContext['subscribing']))){
+        let events = this._contextGetEvents(conxid);
+        for (let key in events) {
+            for (let symbol in events[key]) {
+                let symbolContext = events[key][symbol];
+                if ((symbolContext['subscribed']) ||(symbolContext['subscribing'])){
                     ret.push ({
                         'event': key,
                         'symbol': symbol,
@@ -1218,73 +1218,166 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
-    _asyncValidEvent (event) {
-        return (typeof this.asyncconf['events'] !== undefined) && (event in this.asyncconf['events']);
+    _websocketValidEvent (event) {
+        return (typeof this.wsconf['events'] !== undefined) && (event in this.wsconf['events']);
     }
 
-    _asyncResetContext (conxid = null) {
-        if (conxid === null) {
-            this.asyncContext = {
+    _websocketResetContext (conxid, conxtpl = undefined) {
+        if (!(conxid in this.websocketContexts)) {
+            this.websocketContexts[conxid] = {
                 '_': {},
+                'conx-tpl': conxtpl,
+                'events': {},
+                'conx': undefined,
             };
-            if (this.asyncconf && (typeof this.asyncconf['events'] !== undefined)) {
-                for (const evkey of Object.keys (this.asyncconf['events'])) {
-                    this.asyncContext[evkey] = {};
-                }
-            }
-            /*
-            this.asyncContext = {
-                'ob': {},
-                'ticker': {},
-                'ohlvc': {},
-                'trades': {},
-                '_': {},
-            };
-            */
         } else {
-            for (let key in this.asyncContext) {
-                if (key !== '_') {
-                    for (let symbol in this.asyncContext[key]) {
-                        let symbolContext = this.asyncContext[key][symbol];
-                        if (symbolContext['conxid'] === conxid) {
-                            symbolContext['subscribed'] = false;
-                            symbolContext['subscribing'] = false;
-                            symbolContext['data'] = {};
-                        }
-                    }
+            let events = this._contextGetEvents(conxid);
+            for (let key in events) {
+                for (let symbol in events[key]) {
+                    let symbolContext = events[key][symbol];
+                    symbolContext['subscribed'] = false;
+                    symbolContext['subscribing'] = false;
+                    symbolContext['data'] = {};
                 }
             }
         }
     }
 
-    _asyncConnectionGet(conxid = 'default') {
-        if (this.asyncConnectionPool[conxid] === undefined){
-            throw new NotSupported ("async <" + conxid + "> not found in this exchange: " + this.id);
-        }
-        return this.asyncConnectionPool[conxid];
+    _contextGetConxTpl(conxid) {
+        return this.websocketContexts[conxid]['conx-tpl'];
     }
 
-    _asyncGetActionForEvent(event, symbol, subscription=true){
+    _contextGetConnection(conxid) {
+        if (this.websocketContexts[conxid]['conx'] === undefined){
+            return null;
+        }
+        return this.websocketContexts[conxid]['conx']['conx'];
+    }
+
+    _contextGetConnectionInfo (conxid) {
+        if (this.websocketContexts[conxid]['conx'] === undefined){
+            throw new NotSupported ("websocket <" + conxid + "> not found in this exchange: " + this.id);
+        }
+        return this.websocketContexts[conxid]['conx'];
+    }
+
+    _contextIsConnectionReady(conxid) {
+        return this.websocketContexts[conxid]['conx']['ready'];
+    }
+
+    _contextSetConnectionReady(conxid, ready) {
+        this.websocketContexts[conxid]['conx']['ready'] = ready;
+    }
+
+    _contextIsConnectionAuth(conxid) {
+        return this.websocketContexts[conxid]['conx']['auth'];
+    }
+
+    _contextSetConnectionAuth(conxid, auth) {
+        this.websocketContexts[conxid]['conx']['auth'] = auth;
+    }
+
+    _contextSetConnectionInfo(conxid, info) {
+        this.websocketContexts[conxid]['conx'] = info;
+    }
+
+    _contextSet (conxid, key, data) {
+        this.websocketContexts[conxid]['_'][key] = data;
+    }
+
+    _contextGet (conxid, key) {
+        return this.websocketContexts[conxid]['_'][key];
+    }
+
+    _contextGetEvents(conxid) {
+        return this.websocketContexts[conxid]['events'];
+    }
+
+    _contextGetSymbols(conxid, event){
+        return this.websocketContexts[conxid]['events'][event];
+    }
+
+    _contextResetEvent(conxid, event) {
+        this.websocketContexts[conxid]['events'][event] = {};
+    }
+
+    _contextResetSymbol(conxid, event, symbol) {
+        this.websocketContexts[conxid]['events'][event][symbol] = {
+            'subscribed': false,
+            'subscribing': false,
+            'data': {},
+        };
+    }
+
+    _contextGetSymbolData(conxid, event, symbol) {
+        return this.websocketContexts[conxid]['events'][event][symbol]['data'];
+    }
+
+    _contextSetSymbolData(conxid, event, symbol, data){
+        this.websocketContexts[conxid]['events'][event][symbol]['data'] = data;
+    }
+
+    _contextSetSubscribed (conxid, event, symbol, subscribed) {
+        this.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed;
+    }
+
+    _contextIsSubscribed (conxid, event, symbol) {
+        return (typeof this.websocketContexts[conxid]['events'][event] !== 'undefined') && 
+            (typeof this.websocketContexts[conxid]['events'][event][symbol] !== 'undefined') && 
+            this.websocketContexts[conxid]['events'][event][symbol]['subscribed'];
+    }
+
+    _contextSetSubscribing (conxid, event, symbol, subscribing) {
+        this.websocketContexts[conxid]['events'][event][symbol]['subscribing'] = subscribing;
+    }
+
+    _contextIsSubscribing (conxid, event, symbol) {
+        return (typeof this.websocketContexts[conxid]['events'][event] !== 'undefined') && 
+            (typeof this.websocketContexts[conxid]['events'][event][symbol] !== 'undefined') && 
+            this.websocketContexts[conxid]['events'][event][symbol]['subscribing'];
+    }
+
+    _websocketGetConxid4Event (event, symbol) {
+        let eventConf = this.safeValue(this.wsconf['events'], event);
+        let conxParam = this.safeValue (eventConf, 'conx-param', {
+            'id': '{id}'
+        });
+        return {
+            'conxid' : this.implodeParams (conxParam['id'], { 
+                'event': event,
+                'symbol': symbol,
+                'id': eventConf['conx-tpl']
+            }),
+            'conxtpl' : eventConf['conx-tpl']
+        };
+    }
+
+    _websocketGetActionForEvent(conxid, event, symbol, subscription=true){
         // if subscription and still subscribed no action returned
-        let sym = this.asyncContext[event][symbol];
-        if (subscription && (sym != undefined) && (sym['subscribed'] || sym['subscribing'])) {
+        //let sym = undefined;
+        //if ((event in this.websocketContext[conxid]) && (symbol in this.websocketContext[conxid][event])){
+        //    sym = this.websocketContext[event][symbol];
+        //}
+        let isSubscribed = this._contextIsSubscribed(conxid, event, symbol);
+        let isSubscribing = this._contextIsSubscribing(conxid, event, symbol);
+        if (subscription && (isSubscribed || isSubscribing)) {
             return null;
         }
         // if unsubscription and no subscribed and no subscribing no action returned
-        if (!subscription && ((sym == undefined) || (!sym['subscribed'] && !sym['subscribing']))) {
+        if (!subscription && (!isSubscribed && !isSubscribing)) {
             return null;
         }
         // get conexion type for event
-        let eventConf = this.safeValue(this.asyncconf['events'], event);
+        let eventConf = this.safeValue(this.wsconf['events'], event);
         if (eventConf === undefined) {
-            throw new ExchangeError ("invalid async configuration for event: " + event + " in exchange: " + this.id);
+            throw new ExchangeError ("invalid websocket configuration for event: " + event + " in exchange: " + this.id);
         }
         let conxTplName = this.safeString (eventConf, 'conx-tpl', 'default');
-        let conxTpl = this.safeValue(this.asyncconf['conx-tpls'], conxTplName);
+        let conxTpl = this.safeValue(this.wsconf['conx-tpls'], conxTplName);
         if (conxTpl === undefined) {
-            throw new ExchangeError ("tpl async conexion: " + conxTplName + " does not exist in exchange: " + this.id);
+            throw new ExchangeError ("tpl websocket conexion: " + conxTplName + " does not exist in exchange: " + this.id);
         }
-        let generators = this.safeValue (eventConf, 'generators', {
+        let conxParam = this.safeValue (eventConf, 'conx-param', {
             'url': '{baseurl}',
             'id': '{id}',
             'stream': '{symbol}',
@@ -1295,11 +1388,11 @@ module.exports = class Exchange extends EventEmitter{
             'id': conxTplName,
         });
         let config = extend ({}, conxTpl);
-        for (let key in generators) {
-            config[key] = this.implodeParams (generators[key], params);
+        for (let key in conxParam) {
+            config[key] = this.implodeParams (conxParam[key], params);
         }
         if (!(('id' in config) && ('url' in config) && ('type' in config))) {
-            throw new ExchangeError ("invalid async configuration in exchange: " + this.id);
+            throw new ExchangeError ("invalid websocket configuration in exchange: " + this.id);
         }
         switch (config['type']){
             case 'ws':
@@ -1307,19 +1400,21 @@ module.exports = class Exchange extends EventEmitter{
                     'action': 'connect',
                     'conx-config': config,
                     'reset-context': 'onconnect',
+                    'conx-tpl': conxTplName,
                 };
             case 'ws-s':
-                let subscribed = this._asyncContextGetSubscribedEventSymbols(config['id']);
+                let subscribed = this._websocketContextGetSubscribedEventSymbols(config['id']);
                 if (subscription) {
                     subscribed.push ({
                         'event': event,
                         'symbol': symbol,
                     });
-                    config ['url'] = this._asyncGenerateUrlStream (subscribed, config);
+                    config ['url'] = this._websocketGenerateUrlStream (subscribed, config);
                     return {
                         'action': 'reconnect',
                         'conx-config': config,
                         'reset-context': 'onreconnect',
+                        'conx-tpl': conxTplName,
                     };
                 } else {
                     for (let i = 0; i < subscribed.length; i++) {
@@ -1334,154 +1429,164 @@ module.exports = class Exchange extends EventEmitter{
                             'action': 'disconnect',
                             'conx-config': config,
                             'reset-context': 'always',
+                            'conx-tpl': conxTplName,
                         };
 
                     } else {
-                        config ['url'] = this._asyncGenerateUrlStream (subscribed, config);
+                        config ['url'] = this._websocketGenerateUrlStream (subscribed, config);
                         return {
                             'action': 'reconnect',
                             'conx-config': config,
                             'reset-context': 'onreconnect',
+                            'conx-tpl': conxTplName,
                         };
                     }
                 }
              
             default:
-                throw new NotSupported ("invalid async connection: " + config['type'] + " for exchange " + this.id);
+                throw new NotSupported ("invalid websocket connection: " + config['type'] + " for exchange " + this.id);
         }
     }
 
-    async _asyncEnsureConxActive (event, symbol, subscribe) {
-        let action = this._asyncGetActionForEvent (event, symbol, subscribe);
+    async _websocketEnsureConxActive (event, symbol, subscribe) {
+        let { conxid, conxtpl } = this._websocketGetConxid4Event (event, symbol);
+        if (!(conxid in this.websocketContexts)) {
+            this._websocketResetContext(conxid, conxtpl);
+        }
+        let action = this._websocketGetActionForEvent (conxid, event, symbol, subscribe);
         if (action !== null) {
             let conxConfig = this.safeValue (action, 'conx-config', {});
+            if (!(event in this._contextGetEvents(conxid))) {
+                this._contextResetEvent(conxid, event);
+            }
+            if (!(symbol in this._contextGetSymbols(conxid, event))){
+                this._contextResetSymbol(conxid, event, symbol);
+            }
+            let conx;
             switch(action['action']){
                 case 'reconnect':
-                    if (conxConfig['id'] in this.asyncConnectionPool){
-                        this.asyncConnectionPool[conxConfig['id']]['conx'].close();
+                    conx = this._contextGetConnection(conxid);
+                    if (conx != null){
+                        conx.close();
                     }
                     if (action['reset-context'] === 'onreconnect') {
-                        this._asyncResetContext(conxConfig['id']);
+                        this._websocketResetContext(conxid, conxtpl);
                     }
-                    this.asyncConnectionPool[conxConfig['id']] = this._asyncInitialize(conxConfig, conxConfig['id']);
+                    this._contextSetConnectionInfo (conxid, this._websocketInitialize(conxConfig, conxid));
                     break;
                 case 'connect':
-                    if (conxConfig['id'] in this.asyncConnectionPool){
-                        if (this.asyncConnectionPool[conxConfig['id']]['conx'].isActive()){
+                    conx = this._contextGetConnection(conxid);
+                    if (conx != null){
+                        if (conx.isActive()){
                             break;
                         }
-                        this.asyncConnectionPool[conxConfig['id']]['conx'].close();
-                        this._asyncResetContext(conxConfig['id']);
+                        conx.close();
+                        this._websocketResetContext(conxid, conxtpl);
                     } else {
-                        this._asyncResetContext(conxConfig['id']);
+                        this._websocketResetContext(conxid, conxtpl);
                     }
-                    this.asyncConnectionPool[conxConfig['id']] = this._asyncInitialize(conxConfig, conxConfig['id']);
+                    this._contextSetConnectionInfo (conxid, this._websocketInitialize(conxConfig, conxid));
                     break;
                 case 'disconnect':
-                    if (conxConfig['id'] in this.asyncConnectionPool) {
-                        this.asyncConnectionPool[conxConfig['id']]['conx'].close();
-                        this._asyncResetContext(conxConfig['id']);
+                    conx = this._contextGetConnection(conxid);
+                    if (conx != null) {
+                        conx.close();
+                        this._websocketResetContext(conxid, conxtpl);
                     }
-                    return;
+                    return conxid;
             }
-            if (this.asyncContext[event][symbol] == null){
-                this.asyncContext[event][symbol] = {
-                    'subscribed': false,
-                    'subscribing': false,
-                    'data': {},
-                    'conxid': conxConfig['id'],
-                };
-            }
-            await this.asyncConnect (conxConfig['id']);
+            await this.websocketConnect (conxid);
         }
+        return conxid;
     }
 
-    async asyncConnect (conxid = 'default') {
-        let asyncConxInfo = this._asyncConnectionGet(conxid);
+    async websocketConnect (conxid = 'default') {
+        let websocketConxInfo = this._contextGetConnectionInfo(conxid);
+        let conxTpl = this._contextGetConxTpl (conxid);
         await this.loadMarkets();
-        if (!asyncConxInfo['ready']) {
-            let wait4readyEvent = this.safeString (this.asyncconf['conx-tpls'][conxid], 'wait4readyEvent');
+        if (!websocketConxInfo['ready']) {
+            let wait4readyEvent = this.safeString (this.wsconf['conx-tpls'][conxTpl], 'wait4readyEvent');
             if (wait4readyEvent != null){
                 await new Promise(async (resolve, reject) => {
                     this.once (wait4readyEvent, (success, error) => {
                         if (success) {
-                            asyncConxInfo['ready'] = true;
+                            websocketConxInfo['ready'] = true;
                             resolve();
                         } else {
                             reject(error);
                         }
                     });
-                    asyncConxInfo['conx'].connect ();
+                    websocketConxInfo['conx'].connect ();
                 });
             } else {
-                await asyncConxInfo['conx'].connect ();
+                await websocketConxInfo['conx'].connect ();
             }
         }
     }
 
-    asyncParseJson (rawData) {
+    websocketParseJson (rawData) {
         return JSON.parse (rawData);
     }
 
-    asyncClose (conxid = 'default') {
-        let asyncConxInfo = this._asyncConnectionGet(conxid);
-        asyncConxInfo['conx'].close();
+    websocketClose (conxid = 'default') {
+        let websocketConxInfo = this._contextGetConnectionInfo(conxid);
+        websocketConxInfo['conx'].close();
     }
 
-    asyncSend (data, conxid = 'default') {
-        let asyncConxInfo = this._asyncConnectionGet(conxid);
-        asyncConxInfo['conx'].send(data);
+    websocketSend (data, conxid = 'default') {
+        let websocketConxInfo = this._contextGetConnectionInfo(conxid);
+        websocketConxInfo['conx'].send(data);
     }
 
-    asyncSendJson (data, conxid = 'default') {
-        let asyncConxInfo = this._asyncConnectionGet(conxid);
+    websocketSendJson (data, conxid = 'default') {
+        let websocketConxInfo = this._contextGetConnectionInfo(conxid);
         if (this.verbose)
             console.log (conxid + "->" + JSON.stringify(data));
-        asyncConxInfo['conx'].sendJson(data);
+        websocketConxInfo['conx'].sendJson(data);
     }
 
-    _asyncInitialize (asyncConfig, conxid = 'default') {
-        let asyncConnectionInfo = {
+    _websocketInitialize (websocketConfig, conxid = 'default') {
+        let websocketConnectionInfo = {
             'auth': false,
             'ready': false,
             'conx': null,
         };
-        asyncConfig['agent'] = this.agent;
-        switch (asyncConfig['type']){
+        websocketConfig['agent'] = this.agent;
+        switch (websocketConfig['type']){
             case 'ws':
-                asyncConnectionInfo['conx'] = new WebsocketConnection (asyncConfig, this.timeout);
+                websocketConnectionInfo['conx'] = new WebsocketConnection (websocketConfig, this.timeout);
                 break;
             case 'ws-s':
-                asyncConnectionInfo['conx'] = new WebsocketConnection (asyncConfig, this.timeout);
+                websocketConnectionInfo['conx'] = new WebsocketConnection (websocketConfig, this.timeout);
                 break;
             default:
-                throw new NotSupported ("invalid async connection: " + asyncConfig['type'] + " for exchange " + this.id);
+                throw new NotSupported ("invalid websocket connection: " + websocketConfig['type'] + " for exchange " + this.id);
         }
-        asyncConnectionInfo['conx'].on ('open', () => {
-            asyncConnectionInfo['auth'] = false;
-            this._asyncEventOnOpen(conxid, asyncConnectionInfo['conx'].options);
+        websocketConnectionInfo['conx'].on ('open', () => {
+            websocketConnectionInfo['auth'] = false;
+            this._websocketOnOpen(conxid, websocketConnectionInfo['conx'].options);
         });
-        asyncConnectionInfo['conx'].on ('err', (err) => {
-            asyncConnectionInfo['auth'] = false;
-            this._asyncResetContext (conxid);
+        websocketConnectionInfo['conx'].on ('err', (err) => {
+            websocketConnectionInfo['auth'] = false;
+            this._websocketResetContext (conxid);
             this.emit ('err', err, conxid);
         });
-        asyncConnectionInfo['conx'].on ('message', (data) => {
+        websocketConnectionInfo['conx'].on ('message', (data) => {
             if (this.verbose)
                 console.log (conxid + '<-' + data);
             try {
-                this._asyncOnMsg (data, conxid);
+                this._websocketOnMessage (conxid, data);
             } catch (ex) {
                 this.emit ('err', ex, conxid);
             }
         });
-        asyncConnectionInfo['conx'].on ('close', () => {
-            asyncConnectionInfo['auth'] = false;
-            this._asyncResetContext (conxid);
+        websocketConnectionInfo['conx'].on ('close', () => {
+            websocketConnectionInfo['auth'] = false;
+            this._websocketResetContext (conxid);
             this.emit ('close', conxid);
         });
 
-        return asyncConnectionInfo;
+        return websocketConnectionInfo;
     }
 
     timeoutPromise (promise, scope) {
@@ -1508,7 +1613,7 @@ module.exports = class Exchange extends EventEmitter{
         return ret;
     }
 
-    _asyncExecute (method, params, callback, context = {}, thisParam = null) {
+    _executeAndCallback (method, params, callback, context = {}, thisParam = null) {
         try {
             thisParam = thisParam != null ? thisParam: this;
             let promise = this[method].apply (thisParam, params);
@@ -1521,30 +1626,149 @@ module.exports = class Exchange extends EventEmitter{
                     thisParam[callback].apply (thisParam, args);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex));
                 }
             }).catch(function(error) {
                 try {
                     thisParam[callback].apply (thisParam, [context, error]);
                 } catch (ex) {
                     console.log (ex.stack);
-                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _asyncExecute: '+ ex));
+                    that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + callback + ' in _executeAndCallback: '+ ex));
                 }
             });
         } catch (ex) {
             console.log (ex.stack);
-            that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' in _asyncExecute: '+ ex));
+            that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' in _executeAndCallback: '+ ex));
         }
     }
 
-    _asyncMethodMap (key) {
-        if ((this.asyncconf['methodmap'] === undefined) || (this.asyncconf['methodmap'][key] === undefined)){
-            throw new ExchangeError (this.id + ': ' + key + ' not found in async methodmap')
-        }
-        return this.asyncconf['methodmap'][key];
+    websocketFetchOrderBook (symbol, limit = undefined) {
+        return this.timeoutPromise (new Promise (async (resolve, reject) => {
+            try {
+                if (!this._websocketValidEvent('ob')) {
+                    reject(new ExchangeError ('Not valid event ob for exchange ' + this.id));
+                    return;
+                }
+                let conxid = await this._websocketEnsureConxActive ('ob', symbol, true);
+                let ob = this._getCurrentWebsocketOrderbook (conxid, symbol, limit);
+                if (typeof ob !== 'undefined') {
+                    resolve (ob);
+                    return;
+                }
+                let f = (symbolR, ob) => {
+                    if (symbolR === symbol) {
+                        this.removeListener ('ob', f);
+                        resolve (this._getCurrentWebsocketOrderbook (conxid, symbol, limit));
+                    }
+                }
+                this.on ('ob', f);
+            } catch (ex) {
+                reject (ex);
+            }
+        }), 'websocketFetchOrderBook');
     }
 
-    _asyncTimeoutSet (mseconds, method, params, thisParam = null) {
+    websocketSubscribe (event, symbol, params = {}) {
+        let promise = new Promise (async (resolve, reject) => {
+            try {
+                if (!this._websocketValidEvent(event)) {
+                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+                    return;
+                }
+                let conxid = await this._websocketEnsureConxActive (event, symbol, true);
+                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                this.once (oid.toString(), (success, ex = null) => {
+                    if (success) {
+                        this._contextSetSubscribed(conxid, event, symbol, true);
+                        this._contextSetSubscribing(conxid, event, symbol, false);
+                        resolve ();
+                    } else {
+                        this._contextSetSubscribed(conxid, event, symbol, false);
+                        this._contextSetSubscribing(conxid, event, symbol, false);
+                        if (ex != null) {
+                            reject (ex);
+                        } else {
+                            reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
+                        }
+                    }
+                });
+                this._contextSetSubscribing(conxid, event, symbol, true);
+                this._websocketSubscribe (conxid, event, symbol, oid, params);
+            } catch (ex) {
+                reject (ex);
+            }
+        });
+        return this.timeoutPromise (promise, 'websocketSubscribe');
+    }
+
+    websocketUnsubscribe (event, symbol, params = {}) {
+        let promise = new Promise (async (resolve, reject) => {
+            try {
+                if (!this._websocketValidEvent(event)) {
+                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
+                    return;
+                }
+                let conxid = await this._websocketEnsureConxActive (event, symbol, false);
+                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
+                this.once (oid.toString(), (success, ex = null) => {
+                    if (success) {
+                        this._contextSetSubscribed(conxid, event, symbol, false);
+                        this._contextSetSubscribing(conxid, event, symbol, false);
+                        resolve ();
+                    } else {
+                        if (ex != null) {
+                            reject (ex);
+                        } else {
+                            reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
+                        }
+                    }
+                });
+                this._websocketUnsubscribe (conxid, event, symbol, oid,params);
+            } catch (ex) {
+                reject (ex);
+            }
+        });
+        return this.timeoutPromise (promise, 'websocketUnsubscribe');
+    }
+
+
+
+    _websocketOnOpen (contextId, websocketConexConfig) {
+    }
+
+    _websocketOnMessage (contextId, data) {
+    }
+
+    _websocketOnClose (contextId) {
+    }
+
+    _websocketOnError (contextId) {
+    }
+
+    _websocketMarketId (symbol) {
+        throw new NotSupported ('You must implement _websocketMarketId method for exchange ' + this.id);
+    }
+
+    _websocketGenerateUrlStream (events, options) {
+        throw new NotSupported ('You must implement _websocketGenerateUrlStream method for exchange ' + this.id);
+    }
+
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
+        throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+    }
+
+    _websocketMethodMap (key) {
+        if ((this.wsconf['methodmap'] === undefined) || (this.wsconf['methodmap'][key] === undefined)){
+            throw new ExchangeError (this.id + ': ' + key + ' not found in websocket methodmap')
+        }
+        return this.wsconf['methodmap'][key];
+    }
+
+    _setTimeout (mseconds, method, params, thisParam = null) {
         thisParam = thisParam != null ? thisParam: this;
         let that = this;
         return setTimeout (function () {
@@ -1556,115 +1780,27 @@ module.exports = class Exchange extends EventEmitter{
         }, mseconds);
     }
 
-    _asyncTimeoutCancel (handle) {
+    _cancelTimeout (handle) {
         clearTimeout (handle);
     }
 
-    _asyncMarketId (symbol) {
-        throw new NotSupported ('You must implement _asyncMarketId method for exchange ' + this.id);
-    }
-
-    _asyncGenerateUrlStream (events, options) {
-        throw new NotSupported ('You must implement _asyncGenerateUrlStream method for exchange ' + this.id);
-    }
-
-    _asyncSubscribe (event, symbol, oid) {
-        throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
-    }
-
-    _asyncUnsubscribe (event, symbol, oid) {
-        throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
-    }
-
-    _asyncEventOnOpen (conexid, asyncConex) {
-
-    }
-
-    asyncFetchOrderBook (symbol, limit = undefined) {
-        return this.timeoutPromise (new Promise (async (resolve, reject) => {
+    _setTimer (mseconds, method, params, thisParam = null) {
+        thisParam = thisParam != null ? thisParam: this;
+        let that = this;
+        return setInterval (function () {
             try {
-                if (!this._asyncValidEvent('ob')) {
-                    reject(new ExchangeError ('Not valid event ob for exchange ' + this.id));
-                }
-                await this._asyncEnsureConxActive ('ob', symbol, true);
-                if (this.asyncContext['ob'][symbol]['data']['ob'] != null) {
-                    resolve (this._cloneOrderBook (this.asyncContext.ob[symbol]['data']['ob'], limit));
-                    return;
-                }
-                let f = (symbolR, ob) => {
-                    if (symbolR === symbol) {
-                        this.removeListener ('ob', f);
-                        resolve (this._cloneOrderBook (ob, limit));
-                    }
-                }
-                this.on ('ob', f);
+                thisParam[method].apply (thisParam, params);
             } catch (ex) {
-                reject (ex);
+                that.emit ('err', new ExchangeError (that.id + ': error invoking method ' + method + ' '+ ex));
             }
-        }), 'asyncFetchOrderBook');
+        }, mseconds);
     }
 
-    asyncSubscribe (event, symbol,params={}) {
-        let promise = new Promise (async (resolve, reject) => {
-            try {
-                if (!this._asyncValidEvent(event)) {
-                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
-                }
-                await this._asyncEnsureConxActive (event, symbol, true);
-                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                console.log('oid=',oid);
-                this.once (oid.toString(), (success, ex = null) => {
-                    if (success) {
-                        this.asyncContext[event][symbol]['subscribed'] = true;
-                        this.asyncContext[event][symbol]['subscribing'] = false;
-                        resolve ();
-                    } else {
-                        this.asyncContext[event][symbol]['subscribed'] = false;
-                        this.asyncContext[event][symbol]['subscribing'] = false;  
-                        if (ex != null) {
-                            reject (ex);
-                        } else {
-                            reject (new ExchangeError ('error subscribing to ' + event + '(' + symbol + ') ' + this.id));
-                        }
-                    }
-                });
-                this.asyncContext[event][symbol]['subscribing'] = true;
-                this._asyncSubscribe (event, symbol, oid,params);
-            } catch (ex) {
-                reject (ex);
-            }
-        });
-        return this.timeoutPromise (promise, 'asyncSubscribe');
+    _cancelTimer (handle) {
+        clearInterval (handle);
     }
 
-    asyncUnsubscribe (event, symbol,params) {
-        let promise = new Promise (async (resolve, reject) => {
-            try {
-                if (!this._asyncValidEvent(event)) {
-                    reject(new ExchangeError ('Not valid event ' + event + ' for exchange ' + this.id));
-                }
-                await this._asyncEnsureConxActive (event, symbol, false);
-                const oid = this.nonce();// + '-' + symbol + '-ob-subscribe';
-                this.once (oid.toString(), (success, ex = null) => {
-                    if (success) {
-                        this.asyncContext['ob'][symbol]['subscribed'] = false;
-                        this.asyncContext['ob'][symbol]['subscribing'] = false;    
-                        resolve ();
-                    } else {
-                        if (ex != null) {
-                            reject (ex);
-                        } else {
-                            reject (new ExchangeError ('error unsubscribing to ' + event + '(' + symbol + ') ' + this.id));
-                        }
-                    }
-                });
-                this._asyncUnsubscribe (event, symbol, oid,params);
-            } catch (ex) {
-                reject (ex);
-            }
-        });
-        return this.timeoutPromise (promise, 'asyncUnsubscribe');
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        throw new NotSupported ('You must implement _getCurrentWebsocketOrderbook method for exchange ' + this.id);
     }
-
-
 }

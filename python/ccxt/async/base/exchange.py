@@ -35,7 +35,7 @@ from ccxt.base.errors import NotSupported
 
 from ccxt.base.exchange import Exchange as BaseExchange
 
-from ccxt.async.async.websocket_connection import WebsocketConnection
+from ccxt.async.websocket.websocket_connection import WebsocketConnection
 from pyee import EventEmitter
 
 # -----------------------------------------------------------------------------
@@ -63,18 +63,17 @@ class Exchange(BaseExchange, EventEmitter):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
 
         # async connection initialization
-        self.asyncconf = {}
-        self.asyncConnectionPool = {}
+        self.wsconf = {}
+        self.websocketContexts = {}
         self.wsproxy = None
         super(Exchange, self).__init__(config)
 
-        self._async_reset_context()
         # snake renaming methods
-        if 'methodmap' in self.asyncconf:
+        if 'methodmap' in self.wsconf:
             def camel2snake(name):
                 return name[0].lower() + re.sub(r'(?!^)[A-Z]', lambda x: '_' + x.group(0).lower(), name[1:])
-            for m in self.asyncconf['methodmap']:
-                self.asyncconf['methodmap'][m] = camel2snake(self.asyncconf['methodmap'][m])
+            for m in self.wsconf['methodmap']:
+                self.wsconf['methodmap'][m] = camel2snake(self.wsconf['methodmap'][m])
 
         self.init_rest_rate_limiter()
 
@@ -252,7 +251,7 @@ class Exchange(BaseExchange, EventEmitter):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    # async methods
+    # websocket methods
     def parse_bids_asks2(self, bidasks, price_key=0, amount_key=1):
         result = []
         if len(bidasks):
@@ -306,68 +305,145 @@ class Exchange(BaseExchange, EventEmitter):
         currentOrderBook['datetime'] = self.iso8601(timestamp) if timestamp is not None else None
         return currentOrderBook
 
-    def _async_context_get_subscribed_event_symbols(self, conxid):
+    def _websocket_context_get_subscribed_event_symbols(self, conxid):
         ret = []
-        for key in self.asyncContext:
-            for symbol in self.asyncContext[key]:
-                symbol_context = self.asyncContext[key][symbol]
-                if ((symbol_context['conxid'] == conxid) and ((symbol_context['subscribed']) or (symbol_context['subscribing']))):
+        events = self._contextGetEvents()
+        for key in events:
+            for symbol in events[key]:
+                symbol_context = events[key][symbol]
+                if ((symbol_context['subscribed']) or (symbol_context['subscribing'])):
                     ret.append({
                         'event': key,
                         'symbol': symbol,
                     })
         return ret
 
-    def _asyncValidEvent(self, event):
-        return ('events' in self.asyncconf) and (event in self.asyncconf['events'])
+    def _websocketValidEvent(self, event):
+        return ('events' in self.wsconf) and (event in self.wsconf['events'])
 
-    def _async_reset_context(self, conxid=None):
-        if conxid is None:
-            self.asyncContext = {
+    def _websocket_reset_context(self, conxid, conxtpl = None):
+        if (not (conxid in self.websocketContexts)):
+            self.websocketContexts[conxid] = {
                 '_': {},
+                'conx-tpl': conxtpl,
+                'events': {},
+                'conx': None,
             }
-            if ('events' in self.asyncconf):
-                for evkey in self.asyncconf['events']:
-                    self.asyncContext[evkey] = {}
-            # self.asyncContext = {
-            #     'ob': {},
-            #     'ticker': {},
-            #     'ohlvc': {},
-            #     'trades': {},
-            #     '_': {}
-            # }
         else:
-            for key in self.asyncContext:
-                if key != '_':
-                    for symbol in self.asyncContext[key]:
-                        symbol_context = self.asyncContext[key][symbol]
-                        if (symbol_context['conxid'] == conxid):
-                            symbol_context['subscribed'] = False
-                            symbol_context['subscribing'] = False
-                            symbol_context['data'] = {}
+            events = self._contextGetEvents(conxid)
+            for key in events:
+                for symbol in events[key]:
+                    symbol_context = events[key][symbol]
+                    symbol_context['subscribed'] = False
+                    symbol_context['subscribing'] = False
+                    symbol_context['data'] = {}
 
-    def _async_connection_get(self, conxid='default'):
-        if (conxid not in self.asyncConnectionPool):
-            raise NotSupported("async <" + conxid + "> not found in this exchange: " + self.id)
-        return self.asyncConnectionPool[conxid]
+    def _contextGetConxTpl(self, conxid):
+        return self.websocketContexts[conxid]['conx-tpl']
 
-    def _async_get_action_for_event(self, event, symbol, subscription=True):
+    def _contextGetConnection(self, conxid):
+        if (self.websocketContexts[conxid]['conx'] == None):
+            return None
+        return self.websocketContexts[conxid]['conx']['conx']
+
+    def _contextGetConnectionInfo (self, conxid):
+        if (self.websocketContexts[conxid]['conx'] == None):
+            raise NotSupported ("websocket <" + conxid + "> not found in this exchange: " + self.id)
+        return self.websocketContexts[conxid]['conx']
+
+    def _contextIsConnectionReady(self,conxid):
+        return self.websocketContexts[conxid]['conx']['ready']
+
+    def _contextSetConnectionReady(self, conxid, ready):
+        self.websocketContexts[conxid]['conx']['ready'] = ready
+
+    def _contextIsConnectionAuth(self, conxid):
+        return self.websocketContexts[conxid]['conx']['auth']
+
+    def _contextSetConnectionAuth(self, conxid, auth):
+        self.websocketContexts[conxid]['conx']['auth'] = auth
+
+    def _contextSetConnectionInfo(self, conxid, info):
+        self.websocketContexts[conxid]['conx'] = info
+
+    def _contextSet (self, conxid, key, data):
+        self.websocketContexts[conxid]['_'][key] = data
+
+    def _contextGet (self, conxid, key):
+        if (key not in self.websocketContexts[conxid]['_']):
+            return None
+        return self.websocketContexts[conxid]['_'][key]
+
+    def _contextGetEvents(self, conxid):
+        return self.websocketContexts[conxid]['events']
+
+    def _contextGetSymbols(self, conxid, event):
+        return self.websocketContexts[conxid]['events'][event]
+
+    def _contextResetEvent(self, conxid, event):
+        self.websocketContexts[conxid]['events'][event] = {}
+
+    def _contextResetSymbol(self, conxid, event, symbol):
+        self.websocketContexts[conxid]['events'][event][symbol] = {
+            'subscribed': False,
+            'subscribing': False,
+            'data': {},
+        }
+
+    def _contextGetSymbolData(self, conxid, event, symbol):
+        return self.websocketContexts[conxid]['events'][event][symbol]['data']
+
+    def _contextSetSymbolData(self, conxid, event, symbol, data):
+        self.websocketContexts[conxid]['events'][event][symbol]['data'] = data
+
+    def _contextSetSubscribed (self, conxid, event, symbol, subscribed):
+        self.websocketContexts[conxid]['events'][event][symbol]['subscribed'] = subscribed
+
+    def _contextIsSubscribed (self, conxid, event, symbol):
+        return (event in self.websocketContexts[conxid]['events']) and \
+            (symbol in self.websocketContexts[conxid]['events'][event]) and \
+            self.websocketContexts[conxid]['events'][event][symbol]['subscribed']
+
+    def _contextSetSubscribing (self, conxid, event, symbol, subscribing):
+        self.websocketContexts[conxid]['events'][event][symbol]['subscribing'] = subscribing
+
+    def _contextIsSubscribing (self, conxid, event, symbol):
+        return (event in self.websocketContexts[conxid]['events']) and \
+            (symbol in self.websocketContexts[conxid]['events'][event]) and \
+            self.websocketContexts[conxid]['events'][event][symbol]['subscribing']
+
+    def _websocketGetConxid4Event (self, event, symbol):
+        eventConf = self.safe_value(self.wsconf['events'], event)
+        conxParam = self.safe_value (eventConf, 'conx-param', {
+            'id': '{id}'
+        })
+        return {
+            'conxid' : self.implode_params (conxParam['id'], { 
+                'event': event,
+                'symbol': symbol,
+                'id': eventConf['conx-tpl']
+            }),
+            'conxtpl' : eventConf['conx-tpl']
+        }
+
+    def _websocket_get_action_for_event(self, conxid, event, symbol, subscription=True):
         # if subscription and still subscribed no action returned
-        sym = self.asyncContext[event][symbol] if (symbol in self.asyncContext[event]) else None
-        if (subscription and (sym is not None) and (sym['subscribed'] or sym['subscribing'])):
+        isSubscribed = self._contextIsSubscribed(conxid, event, symbol)
+        isSubscribing = self._contextIsSubscribing(conxid, event, symbol)
+        if (subscription and (isSubscribed or isSubscribing)):
             return None
         # if unsubscription and no subscribed and no subscribing no action returned
-        if (not subscription and ((sym is None) or (not sym['subscribed'] and not sym['subscribing']))):
+        if (not subscription and ((not isSubscribed and not isSubscribing))):
             return None
         # get conexion type for event
-        event_conf = self.safeValue(self.asyncconf['events'], event)
+        event_conf = self.safe_value(self.wsconf['events'], event)
         if (event_conf is None):
-            raise ExchangeError("invalid async configuration for event: " + event + " in exchange: " + self.id)
-        conx_tpl_name = self.safeString(event_conf, 'conx-tpl', 'default')
-        conx_tpl = self.safeValue(self.asyncconf['conx-tpls'], conx_tpl_name)
+            raise ExchangeError("invalid websocket configuration for event: " + event + " in exchange: " + self.id)
+        conx_tpl_name = self.safe_string(event_conf, 'conx-tpl', 'default')
+        conx_tpl = self.safe_value(self.wsconf['conx-tpls'], conx_tpl_name)
         if (conx_tpl is None):
-            raise ExchangeError("tpl async conexion: " + conx_tpl_name + " does not exist in exchange: " + self.id)
-        generators = self.safeValue(event_conf, 'generators', {
+            raise ExchangeError("tpl websocket conexion: " + conx_tpl_name + " does not exist in exchange: " + self.id)
+        conxParam = self.safe_value(event_conf, 'conx-param', {
             'url': '{baseurl}',
             'id': '{id}',
             'stream': '{symbol}',
@@ -378,28 +454,30 @@ class Exchange(BaseExchange, EventEmitter):
             'id': conx_tpl_name,
         })
         config = self.extend({}, conx_tpl)
-        for key in generators:
-            config[key] = self.implode_params(generators[key], params)
+        for key in conxParam:
+            config[key] = self.implode_params(conxParam[key], params)
         if (not (('id' in config) and ('url' in config) and ('type' in config))):
-            raise ExchangeError("invalid async configuration in exchange: " + self.id)
+            raise ExchangeError("invalid websocket configuration in exchange: " + self.id)
         if (config['type'] == 'ws'):
             return {
                 'action': 'connect',
                 'conx-config': config,
                 'reset-context': 'onconnect',
+                'conx-tpl': conx_tpl_name,
             }
         elif (config['type'] == 'ws-s'):
-            subscribed = self._async_context_get_subscribed_event_symbols(config['id'])
+            subscribed = self._websocket_context_get_subscribed_event_symbols(config['id'])
             if subscription:
                 subscribed.append({
                     'event': event,
                     'symbol': symbol,
                 })
-                config['url'] = self._async_generate_url_stream(subscribed, config)
+                config['url'] = self._websocket_generate_url_stream(subscribed, config)
                 return {
                     'action': 'reconnect',
                     'conx-config': config,
                     'reset-context': 'onreconnect',
+                    'conx-tpl': conx_tpl_name,
                 }
             else:
                 for i in range(len(subscribed)):
@@ -412,164 +490,160 @@ class Exchange(BaseExchange, EventEmitter):
                         'action': 'disconnect',
                         'conx-config': config,
                         'reset-context': 'always',
+                        'conx-tpl': conx_tpl_name,
                     }
                 else:
-                    config['url'] = self._async_generate_url_stream(subscribed, config)
+                    config['url'] = self._websocket_generate_url_stream(subscribed, config)
                     return {
                         'action': 'reconnect',
                         'conx-config': config,
                         'reset-context': 'onreconnect',
+                        'conx-tpl': conx_tpl_name,
                     }
-
-            # next_stream_list = [self.implode_params(generators['stream'], {
-            #     'event': event,
-            #     'symbol': self.market_id(symbol).lower(),
-            # })]
-            # for element in subscribed:
-            #     e = element['event']
-            #     s = element['symbol']
-            #     next_stream_list.append(self.implode_params(generators['stream'], {
-            #         'event': e,
-            #         'symbol': self.market_id(s).lower(),
-            #     }))
-            # next_stream_list.sort()
-            # config['stream'] = ''.join(next_stream_list)
-            # config['url'] = config['url'] + config['stream']
-            # return {
-            #     'action': 'reconnect',
-            #     'conx-config': config,
-            #     'reset-context': 'onreconnect',
-            # }
         else:
-            raise NotSupported("invalid async connection: " + config['type'] + " for exchange " + self.id)
+            raise NotSupported("invalid websocket connection: " + config['type'] + " for exchange " + self.id)
 
-    async def _async_ensure_conx_active(self, event, symbol, subscribe):
+    async def _websocket_ensure_conx_active(self, event, symbol, subscribe):
         await self.load_markets()
         # self.load_markets()
-        action = self._async_get_action_for_event(event, symbol, subscribe)
+        ret = self._websocketGetConxid4Event (event, symbol)
+        conxid = ret['conxid']
+        conxtpl = ret['conxtpl']
+        if (not(conxid in self.websocketContexts)):
+            self._websocket_reset_context(conxid, conxtpl)
+        action = self._websocket_get_action_for_event(conxid, event, symbol, subscribe)
         if (action is not None):
-            conx_config = self.safeValue(action, 'conx-config', {})
+            conx_config = self.safe_value(action, 'conx-config', {})
+            if (not(event in self._contextGetEvents(conxid))):
+                self._contextResetEvent(conxid, event)
+            if (not(symbol in self._contextGetSymbols(conxid, event))):
+                self._contextResetSymbol(conxid, event, symbol)
             if (action['action'] == 'reconnect'):
-                if (conx_config['id'] in self.asyncConnectionPool):
-                    self.asyncConnectionPool[conx_config['id']]['conx'].close()
+                conx = self._contextGetConnection(conxid)
+                if (conx is not None):
+                    conx.close()
                 if (action['reset-context'] == 'onreconnect'):
-                    self._async_reset_context(conx_config['id'])
-                self.asyncConnectionPool[conx_config['id']] = self._async_initialize(conx_config, conx_config['id'])
+                    self._websocket_reset_context(conxid, conxtpl)
+                self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'connect'):
-                if (conx_config['id'] in self.asyncConnectionPool):
-                    if (not self.asyncConnectionPool[conx_config['id']]['conx'].isActive()):
-                        self.asyncConnectionPool[conx_config['id']]['conx'].close()
-                        self._async_reset_context(conx_config['id'])
-                        self.asyncConnectionPool[conx_config['id']] = self._async_initialize(conx_config, conx_config['id'])
+                conx = self._contextGetConnection(conxid)
+                if (conx is not None):
+                    if (not conx.isActive()):
+                        conx.close()
+                        self._websocket_reset_context(conxid, conxtpl)
+                        self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
                 else:
-                    self._async_reset_context(conx_config['id'])
-                    self.asyncConnectionPool[conx_config['id']] = self._async_initialize(conx_config, conx_config['id'])
+                    self._websocket_reset_context(conxid, conxtpl)
+                    self._contextSetConnectionInfo (conxid, self._websocket_initialize(conx_config, conxid))
             elif (action['action'] == 'disconnect'):
-                if (conx_config['id'] in self.asyncConnectionPool):
-                    self.asyncConnectionPool[conx_config['id']]['conx'].close()
-                    self._async_reset_context(conx_config['id'])
-                return
+                conx = self._contextGetConnection(conxid)
+                if (conx is not None):
+                    conx.close()
+                    self._websocket_reset_context(conxid, conxtpl)
+                return conxid
 
-            if (symbol not in self.asyncContext['ob']):
-                self.asyncContext['ob'][symbol] = {
-                    'subscribed': False,
-                    'subscribing': False,
-                    'data': {},
-                    'conxid': conx_config['id'],
-                }
-            await self.async_connect()
+            # if (symbol not in self.asyncContext['ob']):
+            #     self.asyncContext['ob'][symbol] = {
+            #         'subscribed': False,
+            #         'subscribing': False,
+            #         'data': {},
+            #         'conxid': conx_config['id'],
+            #     }
+            await self.websocket_connect()
+        return conxid
 
-    async def async_connect(self, conxid='default'):
-        async_conx_info = self._async_connection_get(conxid)
-        async_connection = async_conx_info['conx']
+    async def websocket_connect(self, conxid='default'):
+        websocket_conx_info = self._contextGetConnectionInfo(conxid)
+        conx_tpl = self._contextGetConxTpl (conxid)
+        websocket_connection = websocket_conx_info['conx']
         await self.load_markets()
         # self.load_markets()
-        if (not async_conx_info['ready']):
-            wait4ready_event = self.safeString(self.asyncconf['conx-tpls'][conxid], 'wait4readyEvent')
+        if (not websocket_conx_info['ready']):
+            wait4ready_event = self.safe_string(self.wsconf['conx-tpls'][conx_tpl], 'wait4readyEvent')
             if (wait4ready_event is not None):
-                await async_connection.connect()
+                await websocket_connection.connect()
                 future = asyncio.Future()
 
                 @self.once(wait4ready_event)
                 def wait4ready_event(success, error=None):
                     if success:
-                        async_conx_info['ready'] = True
+                        websocket_conx_info['ready'] = True
                         future.done() or future.set_result(None)
                     else:
                         future.done() or future.set_exception(error)
 
-                self.timeout_future(future, 'async_connect')
+                self.timeout_future(future, 'websocket_connect')
                 # self.asyncio_loop.run_until_complete(future)
                 await future
             else:
-                await async_connection.connect()
+                await websocket_connection.connect()
 
-    def asyncParseJson(self, raw_data):
+    def websocketParseJson(self, raw_data):
         return json.loads(raw_data)
 
-    def asyncClose(self, conxid='default'):
-        async_conx_info = self._async_connection_get(conxid)
-        async_conx_info['conx'].close()
+    def websocketClose(self, conxid='default'):
+        websocket_conx_info = self._contextGetConnectionInfo(conxid)
+        websocket_conx_info['conx'].close()
 
-    def asyncSend(self, data, conxid='default'):
-        async_conx_info = self._async_connection_get(conxid)
+    def websocketSend(self, data, conxid='default'):
+        websocket_conx_info = self._contextGetConnectionInfo(conxid)
         if self.verbose:
             print("Async send:" + data)
             sys.stdout.flush()
-        async_conx_info['conx'].send(data)
+        websocket_conx_info['conx'].send(data)
 
-    def asyncSendJson(self, data, conxid='default'):
-        async_conx_info = self._async_connection_get(conxid)
+    def websocketSendJson(self, data, conxid='default'):
+        websocket_conx_info = self._contextGetConnectionInfo(conxid)
         if (self.verbose):
             print("Async send:" + json.dumps(data))
             sys.stdout.flush()
-        async_conx_info['conx'].sendJson(data)
+        websocket_conx_info['conx'].sendJson(data)
 
-    def _async_initialize(self, async_config, conxid='default'):
-        async_connection_info = {
+    def _websocket_initialize(self, websocket_config, conxid='default'):
+        websocket_connection_info = {
             'auth': False,
             'ready': False,
             'conx': None,
         }
         if self.proxies is not None:
-            async_config['proxies'] = self.proxies
-        if (async_config['type'] == 'ws'):
-            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
-        elif (async_config['type'] == 'ws-s'):
-            async_connection_info['conx'] = WebsocketConnection(async_config, self.timeout, self.asyncio_loop)
+            websocket_config['proxies'] = self.proxies
+        if (websocket_config['type'] == 'ws'):
+            websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)
+        elif (websocket_config['type'] == 'ws-s'):
+            websocket_connection_info['conx'] = WebsocketConnection(websocket_config, self.timeout, self.asyncio_loop)
         else:
-            raise NotSupported("invalid async connection: " + async_config['type'] + " for exchange " + self.id)
+            raise NotSupported("invalid async connection: " + websocket_config['type'] + " for exchange " + self.id)
 
-        conx = async_connection_info['conx']
+        conx = websocket_connection_info['conx']
 
         @conx.on('open')
-        def async_connection_open():
-            async_connection_info['auth'] = False
-            self._async_event_on_open(conxid, async_connection_info['conx'].options)
+        def websocket_connection_open():
+            websocket_connection_info['auth'] = False
+            self._websocket_on_open(conxid, websocket_connection_info['conx'].options)
 
         @conx.on('err')
-        def async_connection_error(error):
-            async_connection_info['auth'] = False
-            self._async_reset_context(conxid)
+        def websocket_connection_error(error):
+            websocket_connection_info['auth'] = False
+            self._websocket_reset_context(conxid)
             self.emit('err', error, conxid)
 
         @conx.on('message')
-        def async_connection_message(msg):
+        def websocket_connection_message(msg):
             if self.verbose:
                 print((conxid + '<-' + msg).encode('utf-8'))
                 sys.stdout.flush()
             try:
-                self._async_on_msg(msg, conxid)
+                self._websocket_on_message(conxid, msg)
             except Exception as ex:
                 self.emit('err', ex, conxid)
 
         @conx.on('close')
-        def async_connection_close():
-            async_connection_info['auth'] = False
-            self._async_reset_context(conxid)
+        def websocket_connection_close():
+            websocket_connection_info['auth'] = False
+            self._websocket_reset_context(conxid)
             self.emit('close', conxid)
 
-        return async_connection_info
+        return websocket_connection_info
 
     def timeout_future(self, future, scope):
         self.asyncio_loop.call_later(self.timeout / 1000, lambda: future.done() or future.set_exception(TimeoutError("timeout in scope: " + scope)))
@@ -588,7 +662,7 @@ class Exchange(BaseExchange, EventEmitter):
             ret['asks'] = ob['asks'][:limit]
         return ret
 
-    def _asyncExecute(self, method, params, callback, context={}, this_param=None):
+    def _executeAndCallback(self, method, params, callback, context={}, this_param=None):
         this_param = this_param if (this_param is not None) else self
         eself = self
         # future = asyncio.Future()
@@ -612,12 +686,100 @@ class Exchange(BaseExchange, EventEmitter):
         # self.asyncio_loop.call_soon(future)
         # self.asyncio_loop.call_soon(t)
 
-    def _asyncMethodMap(self, key):
-        if ('methodmap' not in self.asyncconf) or (key not in self.asyncconf['methodmap']):
-            raise ExchangeError(self.id + ': ' + key + ' not found in async methodmap')
-        return self.asyncconf['methodmap'][key]
+    async def websocket_fetch_order_book(self, symbol, limit=None):
+        if not self._websocketValidEvent('ob'):
+            raise ExchangeError('Not valid event ob for exchange ' + self.id)
+        conxid = await self._websocket_ensure_conx_active('ob', symbol, True)
+        ob = self._get_current_websocket_orderbook (conxid, symbol, limit)
+        if (ob is not None):
+            return ob
 
-    def _asyncTimeoutSet(self, mseconds, method, params, this_param=None):
+        future = asyncio.Future()
+
+        def wait4orderbook(symbol_r, ob):
+            if symbol_r == symbol:
+                self.remove_listener('ob', wait4orderbook)
+                future.done() or future.set_result(self._get_current_websocket_orderbook (conxid, symbol, limit))
+
+        self.on('ob', wait4orderbook)
+        self.timeout_future(future, 'websocket_fetch_order_book')
+        return await future
+
+    async def websocket_subscribe(self, event, symbol, params={}):
+        if not self._websocketValidEvent(event):
+            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
+        conxid = await self._websocket_ensure_conx_active(event, symbol, True)
+        oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
+        future = asyncio.Future()
+        oidstr = str(oid)
+
+        @self.once(oidstr)
+        def wait4obsubscribe(success, ex=None):
+            if success:
+                self._contextSetSubscribed(conxid, event, symbol, True)
+                self._contextSetSubscribing(conxid, event, symbol, False)
+                future.done() or future.set_result(True)
+            else:
+                self._contextSetSubscribed(conxid, event, symbol, False)
+                self._contextSetSubscribing(conxid, event, symbol, False)
+                ex = ex if ex is not None else ExchangeError('error subscribing to ' + event + '(' + symbol + ') in ' + self.id)
+                future.done() or future.set_exception(ex)
+        self._contextSetSubscribing(conxid, event, symbol, True)
+        self.timeout_future(future, 'websocket_subscribe')
+        self._websocket_subscribe(conxid, event, symbol, oid, params)
+        await future
+
+    async def websocket_unsubscribe(self, event, symbol, params={}):
+        if not self._websocketValidEvent(event):
+            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
+        conxid = await self._websocket_ensure_conx_active(event, symbol, False)
+        oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
+        future = asyncio.Future()
+        oidstr = str(oid)
+
+        @self.once(oidstr)
+        def wait4obunsubscribe(success, ex=None):
+            if success:
+                self._contextSetSubscribed(conxid, event, symbol, False)
+                self._contextSetSubscribing(conxid, event, symbol, False)
+                future.done() or future.set_result(True)
+            else:
+                ex = ex if ex is not None else ExchangeError('error unsubscribing to ' + event + '(' + symbol + ') in ' + self.id)
+                future.done() or future.set_exception(ex)
+        self.timeout_future(future, 'websocket_unsubscribe')
+        self._websocket_unsubscribe(conxid, event, symbol, oid, params)
+        await future
+
+    def _websocket_on_open (self, contextId, websocketConexConfig):
+        pass
+
+    def _websocket_on_message (self, contextId, data):
+        pass
+
+    def _websocket_on_close (self, contextId):
+        pass
+
+    def _websocket_on_error (self, contextId):
+        pass
+
+    def _websocketMarketId(self, symbol):
+        raise NotSupported("You must to implement _asyncMarketId method for exchange " + self.id)
+
+    def _websocket_generate_url_stream(self, events, options):
+        raise NotSupported("You must to implement _asyncGenerateStream method for exchange " + self.id)
+
+    def _websocket_subscribe(self, contextId, event, symbol, oid, params={}):
+        raise NotSupported('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
+
+    def _websocket_unsubscribe(self, contextId, event, symbol, oid, params={}):
+        raise NotSupported('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
+
+    def _websocketMethodMap(self, key):
+        if ('methodmap' not in self.wsconf) or (key not in self.wsconf['methodmap']):
+            raise ExchangeError(self.id + ': ' + key + ' not found in websocket methodmap')
+        return self.wsconf['methodmap'][key]
+
+    def _setTimeout (self, mseconds, method, params, this_param=None):
         this_param = this_param if (this_param is not None) else self
 
         def f():
@@ -627,82 +789,46 @@ class Exchange(BaseExchange, EventEmitter):
                 self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
         return self.asyncio_loop.call_later(mseconds / 1000, f)
 
-    def _asyncTimeoutCancel(self, handle):
+    def _cancelTimeout(self, handle):
         handle.cancel()
 
-    def _asyncMarketId(self, symbol):
-        raise NotSupported("You must to implement _asyncMarketId method for exchange " + self.id)
+    def _setTimer (self, mseconds, method, params, this_param=None):
+        this_param = this_param if (this_param is not None) else self
 
-    def _async_generate_url_stream(self, events, options):
-        raise NotSupported("You must to implement _asyncGenerateStream method for exchange " + self.id)
+        def f():
+            try:
+                getattr(this_param, method)(*params)
+            except Exception as ex:
+                self.emit('err', ExchangeError(self.id + ': error invoking method ' + method + ' ' + str(ex)))
+        return self.call_periodic (mseconds / 1000, f)
 
-    def _asyncSubscribe(self, event, symbol, oid):
-        raise NotSupported('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
+    def _cancelTimer(self, handle):
+        handle.cancel()
 
-    def _asyncUnsubscribe(self, event, symbol, oid):
-        raise NotSupported('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + self.id)
+    def call_periodic(self, interval, callback, *args, **kwargs):
+        # get loop as a kwarg or take the default one
+        loop = self.asyncio_loop
+        # record the loop's time when call_periodic was called
+        start = loop.time()
 
-    def _async_event_on_open(self, conexid, asyncConex):
-        pass
+        def run(handle):
+            # XXX: we could record before = loop.time() and warn when callback(*args) took longer than interval
+            # call callback now (possibly blocks run)
+            callback(*args)
+            # reschedule run at the soonest time n * interval from start
+            # re-assign delegate to the new handle
+            handle.delegate = loop.call_later(interval - ((loop.time() - start) % interval), run, handle)
 
-    async def async_fetch_order_book(self, symbol, limit=None):
-        if not self._asyncValidEvent('ob'):
-            raise ExchangeError('Not valid event ob for exchange ' + self.id)
-        await self._async_ensure_conx_active('ob', symbol, True)
-        if (('ob' in self.asyncContext['ob'][symbol]['data']) and (self.asyncContext['ob'][symbol]['data']['ob'] is not None)):
-            return self._cloneOrderBook(self.asyncContext['ob'][symbol]['data']['ob'], limit)
+        class PeriodicHandle:  # not extending Handle, needs a lot of arguments that make no sense here
+            def __init__(self):
+                self.delegate = None
 
-        future = asyncio.Future()
+            def cancel(self):
+                assert isinstance(self.delegate, asyncio.Handle), 'no delegate handle to cancel'
+                self.delegate.cancel()
 
-        def wait4orderbook(symbol_r, ob):
-            if symbol_r == symbol:
-                self.remove_listener('ob', wait4orderbook)
-                future.done() or future.set_result(self._cloneOrderBook(ob, limit))
-
-        self.on('ob', wait4orderbook)
-        self.timeout_future(future, 'async_fetch_order_book')
-        return await future
-
-    async def async_subscribe(self, event, symbol):
-        if not self._asyncValidEvent(event):
-            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
-        await self._async_ensure_conx_active(event, symbol, True)
-        oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
-        future = asyncio.Future()
-        oidstr = str(oid)
-
-        @self.once(oidstr)
-        def wait4obsubscribe(success, ex=None):
-            if success:
-                self.asyncContext[event][symbol]['subscribed'] = True
-                self.asyncContext[event][symbol]['subscribing'] = False
-                future.done() or future.set_result(True)
-            else:
-                self.asyncContext[event][symbol]['subscribed'] = False
-                self.asyncContext[event][symbol]['subscribing'] = False
-                ex = ex if ex is not None else ExchangeError('error subscribing to ' + event + '(' + symbol + ') in ' + self.id)
-                future.done() or future.set_exception(ex)
-        self.timeout_future(future, 'async_subscribe')
-        self._async_subscribe(event, symbol, oid)
-        await future
-
-    async def async_unsubscribe(self, event, symbol):
-        if not self._asyncValidEvent(event):
-            raise ExchangeError('Not valid event ' + event + ' for exchange ' + self.id)
-        await self._async_ensure_conx_active(event, symbol, False)
-        oid = self.nonce()  # str(self.nonce()) + '-' + symbol + '-ob-subscribe'
-        future = asyncio.Future()
-        oidstr = str(oid)
-
-        @self.once(oidstr)
-        def wait4obunsubscribe(success, ex=None):
-            if success:
-                self.asyncContext[event][symbol]['subscribed'] = False
-                self.asyncContext[event][symbol]['subscribing'] = False
-                future.done() or future.set_result(True)
-            else:
-                ex = ex if ex is not None else ExchangeError('error unsubscribing to ' + event + '(' + symbol + ') in ' + self.id)
-                future.done() or future.set_exception(ex)
-        self.timeout_future(future, 'async_unsubscribe')
-        self._async_unsubscribe(event, symbol, oid)
-        await future
+        periodic = PeriodicHandle()  # can't pass result of loop.call_at here, it needs periodic as an arg to run
+        # set the delegate to be the Handle for call_at, causes periodic.cancel() to cancel the call to run
+        periodic.delegate = loop.call_at(start + interval, run, periodic)
+        # return the 'wrapper'
+        return periodic

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .async_connection import AsyncConnection
+from .websocket_base_connection import WebsocketBaseConnection
 from autobahn.asyncio.websocket import WebSocketClientProtocol, \
     WebSocketClientFactory
 import asyncio
@@ -40,7 +40,7 @@ class MyClientProtocol(WebSocketClientProtocol):
 
 
 
-class WebsocketConnection(AsyncConnection):
+class WebsocketConnection(WebsocketBaseConnection):
     def __init__(self, options, timeout, loop):
         super(WebsocketConnection, self).__init__()
         self.options = options

@@ -125,7 +125,7 @@ module.exports = class binance extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws-s',
@@ -134,12 +134,12 @@ module.exports = class binance extends Exchange {
                 },
                 'methodmap': {
                     'fetchOrderBook': 'fetchOrderBook',
-                    '_asyncHandleObRestSnapshot': '_asyncHandleObRestSnapshot',
+                    '_websocketHandleObRestSnapshot': '_websocketHandleObRestSnapshot',
                 },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                             'stream': '{symbol}@depth',
@@ -978,57 +978,58 @@ module.exports = class binance extends Exchange {
         return response;
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
-        let msg = this.asyncParseJson (data);
+    _websocketOnMessage (contextId, data) {
+        let msg = this.websocketParseJson (data);
         let stream = this.safeString (msg, 'stream');
         let resData = this.safeValue (msg, 'data', {});
         let parts = stream.split ('@');
         let partsLen = parts.length;
         if (partsLen === 2) {
             if (parts[1] === 'depth') {
-                this._asyncHandleOb (resData, conxid);
+                this._websocketHandleOb (contextId, resData);
             }
         }
     }
 
-    _asyncHandleOb (data, conxid) {
+    _websocketHandleOb (contextId, data) {
         let symbol = this.findSymbol (this.safeString (data, 's'));
         // if asyncContext has no previous orderbook you have to cache all deltas
         // and fetch orderbook from rest api
-        if (!('ob' in this.asyncContext['ob'][symbol]['data'])) {
-            if (!('deltas' in this.asyncContext['ob'][symbol]['data'])) {
-                this.asyncContext['ob'][symbol]['data']['deltas'] = [];
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (!('ob' in symbolData)) {
+            if (!('deltas' in symbolData)) {
+                symbolData['deltas'] = [];
             }
-            let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
+            let deltas = symbolData['deltas'];
             let partsLen = deltas.length;
             if (partsLen > 50) {
                 this.emit ('err', new ExchangeError (this.id + ': max deltas reached for symbol ' + symbol));
-                this.asyncClose (conxid);
+                this.websocketClose (conxid);
             } else {
-                this.asyncContext['ob'][symbol]['data']['deltas'].push (data);
-                if (!('snaplaunched' in this.asyncContext['ob'][symbol]['data'])) {
-                    this.asyncContext['ob'][symbol]['data']['snaplaunched'] = true;
-                    this._asyncExecute (this._asyncMethodMap ('fetchOrderBook'), [symbol], this._asyncMethodMap ('_asyncHandleObRestSnapshot'), {
+                symbolData['deltas'].push (data);
+                if (!('snaplaunched' in data)) {
+                    data['snaplaunched'] = true;
+                    this._executeAndCallback (this._websocketMethodMap ('fetchOrderBook'), [symbol], this._websocketMethodMap ('_websocketHandleObRestSnapshot'), {
                         'symbol': symbol,
-                        'conxid': conxid,
+                        'contextId': contextId,
                     });
                 }
             }
         } else {
-            let ob = this.asyncContext['ob'][symbol]['data']['ob'];
-            ob = this.mergeOrderBookDelta (ob, data, undefined, 'b', 'a');
-            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-            this.emit ('ob', symbol, this._cloneOrderBook (ob));
+            symbolData['ob'] = this.mergeOrderBookDelta (symbolData['ob'], data, undefined, 'b', 'a');
+            this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
         }
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
     }
 
-    _asyncHandleObRestSnapshot (context, error, response) {
+    _websocketHandleObRestSnapshot (context, error, response) {
         let symbol = context['symbol'];
-        let conxid = context['conxid'];
+        let contextId = context['contextId'];
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
         // console.log ('order book snapshot returned for '+ symbol);
         if (!error) {
             let lastUpdateId = this.safeInteger (response, 'nonce');
-            let deltas = this.asyncContext['ob'][symbol]['data']['deltas'];
+            let deltas = data['deltas'];
             let index = 0;
             for (index = 0; index < deltas.length; index++) {
                 let delta = deltas[index];
@@ -1041,7 +1042,7 @@ module.exports = class binance extends Exchange {
                     break;
                 }
                 this.emit ('err', new ExchangeError (this.id + ': error in update ids in deltas for ' + symbol));
-                this.asyncClose (conxid);
+                this.websocketClose (conxid);
                 return;
             }
             // process orderbook
@@ -1049,21 +1050,25 @@ module.exports = class binance extends Exchange {
                 let delta = deltas[i];
                 this.mergeOrderBookDelta (response, delta, undefined, 'b', 'a');
             }
-            this.asyncContext['ob'][symbol]['data']['ob'] = response;
-            this.asyncContext['ob'][symbol]['data']['deltas'] = [];
-            this.emit ('ob', symbol, this._cloneOrderBook (response));
+            data['ob'] = response;
+            data['deltas'] = [];
+            this.emit ('ob', symbol, this._cloneOrderBook (response, data['limit']));
+            this._contextSetSymbolData (contextId, 'ob', symbol, data);
         }
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        data['limit'] = this.safeInteger (params, 'limit', undefined);
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -1071,8 +1076,8 @@ module.exports = class binance extends Exchange {
         this.emit (nonceStr, true);
     }
 
-    _asyncEventOnOpen (conexid, asyncConexConfig) {
-        let url = asyncConexConfig['url'];
+    _websocketOnOpen (contextId, websocketConexConfig) {
+        let url = websocketConexConfig['url'];
         let parts = url.split ('=');
         let partsLen = parts.length;
         if (partsLen > 1) {
@@ -1084,29 +1089,37 @@ module.exports = class binance extends Exchange {
                 partsLen = pair.length;
                 if (partsLen === 2) {
                     let symbol = this.findSymbol (pair[0].toUpperCase ());
-                    this.asyncContext['ob'][symbol]['subscribed'] = true;
-                    this.asyncContext['ob'][symbol]['subscribing'] = false;
+                    this._contextSetSubscribed (contextId, 'ob', symbol, true);
+                    this._contextSetSubscribing (contextId, 'ob', symbol, false);
                 }
             }
         }
     }
 
-    _asyncGenerateUrlStream (events, options) {
+    _websocketGenerateUrlStream (events, options) {
         let streamList = [];
         for (let i = 0; i < events.length; i++) {
             let element = events[i];
             let params = {
                 'event': element['event'],
-                'symbol': this._asyncMarketId (element['symbol']),
+                'symbol': this._websocketMarketId (element['symbol']),
             };
-            let streamGenerator = this.asyncconf['events'][element['event']]['generators']['stream'];
+            let streamGenerator = this.wsconf['events'][element['event']]['conx-param']['stream'];
             streamList.push (this.implodeParams (streamGenerator, params));
         }
         let stream = streamList.join ('/');
         return options['url'] + stream;
     }
 
-    _asyncMarketId (symbol) {
+    _websocketMarketId (symbol) {
         return this.marketId (symbol).toLowerCase ();
+    }
+
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook(data['ob'], limit);
+        }
+        return undefined;
     }
 };

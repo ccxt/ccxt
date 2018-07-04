@@ -1,11 +1,11 @@
 "use strict";
 
-const AsyncConnection = require ('./async_connection');
+const WebsocketBaseConnection = require ('./websocket_base_connection');
 const WebSocket = require('ws');
 
 const { sleep } = require ('../functions')
 
-module.exports = class WebsocketConnection extends AsyncConnection {
+module.exports = class WebsocketConnection extends WebsocketBaseConnection {
     constructor (options, timeout) {
         super();
         this.options = options;
