@@ -264,8 +264,11 @@ class StandardRelayer extends Exchange {
             const unitMaker = toUnitAmount (makerTokenAmount, baseDecimals);
             const unitTaker = toUnitAmount (takerTokenAmount, quoteDecimals);
             let rate = unitMaker.div (unitTaker);
-            if (!isBid) rate = one.div (rate);
-            const limit = toUnitAmount (new BigNumber (takerTokenAmount), quoteDecimals);
+            let limit = toUnitAmount (new BigNumber (takerTokenAmount), quoteDecimals);
+            if (!isBid) {
+              rate = one.div (rate);
+              limit = toUnitAmount (new BigNumber (makerTokenAmount), baseDecimals);
+            }
             rates[i] = [rate.toNumber (), limit.toNumber (), order];
         }
         return rates;
