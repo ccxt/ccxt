@@ -62,6 +62,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | China                    | |exx|                | exx                | `EXX <https://www.exx.com/>`__                                                  | \*  | `API <https://www.exx.com/help/restApi>`__                                                      |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
+| China                    | |fcoin|              | fcoin              | `FCoin <https://www.fcoin.com/i/Z5P7V>`__                                       | 2   | `API <https://developer.fcoin.com>`__                                                           |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | China                    | |gateio|             | gateio             | `Gate.io <https://gate.io/>`__                                                  | 2   | `API <https://gate.io/api2>`__                                                                  |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+
 | China                    | |hadax|              | hadax              | `HADAX <https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3>`__     | 1   | `API <https://github.com/huobiapi/API_Docs/wiki>`__                                             |
@@ -362,6 +364,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |coinex| image:: https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |exx| image:: https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg
+.. |fcoin| image:: https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg
 .. |gateio| image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
 .. |hadax| image:: https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg
 .. |huobi| image:: https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg

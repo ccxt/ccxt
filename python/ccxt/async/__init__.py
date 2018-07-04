@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.15.7'
+__version__ = '1.15.8'
 
 # -----------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ from ccxt.async.dsx import dsx                                  # noqa: F401
 from ccxt.async.ethfinex import ethfinex                        # noqa: F401
 from ccxt.async.exmo import exmo                                # noqa: F401
 from ccxt.async.exx import exx                                  # noqa: F401
+from ccxt.async.fcoin import fcoin                              # noqa: F401
 from ccxt.async.flowbtc import flowbtc                          # noqa: F401
 from ccxt.async.foxbit import foxbit                            # noqa: F401
 from ccxt.async.fybse import fybse                              # noqa: F401
@@ -230,6 +231,7 @@ exchanges = [
     'ethfinex',
     'exmo',
     'exx',
+    'fcoin',
     'flowbtc',
     'foxbit',
     'fybse',
