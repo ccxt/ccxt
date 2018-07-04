@@ -362,6 +362,22 @@ class kucoin (Exchange):
         self.options['timeDifference'] = int(after - response['timestamp'])
         return self.options['timeDifference']
 
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, cost)),
+        }
+
     async def fetch_markets(self):
         response = await self.publicGetMarketOpenSymbols()
         if self.options['adjustForTimeDifference']:
