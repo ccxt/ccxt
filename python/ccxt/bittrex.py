@@ -171,6 +171,10 @@ class bittrex (Exchange):
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                # price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             },
@@ -197,9 +201,12 @@ class bittrex (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = 8
+            if quote in self.options['pricePrecisionByCode']:
+                pricePrecision = self.options['pricePrecisionByCode']
             precision = {
                 'amount': 8,
-                'price': 8,
+                'price': pricePrecision,
             }
             active = market['IsActive'] or market['IsActive'] == 'true'
             result.append({
