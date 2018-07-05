@@ -22,8 +22,17 @@ module.exports = class nebula extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': false,
+                'fetchOrders': false,
+                'fetchOrder': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -222,6 +231,11 @@ module.exports = class nebula extends Exchange {
         return result;
     }
 
+    async fetchTicker (symbol, params = {}) {
+        let tickers = await this.fetchTickers (symbol, params);
+        return tickers[symbol];
+    }
+
     parseTicker (ticker) {
         let symbol = undefined;
         let id = ticker['symbol'];
@@ -310,6 +324,22 @@ module.exports = class nebula extends Exchange {
         let id = result['id'];
         this.orders[id] = result;
         return this.extend ({ 'info': response }, result);
+    }
+
+    async createLimitBuyOrder (symbol, amount, price, params = {}) {
+        return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
+    }
+
+    async createLimitSellOrder (symbol, amount, price, params = {}) {
+        return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
+    }
+
+    async createMarketBuyOrder (symbol, amount, params = {}) {
+        return await this.createOrder (symbol, 'market', 'buy', amount, 0.1, params);
+    }
+
+    async createMarketSellOrder (symbol, amount, params = {}) {
+        return await this.createOrder (symbol, 'market', 'sell', amount, 0.1, params);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
