@@ -149,6 +149,7 @@ module.exports = class coinex extends Exchange {
                 'price': market['buy_asset_type_places'],
             };
             let numMergeLevels = market['merge'].length;
+            let active = (market['status'] === 'pass');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -156,7 +157,7 @@ module.exports = class coinex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'active': active,
                 'taker': this.safeFloat (market, 'taker_fee_rate'),
                 'maker': this.safeFloat (market, 'maker_fee_rate'),
                 'info': market,
