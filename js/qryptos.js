@@ -381,7 +381,7 @@ module.exports = class qryptos extends Exchange {
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
         return {

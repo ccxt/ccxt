@@ -200,7 +200,7 @@ module.exports = class indodax extends Exchange {
         let amount = undefined;
         let remaining = undefined;
         let filled = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
             let baseId = market['baseId'];

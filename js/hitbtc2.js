@@ -787,7 +787,7 @@ module.exports = class hitbtc2 extends hitbtc {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let id = trade['symbol'];

@@ -207,7 +207,7 @@ module.exports = class crypton extends Exchange {
                 symbol = this.parseSymbol (marketId);
             }
         }
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
         let fee = undefined;

@@ -226,7 +226,7 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
             let market = this.safeValue (this.marketsById, id);
-            if (!market) {
+            if (typeof market === 'undefined') {
                 continue;
             }
             let symbol = market['symbol'];

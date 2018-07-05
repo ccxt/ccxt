@@ -411,7 +411,7 @@ module.exports = class poloniex extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             base = market['base'];
             quote = market['quote'];
@@ -485,7 +485,7 @@ module.exports = class poloniex extends Exchange {
             request['limit'] = parseInt (limit);
         let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
         let result = [];
-        if (market) {
+        if (typeof market !== 'undefined') {
             result = this.parseTrades (response, market);
         } else {
             if (response) {
@@ -584,7 +584,7 @@ module.exports = class poloniex extends Exchange {
             'currencyPair': pair,
         }));
         let openOrders = [];
-        if (market) {
+        if (typeof market !== 'undefined') {
             openOrders = this.parseOpenOrders (response, market, openOrders);
         } else {
             let marketIds = Object.keys (response);
@@ -622,7 +622,7 @@ module.exports = class poloniex extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (market) {
+            if (typeof market !== 'undefined') {
                 if (order['symbol'] === symbol)
                     result.push (order);
             } else {

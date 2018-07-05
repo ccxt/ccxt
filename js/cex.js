@@ -366,7 +366,7 @@ module.exports = class cex extends Exchange {
             timestamp = parseInt (timestamp);
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let symbol = order['symbol1'] + '/' + order['symbol2'];
             if (symbol in this.markets)
                 market = this.market (symbol);
@@ -389,7 +389,7 @@ module.exports = class cex extends Exchange {
         let filled = amount - remaining;
         let fee = undefined;
         let cost = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             cost = this.safeFloat (order, 'ta:' + market['quote']);
             if (typeof cost === 'undefined')

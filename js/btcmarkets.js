@@ -284,7 +284,7 @@ module.exports = class btcmarkets extends Exchange {
         let side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         let type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
         let timestamp = order['creationTime'];
-        if (!market) {
+        if (typeof market === 'undefined') {
             market = this.market (order['instrument'] + '/' + order['currency']);
         }
         let status = 'open';

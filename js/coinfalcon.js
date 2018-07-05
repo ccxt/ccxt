@@ -104,7 +104,7 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = ticker['name'];
             market = this.marketsById[marketId];
         }
@@ -217,7 +217,7 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if (!market) {
+        if (typeof market === 'undefined') {
             market = this.marketsById[order['market']];
         }
         let symbol = market['symbol'];

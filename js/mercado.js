@@ -198,7 +198,7 @@ module.exports = class mercado extends Exchange {
             side = (order['order_type'] === 1) ? 'buy' : 'sell';
         let status = order['status'];
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('coin_pair' in order)
                 if (order['coin_pair'] in this.markets_by_id)
                     market = this.markets_by_id[order['coin_pair']];

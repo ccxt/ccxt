@@ -894,7 +894,7 @@ module.exports = class kucoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['datetime'];
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];

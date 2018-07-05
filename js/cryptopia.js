@@ -343,14 +343,14 @@ module.exports = class cryptopia extends Exchange {
             price = this.safeFloat (trade, 'Rate');
         let cost = this.safeFloat (trade, 'Total');
         let id = this.safeString (trade, 'TradeId');
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('TradePairId' in trade)
                 if (trade['TradePairId'] in this.markets_by_id)
                     market = this.markets_by_id[trade['TradePairId']];
         }
         let symbol = undefined;
         let fee = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('Fee' in trade) {
                 fee = {
@@ -556,7 +556,7 @@ module.exports = class cryptopia extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('Market' in order) {
             let id = order['Market'];

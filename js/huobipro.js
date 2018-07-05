@@ -554,7 +554,7 @@ module.exports = class huobipro extends Exchange {
             status = this.parseOrderStatus (order['state']);
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in order) {
                 if (order['symbol'] in this.markets_by_id) {
                     let marketId = order['symbol'];

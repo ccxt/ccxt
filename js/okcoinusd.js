@@ -259,7 +259,7 @@ module.exports = class okcoinusd extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
                 if (marketId in this.markets_by_id)
@@ -535,7 +535,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in order)
                 if (order['symbol'] in this.markets_by_id)
                     market = this.markets_by_id[order['symbol']];

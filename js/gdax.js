@@ -253,7 +253,7 @@ module.exports = class gdax extends Exchange {
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('product_id' in trade) {
                 let marketId = trade['product_id'];
                 if (marketId in this.markets_by_id)
@@ -264,7 +264,7 @@ module.exports = class gdax extends Exchange {
             symbol = market['symbol'];
         let feeRate = undefined;
         let feeCurrency = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             feeCurrency = market['quote'];
             if ('liquidity' in trade) {
                 let rateType = (trade['liquidity'] === 'T') ? 'taker' : 'maker';
@@ -374,7 +374,7 @@ module.exports = class gdax extends Exchange {
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['created_at']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if (order['product_id'] in this.markets_by_id)
                 market = this.markets_by_id[order['product_id']];
         }

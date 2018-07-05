@@ -149,7 +149,7 @@ module.exports = class bibox extends Exchange {
         // we don't set values that are not defined by the exchange
         let timestamp = this.safeInteger (ticker, 'timestamp');
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let base = ticker['coin_symbol'];

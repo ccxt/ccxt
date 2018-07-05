@@ -176,7 +176,7 @@ module.exports = class coinmarketcap extends Exchange {
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             let priceKey = 'price_' + market['quoteId'];
             if (priceKey in ticker)
                 if (ticker[priceKey])
