@@ -181,9 +181,10 @@ module.exports = class bittrex extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let pricePrecision = (quote === 'USD') ? 3 : 8;
             let precision = {
                 'amount': 8,
-                'price': 8,
+                'price': pricePrecision,
             };
             let active = market['IsActive'] || market['IsActive'] === 'true';
             result.push ({
