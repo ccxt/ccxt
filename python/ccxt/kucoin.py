@@ -861,7 +861,7 @@ class kucoin (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             symbol = ticker['coinType'] + '/' + ticker['coinTypePair']

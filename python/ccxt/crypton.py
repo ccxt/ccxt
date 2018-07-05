@@ -198,7 +198,7 @@ class crypton (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 symbol = self.parse_symbol(marketId)
-        if market:
+        if market is not None:
             symbol = market['symbol']
         fee = None
         if 'fee' in trade:

@@ -786,7 +786,7 @@ class hitbtc2 (hitbtc):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = trade['symbol']

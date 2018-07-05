@@ -280,7 +280,7 @@ class tidebit (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']

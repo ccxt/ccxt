@@ -105,7 +105,7 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        if (!$market) {
+        if ($market === null) {
             $marketId = $ticker['name'];
             $market = $this->marketsById[$marketId];
         }
@@ -218,7 +218,7 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        if (!$market) {
+        if ($market === null) {
             $market = $this->marketsById[$order['market']];
         }
         $symbol = $market['symbol'];

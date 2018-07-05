@@ -412,7 +412,7 @@ class poloniex extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];
@@ -486,7 +486,7 @@ class poloniex extends Exchange {
             $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
-        if ($market) {
+        if ($market !== null) {
             $result = $this->parse_trades($response, $market);
         } else {
             if ($response) {
@@ -585,7 +585,7 @@ class poloniex extends Exchange {
             'currencyPair' => $pair,
         )));
         $openOrders = array ();
-        if ($market) {
+        if ($market !== null) {
             $openOrders = $this->parse_open_orders ($response, $market, $openOrders);
         } else {
             $marketIds = is_array ($response) ? array_keys ($response) : array ();
@@ -623,7 +623,7 @@ class poloniex extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($market) {
+            if ($market !== null) {
                 if ($order['symbol'] === $symbol)
                     $result[] = $order;
             } else {

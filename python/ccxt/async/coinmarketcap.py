@@ -171,7 +171,7 @@ class coinmarketcap (Exchange):
         last = None
         symbol = None
         volume = None
-        if market:
+        if market is not None:
             priceKey = 'price_' + market['quoteId']
             if priceKey in ticker:
                 if ticker[priceKey]:

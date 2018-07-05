@@ -164,7 +164,7 @@ class bibox (Exchange):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             base = ticker['coin_symbol']

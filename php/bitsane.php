@@ -227,7 +227,7 @@ class bitsane extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $this->safe_value($this->marketsById, $id);
-            if (!$market) {
+            if ($market === null) {
                 continue;
             }
             $symbol = $market['symbol'];

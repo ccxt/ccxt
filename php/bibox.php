@@ -150,7 +150,7 @@ class bibox extends Exchange {
         // we don't set values that are not defined by the exchange
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $base = $ticker['coin_symbol'];

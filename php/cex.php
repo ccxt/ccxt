@@ -367,7 +367,7 @@ class cex extends Exchange {
             $timestamp = intval ($timestamp);
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
             if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
                 $market = $this->market ($symbol);
@@ -390,7 +390,7 @@ class cex extends Exchange {
         $filled = $amount - $remaining;
         $fee = null;
         $cost = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $cost = $this->safe_float($order, 'ta:' . $market['quote']);
             if ($cost === null)

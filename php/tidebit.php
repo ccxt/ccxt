@@ -297,7 +297,7 @@ class tidebit extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $marketId = $order['market'];

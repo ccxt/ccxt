@@ -352,7 +352,7 @@ class cex (Exchange):
             # either integer or string integer
             timestamp = int(timestamp)
         symbol = None
-        if not market:
+        if market is None:
             symbol = order['symbol1'] + '/' + order['symbol2']
             if symbol in self.markets:
                 market = self.market(symbol)
@@ -373,7 +373,7 @@ class cex (Exchange):
         filled = amount - remaining
         fee = None
         cost = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             cost = self.safe_float(order, 'ta:' + market['quote'])
             if cost is None:

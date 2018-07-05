@@ -206,7 +206,7 @@ class indodax (Exchange):
         amount = None
         remaining = None
         filled = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             quoteId = market['quoteId']
             baseId = market['baseId']

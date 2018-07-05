@@ -667,13 +667,13 @@ class bitfinex extends Exchange {
             $status = 'closed';
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $exchange = strtoupper ($order['symbol']);
             if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;

@@ -650,11 +650,11 @@ class bitfinex (Exchange):
         else:
             status = 'closed'
         symbol = None
-        if not market:
+        if market is None:
             exchange = order['symbol'].upper()
             if exchange in self.markets_by_id:
                 market = self.markets_by_id[exchange]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         orderType = order['type']
         exchange = orderType.find('exchange ') >= 0

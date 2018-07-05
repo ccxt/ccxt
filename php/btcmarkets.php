@@ -285,7 +285,7 @@ class btcmarkets extends Exchange {
         $side = ($order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         $type = ($order['ordertype'] === 'Limit') ? 'limit' : 'market';
         $timestamp = $order['creationTime'];
-        if (!$market) {
+        if ($market === null) {
             $market = $this->market ($order['instrument'] . '/' . $order['currency']);
         }
         $status = 'open';

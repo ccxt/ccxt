@@ -105,7 +105,7 @@ class coinfalcon (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        if not market:
+        if market is None:
             marketId = ticker['name']
             market = self.marketsById[marketId]
         symbol = market['symbol']
@@ -207,7 +207,7 @@ class coinfalcon (Exchange):
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        if not market:
+        if market is None:
             market = self.marketsById[order['market']]
         symbol = market['symbol']
         timestamp = self.parse8601(order['created_at'])

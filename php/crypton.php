@@ -208,7 +208,7 @@ class crypton extends Exchange {
                 $symbol = $this->parse_symbol ($marketId);
             }
         }
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $fee = null;

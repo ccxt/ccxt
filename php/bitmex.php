@@ -396,7 +396,7 @@ class bitmex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
@@ -433,7 +433,7 @@ class bitmex extends Exchange {
         if ($status !== null)
             $status = $this->parse_order_status($status);
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $id = $order['symbol'];

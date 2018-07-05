@@ -344,14 +344,14 @@ class cryptopia extends Exchange {
             $price = $this->safe_float($trade, 'Rate');
         $cost = $this->safe_float($trade, 'Total');
         $id = $this->safe_string($trade, 'TradeId');
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('TradePairId', $trade))
                 if (is_array ($this->markets_by_id) && array_key_exists ($trade['TradePairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$trade['TradePairId']];
         }
         $symbol = null;
         $fee = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($trade) && array_key_exists ('Fee', $trade)) {
                 $fee = array (
@@ -557,7 +557,7 @@ class cryptopia extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else if (is_array ($order) && array_key_exists ('Market', $order)) {
             $id = $order['Market'];

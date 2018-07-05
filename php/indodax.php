@@ -201,7 +201,7 @@ class indodax extends Exchange {
         $amount = null;
         $remaining = null;
         $filled = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
             $baseId = $market['baseId'];

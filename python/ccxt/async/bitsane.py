@@ -231,7 +231,7 @@ class bitsane (Exchange):
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = self.safe_value(self.marketsById, id)
-            if not market:
+            if market is None:
                 continue
             symbol = market['symbol']
             ticker = tickers[id]

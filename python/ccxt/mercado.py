@@ -189,7 +189,7 @@ class mercado (Exchange):
             side = 'buy' if (order['order_type'] == 1) else 'sell'
         status = order['status']
         symbol = None
-        if not market:
+        if market is None:
             if 'coin_pair' in order:
                 if order['coin_pair'] in self.markets_by_id:
                     market = self.markets_by_id[order['coin_pair']]

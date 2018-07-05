@@ -189,7 +189,7 @@ class negociecoins (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             market = self.safe_value(self.marketsById, order['pair'])
             if market:
                 symbol = market['symbol']

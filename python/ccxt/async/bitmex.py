@@ -382,7 +382,7 @@ class bitmex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
         if market:
@@ -416,7 +416,7 @@ class bitmex (Exchange):
         if status is not None:
             status = self.parse_order_status(status)
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = order['symbol']

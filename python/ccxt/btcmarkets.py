@@ -275,7 +275,7 @@ class btcmarkets (Exchange):
         side = 'buy' if (order['orderSide'] == 'Bid') else 'sell'
         type = 'limit' if (order['ordertype'] == 'Limit') else 'market'
         timestamp = order['creationTime']
-        if not market:
+        if market is None:
             market = self.market(order['instrument'] + '/' + order['currency'])
         status = 'open'
         if order['status'] == 'Failed' or order['status'] == 'Cancelled' or order['status'] == 'Partially Cancelled' or order['status'] == 'Error':

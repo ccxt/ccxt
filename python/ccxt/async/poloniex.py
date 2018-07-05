@@ -406,7 +406,7 @@ class poloniex (Exchange):
                 quote = parts[0]
                 base = parts[1]
                 symbol = base + '/' + quote
-        if market:
+        if market is not None:
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
@@ -473,7 +473,7 @@ class poloniex (Exchange):
             request['limit'] = int(limit)
         response = await self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
-        if market:
+        if market is not None:
             result = self.parse_trades(response, market)
         else:
             if response:
@@ -559,7 +559,7 @@ class poloniex (Exchange):
             'currencyPair': pair,
         }))
         openOrders = []
-        if market:
+        if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
@@ -591,7 +591,7 @@ class poloniex (Exchange):
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
             order = self.orders[id]
-            if market:
+            if market is not None:
                 if order['symbol'] == symbol:
                     result.append(order)
             else:

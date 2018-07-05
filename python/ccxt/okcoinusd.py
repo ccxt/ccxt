@@ -259,7 +259,7 @@ class okcoinusd (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in ticker:
                 marketId = ticker['symbol']
                 if marketId in self.markets_by_id:
@@ -510,7 +510,7 @@ class okcoinusd (Exchange):
                     type = 'margin'
         status = self.parse_order_status(order['status'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in order:
                 if order['symbol'] in self.markets_by_id:
                     market = self.markets_by_id[order['symbol']]

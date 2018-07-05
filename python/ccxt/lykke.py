@@ -233,7 +233,7 @@ class lykke (Exchange):
     def parse_order(self, order, market=None):
         status = self.parse_order_status(order['Status'])
         symbol = None
-        if not market:
+        if market is None:
             if 'AssetPairId' in order:
                 if order['AssetPairId'] in self.markets_by_id:
                     market = self.markets_by_id[order['AssetPairId']]

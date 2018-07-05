@@ -260,7 +260,7 @@ class okcoinusd extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['timestamp'];
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
                 $marketId = $ticker['symbol'];
                 if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
@@ -536,7 +536,7 @@ class okcoinusd extends Exchange {
         }
         $status = $this->parse_order_status($order['status']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('symbol', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['symbol']];

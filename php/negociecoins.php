@@ -196,7 +196,7 @@ class negociecoins extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $market = $this->safe_value($this->marketsById, $order['pair']);
             if ($market)
                 $symbol = $market['symbol'];

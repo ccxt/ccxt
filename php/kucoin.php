@@ -895,7 +895,7 @@ class kucoin extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['datetime'];
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];

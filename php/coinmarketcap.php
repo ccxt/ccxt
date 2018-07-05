@@ -177,7 +177,7 @@ class coinmarketcap extends Exchange {
         $last = null;
         $symbol = null;
         $volume = null;
-        if ($market) {
+        if ($market !== null) {
             $priceKey = 'price_' . $market['quoteId'];
             if (is_array ($ticker) && array_key_exists ($priceKey, $ticker))
                 if ($ticker[$priceKey])

@@ -199,7 +199,7 @@ class mercado extends Exchange {
             $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
         $status = $order['status'];
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('coin_pair', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['coin_pair'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['coin_pair']];

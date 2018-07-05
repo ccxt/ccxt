@@ -628,7 +628,7 @@ class coinexchange (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
