@@ -237,9 +237,9 @@ class lbank (Exchange):
             'symbol': market['id'],
             'size': 100,
         }
-        if since:
+        if since is not None:
             request['time'] = int(since / 1000)
-        if limit:
+        if limit is not None:
             request['size'] = limit
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

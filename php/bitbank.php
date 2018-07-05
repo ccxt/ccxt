@@ -357,9 +357,9 @@ class bitbank extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
         $orders = $this->privateGetUserSpotActiveOrders (array_merge ($request, $params));
         return $this->parse_orders($orders['data']['orders'], $market, $since, $limit);

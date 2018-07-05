@@ -370,7 +370,7 @@ class zb extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -396,7 +396,7 @@ class zb extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 10, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . 'fetchOpenOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);

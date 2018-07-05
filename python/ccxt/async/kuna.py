@@ -116,7 +116,7 @@ class kuna (acx):
         return self.fetch_order_book(symbol, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
@@ -164,7 +164,7 @@ class kuna (acx):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)

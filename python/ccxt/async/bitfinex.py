@@ -688,7 +688,7 @@ class bitfinex (Exchange):
                 raise ExchangeError(self.id + ' has no symbol ' + symbol)
         response = await self.privatePostOrders(params)
         orders = self.parse_orders(response, None, since, limit)
-        if symbol:
+        if symbol is not None:
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 

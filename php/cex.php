@@ -208,7 +208,7 @@ class cex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$since) {
+        if ($since === null) {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
@@ -451,7 +451,7 @@ class cex extends Exchange {
         $request = array ();
         $method = 'privatePostOpenOrders';
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
             $method .= 'Pair';

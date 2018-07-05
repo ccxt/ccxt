@@ -372,7 +372,7 @@ class zb (Exchange):
         return self.parse_order(response, None)
 
     async def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
         await self.load_markets()
         market = self.market(symbol)
@@ -395,7 +395,7 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
         await self.load_markets()
         market = self.market(symbol)

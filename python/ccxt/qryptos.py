@@ -394,7 +394,7 @@ class qryptos (Exchange):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         status = self.safe_value(params, 'status')

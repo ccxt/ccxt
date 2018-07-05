@@ -956,7 +956,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
@@ -966,7 +966,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if limit is not None:
@@ -990,7 +990,7 @@ class hitbtc2 (hitbtc):
             # 'offset': 0,
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:

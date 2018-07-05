@@ -255,9 +255,9 @@ class xbtce (Exchange):
         #     periodicity = str(minutes)
         #     self.load_markets()
         #     market = self.market(symbol)
-        #     if not since:
+        #     if since is None:
         #         since = self.seconds() - 86400 * 7  # last day by defulat
-        #     if not limit:
+        #     if limit is None:
         #         limit = 1000  # default
         #     response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
         #         'symbol': market['id'],

@@ -243,9 +243,9 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
             'size' => 100,
         );
-        if ($since)
+        if ($since !== null)
             $request['time'] = intval ($since / 1000);
-        if ($limit)
+        if ($limit !== null)
             $request['size'] = $limit;
         $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

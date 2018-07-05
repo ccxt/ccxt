@@ -351,7 +351,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchOrders requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -361,7 +361,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchOpenOrders requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -376,7 +376,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchMyTrades requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);

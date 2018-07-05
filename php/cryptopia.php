@@ -398,7 +398,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['TradePairId'] = $market['id'];
         }

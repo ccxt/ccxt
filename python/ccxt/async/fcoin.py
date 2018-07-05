@@ -245,8 +245,6 @@ class fcoin (Exchange):
         timestamp = None
         symbol = None
         if market is None:
-            symbol = market['symbol']
-        else:
             tickerType = self.safe_string(ticker, 'type')
             if tickerType is not None:
                 parts = tickerType.split('.')

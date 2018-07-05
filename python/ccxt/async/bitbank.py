@@ -344,9 +344,9 @@ class bitbank (Exchange):
         request = {
             'pair': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['count'] = limit
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         orders = await self.privateGetUserSpotActiveOrders(self.extend(request, params))
         return self.parse_orders(orders['data']['orders'], market, since, limit)

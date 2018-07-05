@@ -252,7 +252,7 @@ class indodax (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol')
         self.load_markets()
         market = self.market(symbol)
@@ -268,7 +268,7 @@ class indodax (Exchange):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
@@ -291,18 +291,18 @@ class indodax (Exchange):
         return exchangeOrders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market, since, limit)
         orders = self.filter_by(orders, 'status', 'closed')
-        if symbol:
+        if symbol is not None:
             return self.filter_by_symbol(orders, symbol)
         return orders
 

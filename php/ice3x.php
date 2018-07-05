@@ -370,9 +370,9 @@ class ice3x extends Exchange {
         $request = array (
             'pair_id' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['items_per_page'] = $limit;
-        if ($since)
+        if ($since !== null)
             $request['date_from'] = intval ($since / 1000);
         $response = $this->privatePostTradeList (array_merge ($request, $params));
         $trades = $response['response']['entities'];

@@ -432,7 +432,7 @@ class gdax extends Exchange {
             'status' => 'all',
         );
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }
@@ -444,7 +444,7 @@ class gdax extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }
@@ -458,7 +458,7 @@ class gdax extends Exchange {
             'status' => 'done',
         );
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }

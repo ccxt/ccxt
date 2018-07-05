@@ -440,7 +440,7 @@ class bittrex (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.marketGetOpenorders(self.extend(request, params))
@@ -546,7 +546,7 @@ class bittrex (Exchange):
             }
             if market is not None:
                 fee['currency'] = market['quote']
-            elif symbol:
+            elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
                 if quoteCurrencyId in self.currencies_by_id:
@@ -612,12 +612,12 @@ class bittrex (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        if symbol:
+        if symbol is not None:
             return self.filter_by_symbol(orders, symbol)
         return orders
 

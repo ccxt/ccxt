@@ -406,7 +406,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetOrderPending(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)
@@ -417,7 +417,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetOrderFinished(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)

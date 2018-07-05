@@ -188,7 +188,7 @@ class poloniex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$since)
+        if ($since === null)
             $since = 0;
         $request = array (
             'currencyPair' => $market['id'],
@@ -473,7 +473,7 @@ class poloniex extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
+        if ($symbol !== null)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $request = array ( 'currencyPair' => $pair );
@@ -482,7 +482,7 @@ class poloniex extends Exchange {
             $request['end'] = $this->seconds ();
         }
         // $limit is disabled (does not really work as expected)
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
@@ -578,7 +578,7 @@ class poloniex extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
+        if ($symbol !== null)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
@@ -717,7 +717,7 @@ class poloniex extends Exchange {
             $result = array_merge ($this->orders[$newid], array ( 'info' => $response ));
         } else {
             $market = null;
-            if ($symbol)
+            if ($symbol !== null)
                 $market = $this->market ($symbol);
             $result = $this->parse_order($response, $market);
             $this->orders[$result['id']] = $result;

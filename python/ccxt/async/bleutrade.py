@@ -168,7 +168,7 @@ class bleutrade (bittrex):
         # depth(optional, default is 500, max is 20000)
         await self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
         else:

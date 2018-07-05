@@ -448,7 +448,7 @@ class okcoinusd (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -560,7 +560,7 @@ class okcoinusd (Exchange):
         return 'orders'
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -584,7 +584,7 @@ class okcoinusd (Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
