@@ -152,6 +152,9 @@ module.exports = class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                'pricePrecisionByQuoteCurrencyCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             },
@@ -181,7 +184,9 @@ module.exports = class bittrex extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let pricePrecision = (quote === 'USD') ? 3 : 8;
+            let pricePrecision = 8;
+            if (quote in this.options['pricePrecisionByQuoteCurrencyCode'])
+                pricePrecision = this.options['pricePrecisionByQuoteCurrencyCode'];
             let precision = {
                 'amount': 8,
                 'price': pricePrecision,
