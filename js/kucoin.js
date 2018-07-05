@@ -382,10 +382,10 @@ module.exports = class kucoin extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
-            let base = market['coinType'];
-            let quote = market['coinTypePair'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['coinType'];
+            let quoteId = market['coinTypePair'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -399,6 +399,8 @@ module.exports = class kucoin extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': this.safeFloat (market, 'feeRate'),
                 'maker': this.safeFloat (market, 'feeRate'),
@@ -894,10 +896,11 @@ module.exports = class kucoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['datetime'];
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
-            symbol = market['symbol'];
-        } else {
-            symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
+        if (typeof market === 'undefined') {
+            let marketId = ticker['coinType'] + '-' + ticker['coinTypePair'];
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         // TNC coin doesn't have changerate for some reason
         let change = this.safeFloat (ticker, 'change');
@@ -907,6 +910,9 @@ module.exports = class kucoin extends Exchange {
             if (typeof change !== 'undefined')
                 open = last - change;
         let changePercentage = this.safeFloat (ticker, 'changeRate');
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -932,6 +938,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetMarketOpenSymbols (params);
         let tickers = response['data'];
         let result = {};
