@@ -425,7 +425,7 @@ module.exports = class coinex extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetOrderPending (this.extend (request, params));
         return this.parseOrders (response['data']['data'], market);
@@ -437,7 +437,7 @@ module.exports = class coinex extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetOrderFinished (this.extend (request, params));
         return this.parseOrders (response['data']['data'], market);

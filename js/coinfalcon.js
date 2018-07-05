@@ -190,7 +190,7 @@ module.exports = class coinfalcon extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['since'] = this.iso8601 (since);
         }
         let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
@@ -290,10 +290,10 @@ module.exports = class coinfalcon extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             request['market'] = this.marketId (symbol);
         }
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['since_time'] = this.iso8601 (this.milliseconds ());
         }
         // TODO: test status=all if it works for closed orders too

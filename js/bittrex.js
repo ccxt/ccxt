@@ -448,7 +448,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
@@ -566,7 +566,7 @@ module.exports = class bittrex extends Exchange {
             };
             if (typeof market !== 'undefined') {
                 fee['currency'] = market['quote'];
-            } else if (symbol) {
+            } else if (typeof symbol !== 'undefined') {
                 let currencyIds = symbol.split ('/');
                 let quoteCurrencyId = currencyIds[1];
                 if (quoteCurrencyId in this.currencies_by_id)
@@ -642,13 +642,13 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             return this.filterBySymbol (orders, symbol);
         return orders;
     }

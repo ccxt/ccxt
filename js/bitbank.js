@@ -356,9 +356,9 @@ module.exports = class bitbank extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['count'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         return this.parseOrders (orders['data']['orders'], market, since, limit);

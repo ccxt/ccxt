@@ -278,7 +278,7 @@ module.exports = class tidebit extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit)
+        if (typeof limit === 'undefined')
             limit = 30; // default is 30
         let request = {
             'market': market['id'],

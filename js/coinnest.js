@@ -330,9 +330,9 @@ module.exports = class coinnest extends Exchange {
         let request = {
             'coin': market['baseId'],
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privatePostTradeTrust (this.extend (request, params));
         return this.parseOrders (response, market);
