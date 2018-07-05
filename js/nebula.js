@@ -396,7 +396,7 @@ module.exports = class nebula extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '';
-        let parameters = this.clone (params);
+        let parameters = params;
         if (Object.keys (params).length && params['endpoint']) {
             endpoint = '/' + params['endpoint'];
             parameters = this.omit (params, ['endpoint']);
