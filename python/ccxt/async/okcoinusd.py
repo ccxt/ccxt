@@ -151,6 +151,7 @@ class okcoinusd (Exchange):
                 '10008': ExchangeError,  # Illegal URL parameter
             },
             'options': {
+                'marketBuyPrice': False,
                 'defaultContractType': 'this_week',  # next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': True,
                 'fiats': ['USD', 'CNY'],
@@ -419,9 +420,16 @@ class okcoinusd (Exchange):
             else:
                 order['type'] += '_market'
                 if side == 'buy':
-                    order['price'] = self.safe_float(params, 'cost')
-                    if not order['price']:
-                        raise ExchangeError(self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
+                    if self.options['marketBuyPrice']:
+                        if price is None:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require a price argument(the amount you want to spend or the cost of the order) when self.options['marketBuyPrice'] is True.")
+                        order['price'] = price
+                    else:
+                        order['price'] = self.safe_float(params, 'cost')
+                        if not order['price']:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = True. It will effectively suppress self warning exception as well.")
                 else:
                     order['amount'] = amount
         params = self.omit(params, 'cost')
