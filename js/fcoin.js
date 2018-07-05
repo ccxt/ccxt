@@ -239,8 +239,6 @@ module.exports = class fcoin extends Exchange {
         let timestamp = undefined;
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            symbol = market['symbol'];
-        } else {
             let tickerType = this.safeString (ticker, 'type');
             if (typeof tickerType !== 'undefined') {
                 let parts = tickerType.split ('.');
