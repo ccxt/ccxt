@@ -150,6 +150,7 @@ class coinex (Exchange):
                 'price': market['buy_asset_type_places'],
             }
             numMergeLevels = len(market['merge'])
+            active = (market['status'] == 'pass')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -157,7 +158,7 @@ class coinex (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'taker': self.safe_float(market, 'taker_fee_rate'),
                 'maker': self.safe_float(market, 'maker_fee_rate'),
                 'info': market,
@@ -406,7 +407,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetOrderPending(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)
@@ -417,7 +418,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetOrderFinished(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)

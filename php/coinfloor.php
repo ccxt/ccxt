@@ -107,7 +107,7 @@ class coinfloor extends Exchange {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
@@ -225,7 +225,7 @@ class coinfloor extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' fetchOpenOrders requires a $symbol param');
         $this->load_markets();
         $market = $this->market ($symbol);

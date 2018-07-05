@@ -799,7 +799,7 @@ class kucoin (Exchange):
         # docs say symbol is required, but it seems to be optional
         # you can cancel all orders, or filter by symbol or type or both
         request = {}
-        if symbol:
+        if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -990,14 +990,14 @@ class kucoin (Exchange):
         # it improperly mimics fetchMyTrades with closed orders
         # kucoin does not have any means of fetching personal trades at all
         # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)

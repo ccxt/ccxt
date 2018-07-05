@@ -211,7 +211,7 @@ class cex (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not since:
+        if since is None:
             since = self.milliseconds() - 86400000  # yesterday
         else:
             if self.options['fetchOHLCVWarning']:
@@ -431,7 +431,7 @@ class cex (Exchange):
         request = {}
         method = 'privatePostOpenOrders'
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
             method += 'Pair'

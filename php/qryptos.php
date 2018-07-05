@@ -419,7 +419,7 @@ class qryptos extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }

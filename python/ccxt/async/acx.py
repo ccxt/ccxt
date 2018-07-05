@@ -248,7 +248,7 @@ class acx (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if not limit:
+        if limit is None:
             limit = 500  # default is 30
         request = {
             'market': market['id'],

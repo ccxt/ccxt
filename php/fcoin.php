@@ -240,8 +240,6 @@ class fcoin extends Exchange {
         $timestamp = null;
         $symbol = null;
         if ($market === null) {
-            $symbol = $market['symbol'];
-        } else {
             $tickerType = $this->safe_string($ticker, 'type');
             if ($tickerType !== null) {
                 $parts = explode ('.', $tickerType);

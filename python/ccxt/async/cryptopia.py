@@ -385,7 +385,7 @@ class cryptopia (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
         if limit is not None:

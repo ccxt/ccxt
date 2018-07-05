@@ -267,9 +267,9 @@ class xbtce extends Exchange {
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
         //     $market = $this->market ($symbol);
-        //     if (!$since)
+        //     if ($since === null)
         //         $since = $this->seconds () - 86400 * 7; // last day by defulat
-        //     if (!$limit)
+        //     if ($limit === null)
         //         $limit = 1000; // default
         //     $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
         //         'symbol' => $market['id'],

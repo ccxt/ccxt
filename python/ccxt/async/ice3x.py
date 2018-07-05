@@ -348,9 +348,9 @@ class ice3x (Exchange):
         request = {
             'pair_id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['items_per_page'] = limit
-        if since:
+        if since is not None:
             request['date_from'] = int(since / 1000)
         response = await self.privatePostTradeList(self.extend(request, params))
         trades = response['response']['entities']

@@ -279,7 +279,7 @@ class tidebit extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$limit)
+        if ($limit === null)
             $limit = 30; // default is 30
         $request = array (
             'market' => $market['id'],

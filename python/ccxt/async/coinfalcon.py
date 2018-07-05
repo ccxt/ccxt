@@ -184,7 +184,7 @@ class coinfalcon (Exchange):
         request = {
             'market': market['id'],
         }
-        if since:
+        if since is not None:
             request['since'] = self.iso8601(since)
         response = await self.publicGetMarketsMarketTrades(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
@@ -274,9 +274,9 @@ class coinfalcon (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         request = {}
-        if symbol:
+        if symbol is not None:
             request['market'] = self.market_id(symbol)
-        if since:
+        if since is not None:
             request['since_time'] = self.iso8601(self.milliseconds())
         # TODO: test status=all if it works for closed orders too
         response = await self.privateGetUserOrders(self.extend(request, params))

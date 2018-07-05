@@ -336,7 +336,7 @@ class btcmarkets (Exchange):
         return request
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchOrders requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)
@@ -345,7 +345,7 @@ class btcmarkets (Exchange):
         return self.parse_orders(response['orders'], market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchOpenOrders requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)
@@ -358,7 +358,7 @@ class btcmarkets (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ': fetchMyTrades requires a `symbol` parameter.')
         self.load_markets()
         market = self.market(symbol)

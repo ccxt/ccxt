@@ -414,7 +414,7 @@ class gdax (Exchange):
             'status': 'all',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -424,7 +424,7 @@ class gdax (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -436,7 +436,7 @@ class gdax (Exchange):
             'status': 'done',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
