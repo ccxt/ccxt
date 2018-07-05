@@ -149,6 +149,7 @@ class coinex extends Exchange {
                 'price' => $market['buy_asset_type_places'],
             );
             $numMergeLevels = is_array ($market['merge']) ? count ($market['merge']) : 0;
+            $active = ($market['status'] === 'pass');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -156,7 +157,7 @@ class coinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => $active,
                 'taker' => $this->safe_float($market, 'taker_fee_rate'),
                 'maker' => $this->safe_float($market, 'maker_fee_rate'),
                 'info' => $market,
