@@ -661,7 +661,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     _websocketOnMessage (contextId, data) {
-        // send ping after 5 seconds if not message received        
+        // send ping after 5 seconds if not message received
         if (data === 'pong') {
             return;
         }
