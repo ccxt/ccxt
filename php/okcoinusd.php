@@ -145,6 +145,7 @@ class okcoinusd extends Exchange {
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
             ),
             'options' => array (
+                'marketBuyPrice' => false,
                 'defaultContractType' => 'this_week', // next_week, quarter
                 'warnOnFetchOHLCVLimitArgument' => true,
                 'fiats' => array ( 'USD', 'CNY' ),
@@ -435,9 +436,19 @@ class okcoinusd extends Exchange {
             } else {
                 $order['type'] .= '_market';
                 if ($side === 'buy') {
-                    $order['price'] = $this->safe_float($params, 'cost');
-                    if (!$order['price'])
-                        throw new ExchangeError ($this->id . ' $market buy orders require an additional cost parameter, cost = $price * amount');
+                    if ($this->options['marketBuyPrice']) {
+                        if ($price === null) {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError ($this->id . " $market buy orders require a $price argument (the $amount you want to spend or the cost of the $order) when $this->options['marketBuyPrice'] is true.");
+                        }
+                        $order['price'] = $price;
+                    } else {
+                        $order['price'] = $this->safe_float($params, 'cost');
+                        if (!$order['price']) {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError ($this->id . " $market buy orders require an additional cost parameter, cost = $price * $amount-> If you want to pass the cost of the $market $order (the $amount you want to spend) in the $price argument (the default " . $this->id . " behaviour), set $this->options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                        }
+                    }
                 } else {
                     $order['amount'] = $amount;
                 }
