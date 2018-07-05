@@ -503,11 +503,20 @@ class zb (Exchange):
             return  # fallback to default error handler
         if body[0] == '{':
             response = json.loads(body)
+            feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                message = self.id + ' ' + self.json(response)
                 if code in self.exceptions:
                     ExceptionClass = self.exceptions[code]
-                    raise ExceptionClass(message)
+                    raise ExceptionClass(feedback)
                 elif code != '1000':
-                    raise ExchangeError(message)
+                    raise ExchangeError(feedback)
+            # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    message = self.safe_string(response, 'message')
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)
