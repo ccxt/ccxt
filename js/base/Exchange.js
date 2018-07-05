@@ -1165,7 +1165,7 @@ module.exports = class Exchange extends EventEmitter{
                 ((a < b) ? -direction :
                 ((a > b) ?  direction : 0));
         for (i = 0; i < orderedArray.length; i++) {
-            if (compare (orderedArray[i][key], value)) {
+            if (compare (orderedArray[i][key], value) >= 0) {
                 return i;
             }
         }

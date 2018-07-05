@@ -33,7 +33,7 @@ async def main():
         "apiKey": apiKey,
         "secret": secret,
         "enableRateLimit": True,
-        'verbose': False,
+        'verbose': True,
         'timeout': 5 * 1000,
         # 'wsproxy': 'http://185.93.3.123:8080/',
     })

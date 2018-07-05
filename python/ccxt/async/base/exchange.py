@@ -307,7 +307,7 @@ class Exchange(BaseExchange, EventEmitter):
 
     def _websocket_context_get_subscribed_event_symbols(self, conxid):
         ret = []
-        events = self._contextGetEvents()
+        events = self._contextGetEvents(conxid)
         for key in events:
             for symbol in events[key]:
                 symbol_context = events[key][symbol]

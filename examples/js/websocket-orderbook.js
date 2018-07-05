@@ -29,7 +29,7 @@ async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
     apiKey: apiKey,
     secret: secret,
     enableRateLimit: true,
-    verbose: false,
+    verbose: true,
     // agent: agent
   });
   exchange.on('err', (err, conxid) => {

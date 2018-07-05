@@ -1962,7 +1962,7 @@ abstract class Exchange extends CcxtEventEmitter {
                 (($a > $b) ?  $direction : 0));
         };
         for ($i = 0; $i < count($orderedArray); $i++) {
-            if ($compare ($orderedArray[$i][$key], $value)) {
+            if ($compare ($orderedArray[$i][$key], $value) >= 0) {
                 return $i;
             }
         }
