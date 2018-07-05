@@ -383,10 +383,10 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $market['coinType'];
-            $quote = $market['coinTypePair'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['coinType'];
+            $quoteId = $market['coinTypePair'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -400,6 +400,8 @@ class kucoin extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'taker' => $this->safe_float($market, 'feeRate'),
                 'maker' => $this->safe_float($market, 'feeRate'),
@@ -895,10 +897,11 @@ class kucoin extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['datetime'];
         $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
+        if ($market === null) {
+            $marketId = $ticker['coinType'] . '-' . $ticker['coinTypePair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         // TNC coin doesn't have changerate for some reason
         $change = $this->safe_float($ticker, 'change');
@@ -908,6 +911,9 @@ class kucoin extends Exchange {
             if ($change !== null)
                 $open = $last - $change;
         $changePercentage = $this->safe_float($ticker, 'changeRate');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -933,6 +939,7 @@ class kucoin extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetMarketOpenSymbols ($params);
         $tickers = $response['data'];
         $result = array ();

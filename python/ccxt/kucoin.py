@@ -387,10 +387,10 @@ class kucoin (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = market['coinType']
-            quote = market['coinTypePair']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['coinType']
+            quoteId = market['coinTypePair']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -404,6 +404,8 @@ class kucoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': self.safe_float(market, 'feeRate'),
                 'maker': self.safe_float(market, 'feeRate'),
@@ -861,10 +863,10 @@ class kucoin (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
         symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        else:
-            symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        if market is None:
+            marketId = ticker['coinType'] + '-' + ticker['coinTypePair']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         # TNC coin doesn't have changerate for some reason
         change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
@@ -873,6 +875,8 @@ class kucoin (Exchange):
             if change is not None:
                 open = last - change
         changePercentage = self.safe_float(ticker, 'changeRate')
+        if market is not None:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -897,6 +901,7 @@ class kucoin (Exchange):
         }
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetMarketOpenSymbols(params)
         tickers = response['data']
         result = {}
