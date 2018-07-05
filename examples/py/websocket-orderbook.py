@@ -35,7 +35,7 @@ async def main():
         "enableRateLimit": True,
         'verbose': False,
         'timeout': 5 * 1000,
-        # 'wsproxy': 'http://185.93.3.123:8080/',        
+        # 'wsproxy': 'http://185.93.3.123:8080/',
     })
 
     @exchange.on('err')
@@ -58,7 +58,7 @@ async def main():
             symbol = symbols[i]
             print("subscribe: " + symbol)
             sys.stdout.flush()
-            await exchange.websocket_subscribe('ob', symbol, {'limit' : limit})
+            await exchange.websocket_subscribe('ob', symbol, {'limit': limit})
             print("subscribed: " + symbol)
             sys.stdout.flush()
             ob = await exchange.websocket_fetch_order_book(symbol, limit)  # noqa: F841 pylint: disable=W0612

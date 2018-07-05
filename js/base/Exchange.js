@@ -1524,10 +1524,6 @@ module.exports = class Exchange extends EventEmitter{
         }
     }
 
-    websocketParseJson (rawData) {
-        return JSON.parse (rawData);
-    }
-
     websocketClose (conxid = 'default') {
         let websocketConxInfo = this._contextGetConnectionInfo(conxid);
         websocketConxInfo['conx'].close();

@@ -233,7 +233,7 @@ module.exports = class okex extends okcoinusd {
 
     _websocketOnMessage (contextId, data) {
         // console.log ('_websocketOnMsg', data);
-        let msgs = this.websocketParseJson (data);
+        let msgs = JSON.parse (data);
         if (Array.isArray (msgs)) {
             for (let i = 0; i < msgs.length; i++) {
                 this._websocketDispatch (contextId, msgs[i]);

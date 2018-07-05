@@ -591,7 +591,7 @@ module.exports = class gateio extends Exchange {
     }
 
     _websocketOnMessage (contextId, data) {
-        let msg = this.websocketParseJson (data);
+        let msg = JSON.parse (data);
         let oid = this.safeString (msg, 'id');
         let method = this.safeString (msg, 'method');
         if (typeof method === 'undefined') {

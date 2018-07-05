@@ -129,7 +129,7 @@ module.exports = class bitmex extends Exchange {
                     ],
                 },
             },
-            'asyncconf': {
+            'wsconf': {
                 'conx-tpls': {
                     'default': {
                         'type': 'ws',
@@ -137,13 +137,13 @@ module.exports = class bitmex extends Exchange {
                     },
                 },
                 'methodmap': {
-                    '_asyncTimeoutSendPing': '_asyncTimeoutSendPing',
-                    '_asyncTimeoutRemoveNonce': '_asyncTimeoutRemoveNonce',
+                    '_websocketTimeoutSendPing': '_websocketTimeoutSendPing',
+                    '_websocketTimeoutRemoveNonce': '_websocketTimeoutRemoveNonce',
                 },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
-                        'generators': {
+                        'conx-param': {
                             'url': '{baseurl}',
                             'id': '{id}',
                         },
@@ -641,45 +641,59 @@ module.exports = class bitmex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    _asyncOnMsg (data, conxid = 'default') {
-        // send ping after 5 seconds if not message received
-        let lastTimer = this.safeValue (this.asyncContext['_'], 'timer');
+    _websocketOnOpen (contextId, websocketOptions) {
+        let lastTimer = this._contextGet(contextId, 'timer');
         if (typeof lastTimer !== 'undefined') {
-            this._asyncTimeoutCancel (lastTimer);
+            this._cancelTimeout (lastTimer);
         }
-        this.asyncContext['_']['timer'] = this._asyncTimeoutSet (5000, this._asyncMethodMap ('_asyncTimeoutSendPing'), []);
+        lastTimer = this._setTimeout (5000, this._websocketMethodMap ('_websocketTimeoutSendPing'), []);
+        this._contextSet (contextId, 'timer', lastTimer);
+        let dbids = {};
+        this._contextSet (contextId, 'dbids', dbids);
+        // send auth
+        // let nonce = this.nonce ();
+        // let signature = this.hmac (this.encode ('GET/realtime' + nonce.toString ()), this.encode (this.secret));
+        // let payload = {
+        //     'op': 'authKeyExpires',
+        //     'args': [this.apiKey, nonce, signature]
+        //  };
+        // this.asyncSendJson (payload);
+    }
+
+    _websocketOnMessage (contextId, data) {
+        // send ping after 5 seconds if not message received        
         if (data === 'pong') {
             return;
         }
-        let msg = this.asyncParseJson (data);
+        let msg = JSON.parse (data);
         let table = this.safeString (msg, 'table');
         let subscribe = this.safeString (msg, 'subscribe');
         let unsubscribe = this.safeString (msg, 'unsubscribe');
         let status = this.safeInteger (msg, 'status');
         if (typeof subscribe !== 'undefined') {
-            this._asyncHandleSubscription ('ob', msg, conxid);
+            this._websocketHandleSubscription (contextId, 'ob', msg);
         } else if (typeof unsubscribe !== 'undefined') {
-            this._asyncHandleUnsubscription ('ob', msg, conxid);
+            this._websocketHandleUnsubscription (contextId, 'ob', msg);
         } else if (typeof table !== 'undefined') {
             if (table === 'orderBookL2') {
-                this._asyncHandleOb (msg, conxid);
+                this._websocketHandleOb (contextId, msg);
             }
         } else if (typeof status !== 'undefined') {
-            this._asyncHandleError (msg, conxid);
+            this._websocketHandleError (contextId, msg);
         }
     }
 
-    _asyncTimeoutSendPing () {
-        this.asyncSend ('ping');
+    _websocketTimeoutSendPing () {
+        this.websocketSend ('ping');
     }
 
-    _asyncHandleError (msg, conxid = 'default') {
+    _websocketHandleError (contextId, msg) {
         let status = this.safeInteger (msg, 'status');
         let error = this.safeString (msg, 'error');
-        this.emit ('err', new ExchangeError (this.id + ' status ' + status + ':' + error), conxid);
+        this.emit ('err', new ExchangeError (this.id + ' status ' + status + ':' + error), contextId);
     }
 
-    _asyncHandleSubscription (event, msg, conxid = 'default') {
+    _websocketHandleSubscription (contextId, event, msg) {
         let success = this.safeValue (msg, 'success');
         let subscribe = this.safeString (msg, 'subscribe');
         let parts = subscribe.split (':');
@@ -687,21 +701,23 @@ module.exports = class bitmex extends Exchange {
         if (partsLen === 2) {
             if (parts[0] === 'orderBookL2') {
                 let symbol = this.findSymbol (parts[1]);
-                if ('sub-nonces' in this.asyncContext[event][symbol]['data']) {
-                    let nonces = this.asyncContext[event][symbol]['data']['sub-nonces'];
+                let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+                if ('sub-nonces' in symbolData) {
+                    let nonces = symbolData['sub-nonces'];
                     const keys = Object.keys (nonces);
                     for (let i = 0; i < keys.length; i++) {
                         let nonce = keys[i];
-                        this._asyncTimeoutCancel (nonces[nonce]);
+                        this._cancelTimeout (nonces[nonce]);
                         this.emit (nonce, success);
                     }
-                    this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
+                    symbolData['sub-nonces'] = {};
+                    this._contextSetSymbolData (contextId, event, symbol, symbolData);
                 }
             }
         }
     }
 
-    _asyncHandleUnsubscription (event, msg, conxid = 'default') {
+    _websocketHandleUnsubscription (contextId, event, msg) {
         let success = this.safeValue (msg, 'success');
         let unsubscribe = this.safeString (msg, 'unsubscribe');
         let parts = unsubscribe.split (':');
@@ -710,29 +726,35 @@ module.exports = class bitmex extends Exchange {
             if (parts[0] === 'orderBookL2') {
                 let symbol = this.findSymbol (parts[1]);
                 if (success) {
-                    if (symbol in this.asyncContext['_']['dbids']) {
-                        this.omit (this.asyncContext['_']['dbids'], symbol);
+                    let dbids = this._contextGet (contextId, 'dbids');
+                    if (symbol in dbids) {
+                        this.omit (dbids, symbol);
+                        this._contextSet (contextId, 'dbids', dbids);
                     }
                 }
-                if ('unsub-nonces' in this.asyncContext[event][symbol]['data']) {
-                    let nonces = this.asyncContext[event][symbol]['data']['unsub-nonces'];
+                let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+                if ('unsub-nonces' in symbolData) {
+                    let nonces = symbolData['unsub-nonces'];
                     const keys = Object.keys (nonces);
                     for (let i = 0; i < keys.length; i++) {
                         let nonce = keys[i];
-                        this._asyncTimeoutCancel (nonces[nonce]);
+                        this._cancelTimeout (nonces[nonce]);
                         this.emit (nonce, success);
                     }
-                    this.asyncContext[event][symbol]['data']['unsub-nonces'] = {};
+                    symbolData['unsub-nonces'] = {};
+                    this._contextSetSymbolData (contextId, event, symbol, symbolData);
                 }
             }
         }
     }
 
-    _asyncHandleOb (msg, conxid = 'default') {
+    _websocketHandleOb (contextId, msg) {
         let action = this.safeString (msg, 'action');
         let data = this.safeValue (msg, 'data');
         let symbol = this.safeString (data[0], 'symbol');
         symbol = this.findSymbol (symbol);
+        let dbids = this._contextGet (contextId, 'dbids');
+        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
         if (action === 'partial') {
             let ob = {
                 'bids': [],
@@ -753,13 +775,13 @@ module.exports = class bitmex extends Exchange {
             }
             ob['bids'] = this.sortBy (ob['bids'], 0, true);
             ob['asks'] = this.sortBy (ob['asks'], 0);
-            this.asyncContext['ob'][symbol]['data']['ob'] = ob;
-            this.asyncContext['_']['dbids'][symbol] = obIds;
-            this.emit ('ob', symbol, ob);
+            symbolData['ob'] = ob;
+            dbids[symbol] = obIds;
+            this.emit ('ob', symbol, this._cloneOrderBook (ob, symbolData['limit']));
         } else if (action === 'update') {
-            if (symbol in this.asyncContext['_']['dbids']) {
-                let obIds = this.asyncContext['_']['dbids'][symbol];
-                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+            if (symbol in dbids) {
+                let obIds = dbids[symbol];
+                let curob = symbolData['ob'];
                 for (let o = 0; o < data.length; o++) {
                     let order = data[o];
                     let amount = order['size'];
@@ -768,12 +790,12 @@ module.exports = class bitmex extends Exchange {
                     let price = obIds[priceId];
                     this.updateBidAsk ([price, amount], curob[side], order['side'] === 'Buy');
                 }
-                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook (curob));
+                symbolData['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook (curob, symbolData['limit']));
             }
         } else if (action === 'insert') {
-            if (symbol in this.asyncContext['_']['dbids']) {
-                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+            if (symbol in dbids) {
+                let curob = symbolData['ob'];
                 for (let o = 0; o < data.length; o++) {
                     let order = data[o];
                     let amount = order['size'];
@@ -781,32 +803,34 @@ module.exports = class bitmex extends Exchange {
                     let priceId = order['id'];
                     let price = order['price'];
                     this.updateBidAsk ([price, amount], curob[side], order['side'] === 'Buy');
-                    this.asyncContext['_']['dbids'][symbol][priceId] = price;
+                    dbids[symbol][priceId] = price;
                 }
-                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook (curob));
+                symbolData['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook (curob, symbolData['limit']));
             }
         } else if (action === 'delete') {
-            if (symbol in this.asyncContext['_']['dbids']) {
-                let obIds = this.asyncContext['_']['dbids'][symbol];
-                let curob = this.asyncContext['ob'][symbol]['data']['ob'];
+            if (symbol in dbids) {
+                let obIds = dbids[symbol];
+                let curob = symbolData['ob'];
                 for (let o = 0; o < data.length; o++) {
                     let order = data[o];
                     let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
                     let priceId = order['id'];
                     let price = obIds[priceId];
                     this.updateBidAsk ([price, 0], curob[side], order['side'] === 'Buy');
-                    this.omit (this.asyncContext['_']['dbids'][symbol], priceId);
+                    this.omit (dbids[symbol], priceId);
                 }
-                this.asyncContext['ob'][symbol]['data']['ob'] = curob;
-                this.emit ('ob', symbol, this._cloneOrderBook (curob));
+                symbolData['ob'] = curob;
+                this.emit ('ob', symbol, this._cloneOrderBook (curob, symbolData['limit']));
             }
         } else {
             this.emit ('err', new ExchangeError (this.id + ' invalid orderbook message'));
         }
+        this._contextSet (contextId, 'dbids', dbids);
+        this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
     }
 
-    _asyncSubscribe (event, symbol, nonce) {
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -815,16 +839,18 @@ module.exports = class bitmex extends Exchange {
             'op': 'subscribe',
             'args': ['orderBookL2:' + id],
         };
-        if (!('sub-nonces' in this.asyncContext[event][symbol]['data'])) {
-            this.asyncContext[event][symbol]['data']['sub-nonces'] = {};
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('sub-nonces' in symbolData)) {
+            symbolData['sub-nonces'] = {};
         }
+        symbolData['limit'] = this.safeInteger (params, 'limit', undefined);
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'sub-nonce']);
-        this.asyncContext[event][symbol]['data']['sub-nonces'][nonceStr] = handle;
-        this.asyncSendJson (payload);
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'sub-nonce']);
+        symbolData['sub-nonces'][nonceStr] = handle;
+        this.websocketSendJson (payload);
     }
 
-    _asyncUnsubscribe (event, symbol, nonce) {
+    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
@@ -833,33 +859,33 @@ module.exports = class bitmex extends Exchange {
             'op': 'unsubscribe',
             'args': ['orderBookL2:' + id],
         };
-        if (!('unsub-nonces' in this.asyncContext[event][symbol]['data'])) {
-            this.asyncContext[event][symbol]['data']['unsub-nonces'] = {};
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (!('unsub-nonces' in symbolData)) {
+            symbolData['unsub-nonces'] = {};
         }
         let nonceStr = nonce.toString ();
-        let handle = this._asyncTimeoutSet (this.timeout, this._asyncMethodMap ('_asyncTimeoutRemoveNonce'), [nonceStr, event, symbol, 'unsub-nonces']);
-        this.asyncContext[event][symbol]['data']['unsub-nonces'][nonceStr] = handle;
-        this.asyncSendJson (payload);
+        let handle = this._setTimeout (this.timeout, this._websocketMethodMap ('_websocketTimeoutRemoveNonce'), [contextId, nonceStr, event, symbol, 'unsub-nonces']);
+        symbolData['unsub-nonces'][nonceStr] = handle;
+        this._contextSetSymbolData (contextId, event, symbol, symbolData);
+        this.websocketSendJson (payload);
     }
 
-    _asyncTimeoutRemoveNonce (timerNonce, event, symbol, key) {
-        if (key in this.asyncContext[event][symbol]['data']) {
-            let nonces = this.asyncContext[event][symbol]['data'][key];
+    _websocketTimeoutRemoveNonce (contextId, timerNonce, event, symbol, key) {
+        let symbolData = this._contextGetSymbolData (contextId, event, symbol);
+        if (key in symbolData) {
+            let nonces = symbolData[key];
             if (timerNonce in nonces) {
-                this.omit (this.asyncContext[event][symbol]['data'][key], timerNonce);
+                this.omit (symbolData[key], timerNonce);
+                this._contextSetSymbolData (contextId, event, symbol, symbolData);
             }
         }
     }
 
-    _asyncEventOnOpen (conxid, asyncoptions) {
-        this.asyncContext['_']['dbids'] = {};
-        // send auth
-        // let nonce = this.nonce ();
-        // let signature = this.hmac (this.encode ('GET/realtime' + nonce.toString ()), this.encode (this.secret));
-        // let payload = {
-        //     'op': 'authKeyExpires',
-        //     'args': [this.apiKey, nonce, signature]
-        //  };
-        // this.asyncSendJson (payload);
+    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        if (('ob' in data) && (typeof data['ob'] !== 'undefined')) {
+            return this._cloneOrderBook (data['ob'], limit);
+        }
+        return undefined;
     }
 };

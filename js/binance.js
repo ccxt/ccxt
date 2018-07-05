@@ -979,7 +979,7 @@ module.exports = class binance extends Exchange {
     }
 
     _websocketOnMessage (contextId, data) {
-        let msg = this.websocketParseJson (data);
+        let msg = JSON.parse (data);
         let stream = this.safeString (msg, 'stream');
         let resData = this.safeValue (msg, 'data', {});
         let parts = stream.split ('@');

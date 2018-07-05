@@ -263,7 +263,7 @@ module.exports = class coincheck extends Exchange {
     }
 
     _websocketOnMessage (contextId, data) {
-        let msg = this.websocketParseJson (data);
+        let msg = JSON.parse (data);
         let id = this.safeInteger ({
             'a': msg[0],
         }, 'a');
