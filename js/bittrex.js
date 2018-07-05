@@ -152,7 +152,8 @@ module.exports = class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
-                'pricePrecisionByQuoteCurrencyCode': {
+                // price precision by quote currency code
+                'pricePrecisionByCode': {
                     'USD': 3,
                 },
                 'parseOrderStatus': false,
@@ -185,8 +186,8 @@ module.exports = class bittrex extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let pricePrecision = 8;
-            if (quote in this.options['pricePrecisionByQuoteCurrencyCode'])
-                pricePrecision = this.options['pricePrecisionByQuoteCurrencyCode'];
+            if (quote in this.options['pricePrecisionByCode'])
+                pricePrecision = this.options['pricePrecisionByCode'];
             let precision = {
                 'amount': 8,
                 'price': pricePrecision,
