@@ -103,7 +103,18 @@ module.exports = class lbank extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
-            let [ baseId, quoteId ] = id.split ('_');
+            let parts = id.split ('_');
+            let baseId = undefined;
+            let quoteId = undefined;
+            let numParts = parts.length;
+            // lbank will return symbols like "vet_erc20_usdt"
+            if (numParts > 2) {
+                baseId = parts[0] + '_' + parts[1];
+                quoteId = parts[2];
+            } else {
+                baseId = parts[0];
+                quoteId = parts[1];
+            }
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
@@ -111,7 +122,6 @@ module.exports = class lbank extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -120,11 +130,10 @@ module.exports = class lbank extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
