@@ -422,7 +422,7 @@ class fcoin extends Exchange {
             'order_id' => $id,
         ), $params);
         $response = $this->privateGetOrdersOrderId ($request);
-        return $this->parse_order($response);
+        return $this->parse_order($response['data']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

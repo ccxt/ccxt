@@ -427,7 +427,9 @@ class cobinhood extends Exchange {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
             }
-            if ($price !== null) {
+            if ($filled !== null && $price !== null) {
+                $cost = $price * $filled;
+            } else if ($price !== null) {
                 $cost = $price * $amount;
             }
         }

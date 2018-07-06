@@ -412,7 +412,9 @@ class cobinhood (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-            if price is not None:
+            if filled is not None and price is not None:
+                cost = price * filled
+            elif price is not None:
                 cost = price * amount
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
