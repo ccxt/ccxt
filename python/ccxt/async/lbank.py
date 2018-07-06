@@ -100,6 +100,9 @@ class lbank (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'VET_ERC20': 'VEN',
+            },
         })
 
     async def fetch_markets(self):
@@ -153,7 +156,27 @@ class lbank (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = market['symbol']
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.marketsById[marketId]
+                symbol = market['symbol']
+            else:
+                parts = marketId.split('_')
+                baseId = None
+                quoteId = None
+                numParts = len(parts)
+                # lbank will return symbols like "vet_erc20_usdt"
+                if numParts > 2:
+                    baseId = parts[0] + '_' + parts[1]
+                    quoteId = parts[2]
+                else:
+                    baseId = parts[0]
+                    quoteId = parts[1]
+                base = self.common_currency_code(baseId.upper())
+                quote = self.common_currency_code(quoteId.upper())
+                symbol = base + '/' + quote
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
         ticker = info['ticker']
@@ -163,6 +186,8 @@ class lbank (Exchange):
         open = last / self.sum(1, relativeChange)
         change = last - open
         average = self.sum(last, open) / 2
+        if market is not None:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -201,12 +226,9 @@ class lbank (Exchange):
         }, params))
         result = {}
         for i in range(0, len(tickers)):
-            ticker = tickers[i]
-            id = ticker['symbol']
-            if id in self.marketsById:
-                market = self.marketsById[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker(ticker, market)
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return result
 
     async def fetch_order_book(self, symbol, limit=60, params={}):
