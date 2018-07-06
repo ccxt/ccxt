@@ -96,8 +96,7 @@ module.exports = class lbank extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'VET_ERC20': 'VET',
-                'VEN': 'VET',
+                'VET_ERC20': 'VEN',
             },
         });
     }
