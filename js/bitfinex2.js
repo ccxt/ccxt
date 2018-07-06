@@ -155,6 +155,23 @@ module.exports = class bitfinex2 extends bitfinex {
                     },
                 },
             },
+            'commonCurrencies': {
+                'BCC': 'CST_BCC',
+                'BCU': 'CST_BCU',
+                'CTX': 'CTXC',
+                'DAT': 'DATA',
+                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'IOS': 'IOST',
+                'IOT': 'IOTA',
+                'MNA': 'MANA',
+                'QSH': 'QASH',
+                'QTM': 'QTUM',
+                'SNG': 'SNGLS',
+                'SPK': 'SPANK',
+                'STJ': 'STORJ',
+                'YYW': 'YOYOW',
+                'USD': 'USDT',
+            },
         });
     }
 
