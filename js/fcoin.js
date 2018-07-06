@@ -421,7 +421,7 @@ module.exports = class fcoin extends Exchange {
             'order_id': id,
         }, params);
         let response = await this.privateGetOrdersOrderId (request);
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
