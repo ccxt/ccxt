@@ -187,7 +187,7 @@ module.exports = class bittrex extends Exchange {
             let symbol = base + '/' + quote;
             let pricePrecision = 8;
             if (quote in this.options['pricePrecisionByCode'])
-                pricePrecision = this.options['pricePrecisionByCode'];
+                pricePrecision = this.options['pricePrecisionByCode'][quote];
             let precision = {
                 'amount': 8,
                 'price': pricePrecision,
