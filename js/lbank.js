@@ -95,6 +95,10 @@ module.exports = class lbank extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'VET_ERC20': 'VET',
+                'VEN': 'VET',
+            },
         });
     }
 
@@ -152,7 +156,30 @@ module.exports = class lbank extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'symbol');
+            if (marketId in this.markets_by_id) {
+                let market = this.marketsById[marketId];
+                symbol = market['symbol'];
+            } else {
+                let parts = marketId.split ('_');
+                let baseId = undefined;
+                let quoteId = undefined;
+                let numParts = parts.length;
+                // lbank will return symbols like "vet_erc20_usdt"
+                if (numParts > 2) {
+                    baseId = parts[0] + '_' + parts[1];
+                    quoteId = parts[2];
+                } else {
+                    baseId = parts[0];
+                    quoteId = parts[1];
+                }
+                let base = this.commonCurrencyCode (baseId.toUpperCase ());
+                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                symbol = base + '/' + quote;
+            }
+        }
         let timestamp = this.safeInteger (ticker, 'timestamp');
         let info = ticker;
         ticker = info['ticker'];
@@ -162,6 +189,8 @@ module.exports = class lbank extends Exchange {
         let open = last / this.sum (1, relativeChange);
         let change = last - open;
         let average = this.sum (last, open) / 2;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -202,13 +231,9 @@ module.exports = class lbank extends Exchange {
         }, params));
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let id = ticker['symbol'];
-            if (id in this.marketsById) {
-                let market = this.marketsById[id];
-                let symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
