@@ -107,7 +107,17 @@ class lbank (Exchange):
         result = []
         for i in range(0, len(markets)):
             id = markets[i]
-            baseId, quoteId = id.split('_')
+            parts = id.split('_')
+            baseId = None
+            quoteId = None
+            numParts = len(parts)
+            # lbank will return symbols like "vet_erc20_usdt"
+            if numParts > 2:
+                baseId = parts[0] + '_' + parts[1]
+                quoteId = parts[2]
+            else:
+                baseId = parts[0]
+                quoteId = parts[1]
             base = self.common_currency_code(baseId.upper())
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
@@ -115,7 +125,6 @@ class lbank (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -124,11 +133,10 @@ class lbank (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
