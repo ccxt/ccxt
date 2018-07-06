@@ -426,7 +426,9 @@ module.exports = class cobinhood extends Exchange {
             if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
+            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+                cost = price * filled;
+            } else if (typeof price !== 'undefined') {
                 cost = price * amount;
             }
         }
