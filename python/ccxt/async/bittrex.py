@@ -203,7 +203,7 @@ class bittrex (Exchange):
             symbol = base + '/' + quote
             pricePrecision = 8
             if quote in self.options['pricePrecisionByCode']:
-                pricePrecision = self.options['pricePrecisionByCode']
+                pricePrecision = self.options['pricePrecisionByCode'][quote]
             precision = {
                 'amount': 8,
                 'price': pricePrecision,

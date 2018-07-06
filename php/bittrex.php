@@ -188,7 +188,7 @@ class bittrex extends Exchange {
             $symbol = $base . '/' . $quote;
             $pricePrecision = 8;
             if (is_array ($this->options['pricePrecisionByCode']) && array_key_exists ($quote, $this->options['pricePrecisionByCode']))
-                $pricePrecision = $this->options['pricePrecisionByCode'];
+                $pricePrecision = $this->options['pricePrecisionByCode'][$quote];
             $precision = array (
                 'amount' => 8,
                 'price' => $pricePrecision,
