@@ -406,7 +406,7 @@ class fcoin (Exchange):
             'order_id': id,
         }, params)
         response = await self.privateGetOrdersOrderId(request)
-        return self.parse_order(response)
+        return self.parse_order(response['data'])
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         result = await self.fetch_orders(symbol, since, limit, {'states': 'submitted'})
