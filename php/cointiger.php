@@ -68,7 +68,9 @@ class cointiger extends huobipro {
                 ),
             ),
             'exceptions' => array (
-                '1' => '\\ccxt\\InsufficientFunds',
+                //    array ("code":"1","msg":"系统错误","data":null)
+                //    array (“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                '1' => '\\ccxt\\ExchangeError',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',
                 '6' => '\\ccxt\\InvalidOrder',
@@ -598,7 +600,13 @@ class cointiger extends huobipro {
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        if ($code === 2) {
+                        if ($code === 1) {
+                            //    array ("$code":"1","msg":"系统错误","data":null)
+                            //    array (“$code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                            if (mb_strpos ($message, 'Balance insufficient') !== false) {
+                                throw new InsufficientFunds ($feedback);
+                            }
+                        } else if ($code === 2) {
                             if ($message === 'offsetNot Null') {
                                 throw new ExchangeError ($feedback);
                             } else if ($message === 'Parameter error') {
