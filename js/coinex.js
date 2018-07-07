@@ -232,7 +232,10 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        // this method parses both public and private trades
         let timestamp = this.safeInteger (trade, 'create_time') * 1000;
+        if (typeof timestamp === 'undefined')
+            timestamp = this.safeInteger (trade, 'date_ms');
         let tradeId = this.safeString (trade, 'id');
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
@@ -242,16 +245,11 @@ module.exports = class coinex extends Exchange {
         if (!cost)
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
         let fee = {
-          cost: this.safeFloat (trade, 'fee')
-        , currency: this.safeString (trade, 'fee_asset')
-        }
-        let type = trade['role']
-        if (type === 'taker') {
-          type = 'market'
-        } else {
-          type = 'limit'
-        }
-
+            'cost': this.safeFloat (trade, 'fee'),
+            'currency': this.safeString (trade, 'fee_asset'),
+        };
+        let takerOrMaker = this.safeString (trade, 'role');
+        let side = this.safeString (trade, 'type');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -259,8 +257,9 @@ module.exports = class coinex extends Exchange {
             'symbol': symbol,
             'id': tradeId,
             'order': orderId,
-            'type': type,
-            'side': trade['type'],
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
