@@ -71,6 +71,7 @@ module.exports = class coinone extends Exchange {
                 'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
                 'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
                 'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
+                'EOS/KRW': { 'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw' },
             },
             'fees': {
                 'trading': {
@@ -280,18 +281,24 @@ module.exports = class coinone extends Exchange {
         id = id.toLowerCase ();
         await this.loadMarkets ();
         let result = undefined;
-		if (typeof market === 'undefined') {
-			let currency = this.marketId (this.orders[id]['symbol']);
-		} else {
-			
+        let currency = undefined;
+        if (typeof market === 'undefined') {
+            if (id in this.orders) {
+                currency = this.marketId (this.orders[id]['symbol']);
+            } else {
+                throw new OrderNotFound (this.id + ' fetchOrder() ' + 'Order is not in Coinone.orders. Try again with market variable set');
+            }
+        } else {
+            currency = market['id'];
+        }
         try {
-            response = await this.privatePostOrderOrderInfo (this.extend ({
+            let response = await this.privatePostOrderOrderInfo (this.extend ({
                 'order_id': id,
                 'currency': currency,
             }, params));
             result = this.parseOrder (response);
         } catch (e) {
-            if (isinstance (e, OrderNotFound)) {
+            if (e instanceof OrderNotFound) {
                 if (id in this.orders) {
                     this.orders[id]['status'] = 'canceled';
                     this.orders[id]['info'] = this.last_http_response;
