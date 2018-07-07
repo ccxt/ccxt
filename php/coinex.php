@@ -250,23 +250,25 @@ class coinex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'create_time');
-        $tradeId = $this->safe_string($trade, 'id');
-        $orderId = $this->safe_string($trade, 'id');
-        if (!$timestamp) {
-            $timestamp = $trade['date'];
-            $orderId = null;
-        } else {
-            $tradeId = null;
+        // this method parses both public and private trades
+        $timestamp = $this->safe_integer($trade, 'create_time') * 1000;
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($trade, 'date_ms');
         }
-        $timestamp *= 1000;
+        $tradeId = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->safe_float($trade, 'deal_money');
         if (!$cost)
             $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-        $fee = $this->safe_float($trade, 'fee');
+        $fee = array (
+            'cost' => $this->safe_float($trade, 'fee'),
+            'currency' => $this->safe_string($trade, 'fee_asset'),
+        );
+        $takerOrMaker = $this->safe_string($trade, 'role');
+        $side = $this->safe_string($trade, 'type');
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -274,8 +276,9 @@ class coinex extends Exchange {
             'symbol' => $symbol,
             'id' => $tradeId,
             'order' => $orderId,
-            'type' => 'limit',
-            'side' => $trade['type'],
+            'type' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
