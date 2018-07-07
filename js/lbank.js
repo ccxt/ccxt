@@ -51,6 +51,7 @@ module.exports = class lbank extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'accuracy',
                     ],
                 },
                 'private': {
@@ -102,10 +103,11 @@ module.exports = class lbank extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetCurrencyPairs ();
+        let markets = await this.publicGetAccuracy ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
-            let id = markets[i];
+            let market = markets[i];
+            let id = market['symbol'];
             let parts = id.split ('_');
             let baseId = undefined;
             let quoteId = undefined;
@@ -122,8 +124,8 @@ module.exports = class lbank extends Exchange {
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': market['quantityAccuracy'],
+                'price': market['priceAccuracy'],
             };
             result.push ({
                 'id': id,
