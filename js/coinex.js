@@ -234,8 +234,9 @@ module.exports = class coinex extends Exchange {
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
         let timestamp = this.safeInteger (trade, 'create_time') * 1000;
-        if (typeof timestamp === 'undefined')
+        if (typeof timestamp === 'undefined') {
             timestamp = this.safeInteger (trade, 'date_ms');
+        }
         let tradeId = this.safeString (trade, 'id');
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
