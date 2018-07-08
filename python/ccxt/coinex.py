@@ -244,22 +244,24 @@ class coinex (Exchange):
         return self.parse_order_book(response['data'])
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'create_time')
+        # self method parses both public and private trades
+        timestamp = self.safe_integer(trade, 'create_time') * 1000
+        if timestamp is None:
+            timestamp = self.safe_integer(trade, 'date_ms')
         tradeId = self.safe_string(trade, 'id')
-        orderId = self.safe_string(trade, 'id')
-        if not timestamp:
-            timestamp = trade['date']
-            orderId = None
-        else:
-            tradeId = None
-        timestamp *= 1000
+        orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
             cost = float(self.cost_to_precision(symbol, price * amount))
-        fee = self.safe_float(trade, 'fee')
+        fee = {
+            'cost': self.safe_float(trade, 'fee'),
+            'currency': self.safe_string(trade, 'fee_asset'),
+        }
+        takerOrMaker = self.safe_string(trade, 'role')
+        side = self.safe_string(trade, 'type')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -267,8 +269,9 @@ class coinex (Exchange):
             'symbol': symbol,
             'id': tradeId,
             'order': orderId,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
