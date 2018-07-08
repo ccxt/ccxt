@@ -56,6 +56,7 @@ class lbank (Exchange):
                         'depth',
                         'trades',
                         'kline',
+                        'accuracy',
                     ],
                 },
                 'private': {
@@ -106,10 +107,11 @@ class lbank (Exchange):
         })
 
     def fetch_markets(self):
-        markets = self.publicGetCurrencyPairs()
+        markets = self.publicGetAccuracy()
         result = []
         for i in range(0, len(markets)):
-            id = markets[i]
+            market = markets[i]
+            id = market['symbol']
             parts = id.split('_')
             baseId = None
             quoteId = None
@@ -125,8 +127,8 @@ class lbank (Exchange):
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': market['quantityAccuracy'],
+                'price': market['priceAccuracy'],
             }
             result.append({
                 'id': id,

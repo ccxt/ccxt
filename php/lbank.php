@@ -52,6 +52,7 @@ class lbank extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'accuracy',
                     ),
                 ),
                 'private' => array (
@@ -103,10 +104,11 @@ class lbank extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetCurrencyPairs ();
+        $markets = $this->publicGetAccuracy ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
-            $id = $markets[$i];
+            $market = $markets[$i];
+            $id = $market['symbol'];
             $parts = explode ('_', $id);
             $baseId = null;
             $quoteId = null;
@@ -123,8 +125,8 @@ class lbank extends Exchange {
             $quote = $this->common_currency_code(strtoupper ($quoteId));
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => 8,
-                'price' => 8,
+                'amount' => $market['quantityAccuracy'],
+                'price' => $market['priceAccuracy'],
             );
             $result[] = array (
                 'id' => $id,
