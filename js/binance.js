@@ -944,7 +944,7 @@ module.exports = class binance extends Exchange {
                         } else if (message === 'Account has insufficient balance for requested action.') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Rest API trading is not enabled.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
+                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
