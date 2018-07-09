@@ -13,7 +13,7 @@ class yobit extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'yobit',
             'name' => 'YoBit',
-            'countries' => 'RU',
+            'countries' => array ( 'RU' ),
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array (

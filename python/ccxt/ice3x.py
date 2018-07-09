@@ -16,7 +16,7 @@ class ice3x (Exchange):
         return self.deep_extend(super(ice3x, self).describe(), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA',  # South Africa
+            'countries': ['ZA'],  # South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,
@@ -348,9 +348,9 @@ class ice3x (Exchange):
         request = {
             'pair_id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['items_per_page'] = limit
-        if since:
+        if since is not None:
             request['date_from'] = int(since / 1000)
         response = self.privatePostTradeList(self.extend(request, params))
         trades = response['response']['entities']

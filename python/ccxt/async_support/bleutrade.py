@@ -17,7 +17,7 @@ class bleutrade (bittrex):
         return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -168,7 +168,7 @@ class bleutrade (bittrex):
         # depth(optional, default is 500, max is 20000)
         await self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             await self.load_markets()
             market = self.market(symbol)
         else:

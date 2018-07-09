@@ -13,7 +13,7 @@ class gateio extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'gateio',
             'name' => 'Gate.io',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'version' => '2',
             'rateLimit' => 1000,
             'has' => array (
@@ -482,7 +482,7 @@ class gateio extends Exchange {
         if (($address !== null) && (mb_strpos ($address, 'address') !== false))
             throw new InvalidAddress ($this->id . ' queryDepositAddress ' . $address);
         if ($code === 'XRP') {
-            $parts = $address->split ('/', 2);
+            $parts = explode (' ', $address);
             $address = $parts[0];
             $tag = $parts[1];
         }

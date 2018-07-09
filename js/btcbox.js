@@ -12,7 +12,7 @@ module.exports = class btcbox extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btcbox',
             'name': 'BtcBox',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

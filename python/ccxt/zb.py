@@ -29,7 +29,7 @@ class zb (Exchange):
         return self.deep_extend(super(zb, self).describe(), {
             'id': 'zb',
             'name': 'ZB',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -372,7 +372,7 @@ class zb (Exchange):
         return self.parse_order(response, None)
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -395,7 +395,7 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -503,11 +503,20 @@ class zb (Exchange):
             return  # fallback to default error handler
         if body[0] == '{':
             response = json.loads(body)
+            feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                message = self.id + ' ' + self.json(response)
                 if code in self.exceptions:
                     ExceptionClass = self.exceptions[code]
-                    raise ExceptionClass(message)
+                    raise ExceptionClass(feedback)
                 elif code != '1000':
-                    raise ExchangeError(message)
+                    raise ExchangeError(feedback)
+            # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    message = self.safe_string(response, 'message')
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

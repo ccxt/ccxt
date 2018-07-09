@@ -17,7 +17,7 @@ class braziliex (Exchange):
         return self.deep_extend(super(braziliex, self).describe(), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': 'BR',
+            'countries': ['BR'],
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,
@@ -296,7 +296,7 @@ class braziliex (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId:
                 if marketId in self.markets_by_id:

@@ -12,7 +12,7 @@ module.exports = class gateio extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gateio',
             'name': 'Gate.io',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'version': '2',
             'rateLimit': 1000,
             'has': {
@@ -481,7 +481,7 @@ module.exports = class gateio extends Exchange {
         if ((typeof address !== 'undefined') && (address.indexOf ('address') >= 0))
             throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         if (code === 'XRP') {
-            let parts = address.split ('/', 2);
+            let parts = address.split (' ');
             address = parts[0];
             tag = parts[1];
         }

@@ -13,7 +13,7 @@ class hitbtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc',
             'name' => 'HitBTC',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '1',
             'has' => array (
@@ -851,7 +851,7 @@ class hitbtc extends Exchange {
             'sort' => 'desc',
             'statuses' => implode (',', $statuses),
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
         }
@@ -868,7 +868,7 @@ class hitbtc extends Exchange {
             'statuses' => implode (',', $statuses),
             'max_results' => 1000,
         );
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbols'] = $market['id'];
         }

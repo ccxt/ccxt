@@ -13,7 +13,7 @@ class cobinhood extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cobinhood',
             'name' => 'COBINHOOD',
-            'countries' => 'TW',
+            'countries' => array ( 'TW' ),
             'rateLimit' => 1000 / 10,
             'has' => array (
                 'fetchCurrencies' => true,
@@ -42,8 +42,8 @@ class cobinhood extends Exchange {
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
-                '7d' => '7D',
-                '14d' => '14D',
+                '1w' => '7D',
+                '2w' => '14D',
                 '1M' => '1M',
             ),
             'urls' => array (
@@ -133,6 +133,9 @@ class cobinhood extends Exchange {
                 'insufficient_balance' => '\\ccxt\\InsufficientFunds',
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
+            ),
+            'commonCurrencies' => array (
+                'SMT' => 'SocialMedia.Market',
             ),
         ));
     }
@@ -427,7 +430,9 @@ class cobinhood extends Exchange {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
             }
-            if ($price !== null) {
+            if ($filled !== null && $price !== null) {
+                $cost = $price * $filled;
+            } else if ($price !== null) {
                 $cost = $price * $amount;
             }
         }

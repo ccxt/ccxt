@@ -12,7 +12,7 @@ class ethfinex (bitfinex):
         return self.deep_extend(super(ethfinex, self).describe(), {
             'id': 'ethfinex',
             'name': 'Ethfinex',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v1',
             'rateLimit': 1500,
             # new metainfo interface

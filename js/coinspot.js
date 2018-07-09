@@ -12,7 +12,7 @@ module.exports = class coinspot extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU', // Australia
+            'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': false,

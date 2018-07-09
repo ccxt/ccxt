@@ -13,7 +13,7 @@ class bitz extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitz',
             'name' => 'Bit-Z',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 2000,
             'version' => 'v1',
             'userAgent' => $this->userAgents['chrome'],
@@ -124,9 +124,12 @@ class bitz extends Exchange {
                 'price' => 8,
             ),
             'options' => array (
+                'fetchOHLCVVolume' => true,
+                'fetchOHLCVWarning' => true,
                 'lastNonceTimestamp' => 0,
             ),
             'commonCurrencies' => array (
+                'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
             ),
         ));
@@ -233,7 +236,10 @@ class bitz extends Exchange {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($tickers[$id], $market);
+            // they will return some rare $tickers set to boolean false under their $symbol key
+            if ($tickers[$id]) {
+                $result[$symbol] = $this->parse_ticker($tickers[$id], $market);
+            }
         }
         return $result;
     }
@@ -284,7 +290,23 @@ class bitz extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $volume = $this->options['fetchOHLCVVolume'] ? $ohlcv[5] : null;
+        return [
+            $ohlcv[0],
+            $ohlcv[1],
+            $ohlcv[2],
+            $ohlcv[3],
+            $ohlcv[4],
+            $volume,
+        ];
+    }
+
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        if ($this->options['fetchOHLCVWarning']) {
+            // eslint-disable-next-line quotes
+            throw new ExchangeError ($this->id . " will return 24h volumes instead of volumes for " . $timeframe . " from their API. Set .options['fetchOHLCVWarning'] = false to suppress this warning message. You can set .options['fetchOHLCVVolume'] = false to fetch candles with volume set to null.");
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetKline (array_merge (array (

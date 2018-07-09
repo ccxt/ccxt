@@ -13,7 +13,7 @@ class hadax (huobipro):
         return self.deep_extend(super(hadax, self).describe(), {
             'id': 'hadax',
             'name': 'HADAX',
-            'countries': 'CN',
+            'countries': ['CN'],
             'hostname': 'api.hadax.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',

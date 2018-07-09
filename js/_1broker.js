@@ -12,7 +12,7 @@ module.exports = class _1broker extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': '_1broker',
             'name': '1Broker',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1500,
             'version': 'v2',
             'has': {

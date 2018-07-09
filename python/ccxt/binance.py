@@ -22,7 +22,7 @@ class binance (Exchange):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'JP',  # Japan
+            'countries': ['JP'],  # Japan
             'rateLimit': 500,
             # new metainfo interface
             'has': {
@@ -85,6 +85,7 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
@@ -263,7 +264,6 @@ class binance (Exchange):
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             # exchange-specific options
             'options': {
@@ -593,8 +593,6 @@ class binance (Exchange):
                 remaining = max(remaining, 0.0)
             if price is not None:
                 cost = price * filled
-                if self.options['parseOrderToPrecision']:
-                    cost = float(self.cost_to_precision(symbol, cost))
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
         if type is not None:
@@ -609,12 +607,19 @@ class binance (Exchange):
             trades = self.parse_trades(fills, market)
             numTrades = len(trades)
             if numTrades > 0:
+                cost = trades[0]['cost']
                 fee = {
                     'cost': trades[0]['fee']['cost'],
                     'currency': trades[0]['fee']['currency'],
                 }
                 for i in range(1, len(trades)):
+                    cost = self.sum(cost, trades[i]['cost'])
                     fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
+                if cost and filled:
+                    price = cost / filled
+        if cost is not None:
+            if self.options['parseOrderToPrecision']:
+                cost = float(self.cost_to_precision(symbol, cost))
         result = {
             'info': order,
             'id': id,
@@ -682,7 +687,7 @@ class binance (Exchange):
         return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
@@ -698,14 +703,14 @@ class binance (Exchange):
         return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -730,7 +735,7 @@ class binance (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -742,14 +747,14 @@ class binance (Exchange):
         return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -886,7 +891,7 @@ class binance (Exchange):
                         elif message == 'Account has insufficient balance for requested action.':
                             raise InsufficientFunds(self.id + ' ' + body)
                         elif message == 'Rest API trading is not enabled.':
-                            raise InsufficientFunds(self.id + ' ' + body)
+                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

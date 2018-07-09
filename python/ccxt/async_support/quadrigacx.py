@@ -22,7 +22,7 @@ class quadrigacx (Exchange):
         return self.deep_extend(super(quadrigacx, self).describe(), {
             'id': 'quadrigacx',
             'name': 'QuadrigaCX',
-            'countries': 'CA',
+            'countries': ['CA'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

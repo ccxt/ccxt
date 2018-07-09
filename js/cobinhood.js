@@ -12,7 +12,7 @@ module.exports = class cobinhood extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'cobinhood',
             'name': 'COBINHOOD',
-            'countries': 'TW',
+            'countries': [ 'TW' ],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchCurrencies': true,
@@ -41,8 +41,8 @@ module.exports = class cobinhood extends Exchange {
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
-                '7d': '7D',
-                '14d': '14D',
+                '1w': '7D',
+                '2w': '14D',
                 '1M': '1M',
             },
             'urls': {
@@ -132,6 +132,9 @@ module.exports = class cobinhood extends Exchange {
                 'insufficient_balance': InsufficientFunds,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+            },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
             },
         });
     }
@@ -426,7 +429,9 @@ module.exports = class cobinhood extends Exchange {
             if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
+            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+                cost = price * filled;
+            } else if (typeof price !== 'undefined') {
                 cost = price * amount;
             }
         }

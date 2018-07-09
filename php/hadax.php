@@ -13,7 +13,7 @@ class hadax extends huobipro {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hadax',
             'name' => 'HADAX',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'hostname' => 'api.hadax.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',

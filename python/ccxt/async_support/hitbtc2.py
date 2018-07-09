@@ -27,7 +27,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -786,7 +786,7 @@ class hitbtc2 (hitbtc):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = trade['symbol']
@@ -956,7 +956,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = await self.privateGetOrder(self.extend(request, params))
@@ -966,7 +966,7 @@ class hitbtc2 (hitbtc):
         await self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if limit is not None:
@@ -990,7 +990,7 @@ class hitbtc2 (hitbtc):
             # 'offset': 0,
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:

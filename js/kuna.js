@@ -12,7 +12,7 @@ module.exports = class kuna extends acx {
         return this.deepExtend (super.describe (), {
             'id': 'kuna',
             'name': 'Kuna',
-            'countries': 'UA',
+            'countries': [ 'UA' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -123,7 +123,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -174,7 +174,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);

@@ -12,7 +12,7 @@ module.exports = class exx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchOrder': true,

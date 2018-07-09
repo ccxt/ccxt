@@ -11,7 +11,7 @@ module.exports = class urdubit extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'urdubit',
             'name': 'UrduBit',
-            'countries': 'PK',
+            'countries': [ 'PK' ],
             'has': {
                 'CORS': false,
             },

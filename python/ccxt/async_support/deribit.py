@@ -14,7 +14,7 @@ class deribit (Exchange):
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
-            'countries': 'NL',  # Netherlands
+            'countries': ['NL'],  # Netherlands
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,

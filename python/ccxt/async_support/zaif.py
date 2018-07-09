@@ -15,7 +15,7 @@ class zaif (Exchange):
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
-            'countries': 'JP',
+            'countries': ['JP'],
             'rateLimit': 2000,
             'version': '1',
             'has': {
@@ -291,7 +291,7 @@ class zaif (Exchange):
             # 'is_token': False,
             # 'is_token_both': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
@@ -310,7 +310,7 @@ class zaif (Exchange):
             # 'end': 1503821051,
             # 'is_token': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = await self.privatePostTradeHistory(self.extend(request, params))

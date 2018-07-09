@@ -360,7 +360,7 @@ class qryptos (Exchange):
         filled = self.safe_float(order, 'filled_quantity')
         price = self.safe_float(order, 'price')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         return {
             'id': str(order['id']),
@@ -394,7 +394,7 @@ class qryptos (Exchange):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         status = self.safe_value(params, 'status')

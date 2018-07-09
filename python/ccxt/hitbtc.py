@@ -16,7 +16,7 @@ class hitbtc (Exchange):
         return self.deep_extend(super(hitbtc, self).describe(), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '1',
             'has': {
@@ -829,7 +829,7 @@ class hitbtc (Exchange):
             'sort': 'desc',
             'statuses': ','.join(statuses),
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersActive(self.extend(request, params))
@@ -844,7 +844,7 @@ class hitbtc (Exchange):
             'statuses': ','.join(statuses),
             'max_results': 1000,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbols'] = market['id']
         response = self.tradingGetOrdersRecent(self.extend(request, params))

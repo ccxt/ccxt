@@ -211,7 +211,7 @@ class cex (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        if not since:
+        if since is None:
             since = self.milliseconds() - 86400000  # yesterday
         else:
             if self.options['fetchOHLCVWarning']:
@@ -352,7 +352,7 @@ class cex (Exchange):
             # either integer or string integer
             timestamp = int(timestamp)
         symbol = None
-        if not market:
+        if market is None:
             symbol = order['symbol1'] + '/' + order['symbol2']
             if symbol in self.markets:
                 market = self.market(symbol)
@@ -373,7 +373,7 @@ class cex (Exchange):
         filled = amount - remaining
         fee = None
         cost = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             cost = self.safe_float(order, 'ta:' + market['quote'])
             if cost is None:
@@ -431,7 +431,7 @@ class cex (Exchange):
         request = {}
         method = 'privatePostOpenOrders'
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
             method += 'Pair'
@@ -498,9 +498,9 @@ class cex (Exchange):
         return response
 
     async def fetch_deposit_address(self, code, params={}):
-        if code == 'XRP':
+        if code == 'XRP' or code == 'XLM':
             # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP addresses yet(awaiting docs from CEX.io)')
+            raise NotSupported(self.id + ' fetchDepositAddress does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
         await self.load_markets()
         currency = self.currency(code)
         request = {

@@ -29,7 +29,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -337,13 +337,13 @@ class cryptopia (Exchange):
             price = self.safe_float(trade, 'Rate')
         cost = self.safe_float(trade, 'Total')
         id = self.safe_string(trade, 'TradeId')
-        if not market:
+        if market is None:
             if 'TradePairId' in trade:
                 if trade['TradePairId'] in self.markets_by_id:
                     market = self.markets_by_id[trade['TradePairId']]
         symbol = None
         fee = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if 'Fee' in trade:
                 fee = {
@@ -385,7 +385,7 @@ class cryptopia (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
         if limit is not None:
@@ -529,7 +529,7 @@ class cryptopia (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'Market' in order:
             id = order['Market']

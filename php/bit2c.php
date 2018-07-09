@@ -13,7 +13,7 @@ class bit2c extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bit2c',
             'name' => 'Bit2C',
-            'countries' => 'IL', // Israel
+            'countries' => array ( 'IL' ), // Israel
             'rateLimit' => 3000,
             'has' => array (
                 'CORS' => false,

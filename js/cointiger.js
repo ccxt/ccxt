@@ -13,7 +13,7 @@ module.exports = class cointiger extends huobipro {
         return this.deepExtend (super.describe (), {
             'id': 'cointiger',
             'name': 'CoinTiger',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'hostname': 'api.cointiger.pro',
             'has': {
                 'fetchCurrencies': false,
@@ -68,7 +68,9 @@ module.exports = class cointiger extends huobipro {
                 },
             },
             'exceptions': {
-                '1': InsufficientFunds,
+                //    {"code":"1","msg":"系统错误","data":null}
+                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
                 '6': InvalidOrder,
@@ -553,7 +555,7 @@ module.exports = class cointiger extends huobipro {
             let keys = Object.keys (query);
             let auth = '';
             for (let i = 0; i < keys.length; i++) {
-                auth += keys[i] + query[keys[i]];
+                auth += keys[i] + query[keys[i]].toString ();
             }
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
@@ -598,7 +600,13 @@ module.exports = class cointiger extends huobipro {
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {
-                        if (code === 2) {
+                        if (code === 1) {
+                            //    {"code":"1","msg":"系统错误","data":null}
+                            //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                            if (message.indexOf ('Balance insufficient') >= 0) {
+                                throw new InsufficientFunds (feedback);
+                            }
+                        } else if (code === 2) {
                             if (message === 'offsetNot Null') {
                                 throw new ExchangeError (feedback);
                             } else if (message === 'Parameter error') {

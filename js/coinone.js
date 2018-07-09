@@ -12,7 +12,7 @@ module.exports = class coinone extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinone',
             'name': 'CoinOne',
-            'countries': 'KR', // Korea
+            'countries': [ 'KR' ], // Korea
             'rateLimit': 667,
             'version': 'v2',
             'has': {

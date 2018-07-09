@@ -15,7 +15,7 @@ class crypton (Exchange):
         return self.deep_extend(super(crypton, self).describe(), {
             'id': 'crypton',
             'name': 'Crypton',
-            'countries': 'EU',
+            'countries': ['EU'],
             'rateLimit': 500,
             'version': '1',
             'has': {
@@ -198,7 +198,7 @@ class crypton (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 symbol = self.parse_symbol(marketId)
-        if market:
+        if market is not None:
             symbol = market['symbol']
         fee = None
         if 'fee' in trade:
@@ -226,7 +226,7 @@ class crypton (Exchange):
         request = {
             'id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetMarketsIdTrades(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
@@ -235,7 +235,7 @@ class crypton (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {}
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetFills(self.extend(request, params))
         trades = self.parse_trades(response['result'], market, since, limit)
@@ -298,7 +298,7 @@ class crypton (Exchange):
         await self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             request['market'] = self.market_id(symbol)
         response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response['result'], market, since, limit)

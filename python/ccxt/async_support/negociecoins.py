@@ -14,7 +14,7 @@ class negociecoins (Exchange):
         return self.deep_extend(super(negociecoins, self).describe(), {
             'id': 'negociecoins',
             'name': 'NegocieCoins',
-            'countries': 'BR',
+            'countries': ['BR'],
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
@@ -189,7 +189,7 @@ class negociecoins (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             market = self.safe_value(self.marketsById, order['pair'])
             if market:
                 symbol = market['symbol']

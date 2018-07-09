@@ -382,7 +382,7 @@ class qryptos extends Exchange {
         $filled = $this->safe_float($order, 'filled_quantity');
         $price = $this->safe_float($order, 'price');
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         return array (
@@ -419,7 +419,7 @@ class qryptos extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }

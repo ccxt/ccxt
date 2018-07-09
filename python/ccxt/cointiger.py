@@ -29,7 +29,7 @@ class cointiger (huobipro):
         return self.deep_extend(super(cointiger, self).describe(), {
             'id': 'cointiger',
             'name': 'CoinTiger',
-            'countries': 'CN',
+            'countries': ['CN'],
             'hostname': 'api.cointiger.pro',
             'has': {
                 'fetchCurrencies': False,
@@ -84,7 +84,9 @@ class cointiger (huobipro):
                 },
             },
             'exceptions': {
-                '1': InsufficientFunds,
+                #    {"code":"1","msg":"系统错误","data":null}
+                #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
                 '6': InvalidOrder,
@@ -534,7 +536,7 @@ class cointiger (huobipro):
             keys = list(query.keys())
             auth = ''
             for i in range(0, len(keys)):
-                auth += keys[i] + query[keys[i]]
+                auth += keys[i] + str(query[keys[i]])
             auth += self.secret
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
             isCreateOrderMethod = (path == 'order') and(method == 'POST')
@@ -575,7 +577,12 @@ class cointiger (huobipro):
                     feedback = self.id + ' ' + self.json(response)
                     exceptions = self.exceptions
                     if code in exceptions:
-                        if code == 2:
+                        if code == 1:
+                            #    {"code":"1","msg":"系统错误","data":null}
+                            #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                            if message.find('Balance insufficient') >= 0:
+                                raise InsufficientFunds(feedback)
+                        elif code == 2:
                             if message == 'offsetNot Null':
                                 raise ExchangeError(feedback)
                             elif message == 'Parameter error':

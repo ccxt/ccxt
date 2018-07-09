@@ -609,27 +609,30 @@ module.exports = class coinexchange extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['MarketID'];
-            let base = this.commonCurrencyCode (market['MarketAssetCode']);
-            let quote = this.commonCurrencyCode (market['BaseCurrencyCode']);
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': undefined,
-                'info': market,
-            });
+            let baseId = this.safeString (market, 'MarketAssetCode');
+            let quoteId = this.safeString (market, 'BaseCurrencyCode');
+            if (typeof baseId !== 'undefined' && typeof quoteId !== 'undefined') {
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                let symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                });
+            }
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];

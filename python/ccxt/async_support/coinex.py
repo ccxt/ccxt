@@ -9,6 +9,8 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class coinex (Exchange):
@@ -18,7 +20,7 @@ class coinex (Exchange):
             'id': 'coinex',
             'name': 'CoinEx',
             'version': 'v1',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': True,
@@ -53,6 +55,7 @@ class coinex (Exchange):
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
+                'referral': 'https://www.coinex.com/account/signup?refer_code=yw5fz',
             },
             'api': {
                 'web': {
@@ -116,6 +119,18 @@ class coinex (Exchange):
             },
         })
 
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
+
     async def fetch_markets(self):
         response = await self.webGetResMarket()
         markets = response['data']['market_info']
@@ -135,6 +150,7 @@ class coinex (Exchange):
                 'price': market['buy_asset_type_places'],
             }
             numMergeLevels = len(market['merge'])
+            active = (market['status'] == 'pass')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -142,7 +158,7 @@ class coinex (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'taker': self.safe_float(market, 'taker_fee_rate'),
                 'maker': self.safe_float(market, 'maker_fee_rate'),
                 'info': market,
@@ -228,22 +244,24 @@ class coinex (Exchange):
         return self.parse_order_book(response['data'])
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'create_time')
+        # self method parses both public and private trades
+        timestamp = self.safe_integer(trade, 'create_time') * 1000
+        if timestamp is None:
+            timestamp = self.safe_integer(trade, 'date_ms')
         tradeId = self.safe_string(trade, 'id')
-        orderId = self.safe_string(trade, 'id')
-        if not timestamp:
-            timestamp = trade['date']
-            orderId = None
-        else:
-            tradeId = None
-        timestamp *= 1000
+        orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
             cost = float(self.cost_to_precision(symbol, price * amount))
-        fee = self.safe_float(trade, 'fee')
+        fee = {
+            'cost': self.safe_float(trade, 'fee'),
+            'currency': self.safe_string(trade, 'fee_asset'),
+        }
+        takerOrMaker = self.safe_string(trade, 'role')
+        side = self.safe_string(trade, 'type')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -251,8 +269,9 @@ class coinex (Exchange):
             'symbol': symbol,
             'id': tradeId,
             'order': orderId,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -305,6 +324,17 @@ class coinex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'not_deal': 'open',
+            'part_deal': 'open',
+            'done': 'closed',
+            'cancel': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
         # TODO: check if it's actually milliseconds, since examples were in seconds
         timestamp = self.safe_integer(order, 'create_time') * 1000
@@ -314,13 +344,7 @@ class coinex (Exchange):
         filled = self.safe_float(order, 'deal_amount')
         symbol = market['symbol']
         remaining = self.amount_to_precision(symbol, amount - filled)
-        status = order['status']
-        if status == 'done':
-            status = 'closed'
-        else:
-            # not_deal
-            # part_deal
-            status = 'open'
+        status = self.parse_order_status(order['status'])
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
@@ -386,7 +410,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetOrderPending(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)
@@ -397,7 +421,7 @@ class coinex (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.privateGetOrderFinished(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)

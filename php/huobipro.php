@@ -13,7 +13,7 @@ class huobipro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v1',
@@ -555,7 +555,7 @@ class huobipro extends Exchange {
             $status = $this->parse_order_status($order['state']);
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('symbol', $order)) {
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id)) {
                     $marketId = $order['symbol'];

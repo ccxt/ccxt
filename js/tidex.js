@@ -11,7 +11,7 @@ module.exports = class tidex extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'rateLimit': 2000,
             'version': '3',
             'has': {

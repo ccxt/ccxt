@@ -14,7 +14,7 @@ class mercado (Exchange):
         return self.deep_extend(super(mercado, self).describe(), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
@@ -174,7 +174,7 @@ class mercado (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
@@ -189,7 +189,7 @@ class mercado (Exchange):
             side = 'buy' if (order['order_type'] == 1) else 'sell'
         status = order['status']
         symbol = None
-        if not market:
+        if market is None:
             if 'coin_pair' in order:
                 if order['coin_pair'] in self.markets_by_id:
                     market = self.markets_by_id[order['coin_pair']]
@@ -232,7 +232,7 @@ class mercado (Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)

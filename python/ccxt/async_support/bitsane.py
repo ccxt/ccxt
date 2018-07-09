@@ -26,7 +26,7 @@ class bitsane (Exchange):
         return self.deep_extend(super(bitsane, self).describe(), {
             'id': 'bitsane',
             'name': 'Bitsane',
-            'countries': 'IE',  # Ireland
+            'countries': ['IE'],  # Ireland
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -152,7 +152,7 @@ class bitsane (Exchange):
             limits = self.safe_value(market, 'limits')
             minLimit = None
             maxLimit = None
-            if limits:
+            if limits is not None:
                 minLimit = self.safe_float(limits, 'minimum')
                 maxLimit = self.safe_float(limits, 'maximum')
             precision = {
@@ -231,7 +231,7 @@ class bitsane (Exchange):
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = self.safe_value(self.marketsById, id)
-            if not market:
+            if market is None:
                 continue
             symbol = market['symbol']
             ticker = tickers[id]
@@ -272,9 +272,9 @@ class bitsane (Exchange):
         request = {
             'pair': market['id'],
         }
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)

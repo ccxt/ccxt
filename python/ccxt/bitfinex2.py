@@ -17,7 +17,7 @@ class bitfinex2 (bitfinex):
         return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v2',
             # new metainfo interface
             'has': {
@@ -237,6 +237,8 @@ class bitfinex2 (bitfinex):
                 elif currency[0] == 't':
                     currency = currency[1:]
                     code = currency.upper()
+                    code = self.common_currency_code(code)
+                else:
                     code = self.common_currency_code(code)
                 account = self.account()
                 account['total'] = total

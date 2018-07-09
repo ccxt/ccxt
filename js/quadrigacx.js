@@ -12,7 +12,7 @@ module.exports = class quadrigacx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'quadrigacx',
             'name': 'QuadrigaCX',
-            'countries': 'CA',
+            'countries': [ 'CA' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

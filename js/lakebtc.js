@@ -12,7 +12,7 @@ module.exports = class lakebtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'api_v2',
             'has': {
                 'CORS': true,

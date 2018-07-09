@@ -14,7 +14,7 @@ class gatecoin extends Exchange {
             'id' => 'gatecoin',
             'name' => 'Gatecoin',
             'rateLimit' => 2000,
-            'countries' => 'HK', // Hong Kong
+            'countries' => array ( 'HK' ), // Hong Kong
             'comment' => 'a regulated/licensed exchange',
             'has' => array (
                 'CORS' => false,

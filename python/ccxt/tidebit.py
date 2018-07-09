@@ -15,7 +15,7 @@ class tidebit (Exchange):
         return self.deep_extend(super(tidebit, self).describe(), {
             'id': 'tidebit',
             'name': 'TideBit',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -264,7 +264,7 @@ class tidebit (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not limit:
+        if limit is None:
             limit = 30  # default is 30
         request = {
             'market': market['id'],
@@ -280,7 +280,7 @@ class tidebit (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']

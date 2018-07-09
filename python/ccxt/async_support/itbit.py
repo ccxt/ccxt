@@ -15,7 +15,7 @@ class itbit (Exchange):
         return self.deep_extend(super(itbit, self).describe(), {
             'id': 'itbit',
             'name': 'itBit',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 2000,
             'version': 'v1',
             'has': {

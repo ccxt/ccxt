@@ -13,7 +13,7 @@ class lbank extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lbank',
             'name' => 'LBank',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'version' => 'v1',
             'has' => array (
                 'fetchTickers' => true,
@@ -41,7 +41,7 @@ class lbank extends Exchange {
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api' => 'https://api.lbank.info',
                 'www' => 'https://www.lbank.info',
-                'doc' => 'https://www.lbank.info/api/api-overview',
+                'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees' => 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
             ),
             'api' => array (
@@ -52,6 +52,7 @@ class lbank extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'accuracy',
                     ),
                 ),
                 'private' => array (
@@ -96,23 +97,37 @@ class lbank extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'VET_ERC20' => 'VEN',
+            ),
         ));
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetCurrencyPairs ();
+        $markets = $this->publicGetAccuracy ();
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
-            $id = $markets[$i];
-            list ($baseId, $quoteId) = explode ('_', $id);
+            $market = $markets[$i];
+            $id = $market['symbol'];
+            $parts = explode ('_', $id);
+            $baseId = null;
+            $quoteId = null;
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            // lbank will return symbols like "vet_erc20_usdt"
+            if ($numParts > 2) {
+                $baseId = $parts[0] . '_' . $parts[1];
+                $quoteId = $parts[2];
+            } else {
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+            }
             $base = $this->common_currency_code(strtoupper ($baseId));
             $quote = $this->common_currency_code(strtoupper ($quoteId));
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => 8,
-                'price' => 8,
+                'amount' => $market['quantityAccuracy'],
+                'price' => $market['priceAccuracy'],
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -121,11 +136,10 @@ class lbank extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => $lot,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
@@ -144,7 +158,30 @@ class lbank extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $symbol = $market['symbol'];
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($ticker, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->marketsById[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                $parts = explode ('_', $marketId);
+                $baseId = null;
+                $quoteId = null;
+                $numParts = is_array ($parts) ? count ($parts) : 0;
+                // lbank will return symbols like "vet_erc20_usdt"
+                if ($numParts > 2) {
+                    $baseId = $parts[0] . '_' . $parts[1];
+                    $quoteId = $parts[2];
+                } else {
+                    $baseId = $parts[0];
+                    $quoteId = $parts[1];
+                }
+                $base = $this->common_currency_code(strtoupper ($baseId));
+                $quote = $this->common_currency_code(strtoupper ($quoteId));
+                $symbol = $base . '/' . $quote;
+            }
+        }
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $info = $ticker;
         $ticker = $info['ticker'];
@@ -154,6 +191,8 @@ class lbank extends Exchange {
         $open = $last / $this->sum (1, $relativeChange);
         $change = $last - $open;
         $average = $this->sum ($last, $open) / 2;
+        if ($market !== null)
+            $symbol = $market['symbol'];
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -194,13 +233,9 @@ class lbank extends Exchange {
         ), $params));
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
-            $ticker = $tickers[$i];
-            $id = $ticker['symbol'];
-            if (is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)) {
-                $market = $this->marketsById[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-            }
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $result;
     }
@@ -243,9 +278,9 @@ class lbank extends Exchange {
             'symbol' => $market['id'],
             'size' => 100,
         );
-        if ($since)
+        if ($since !== null)
             $request['time'] = intval ($since / 1000);
-        if ($limit)
+        if ($limit !== null)
             $request['size'] = $limit;
         $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

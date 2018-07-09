@@ -12,7 +12,7 @@ module.exports = class therock extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'therock',
             'name': 'TheRockTrading',
-            'countries': 'MT',
+            'countries': [ 'MT' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

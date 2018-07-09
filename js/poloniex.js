@@ -12,7 +12,7 @@ module.exports = class poloniex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
             'has': {
                 'createDepositAddress': true,
@@ -187,7 +187,7 @@ module.exports = class poloniex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!since)
+        if (typeof since === 'undefined')
             since = 0;
         let request = {
             'currencyPair': market['id'],
@@ -411,7 +411,7 @@ module.exports = class poloniex extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             base = market['base'];
             quote = market['quote'];
@@ -472,7 +472,7 @@ module.exports = class poloniex extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let request = { 'currencyPair': pair };
@@ -481,11 +481,11 @@ module.exports = class poloniex extends Exchange {
             request['end'] = this.seconds ();
         }
         // limit is disabled (does not really work as expected)
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = parseInt (limit);
         let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
         let result = [];
-        if (market) {
+        if (typeof market !== 'undefined') {
             result = this.parseTrades (response, market);
         } else {
             if (response) {
@@ -577,14 +577,14 @@ module.exports = class poloniex extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let response = await this.privatePostReturnOpenOrders (this.extend ({
             'currencyPair': pair,
         }));
         let openOrders = [];
-        if (market) {
+        if (typeof market !== 'undefined') {
             openOrders = this.parseOpenOrders (response, market, openOrders);
         } else {
             let marketIds = Object.keys (response);
@@ -622,7 +622,7 @@ module.exports = class poloniex extends Exchange {
                 }
             }
             let order = this.orders[id];
-            if (market) {
+            if (typeof market !== 'undefined') {
                 if (order['symbol'] === symbol)
                     result.push (order);
             } else {
@@ -716,7 +716,7 @@ module.exports = class poloniex extends Exchange {
             result = this.extend (this.orders[newid], { 'info': response });
         } else {
             let market = undefined;
-            if (symbol)
+            if (typeof symbol !== 'undefined')
                 market = this.market (symbol);
             result = this.parseOrder (response, market);
             this.orders[result['id']] = result;
@@ -769,6 +769,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
             'currency': currency['id'],
@@ -786,6 +787,7 @@ module.exports = class poloniex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = currency['id'];

@@ -19,7 +19,7 @@ class bitz (Exchange):
         return self.deep_extend(super(bitz, self).describe(), {
             'id': 'bitz',
             'name': 'Bit-Z',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 2000,
             'version': 'v1',
             'userAgent': self.userAgents['chrome'],
@@ -130,9 +130,12 @@ class bitz (Exchange):
                 'price': 8,
             },
             'options': {
+                'fetchOHLCVVolume': True,
+                'fetchOHLCVWarning': True,
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
         })
@@ -230,7 +233,9 @@ class bitz (Exchange):
             id = ids[i]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(tickers[id], market)
+            # they will return some rare tickers set to boolean False under their symbol key
+            if tickers[id]:
+                result[symbol] = self.parse_ticker(tickers[id], market)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -276,7 +281,21 @@ class bitz (Exchange):
         trades = response['data']['d']
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        volume = ohlcv[5] if self.options['fetchOHLCVVolume'] else None
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            volume,
+        ]
+
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if self.options['fetchOHLCVWarning']:
+            # eslint-disable-next-line quotes
+            raise ExchangeError(self.id + " will return 24h volumes instead of volumes for " + timeframe + " from their API. Set .options['fetchOHLCVWarning'] = False to suppress self warning message. You can set .options['fetchOHLCVVolume'] = False to fetch candles with volume set to None.")
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetKline(self.extend({

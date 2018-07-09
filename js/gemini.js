@@ -12,7 +12,7 @@ module.exports = class gemini extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'gemini',
             'name': 'Gemini',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'rateLimit': 1500, // 200 for private API
             'version': 'v1',
             'has': {
@@ -306,7 +306,9 @@ module.exports = class gemini extends Exchange {
             'symbol': market['id'],
         };
         if (typeof limit !== 'undefined')
-            request['limit'] = limit;
+            request['limit_trades'] = limit;
+        if (typeof since !== 'undefined')
+            request['timestamp'] = parseInt (since / 1000);
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }

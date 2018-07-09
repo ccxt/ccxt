@@ -13,7 +13,7 @@ class btctradeua (Exchange):
         return self.deep_extend(super(btctradeua, self).describe(), {
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
-            'countries': 'UA',  # Ukraine,
+            'countries': ['UA'],  # Ukraine,
             'rateLimit': 3000,
             'has': {
                 'CORS': True,

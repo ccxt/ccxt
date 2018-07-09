@@ -144,6 +144,7 @@ module.exports = class okcoinusd extends Exchange {
                 '10008': ExchangeError, // Illegal URL parameter
             },
             'options': {
+                'marketBuyPrice': false,
                 'defaultContractType': 'this_week', // next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': true,
                 'fiats': [ 'USD', 'CNY' ],
@@ -259,7 +260,7 @@ module.exports = class okcoinusd extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['timestamp'];
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
                 if (marketId in this.markets_by_id)
@@ -434,9 +435,19 @@ module.exports = class okcoinusd extends Exchange {
             } else {
                 order['type'] += '_market';
                 if (side === 'buy') {
-                    order['price'] = this.safeFloat (params, 'cost');
-                    if (!order['price'])
-                        throw new ExchangeError (this.id + ' market buy orders require an additional cost parameter, cost = price * amount');
+                    if (this.options['marketBuyPrice']) {
+                        if (typeof price === 'undefined') {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
+                        }
+                        order['price'] = price;
+                    } else {
+                        order['price'] = this.safeFloat (params, 'cost');
+                        if (!order['price']) {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                        }
+                    }
                 } else {
                     order['amount'] = amount;
                 }
@@ -467,7 +478,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -535,7 +546,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in order)
                 if (order['symbol'] in this.markets_by_id)
                     market = this.markets_by_id[order['symbol']];
@@ -590,7 +601,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -616,7 +627,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);

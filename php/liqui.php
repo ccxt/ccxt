@@ -13,7 +13,7 @@ class liqui extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'liqui',
             'name' => 'Liqui',
-            'countries' => 'UA',
+            'countries' => array ( 'UA' ),
             'rateLimit' => 3000,
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
@@ -210,7 +210,7 @@ class liqui extends Exchange {
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
-        if (!$symbols) {
+        if ($symbols === null) {
             $ids = implode ('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen ($ids) > 2048) {
@@ -271,7 +271,7 @@ class liqui extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
-        if (!$symbols) {
+        if ($symbols === null) {
             $ids = implode ('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen ($ids) > 2048) {

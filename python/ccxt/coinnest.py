@@ -15,7 +15,7 @@ class coinnest (Exchange):
         return self.deep_extend(super(coinnest, self).describe(), {
             'id': 'coinnest',
             'name': 'coinnest',
-            'countries': 'KR',
+            'countries': ['KR'],
             'rateLimit': 1000,
             'has': {
                 'fetchOpenOrders': True,
@@ -316,9 +316,9 @@ class coinnest (Exchange):
         request = {
             'coin': market['baseId'],
         }
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privatePostTradeTrust(self.extend(request, params))
         return self.parse_orders(response, market)

@@ -13,7 +13,7 @@ class bitfinex2 extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v2',
             // new metainfo interface
             'has' => array (
@@ -238,6 +238,8 @@ class bitfinex2 extends bitfinex {
                 } else if ($currency[0] === 't') {
                     $currency = mb_substr ($currency, 1);
                     $code = strtoupper ($currency);
+                    $code = $this->common_currency_code($code);
+                } else {
                     $code = $this->common_currency_code($code);
                 }
                 $account = $this->account ();
