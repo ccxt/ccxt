@@ -238,6 +238,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     currency = currency.slice (1);
                     code = currency.toUpperCase ();
                     code = this.commonCurrencyCode (code);
+                } else {
+                    code = this.commonCurrencyCode (code);
                 }
                 let account = this.account ();
                 account['total'] = total;

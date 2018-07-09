@@ -890,7 +890,7 @@ class binance (Exchange):
                         elif message == 'Account has insufficient balance for requested action.':
                             raise InsufficientFunds(self.id + ' ' + body)
                         elif message == 'Rest API trading is not enabled.':
-                            raise InsufficientFunds(self.id + ' ' + body)
+                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

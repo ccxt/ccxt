@@ -238,6 +238,8 @@ class bitfinex2 (bitfinex):
                     currency = currency[1:]
                     code = currency.upper()
                     code = self.common_currency_code(code)
+                else:
+                    code = self.common_currency_code(code)
                 account = self.account()
                 account['total'] = total
                 if not available:

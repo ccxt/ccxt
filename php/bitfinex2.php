@@ -239,6 +239,8 @@ class bitfinex2 extends bitfinex {
                     $currency = mb_substr ($currency, 1);
                     $code = strtoupper ($currency);
                     $code = $this->common_currency_code($code);
+                } else {
+                    $code = $this->common_currency_code($code);
                 }
                 $account = $this->account ();
                 $account['total'] = $total;
