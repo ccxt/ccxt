@@ -209,7 +209,7 @@ module.exports = class fcoin extends Exchange {
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof limit !== 'undefined') {
-            if ((limit === 20) && (limit === 100)) {
+            if ((limit === 20) || (limit === 100)) {
                 limit = 'L' + limit.toString ();
             } else {
                 throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted');

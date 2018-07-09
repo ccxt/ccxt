@@ -210,7 +210,7 @@ class fcoin extends Exchange {
     public function fetch_order_book ($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit !== null) {
-            if (($limit === 20) && ($limit === 100)) {
+            if (($limit === 20) || ($limit === 100)) {
                 $limit = 'L' . (string) $limit;
             } else {
                 throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20, 100 or no $limit-> Other values are not accepted');

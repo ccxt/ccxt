@@ -139,6 +139,9 @@ class cobinhood (Exchange):
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
             },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
+            },
         })
 
     async def fetch_currencies(self, params={}):
