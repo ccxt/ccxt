@@ -252,7 +252,7 @@ module.exports = class coinone extends Exchange {
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId').toLowerCase ();
+        let id = this.safeString (response, 'orderId');
         let timestamp = this.milliseconds ();
         let cost = price * amount;
         let order = {
@@ -278,7 +278,6 @@ module.exports = class coinone extends Exchange {
     }
 
     async fetchOrder (id, market = undefined, params = {}) {
-        id = id.toLowerCase ();
         await this.loadMarkets ();
         let result = undefined;
         let currency = undefined;
@@ -321,7 +320,7 @@ module.exports = class coinone extends Exchange {
         let origStatus = this.safeString (order, 'status');
         let status = (origStatus === 'live' || origStatus === 'partially_filled') ? 'open' : 'closed';
         let side = (info['type'] === 'ask') ? 'sell' : 'buy';
-        let id = this.safeString (info, 'orderId').toLowerCase ();
+        let id = this.safeString (info, 'orderId');
         let timestamp = parseInt (info['timestamp']) * 1000;
         let price = this.safeFloat (info, 'price');
         let amount = this.safeFloat (info, 'qty');
