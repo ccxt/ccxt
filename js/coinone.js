@@ -312,14 +312,25 @@ module.exports = class coinone extends Exchange {
         }
         return result;
     }
+    
+    parseOrderStatus (status) {
+        let statuses = {
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
 
     parseOrder (order, market = undefined) {
         let filled = undefined;
         let cost = undefined;
         let symbol = undefined;
         let info = this.safeValue (order, 'info');
-        let origStatus = this.safeString (order, 'status');
-        let status = (origStatus === 'live' || origStatus === 'partially_filled') ? 'open' : 'closed';
+        let status = this.safeString (order, 'status');
+        status = this.parseOrderStatus (status);
         let side = (info['type'] === 'ask') ? 'sell' : 'buy';
         let id = this.safeString (info, 'orderId');
         let timestamp = parseInt (info['timestamp']) * 1000;
