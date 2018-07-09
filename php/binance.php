@@ -76,6 +76,7 @@ class binance extends Exchange {
                         'withdraw',
                     ),
                     'get' => array (
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',

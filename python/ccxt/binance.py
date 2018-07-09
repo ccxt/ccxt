@@ -85,6 +85,7 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
