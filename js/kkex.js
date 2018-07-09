@@ -264,9 +264,6 @@ module.exports = class kkex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!since) {
-            since = this.milliseconds () - 1000 * 60 * 5;
-        }
         let response = await this.publicGetTrades (this.extend ({
             'symbol': market['id'],
             'since': since,
