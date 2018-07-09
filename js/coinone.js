@@ -280,7 +280,6 @@ module.exports = class coinone extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = undefined;
-        let currency = undefined;
         let market = undefined;
         if (typeof symbol === 'undefined') {
             if (id in this.orders) {
