@@ -75,6 +75,7 @@ module.exports = class binance extends Exchange {
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
