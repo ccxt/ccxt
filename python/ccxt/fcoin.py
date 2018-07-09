@@ -219,7 +219,7 @@ class fcoin (Exchange):
     def fetch_order_book(self, symbol=None, limit=None, params={}):
         self.load_markets()
         if limit is not None:
-            if (limit == 20) and(limit == 100):
+            if (limit == 20) or (limit == 100):
                 limit = 'L' + str(limit)
             else:
                 raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted')
