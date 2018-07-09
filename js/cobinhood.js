@@ -133,6 +133,9 @@ module.exports = class cobinhood extends Exchange {
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
             },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
+            },
         });
     }
 
