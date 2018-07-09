@@ -312,7 +312,7 @@ module.exports = class coinone extends Exchange {
         }
         return result;
     }
-    
+
     parseOrderStatus (status) {
         let statuses = {
             'live': 'open',
@@ -325,11 +325,11 @@ module.exports = class coinone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let info = this.safeValue (order, 'info');
         let id = this.safeString (info, 'orderId');
         let timestamp = parseInt (info['timestamp']) * 1000;
         let status = this.safeString (order, 'status');
         status = this.parseOrderStatus (status);
-        let info = this.safeValue (order, 'info');
         let cost = undefined;
         let side = this.safeString (info, 'type');
         if (side.indexOf ('ask') >= 0) {
