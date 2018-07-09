@@ -331,7 +331,11 @@ module.exports = class coinone extends Exchange {
         let info = this.safeValue (order, 'info');
         let cost = undefined;
         let side = this.safeString (info, 'type');
-        side = (side === 'ask') ? 'sell' : 'buy';
+        if (side.indexOf ('ask') >= 0) {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
         let price = this.safeFloat (info, 'price');
         let amount = this.safeFloat (info, 'qty');
         let remaining = this.safeFloat (info, 'remainQty');
