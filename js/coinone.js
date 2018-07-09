@@ -277,33 +277,34 @@ module.exports = class coinone extends Exchange {
         return order;
     }
 
-    async fetchOrder (id, market = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = undefined;
         let currency = undefined;
-        if (typeof market === 'undefined') {
+        let market = undefined;
+        if (typeof symbol === 'undefined') {
             if (id in this.orders) {
-                currency = this.marketId (this.orders[id]['symbol']);
+                market = this.market (this.orders[id]['symbol']);
             } else {
-                throw new OrderNotFound (this.id + ' fetchOrder() ' + 'Order is not in Coinone.orders. Try again with market variable set');
+                throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
             }
         } else {
-            currency = market['id'];
+            market = this.market (symbol);
         }
         try {
             let response = await this.privatePostOrderOrderInfo (this.extend ({
                 'order_id': id,
-                'currency': currency,
+                'currency': market['id'],
             }, params));
             result = this.parseOrder (response);
+            this.orders[id] = result;
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 if (id in this.orders) {
                     this.orders[id]['status'] = 'canceled';
-                    this.orders[id]['info'] = this.last_http_response;
                     result = this.orders[id];
                 } else {
-                    throw new OrderNotFound (this.id + ' fetchOrder() ' + this.last_http_response);
+                    throw e;
                 }
             } else {
                 throw e;
