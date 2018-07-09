@@ -324,31 +324,37 @@ module.exports = class coinone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let filled = undefined;
-        let cost = undefined;
-        let symbol = undefined;
-        let info = this.safeValue (order, 'info');
-        let status = this.safeString (order, 'status');
-        status = this.parseOrderStatus (status);
-        let side = (info['type'] === 'ask') ? 'sell' : 'buy';
         let id = this.safeString (info, 'orderId');
         let timestamp = parseInt (info['timestamp']) * 1000;
+        let status = this.safeString (order, 'status');
+        status = this.parseOrderStatus (status);
+        let info = this.safeValue (order, 'info');
+        let cost = undefined;
+        let side = this.safeString (info, 'type');
+        side = (side === 'ask') ? 'sell' : 'buy';
         let price = this.safeFloat (info, 'price');
         let amount = this.safeFloat (info, 'qty');
         let remaining = this.safeFloat (info, 'remainQty');
-        if (typeof amount !== 'undefined' && typeof remaining === 'undefined' && price === 'undefined') {
-            filled = amount - remaining;
-            cost = price * amount;
+        let filled = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
+                filled = amount - remaining;
+            }
+            if (typeof price !== 'undefined') {
+                cost = price * amount;
+            }
         }
+        let currency = this.safeString (info, 'currency');
         let fee = {
-            'currency': this.safeString (info, 'currency'),
+            'currency': currency,
             'cost': this.safeFloat (info, 'fee'),
             'rate': this.safeFloat (info, 'feeRate'),
         };
+        let symbol = undefined;
         if (typeof market === 'undefined') {
-            let market_id = this.safeString (info, 'currency').toLowerCase ();
-            if (market_id in this.markets_by_id)
-                market = this.markets_by_id[market_id];
+            let marketId = currency.toLowerCase ();
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
@@ -369,8 +375,6 @@ module.exports = class coinone extends Exchange {
             'status': status,
             'fee': fee,
         };
-        if (typeof id !== 'undefined')
-            this.orders[id] = result;
         return result;
     }
 
