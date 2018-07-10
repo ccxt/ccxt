@@ -203,9 +203,11 @@ class StandardRelayer extends Exchange {
         const result = [];
         for (let i = 0; i < marketsResponse.length; i++) {
             const market = marketsResponse[i];
-            const base = TokenInfo.getFromAddress (market.tokenA.address).symbol;
-            const quote = TokenInfo.getFromAddress (market.tokenB.address).symbol;
-            if (!base || !quote) continue;
+            const baseInfo = TokenInfo.getFromAddress (market.tokenA.address);
+            const quoteInfo = TokenInfo.getFromAddress (market.tokenB.address);
+            if (!baseInfo || !quoteInfo) continue;
+            const base = baseInfo.symbol;
+            const quote = quoteInfo.symbol;
             const aToBSymbol = `${base}/${quote}`;
             result.push ({
                 'id': aToBSymbol,
