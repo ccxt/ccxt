@@ -25,6 +25,7 @@ class coinfalcon extends Exchange {
                 'www' => 'https://coinfalcon.com',
                 'doc' => 'https://docs.coinfalcon.com',
                 'fees' => 'https://coinfalcon.com/fees',
+                'referral' => 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             ),
             'api' => array (
                 'public' => array (
@@ -205,14 +206,18 @@ class coinfalcon extends Exchange {
         $balances = $response['data'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency'];
-            $currency = $this->common_currency_code($currencyId);
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $uppercase = strtoupper ($currencyId);
+            $code = $this->common_currency_code($uppercase);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($uppercase, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$uppercase]['code'];
+            }
             $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['hold']),
+                'free' => floatval ($balance['available_balance']),
+                'used' => floatval ($balance['hold_balance']),
                 'total' => floatval ($balance['balance']),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -310,13 +315,13 @@ class coinfalcon extends Exchange {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            $query = $this->urlencode ($query);
-            if (strlen ($query))
-                $url .= '?' . $query;
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             if ($method === 'GET') {
-                $url .= '?' . $this->urlencode ($query);
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query);
             } else {
                 $body = $this->json ($query);
             }

@@ -28,6 +28,7 @@ class coinfalcon (Exchange):
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
@@ -196,14 +197,17 @@ class coinfalcon (Exchange):
         balances = response['data']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            currency = self.common_currency_code(currencyId)
+            currencyId = self.safe_string(balance, 'currency_code')
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            if uppercase in self.currencies_by_id:
+                code = self.currencies_by_id[uppercase]['code']
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['hold']),
+                'free': float(balance['available_balance']),
+                'used': float(balance['hold_balance']),
                 'total': float(balance['balance']),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
@@ -289,13 +293,13 @@ class coinfalcon (Exchange):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            query = self.urlencode(query)
-            if len(query):
-                url += '?' + query
+            if query:
+                url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             if method == 'GET':
-                url += '?' + self.urlencode(query)
+                if query:
+                    url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
             seconds = str(self.seconds())
