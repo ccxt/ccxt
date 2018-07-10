@@ -319,7 +319,7 @@ module.exports = class coinfalcon extends Exchange {
             } else {
                 body = this.json (query);
             }
-            let seconds = this.seconds ();
+            let seconds = this.seconds ().toString ();
             let requestPath = url.split ('/');
             requestPath = requestPath.slice (3);
             requestPath = '/' + requestPath.join ('/');
