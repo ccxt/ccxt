@@ -570,7 +570,12 @@ class kucoin extends Exchange {
         }
         $timestamp = $this->safe_value($order, 'createdAt');
         $remaining = $this->safe_float($order, 'pendingAmount');
-        $status = $this->safe_value($order, 'status');
+        $status = null;
+        if ($this->safe_value($order, 'isActive', true)) {
+            $status = 'open';
+        } else {
+            $status = 'closed';
+        }
         $filled = $this->safe_float($order, 'dealAmount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'dealValue');
