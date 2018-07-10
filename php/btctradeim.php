@@ -10,7 +10,7 @@ use Exception as Exception; // a common import
 class btctradeim extends coinegg {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), array (
+        $result = array_replace_recursive (parent::describe (), array (
             'id' => 'btctradeim',
             'name' => 'BtcTrade.im',
             'countries' => array ( 'HK' ),
@@ -35,10 +35,15 @@ class btctradeim extends coinegg {
                     ),
                 ),
             ),
-            'options' => array (
-                'quoteIds' => array ( 'btc', 'eth', 'usc' ),
-            ),
+            // see the fix below
+            //     'options' => array (
+            //         'quoteIds' => array ( 'btc', 'eth', 'usc' ),
+            //     ),
         ));
+        // a fix for PHP array_merge not overwriting "lists" (integer-indexed arrays)
+        // https://github.com/ccxt/ccxt/issues/3343
+        $result['options']['quoteIds'] = array ( 'btc', 'eth', 'usc' );
+        return $result;
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
