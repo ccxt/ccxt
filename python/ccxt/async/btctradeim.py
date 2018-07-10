@@ -10,7 +10,7 @@ from ccxt.base.errors import ExchangeError
 class btctradeim (coinegg):
 
     def describe(self):
-        return self.deep_extend(super(btctradeim, self).describe(), {
+        result = self.deep_extend(super(btctradeim, self).describe(), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
             'countries': ['HK'],
@@ -35,10 +35,15 @@ class btctradeim (coinegg):
                     },
                 },
             },
-            'options': {
-                'quoteIds': ['btc', 'eth', 'usc'],
-            },
+            # see the fix below
+            #     'options': {
+            #         'quoteIds': ['btc', 'eth', 'usc'],
+            #     },
         })
+        # a fix for PHP array_merge not overwriting "lists"(integer-indexed arrays)
+        # https://github.com/ccxt/ccxt/issues/3343
+        result['options']['quoteIds'] = ['btc', 'eth', 'usc']
+        return result
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
