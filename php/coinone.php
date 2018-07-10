@@ -20,6 +20,7 @@ class coinone extends Exchange {
                 'CORS' => false,
                 'createMarketOrder' => false,
                 'fetchTickers' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -72,6 +73,7 @@ class coinone extends Exchange {
                 'OMG/KRW' => array ( 'id' => 'omg', 'symbol' => 'OMG/KRW', 'base' => 'OMG', 'quote' => 'KRW', 'baseId' => 'omg', 'quoteId' => 'krw' ),
                 'QTUM/KRW' => array ( 'id' => 'qtum', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW', 'baseId' => 'qtum', 'quoteId' => 'krw' ),
                 'XRP/KRW' => array ( 'id' => 'xrp', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW', 'baseId' => 'xrp', 'quoteId' => 'krw' ),
+                'EOS/KRW' => array ( 'id' => 'eos', 'symbol' => 'EOS/KRW', 'base' => 'EOS', 'quote' => 'KRW', 'baseId' => 'eos', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -107,6 +109,7 @@ class coinone extends Exchange {
             ),
             'exceptions' => array (
                 '405' => '\\ccxt\\ExchangeNotAvailable',
+                '104' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }
@@ -268,12 +271,117 @@ class coinone extends Exchange {
             'average' => null,
             'amount' => $amount,
             'filled' => null,
-            'remaining' => null,
-            'status' => null,
+            'remaining' => $amount,
+            'status' => 'open',
             'fee' => null,
         );
         $this->orders[$id] = $order;
         return $order;
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $result = null;
+        $market = null;
+        if ($symbol === null) {
+            if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
+                $market = $this->market ($this->orders[$id]['symbol']);
+            } else {
+                throw new ExchangeError ($this->id . ' fetchOrder() requires a $symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
+            }
+        } else {
+            $market = $this->market ($symbol);
+        }
+        try {
+            $response = $this->privatePostOrderOrderInfo (array_merge (array (
+                'order_id' => $id,
+                'currency' => $market['id'],
+            ), $params));
+            $result = $this->parse_order($response);
+            $this->orders[$id] = $result;
+        } catch (Exception $e) {
+            if ($e instanceof OrderNotFound) {
+                if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
+                    $this->orders[$id]['status'] = 'canceled';
+                    $result = $this->orders[$id];
+                } else {
+                    throw $e;
+                }
+            } else {
+                throw $e;
+            }
+        }
+        return $result;
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'live' => 'open',
+            'partially_filled' => 'open',
+            'filled' => 'closed',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
+    public function parse_order ($order, $market = null) {
+        $info = $this->safe_value($order, 'info');
+        $id = $this->safe_string($info, 'orderId');
+        $timestamp = intval ($info['timestamp']) * 1000;
+        $status = $this->safe_string($order, 'status');
+        $status = $this->parse_order_status($status);
+        $cost = null;
+        $side = $this->safe_string($info, 'type');
+        if (mb_strpos ($side, 'ask') !== false) {
+            $side = 'sell';
+        } else {
+            $side = 'buy';
+        }
+        $price = $this->safe_float($info, 'price');
+        $amount = $this->safe_float($info, 'qty');
+        $remaining = $this->safe_float($info, 'remainQty');
+        $filled = null;
+        if ($amount !== null) {
+            if ($remaining !== null) {
+                $filled = $amount - $remaining;
+            }
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $currency = $this->safe_string($info, 'currency');
+        $fee = array (
+            'currency' => $currency,
+            'cost' => $this->safe_float($info, 'fee'),
+            'rate' => $this->safe_float($info, 'feeRate'),
+        );
+        $symbol = null;
+        if ($market === null) {
+            $marketId = strtolower ($currency);
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                $market = $this->markets_by_id[$marketId];
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $result = array (
+            'info' => $order,
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => 'limit',
+            'side' => $side,
+            'price' => $price,
+            'cost' => $cost,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'status' => $status,
+            'fee' => $fee,
+        );
+        return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

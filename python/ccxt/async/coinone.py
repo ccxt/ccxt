@@ -9,6 +9,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -25,6 +26,7 @@ class coinone (Exchange):
                 'CORS': False,
                 'createMarketOrder': False,
                 'fetchTickers': True,
+                'fetchOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
@@ -77,6 +79,7 @@ class coinone (Exchange):
                 'OMG/KRW': {'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw'},
                 'QTUM/KRW': {'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw'},
                 'XRP/KRW': {'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw'},
+                'EOS/KRW': {'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -112,6 +115,7 @@ class coinone (Exchange):
             },
             'exceptions': {
                 '405': ExchangeNotAvailable,
+                '104': OrderNotFound,
             },
         })
 
@@ -262,12 +266,104 @@ class coinone (Exchange):
             'average': None,
             'amount': amount,
             'filled': None,
-            'remaining': None,
-            'status': None,
+            'remaining': amount,
+            'status': 'open',
             'fee': None,
         }
         self.orders[id] = order
         return order
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        result = None
+        market = None
+        if symbol is None:
+            if id in self.orders:
+                market = self.market(self.orders[id]['symbol'])
+            else:
+                raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache(the order was created with a different instance of self class or within a different run of self code).')
+        else:
+            market = self.market(symbol)
+        try:
+            response = await self.privatePostOrderOrderInfo(self.extend({
+                'order_id': id,
+                'currency': market['id'],
+            }, params))
+            result = self.parse_order(response)
+            self.orders[id] = result
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                if id in self.orders:
+                    self.orders[id]['status'] = 'canceled'
+                    result = self.orders[id]
+                else:
+                    raise e
+            else:
+                raise e
+        return result
+
+    def parse_order_status(self, status):
+        statuses = {
+            'live': 'open',
+            'partially_filled': 'open',
+            'filled': 'closed',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
+    def parse_order(self, order, market=None):
+        info = self.safe_value(order, 'info')
+        id = self.safe_string(info, 'orderId')
+        timestamp = int(info['timestamp']) * 1000
+        status = self.safe_string(order, 'status')
+        status = self.parse_order_status(status)
+        cost = None
+        side = self.safe_string(info, 'type')
+        if side.find('ask') >= 0:
+            side = 'sell'
+        else:
+            side = 'buy'
+        price = self.safe_float(info, 'price')
+        amount = self.safe_float(info, 'qty')
+        remaining = self.safe_float(info, 'remainQty')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+            if price is not None:
+                cost = price * amount
+        currency = self.safe_string(info, 'currency')
+        fee = {
+            'currency': currency,
+            'cost': self.safe_float(info, 'fee'),
+            'rate': self.safe_float(info, 'feeRate'),
+        }
+        symbol = None
+        if market is None:
+            marketId = currency.lower()
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        }
+        return result
 
     async def cancel_order(self, id, symbol=None, params={}):
         order = self.safe_value(self.orders, id)
