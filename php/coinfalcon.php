@@ -320,7 +320,7 @@ class coinfalcon extends Exchange {
             } else {
                 $body = $this->json ($query);
             }
-            $seconds = $this->seconds ();
+            $seconds = (string) $this->seconds ();
             $requestPath = explode ('/', $url);
             $requestPath = mb_substr ($requestPath, 3);
             $requestPath = '/' . implode ('/', $requestPath);

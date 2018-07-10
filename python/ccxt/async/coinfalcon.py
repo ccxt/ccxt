@@ -298,7 +298,7 @@ class coinfalcon (Exchange):
                 url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-            seconds = self.seconds()
+            seconds = str(self.seconds())
             requestPath = url.split('/')
             requestPath = requestPath[3:]
             requestPath = '/' + '/'.join(requestPath)
