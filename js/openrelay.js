@@ -5,8 +5,8 @@ const StandardRelayer = require ('./base/StandardRelayer');
 module.exports = class openrelay extends StandardRelayer {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'ercdex',
-            'name': 'ERC dEX',
+            'id': 'openrelay',
+            'name': 'Open Relay',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
