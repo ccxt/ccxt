@@ -31,10 +31,13 @@
     "0x.js": "^0.38.3",
     "@0xproject/connect": "^0.6.14",
     "@0xproject/utils": "^0.7.1",
+    "@hydro-protocol/sdk": "^1.0.1",
+    "bufferutil": "^4.0.0",
     "cloudscraper": "1.4.1",
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
     "qs": "6.5.1",
+    "utf-8-validate": "^5.0.1",
     "web3": "^1.0.0-beta.34"
   },
   "devDependencies": {

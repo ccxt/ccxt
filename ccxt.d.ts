@@ -298,6 +298,15 @@ declare module 'ccxt' {
         static provider (config: StandardRelayerConfig): any;
     }
 
+    export interface Keys {
+        StandardRelayer?: {
+            ethereumNodeAddress: string;
+        },
+        [exchangeName: string]: string
+    }
+
+    export function loadKeys (keys: Keys): void;
+
     /* tslint:disable */
 
     export class _1broker extends Exchange {}

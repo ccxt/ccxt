@@ -7,43 +7,42 @@ const isNumber          = Number.isFinite
     , isString          = s =>                 (typeof s === 'string')
     , isObject          = o => (o !== null) && (typeof o === 'object')
     , isDictionary      = o => (isObject (o) && !isArray (o))
-    , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x)
+    , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x);
 
 /*  .............................................   */
 
-const hasProps = o => (o !== undefined) &&
-                      (o !== null)
-
-    , prop = (o, k) => isObject (o) ? o[k]
-                                    : undefined
+const hasProps = o => (o !== undefined) && (o !== null)
+    , prop = (o, k) => (isObject (o) ? o[k]
+        : undefined);
 
 /*  .............................................   */
 
-const asFloat   = x => (isNumber (x) || isString (x)) ? parseFloat (x)     : NaN
-    , asInteger = x => (isNumber (x) || isString (x)) ? parseInt   (x, 10) : NaN
+const asFloat = x => ((isNumber (x) || isString (x)) ? parseFloat (x) : NaN);
+const asInteger = x => ((isNumber (x) || isString (x)) ? parseInt (x, 10) : NaN);
 
 /*  .............................................   */
 
 module.exports =
 
-    { isNumber
-    , isArray
-    , isObject
-    , isString
-    , isStringCoercible
-    , isDictionary
+    {
+        isNumber
+        , isArray
+        , isObject
+        , isString
+        , isStringCoercible
+        , isDictionary
 
-    , hasProps
-    , prop
+        , hasProps
+        , prop
 
-    , asFloat
-    , asInteger
-    
-    , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
-    , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
+        , asFloat
+        , asInteger
 
-    }
+        , safeFloat: (o, k, $default, n = asFloat (prop (o, k))) => (isNumber (n) ? n : $default)
+        , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => (isNumber (n) ? n : $default)
+        , safeValue: (o, k, $default, x = prop (o, k)) => (hasProps (x) ? x : $default)
+        , safeString: (o, k, $default, x = prop (o, k)) => (isStringCoercible (x) ? String (x) : $default)
+
+    };
 
 /*  ------------------------------------------------------------------------ */

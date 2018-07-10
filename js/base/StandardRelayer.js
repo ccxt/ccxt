@@ -54,33 +54,25 @@ class StandardRelayer extends Exchange {
 
     static web3 () {
         if (!this.web3Client) {
-            // TODO: change default
-            const provider = new Web3.providers.HttpProvider ('https://mainnet.infura.io/krrAJZmXlhalDHthEiOR');
+            if (!this.ethereumNodeAddress) {
+                throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
+            }
+            const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
             this.web3Client = new Web3 (provider);
         }
         return this.web3Client;
     }
 
-    static provider (ethereumNodeAddress = 'https://mainnet.infura.io/krrAJZmXlhalDHthEiOR') {
+    static provider () {
         if (!this.zeroExNetwork) {
-            const provider = new Web3.providers.HttpProvider (ethereumNodeAddress);
+            if (!this.ethereumNodeAddress) {
+                throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
+            }
+            const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
             this.zeroExNetwork = new ZeroEx (provider, { 'networkId': this.networkId });
         }
         return this.zeroExNetwork;
     }
-
-    // static async currencyInfo (address) {
-    //     if (!this.erc20ContractCache) {
-    //         this.erc20ContractCache = {};
-    //     }
-    //     if (!this.erc20ContractCache[address]) {
-    //         this.erc20ContractCache[address] = {};
-    //         const contract = new ERC20 (StandardRelayer.web3 (), address);
-    //         const decimals = await  contract.decimals ().call ();
-    //         this.erc20ContractCache[address] = { decimals };
-    //     }
-    //     return this.erc20ContractCache[address];
-    // }
 
     // ccxt equivalents -----------------------------------------
 
@@ -266,8 +258,8 @@ class StandardRelayer extends Exchange {
             let rate = unitMaker.div (unitTaker);
             let limit = toUnitAmount (new BigNumber (takerTokenAmount), quoteDecimals);
             if (!isBid) {
-              rate = one.div (rate);
-              limit = toUnitAmount (new BigNumber (makerTokenAmount), baseDecimals);
+                rate = one.div (rate);
+                limit = toUnitAmount (new BigNumber (makerTokenAmount), baseDecimals);
             }
             rates[i] = [rate.toNumber (), limit.toNumber (), order];
         }

@@ -37,14 +37,12 @@ module.exports = subclass (
             },
         },
     }
-)
+);
 
 /*  ------------------------------------------------------------------------ */
 
 function subclass (BaseClass, classes, namespace = {}) {
-
     for (const [$class, subclasses] of Object.entries (classes)) {
-
         const Class = Object.assign (namespace, {
 
         /*  By creating a named property, we trick compiler to assign our class constructor function a name.
@@ -55,21 +53,17 @@ function subclass (BaseClass, classes, namespace = {}) {
             [$class]: class extends BaseClass {
 
                 constructor (message) {
-
-                    super (message)
-
+                    super (message);
                 /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
                     See my blog post for the explanation of this hack:
 
                     https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
-
-                    this.constructor = Class
-                    this.__proto__   = Class.prototype
+                    this.constructor = Class;
+                    this.__proto__   = Class.prototype;
                     this.message     = message
                 }
             }
-
-        })[$class]
+        })[$class];
 
         subclass (Class, subclasses, namespace)
     }
