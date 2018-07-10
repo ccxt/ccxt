@@ -24,6 +24,7 @@ module.exports = class coinfalcon extends Exchange {
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
