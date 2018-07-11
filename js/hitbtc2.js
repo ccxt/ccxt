@@ -1076,6 +1076,7 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
         this.checkAddress (address);
         let currency = this.currency (code);
         let request = {
