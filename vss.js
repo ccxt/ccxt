@@ -39,6 +39,7 @@ function vss (filename, regex, replacement) {
 //-----------------------------------------------------------------------------
 
 vss ('./php/Exchange.php',                   /\$version \= \'[^\']+\'/, "$version = '")
+vss ('./php/Exchange.php',                   /VERSION \= \'[^\']+\'/, "VERSION = '")
 vss ('./ccxt.js',                            /const version \= \'[^\']+\'/, "const version = '")
 vss ('./python/ccxt/__init__.py',            /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
 vss ('./python/ccxt/async/__init__.py',      /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
