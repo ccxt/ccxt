@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -767,6 +767,9 @@ module.exports = class cryptopia extends Exchange {
                         let feedback = this.id;
                         if (typeof error === 'string') {
                             feedback = feedback + ' ' + error;
+                            if (error.indexOf ('Invalid trade amount') >= 0) {
+                                throw new InvalidOrder (feedback);
+                            }
                             if (error.indexOf ('does not exist') >= 0) {
                                 throw new OrderNotFound (feedback);
                             }
