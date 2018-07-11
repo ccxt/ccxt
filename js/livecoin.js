@@ -665,6 +665,10 @@ module.exports = class livecoin extends Exchange {
                 if (message.indexOf ('Cannot find order') >= 0) {
                     throw new OrderNotFound (this.id + ' ' + body);
                 }
+                const exception = this.safeString (response, 'exception', '');
+                if (exception.indexOf ('Minimal amount is') >= 0) {
+                    throw new InvalidOrder (this.id + ' ' + body);
+                }
                 throw new ExchangeError (this.id + ' ' + body);
             }
         }
