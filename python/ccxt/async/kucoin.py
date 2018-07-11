@@ -561,7 +561,11 @@ class kucoin (Exchange):
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = self.safe_value(order, 'createdAt')
         remaining = self.safe_float(order, 'pendingAmount')
-        status = self.safe_value(order, 'status')
+        status = None
+        if self.safe_value(order, 'isActive', True):
+            status = 'open'
+        else:
+            status = 'closed'
         filled = self.safe_float(order, 'dealAmount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'dealValue')
