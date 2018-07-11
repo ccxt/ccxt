@@ -462,6 +462,8 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires symbol param');
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({
             'orderNumber': id,
