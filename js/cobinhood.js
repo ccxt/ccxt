@@ -130,6 +130,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
             },
