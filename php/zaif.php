@@ -235,6 +235,13 @@ class zaif extends Exchange {
         $response = $this->publicGetTradesPair (array_merge (array (
             'pair' => $market['id'],
         ), $params));
+        $numTrades = is_array ($response) ? count ($response) : 0;
+        if ($numTrades === 1) {
+            $firstTrade = $response[0];
+            if (!$firstTrade) {
+                $response = array ();
+            }
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
