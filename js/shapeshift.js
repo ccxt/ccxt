@@ -180,7 +180,7 @@ module.exports = class shapeshift extends Exchange {
         const coinsResponse = await this.publicGetGetcoins ();
         const coins = Object.keys (coinsResponse);
         const result = {};
-        for (let i = 0; i < coins.length; i++) {
+        for (let i = 0, len = coins.length; i < len; i++) {
             const coinKey = coins[i];
             const coinObj = coinsResponse[coinKey];
             const symbol = coinObj.symbol;

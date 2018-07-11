@@ -83,6 +83,7 @@ const exchanges = {
     'bxinth':                  require ('./js/bxinth.js'),
     'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
+    'changelly':               require ('./js/changelly.js'),
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
     'cobinhood':               require ('./js/cobinhood.js'),

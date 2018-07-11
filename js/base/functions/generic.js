@@ -8,55 +8,51 @@ const { isObject, isNumber, isDictionary, isArray } = require ('./type')
 
 const keys = Object.keys
 
-    , values = x => !isArray (x)  // don't copy arrays if they're already arrays!
-                        ? Object.values (x)
-                        : x
+    , values = x => (!isArray (x) ? // don't copy arrays if they're already arrays!
+        Object.values (x) :
+        x)
 
     , index = x => new Set (values (x))
 
     , extend = (...args) => Object.assign ({}, ...args) // NB: side-effect free
 
-    , clone = x => isArray (x)
-                        ? Array.from (x) // clones arrays
-                        : extend (x)     // clones objects
+    , clone = x => (isArray (x) ?
+        Array.from (x) : // clones arrays
+        extend (x));     // clones objects
 
 /*  ------------------------------------------------------------------------ */
 
 module.exports =
 
-    { keys
-    , values
-    , extend
-    , clone
-    , index
-    , ordered: x => x // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
-    , unique:  x => Array.from (index (x))
+    {
+        keys
+        , values
+        , extend
+        , clone
+        , index
+        , ordered: x => x // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
+        , unique:  x => Array.from (index (x))
 
-    /*  .............................................   */
+        /*  .............................................   */
 
-    , inArray (needle, haystack) {
+        , inArray (needle, haystack) {
+            return haystack.includes (needle)
+        }
 
-        return haystack.includes (needle)
-    }
+        , toArray (object) {
+            return Object.values (object)
+        }
 
-    , toArray (object) {
+        /*  .............................................   */
 
-        return Object.values (object)
-    }
+        , keysort (x, out = {}) {
+            for (const k of keys (x).sort ()) out[k] = x[k];
+            return out
+        }
 
-/*  .............................................   */
+        /*  .............................................   */
 
-    , keysort (x, out = {}) {
-
-        for (const k of keys (x).sort ())
-            out[k] = x[k]
-
-        return out
-    }
-
-/*  .............................................   */
-
-    /*
+        /*
        Accepts a map/array of objects and a key name to be used as an index:
        array = [
           { someKey: 'value1', anotherKey: 'anotherValue1' },
@@ -73,18 +69,16 @@ module.exports =
       }
     */
 
-    , indexBy (x, k, out = {}) {
+        , indexBy (x, k, out = {}) {
+            for (const v of values (x))
+                if (k in v) out[v[k]] = v;
 
-        for (const v of values (x))
-            if (k in v)
-                out[v[k]] = v
+            return out
+        }
 
-        return out
-    }
+        /*  .............................................   */
 
-/*  .............................................   */
-
-    /*
+        /*
        Accepts a map/array of objects and a key name to be used as a grouping parameter:
        array = [
           { someKey: 'value1', anotherKey: 'anotherValue1' },
@@ -105,21 +99,20 @@ module.exports =
       }
     */
 
-    , groupBy (x, k, out = {}) {
-
-        for (const v of values (x)) {
-            if (k in v) {
-                const p = v[k]
-                out[p] = out[p] || []
-                out[p].push (v)
+        , groupBy (x, k, out = {}) {
+            for (const v of values (x)) {
+                if (k in v) {
+                    const p = v[k];
+                    out[p] = out[p] || [];
+                    out[p].push (v);
+                }
             }
+            return out
         }
-        return out
-    }
 
-/*  .............................................   */
+        /*  .............................................   */
 
-    /*
+        /*
        Accepts a map/array of objects, a key name and a key value to be used as a filter:
        array = [
           { someKey: 'value1', anotherKey: 'anotherValue1' },
@@ -135,93 +128,95 @@ module.exports =
       ]
     */
 
-    , filterBy (x, k, value = undefined, out = []) {
+        , filterBy (x, k, value = undefined, out = []) {
 
-        for (const v of values (x))
-            if (v[k] === value)
-                out.push (v)
+            for (const v of values (x))
+                if (v[k] === value)
+                    out.push (v)
 
-        return out
-    }
-
-/*  .............................................   */
-
-    , sortBy: (array, // NB: MUTATES ARRAY!
-               key,
-               descending = false,
-               direction  = descending ? -1 : 1) => array.sort ((a, b) =>
-                                                                ((a[key] < b[key]) ? -direction :
-                                                                ((a[key] > b[key]) ?  direction : 0)))
-
-/*  .............................................   */
-
-    , flatten: function flatten (x, out = []) {
-
-        for (const v of x) {
-            if (isArray (v)) flatten (v, out)
-            else out.push (v)
+            return out
         }
 
-        return out
-    }
+        /*  .............................................   */
 
-/*  .............................................   */
+        , sortBy: (
+            array, // NB: MUTATES ARRAY!
+            key,
+            descending = false,
+            direction  = descending ? -1 : 1
+        ) => array.sort ((a, b) =>
+            ((a[key] < b[key]) ? -direction :
+                ((a[key] > b[key]) ?  direction : 0)))
 
-    , pluck: (x, k) => values (x)
-                        .filter (v => k in v)
-                        .map (v => v[k])
+        /*  .............................................   */
 
-/*  .............................................   */
+        , flatten: function flatten (x, out = []) {
 
-    , omit (x, ...args) {
+            for (const v of x) {
+                if (isArray (v)) flatten (v, out)
+                else out.push (v)
+            }
 
-        const out = clone (x)
-
-        for (const k of args) {
-
-            if (isArray (k)) // omit (x, ['a', 'b'])
-                for (const kk of k)
-                    delete out[kk]
-
-            else delete out[k] // omit (x, 'a', 'b')
+            return out
         }
 
-        return out
-    }
+        /*  .............................................   */
 
-/*  .............................................   */
+        , pluck: (x, k) => values (x)
+            .filter (v => k in v)
+            .map (v => v[k])
 
-    , sum (...xs) {
+        /*  .............................................   */
 
-        const ns = xs.filter (isNumber) // leave only numbers
+        , omit (x, ...args) {
 
-        return (ns.length > 0)
-                    ? ns.reduce ((a, b) => a + b, 0)
-                    : undefined
-    }
+            const out = clone (x)
 
-/*  .............................................   */
+            for (const k of args) {
 
-    , deepExtend: function deepExtend (...xs) {
+                if (isArray (k)) // omit (x, ['a', 'b'])
+                    for (const kk of k)
+                        delete out[kk]
 
-        let out = undefined
+                else delete out[k] // omit (x, 'a', 'b')
+            }
 
-        for (const x of xs) {
-
-            if (isDictionary (x)) {
-
-                if (!isObject (out))
-                    out = {}
-
-                for (const k in x)
-                    out[k] = deepExtend (out[k], x[k])
-
-            } else out = x
+            return out
         }
 
-        return out
+        /*  .............................................   */
+
+        , sum (...xs) {
+
+            const ns = xs.filter (isNumber) // leave only numbers
+
+            return (ns.length > 0)
+                ? ns.reduce ((a, b) => a + b, 0)
+                : undefined
+        }
+
+        /*  .............................................   */
+
+        , deepExtend: function deepExtend (...xs) {
+
+            let out = undefined
+
+            for (const x of xs) {
+
+                if (isDictionary (x)) {
+
+                    if (!isObject (out))
+                        out = {}
+
+                    for (const k in x)
+                        out[k] = deepExtend (out[k], x[k])
+
+                } else out = x
+            }
+
+            return out
+        }
+
+        /*  ------------------------------------------------------------------------ */
+
     }
-
-/*  ------------------------------------------------------------------------ */
-
-}

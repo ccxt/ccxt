@@ -46,7 +46,6 @@ const journal = undefined; // isNode && require ('./journal') // stub until we g
 module.exports = class Exchange {
 
     getMarket (symbol) {
-
         if (!this.marketClasses)
             this.marketClasses = {};
 
@@ -187,7 +186,7 @@ module.exports = class Exchange {
             const _timestampNumber = parseInt (timestamp, 10);
 
             // undefined, null and lots of nasty non-numeric values yield NaN
-            if (isNaN (_timestampNumber) || _timestampNumber < 0) {
+            if (global.isNaN (_timestampNumber) || _timestampNumber < 0) {
                 return undefined;
             }
 
@@ -220,7 +219,7 @@ module.exports = class Exchange {
             // last line of defence
             try {
                 const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
-                if (isNaN (candidate)) {
+                if (global.isNaN (candidate)) {
                     return undefined;
                 }
                 return candidate;
@@ -281,8 +280,10 @@ module.exports = class Exchange {
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                for (const k of Object.getOwnPropertyNames (obj)) {
-                    this[unCamelCase (k)] = this[k]
+                const propNames = Object.getOwnPropertyNames (obj);
+                for (let i = 0, len = propNames.length; i < propNames.length; i++) {
+                    const k = propNames[i];
+                    this[unCamelCase (k)] = this[k];
                 }
                 unCamelCaseProperties (Object.getPrototypeOf (obj))
             }
@@ -338,13 +339,12 @@ module.exports = class Exchange {
     }
 
     checkAddress (address) {
-
         if (typeof address === 'undefined')
-            throw new InvalidAddress (this.id + ' address is undefined')
+            throw new InvalidAddress (this.id + ' address is undefined');
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' '))
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"')
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
 
         return address
     }
@@ -638,8 +638,7 @@ module.exports = class Exchange {
             throw new NotSupported (this.id + ' fetchOHLCV() not supported yet');
         await this.loadMarkets ();
         let trades = await this.fetchTrades (symbol, since, limits, params);
-        let ohlcvc = buildOHLCVC (trades, timeframe, since, limits);
-        return ohlcvc
+        return buildOHLCVC (trades, timeframe, since, limits);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
@@ -982,7 +981,6 @@ module.exports = class Exchange {
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
-
         objects = Object.values (objects);
 
         // return all of them if no values were passed
@@ -994,7 +992,6 @@ module.exports = class Exchange {
             if (values.includes (objects[i][key]))
                 result.push (objects[i])
         }
-
         return indexed ? indexBy (result, key) : result
     }
 
