@@ -86,6 +86,7 @@ class livecoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'BTCH' => 'Bithash',
                 'CPC' => 'CapriCoin',
                 'CRC' => 'CryCash',
                 'EDR' => 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
