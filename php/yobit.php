@@ -241,6 +241,9 @@ class yobit extends liqui {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                         } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                        } else if ($response['error_log'] === 'Total transaction amount') {
+                            // eg array ("success":0,"error":"Total transaction amount is less than minimal total => 0.00010000")
+                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                         }
                     }
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

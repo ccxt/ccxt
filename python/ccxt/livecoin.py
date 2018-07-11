@@ -628,7 +628,12 @@ class livecoin (Exchange):
             # returns status code 200 even if success == False
             success = self.safe_value(response, 'success', True)
             if not success:
-                message = self.safe_string(response, 'message', '')
-                if message.find('Cannot find order') >= 0:
-                    raise OrderNotFound(self.id + ' ' + body)
+                message = self.safe_string(response, 'message')
+                if message is not None:
+                    if message.find('Cannot find order') >= 0:
+                        raise OrderNotFound(self.id + ' ' + body)
+                exception = self.safe_string(response, 'exception')
+                if exception is not None:
+                    if exception.find('Minimal amount is') >= 0:
+                        raise InvalidOrder(self.id + ' ' + body)
                 raise ExchangeError(self.id + ' ' + body)

@@ -17,6 +17,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import InvalidNonce
@@ -713,6 +714,8 @@ class cryptopia (Exchange):
                         feedback = self.id
                         if isinstance(error, basestring):
                             feedback = feedback + ' ' + error
+                            if error.find('Invalid trade amount') >= 0:
+                                raise InvalidOrder(feedback)
                             if error.find('does not exist') >= 0:
                                 raise OrderNotFound(feedback)
                             if error.find('Insufficient Funds') >= 0:

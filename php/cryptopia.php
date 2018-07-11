@@ -768,6 +768,9 @@ class cryptopia extends Exchange {
                         $feedback = $this->id;
                         if (gettype ($error) === 'string') {
                             $feedback = $feedback . ' ' . $error;
+                            if (mb_strpos ($error, 'Invalid trade amount') !== false) {
+                                throw new InvalidOrder ($feedback);
+                            }
                             if (mb_strpos ($error, 'does not exist') !== false) {
                                 throw new OrderNotFound ($feedback);
                             }
