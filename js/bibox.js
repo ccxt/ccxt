@@ -417,16 +417,16 @@ module.exports = class bibox extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orderType = (type === 'limit') ? 2 : 1;
+        let orderType = (type === 'limit') ? 2 : 1; // 1 - market order，2 - limit order
         let orderSide = (side === 'buy') ? 1 : 2;
         let response = await this.privatePostOrderpending ({
             'cmd': 'orderpending/trade',
             'body': this.extend ({
                 'pair': market['id'],
-                'account_type': 0,
+                'account_type': this.safeInteger (params, 'account_type', 0), // 0 - regular, 1 - margin
                 'order_type': orderType,
                 'order_side': orderSide,
-                'pay_bix': 0,
+                'pay_bix': this.safeInteger (params, 'pay_bix', 0), // use bix for transaction fee, 0 - no，1 - yes
                 'amount': amount,
                 'price': price,
             }, params),
@@ -541,8 +541,8 @@ module.exports = class bibox extends Exchange {
             'cmd': 'orderpending/orderPendingList',
             'body': this.extend ({
                 'pair': pair,
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
+                'account_type': this.safeInteger (params, 'account_type', 0), // 0 - regular, 1 - margin
+                'page': this.safeInteger (params, 'page', 1),
                 'size': size,
             }, params),
         });
@@ -559,8 +559,8 @@ module.exports = class bibox extends Exchange {
             'cmd': 'orderpending/pendingHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
+                'account_type': this.safeInteger (params, 'account_type', 0), // 0 - regular, 1 - margin
+                'page': this.safeInteger (params, 'page', 1),
                 'size': limit,
             }, params),
         });
@@ -578,8 +578,8 @@ module.exports = class bibox extends Exchange {
             'cmd': 'orderpending/orderHistoryList',
             'body': this.extend ({
                 'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
+                'account_type': this.safeInteger (params, 'account_type', 0), // 0 - regular, 1 - margin
+                'page': this.safeInteger (params, 'page', 1),
                 'size': size,
             }, params),
         });
