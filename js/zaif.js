@@ -234,6 +234,13 @@ module.exports = class zaif extends Exchange {
         let response = await this.publicGetTradesPair (this.extend ({
             'pair': market['id'],
         }, params));
+        let numTrades = response.length;
+        if (numTrades === 1) {
+            let firstTrade = response[0];
+            if (!Object.keys (firstTrade).length) {
+                response = [];
+            }
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
