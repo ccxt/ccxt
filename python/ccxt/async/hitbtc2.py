@@ -1049,6 +1049,7 @@ class hitbtc2 (hitbtc):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {
