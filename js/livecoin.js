@@ -85,6 +85,7 @@ module.exports = class livecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BTCH': 'Bithash',
                 'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
