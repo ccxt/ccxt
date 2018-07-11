@@ -550,11 +550,7 @@ module.exports = class bibox extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async 
-    
-    
-    
-    ClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchClosedOrders requires a symbol argument');
         await this.loadMarkets ();
