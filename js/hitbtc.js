@@ -770,16 +770,13 @@ module.exports = class hitbtc extends Exchange {
         let status = this.safeString (order, 'orderStatus');
         if (status)
             status = this.parseOrderStatus (status);
-        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'price', price);
+        price = this.safeFloat (order, 'avgPrice', price);
         let amount = this.safeFloat (order, 'orderQuantity');
-        if (typeof amount === 'undefined')
-            amount = this.safeFloat (order, 'quantity');
+        amount = this.safeFloat (order, 'quantity', amount);
         let remaining = this.safeFloat (order, 'quantityLeaves');
-        if (typeof remaining === 'undefined')
-            remaining = this.safeFloat (order, 'leavesQuantity');
+        remaining = this.safeFloat (order, 'leavesQuantity', remaining);
         let filled = undefined;
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
@@ -798,7 +795,7 @@ module.exports = class hitbtc extends Exchange {
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = averagePrice * filled;
+                cost = price * filled;
             }
         }
         let feeCost = this.safeFloat (order, 'fee');
