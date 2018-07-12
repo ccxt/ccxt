@@ -37,6 +37,7 @@ module.exports = class btcalpha extends Exchange {
                 'www': 'https://btc-alpha.com/exchange/',
                 'doc': 'https://btc-alpha.github.io/api-docs/',
                 'fees': 'https://btc-alpha.com/fees/',
+                'referral': 'https://btc-alpha.com/?r=123788',
             },
             'api': {
                 'public': {
