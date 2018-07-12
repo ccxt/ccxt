@@ -72,6 +72,9 @@ module.exports = class hadax extends huobipro {
                 'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostHadaxOrderOrdersPlace',
             },
+            'commonCurrencies': {
+                'GET': 'Themis',
+            },
         });
     }
 };

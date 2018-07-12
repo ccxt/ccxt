@@ -198,6 +198,8 @@ module.exports = class huobipro extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'active': true,
                 'precision': precision,
