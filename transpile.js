@@ -338,7 +338,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
         'json.loads': 'json',
     }
 
-    async = async ? 'async.' : ''
+    async = async ? 'async_support.' : ''
 
     const importFrom = (baseClass == 'Exchange') ?
         ('ccxt.' + async + 'base.exchange') :
@@ -438,7 +438,7 @@ function createPHPClass (className, baseClass, body, methods) {
 // ----------------------------------------------------------------------------
 
 const python2Folder = './python/ccxt/'
-const python3Folder = './python/ccxt/async/'
+const python3Folder = './python/ccxt/async_support/'
 const phpFolder     = './php/'
 
 // ----------------------------------------------------------------------------
@@ -752,7 +752,7 @@ function transpilePythonAsyncToSync (oldName, newName) {
                 .map (line => {
                     return (
                         line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
-                            .replace ('import ccxt.async as ccxt', 'import ccxt')
+                            .replace ('import ccxt.async_support as ccxt', 'import ccxt')
                             .replace (/.*token\_bucket.*/g, '')
                             .replace ('await asyncio.sleep', 'time.sleep')
                             .replace ('async ', '')
