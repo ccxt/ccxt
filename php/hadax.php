@@ -74,7 +74,7 @@ class hadax extends huobipro {
                 'createOrderMethod' => 'privatePostHadaxOrderOrdersPlace',
             ),
             'commonCurrencies' => array (
-                'FAIR' => 'FairCoin',
+                'FAIR' => 'FairGame',
                 'GET' => 'Themis',
             ),
         ));
