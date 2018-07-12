@@ -73,6 +73,10 @@ class hadax extends huobipro {
                 'fetchBalanceMethod' => 'privateGetHadaxAccountAccountsIdBalance',
                 'createOrderMethod' => 'privatePostHadaxOrderOrdersPlace',
             ),
+            'commonCurrencies' => array (
+                'FAIR' => 'FairCoin',
+                'GET' => 'Themis',
+            ),
         ));
     }
 }

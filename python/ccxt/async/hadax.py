@@ -73,4 +73,8 @@ class hadax (huobipro):
                 'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostHadaxOrderOrdersPlace',
             },
+            'commonCurrencies': {
+                'FAIR': 'FairCoin',
+                'GET': 'Themis',
+            },
         })
