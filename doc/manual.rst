@@ -1049,14 +1049,14 @@ In the JavaScript version of CCXT all methods are asynchronous and return `Promi
        console.log (kraken.id, marketId, ticker)
    }) ()
 
-The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure `asyncio <https://docs.python.org/3/library/asyncio.html>`__ with `aiohttp <http://aiohttp.readthedocs.io>`__. In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the ``ccxt.async`` subpackage, like in the following example:
+The ccxt library supports asynchronous concurrency mode in Python 3.5+ with async/await syntax. The asynchronous Python version uses pure `asyncio <https://docs.python.org/3/library/asyncio.html>`__ with `aiohttp <http://aiohttp.readthedocs.io>`__. In async mode you have all the same properties and methods, but most methods are decorated with an async keyword. If you want to use async mode, you should link against the ``ccxt.async_support`` subpackage, like in the following example:
 
 .. code:: python
 
    # Python
 
    import asyncio
-   import ccxt.async as ccxt
+   import ccxt.async_support as ccxt
 
    async def print_poloniex_ethbtc_ticker():
        poloniex = ccxt.poloniex()
@@ -1978,7 +1978,7 @@ Below are examples of using the fetchOrder method to get order info from an auth
 
    # Python 3.5+ asyncio (asynchronous)
    import asyncio
-   import ccxt.async as ccxt
+   import ccxt.async_support as ccxt
    if exchange.has['fetchOrder']:
        order = asyncio.get_event_loop().run_until_complete(exchange.fetch_order(id))
        print(order)
