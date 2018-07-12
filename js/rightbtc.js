@@ -52,6 +52,26 @@ module.exports = class rightbtc extends Exchange {
                         'candlestick/{timeSymbol}/{trading_pair}/{count}',
                     ],
                 },
+                'private': {
+                    'get': [
+                        '/balance/:symbol',
+                        '/balances',
+                        '/deposits/:asset/:page',
+                        '/withdrawals/:asset/:page',
+                        '/orderpage/:trading_pair/:cursor',
+                        '/orders/:trading_pair/:id/:id:/id/...',
+                        '/history/:trading_pair/:id/:id/:id',
+                        '/historys/:trading_pair/:page',
+                        '/trading_pairs',
+                    ],
+                    'post': [
+                        '/order',
+                    ],
+                    'delete': [
+                        '/order/:trading_pair/:id/:id:/:id/...',
+                    ],
+                },
+
             },
             // HARDCODING IS DEPRECATED, THE FEES BELOW SHOULD BE REWRITTEN
             'fees': {
