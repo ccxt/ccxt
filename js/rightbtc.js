@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -388,33 +388,98 @@ module.exports = class rightbtc extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            'trading_pair': market['id'],
             'ids': id,
         };
-        let response = await this.traderGet privateGetOrder (this.extend (request, params));
-        return this.parseOrder (response, market);
+        let response = await this.traderGetOrdersTradingPairIds (this.extend (request, params));
+        //
+        //     {
+        //         "status": {
+        //             "success": 1,
+        //             "message": "SUC_LIST_AVTICE_ORDERS"
+        //         },
+        //         "result": [
+        //             {
+        //                 "id": 4180528,
+        //                 "quantity": 20000000,
+        //                 "rest": 20000000,
+        //                 "limit": 1000000,
+        //                 "price": null,
+        //                 "side": "BUY",
+        //                 "created": 1496005693738
+        //             }
+        //         ]
+        //     }
+        //
+        let orders = this.parseOrders (response['result'], market);
+        let ordersById = this.indexBy (orders, 'id');
+        if (!(id in ordersById)) {
+            throw new OrderNotFound (this.id + ' fetchOrder could not find order ' + id.toString () + ' in open orders.');
+        }
+        return ordersById[id];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
         if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            let symbols = this.symbols;
-            let numSymbols = symbols.length;
-            let fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         }
-        let response = await this.privateGetOpenOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'trading_pair': market['id'],
+        };
+        let response = await this.traderGetOrderpageTradingPairCursor (this.extend (request, params));
+        //
+        //     {
+        //         "status": {
+        //             "success": 1,
+        //             "message": "SUC_LIST_AVTICE_ORDERS_PAGE"
+        //         },
+        //         "result": {
+        //             "cursor": "0",
+        //             "orders": [
+        //                 {
+        //                     "id": 4180528,
+        //                     "quantity": 20000000,
+        //                     "rest": 20000000,
+        //                     "limit": 1000000,
+        //                     "price": null,
+        //                     "side": "BUY",
+        //                     "created": 1496005693738
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return this.parseOrders (response['result']['orders'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
+        let orders = await this.traderGetHistoryTradingPairIds (symbol, since, limit, params);
+        //
+        //     {
+        //         "status": {
+        //             "success": 1,
+        //             "message": null
+        //         },
+        //         "result": [
+        //             {
+        //                 "trading_pair": "ETPCNY",
+        //                 "status": "TRADE",
+        //                 "fee": 0.23,
+        //                 "min_fee": 10000000,
+        //                 "created_at": "2017-05-25T00:12:27.000Z",
+        //                 "cost": 1152468000000,
+        //                 "limit": 3600000000,
+        //                 "id": 11060,
+        //                 "quantity": 32013000000,
+        //                 "filled_quantity": 32013000000
+        //             }
+        //         ]
+        //     }
+        //
         return this.filterBy (orders, 'status', 'closed');
     }
 
