@@ -253,6 +253,7 @@ module.exports = class bitfinex extends Exchange {
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
                 'MNA': 'MANA',
+                'ORS': 'ORS Group', // conflict with Origin Sport #3230
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
                 'SNG': 'SNGLS',
