@@ -97,6 +97,7 @@ class cryptopia extends Exchange {
             'commonCurrencies' => array (
                 'ACC' => 'AdCoin',
                 'BAT' => 'BatCoin',
+                'BEAN' => 'BITB', // rebranding, see issue #3380
                 'BLZ' => 'BlazeCoin',
                 'BTG' => 'Bitgem',
                 'CAN' => 'CanYa',
