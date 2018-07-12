@@ -4,7 +4,15 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
@@ -370,10 +378,15 @@ class btcalpha (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body):
         if code < 400:
             return
-        response = self.unjson(body)
-        message = self.id + ' ' + self.safe_value(response, 'detail', body)
-        if code == 401 or code == 403:
-            raise AuthenticationError(message)
-        elif code == 429:
-            raise DDoSProtection(message)
-        raise ExchangeError(message)
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            message = self.id + ' ' + self.safe_value(response, 'detail', body)
+            if code == 401 or code == 403:
+                raise AuthenticationError(message)
+            elif code == 429:
+                raise DDoSProtection(message)
+            raise ExchangeError(message)

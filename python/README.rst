@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                            | ver | doc                                                                                                 | countries                                |
@@ -83,6 +83,8 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                           | 2   | `API <https://bleutrade.com/help/API>`__                                                            | Brazil                                   |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | braziliex          | `Braziliex <https://braziliex.com/>`__                                          | \*  | `API <https://braziliex.com/exchange/api.php>`__                                                    | Brazil                                   |
++--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| btcalpha           | `BTC-Alpha <https://btc-alpha.com/?r=123788>`__                                 | 1   | `API <https://btc-alpha.github.io/api-docs>`__                                                      | US                                       |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | btcbox             | `BtcBox <https://www.btcbox.co.jp/>`__                                          | 1   | `API <https://www.btcbox.co.jp/help/asm>`__                                                         | Japan                                    |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -607,6 +609,7 @@ Thank you!
 .. |bl3p| image:: https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg
 .. |bleutrade| image:: https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg
 .. |braziliex| image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
+.. |btcalpha| image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
 .. |btcbox| image:: https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg
 .. |btcchina| image:: https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg
 .. |btcexchange| image:: https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg

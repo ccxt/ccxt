@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.16.4'
+__version__ = '1.16.5'
 
 # -----------------------------------------------------------------------------
 
@@ -68,6 +68,7 @@ from ccxt.async_support.bitz import bitz                                  # noqa
 from ccxt.async_support.bl3p import bl3p                                  # noqa: F401
 from ccxt.async_support.bleutrade import bleutrade                        # noqa: F401
 from ccxt.async_support.braziliex import braziliex                        # noqa: F401
+from ccxt.async_support.btcalpha import btcalpha                          # noqa: F401
 from ccxt.async_support.btcbox import btcbox                              # noqa: F401
 from ccxt.async_support.btcchina import btcchina                          # noqa: F401
 from ccxt.async_support.btcexchange import btcexchange                    # noqa: F401
@@ -193,6 +194,7 @@ exchanges = [
     'bl3p',
     'bleutrade',
     'braziliex',
+    'btcalpha',
     'btcbox',
     'btcchina',
     'btcexchange',

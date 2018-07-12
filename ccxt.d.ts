@@ -319,6 +319,7 @@ declare module 'ccxt' {
     export class bl3p extends Exchange {}
     export class bleutrade extends bittrex {}
     export class braziliex extends Exchange {}
+    export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcchina extends Exchange {}
     export class btcexchange extends btcturk {}
