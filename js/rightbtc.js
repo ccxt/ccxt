@@ -35,7 +35,7 @@ module.exports = class rightbtc extends Exchange {
                     'https://www.rightbtc.com/api/trader',
                     'https://www.rightbtc.com/api/public',
                 ],
-                'fees': 'https://www.rightbtc.com/\#!/support/fee',
+                'fees': 'https://www.rightbtc.com/\#\!/support/fee', // eslint-disable-line no-useless-escape
             },
             'api': {
                 'public': {
@@ -53,6 +53,7 @@ module.exports = class rightbtc extends Exchange {
                     ],
                 },
             },
+            // HARDCODING IS DEPRECATED, THE FEES BELOW SHOULD BE REWRITTEN
             'fees': {
                 'trading': {
                     'maker': 0.2 / 100,
@@ -106,25 +107,27 @@ module.exports = class rightbtc extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
             let market = markets[id];
-            let base = this.commonCurrencyCode (market['bid_asset_symbol']);
-            let quote = this.commonCurrencyCode (market['ask_asset_symbol']);
+            let baseId = market['bid_asset_symbol'];
+            let quoteId = market['ask_asset_symbol'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': parseInt (market['bid_asset_decimals']),
                 'price': parseInt (market['ask_asset_decimals']),
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['price']),
                     },
                     'price': {
@@ -145,6 +148,7 @@ module.exports = class rightbtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = ticker['date'];
+        let last = this.safeFloat (ticker, 'last') / 1e8;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -152,12 +156,14 @@ module.exports = class rightbtc extends Exchange {
             'high': this.safeFloat (ticker, 'high') / 1e8,
             'low': this.safeFloat (ticker, 'low') / 1e8,
             'bid': this.safeFloat (ticker, 'buy') / 1e8,
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell') / 1e8,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last') / 1e8,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
