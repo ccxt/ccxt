@@ -832,9 +832,12 @@ class hitbtc2 extends hitbtc {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
