@@ -370,31 +370,53 @@ module.exports = class rightbtc extends Exchange {
         return this.parseOrder (response);
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.traderDeleteOrderTradingPairIds (this.extend ({
+            'trading_pair': market['id'],
+            'ids': id,
+        }, params));
+        return response;
+    }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let request = {
+            'symbol': market['id'],
+            'ids': id,
+        };
+        let response = await this.traderGet privateGetOrder (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
 
-// quantity	Number
-// buy/sell quantity, max decimal digits list at /trading_pairs, should multiply by 1E8
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
+            let symbols = this.symbols;
+            let numSymbols = symbols.length;
+            let fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
+            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+        }
+        let response = await this.privateGetOpenOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
 
-// limit	Number
-// buy/sell at price, max decimal digits list at /trading_pairs, should multiply by 1E8
-
-// type	String
-// "LIMIT"
-
-// side	String
-// "BUY" or "SELL"
-
-// Success 200
-// Field	Type	Description
-// order_id	Number
-// order id.
-
-// message	String
-// error type: ERR_ASSET_NOT_EXISTS|ERR_ASSET_NOT_AVAILABLE|ERR_BALANCE_NOT_ENOUGH|ERR_CREATE_ORDER
-
-// frozen	Number
-// frozen amount, should divide by 1E8.
-
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
