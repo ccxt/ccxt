@@ -298,6 +298,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | US                       | |bittrex|            | bittrex            | `Bittrex <https://bittrex.com>`__                                               | 1.1 | `API <https://bittrex.com/Home/Api>`__                                                              |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
+| US                       | |btcalpha|           | btcalpha           | `BTC-Alpha <https://btc-alpha.com/?r=123788>`__                                 | 1   | `API <https://btc-alpha.github.io/api-docs>`__                                                      |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | US                       | |btcx|               | btcx               | `BTCX <https://btc-x.is>`__                                                     | 1   | `API <https://btc-x.is/custom/api-document.html>`__                                                 |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | US                       | |coinbase|           | coinbase           | `coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__           | 2   | `API <https://developers.coinbase.com/api/v2>`__                                                    |
@@ -449,6 +451,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |liqui| image:: https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
+.. |btcalpha| image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg
 .. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
 .. |coinbasepro| image:: https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg
 .. |coinmarketcap| image:: https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg

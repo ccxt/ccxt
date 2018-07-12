@@ -391,16 +391,21 @@ class btcalpha extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if ($code < 400) {
+        if ($code < 400)
             return;
+        if (gettype ($body) !== 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
+            if ($code === 401 || $code === 403) {
+                throw new AuthenticationError ($message);
+            } else if ($code === 429) {
+                throw new DDoSProtection ($message);
+            }
+            throw new ExchangeError ($message);
         }
-        $response = $this->unjson ($body);
-        $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError ($message);
-        } else if ($code === 429) {
-            throw new DDoSProtection ($message);
-        }
-        throw new ExchangeError ($message);
     }
 }
