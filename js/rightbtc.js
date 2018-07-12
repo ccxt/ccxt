@@ -123,9 +123,6 @@ module.exports = class rightbtc extends Exchange {
                 'ERR_BALANCE_NOT_ENOUGH': InsufficientFunds,
                 'ERR_CREATE_ORDER': InvalidOrder,
             },
-            'options': {
-                'fetchMarketsMethod': 'publicGetTradingPairs', // CN users should switch this to 'publicGetGetAssetsTradingPairsZh'
-            },
         });
     }
 
