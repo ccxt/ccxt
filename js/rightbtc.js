@@ -12,7 +12,7 @@ module.exports = class rightbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'rightbtc',
             'name': 'RightBTC',
-            'countries': 'AE',
+            'countries': [ 'AE' ],
             'has': {
                 'privateAPI': false,
                 'fetchTickers': true,
@@ -28,7 +28,7 @@ module.exports = class rightbtc extends Exchange {
                 '1w': 'week',
             },
             'urls': {
-                'logo': 'https://www.rightbtc.com/assets/images/hftlogo@2x.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
