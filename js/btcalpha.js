@@ -390,16 +390,21 @@ module.exports = class btcalpha extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (code < 400) {
+        if (code < 400)
             return;
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let message = this.id + ' ' + this.safeValue (response, 'detail', body);
+            if (code === 401 || code === 403) {
+                throw new AuthenticationError (message);
+            } else if (code === 429) {
+                throw new DDoSProtection (message);
+            }
+            throw new ExchangeError (message);
         }
-        let response = this.unjson (body);
-        let message = this.id + ' ' + this.safeValue (response, 'detail', body);
-        if (code === 401 || code === 403) {
-            throw new AuthenticationError (message);
-        } else if (code === 429) {
-            throw new DDoSProtection (message);
-        }
-        throw new ExchangeError (message);
     }
 };
