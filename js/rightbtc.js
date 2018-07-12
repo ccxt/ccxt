@@ -17,6 +17,11 @@ module.exports = class rightbtc extends Exchange {
                 'privateAPI': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': false,
+                'fetchOrder': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': 'min1',
@@ -251,22 +256,45 @@ module.exports = class rightbtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['date']);
+
+        //             {
+        //                 "order_id": 118735,
+        //                 "trade_id": 7,
+        //                 "trading_pair": "BTCCNY",
+        //                 "side": "B",
+        //                 "quantity": 1000000000,
+        //                 "price": 900000000,
+        //                 "created_at": "2017-06-06T20:45:27.000Z"
+        //             },
+        let timestamp = this.safeInteger (trade, 'date');
+        if (typeof timestamp === 'undefined')
+            timestamp = this.parse8601 (trade['created_at']);
+        let id = this.safeString (trade, 'tid');
+        id = this.safeString (trade, 'trade_id', id);
+        let orderId = this.safeString (trade, 'order_id');
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
+        cost = parseFloat (cost);
+        let side = this.safeString (trade, 'side');
+        side = side.toLowerCase ();
+        if (side === 'b') {
+            side = 'buy';
+        } else if (side === 's') {
+            side = 'sell';
+        }
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'type': 'limit',
-            'side': trade['side'].toLowerCase (),
+            'side': side,
             'price': price,
             'amount': amount,
-            'cost': parseFloat (cost),
+            'cost': cost,
             'fee': undefined,
             'info': trade,
         };
@@ -383,6 +411,89 @@ module.exports = class rightbtc extends Exchange {
         return response;
     }
 
+    parseOrder (order, market = undefined) {
+        let status = this.safeValue (order, 'status');
+        if (typeof status !== 'undefined')
+            status = this.parseOrderStatus (status);
+        let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        let timestamp = undefined;
+        if ('time' in order)
+            timestamp = order['time'];
+        else if ('transactTime' in order)
+            timestamp = order['transactTime'];
+        let iso8601 = undefined;
+        if (typeof timestamp !== 'undefined')
+            iso8601 = this.iso8601 (timestamp);
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'origQty');
+        let filled = this.safeFloat (order, 'executedQty');
+        let remaining = undefined;
+        let cost = undefined;
+        if (typeof filled !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+                if (this.options['parseOrderToPrecision']) {
+                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                }
+                remaining = Math.max (remaining, 0.0);
+            }
+            if (typeof price !== 'undefined') {
+                cost = price * filled;
+            }
+        }
+        let id = this.safeString (order, 'orderId');
+        let type = this.safeString (order, 'type');
+        if (typeof type !== 'undefined')
+            type = type.toLowerCase ();
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
+        let fee = undefined;
+        let trades = undefined;
+        const fills = this.safeValue (order, 'fills');
+        if (typeof fills !== 'undefined') {
+            trades = this.parseTrades (fills, market);
+            let numTrades = trades.length;
+            if (numTrades > 0) {
+                cost = trades[0]['cost'];
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                };
+                for (let i = 1; i < trades.length; i++) {
+                    cost = this.sum (cost, trades[i]['cost']);
+                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
+                }
+                if (cost && filled)
+                    price = cost / filled;
+            }
+        }
+        if (typeof cost !== 'undefined') {
+            if (this.options['parseOrderToPrecision']) {
+                cost = parseFloat (this.costToPrecision (symbol, cost));
+            }
+        }
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+        return result;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (typeof symbol === 'undefined') {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
@@ -429,6 +540,7 @@ module.exports = class rightbtc extends Exchange {
         let market = this.market (symbol);
         let request = {
             'trading_pair': market['id'],
+            'cursor': 0,
         };
         let response = await this.traderGetOrderpageTradingPairCursor (this.extend (request, params));
         //
@@ -456,7 +568,7 @@ module.exports = class rightbtc extends Exchange {
         return this.parseOrders (response['result']['orders'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.traderGetHistoryTradingPairIds (symbol, since, limit, params);
         //
         //     {
@@ -482,6 +594,48 @@ module.exports = class rightbtc extends Exchange {
         //
         return this.filterBy (orders, 'status', 'closed');
     }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.traderGetHistorysTradingPairPage (this.extend ({
+            'trading_pair': market['id'],
+            'page': 0,
+        }, params));
+        //
+        //     {
+        //         "status": {
+        //             "success": 1,
+        //             "message": null
+        //         },
+        //         "result": [
+        //             {
+        //                 "order_id": 118735,
+        //                 "trade_id": 7,
+        //                 "trading_pair": "BTCCNY",
+        //                 "side": "B",
+        //                 "quantity": 1000000000,
+        //                 "price": 900000000,
+        //                 "created_at": "2017-06-06T20:45:27.000Z"
+        //             },
+        //             {
+        //                 "order_id": 118734,
+        //                 "trade_id": 7,
+        //                 "trading_pair": "BTCCNY",
+        //                 "side": "S",
+        //                 "quantity": 1000000000,
+        //                 "price": 900000000,
+        //                 "created_at": "2017-06-06T20:45:27.000Z"
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTrades (response['result'], market, since, limit);
+    }
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
