@@ -12,7 +12,7 @@ class allcoin (okcoinusd):
         return self.deep_extend(super(allcoin, self).describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': ['CA'],
             'has': {
                 'CORS': False,
             },
@@ -55,7 +55,6 @@ class allcoin (okcoinusd):
                     ],
                 },
             },
-            'markets': None,
         })
 
     def fetch_markets(self):

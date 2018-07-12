@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 
@@ -17,7 +18,7 @@ class bitmex (Exchange):
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC',  # Seychelles
+            'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
@@ -46,6 +47,8 @@ class bitmex (Exchange):
                     'https://www.bitmex.com/app/apiOverview',
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
+                'fees': 'https://www.bitmex.com/app/fees',
+                'referral': 'https://www.bitmex.com/register/rm3C16',
             },
             'api': {
                 'public': {
@@ -133,6 +136,13 @@ class bitmex (Exchange):
                     ],
                 },
             },
+            'exceptions': {
+                'Invalid API Key.': AuthenticationError,
+                'Access Denied': PermissionDenied,
+            },
+            'options': {
+                'fetchTickerQuotes': False,
+            },
         })
 
     def fetch_markets(self):
@@ -161,16 +171,33 @@ class bitmex (Exchange):
             else:
                 future = True
                 type = 'future'
-            maker = market['makerFee']
-            taker = market['takerFee']
+            precision = {
+                'amount': None,
+                'price': None,
+            }
+            if market['lotSize']:
+                precision['amount'] = self.precision_from_string(self.truncate_to_string(market['lotSize'], 16))
+            if market['tickSize']:
+                precision['price'] = self.precision_from_string(self.truncate_to_string(market['tickSize'], 16))
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': active,
-                'taker': taker,
-                'maker': maker,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': market['lotSize'],
+                        'max': market['maxOrderQty'],
+                    },
+                    'price': {
+                        'min': market['tickSize'],
+                        'max': market['maxPrice'],
+                    },
+                },
+                'taker': market['takerFee'],
+                'maker': market['makerFee'],
                 'type': type,
                 'spot': False,
                 'swap': swap,
@@ -275,9 +302,14 @@ class bitmex (Exchange):
             'count': 1,
             'reverse': True,
         }, params)
-        quotes = self.publicGetQuoteBucketed(request)
-        quotesLength = len(quotes)
-        quote = quotes[quotesLength - 1]
+        bid = None
+        ask = None
+        if self.options['fetchTickerQuotes']:
+            quotes = self.publicGetQuoteBucketed(request)
+            quotesLength = len(quotes)
+            quote = quotes[quotesLength - 1]
+            bid = self.safe_float(quote, 'bidPrice')
+            ask = self.safe_float(quote, 'askPrice')
         tickers = self.publicGetTradeBucketed(request)
         ticker = tickers[0]
         timestamp = self.milliseconds()
@@ -288,13 +320,13 @@ class bitmex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(quote['bidPrice']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': bid,
             'bidVolume': None,
-            'ask': float(quote['askPrice']),
+            'ask': ask,
             'askVolume': None,
-            'vwap': float(ticker['vwap']),
+            'vwap': self.safe_float(ticker, 'vwap'),
             'open': open,
             'close': close,
             'last': close,
@@ -302,8 +334,8 @@ class bitmex (Exchange):
             'change': change,
             'percentage': change / open * 100,
             'average': self.sum(open, close) / 2,
-            'baseVolume': float(ticker['homeNotional']),
-            'quoteVolume': float(ticker['foreignNotional']),
+            'baseVolume': self.safe_float(ticker, 'homeNotional'),
+            'quoteVolume': self.safe_float(ticker, 'foreignNotional'),
             'info': ticker,
         }
 
@@ -350,7 +382,7 @@ class bitmex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
         if market:
@@ -384,7 +416,7 @@ class bitmex (Exchange):
         if status is not None:
             status = self.parse_order_status(status)
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = order['symbol']
@@ -402,9 +434,12 @@ class bitmex (Exchange):
             timestamp = self.parse8601(datetime_value)
             iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
-        amount = float(order['orderQty'])
+        amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = max(amount - filled, 0.0)
         cost = None
         if price is not None:
             if filled is not None:
@@ -414,6 +449,7 @@ class bitmex (Exchange):
             'id': str(order['orderID']),
             'timestamp': timestamp,
             'datetime': iso8601,
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': order['ordType'].lower(),
             'side': order['side'].lower(),
@@ -448,7 +484,7 @@ class bitmex (Exchange):
             'orderQty': amount,
             'ordType': self.capitalize(type),
         }
-        if type == 'limit':
+        if price is not None:
             request['price'] = price
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
@@ -516,12 +552,13 @@ class bitmex (Exchange):
                     response = json.loads(body)
                     if 'error' in response:
                         if 'message' in response['error']:
+                            feedback = self.id + ' ' + self.json(response)
                             message = self.safe_value(response['error'], 'message')
+                            exceptions = self.exceptions
                             if message is not None:
-                                if message == 'Invalid API Key.':
-                                    raise AuthenticationError(self.id + ' ' + self.json(response))
-                            # stub code, need proper handling
-                            raise ExchangeError(self.id + ' ' + self.json(response))
+                                if message in exceptions:
+                                    raise exceptions[message](feedback)
+                            raise ExchangeError(feedback)
 
     def nonce(self):
         return self.milliseconds()

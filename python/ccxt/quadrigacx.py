@@ -11,6 +11,7 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
@@ -21,11 +22,12 @@ class quadrigacx (Exchange):
         return self.deep_extend(super(quadrigacx, self).describe(), {
             'id': 'quadrigacx',
             'name': 'QuadrigaCX',
-            'countries': 'CA',
+            'countries': ['CA'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
                 'fetchDepositAddress': True,
+                'fetchTickers': True,
                 'CORS': True,
                 'withdraw': True,
             },
@@ -82,6 +84,9 @@ class quadrigacx (Exchange):
                 'BTG/CAD': {'id': 'btg_cad', 'symbol': 'BTG/CAD', 'base': 'BTG', 'quote': 'CAD', 'maker': 0.005, 'taker': 0.005},
                 'BTG/BTC': {'id': 'btg_btc', 'symbol': 'BTG/BTC', 'base': 'BTG', 'quote': 'BTC', 'maker': 0.005, 'taker': 0.005},
             },
+            'exceptions': {
+                '101': AuthenticationError,
+            },
         })
 
     def fetch_balance(self, params={}):
@@ -106,24 +111,58 @@ class quadrigacx (Exchange):
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
 
-    def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetTicker(self.extend({
-            'book': self.market_id(symbol),
+    def fetch_tickers(self, symbols=None, params={}):
+        response = self.publicGetTicker(self.extend({
+            'book': 'all',
         }, params))
+        ids = list(response.keys())
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            symbol = id
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = id.split('_')
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(base)
+                symbol = base + '/' + quote
+                market = {
+                    'symbol': symbol,
+                }
+            result[symbol] = self.parse_ticker(response[id], market)
+        return result
+
+    def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetTicker(self.extend({
+            'book': market['id'],
+        }, params))
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = int(ticker['timestamp']) * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': vwap,
             'open': None,
@@ -149,8 +188,8 @@ class quadrigacx (Exchange):
             'order': None,
             'type': None,
             'side': trade['side'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -179,26 +218,21 @@ class quadrigacx (Exchange):
             'id': id,
         }, params))
 
-    def fetch_deposit_address(self, currency, params={}):
-        method = 'privatePost' + self.get_currency_name(currency) + 'DepositAddress'
+    def fetch_deposit_address(self, code, params={}):
+        method = 'privatePost' + self.get_currency_name(code) + 'DepositAddress'
         response = getattr(self, method)(params)
-        address = None
-        status = None
         # [E|e]rror
         if response.find('rror') >= 0:
-            status = 'error'
-        else:
-            address = response
-            status = 'ok'
-        self.check_address(address)
+            raise ExchangeError(self.id + ' ' + response)
+        self.check_address(response)
         return {
-            'currency': currency,
-            'address': address,
-            'status': status,
-            'info': self.last_http_response,
+            'currency': code,
+            'address': response,
+            'tag': None,
+            'info': response,
         }
 
-    def get_currency_name(self, currency):
+    def get_currency_name(self, code):
         currencies = {
             'ETH': 'Ether',
             'BTC': 'Bitcoin',
@@ -206,16 +240,16 @@ class quadrigacx (Exchange):
             'BCH': 'Bitcoincash',
             'BTG': 'Bitcoingold',
         }
-        return currencies[currency]
+        return currencies[code]
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
         request = {
             'amount': amount,
             'address': address,
         }
-        method = 'privatePost' + self.get_currency_name(currency) + 'Withdrawal'
+        method = 'privatePost' + self.get_currency_name(code) + 'Withdrawal'
         response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
@@ -247,15 +281,17 @@ class quadrigacx (Exchange):
             return  # fallback to default error handler
         if len(body) < 2:
             return
-        # Here is a sample QuadrigaCX response in case of authentication failure:
-        # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
-        if statusCode == 200 and body.find('Invalid API Code or Invalid Signature') >= 0:
-            raise AuthenticationError(self.id + ' ' + body)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if isinstance(response, basestring):
-            return response
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            error = self.safe_value(response, 'error')
+            if error is not None:
+                #
+                # {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
+                #
+                code = self.safe_string(error, 'code')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

@@ -14,7 +14,7 @@ module.exports = class coinmarketcap extends Exchange {
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'has': {
                 'CORS': true,
                 'privateAPI': false,
@@ -79,6 +79,9 @@ module.exports = class coinmarketcap extends Exchange {
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         });
     }
@@ -89,18 +92,35 @@ module.exports = class coinmarketcap extends Exchange {
 
     currencyCode (base, name) {
         const currencies = {
+            'ACChain': 'ACChain',
+            'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
             'Bitgem': 'Bitgem',
+            'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'Hi Mutual Society': 'Hi Mutual Society',
+            'Content and AD Network': 'Content and AD Network', // conflict with CAN (Content and AD Network)
+            'Comet': 'Comet', // conflict with CMT (CyberMiles)
+            'CPChain': 'CPChain',
+            'Cubits': 'Cubits', // conflict with QBT (Qbao)
+            'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
+            'FairGame': 'FairGame',
+            'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
+            'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
-            'NetCoin': 'NetCoin',
-            // a special case, most exchanges list it as IOTA, therefore
-            // we change just the Coinmarketcap instead of changing them all
-            'MIOTA': 'IOTA',
+            'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
+            'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
-            'BlazeCoin': 'BlazeCoin',
+            'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'NetCoin': 'NetCoin',
+            'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
         };
         if (name in currencies)
             return currencies[name];
@@ -156,7 +176,7 @@ module.exports = class coinmarketcap extends Exchange {
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             let priceKey = 'price_' + market['quoteId'];
             if (priceKey in ticker)
                 if (ticker[priceKey])
@@ -202,7 +222,7 @@ module.exports = class coinmarketcap extends Exchange {
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
-            let currencyId = (currency in this.currencies) ? this.currencies[currency]['id'] : currency.toLowerCase ();
+            let currencyId = currency.toLowerCase ();
             let id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
@@ -247,7 +267,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined, // todo: redesign
                 'precision': precision,
                 'limits': {

@@ -12,7 +12,7 @@ class chilebit (foxbit):
         return self.deep_extend(super(chilebit, self).describe(), {
             'id': 'chilebit',
             'name': 'ChileBit',
-            'countries': 'CL',
+            'countries': ['CL'],
             'has': {
                 'CORS': False,
             },
@@ -24,5 +24,8 @@ class chilebit (foxbit):
                 },
                 'www': 'https://chilebit.net',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '9',  # https://blinktrade.com/docs/#brokers
             },
         })

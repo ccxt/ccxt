@@ -12,7 +12,7 @@ module.exports = class bitflyer extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'version': 'v1',
             'rateLimit': 1000, // their nonce-timestamp is in seconds...
             'has': {
@@ -40,6 +40,7 @@ module.exports = class bitflyer extends Exchange {
                         'getticker',
                         'getexecutions',
                         'gethealth',
+                        'getboardstate',
                         'getchats',
                     ],
                 },
@@ -92,6 +93,14 @@ module.exports = class bitflyer extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['product_code'];
+            let spot = true;
+            let future = false;
+            let type = 'spot';
+            if ('alias' in market) {
+                type = 'future';
+                future = true;
+                spot = false;
+            }
             let currencies = id.split ('_');
             let base = undefined;
             let quote = undefined;
@@ -113,6 +122,9 @@ module.exports = class bitflyer extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'type': type,
+                'spot': spot,
+                'future': future,
                 'info': market,
             });
         }
@@ -157,16 +169,16 @@ module.exports = class bitflyer extends Exchange {
             'product_code': this.marketId (symbol),
         }, params));
         let timestamp = this.parse8601 (ticker['timestamp']);
-        let last = parseFloat (ticker['ltp']);
+        let last = this.safeFloat (ticker, 'ltp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['best_bid']),
+            'bid': this.safeFloat (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': parseFloat (ticker['best_ask']),
+            'ask': this.safeFloat (ticker, 'best_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -176,7 +188,7 @@ module.exports = class bitflyer extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume_by_product']),
+            'baseVolume': this.safeFloat (ticker, 'volume_by_product'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -292,6 +304,7 @@ module.exports = class bitflyer extends Exchange {
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -316,19 +329,23 @@ module.exports = class bitflyer extends Exchange {
         };
         let response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        params['child_order_state'] = 'ACTIVE';
-        return this.fetchOrders (symbol, since, limit, params);
+        let request = {
+            'child_order_state': 'ACTIVE',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        params['child_order_state'] = 'COMPLETED';
-        return this.fetchOrders (symbol, since, limit, params);
+        let request = {
+            'child_order_state': 'COMPLETED',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -349,7 +366,7 @@ module.exports = class bitflyer extends Exchange {
         let request = {
             'product_code': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['count'] = limit;
         let response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

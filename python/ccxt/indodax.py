@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
@@ -19,7 +26,7 @@ class indodax (Exchange):
         return self.deep_extend(super(indodax, self).describe(), {
             'id': 'indodax',
             'name': 'INDODAX',
-            'countries': 'ID',  # Indonesia
+            'countries': ['ID'],  # Indonesia
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -30,19 +37,17 @@ class indodax (Exchange):
                 'fetchOpenOrders': True,
                 'fetchMyTrades': False,
                 'fetchCurrencies': False,
-                'withdraw': False,
+                'withdraw': True,
             },
-            'version': '1.7',  # as of 6 November 2017
+            'version': '1.8',  # as of 9 April 2018
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
                 'api': {
-                    'public': 'https://vip.bitcoin.co.id/api',
-                    'private': 'https://vip.bitcoin.co.id/tapi',
+                    'public': 'https://indodax.com/api',
+                    'private': 'https://indodax.com/tapi',
                 },
                 'www': 'https://www.indodax.com',
-                'doc': [
-                    'https://vip.bitcoin.co.id/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
-                ],
+                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
             'api': {
                 'public': {
@@ -62,23 +67,29 @@ class indodax (Exchange):
                         'openOrders',
                         'cancelOrder',
                         'orderHistory',
+                        'withdrawCoin',
                     ],
                 },
             },
             'markets': {
                 'BTC/IDR': {'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.0001, 'max': None}}},
+                'ACT/IDR': {'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'ADA/IDR': {'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
+                'BCD/IDR': {'id': 'bcd_idr', 'symbol': 'BCD/IDR', 'base': 'BCD', 'quote': 'IDR', 'baseId': 'bcd', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'BCH/IDR': {'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.001, 'max': None}}},
                 'BTG/IDR': {'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'ETH/IDR': {'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'ETC/IDR': {'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
                 'IGNIS/IDR': {'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 1, 'max': None}}},
                 'LTC/IDR': {'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
+                'STQ/IDR': {'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'NXT/IDR': {'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
                 'TEN/IDR': {'id': 'ten_idr', 'symbol': 'TEN/IDR', 'base': 'TEN', 'quote': 'IDR', 'baseId': 'ten', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 5, 'max': None}}},
+                'TRX/IDR': {'id': 'trx_idr', 'symbol': 'TRX/IDR', 'base': 'TRX', 'quote': 'IDR', 'baseId': 'trx', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'WAVES/IDR': {'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
+                'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 20, 'max': None}}},
                 'XRP/IDR': {'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 10, 'max': None}}},
                 'XZC/IDR': {'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.1, 'max': None}}},
-                'XLM/IDR': {'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 20, 'max': None}}},
                 'BTS/BTC': {'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DASH/BTC': {'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 6}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 1, 'max': None}}},
@@ -86,8 +97,8 @@ class indodax (Exchange):
                 'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 6}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'NXT/BTC': {'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'TEN/BTC': {'id': 'ten_btc', 'symbol': 'TEN/BTC', 'base': 'TEN', 'quote': 'BTC', 'baseId': 'ten', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
-                'XLM/BTC': {'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'XEM/BTC': {'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 1, 'max': None}}},
+                'XLM/BTC': {'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
                 'XRP/BTC': {'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'precision': {'amount': 8, 'price': 8}, 'limits': {'amount': {'min': 0.01, 'max': None}}},
             },
             'fees': {
@@ -131,19 +142,19 @@ class indodax (Exchange):
             'pair': market['id'],
         }, params))
         ticker = response['ticker']
-        timestamp = float(ticker['server_time']) * 1000
+        timestamp = self.safe_float(ticker, 'server_time') * 1000
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -168,8 +179,8 @@ class indodax (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['type'],
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -195,7 +206,7 @@ class indodax (Exchange):
         amount = None
         remaining = None
         filled = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             quoteId = market['quoteId']
             baseId = market['baseId']
@@ -225,6 +236,7 @@ class indodax (Exchange):
             'id': order['order_id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -240,7 +252,7 @@ class indodax (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol')
         self.load_markets()
         market = self.market(symbol)
@@ -256,7 +268,7 @@ class indodax (Exchange):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOpenOrders(self.extend(request, params))
@@ -279,18 +291,18 @@ class indodax (Exchange):
         return exchangeOrders
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol')
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostOrderHistory(self.extend(request, params))
         orders = self.parse_orders(response['return']['orders'], market, since, limit)
         orders = self.filter_by(orders, 'status', 'closed')
-        if symbol:
+        if symbol is not None:
             return self.filter_by_symbol(orders, symbol)
         return orders
 
@@ -330,6 +342,49 @@ class indodax (Exchange):
             'type': params['side'],
         }, params))
 
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        # Custom string you need to provide to identify each withdrawal.
+        # Will be passed to callback URL(assigned via website to the API key)
+        # so your system can identify the request and confirm it.
+        # Alphanumeric, max length 255.
+        requestId = self.milliseconds()
+        # Alternatively:
+        # requestId = self.uuid()
+        request = {
+            'currency': currency['id'],
+            'withdraw_amount': amount,
+            'withdraw_address': address,
+            'request_id': str(requestId),
+        }
+        if tag:
+            request['withdraw_memo'] = tag
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
+        #
+        #     {
+        #         "success": 1,
+        #         "status": "approved",
+        #         "withdraw_currency": "xrp",
+        #         "withdraw_address": "rwWr7KUZ3ZFwzgaDGjKBysADByzxvohQ3C",
+        #         "withdraw_amount": "10000.00000000",
+        #         "fee": "2.00000000",
+        #         "amount_after_fee": "9998.00000000",
+        #         "submit_time": "1509469200",
+        #         "withdraw_id": "xrp-12345",
+        #         "txid": "",
+        #         "withdraw_memo": "123123"
+        #     }
+        #
+        id = None
+        if ('txid' in list(response.keys())) and len((response['txid']) > 0):
+            id = response['txid']
+        return {
+            'info': response,
+            'id': id,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         if api == 'public':
@@ -348,6 +403,8 @@ class indodax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
+        if not isinstance(body, basestring):
+            return
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]

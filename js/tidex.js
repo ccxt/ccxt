@@ -11,7 +11,7 @@ module.exports = class tidex extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'tidex',
             'name': 'Tidex',
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'rateLimit': 2000,
             'version': '3',
             'has': {
@@ -71,10 +71,6 @@ module.exports = class tidex extends liqui {
             let code = id.toUpperCase ();
             code = this.commonCurrencyCode (code);
             let active = currency['visible'] === true;
-            let status = 'ok';
-            if (!active) {
-                status = 'disabled';
-            }
             let canWithdraw = currency['withdrawEnable'] === true;
             let canDeposit = currency['depositEnable'] === true;
             if (!canWithdraw || !canDeposit) {
@@ -85,7 +81,6 @@ module.exports = class tidex extends liqui {
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -127,5 +122,44 @@ module.exports = class tidex extends liqui {
 
     getVersionString () {
         return '';
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            let signature = this.signBodyWithSecret (body);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': this.apiKey,
+                'Sign': signature,
+            };
+        } else if (api === 'public') {
+            url += this.getVersionString () + '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            url += '/' + this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    body = this.urlencode (query);
+                    headers = {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    };
+                }
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };

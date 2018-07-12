@@ -12,7 +12,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': [ 'VG' ],
             'version': 'v2',
             // new metainfo interface
             'has': {
@@ -22,6 +22,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'createOrder': false,
                 'deposit': false,
                 'editOrder': false,
+                'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
                 'fetchMyTrades': false,
@@ -113,6 +114,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/w/alert/set',
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
+                        'auth/r/ledgers/{symbol}/hist',
                     ],
                 },
             },
@@ -165,9 +167,7 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     getCurrencyId (code) {
-        let isFiat = this.isFiat (code);
-        let prefix = isFiat ? 'f' : 't';
-        return prefix + code;
+        return 'f' + code;
     }
 
     async fetchMarkets () {
@@ -190,8 +190,8 @@ module.exports = class bitfinex2 extends bitfinex {
             };
             let limits = {
                 'amount': {
-                    'min': parseFloat (market['minimum_order_size']),
-                    'max': parseFloat (market['maximum_order_size']),
+                    'min': this.safeFloat (market, 'minimum_order_size'),
+                    'max': this.safeFloat (market, 'maximum_order_size'),
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
@@ -231,16 +231,30 @@ module.exports = class bitfinex2 extends bitfinex {
             let total = balance[2];
             let available = balance[4];
             if (accountType === balanceType) {
-                if (currency[0] === 't')
+                let code = currency;
+                if (currency in this.currencies_by_id) {
+                    code = this.currencies_by_id[currency]['code'];
+                } else if (currency[0] === 't') {
                     currency = currency.slice (1);
-                let uppercase = currency.toUpperCase ();
-                uppercase = this.commonCurrencyCode (uppercase);
+                    code = currency.toUpperCase ();
+                    code = this.commonCurrencyCode (code);
+                } else {
+                    code = this.commonCurrencyCode (code);
+                }
                 let account = this.account ();
-                account['free'] = available;
                 account['total'] = total;
-                if (account['free'])
+                if (!available) {
+                    if (available === 0) {
+                        account['free'] = 0;
+                        account['used'] = total;
+                    } else {
+                        account['free'] = total;
+                    }
+                } else {
+                    account['free'] = available;
                     account['used'] = account['total'] - account['free'];
-                result[uppercase] = account;
+                }
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
@@ -389,6 +403,10 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchOrder not implemented yet');
+    }
+
+    async fetchDepositAddress (currency, params = {}) {
+        throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {

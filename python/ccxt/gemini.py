@@ -15,16 +15,17 @@ class gemini (Exchange):
         return self.deep_extend(super(gemini, self).describe(), {
             'id': 'gemini',
             'name': 'Gemini',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1500,  # 200 for private API
             'version': 'v1',
             'has': {
                 'fetchDepositAddress': False,
+                'createDepositAddress': True,
                 'CORS': False,
                 'fetchBidsAsks': False,
                 'fetchTickers': False,
                 'fetchMyTrades': True,
-                'fetchOrder': False,
+                'fetchOrder': True,
                 'fetchOrders': False,
                 'fetchOpenOrders': False,
                 'fetchClosedOrders': False,
@@ -69,6 +70,7 @@ class gemini (Exchange):
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
                         'heartbeat',
+                        'transfers',
                     ],
                 },
             },
@@ -115,16 +117,16 @@ class gemini (Exchange):
         timestamp = ticker['volume']['timestamp']
         baseVolume = market['base']
         quoteVolume = market['quote']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -152,11 +154,11 @@ class gemini (Exchange):
                     currency = self.currencies_by_id[currency]['code']
                 currency = self.common_currency_code(currency)
             fee = {
-                'cost': float(trade['fee_amount']),
+                'cost': self.safe_float(trade, 'fee_amount'),
                 'currency': currency,
             }
-        price = float(trade['price'])
-        amount = float(trade['amount'])
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         return {
             'id': str(trade['tid']),
             'order': order,
@@ -196,6 +198,62 @@ class gemini (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
+    def parse_order(self, order, market=None):
+        timestamp = order['timestampms']
+        amount = self.safe_float(order, 'original_amount')
+        remaining = self.safe_float(order, 'remaining_amount')
+        filled = self.safe_float(order, 'executed_amount')
+        status = 'closed'
+        if order['is_live']:
+            status = 'open'
+        if order['is_canceled']:
+            status = 'canceled'
+        price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'avg_execution_price', price)
+        cost = None
+        if filled is not None:
+            if price is not None:
+                cost = filled * price
+        type = self.safe_string(order, 'type')
+        if type == 'exchange limit':
+            type = 'limit'
+        elif type == 'market buy' or type == 'market sell':
+            type = 'market'
+        else:
+            type = order['type']
+        fee = None
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'id': order['order_id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': order['side'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+        }
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostOrderStatus(self.extend({
+            'order_id': id,
+        }, params))
+        return self.parse_order(response)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if type == 'market':
@@ -228,7 +286,9 @@ class gemini (Exchange):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit_trades'] = limit
+        if since is not None:
+            request['timestamp'] = int(since / 1000)
         response = self.privatePostMytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -277,3 +337,17 @@ class gemini (Exchange):
             if response['result'] == 'error':
                 raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privatePostDepositCurrencyNewAddress(self.extend({
+            'currency': currency['id'],
+        }, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        }

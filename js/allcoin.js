@@ -11,7 +11,7 @@ module.exports = class allcoin extends okcoinusd {
         return this.deepExtend (super.describe (), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': [ 'CA' ],
             'has': {
                 'CORS': false,
             },
@@ -54,7 +54,6 @@ module.exports = class allcoin extends okcoinusd {
                     ],
                 },
             },
-            'markets': undefined,
         });
     }
 

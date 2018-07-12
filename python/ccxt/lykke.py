@@ -13,7 +13,7 @@ class lykke (Exchange):
         return self.deep_extend(super(lykke, self).describe(), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': 'CH',
+            'countries': ['CH'],
             'version': 'v1',
             'rateLimit': 200,
             'has': {
@@ -22,6 +22,7 @@ class lykke (Exchange):
                 'fetchTrades': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
             },
             'requiredCredentials': {
@@ -31,11 +32,11 @@ class lykke (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api': {
-                    'mobile': 'https://api.lykkex.com/api',
+                    'mobile': 'https://public-api.lykke.com/api',
                     'public': 'https://hft-api.lykke.com/api',
                     'private': 'https://hft-api.lykke.com/api',
                     'test': {
-                        'mobile': 'https://api.lykkex.com/api',
+                        'mobile': 'https://public-api.lykke.com/api',
                         'public': 'https://hft-service-dev.lykkex.net/api',
                         'private': 'https://hft-service-dev.lykkex.net/api',
                     },
@@ -50,7 +51,7 @@ class lykke (Exchange):
             'api': {
                 'mobile': {
                     'get': [
-                        'AllAssetPairRates/{market}',
+                        'Market/{market}',
                     ],
                 },
                 'public': {
@@ -176,34 +177,34 @@ class lykke (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        ticker = ticker['Result']
+        close = float(ticker['lastPrice'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['Rate']['Bid']),
+            'bid': float(ticker['bid']),
             'bidVolume': None,
-            'ask': float(ticker['Rate']['Ask']),
+            'ask': float(ticker['ask']),
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'last': None,
+            'close': close,
+            'last': close,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': None,
+            'quoteVolume': float(ticker['volume24H']),
             'info': ticker,
         }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.mobileGetAllAssetPairRatesMarket(self.extend({
+        ticker = self.mobileGetMarketMarket(self.extend({
             'market': market['id'],
         }, params))
         return self.parse_ticker(ticker, market)
@@ -232,18 +233,18 @@ class lykke (Exchange):
     def parse_order(self, order, market=None):
         status = self.parse_order_status(order['Status'])
         symbol = None
-        if not market:
+        if market is None:
             if 'AssetPairId' in order:
                 if order['AssetPairId'] in self.markets_by_id:
                     market = self.markets_by_id[order['AssetPairId']]
         if market:
             symbol = market['symbol']
         timestamp = None
-        if 'LastMatchTime' in order:
+        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
             timestamp = self.parse8601(order['LastMatchTime'])
-        elif 'Registered' in order:
+        elif ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif 'CreatedAt' in order:
+        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')
@@ -255,6 +256,7 @@ class lykke (Exchange):
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': None,
             'side': None,
@@ -270,22 +272,26 @@ class lykke (Exchange):
         return result
 
     def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privateGetOrdersId(self.extend({
             'id': id,
         }, params))
         return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders()
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'InOrderBook',
         }, params))
         return self.parse_orders(response, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         response = self.privateGetOrders(self.extend({
             'status': 'Matched',
         }, params))

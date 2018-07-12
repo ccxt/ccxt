@@ -19,6 +19,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class liqui (Exchange):
@@ -27,7 +28,7 @@ class liqui (Exchange):
         return self.deep_extend(super(liqui, self).describe(), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': ['UA'],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': self.userAgents['chrome'],
@@ -166,7 +167,6 @@ class liqui (Exchange):
                 'quote': quote,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -215,7 +215,7 @@ class liqui (Exchange):
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = '-'.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
@@ -270,7 +270,7 @@ class liqui (Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = '-'.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
@@ -363,21 +363,26 @@ class liqui (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        response = self.privatePostTrade(self.extend(request, params))
-        id = self.safe_string(response['return'], self.get_order_id_key())
-        timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
+        response = self.privatePostTrade(self.extend(request, params))
+        id = None
         status = 'open'
-        if id == '0':
-            id = self.safe_string(response['return'], 'init_order_id')
-            status = 'closed'
-        filled = self.safe_float(response['return'], 'received', 0.0)
-        remaining = self.safe_float(response['return'], 'remains', amount)
+        filled = 0.0
+        remaining = amount
+        if 'return' in response:
+            id = self.safe_string(response['return'], self.get_order_id_key())
+            if id == '0':
+                id = self.safe_string(response['return'], 'init_order_id')
+                status = 'closed'
+            filled = self.safe_float(response['return'], 'received', 0.0)
+            remaining = self.safe_float(response['return'], 'remains', amount)
+        timestamp = self.milliseconds()
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -452,6 +457,7 @@ class liqui (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'type': 'limit',
             'side': order['type'],
             'price': price,
@@ -487,38 +493,37 @@ class liqui (Exchange):
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
+        # self will add unseen orders and overwrite existing ones
         for j in range(0, len(openOrders)):
             id = openOrders[j]['id']
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
-        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
             # - order was closed or canceled -> update cache
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            id = cachedOrderIds[k]
-            order = self.orders[id]
-            result.append(order)
-            if not(id in list(openOrdersIndexedById.keys())):
+            cachedOrderId = cachedOrderIds[k]
+            cachedOrder = self.orders[cachedOrderId]
+            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != order['symbol']:
+                if symbol is not None and symbol != cachedOrder['symbol']:
                     continue
-                # order is cached but not present in the list of open orders -> mark the cached order as closed
-                if order['status'] == 'open':
-                    order = self.extend(order, {
+                # cached order is absent from the list of open orders -> mark the cached order as closed
+                if cachedOrder['status'] == 'open':
+                    cachedOrder = self.extend(cachedOrder, {
                         'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
                         'cost': None,
-                        'filled': order['amount'],
+                        'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     })
-                    if order['cost'] is None:
-                        if order['filled'] is not None:
-                            order['cost'] = order['filled'] * order['price']
-                    self.orders[id] = order
-        return result
+                    if cachedOrder['cost'] is None:
+                        if cachedOrder['filled'] is not None:
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
+                    self.orders[cachedOrderId] = cachedOrder
+        return self.to_array(self.orders)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if 'fetchOrdersRequiresSymbol' in self.options:
@@ -609,10 +614,21 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
-        else:
+        elif api == 'public':
             url += self.get_version_string() + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
@@ -666,6 +682,8 @@ class liqui (Exchange):
                     # in fact, we can use the same .exceptions with string-keys to save some loc here
                     if message == 'invalid api key':
                         raise AuthenticationError(feedback)
+                    elif message == 'invalid sign':
+                        raise AuthenticationError(feedback)
                     elif message == 'api key dont have trade permission':
                         raise AuthenticationError(feedback)
                     elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
@@ -675,10 +693,10 @@ class liqui (Exchange):
                     elif message == 'Requests too often':
                         raise DDoSProtection(feedback)
                     elif message == 'not available':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'data unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     elif message == 'external service unavailable':
-                        raise DDoSProtection(feedback)
+                        raise ExchangeNotAvailable(feedback)
                     else:
                         raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

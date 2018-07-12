@@ -15,7 +15,7 @@ class zaif (Exchange):
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
-            'countries': 'JP',
+            'countries': ['JP'],
             'rateLimit': 2000,
             'version': '1',
             'has': {
@@ -36,6 +36,14 @@ class zaif (Exchange):
                     'https://www.npmjs.com/package/zaif.jp',
                     'https://github.com/you21979/node-zaif',
                 ],
+                'fees': 'https://zaif.jp/fee?lang=en',
+            },
+            'fees': {
+                'trading': {
+                    'percentage': True,
+                    'taker': -0.0001,
+                    'maker': -0.0005,
+                },
             },
             'api': {
                 'public': {
@@ -116,11 +124,11 @@ class zaif (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['item_unit_min']),
+                        'min': self.safe_float(market, 'item_unit_min'),
                         'max': None,
                     },
                     'price': {
-                        'min': float(market['aux_unit_min']),
+                        'min': self.safe_float(market, 'aux_unit_min'),
                         'max': None,
                     },
                     'cost': {
@@ -219,6 +227,11 @@ class zaif (Exchange):
         response = self.publicGetTradesPair(self.extend({
             'pair': market['id'],
         }, params))
+        numTrades = len(response)
+        if numTrades == 1:
+            firstTrade = response[0]
+            if not firstTrade:
+                response = []
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -252,6 +265,7 @@ class zaif (Exchange):
             'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': market['symbol'],
             'type': 'limit',
@@ -282,7 +296,7 @@ class zaif (Exchange):
             # 'is_token': False,
             # 'is_token_both': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
@@ -301,7 +315,7 @@ class zaif (Exchange):
             # 'end': 1503821051,
             # 'is_token': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostTradeHistory(self.extend(request, params))

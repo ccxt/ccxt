@@ -12,11 +12,12 @@ module.exports = class wex extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ', // New Zealand
+            'countries': [ 'NZ' ], // New Zealand
             'version': '3',
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30652751-d74ec8f8-9e31-11e7-98c5-71469fcef03e.jpg',
@@ -83,6 +84,9 @@ module.exports = class wex extends liqui {
                     'external service unavailable': DDoSProtection,
                 },
             },
+            'commonCurrencies': {
+                'RUR': 'RUB',
+            },
         });
     }
 
@@ -116,6 +120,17 @@ module.exports = class wex extends liqui {
         };
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode (code) };
+        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+        return {
+            'currency': code,
+            'address': response['return']['address'],
+            'tag': undefined,
+            'info': response,
+        };
+    }
+
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 200) {
             if (body[0] !== '{') {
@@ -134,7 +149,7 @@ module.exports = class wex extends liqui {
                         return;
                     }
                     const feedback = this.id + ' ' + this.json (response);
-                    const messages = this.exceptions.messages;
+                    const messages = this.exceptions['messages'];
                     if (error in messages) {
                         throw new messages[error] (feedback);
                     }

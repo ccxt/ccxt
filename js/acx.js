@@ -12,7 +12,7 @@ module.exports = class acx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': [ 'AU' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -20,6 +20,7 @@ module.exports = class acx extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchOrder': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -158,26 +159,26 @@ module.exports = class acx extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last', undefined);
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high', undefined),
-            'low': this.safeFloat (ticker, 'low', undefined),
-            'bid': this.safeFloat (ticker, 'buy', undefined),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell', undefined),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol', undefined),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -258,7 +259,7 @@ module.exports = class acx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit)
+        if (typeof limit === 'undefined')
             limit = 500; // default is 30
         let request = {
             'market': market['id'],
@@ -273,7 +274,7 @@ module.exports = class acx extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];
@@ -293,18 +294,27 @@ module.exports = class acx extends Exchange {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
-            'price': parseFloat (order['price']),
-            'amount': parseFloat (order['volume']),
-            'filled': parseFloat (order['executed_volume']),
-            'remaining': parseFloat (order['remaining_volume']),
+            'price': this.safeFloat (order, 'price'),
+            'amount': this.safeFloat (order, 'volume'),
+            'filled': this.safeFloat (order, 'executed_volume'),
+            'remaining': this.safeFloat (order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
         };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrder (this.extend ({
+            'id': parseInt (id),
+        }, params));
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -388,8 +398,8 @@ module.exports = class acx extends Exchange {
                 'tonce': nonce,
             }, params));
             let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signed;
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {

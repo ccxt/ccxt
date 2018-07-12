@@ -88,10 +88,16 @@ module.exports = class qryptos extends Exchange {
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
+                    'price': {
+                        'must_be_positive': InvalidOrder,
+                    },
                     'quantity': {
                         'less_than_order_size': InvalidOrder,
                     },
                 },
+            },
+            'commonCurrencies': {
+                'WIN': 'WCOIN',
             },
         });
     }
@@ -102,8 +108,10 @@ module.exports = class qryptos extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'].toString ();
-            let base = market['base_currency'];
-            let quote = market['quoted_currency'];
+            let baseId = market['base_currency'];
+            let quoteId = market['quoted_currency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
@@ -141,6 +149,8 @@ module.exports = class qryptos extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'maker': maker,
                 'taker': taker,
                 'limits': limits,
@@ -158,14 +168,18 @@ module.exports = class qryptos extends Exchange {
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currency = balance['currency'];
+            let currencyId = balance['currency'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            }
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -185,12 +199,39 @@ module.exports = class qryptos extends Exchange {
             if (ticker['last_traded_price']) {
                 let length = ticker['last_traded_price'].length;
                 if (length > 0)
-                    last = parseFloat (ticker['last_traded_price']);
+                    last = this.safeFloat (ticker, 'last_traded_price');
             }
         }
         let symbol = undefined;
-        if (market)
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'id');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let baseId = this.safeString (ticker, 'base_currency');
+                let quoteId = this.safeString (ticker, 'quoted_currency');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                if (symbol in this.markets) {
+                    market = this.markets[symbol];
+                } else {
+                    symbol = base + '/' + quote;
+                }
+            }
+        }
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        let open = this.safeFloat (ticker, 'last_price_24h');
+        if (typeof open !== 'undefined' && typeof last !== 'undefined') {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -202,13 +243,13 @@ module.exports = class qryptos extends Exchange {
             'ask': this.safeFloat (ticker, 'market_ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
@@ -240,7 +281,21 @@ module.exports = class qryptos extends Exchange {
     }
 
     parseTrade (trade, market) {
+        // {             id:  12345,
+        //         quantity: "6.789",
+        //            price: "98765.4321",
+        //       taker_side: "sell",
+        //       created_at:  1512345678,
+        //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
+        // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
+        let takerSide = this.safeString (trade, 'taker_side');
+        // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
+        let mySide = this.safeString (trade, 'my_side');
+        let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
+        let takerOrMaker = undefined;
+        if (typeof mySide !== 'undefined')
+            takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -249,9 +304,10 @@ module.exports = class qryptos extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['taker_side'],
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['quantity']),
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'quantity'),
         };
     }
 
@@ -321,17 +377,18 @@ module.exports = class qryptos extends Exchange {
                 status = 'canceled';
             }
         }
-        let amount = parseFloat (order['quantity']);
-        let filled = parseFloat (order['filled_quantity']);
-        let price = parseFloat (order['price']);
+        let amount = this.safeFloat (order, 'quantity');
+        let filled = this.safeFloat (order, 'filled_quantity');
+        let price = this.safeFloat (order, 'price');
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
         return {
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'type': order['order_type'],
             'status': status,
             'symbol': symbol,
@@ -343,7 +400,7 @@ module.exports = class qryptos extends Exchange {
             'trades': undefined,
             'fee': {
                 'currency': undefined,
-                'cost': parseFloat (order['order_fee']),
+                'cost': this.safeFloat (order, 'order_fee'),
             },
             'info': order,
         };
@@ -361,7 +418,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
@@ -454,7 +511,7 @@ module.exports = class qryptos extends Exchange {
             // { "errors": { "quantity": ["less_than_order_size"] }}
             if ('errors' in response) {
                 const errors = response['errors'];
-                const errorTypes = ['user', 'quantity'];
+                const errorTypes = ['user', 'quantity', 'price'];
                 for (let i = 0; i < errorTypes.length; i++) {
                     const errorType = errorTypes[i];
                     if (errorType in errors) {

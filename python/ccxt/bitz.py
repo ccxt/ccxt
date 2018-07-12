@@ -19,9 +19,10 @@ class bitz (Exchange):
         return self.deep_extend(super(bitz, self).describe(), {
             'id': 'bitz',
             'name': 'Bit-Z',
-            'countries': 'HK',
-            'rateLimit': 1000,
+            'countries': ['HK'],
+            'rateLimit': 2000,
             'version': 'v1',
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchTickers': True,
                 'fetchOHLCV': True,
@@ -37,7 +38,7 @@ class bitz (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
-                'api': 'https://www.bit-z.com/api_v1',
+                'api': 'https://api.bit-z.com/api_v1',
                 'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
@@ -129,7 +130,13 @@ class bitz (Exchange):
                 'price': 8,
             },
             'options': {
+                'fetchOHLCVVolume': True,
+                'fetchOHLCVWarning': True,
                 'lastNonceTimestamp': 0,
+            },
+            'commonCurrencies': {
+                'XRB': 'NANO',
+                'PXC': 'Pixiecoin',
             },
         })
 
@@ -167,32 +174,33 @@ class bitz (Exchange):
         result = {'info': response}
         keys = list(balances.keys())
         for i in range(0, len(keys)):
-            currency = keys[i]
-            balance = float(balances[currency])
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
-            else:
-                currency = currency.upper()
-            account = self.account()
-            account['free'] = balance
-            account['used'] = None
-            account['total'] = balance
-            result[currency] = account
+            id = keys[i]
+            idHasUnderscore = (id.find('_') >= 0)
+            if not idHasUnderscore:
+                code = id.upper()
+                if id in self.currencies_by_id:
+                    code = self.currencies_by_id[id]['code']
+                account = self.account()
+                usedField = id + '_lock'
+                account['used'] = self.safe_float(balances, usedField)
+                account['total'] = self.safe_float(balances, id)
+                account['free'] = account['total'] - account['used']
+                result[code] = account
         return self.parse_balance(result)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['date'] * 1000
         symbol = market['symbol']
-        last = float(ticker['last'])
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
             'bidVolume': None,
-            'ask': float(ticker['sell']),
+            'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -202,7 +210,7 @@ class bitz (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -225,7 +233,9 @@ class bitz (Exchange):
             id = ids[i]
             market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(tickers[id], market)
+            # they will return some rare tickers set to boolean False under their symbol key
+            if tickers[id]:
+                result[symbol] = self.parse_ticker(tickers[id], market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -243,8 +253,8 @@ class bitz (Exchange):
         utcDate = utcDate.split('T')
         utcDate = utcDate[0] + ' ' + trade['t'] + '+08'
         timestamp = self.parse8601(utcDate)
-        price = float(trade['p'])
-        amount = float(trade['n'])
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'n')
         symbol = market['symbol']
         cost = self.price_to_precision(symbol, amount * price)
         return {
@@ -271,7 +281,21 @@ class bitz (Exchange):
         trades = response['data']['d']
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        volume = ohlcv[5] if self.options['fetchOHLCVVolume'] else None
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            volume,
+        ]
+
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        if self.options['fetchOHLCVWarning']:
+            # eslint-disable-next-line quotes
+            raise ExchangeError(self.id + " will return 24h volumes instead of volumes for " + timeframe + " from their API. Set .options['fetchOHLCVWarning'] = False to suppress self warning message. You can set .options['fetchOHLCVVolume'] = False to fetch candles with volume set to None.")
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetKline(self.extend({
@@ -290,10 +314,24 @@ class bitz (Exchange):
             side = self.safe_string(order, 'type')
             if side is not None:
                 side = 'buy' if (side == 'in') else 'sell'
+            if side is None:
+                side = self.safe_string(order, 'flag')
+        amount = self.safe_float(order, 'number')
+        remaining = self.safe_float(order, 'numberover')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+        timestamp = None
+        iso8601 = None
+        if 'datetime' in order:
+            timestamp = self.parse8601(order['datetime'])
+            iso8601 = self.iso8601(timestamp)
         return {
             'id': order['id'],
-            'datetime': None,
-            'timestamp': None,
+            'datetime': iso8601,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': 'open',
             'symbol': symbol,
             'type': 'limit',
@@ -301,8 +339,8 @@ class bitz (Exchange):
             'price': order['price'],
             'cost': None,
             'amount': order['number'],
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': order,
@@ -312,6 +350,8 @@ class bitz (Exchange):
         self.load_markets()
         market = self.market(symbol)
         orderType = 'in' if (side == 'buy') else 'out'
+        if not self.password:
+            raise ExchangeError(self.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD"(a trade password is NOT THE SAME as your login password)')
         request = {
             'coin': market['id'],
             'type': orderType,
@@ -343,14 +383,14 @@ class bitz (Exchange):
         response = self.privatePostOpenOrders(self.extend({
             'coin': market['id'],
         }, params))
-        return self.parse_orders(response['data'], market)
+        return self.parse_orders(response['data'], market, since, limit)
 
     def nonce(self):
         currentTimestamp = self.seconds()
         if currentTimestamp > self.options['lastNonceTimestamp']:
             self.options['lastNonceTimestamp'] = currentTimestamp
             self.options['lastNonce'] = 100000
-        self.options['lastNonce'] += 1
+        self.options['lastNonce'] = self.sum(self.options['lastNonce'], 1)
         return self.options['lastNonce']
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

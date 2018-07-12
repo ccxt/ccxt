@@ -9,13 +9,16 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import RequestTimeout
 
 
 class poloniex (Exchange):
@@ -24,7 +27,7 @@ class poloniex (Exchange):
         return self.deep_extend(super(poloniex, self).describe(), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'has': {
                 'createDepositAddress': True,
@@ -33,12 +36,14 @@ class poloniex (Exchange):
                 'editOrder': True,
                 'createMarketOrder': False,
                 'fetchOHLCV': True,
+                'fetchOrderTrades': True,
                 'fetchMyTrades': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchTickers': True,
+                'fetchTradingFees': True,
                 'fetchCurrencies': True,
                 'withdraw': True,
             },
@@ -134,8 +139,33 @@ class poloniex (Exchange):
                 'price': 8,
             },
             'commonCurrencies': {
+                'AIR': 'AirCoin',
+                'APH': 'AphroditeCoin',
+                'BCC': 'BTCtalkcoin',
+                'BDG': 'Badgercoin',
                 'BTM': 'Bitmark',
+                'CON': 'Coino',
+                'GOLD': 'GoldEagles',
+                'GPUC': 'GPU',
+                'HOT': 'Hotcoin',
+                'ITC': 'Information Coin',
+                'PLX': 'ParallaxCoin',
+                'KEY': 'KEYCoin',
                 'STR': 'XLM',
+                'SOC': 'SOCC',
+                'XAP': 'API Coin',
+            },
+            'options': {
+                'limits': {
+                    'cost': {
+                        'min': {
+                            'BTC': 0.0001,
+                            'ETH': 0.0001,
+                            'XMR': 0.0001,
+                            'USDT': 1.0,
+                        },
+                    },
+                },
             },
         })
 
@@ -168,7 +198,7 @@ class poloniex (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not since:
+        if since is None:
             since = 0
         request = {
             'currencyPair': market['id'],
@@ -191,6 +221,7 @@ class poloniex (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -211,7 +242,7 @@ class poloniex (Exchange):
                         'max': 1000000000,
                     },
                     'cost': {
-                        'min': 0.00000000,
+                        'min': minCost,
                         'max': 1000000000,
                     },
                 },
@@ -239,13 +270,13 @@ class poloniex (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_fees(self, params={}):
+    def fetch_trading_fees(self, params={}):
         self.load_markets()
         fees = self.privatePostReturnFeeInfo()
         return {
             'info': fees,
-            'maker': float(fees['makerFee']),
-            'taker': float(fees['takerFee']),
+            'maker': self.safe_float(fees, 'makerFee'),
+            'taker': self.safe_float(fees, 'takerFee'),
             'withdraw': {},
             'deposit': {},
         }
@@ -270,8 +301,8 @@ class poloniex (Exchange):
         open = None
         change = None
         average = None
-        last = float(ticker['last'])
-        relativeChange = float(ticker['percentChange'])
+        last = self.safe_float(ticker, 'last')
+        relativeChange = self.safe_float(ticker, 'percentChange')
         if relativeChange != -1:
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -280,11 +311,11 @@ class poloniex (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24hr']),
-            'low': float(ticker['low24hr']),
-            'bid': float(ticker['highestBid']),
+            'high': self.safe_float(ticker, 'high24hr'),
+            'low': self.safe_float(ticker, 'low24hr'),
+            'bid': self.safe_float(ticker, 'highestBid'),
             'bidVolume': None,
-            'ask': float(ticker['lowestAsk']),
+            'ask': self.safe_float(ticker, 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
             'open': open,
@@ -294,8 +325,8 @@ class poloniex (Exchange):
             'change': change,
             'percentage': relativeChange * 100,
             'average': average,
-            'baseVolume': float(ticker['quoteVolume']),
-            'quoteVolume': float(ticker['baseVolume']),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -324,17 +355,13 @@ class poloniex (Exchange):
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
             code = self.common_currency_code(id)
-            active = (currency['delisted'] == 0)
-            status = 'disabled' if (currency['disabled']) else 'ok'
-            if status != 'ok':
-                active = False
+            active = (currency['delisted'] == 0) and not currency['disabled']
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'fee': self.safe_float(currency, 'txFee'),  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -379,16 +406,16 @@ class poloniex (Exchange):
                 quote = parts[0]
                 base = parts[1]
                 symbol = base + '/' + quote
-        if market:
+        if market is not None:
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
         side = trade['type']
         fee = None
         cost = self.safe_float(trade, 'total')
-        amount = float(trade['amount'])
+        amount = self.safe_float(trade, 'amount')
         if 'fee' in trade:
-            rate = float(trade['fee'])
+            rate = self.safe_float(trade, 'fee')
             feeCost = None
             currency = None
             if side == 'buy':
@@ -413,7 +440,7 @@ class poloniex (Exchange):
             'order': self.safe_string(trade, 'orderNumber'),
             'type': 'limit',
             'side': side,
-            'price': float(trade['rate']),
+            'price': self.safe_float(trade, 'rate'),
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -434,7 +461,7 @@ class poloniex (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = {'currencyPair': pair}
@@ -442,11 +469,11 @@ class poloniex (Exchange):
             request['start'] = int(since / 1000)
             request['end'] = self.seconds()
         # limit is disabled(does not really work as expected)
-        # if limit:
-        #     request['limit'] = int(limit)
+        if limit is not None:
+            request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
-        if market:
+        if market is not None:
             result = self.parse_trades(response, market)
         else:
             if response:
@@ -496,6 +523,7 @@ class poloniex (Exchange):
             'id': order['orderNumber'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': order['status'],
             'symbol': symbol,
             'type': order['type'],
@@ -509,7 +537,7 @@ class poloniex (Exchange):
             'fee': None,
         }
 
-    def parse_open_orders(self, orders, market, result=[]):
+    def parse_open_orders(self, orders, market, result):
         for i in range(0, len(orders)):
             order = orders[i]
             extended = self.extend(order, {
@@ -524,14 +552,14 @@ class poloniex (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
         openOrders = []
-        if market:
+        if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
@@ -563,7 +591,7 @@ class poloniex (Exchange):
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
             order = self.orders[id]
-            if market:
+            if market is not None:
                 if order['symbol'] == symbol:
                     result.append(order)
             else:
@@ -646,7 +674,7 @@ class poloniex (Exchange):
             result = self.extend(self.orders[newid], {'info': response})
         else:
             market = None
-            if symbol:
+            if symbol is not None:
                 market = self.market(symbol)
             result = self.parse_order(response, market)
             self.orders[result['id']] = result
@@ -692,6 +720,7 @@ class poloniex (Exchange):
         return self.parse_trades(trades)
 
     def create_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostGenerateNewAddress({
             'currency': currency['id'],
@@ -703,21 +732,21 @@ class poloniex (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
     def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostReturnDepositAddresses()
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         self.check_address(address)
-        status = 'ok' if address else 'none'
         return {
             'currency': code,
             'address': address,
-            'status': status,
+            'tag': None,
             'info': response,
         }
 
@@ -765,23 +794,29 @@ class poloniex (Exchange):
             # syntax error, resort to default error handler
             return
         if 'error' in response:
-            error = response['error']
+            message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            if error == 'Invalid order number, or you are not the person who placed the order.':
+            if message == 'Invalid order number, or you are not the person who placed the order.':
                 raise OrderNotFound(feedback)
-            elif error == 'Order not found, or you are not the person who placed it.':
+            elif message == 'Connection timed out. Please try again.':
+                raise RequestTimeout(feedback)
+            elif message == 'Internal error. Please try again.':
+                raise ExchangeNotAvailable(feedback)
+            elif message == 'Order not found, or you are not the person who placed it.':
                 raise OrderNotFound(feedback)
-            elif error == 'Invalid API key/secret pair.':
+            elif message == 'Invalid API key/secret pair.':
                 raise AuthenticationError(feedback)
-            elif error == 'Please do not make more than 8 API calls per second.':
+            elif message == 'Please do not make more than 8 API calls per second.':
                 raise DDoSProtection(feedback)
-            elif error.find('Total must be at least') >= 0:
+            elif message.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
-            elif error.find('Not enough') >= 0:
+            elif message.find('This account is frozen.') >= 0:
+                raise AccountSuspended(feedback)
+            elif message.find('Not enough') >= 0:
                 raise InsufficientFunds(feedback)
-            elif error.find('Nonce must be greater') >= 0:
+            elif message.find('Nonce must be greater') >= 0:
                 raise InvalidNonce(feedback)
-            elif error.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
+            elif message.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
                 raise CancelPending(feedback)
             else:
-                raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+                raise ExchangeError(self.id + ' unknown error ' + self.json(response))

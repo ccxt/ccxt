@@ -8,11 +8,11 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
 
 
 class gdax (Exchange):
@@ -21,7 +21,7 @@ class gdax (Exchange):
         return self.deep_extend(super(gdax, self).describe(), {
             'id': 'gdax',
             'name': 'GDAX',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
@@ -113,7 +113,7 @@ class gdax (Exchange):
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
                     'maker': 0.0,
-                    'taker': 0.25 / 100,  # Fee is 0.25%, 0.3% for ETH/LTC pairs
+                    'taker': 0.3 / 100,  # tiered fee starts at 0.3%
                 },
                 'funding': {
                     'tierBased': False,
@@ -253,7 +253,7 @@ class gdax (Exchange):
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
         symbol = None
-        if not market:
+        if market is None:
             if 'product_id' in trade:
                 marketId = trade['product_id']
                 if marketId in self.markets_by_id:
@@ -262,7 +262,7 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
                 rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
@@ -338,7 +338,7 @@ class gdax (Exchange):
             request['start'] = self.ymdhms(since)
             if limit is None:
                 # https://docs.gdax.com/#get-historic-rates
-                limit = 350  # max = 350
+                limit = 300  # max = 300
             request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
@@ -360,7 +360,7 @@ class gdax (Exchange):
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['created_at'])
         symbol = None
-        if not market:
+        if market is None:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
         status = self.parse_order_status(order['status'])
@@ -388,6 +388,7 @@ class gdax (Exchange):
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -413,7 +414,7 @@ class gdax (Exchange):
             'status': 'all',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -423,7 +424,7 @@ class gdax (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -435,17 +436,17 @@ class gdax (Exchange):
             'status': 'done',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         # oid = str(self.nonce())
         order = {
-            'product_id': self.market_id(market),
+            'product_id': self.market_id(symbol),
             'side': side,
             'size': amount,
             'type': type,
@@ -453,14 +454,27 @@ class gdax (Exchange):
         if type == 'limit':
             order['price'] = price
         response = self.privatePostOrders(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        return self.parse_order(response)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
+
+    def fee_to_precision(self, currency, fee):
+        cost = float(fee)
+        return('{:.' + str(self.currencies[currency]['precision']) + 'f}').format(cost)
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        cost = amount * price
+        currency = market['quote']
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': float(self.fee_to_precision(currency, rate * cost)),
+        }
 
     def get_payment_methods(self):
         response = self.privateGetPaymentMethods()

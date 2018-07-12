@@ -12,7 +12,7 @@ module.exports = class lakebtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'api_v2',
             'has': {
                 'CORS': true,
@@ -92,8 +92,8 @@ module.exports = class lakebtc extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let code = id;
-            if (id in this.currencies) {
-                let currency = this.currencies[id];
+            if (id in this.currencies_by_id) {
+                let currency = this.currencies_by_id[id];
                 code = currency['code'];
             }
             let balance = parseFloat (balances[id]);
@@ -181,8 +181,8 @@ module.exports = class lakebtc extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -229,21 +229,21 @@ module.exports = class lakebtc extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            if (Object.keys (params).length)
-                params = params.join (',');
-            else
-                params = '';
+            let queryParams = '';
+            if ('params' in params) {
+                queryParams = params['params'].join ();
+            }
             let query = this.urlencode ({
                 'tonce': nonce,
                 'accesskey': this.apiKey,
                 'requestmethod': method.toLowerCase (),
                 'id': nonce,
                 'method': path,
-                'params': params,
+                'params': queryParams,
             });
             body = this.json ({
                 'method': path,
-                'params': params,
+                'params': queryParams,
                 'id': nonce,
             });
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
