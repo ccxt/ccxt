@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from ccxt.base import errors
-from ccxt.async.base import exchange
+from ccxt.async_support.base import exchange
 from ccxt.base import decimal_to_precision
 
 from ccxt.base.errors import BaseError             # noqa: F401
