@@ -831,9 +831,12 @@ module.exports = class hitbtc2 extends hitbtc {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTradesSymbol (this.extend ({
+        const request = {
             'symbol': market['id'],
-        }, params));
+        };
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
