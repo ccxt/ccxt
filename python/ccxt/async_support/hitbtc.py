@@ -756,16 +756,13 @@ class hitbtc (Exchange):
         status = self.safe_string(order, 'orderStatus')
         if status:
             status = self.parse_order_status(status)
-        averagePrice = self.safe_float(order, 'avgPrice', 0.0)
         price = self.safe_float(order, 'orderPrice')
-        if price is None:
-            price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'price', price)
+        price = self.safe_float(order, 'avgPrice', price)
         amount = self.safe_float(order, 'orderQuantity')
-        if amount is None:
-            amount = self.safe_float(order, 'quantity')
+        amount = self.safe_float(order, 'quantity', amount)
         remaining = self.safe_float(order, 'quantityLeaves')
-        if remaining is None:
-            remaining = self.safe_float(order, 'leavesQuantity')
+        remaining = self.safe_float(order, 'leavesQuantity', remaining)
         filled = None
         cost = None
         amountDefined = (amount is not None)
@@ -783,7 +780,7 @@ class hitbtc (Exchange):
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
-                cost = averagePrice * filled
+                cost = price * filled
         feeCost = self.safe_float(order, 'fee')
         feeCurrency = None
         if market is not None:
