@@ -442,6 +442,8 @@ class gateio (Exchange):
         }, response), market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
         self.load_markets()
         return self.privatePostCancelOrder({
             'orderNumber': id,
