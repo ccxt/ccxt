@@ -624,6 +624,7 @@ class Exchange(BaseExchange, EventEmitter):
         @conx.on('err')
         def websocket_connection_error(error):
             websocket_connection_info['auth'] = False
+            self._websocket_on_error(conxid)
             self._websocket_reset_context(conxid)
             self.emit('err', error, conxid)
 
@@ -640,6 +641,7 @@ class Exchange(BaseExchange, EventEmitter):
         @conx.on('close')
         def websocket_connection_close():
             websocket_connection_info['auth'] = False
+            self._websocket_on_close(conxid)
             self._websocket_reset_context(conxid)
             self.emit('close', conxid)
 

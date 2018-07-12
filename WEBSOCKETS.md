@@ -9,7 +9,7 @@ Only two types of websocket connections are supported:
 ## definition
 ```javascript
 ...
-'asyncconf': {
+'wsconf': {
     'conx-tpls': {
         'default': {
             'type': 'ws',
@@ -22,7 +22,7 @@ Only two types of websocket connections are supported:
     'events': {
         'ob': {
             'conx-tpl': 'default',
-            'generators': {
+            'conx-param': {
                 'url': '{baseurl}',
                 'id': '{id}',
             },
@@ -43,7 +43,7 @@ Only two types of websocket connections are supported:
   
 For each event you must define the connection that provide it:
 - conx-tpl: id of the websocket connection defined in 'conx-tpls'.
-- generators: additional config for websocket:
+- conx-param: additional config for websocket:
   - url: url to connecto to
   - id: internl id for the connection
 
@@ -53,15 +53,17 @@ In each generator you can use variables between braces {}:
 
 ## Websocket entry points
 You must define some exchange methods in .js file:
-- **_asyncOnMsg(data, conxid)**: required, this method is called when a message is received from websocket. *data* is the raw data received and *conexid* is the websocket internal id that receives the message.
-- **_asyncSubscribe(event, symbol, nonce)**: required, called from Exchange.js when user invoke an event subscription. *event* must be 'ob'|'ticket'|'trade'|'ohlcv', *symbol* is the symbol, and *nonce* and internal and unique id . If this exchange does not support this event you must throw a NotSupported exception. If exchange websocket type is 'ws', you must send the subscription command for this exchange and save the *nonce* id and use it when you receive a subscription response from exchange. If the subscription succeeds then you must invoke emit method with *nonce* parameter: `this.emit(nonce, true)`. If the subscription fails you must invoke emit method with the error (optional): `this.emit(nonce, false, new ExchangeException('...'))`.
-- **_asyncUnsubscribe(event, symbol, nonce)**: required, same as bellow but for unsubscription process. 
-- **_asyncEventOnOpen(conexid, asyncConexConfig)**: optional, this is called from Exchange.js when websocket is opened and connected. *conexid* is the opened websocket internal id and *asyncConexConfig* the initialization config of this websocket. You can use this method in 'ws-s' websockets to set 'subscribed' status:
+- **_websocketSubscribe(contextId, event, symbol, nonce, params)**: required, called from Exchange.js when user invoke an event subscription. *contextId* is the websocket internal id used to access context data. *event* must be 'ob'|'ticket'|'trade'|'ohlcv', *symbol* is the symbol, and *nonce* and internal and unique id . If this exchange does not support this event you must throw a NotSupported exception. If exchange websocket type is 'ws', you must send the subscription command for this exchange and save the *nonce* id and use it when you receive a subscription response from exchange. *params* recives a dictionary with optional params for each exchange subscription. If the subscription succeeds then you must invoke emit method with *nonce* parameter: `this.emit(nonce, true)`. If the subscription fails you must invoke emit method with the error (optional): `this.emit(nonce, false, new ExchangeException('...'))`.
+- **_websocketUnsubscribe(contextId event, symbol, nonce, params)**: required, same as bellow but for unsubscription process. 
+- **_websocketOnMessage(contextId, data)**: required, this method is called when a message is received from websocket. *data* is the raw data received and *contextId* is the websocket internal id that receives the message used for access context data.
+- **_websocketOnClose(contextId)**: optional, this is called when websocket is closed. *contextId* is the websocket internal id.
+- **_websocketOnError(contetId, error)**: opetional, and it is called when an error takes place in the websocket connection.
+- **_websocketOnOpen(conextId, websocketConexConfig)**: optional, this is called from Exchange.js when websocket is opened and connected. *contextId* is the opened websocket internal id and *websocketConexConfig* the initialization config of this websocket. You can use this method in 'ws-s' websockets to set 'subscribed' status:
 ```javascript
 ...
 for (let symbol in streams) {
-    this.asyncContext['ob'][symbol]['subscribed'] = true;
-    this.asyncContext['ob'][symbol]['subscribing'] = false;
+    this._contextSetSubscribed ('ob', symbol, true);
+    this._contextSetSubscribing('ob', symbol, false);
 }
 ...
 ```
@@ -81,21 +83,69 @@ Cex orderbook subscription command.
     });
 
 ```
-## asyncContext
-In **asyncContext** instance variable you can store event status and any related daata you need to save temporaly (orderbooks, nonce ids, ...). Exchange.js initializes this variable to:
+## context functions
+Methods to access context data for each websocket:
+
+- **_contextSetSubscribed (conxid, event, symbol, subscribed)**: returns subscribed status for event/symbol
+- **_contextIsSubscribed (conxid, event, symbol)**: set subscribed status for event/symbol
+- **_contextSetSubscribing (conxid, event, symbol, subscribing)**: returns subscribing status for event/symbol
+- **_contextIsSubscribing (conxid, event, symbol)**: set subscribing status for event/symbol
+- **_contextGetSymbolData(conxid, event, symbol)**: get symbol user defined dictionary
+- **_contextSetSymbolData(conxid, event, symbol, data)**: set symbol user defined dictionary
+- **_contextSet (conxid, key, data)**: set data to user defined dictionary (to store any user defined data)
+- **_contextGet (conxid, key)**: get from user defined dictionary
+- **_contextGetEvents(conxid)**: get events dictionary ('ob', 'tickers', ...)
+- **_contextGetSymbols(conxid, event)**: get symbols from event 
+- **_contextResetEvent(conxid, event)**: reset event dictionary
+- **_contextResetSymbol(conxid, event, symbol)**: reset symbol dictionary (`{'subscribed': false, 'subscribing': false, 'data':{}}`)
+
+## Initial skel to add websocket support on exchange
 ```javascript
-    {
-        '_': {},
+...
+,
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://real.okex.com:10441/websocket',
+                    },
+                },
+                'methodmap': {
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            }
+...
+    _websocketOnMsg (contextId, data) {
+        let msg = JSON.parse (data);
+        console.log(msg);
+    }
+    _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        data['limit'] = this.safeInteger (params, 'limit', undefined);
+        this._contextSetSymbolData (contextId, 'ob', symbol, data);
+        this.websocketSendJson ({
+          event: 'addChannel',
+          channel: 'ok_sub_spot_' + pairId + '_depth',
+        });
+    }
+    _websocketunSubscribe (contextId, event, symbol, nonce, params = {}) {
+        if (event !== 'ob') {
+            throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
+        }
+        this.websocketSendJson ({
+          event: 'removeChannel',
+          channel: 'ok_sub_spot_' + pairId + '_depth',
+        });
     }
 ```
-and for each event in asynconf/events with this content:
-```javascript
-    {
-        'subscribed': false,
-        'subscribing': false,
-        'data': {},
-        'conxid': websocketId,
-    }
-```
-If you need to store any value related to an event you can use 'data' member: `this.asyncContext[event]['data']['orderbook'] = orderbookReceived;`
-If you need to store values not related to an event you must use `this.asynContext['_']` dictionary to save/recover it.

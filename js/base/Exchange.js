@@ -1564,6 +1564,7 @@ module.exports = class Exchange extends EventEmitter{
         });
         websocketConnectionInfo['conx'].on ('err', (err) => {
             websocketConnectionInfo['auth'] = false;
+            this._websocketOnError(conxid, err);
             this._websocketResetContext (conxid);
             this.emit ('err', err, conxid);
         });
@@ -1578,6 +1579,7 @@ module.exports = class Exchange extends EventEmitter{
         });
         websocketConnectionInfo['conx'].on ('close', () => {
             websocketConnectionInfo['auth'] = false;
+            this._websocketOnClose(conxid);
             this._websocketResetContext (conxid);
             this.emit ('close', conxid);
         });

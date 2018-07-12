@@ -2396,6 +2396,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
         $conx->on ('err', function ($err) use ($conxid, &$websocketConnectionInfo) {
             $websocketConnectionInfo['auth'] = false;
+            $this->_websocket_on_error($conxid);
             $this->_websocket_reset_context ($conxid);
             $this->emit ('err', $err, $conxid);
         });
@@ -2413,6 +2414,7 @@ abstract class Exchange extends CcxtEventEmitter {
         });
         $conx->on ('close', function () use ($conxid, &$websocketConnectionInfo) {
             $websocketConnectionInfo['auth'] = false;
+            $this->_websocket_on_close($conxid);
             $this->_websocket_reset_context ($conxid);
             $this->emit ('close', $conxid);
         });
