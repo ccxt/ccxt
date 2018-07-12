@@ -463,6 +463,8 @@ class gateio extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
         $this->load_markets();
         return $this->privatePostCancelOrder (array (
             'orderNumber' => $id,
