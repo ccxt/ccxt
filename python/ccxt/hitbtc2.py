@@ -826,9 +826,12 @@ class hitbtc2 (hitbtc):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
