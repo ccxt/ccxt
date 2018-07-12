@@ -352,7 +352,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 
 .. code:: python
 
-   import ccxt.async as ccxt # link against the asynchronous version of ccxt
+   import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 
 PHP
 ~~~
