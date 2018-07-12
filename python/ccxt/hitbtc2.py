@@ -831,6 +831,8 @@ class hitbtc2 (hitbtc):
         }
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            request['from'] = self.iso8601(since)
         response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 

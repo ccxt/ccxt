@@ -837,6 +837,8 @@ class hitbtc2 extends hitbtc {
         );
         if ($limit !== null)
             $request['limit'] = $limit;
+        if ($since !== null)
+            $request['from'] = $this->iso8601 ($since);
         $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
