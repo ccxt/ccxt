@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -40,6 +40,7 @@ module.exports = class rightbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'getAssetsTradingPairs/zh',
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -117,14 +118,22 @@ module.exports = class rightbtc extends Exchange {
             },
             'exceptions': {
                 'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
+                'ERR_ASSET_NOT_EXISTS': ExchangeError,
+                'ERR_ASSET_NOT_AVAILABLE': ExchangeError,
+                'ERR_BALANCE_NOT_ENOUGH': InsufficientFunds,
+                'ERR_CREATE_ORDER': InvalidOrder,
+            },
+            'options': {
+                'fetchMarketsMethod': 'publicGetTradingPairs', // CN users should switch this to 'publicGetGetAssetsTradingPairsZh'
             },
         });
     }
 
     async fetchMarkets () {
         let response = await this.publicGetTradingPairs ();
-        let markets = response['status']['message'];
-        let marketIds = Object.keys (response['status']['message']);
+        let zh = await this.publicGetGetAssetsTradingPairsZh ();
+        let markets = this.extend (zh['result'], response['status']['message']);
+        let marketIds = Object.keys (markets);
         let result = [];
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
@@ -349,6 +358,45 @@ module.exports = class rightbtc extends Exchange {
         }
         return this.parseBalance (result);
     }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let order = {
+            'trading_pair': market['id'],
+            'quantity': parseInt (amount * 1e8),
+            'limit': parseInt (price * 1e8),
+            'type': type.toUpperCase (),
+            'side': side.toUpperCase (),
+        };
+        let response = await this.traderPostOrder (this.extend (order, params));
+        return this.parseOrder (response);
+    }
+
+
+
+// quantity	Number
+// buy/sell quantity, max decimal digits list at /trading_pairs, should multiply by 1E8
+
+// limit	Number
+// buy/sell at price, max decimal digits list at /trading_pairs, should multiply by 1E8
+
+// type	String
+// "LIMIT"
+
+// side	String
+// "BUY" or "SELL"
+
+// Success 200
+// Field	Type	Description
+// order_id	Number
+// order id.
+
+// message	String
+// error type: ERR_ASSET_NOT_EXISTS|ERR_ASSET_NOT_AVAILABLE|ERR_BALANCE_NOT_ENOUGH|ERR_CREATE_ORDER
+
+// frozen	Number
+// frozen amount, should divide by 1E8.
 
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
