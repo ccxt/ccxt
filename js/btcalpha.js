@@ -32,7 +32,7 @@ module.exports = class btcalpha extends Exchange {
                 '1d': 'D',
             },
             'urls': {
-                'logo': 'https://btc-alpha.com/static/img/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
                 'api': 'https://btc-alpha.com/api',
                 'www': 'https://btc-alpha.com/exchange/',
                 'doc': 'https://btc-alpha.github.io/api-docs/',
