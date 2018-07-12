@@ -384,7 +384,7 @@ module.exports = class btcalpha extends Exchange {
             }
             headers['X-KEY'] = this.apiKey;
             headers['X-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret));
-            headers['X-NONCE'] = this.nonce ();
+            headers['X-NONCE'] = this.nonce ().toString ();
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
