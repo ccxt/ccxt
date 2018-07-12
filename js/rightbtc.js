@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -52,26 +52,25 @@ module.exports = class rightbtc extends Exchange {
                         'candlestick/{timeSymbol}/{trading_pair}/{count}',
                     ],
                 },
-                'private': {
+                'trader': {
                     'get': [
-                        '/balance/:symbol',
-                        '/balances',
-                        '/deposits/:asset/:page',
-                        '/withdrawals/:asset/:page',
-                        '/orderpage/:trading_pair/:cursor',
-                        '/orders/:trading_pair/:id/:id:/id/...',
-                        '/history/:trading_pair/:id/:id/:id',
-                        '/historys/:trading_pair/:page',
-                        '/trading_pairs',
+                        'balance/{symbol}',
+                        'balances',
+                        'deposits/{asset}/{page}',
+                        'withdrawals/{asset}/{page}',
+                        'orderpage/{trading_pair/{cursor}',
+                        'orders/{trading_pair}/{ids}', // ids are a slash-separated list of {id}/{id}/{id}/...
+                        'history/{trading_pair}/{ids}',
+                        'historys/{trading_pair}/{page}',
+                        'trading_pairs',
                     ],
                     'post': [
-                        '/order',
+                        'order',
                     ],
                     'delete': [
-                        '/order/:trading_pair/:id/:id:/:id/...',
+                        'order/{trading_pair}/{ids}',
                     ],
                 },
-
             },
             // HARDCODING IS DEPRECATED, THE FEES BELOW SHOULD BE REWRITTEN
             'fees': {
@@ -115,6 +114,9 @@ module.exports = class rightbtc extends Exchange {
                         // 'MTX': n => 1 + n * (1 / 100),
                     },
                 },
+            },
+            'exceptions': {
+                'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
             },
         });
     }
@@ -294,24 +296,106 @@ module.exports = class rightbtc extends Exchange {
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.traderGetBalances (params);
+        //
+        //     {
+        //         "status": {
+        //             "success": 1,
+        //             "message": "GET_BALANCES"
+        //         },
+        //         "result": [
+        //             {
+        //                 "asset": "ETP",
+        //                 "balance": "5000000000000",
+        //                 "frozen": "0",
+        //                 "state": "1"
+        //             },
+        //             {
+        //                 "asset": "CNY",
+        //                 "balance": "10000000000000",
+        //                 "frozen": "240790000",
+        //                 "state": "1"
+        //             }
+        //         ]
+        //     }
+        //
+        let result = { 'info': response };
+        let balances = response['result'];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currencyId = balance['asset'];
+            let code = this.commonCurrencyCode (currencyId);
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            }
+            let total = this.safeFloat (balance, 'balance');
+            let used = this.safeFloat (balance, 'frozen');
+            let free = undefined;
+            if (typeof total !== 'undefined') {
+                total = total / 1e8;
+                if (typeof used !== 'undefined') {
+                    used = used / 1e8;
+                    free = total - used;
+                }
+            }
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
-        if (Object.keys (query).length)
-            url += '?' + this.urlencode (query);
+        if (api === 'public') {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
+        } else {
+            this.checkRequiredCredentials ();
+            headers = {
+                'apikey': this.apiKey,
+                'signature': this.secret,
+            };
+            if (method === 'GET') {
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
+            } else {
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
+            }
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if (!('status' in response)) {
-            throw new ExchangeError ('Invalid response.');
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('success' in response) {
+                //
+                //     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
+                //
+                let success = this.safeString (response, 'success');
+                if (success !== '1') {
+                    const message = this.safeString (response, 'message');
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (message in exceptions) {
+                        throw new exceptions[message] (feedback);
+                    }
+                    throw new ExchangeError (feedback);
+                }
+            }
         }
-        let success = this.safeInteger (response['status'], 'success');
-        if (success !== 1) {
-            let message = this.safeString (response['status'], 'message');
-            throw new ExchangeError (message);
-        }
-        return response;
     }
 };
