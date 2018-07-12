@@ -149,6 +149,13 @@ The list above is updated frequently, new crypto markets, altcoin exchanges, bug
              |
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.             |
              |
+
+**Ws Features:**
+- ob: orderbook
+- ti: tickers
+- tr: trades
+- ohlcv:
+
 ## Install
 
 The easiest way to install the ccxt library is to use builtin package managers:
