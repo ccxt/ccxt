@@ -73,6 +73,7 @@ module.exports = class hadax extends huobipro {
                 'createOrderMethod': 'privatePostHadaxOrderOrdersPlace',
             },
             'commonCurrencies': {
+                'FAIR': 'FairCoin',
                 'GET': 'Themis',
             },
         });
