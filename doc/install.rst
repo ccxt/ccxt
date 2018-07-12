@@ -70,7 +70,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 
 .. code:: python
 
-   import ccxt.async as ccxt # link against the asynchronous version of ccxt
+   import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 
 PHP
 ~~~
@@ -204,7 +204,7 @@ Python 3.5+ asyncio/aiohttp proxy
    import asyncio
    import os
    import sys
-   import ccxt.async as ccxt
+   import ccxt.async_support as ccxt
    from pprint import pprint
 
 
