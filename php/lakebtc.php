@@ -214,7 +214,9 @@ class lakebtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'params' => $id ));
+        return $this->privatePostCancelOrder (array (
+            'params' => array ( $id ),
+        ));
     }
 
     public function nonce () {
@@ -233,11 +235,7 @@ class lakebtc extends Exchange {
             $queryParams = '';
             if (is_array ($params) && array_key_exists ('params', $params)) {
                 $paramsList = $params['params'];
-                if (gettype ($params) === 'array' && count (array_filter (array_keys ($params), 'is_string')) == 0) {
-                    $queryParams = implode ('', $paramsList);
-                } else {
-                    $queryParams = $paramsList;
-                }
+                $queryParams = implode (',', $paramsList);
             }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,
