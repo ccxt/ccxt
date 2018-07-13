@@ -376,6 +376,7 @@ module.exports = class kkex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
+            'average': average,
             'type': 'limit',
             'side': side,
             'price': order['price'],
