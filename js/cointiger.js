@@ -96,7 +96,7 @@ module.exports = class cointiger extends huobipro {
                 '100005': AuthenticationError,
             },
             'options': {
-                'fetchMyTradesMethodName': 'v2GetOrderMatchResults',
+                'fetchMyTradesMethod': 'v2GetOrderMatchResults',
             },
         });
     }
@@ -247,6 +247,7 @@ module.exports = class cointiger extends huobipro {
     }
 
     parseTrade (trade, market = undefined) {
+        //---------------------------------------------------------------------
         //
         //     {
         //         "volume": {
@@ -292,6 +293,33 @@ module.exports = class cointiger extends huobipro {
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
+        //---------------------------------------------------------------------
+        //
+        // let timestamp = trade['created-at'];
+        // let [side, type] = trade['type'].split ('-')
+        // market = market || this.marketsById[trade['symbol']]
+        // let symbol = market['symbol']
+        // let feeCost = this.safeFloat (trade, 'filled-fees')
+        // let feeCurrency = side === 'sell' ? market['quote'] : market['base']
+        // if (!feeCost || feeCost === 0) {
+        //     feeCost = this.safeFloat (trade, 'filled-points')
+        //     feeCurrency = 'HBPOINT'
+        // }
+        // let fee = { 'cost': feeCost, 'currency': feeCurrency }
+        // return {
+        //     'id': trade['id'].toString (),
+        //     'order': trade['order-id'].toString (),
+        //     'timestamp': timestamp,
+        //     'datetime': this.iso8601 (timestamp),
+        //     'symbol': symbol,
+        //     'type': type,
+        //     'side': side,
+        //     'price': trade['price'],
+        //     'amount': trade['filled-amount'],
+        //     'fee': fee,
+        //     'info': trade,
+        // };
+        //
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -321,18 +349,40 @@ module.exports = class cointiger extends huobipro {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        const method = this.options['fetchMyTradesMethod'];
+        const request = {};
+        let market = undefined;
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (typeof limit === 'undefined')
-            limit = 100;
-        let response = await this.privateGetOrderTrade (this.extend ({
-            'symbol': market['id'],
-            'offset': 1,
-            'limit': limit,
-        }, params));
-        return this.parseTrades (response['data']['list'], market, since, limit);
+        let v1 = (method === 'privateGetOrderTrade');
+        if (v1) {
+            // cointiger v1
+            if (typeof symbol === 'undefined') {
+                throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            }
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            request['offset'] = 1;
+        } else if (typeof symbol !== 'undefined') {
+            // huobipro v1, cointiger v2
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            const period = 1000 * 60 * 60 * 7;
+            if (since) {
+                request['start-date'] = this.ymd (since);
+                request['end-date'] = this.ymd (since + period);
+            } else {
+                request['start-date'] = this.ymd (since - period);
+                request['end-date'] = this.ymd (since);
+            }
+        }
+        if (typeof limit === 'undefined') {
+            request['limit'] = 100;
+        } else {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const response = await this[method] (this.extend (request, params));
+        let trades = v1 ? response['data']['list'] : response['data'];
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
