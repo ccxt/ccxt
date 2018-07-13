@@ -61,7 +61,7 @@ module.exports = class rightbtc extends Exchange {
                         'balances',
                         'deposits/{asset}/{page}',
                         'withdrawals/{asset}/{page}',
-                        'orderpage/{trading_pair/{cursor}',
+                        'orderpage/{trading_pair}/{cursor}',
                         'orders/{trading_pair}/{ids}', // ids are a slash-separated list of {id}/{id}/{id}/...
                         'history/{trading_pair}/{ids}',
                         'historys/{trading_pair}/{page}',
