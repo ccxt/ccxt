@@ -265,8 +265,11 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (trade, 'date');
-        if (typeof timestamp === 'undefined')
-            timestamp = this.parse8601 (trade['created_at']);
+        if (typeof timestamp === 'undefined') {
+            if ('created_at' in trade) {
+                timestamp = this.parse8601 (trade['created_at']);
+            }
+        }
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);
         let orderId = this.safeString (trade, 'order_id');
