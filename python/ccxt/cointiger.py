@@ -36,7 +36,9 @@ class cointiger (huobipro):
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
-                'fetchOrder': False,
+                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'headers': {
                 'Language': 'en_US',
@@ -445,11 +447,32 @@ class cointiger (huobipro):
         #                deal_money: "0.00013727",
         #                    status:  2              }}
         #
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'order_id': str(id),
+        }
+        response = self.v2GetOrderDetails(self.extend(request, params))
+        return self.parse_order(response['data'], market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+            '6': 'error',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
 
     def parse_order(self, order, market=None):
-        side = self.safe_string(order, 'side')
-        side = side.lower()
+        #
+        #  v1
         #
         #      {
         #            volume: {"amount": "0.054", "icon": "", "title": "volume"},
@@ -464,19 +487,76 @@ class cointiger (huobipro):
         #          side_msg: "Buy"
         #      },
         #
-        type = None
+        #  v2
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: {     symbol: "ethbtc",
+        #                       fee: "0.00000200",
+        #                 avg_price: "0.06863752",
+        #                    source:  1,
+        #                      type: "buy-limit",
+        #                     mtime:  1531340305000,
+        #                    volume: "0.002",
+        #                   user_id:  326317,
+        #                     price: "0.06863752",
+        #                     ctime:  1531340304000,
+        #               deal_volume: "0.00200000",
+        #                        id:  31920243,
+        #                deal_money: "0.00013727",
+        #                    status:  2              }}
+        #
+        id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'side')
+        type = self.safe_string(order, 'type')
         status = self.safe_string(order, 'status')
+        timestamp = self.safe_integer(order, 'created_at')
+        timestamp = self.safe_integer(order, 'ctime', timestamp)
+        lastTradeTimestamp = self.safe_integer(order, 'mtime')
         symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = order['created_at']
-        amount = self.safe_float(order['volume'], 'amount')
-        remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
-        filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
-        price = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
-        if price is None:
-            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+        remaining = None
+        amount = None
+        filled = None
+        price = None
         cost = None
+        fee = None
+        if side is not None:
+            side = side.lower()
+            amount = self.safe_float(order['volume'], 'amount')
+            remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
+            filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
+            price = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
+            if price is None:
+                price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+        else:
+            if type is not None:
+                parts = type.split('-')
+                side = parts[0]
+                type = parts[1]
+                cost = self.safe_float(order, 'deal_money')
+                price = self.safe_float(order, 'price')
+                price = self.safe_float(order, 'avg_price', price)
+                amount = self.safe_float(order, 'amount')
+                filled = self.safe_float(order, 'deal_volume')
+                feeCost = self.safe_float(order, 'fee')
+                if feeCost is not None:
+                    feeCurrency = None
+                    if market is not None:
+                        if side == 'buy':
+                            feeCurrency = market['base']
+                        elif side == 'sell':
+                            feeCurrency = market['quote']
+                    fee = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
+            status = self.parse_order_status(status)
         if amount is not None:
             if remaining is not None:
                 if filled is None:
@@ -490,10 +570,10 @@ class cointiger (huobipro):
                 status = 'open'
         result = {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -503,7 +583,8 @@ class cointiger (huobipro):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
+            'trades': None,
         }
         return result
 

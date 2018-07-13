@@ -19,7 +19,9 @@ class cointiger extends huobipro {
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
                 'fetchTradingLimits' => false,
-                'fetchOrder' => false,
+                'fetchOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'headers' => array (
                 'Language' => 'en_US',
@@ -453,12 +455,35 @@ class cointiger extends huobipro {
         //                deal_money => "0.00013727",
         //                    status =>  2              } }
         //
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+        }
         $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'order_id' => (string) $id,
+        );
+        $response = $this->v2GetOrderDetails (array_merge ($request, $params));
+        return $this->parse_order($response['data'], $market);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'closed',
+            '3' => 'open',
+            '4' => 'canceled',
+            '6' => 'error',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $this->safe_string($order, 'side');
-        $side = strtolower ($side);
+        //
+        //  v1
         //
         //      {
         //            volume => array ( "$amount" => "0.054", "icon" => "", "title" => "volume" ),
@@ -468,24 +493,89 @@ class cointiger extends huobipro {
         //        created_at => 1525569480000,
         //       deal_volume => array ( "$amount" => "0.64593598", "icon" => "", "title" => "Deal volume" ),
         //   "remain_volume" => array ( "$amount" => "1.00000000", "icon" => "", "title" => "尚未成交"
-        //                id => 26834207,
+        //                $id => 26834207,
         //             label => array ( go => "trade", title => "Traded", click => 1 ),
         //          side_msg => "Buy"
         //      ),
         //
-        $type = null;
+        //  v2
+        //
+        //     { code =>   "0",
+        //        msg =>   "suc",
+        //       data => {      $symbol => "ethbtc",
+        //                       $fee => "0.00000200",
+        //                 avg_price => "0.06863752",
+        //                    source =>  1,
+        //                      $type => "buy-limit",
+        //                     mtime =>  1531340305000,
+        //                    volume => "0.002",
+        //                   user_id =>  326317,
+        //                     $price => "0.06863752",
+        //                     ctime =>  1531340304000,
+        //               deal_volume => "0.00200000",
+        //                        $id =>  31920243,
+        //                deal_money => "0.00013727",
+        //                    $status =>  2              } }
+        //
+        $id = $this->safe_string($order, 'id');
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'type');
         $status = $this->safe_string($order, 'status');
+        $timestamp = $this->safe_integer($order, 'created_at');
+        $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
+        $lastTradeTimestamp = $this->safe_integer($order, 'mtime');
         $symbol = null;
-        if ($market !== null)
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $order['created_at'];
-        $amount = $this->safe_float($order['volume'], 'amount');
-        $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
-        $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
-        $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
-        if ($price === null)
-            $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+        }
+        $remaining = null;
+        $amount = null;
+        $filled = null;
+        $price = null;
         $cost = null;
+        $fee = null;
+        if ($side !== null) {
+            $side = strtolower ($side);
+            $amount = $this->safe_float($order['volume'], 'amount');
+            $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
+            $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
+            $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
+            if ($price === null)
+                $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+        } else {
+            if ($type !== null) {
+                $parts = explode ('-', $type);
+                $side = $parts[0];
+                $type = $parts[1];
+                $cost = $this->safe_float($order, 'deal_money');
+                $price = $this->safe_float($order, 'price');
+                $price = $this->safe_float($order, 'avg_price', $price);
+                $amount = $this->safe_float($order, 'amount');
+                $filled = $this->safe_float($order, 'deal_volume');
+                $feeCost = $this->safe_float($order, 'fee');
+                if ($feeCost !== null) {
+                    $feeCurrency = null;
+                    if ($market !== null) {
+                        if ($side === 'buy') {
+                            $feeCurrency = $market['base'];
+                        } else if ($side === 'sell') {
+                            $feeCurrency = $market['quote'];
+                        }
+                    }
+                    $fee = array (
+                        'cost' => $feeCost,
+                        'currency' => $feeCurrency,
+                    );
+                }
+            }
+            $status = $this->parse_order_status($status);
+        }
         if ($amount !== null) {
             if ($remaining !== null) {
                 if ($filled === null)
@@ -502,10 +592,10 @@ class cointiger extends huobipro {
         }
         $result = array (
             'info' => $order,
-            'id' => (string) $order['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
@@ -515,7 +605,8 @@ class cointiger extends huobipro {
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
+            'trades' => null,
         );
         return $result;
     }
