@@ -1,11 +1,7 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
-
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
-
-//  ---------------------------------------------------------------------------
 
 module.exports = class rightbtc extends Exchange {
     describe () {
@@ -40,7 +36,8 @@ module.exports = class rightbtc extends Exchange {
                     'https://www.rightbtc.com/api/trader',
                     'https://www.rightbtc.com/api/public',
                 ],
-                'fees': 'https://www.rightbtc.com/\#\!/support/fee', // eslint-disable-line no-useless-escape
+                // eslint-disable-next-line no-useless-escape
+                // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
             },
             'api': {
                 'public': {
@@ -81,30 +78,22 @@ module.exports = class rightbtc extends Exchange {
             // HARDCODING IS DEPRECATED, THE FEES BELOW SHOULD BE REWRITTEN
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
                     // min trading fees
                     // 0.0001 BTC
                     // 0.01 ETP
                     // 0.001 ETH
                     // 0.1 BITCNY
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'withdraw': {
-                        'ETP': 0.01,
                         // 'BTM': n => 3 + n * (1 / 100),
-                        'BTC': 0.001,
                         // 'ZDC': n => 1 + n * (0.5 / 100),
                         // 'ZGC': n => 0.5 + n * (0.5 / 100),
-                        'ETH': 0.01,
                         // 'BTS': n => 1 + n * (1 / 100),
                         // 'DLT': n => 3 + n * (1 / 100),
-                        'ETC': 0.01,
-                        'STORJ': 3,
                         // 'SNT': n => 10 + n * (1 / 100),
-                        'LTC': 0.001,
-                        'ZEC': 0.001,
-                        'BCC': 0.001,
                         // 'XNC': n => 1 + n * (1 / 100),
                         // 'ICO': n => 3 + n * (1 / 100),
                         // 'CMC': n => 1 + n * (0.5 / 100),
@@ -114,10 +103,18 @@ module.exports = class rightbtc extends Exchange {
                         // 'TIC': n => 2 + n * (1 / 100),
                         // 'IND': n => 20 + n * (1 / 100),
                         // 'MVC': n => 20 + n * (1 / 100),
-                        'XRB': 0,
-                        'NXS': 0.1,
                         // 'BitCNY': n => 0.1 + n * (1 / 100),
                         // 'MTX': n => 1 + n * (1 / 100),
+                        'ETP': 0.01,
+                        'BTC': 0.001,
+                        'ETH': 0.01,
+                        'ETC': 0.01,
+                        'STORJ': 3,
+                        'LTC': 0.001,
+                        'ZEC': 0.001,
+                        'BCC': 0.001,
+                        'XRB': 0,
+                        'NXS': 0.1,
                     },
                 },
             },
@@ -709,7 +706,6 @@ module.exports = class rightbtc extends Exchange {
         //
         return this.parseTrades (response['result'], undefined, since, limit);
     }
-
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
