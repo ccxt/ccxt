@@ -231,7 +231,12 @@ module.exports = class lakebtc extends Exchange {
             let nonce = this.nonce ();
             let queryParams = '';
             if ('params' in params) {
-                queryParams = params['params'].join ();
+                let paramsList = params['params'];
+                if (Array.isArray (params)) {
+                    queryParams = paramsList.join ('');
+                } else {
+                    queryParams = paramsList;
+                }
             }
             let query = this.urlencode ({
                 'tonce': nonce,

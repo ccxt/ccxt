@@ -232,7 +232,12 @@ class lakebtc extends Exchange {
             $nonce = $this->nonce ();
             $queryParams = '';
             if (is_array ($params) && array_key_exists ('params', $params)) {
-                $queryParams = $params['params'].join ();
+                $paramsList = $params['params'];
+                if (gettype ($params) === 'array' && count (array_filter (array_keys ($params), 'is_string')) == 0) {
+                    $queryParams = implode ('', $paramsList);
+                } else {
+                    $queryParams = $paramsList;
+                }
             }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,
