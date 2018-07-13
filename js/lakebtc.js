@@ -232,7 +232,11 @@ module.exports = class lakebtc extends Exchange {
             let queryParams = '';
             if ('params' in params) {
                 let paramsList = params['params'];
-                queryParams = paramsList.join ('');
+                if (Array.isArray (params)) {
+                    queryParams = paramsList.join ('');
+                } else {
+                    queryParams = paramsList;
+                }
             }
             let query = this.urlencode ({
                 'tonce': nonce,
