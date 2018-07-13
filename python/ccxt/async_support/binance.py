@@ -689,7 +689,7 @@ class binance (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -705,7 +705,7 @@ class binance (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

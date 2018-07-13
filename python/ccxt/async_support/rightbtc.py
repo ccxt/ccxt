@@ -273,7 +273,8 @@ class rightbtc (Exchange):
         #
         timestamp = self.safe_integer(trade, 'date')
         if timestamp is None:
-            timestamp = self.parse8601(trade['created_at'])
+            if 'created_at' in trade:
+                timestamp = self.parse8601(trade['created_at'])
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'trade_id', id)
         orderId = self.safe_string(trade, 'order_id')
@@ -281,7 +282,7 @@ class rightbtc (Exchange):
         if price is not None:
             price = price / 1e8
         amount = self.safe_float(trade, 'amount')
-        amount = self.safe_float(trade, 'quantity')
+        amount = self.safe_float(trade, 'quantity', amount)
         if amount is not None:
             amount = amount / 1e8
         symbol = None

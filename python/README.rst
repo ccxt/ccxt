@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                            | ver | doc                                                                                                 | countries                                |
@@ -245,6 +245,8 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 | quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com>`__                                     | 2   | `API <https://www.quadrigacx.com/api_info>`__                                                       | Canada                                   |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | quoinex            | `QUOINEX <https://quoinex.com/>`__                                              | 2   | `API <https://developers.quoine.com>`__                                                             | Japan, Singapore, Vietnam                |
++--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                         | \*  | `API <https://www.rightbtc.com/api/trader>`__                                                       | United Arab Emirates                     |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | southxchange       | `SouthXchange <https://www.southxchange.com>`__                                 | \*  | `API <https://www.southxchange.com/Home/Api>`__                                                     | Argentina                                |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -690,6 +692,7 @@ Thank you!
 .. |qryptos| image:: https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg
 .. |quadrigacx| image:: https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg
 .. |quoinex| image:: https://user-images.githubusercontent.com/1294454/35047114-0e24ad4a-fbaa-11e7-96a9-69c1a756083b.jpg
+.. |rightbtc| image:: https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg
 .. |southxchange| image:: https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg
 .. |surbitcoin| image:: https://user-images.githubusercontent.com/1294454/27991511-f0a50194-6481-11e7-99b5-8f02932424cc.jpg
 .. |therock| image:: https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg

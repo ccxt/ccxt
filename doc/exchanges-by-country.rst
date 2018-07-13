@@ -292,6 +292,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | Ukraine                  | |liqui|              | liqui              | `Liqui <https://liqui.io>`__                                                    | 3   | `API <https://liqui.io/api>`__                                                                      |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
+| United Arab Emirates     | |rightbtc|           | rightbtc           | `RightBTC <https://www.rightbtc.com>`__                                         | \*  | `API <https://www.rightbtc.com/api/trader>`__                                                       |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | US                       | |_1broker|           | _1broker           | `1Broker <https://1broker.com>`__                                               | 2   | `API <https://1broker.com/?c=en/content/api-documentation>`__                                       |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | US                       | |bibox|              | bibox              | `Bibox <https://www.bibox.com>`__                                               | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    |
@@ -449,6 +451,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |kuna| image:: https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg
 .. |liqui| image:: https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg
+.. |rightbtc| image:: https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg
 .. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |btcalpha| image:: https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg

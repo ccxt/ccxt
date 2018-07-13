@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -46,12 +47,32 @@ class cointiger (huobipro):
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
+                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
+                'v2public': {
+                    'get': [
+                        'timestamp',
+                        'currencys',
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'order/orders',
+                        'order/match_results',
+                        'order/make_detail',
+                        'order/details',
+                    ],
+                    'post': [
+                        'order',
+                        'order/batchcancel',
+                    ],
+                },
                 'public': {
                     'get': [
                         'history/kline',  # 获取K线数据
@@ -100,67 +121,78 @@ class cointiger (huobipro):
         })
 
     async def fetch_markets(self):
-        result = [
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'aacbtc', 'uppercaseId': 'AACBTC', 'symbol': 'AAC/BTC', 'base': 'AAC', 'quote': 'BTC', 'baseId': 'aac', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'afcbtc', 'uppercaseId': 'AFCBTC', 'symbol': 'AFC/BTC', 'base': 'AFC', 'quote': 'BTC', 'baseId': 'afc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'avhbtc', 'uppercaseId': 'AVHBTC', 'symbol': 'AVH/BTC', 'base': 'AVH', 'quote': 'BTC', 'baseId': 'avh', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'baieth', 'uppercaseId': 'BAIETH', 'symbol': 'BAI/ETH', 'base': 'BAI', 'quote': 'ETH', 'baseId': 'bai', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bchbtc', 'uppercaseId': 'BCHBTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bkbtbtc', 'uppercaseId': 'BKBTBTC', 'symbol': 'BKBT/BTC', 'base': 'BKBT', 'quote': 'BTC', 'baseId': 'bkbt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bkbteth', 'uppercaseId': 'BKBTETH', 'symbol': 'BKBT/ETH', 'base': 'BKBT', 'quote': 'ETH', 'baseId': 'bkbt', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'bptnbtc', 'uppercaseId': 'BPTNBTC', 'symbol': 'BPTN/BTC', 'base': 'BPTN', 'quote': 'BTC', 'baseId': 'bptn', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btcbitcny', 'uppercaseId': 'BTCBITCNY', 'symbol': 'BTC/BitCNY', 'base': 'BTC', 'quote': 'BitCNY', 'baseId': 'btc', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btmbtc', 'uppercaseId': 'BTMBTC', 'symbol': 'BTM/BTC', 'base': 'BTM', 'quote': 'BTC', 'baseId': 'btm', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btmeth', 'uppercaseId': 'BTMETH', 'symbol': 'BTM/ETH', 'base': 'BTM', 'quote': 'ETH', 'baseId': 'btm', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btsbitcny', 'uppercaseId': 'BTSBITCNY', 'symbol': 'BTS/BitCNY', 'base': 'BTS', 'quote': 'BitCNY', 'baseId': 'bts', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btsbtc', 'uppercaseId': 'BTSBTC', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btseth', 'uppercaseId': 'BTSETH', 'symbol': 'BTS/ETH', 'base': 'BTS', 'quote': 'ETH', 'baseId': 'bts', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ctxcbtc', 'uppercaseId': 'CTXCBTC', 'symbol': 'CTXC/BTC', 'base': 'CTXC', 'quote': 'BTC', 'baseId': 'ctxc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ctxceth', 'uppercaseId': 'CTXCETH', 'symbol': 'CTXC/ETH', 'base': 'CTXC', 'quote': 'ETH', 'baseId': 'ctxc', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'elfbtc', 'uppercaseId': 'ELFBTC', 'symbol': 'ELF/BTC', 'base': 'ELF', 'quote': 'BTC', 'baseId': 'elf', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'eosbtc', 'uppercaseId': 'EOSBTC', 'symbol': 'EOS/BTC', 'base': 'EOS', 'quote': 'BTC', 'baseId': 'eos', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'eoseth', 'uppercaseId': 'EOSETH', 'symbol': 'EOS/ETH', 'base': 'EOS', 'quote': 'ETH', 'baseId': 'eos', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'etcbtc', 'uppercaseId': 'ETCBTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'baseId': 'etc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethbitcny', 'uppercaseId': 'ETHBITCNY', 'symbol': 'ETH/BitCNY', 'base': 'ETH', 'quote': 'BitCNY', 'baseId': 'eth', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethbtc', 'uppercaseId': 'ETHBTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'gtobitcny', 'uppercaseId': 'GTOBITCNY', 'symbol': 'GTO/BitCNY', 'base': 'GTO', 'quote': 'BitCNY', 'baseId': 'gto', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'gusbtc', 'uppercaseId': 'GUSBTC', 'symbol': 'GUS/BTC', 'base': 'GUS', 'quote': 'BTC', 'baseId': 'gus', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'icxbtc', 'uppercaseId': 'ICXBTC', 'symbol': 'ICX/BTC', 'base': 'ICX', 'quote': 'BTC', 'baseId': 'icx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'incbtc', 'uppercaseId': 'INCBTC', 'symbol': 'INC/BTC', 'base': 'INC', 'quote': 'BTC', 'baseId': 'inc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 5, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'inceth', 'uppercaseId': 'INCETH', 'symbol': 'INC/ETH', 'base': 'INC', 'quote': 'ETH', 'baseId': 'inc', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 5, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'kkgbtc', 'uppercaseId': 'KKGBTC', 'symbol': 'KKG/BTC', 'base': 'KKG', 'quote': 'BTC', 'baseId': 'kkg', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'kkgeth', 'uppercaseId': 'KKGETH', 'symbol': 'KKG/ETH', 'base': 'KKG', 'quote': 'ETH', 'baseId': 'kkg', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcbtc', 'uppercaseId': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mexbtc', 'uppercaseId': 'MEXBTC', 'symbol': 'MEX/BTC', 'base': 'MEX', 'quote': 'BTC', 'baseId': 'mex', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mtbtc', 'uppercaseId': 'MTBTC', 'symbol': 'MT/BTC', 'base': 'MT', 'quote': 'BTC', 'baseId': 'mt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'mteth', 'uppercaseId': 'MTETH', 'symbol': 'MT/ETH', 'base': 'MT', 'quote': 'ETH', 'baseId': 'mt', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ocnbitcny', 'uppercaseId': 'OCNBITCNY', 'symbol': 'OCN/BitCNY', 'base': 'OCN', 'quote': 'BitCNY', 'baseId': 'ocn', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ocnbtc', 'uppercaseId': 'OCNBTC', 'symbol': 'OCN/BTC', 'base': 'OCN', 'quote': 'BTC', 'baseId': 'ocn', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'olebtc', 'uppercaseId': 'OLEBTC', 'symbol': 'OLE/BTC', 'base': 'OLE', 'quote': 'BTC', 'baseId': 'ole', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'oleeth', 'uppercaseId': 'OLEETH', 'symbol': 'OLE/ETH', 'base': 'OLE', 'quote': 'ETH', 'baseId': 'ole', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'omgbtc', 'uppercaseId': 'OMGBTC', 'symbol': 'OMG/BTC', 'base': 'OMG', 'quote': 'BTC', 'baseId': 'omg', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'repbtc', 'uppercaseId': 'REPBTC', 'symbol': 'REP/BTC', 'base': 'REP', 'quote': 'BTC', 'baseId': 'rep', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sdabtc', 'uppercaseId': 'SDABTC', 'symbol': 'SDA/BTC', 'base': 'SDA', 'quote': 'BTC', 'baseId': 'sda', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sdaeth', 'uppercaseId': 'SDAETH', 'symbol': 'SDA/ETH', 'base': 'SDA', 'quote': 'ETH', 'baseId': 'sda', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sntbtc', 'uppercaseId': 'SNTBTC', 'symbol': 'SNT/BTC', 'base': 'SNT', 'quote': 'BTC', 'baseId': 'snt', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'socbtc', 'uppercaseId': 'SOCBTC', 'symbol': 'SOC/BTC', 'base': 'SOC', 'quote': 'BTC', 'baseId': 'soc', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'sphbtc', 'uppercaseId': 'SPHBTC', 'symbol': 'SPH/BTC', 'base': 'SPH', 'quote': 'BTC', 'baseId': 'sph', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 100, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'storjbtc', 'uppercaseId': 'STORJBTC', 'symbol': 'STORJ/BTC', 'base': 'STORJ', 'quote': 'BTC', 'baseId': 'storj', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tchbitcny', 'uppercaseId': 'TCHBITCNY', 'symbol': 'TCH/BitCNY', 'base': 'TCH', 'quote': 'BitCNY', 'baseId': 'tch', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tchbtc', 'uppercaseId': 'TCHBTC', 'symbol': 'TCH/BTC', 'base': 'TCH', 'quote': 'BTC', 'baseId': 'tch', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 3}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxbitcny', 'uppercaseId': 'TRXBITCNY', 'symbol': 'TRX/BitCNY', 'base': 'TRX', 'quote': 'BitCNY', 'baseId': 'trx', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 0.001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxbtc', 'uppercaseId': 'TRXBTC', 'symbol': 'TRX/BTC', 'base': 'TRX', 'quote': 'BTC', 'baseId': 'trx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'trxeth', 'uppercaseId': 'TRXETH', 'symbol': 'TRX/ETH', 'base': 'TRX', 'quote': 'ETH', 'baseId': 'trx', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tusdbtc', 'uppercaseId': 'TUSDBTC', 'symbol': 'TUSD/BTC', 'base': 'TUSD', 'quote': 'BTC', 'baseId': 'tusd', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 6}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'tusdeth', 'uppercaseId': 'TUSDETH', 'symbol': 'TUSD/ETH', 'base': 'TUSD', 'quote': 'ETH', 'baseId': 'tusd', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 0.000001, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 1, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'xembitcny', 'uppercaseId': 'XEMBITCNY', 'symbol': 'XEM/BitCNY', 'base': 'XEM', 'quote': 'BitCNY', 'baseId': 'xem', 'quoteId': 'bitcny', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.1, 'max': None}, 'price': {'min': 0.01, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeebtc', 'uppercaseId': 'YEEBTC', 'symbol': 'YEE/BTC', 'base': 'YEE', 'quote': 'BTC', 'baseId': 'yee', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 0, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'yeeeth', 'uppercaseId': 'YEEETH', 'symbol': 'YEE/ETH', 'base': 'YEE', 'quote': 'ETH', 'baseId': 'yee', 'quoteId': 'eth', 'active': True, 'info': None, 'limits': {'amount': {'min': 1, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 8}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'zrxbtc', 'uppercaseId': 'ZRXBTC', 'symbol': 'ZRX/BTC', 'base': 'ZRX', 'quote': 'BTC', 'baseId': 'zrx', 'quoteId': 'btc', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 4, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'btcusdt', 'uppercaseId': 'BTCUSDT', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.0001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 3, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ethusdt', 'uppercaseId': 'ETHUSDT', 'symbol': 'ETH/USDT', 'base': 'ETH', 'quote': 'USDT', 'baseId': 'eth', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.001, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-            {'precision': {'amount': 2, 'price': 2}, 'tierBased': False, 'percentage': True, 'taker': 0.001, 'maker': 0.001, 'id': 'ltcusdt', 'uppercaseId': 'LTCUSDT', 'symbol': 'LTC/USDT', 'base': 'LTC', 'quote': 'USDT', 'baseId': 'ltc', 'quoteId': 'usdt', 'active': True, 'info': None, 'limits': {'amount': {'min': 0.01, 'max': None}, 'price': {'min': 1e-8, 'max': None}, 'cost': {'min': 0, 'max': None}}},
-        ]
+        response = await self.v2publicGetCurrencys()
+        #
+        #     {
+        #         code: '0',
+        #         msg: 'suc',
+        #         data: {
+        #             'bitcny-partition': [
+        #                 {
+        #                     baseCurrency: 'btc',
+        #                     quoteCurrency: 'bitcny',
+        #                     pricePrecision: 2,
+        #                     amountPrecision: 4,
+        #                     withdrawFeeMin: 0.0005,
+        #                     withdrawFeeMax: 0.005,
+        #                     withdrawOneMin: 0.01,
+        #                     withdrawOneMax: 10,
+        #                     depthSelect: {step0: '0.01', step1: '0.1', step2: '1'}
+        #                 },
+        #                 ...
+        #             ],
+        #             ...
+        #         },
+        #     }
+        #
+        keys = list(response['data'].keys())
+        result = []
+        for i in range(0, len(keys)):
+            key = keys[i]
+            partition = response['data'][key]
+            for j in range(0, len(partition)):
+                market = partition[j]
+                baseId = self.safe_string(market, 'baseCurrency')
+                quoteId = self.safe_string(market, 'quoteCurrency')
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                id = baseId + quoteId
+                uppercaseId = id.upper()
+                symbol = base + '/' + quote
+                precision = {
+                    'amount': market['amountPrecision'],
+                    'price': market['pricePrecision'],
+                }
+                active = True
+                entry = {
+                    'id': id,
+                    'uppercaseId': uppercaseId,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': market,
+                    'active': active,
+                    'precision': precision,
+                    'limits': {
+                        'amount': {
+                            'min': math.pow(10, -precision['amount']),
+                            'max': None,
+                        },
+                        'price': {
+                            'min': math.pow(10, -precision['price']),
+                            'max': None,
+                        },
+                        'cost': {
+                            'min': 0,
+                            'max': None,
+                        },
+                    },
+                }
+                result.append(entry)
         self.options['marketsByUppercaseId'] = self.index_by(result, 'uppercaseId')
         return result
 
@@ -379,13 +411,41 @@ class cointiger (huobipro):
             'offset': 1,
             'limit': limit,
         }, params))
-        return self.parse_orders(response['data']['list'], market, since, limit)
+        orders = response['data']['list']
+        result = []
+        for i in range(0, len(orders)):
+            order = self.extend(orders[i], {
+                'status': status,
+            })
+            result.append(self.parse_order(order, market, since, limit))
+        return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: {     symbol: "ethbtc",
+        #                       fee: "0.00000200",
+        #                 avg_price: "0.06863752",
+        #                    source:  1,
+        #                      type: "buy-limit",
+        #                     mtime:  1531340305000,
+        #                    volume: "0.002",
+        #                   user_id:  326317,
+        #                     price: "0.06863752",
+        #                     ctime:  1531340304000,
+        #               deal_volume: "0.00200000",
+        #                        id:  31920243,
+        #                deal_money: "0.00013727",
+        #                    status:  2              }}
+        #
+        await self.load_markets()
 
     def parse_order(self, order, market=None):
         side = self.safe_string(order, 'side')
@@ -405,7 +465,7 @@ class cointiger (huobipro):
         #      },
         #
         type = None
-        status = None
+        status = self.safe_string(order, 'status')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -417,18 +477,17 @@ class cointiger (huobipro):
         if price is None:
             price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
         cost = None
-        average = None
         if amount is not None:
             if remaining is not None:
                 if filled is None:
-                    filled = amount - remaining
+                    filled = max(0, amount - remaining)
             elif filled is not None:
                 cost = filled * price
-                average = float(cost / filled)
                 if remaining is None:
-                    remaining = amount - filled
-        if (remaining is not None) and(remaining > 0):
-            status = 'open'
+                    remaining = max(0, amount - filled)
+        if status is None:
+            if (remaining is not None) and(remaining > 0):
+                status = 'open'
         result = {
             'info': order,
             'id': str(order['id']),
@@ -439,7 +498,6 @@ class cointiger (huobipro):
             'type': type,
             'side': side,
             'price': price,
-            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -528,7 +586,7 @@ class cointiger (huobipro):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
-        if api == 'private':
+        if api == 'private' or api == 'v2':
             timestamp = str(self.milliseconds())
             query = self.keysort(self.extend({
                 'time': timestamp,
@@ -551,7 +609,7 @@ class cointiger (huobipro):
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-        elif api == 'public':
+        elif api == 'public' or api == 'v2public':
             url += '?' + self.urlencode(self.extend({
                 'api_key': self.apiKey,
             }, params))
