@@ -176,7 +176,7 @@ module.exports = class bigone extends Exchange {
             'bid': this.safeFloat (ticker['bid'], 'price'),
             'bidVolume': this.safeFloat (ticker['bid'], 'amount'),
             'ask': this.safeFloat (ticker['ask'], 'price'),
-            'askVolume': this.safeFloat (ticker['ask'], 'amount']),
+            'askVolume': this.safeFloat (ticker['ask'], 'amount'),
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
             'close': close,
@@ -206,11 +206,9 @@ module.exports = class bigone extends Exchange {
         let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let id = ticker['symbol'];
-            let market = this.marketsById[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker['ticker'], market);
+            let ticker = this.parseTicker (ticker['ticker']);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
