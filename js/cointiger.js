@@ -19,7 +19,7 @@ module.exports = class cointiger extends huobipro {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
             },
             'headers': {
                 'Language': 'en_US',
@@ -30,6 +30,7 @@ module.exports = class cointiger extends huobipro {
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
+                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
                     'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
@@ -37,16 +38,21 @@ module.exports = class cointiger extends huobipro {
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
-                'v2': {
+                'v2public': {
                     'get': [
                         'timestamp',
                         'currencys',
                     ],
-                    'post': [
-                        'order',
+                },
+                'v2': {
+                    'get': [
                         'order/orders',
                         'order/match_results',
                         'order/make_detail',
+                        'order/details',
+                    ],
+                    'post': [
+                        'order',
                         'order/batchcancel',
                     ],
                 },
@@ -95,13 +101,21 @@ module.exports = class cointiger extends huobipro {
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
             },
-            'options': {
-                'fetchMyTradesMethod': 'v2GetOrderMatchResults',
-            },
         });
     }
 
     async fetchMarkets () {
+        const response = await this.v2publicGetCurrencys ();
+        const keys = Object.keys (response['data']);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let partition = response['data'][key];
+            for (let j = 0; j < partition.length; j++) {
+                let market = partition[i];
+                console.log (market);
+            }
+        }
+        process.exit ();
         const result = [
             { 'precision': { 'amount': 1, 'price': 8 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'aacbtc', 'uppercaseId': 'AACBTC', 'symbol': 'AAC/BTC', 'base': 'AAC', 'quote': 'BTC', 'baseId': 'aac', 'quoteId': 'btc', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
             { 'precision': { 'amount': 0, 'price': 8 }, 'tierBased': false, 'percentage': true, 'taker': 0.001, 'maker': 0.001, 'id': 'afcbtc', 'uppercaseId': 'AFCBTC', 'symbol': 'AFC/BTC', 'base': 'AFC', 'quote': 'BTC', 'baseId': 'afc', 'quoteId': 'btc', 'active': true, 'info': undefined, 'limits': { 'amount': { 'min': 1, 'max': undefined }, 'price': { 'min': 1e-8, 'max': undefined }, 'cost': { 'min': 0, 'max': undefined }}},
@@ -349,40 +363,18 @@ module.exports = class cointiger extends huobipro {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.options['fetchMyTradesMethod'];
-        const request = {};
-        let market = undefined;
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
-        let v1 = (method === 'privateGetOrderTrade');
-        if (v1) {
-            // cointiger v1
-            if (typeof symbol === 'undefined') {
-                throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
-            }
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            request['offset'] = 1;
-        } else if (typeof symbol !== 'undefined') {
-            // huobipro v1, cointiger v2
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-            const period = 1000 * 60 * 60 * 7;
-            if (since) {
-                request['start-date'] = this.ymd (since);
-                request['end-date'] = this.ymd (since + period);
-            } else {
-                request['start-date'] = this.ymd (since - period);
-                request['end-date'] = this.ymd (since);
-            }
-        }
-        if (typeof limit === 'undefined') {
-            request['limit'] = 100;
-        } else {
-            request['limit'] = Math.min (limit, 100);
-        }
-        const response = await this[method] (this.extend (request, params));
-        let trades = v1 ? response['data']['list'] : response['data'];
-        return this.parseTrades (trades, market, since, limit);
+        let market = this.market (symbol);
+        if (typeof limit === 'undefined')
+            limit = 100;
+        let response = await this.privateGetOrderTrade (this.extend ({
+            'symbol': market['id'],
+            'offset': 1,
+            'limit': limit,
+        }, params));
+        return this.parseTrades (response['data']['list'], market, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
@@ -621,7 +613,7 @@ module.exports = class cointiger extends huobipro {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (api === 'private') {
+        if (api === 'private' || api === 'v2') {
             let timestamp = this.milliseconds ().toString ();
             let query = this.keysort (this.extend ({
                 'time': timestamp,
@@ -637,15 +629,16 @@ module.exports = class cointiger extends huobipro {
             let urlParams = isCreateOrderMethod ? {} : query;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
+                'time': timestamp,
             }, urlParams)));
-            url += '&sign=' + signature + '&time=' + timestamp;
+            url += '&sign=' + signature;
             if (method === 'POST') {
                 body = this.urlencode (query);
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
             }
-        } else if (api === 'public') {
+        } else if (api === 'public' || api === 'v2public') {
             url += '?' + this.urlencode (this.extend ({
                 'api_key': this.apiKey,
             }, params));
