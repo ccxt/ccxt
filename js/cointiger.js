@@ -36,6 +36,19 @@ module.exports = class cointiger extends huobipro {
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
+                'v2': {
+                    'get': [
+                        'timestamp',
+                        'currencys',
+                    ],
+                    'post': [
+                        'order',
+                        'order/orders',
+                        'order/match_results',
+                        'order/make_detail',
+                        'order/batchcancel',
+                    ],
+                },
                 'public': {
                     'get': [
                         'history/kline', // 获取K线数据
@@ -382,7 +395,15 @@ module.exports = class cointiger extends huobipro {
             'offset': 1,
             'limit': limit,
         }, params));
-        return this.parseOrders (response['data']['list'], market, since, limit);
+        let orders = response['data']['list'];
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = this.extend (orders[i], {
+                'status': status,
+            });
+            result.push (this.parseOrder (order, market, since, limit));
+        }
+        return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -411,7 +432,7 @@ module.exports = class cointiger extends huobipro {
         //      },
         //
         let type = undefined;
-        let status = undefined;
+        let status = this.safeString (order, 'status');
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
@@ -423,20 +444,20 @@ module.exports = class cointiger extends huobipro {
         if (typeof price === 'undefined')
             price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
         let cost = undefined;
-        let average = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof remaining !== 'undefined') {
                 if (typeof filled === 'undefined')
-                    filled = amount - remaining;
+                    filled = Math.max (0, amount - remaining);
             } else if (typeof filled !== 'undefined') {
                 cost = filled * price;
-                average = parseFloat (cost / filled);
                 if (typeof remaining === 'undefined')
-                    remaining = amount - filled;
+                    remaining = Math.max (0, amount - filled);
             }
         }
-        if ((typeof remaining !== 'undefined') && (remaining > 0))
-            status = 'open';
+        if (typeof status === 'undefined') {
+            if ((typeof remaining !== 'undefined') && (remaining > 0))
+                status = 'open';
+        }
         let result = {
             'info': order,
             'id': order['id'].toString (),
@@ -447,7 +468,6 @@ module.exports = class cointiger extends huobipro {
             'type': type,
             'side': side,
             'price': price,
-            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -563,9 +583,8 @@ module.exports = class cointiger extends huobipro {
             let urlParams = isCreateOrderMethod ? {} : query;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
-                'time': timestamp,
             }, urlParams)));
-            url += '&sign=' + signature;
+            url += '&sign=' + signature + '&time=' + timestamp;
             if (method === 'POST') {
                 body = this.urlencode (query);
                 headers = {
