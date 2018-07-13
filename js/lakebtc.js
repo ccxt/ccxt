@@ -213,7 +213,9 @@ module.exports = class lakebtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'params': id });
+        return await this.privatePostCancelOrder ({
+            'params': [ id ],
+        });
     }
 
     nonce () {
@@ -232,11 +234,7 @@ module.exports = class lakebtc extends Exchange {
             let queryParams = '';
             if ('params' in params) {
                 let paramsList = params['params'];
-                if (Array.isArray (params)) {
-                    queryParams = paramsList.join ('');
-                } else {
-                    queryParams = paramsList;
-                }
+                queryParams = paramsList.join (',');
             }
             let query = this.urlencode ({
                 'tonce': nonce,
