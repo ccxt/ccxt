@@ -277,7 +277,7 @@ module.exports = class rightbtc extends Exchange {
         if (typeof price !== 'undefined')
             price = price / 1e8;
         let amount = this.safeFloat (trade, 'amount');
-        amount = this.safeFloat (trade, 'quantity');
+        amount = this.safeFloat (trade, 'quantity', amount);
         if (typeof amount !== 'undefined')
             amount = amount / 1e8;
         let symbol = undefined;
