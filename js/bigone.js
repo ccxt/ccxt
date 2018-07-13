@@ -131,7 +131,39 @@ module.exports = class bigone extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = market['symbol'];
+        //
+        //     [
+        //         {
+        //             "volume": "190.4925000000000000",
+        //             "open": "0.0777371200000000",
+        //             "market_uuid": "38dd30bf-76c2-4777-ae2a-a3222433eef3",
+        //             "market_id": "ETH-BTC",
+        //             "low": "0.0742925600000000",
+        //             "high": "0.0789150000000000",
+        //             "daily_change_perc": "-0.3789180767180466680525339760",
+        //             "daily_change": "-0.0002945600000000",
+        //             "close": "0.0774425600000000", // last price
+        //             "bid": {
+        //                 "price": "0.0764777900000000",
+        //                 "amount": "6.4248000000000000"
+        //             },
+        //             "ask": {
+        //                 "price": "0.0774425600000000",
+        //                 "amount": "1.1741000000000000"
+        //             }
+        //         }
+        //     ]
+        //
+        if (typeof market !== 'undefined') {
+            let marketId = this.safeString (ticker, 'market_id');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let timestamp = this.milliseconds ();
         let last = this.safeFloat (ticker, 'price');
         let close = this.safeFloat (ticker, 'close');
@@ -141,17 +173,17 @@ module.exports = class bigone extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
+            'bid': this.safeFloat (ticker['bid'], 'price'),
+            'bidVolume': this.safeFloat (ticker['bid'], 'amount'),
+            'ask': this.safeFloat (ticker['ask'], 'price'),
+            'askVolume': this.safeFloat (ticker['ask'], 'amount']),
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
             'close': close,
-            'last': last,
+            'last': close,
             'previousDayClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': this.safeFloat (ticker, 'daily_change'),
+            'percentage': this.safeFloat (ticker, 'daily_change_perc'),
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
