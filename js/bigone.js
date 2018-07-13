@@ -21,11 +21,12 @@ module.exports = class bigone extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://p14.zdassets.com/hc/settings_assets/2042110/115000083534/FxqlPvZoc8SvIhRfAju5Vg-BigONE.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
                 'api': 'https://api.big.one',
-                'www': 'https://big.one/',
-                'doc': 'https://developer.big.one/',
+                'www': 'https://big.one',
+                'doc': 'https://developer.big.one',
                 'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
             'api': {
                 'public': {
@@ -62,6 +63,7 @@ module.exports = class bigone extends Exchange {
                     'taker': 0.1 / 100,
                 },
                 'funding': {
+                    // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw': {
                         'BTC': 0.002,
                         'ETH': 0.01,
@@ -96,14 +98,12 @@ module.exports = class bigone extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
