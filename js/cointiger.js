@@ -30,6 +30,7 @@ module.exports = class cointiger extends huobipro {
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
+                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -93,6 +94,9 @@ module.exports = class cointiger extends huobipro {
                 '100002': ExchangeNotAvailable,
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
+            },
+            'options': {
+                'fetchMyTradesMethodName': 'v2GetOrderMatchResults',
             },
         });
     }
