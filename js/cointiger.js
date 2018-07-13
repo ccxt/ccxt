@@ -460,8 +460,9 @@ module.exports = class cointiger extends huobipro {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
+            'order_id': id.toString (),
         };
-        let response = await this.v2GetOrder (this.extend (request, params));
+        let response = await this.v2GetOrderDetails (this.extend (request, params));
         return this.parseOrder (response['data'], market);
     }
 
@@ -519,10 +520,20 @@ module.exports = class cointiger extends huobipro {
         let type = this.safeString (order, 'type');
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'created_at');
-        timestamp = this.safeInteger (order, 'ctime');
+        timestamp = this.safeInteger (order, 'ctime', timestamp);
         let lastTradeTimestamp = this.safeInteger (order, 'mtime');
-        let amount = undefined;
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let remaining = undefined;
+        let amount = undefined;
         let filled = undefined;
         let price = undefined;
         let cost = undefined;
@@ -540,23 +551,29 @@ module.exports = class cointiger extends huobipro {
                 let parts = type.split ('-');
                 side = parts[0];
                 type = parts[1];
+                cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
                 price = this.safeFloat (order, 'avg_price', price);
                 amount = this.safeFloat (order, 'amount');
                 filled = this.safeFloat (order, 'deal_volume');
-                cost = this.safeFloat (order, 'deal_money');
+                let feeCost = this.safeFloat (order, 'fee');
+                if (typeof feeCost !== 'undefined') {
+                    let feeCurrency = undefined;
+                    if (typeof market !== 'undefined') {
+                        if (side === 'buy') {
+                            feeCurrency = market['base'];
+                        } else if (side === 'sell') {
+                            feeCurrency = market['quote'];
+                        }
+                    }
+                    fee = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    };
+                }
             }
             status = this.parseOrderStatus (status);
         }
-        let symbol = undefined;
-        if (typeof market === 'undefined') {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
-        if (typeof market !== 'undefined')
-            symbol = market['symbol'];
         if (typeof amount !== 'undefined') {
             if (typeof remaining !== 'undefined') {
                 if (typeof filled === 'undefined')
