@@ -201,7 +201,9 @@ class lakebtc (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelOrder({'params': id})
+        return await self.privatePostCancelOrder({
+            'params': [id],
+        })
 
     def nonce(self):
         return self.microseconds()
@@ -218,10 +220,7 @@ class lakebtc (Exchange):
             queryParams = ''
             if 'params' in params:
                 paramsList = params['params']
-                if isinstance(params, list):
-                    queryParams = ''.join(paramsList)
-                else:
-                    queryParams = paramsList
+                queryParams = ','.join(paramsList)
             query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,
