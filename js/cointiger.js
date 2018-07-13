@@ -106,6 +106,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchMarkets () {
         const response = await this.v2publicGetCurrencys ();
+        //
         //     {
         //         code: '0',
         //         msg: 'suc',
@@ -127,6 +128,7 @@ module.exports = class cointiger extends huobipro {
         //             ...
         //         },
         //     }
+        //
         const keys = Object.keys (response['data']);
         const result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -261,7 +263,6 @@ module.exports = class cointiger extends huobipro {
     }
 
     parseTrade (trade, market = undefined) {
-        //---------------------------------------------------------------------
         //
         //     {
         //         "volume": {
