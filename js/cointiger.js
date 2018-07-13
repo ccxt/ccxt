@@ -307,33 +307,6 @@ module.exports = class cointiger extends huobipro {
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        //---------------------------------------------------------------------
-        //
-        // let timestamp = trade['created-at'];
-        // let [side, type] = trade['type'].split ('-')
-        // market = market || this.marketsById[trade['symbol']]
-        // let symbol = market['symbol']
-        // let feeCost = this.safeFloat (trade, 'filled-fees')
-        // let feeCurrency = side === 'sell' ? market['quote'] : market['base']
-        // if (!feeCost || feeCost === 0) {
-        //     feeCost = this.safeFloat (trade, 'filled-points')
-        //     feeCurrency = 'HBPOINT'
-        // }
-        // let fee = { 'cost': feeCost, 'currency': feeCurrency }
-        // return {
-        //     'id': trade['id'].toString (),
-        //     'order': trade['order-id'].toString (),
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        //     'symbol': symbol,
-        //     'type': type,
-        //     'side': side,
-        //     'price': trade['price'],
-        //     'amount': trade['filled-amount'],
-        //     'fee': fee,
-        //     'info': trade,
-        // };
-        //
         return {
             'info': trade,
             'id': trade['id'].toString (),
