@@ -19,7 +19,9 @@ module.exports = class cointiger extends huobipro {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'headers': {
                 'Language': 'en_US',
