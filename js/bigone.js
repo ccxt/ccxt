@@ -165,7 +165,6 @@ module.exports = class bigone extends Exchange {
             symbol = market['symbol'];
         }
         let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'price');
         let close = this.safeFloat (ticker, 'close');
         return {
             'symbol': symbol,
@@ -206,7 +205,7 @@ module.exports = class bigone extends Exchange {
         let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (ticker['ticker']);
+            let ticker = this.parseTicker (tickers[i]);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
