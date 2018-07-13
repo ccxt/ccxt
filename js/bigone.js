@@ -91,8 +91,10 @@ module.exports = class bigone extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
-            let base = this.commonCurrencyCode (market['quote']);
-            let quote = this.commonCurrencyCode (market['base']);
+            let baseId = market['quote'];
+            let quoteId = market['base'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -103,6 +105,8 @@ module.exports = class bigone extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'precision': precision,
                 'limits': {
