@@ -13,6 +13,7 @@ module.exports = class bigone extends Exchange {
             'id': 'bigone',
             'name': 'BigONE',
             'countries': 'GB',
+            'version': 'v2',
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
@@ -24,7 +25,7 @@ module.exports = class bigone extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
                 'api': 'https://api.big.one',
                 'www': 'https://big.one',
-                'doc': 'https://developer.big.one',
+                'doc': 'https://open.big.one/docs/api.html',
                 'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
@@ -132,23 +133,27 @@ module.exports = class bigone extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'price');
+        let close = this.safeFloat (ticker, 'close');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': undefined,
+            'bidVolume': undefined,
             'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': parseFloat (ticker['price']),
+            'open': this.safeFloat (ticker, 'open'),
+            'close': close,
+            'last': last,
+            'previousDayClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
