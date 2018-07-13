@@ -217,7 +217,11 @@ class lakebtc (Exchange):
             nonce = self.nonce()
             queryParams = ''
             if 'params' in params:
-                queryParams = params['params'].join()
+                paramsList = params['params']
+                if isinstance(params, list):
+                    queryParams = ''.join(paramsList)
+                else:
+                    queryParams = paramsList
             query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,
