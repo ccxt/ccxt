@@ -453,12 +453,34 @@ module.exports = class cointiger extends huobipro {
         //                deal_money: "0.00013727",
         //                    status:  2              } }
         //
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        let response = await this.v2GetOrder (this.extend (request, params));
+        return this.parseOrder (response['data'], market);
+    }
+
+    parseOrderStatus (status) {
+        let statuses = {
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+            '6': 'error',
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
     }
 
     parseOrder (order, market = undefined) {
-        let side = this.safeString (order, 'side');
-        side = side.toLowerCase ();
+        //
+        //  v1
         //
         //      {
         //            volume: { "amount": "0.054", "icon": "", "title": "volume" },
@@ -473,19 +495,68 @@ module.exports = class cointiger extends huobipro {
         //          side_msg: "Buy"
         //      },
         //
-        let type = undefined;
+        //  v2
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: {      symbol: "ethbtc",
+        //                       fee: "0.00000200",
+        //                 avg_price: "0.06863752",
+        //                    source:  1,
+        //                      type: "buy-limit",
+        //                     mtime:  1531340305000,
+        //                    volume: "0.002",
+        //                   user_id:  326317,
+        //                     price: "0.06863752",
+        //                     ctime:  1531340304000,
+        //               deal_volume: "0.00200000",
+        //                        id:  31920243,
+        //                deal_money: "0.00013727",
+        //                    status:  2              } }
+        //
+        let id = this.safeString (order, 'id');
+        let side = this.safeString (order, 'side');
+        let type = this.safeString (order, 'type');
         let status = this.safeString (order, 'status');
+        let timestamp = this.safeInteger (order, 'created_at');
+        timestamp = this.safeInteger (order, 'ctime');
+        let lastTradeTimestamp = this.safeInteger (order, 'mtime');
+        let amount = undefined;
+        let remaining = undefined;
+        let filled = undefined;
+        let price = undefined;
+        let cost = undefined;
+        let fee = undefined;
+        if (typeof side !== 'undefined') {
+            side = side.toLowerCase ();
+            amount = this.safeFloat (order['volume'], 'amount');
+            remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
+            filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
+            price = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
+            if (typeof price === 'undefined')
+                price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+        } else {
+            if (typeof type !== 'undefined') {
+                let parts = type.split ('-');
+                side = parts[0];
+                type = parts[1];
+                price = this.safeFloat (order, 'price');
+                price = this.safeFloat (order, 'avg_price', price);
+                amount = this.safeFloat (order, 'amount');
+                filled = this.safeFloat (order, 'deal_volume');
+                cost = this.safeFloat (order, 'deal_money');
+            }
+            status = this.parseOrderStatus (status);
+        }
         let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let timestamp = order['created_at'];
-        let amount = this.safeFloat (order['volume'], 'amount');
-        let remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
-        let filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
-        let price = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
-        if (typeof price === 'undefined')
-            price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
-        let cost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof remaining !== 'undefined') {
                 if (typeof filled === 'undefined')
@@ -502,10 +573,10 @@ module.exports = class cointiger extends huobipro {
         }
         let result = {
             'info': order,
-            'id': order['id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -515,7 +586,8 @@ module.exports = class cointiger extends huobipro {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
+            'trades': undefined,
         };
         return result;
     }
