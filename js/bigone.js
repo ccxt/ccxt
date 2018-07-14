@@ -33,8 +33,7 @@ module.exports = class bigone extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        // 'markets/{symbol}',
-                        'markets/{symbol}/book',
+                        'markets/{symbol}/depth',
                         'markets/{symbol}/trades',
                         'markets/{symbol}/ticker',
                         'orders',
@@ -228,7 +227,7 @@ module.exports = class bigone extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsSymbolBook (this.extend ({
+        let response = await this.publicGetMarketsSymbolDepth (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'amount');
