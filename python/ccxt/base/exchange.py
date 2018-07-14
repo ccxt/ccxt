@@ -380,7 +380,7 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e, self.last_http_response)
 
         except RequestException as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+            self.raise_error(ExchangeError, url, method, e)
 
         self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
         return self.handle_rest_response(self.last_http_response, url, method, headers, body)
