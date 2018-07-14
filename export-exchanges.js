@@ -36,9 +36,16 @@ function replaceInFile (filename, regex, replacement) {
 
 // ---------------------------------------------------------------------------
 
+const approvedIds = fs.readFileSync ('.ccxt.approve.cfg')
+                        .toString ()
+                        .split ('\n')
+                        .map (line => /([^#]*)/.exec (line)[0].trim ())
+                        .filter (exchange => exchange);
+
 try {
 
-    exchanges = require ('./config')
+    exchanges = require ('./config').ids
+                  .filter (id => (approvedIds.length == 0) ? true : approvedIds.some ( approved => id == approved ));
 
 } catch (e) {
 
@@ -47,6 +54,7 @@ try {
     const ids = fs.readdirSync ('./js/')
                   .filter (file => file.includes ('.js'))
                   .map (file => file.slice (0, -3))
+                  .filter (id => (approvedIds.length == 0) ? true : approvedIds.some ( approved => id == approved ));
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
