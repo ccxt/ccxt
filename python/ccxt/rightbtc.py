@@ -190,19 +190,30 @@ class rightbtc (Exchange):
             })
         return result
 
+    def divide_safe_float(self, x, key, divisor):
+        value = self.safe_float(x, key)
+        if value is not None:
+            return value / divisor
+        return value
+
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
         timestamp = ticker['date']
-        last = self.safe_float(ticker, 'last') / 1e8
+        last = self.divide_safe_float(ticker, 'last', 1e8)
+        high = self.divide_safe_float(ticker, 'high', 1e8)
+        low = self.divide_safe_float(ticker, 'low', 1e8)
+        bid = self.divide_safe_float(ticker, 'buy', 1e8)
+        ask = self.divide_safe_float(ticker, 'sell', 1e8)
+        baseVolume = self.divide_safe_float(ticker, 'vol24h', 1e8)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high') / 1e8,
-            'low': self.safe_float(ticker, 'low') / 1e8,
-            'bid': self.safe_float(ticker, 'buy') / 1e8,
+            'high': high,
+            'low': low,
+            'bid': bid,
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell') / 1e8,
+            'ask': ask,
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -212,7 +223,7 @@ class rightbtc (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol24h') / 1e8,
+            'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
         }
@@ -278,9 +289,7 @@ class rightbtc (Exchange):
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'trade_id', id)
         orderId = self.safe_string(trade, 'order_id')
-        price = float(trade['price'])
-        if price is not None:
-            price = price / 1e8
+        price = self.divide_safe_float(trade, 'price', 1e8)
         amount = self.safe_float(trade, 'amount')
         amount = self.safe_float(trade, 'quantity', amount)
         if amount is not None:
@@ -375,13 +384,11 @@ class rightbtc (Exchange):
             code = self.common_currency_code(currencyId)
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'frozen')
+            total = self.divide_safe_float(balance, 'balance', 1e8)
+            used = self.divide_safe_float(balance, 'frozen', 1e8)
             free = None
             if total is not None:
-                total = total / 1e8
                 if used is not None:
-                    used = used / 1e8
                     free = total - used
             account = {
                 'free': free,
@@ -476,18 +483,10 @@ class rightbtc (Exchange):
         price = self.safe_float(order, 'price', price)
         if price is not None:
             price = price / 1e8
-        amount = self.safe_float(order, 'quantity')
-        if amount is not None:
-            amount = amount / 1e8
-        filled = self.safe_float(order, 'filled_quantity')
-        if filled is not None:
-            filled = filled / 1e8
-        remaining = self.safe_float(order, 'rest')
-        if remaining is not None:
-            remaining = remaining / 1e8
-        cost = self.safe_float(order, 'cost')
-        if cost is not None:
-            cost = cost / 1e8
+        amount = self.divide_safe_float(order, 'quantity', 1e8)
+        filled = self.divide_safe_float(order, 'filled_quantity', 1e8)
+        remaining = self.divide_safe_float(order, 'rest', 1e8)
+        cost = self.divide_safe_float(order, 'cost', 1e8)
         # lines 483-494 should be generalized into a base class method
         if amount is not None:
             if remaining is None:
@@ -500,10 +499,9 @@ class rightbtc (Exchange):
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
-        feeCost = self.safe_float(order, 'min_fee')
+        feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:
-            feeCost = feeCost / 1e8
             feeCurrency = None
             if market is not None:
                 feeCurrency = market['quote']

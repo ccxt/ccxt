@@ -180,19 +180,31 @@ class rightbtc extends Exchange {
         return $result;
     }
 
+    public function divide_safe_float ($x, $key, $divisor) {
+        $value = $this->safe_float($x, $key);
+        if ($value !== null)
+            return $value / $divisor;
+        return $value;
+    }
+
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $ticker['date'];
-        $last = $this->safe_float($ticker, 'last') / 1e8;
+        $last = $this->divide_safe_float ($ticker, 'last', 1e8);
+        $high = $this->divide_safe_float ($ticker, 'high', 1e8);
+        $low = $this->divide_safe_float ($ticker, 'low', 1e8);
+        $bid = $this->divide_safe_float ($ticker, 'buy', 1e8);
+        $ask = $this->divide_safe_float ($ticker, 'sell', 1e8);
+        $baseVolume = $this->divide_safe_float ($ticker, 'vol24h', 1e8);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, 'high') / 1e8,
-            'low' => $this->safe_float($ticker, 'low') / 1e8,
-            'bid' => $this->safe_float($ticker, 'buy') / 1e8,
+            'high' => $high,
+            'low' => $low,
+            'bid' => $bid,
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'sell') / 1e8,
+            'ask' => $ask,
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -202,7 +214,7 @@ class rightbtc extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol24h') / 1e8,
+            'baseVolume' => $baseVolume,
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -278,9 +290,7 @@ class rightbtc extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $id = $this->safe_string($trade, 'trade_id', $id);
         $orderId = $this->safe_string($trade, 'order_id');
-        $price = floatval ($trade['price']);
-        if ($price !== null)
-            $price = $price / 1e8;
+        $price = $this->divide_safe_float ($trade, 'price', 1e8);
         $amount = $this->safe_float($trade, 'amount');
         $amount = $this->safe_float($trade, 'quantity', $amount);
         if ($amount !== null)
@@ -384,13 +394,11 @@ class rightbtc extends Exchange {
             if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             }
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'frozen');
+            $total = $this->divide_safe_float ($balance, 'balance', 1e8);
+            $used = $this->divide_safe_float ($balance, 'frozen', 1e8);
             $free = null;
             if ($total !== null) {
-                $total = $total / 1e8;
                 if ($used !== null) {
-                    $used = $used / 1e8;
                     $free = $total - $used;
                 }
             }
@@ -496,18 +504,10 @@ class rightbtc extends Exchange {
         $price = $this->safe_float($order, 'price', $price);
         if ($price !== null)
             $price = $price / 1e8;
-        $amount = $this->safe_float($order, 'quantity');
-        if ($amount !== null)
-            $amount = $amount / 1e8;
-        $filled = $this->safe_float($order, 'filled_quantity');
-        if ($filled !== null)
-            $filled = $filled / 1e8;
-        $remaining = $this->safe_float($order, 'rest');
-        if ($remaining !== null)
-            $remaining = $remaining / 1e8;
-        $cost = $this->safe_float($order, 'cost');
-        if ($cost !== null)
-            $cost = $cost / 1e8;
+        $amount = $this->divide_safe_float ($order, 'quantity', 1e8);
+        $filled = $this->divide_safe_float ($order, 'filled_quantity', 1e8);
+        $remaining = $this->divide_safe_float ($order, 'rest', 1e8);
+        $cost = $this->divide_safe_float ($order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
         if ($amount !== null) {
             if ($remaining === null) {
@@ -525,10 +525,9 @@ class rightbtc extends Exchange {
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
             $side = strtolower ($side);
-        $feeCost = $this->safe_float($order, 'min_fee');
+        $feeCost = $this->divide_safe_float ($order, 'min_fee', 1e8);
         $fee = null;
         if ($feeCost !== null) {
-            $feeCost = $feeCost / 1e8;
             $feeCurrency = null;
             if ($market !== null)
                 $feeCurrency = $market['quote'];
