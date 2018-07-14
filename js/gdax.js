@@ -106,10 +106,6 @@ module.exports = class gdax extends Exchange {
                         'baseurl': 'wss://ws-feed.pro.coinbase.com',
                     },
                 },
-                'methodmap': {
-                    'fetchOrderBook': 'fetchOrderBook',
-                    '_websocketHandleObRestSnapshot': '_websocketHandleObRestSnapshot',
-                },
                 'events': {
                     'ob': {
                         'conx-tpl': 'default',
