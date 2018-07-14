@@ -454,6 +454,31 @@ class Exchange(object):
     def safe_value(dictionary, key, default_value=None):
         return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
+    # we're not using safe_floats with a list argument as we're trying to save some cycles here
+    # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
+
+    @staticmethod
+    def safe_float_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_string_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_integer_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_value_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_either(method, dictionary, key1, key2, default_value=None):
+        """A helper-wrapper for the safe_value_2() family."""
+        value = method(dictionary, key1)
+        return value if value is not None else method(dictionary, key2, default_value)
+
     @staticmethod
     def truncate(num, precision=0):
         if precision > 0:
