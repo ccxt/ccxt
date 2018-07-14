@@ -387,6 +387,24 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //    {'amount': '0.00000000',
+        //     'currencyPair': 'xlm_usdt',
+        //     'fee': '0.0113766632239302 USDT',
+        //     'feeCurrency': 'USDT',
+        //     'feePercentage': 0.18,
+        //     'feeValue': '0.0113766632239302',
+        //     'filledAmount': '30.14004987',
+        //     'filledRate': 0.2097,
+        //     'initialAmount': '30.14004987',
+        //     'initialRate': '0.2097',
+        //     'left': 0,
+        //     'orderNumber': '998307286',
+        //     'rate': '0.2097',
+        //     'status': 'closed',
+        //     'timestamp': 1531158583,
+        //     'type': 'sell'},
+        //
         let id = this.safeString (order, 'orderNumber');
         let symbol = undefined;
         let marketId = this.safeString (order, 'currencyPair');
