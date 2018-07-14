@@ -690,7 +690,6 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
     const classNames = fs.readdirSync (folder)
         .filter (file => file.includes (pattern))
-        .filter (file => file.includes ())
         .filter (file => approvedIds.some ( approved => /[^/:*"<>|\\]*(?=\.)/.exec(file) == approved ))
         .map (file => transpileDerivedExchangeFile (folder, file))
 
