@@ -685,8 +685,13 @@ function transpileDerivedExchangeFile (folder, filename) {
 
 function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
+    const approvedIds = require ('./exchanges.json').ids;
+    // as you know this json file takes into account .ccxt.approve.cfg
+
     const classNames = fs.readdirSync (folder)
         .filter (file => file.includes (pattern))
+        .filter (file => file.includes ())
+        .filter (file => approvedIds.some ( approved => /[^/:*"<>|\\]*(?=\.)/.exec(file) == approved ))
         .map (file => transpileDerivedExchangeFile (folder, file))
 
     if (classNames.length === 0)
