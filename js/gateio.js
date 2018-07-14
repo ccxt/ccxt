@@ -325,9 +325,9 @@ module.exports = class gateio extends Exchange {
             timestamp *= 1000;
         let id = this.safeString (trade, 'tradeID');
         id = this.safeString (trade, 'id', id);
+        // take either of orderid or orderId
         let orderId = this.safeString (trade, 'orderid');
-        if (typeof orderId === 'undefined')
-            orderId = this.safeString (trade, 'orderNumber');
+        orderId = this.safeString (trade, 'orderNumber', orderId);            
         let price = this.safeFloat (trade, 'rate');
         let amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
