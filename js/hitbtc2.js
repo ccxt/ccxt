@@ -865,6 +865,8 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         let response = await this.privatePostOrder (this.extend (request, params));
         let order = this.parseOrder (response);
+        if (order['status'] === 'rejected')
+            throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
         let id = order['id'];
         this.orders[id] = order;
         return order;
