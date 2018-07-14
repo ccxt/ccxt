@@ -235,17 +235,37 @@ module.exports = class bigone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['created_at']);
-        let price = parseFloat (trade['price']);
-        let amount = parseFloat (trade['amount']);
-        let symbol = market['symbol'];
+        //
+        //     {   node: {  taker_side: "ASK",
+        //                       price: "0.0694071600000000",
+        //                 market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
+        //                   market_id: "ETH-BTC",
+        //                 inserted_at: "2018-07-14T09:22:06Z",
+        //                          id: "19913306",
+        //                      amount: "0.8800000000000000"                    },
+        //       cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              }
+        //
+        let node = trade['node'];
+        let timestamp = this.parse8601 (node['inserted_at']);
+        let price = this.safeFloat (node, 'price');
+        let amount = this.safeFloat (node, 'amount');
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (node, 'market_id');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let cost = this.costToPrecision (symbol, price * amount);
-        let side = trade['trade_side'] === 'ASK' ? 'sell' : 'buy';
+        let side = node['taker_side'] === 'ASK' ? 'sell' : 'buy';
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'trade_id'),
+            'id': this.safeString (node, 'id'),
             'order': undefined,
             'type': 'limit',
             'side': side,
@@ -260,10 +280,44 @@ module.exports = class bigone extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketsSymbolTrades (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        };
+        if (typeof limit !== 'undefined') {
+            request['first'] = limit;
+        }
+        let response = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
+        //
+        //     { data: { page_info: {      start_cursor: "Y3Vyc29yOnYxOjE5OTEzMzA2",
+        //                            has_previous_page:  true,
+        //                                has_next_page:  false,
+        //                                   end_cursor: "Y3Vyc29yOnYxOjIwMDU0NzIw"  },
+        //                   edges: [ {   node: {  taker_side: "ASK",
+        //                                              price: "0.0694071600000000",
+        //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
+        //                                          market_id: "ETH-BTC",
+        //                                        inserted_at: "2018-07-14T09:22:06Z",
+        //                                                 id: "19913306",
+        //                                             amount: "0.8800000000000000"                    },
+        //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              },
+        //                            {   node: {  taker_side: "ASK",
+        //                                              price: "0.0694071600000000",
+        //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
+        //                                          market_id: "ETH-BTC",
+        //                                        inserted_at: "2018-07-14T09:22:07Z",
+        //                                                 id: "19913307",
+        //                                             amount: "0.3759000000000000"                    },
+        //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA3"                              },
+        //                            {   node: {  taker_side: "ASK",
+        //                                              price: "0.0694071600000000",
+        //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
+        //                                          market_id: "ETH-BTC",
+        //                                        inserted_at: "2018-07-14T09:22:08Z",
+        //                                                 id: "19913321",
+        //                                             amount: "0.2197000000000000"                    },
+        //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzIx"                              },
+        //
+        return this.parseTrades (response['data']['edges'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
