@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 
 
@@ -715,7 +716,7 @@ class hitbtc (Exchange):
         if abs(difference) > market['step']:
             raise ExchangeError(self.id + ' order amount should be evenly divisible by lot unit size of ' + str(market['lot']))
         clientOrderId = self.milliseconds()
-        order = {
+        request = {
             'clientOrderId': str(clientOrderId),
             'symbol': market['id'],
             'side': side,
@@ -723,11 +724,14 @@ class hitbtc (Exchange):
             'type': type,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         else:
-            order['timeInForce'] = self.options['defaultTimeInForce']
-        response = self.tradingPostNewOrder(self.extend(order, params))
-        return self.parse_order(response['ExecutionReport'], market)
+            request['timeInForce'] = self.options['defaultTimeInForce']
+        response = self.tradingPostNewOrder(self.extend(request, params))
+        order = self.parse_order(response['ExecutionReport'], market)
+        if order['status'] == 'rejected':
+            raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
+        return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
