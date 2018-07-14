@@ -200,6 +200,29 @@ class Exchange {
         return (is_array ($object) && array_key_exists ($key, $object)) ? $object[$key] : $default_value;
     }
 
+    // we're not using safe_floats with a list argument as we're trying to save some cycles here
+    // we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
+
+    public static function safe_float_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_float ($object, $key1);
+        return isset ($value) ? $value : static::safe_float ($object, $key2, $default_value);
+    }
+
+    public static function safe_string_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string ($object, $key1);
+        return isset ($value) ? $value : static::safe_string ($object, $key2, $default_value);
+    }
+
+    public static function safe_integer_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_integer ($object, $key1);
+        return isset ($value) ? $value : static::safe_integer ($object, $key2, $default_value);
+    }
+
+    public static function safe_value_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_value ($object, $key1);
+        return isset ($value) ? $value : static::safe_value ($object, $key2, $default_value);
+    }
+
     public static function truncate ($number, $precision = 0) {
         $decimal_precision = pow (10, $precision);
         return floor(floatval ($number * $decimal_precision)) / $decimal_precision;
