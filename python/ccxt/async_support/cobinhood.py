@@ -26,6 +26,7 @@ class cobinhood (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrder': True,
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
