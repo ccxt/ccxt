@@ -48,9 +48,9 @@ vss ('./python/ccxt/async_support/base/exchange.py', /\_\_version\_\_ \= \'[^\']
 
 //-----------------------------------------------------------------------------
 
-fs.createReadStream('package.json').pipe(fs.createWriteStream('./python/package.json'));
-fs.createReadStream('LICENSE.txt').pipe(fs.createWriteStream('./python/LICENSE.txt'));
-fs.createReadStream('keys.json').pipe(fs.createWriteStream('./python/keys.json'));
+fs.writeFileSync ('./python/package.json', fs.readFileSync ('./package.json'));
+fs.writeFileSync ('./python/LICENSE.txt', fs.readFileSync ('./LICENSE.txt'));
+fs.writeFileSync ('./python/keys.json', fs.readFileSync ('./keys.json'));
 
 //-----------------------------------------------------------------------------
 
