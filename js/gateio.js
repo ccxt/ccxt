@@ -414,7 +414,8 @@ module.exports = class gateio extends Exchange {
             remaining = this.safeFloat (order, 'left');
         }
         let feeCost = this.safeFloat (order, 'feeValue');
-        let feeCurrency = this.safeString (order, 'feeCurrency');
+        let feeRate = this.safeString (order, 'feeCurrency');
+        let feePercentage = this.safeFloat (order, 'feePercentage');
         if (typeof feeCurrency !== 'undefined') {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
@@ -437,6 +438,7 @@ module.exports = class gateio extends Exchange {
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
+                'rate': feeRate
             },
             'info': order,
         };
