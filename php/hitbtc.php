@@ -726,7 +726,7 @@ class hitbtc extends Exchange {
         if (abs ($difference) > $market['step'])
             throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
         $clientOrderId = $this->milliseconds ();
-        $order = array (
+        $request = array (
             'clientOrderId' => (string) $clientOrderId,
             'symbol' => $market['id'],
             'side' => $side,
@@ -734,12 +734,15 @@ class hitbtc extends Exchange {
             'type' => $type,
         );
         if ($type === 'limit') {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         } else {
-            $order['timeInForce'] = $this->options['defaultTimeInForce'];
+            $request['timeInForce'] = $this->options['defaultTimeInForce'];
         }
-        $response = $this->tradingPostNewOrder (array_merge ($order, $params));
-        return $this->parse_order($response['ExecutionReport'], $market);
+        $response = $this->tradingPostNewOrder (array_merge ($request, $params));
+        $order = $this->parse_order($response['ExecutionReport'], $market);
+        if ($order['status'] === 'rejected')
+            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
+        return $order;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
