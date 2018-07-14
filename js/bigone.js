@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -24,7 +24,10 @@ module.exports = class bigone extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
-                'api': 'https://big.one/api/v2/',
+                'api': {
+                    'public': 'https://big.one/api/v2',
+                    'private': 'https://big.one.api/v2/viewer',
+                },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
                 'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
@@ -46,19 +49,24 @@ module.exports = class bigone extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'viewer/accounts',
+                        'accounts',
+                        'orders',
+                        'orders/{order_id}',
                         // 'accounts/{currency}',
-                        'withdrawals',
-                        'deposits',
+                        // 'withdrawals',
+                        // 'deposits',
                     ],
                     'post': [
                         'orders',
-                        'orders/cancel',
-                        'withdrawals',
+                        'orders/{order_id}/cancel',
+                        'orders/cancel_all',
+                        // 'orders',
+                        // 'orders/cancel',
+                        // 'withdrawals',
                     ],
-                    'delete': [
-                        'orders/{id}',
-                    ],
+                    // 'delete': [
+                    //     'orders/{id}',
+                    // ],
                 },
             },
             'fees': {
@@ -323,7 +331,7 @@ module.exports = class bigone extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetViewerAccounts (params);
+        let response = await this.privateGetAccounts (params);
         //
         //     { data: [ { locked_balance: "0",
         //                        balance: "0",
@@ -406,6 +414,25 @@ module.exports = class bigone extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        //         Create Order
+        // POST /viewer/orders
+        // Parameters
+        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
+        // market_id	market uuid	d2185614-50c3-4588-b146-b8afe7534da6	true
+        // side	order side	one of "ASK"/"BID"	true
+        // price	order price	string	true
+        // amount	order amount	string, must larger than 0	true
+        // Response is an order
+        // {
+        //   "id": 10,
+        //   "market_uuid": "BTC-EOS",
+        //   "price": "10.00",
+        //   "amount": "10.00",
+        //   "filled_amount": "9.0",
+        //   "avg_deal_price": "12.0",
+        //   "side": "ASK",
+        //   "state": "FILLED"
+        // }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrders (this.extend ({
@@ -419,18 +446,113 @@ module.exports = class bigone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privateDeleteOrdersId (this.extend ({
-            'id': id,
+        //         Cancle Order
+        // POST /viewer/orders/{order_id}/cancel
+        // Parameters
+
+        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
+        // order_id	id of the order	id1	true
+        // Response is an order
+
+        // {
+        //   "id": 10,
+        //   "market_uuid": "BTC-EOS",
+        //   "price": "10.00",
+        //   "amount": "10.00",
+        //   "filled_amount": "9.0",
+        //   "avg_deal_price": "12.0",
+        //   "side": "ASK",
+        //   "state": "FILLED"
+        // }
+        let response = await this.privatePostOrdersOrderIdCancelDeleteOrdersId (this.extend ({
+            'order_id': id,
         }, params));
-        return response;
+        return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        //     Cancle All Orders
+        // POST /viewer/orders/cancel_all
+        // Parameters
+        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
+        // market_id	market uuid	d2185614-50c3-4588-b146-b8afe7534da6	true
+        // Response is the cancelled orders
+        // {
+        //   "id": 10,
+        //   "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
+        //   "price": "10.00",
+        //   "amount": "10.00",
+        //   "filled_amount": "9.0",
+        //   "avg_deal_price": "12.0",
+        //   "side": "ASK",
+        //   "state": "FILLED"
+        // }
+        throw new NotSupported (this.id + ' cancelAllOrders is not supported yet');
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        //         Get one order
+        // [暂未上线使用]
+        // GET /viewer/orders/{order_id}
+        // Parameters
+        // NAME	DESCRIPTION	EXAMPLE	REQUIRED
+        // order_id	id of order	45	true
+        // Response is Order collection
+        // {
+        //   "id": 10,
+        //   "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
+        //   "price": "10.00",
+        //   "amount": "10.00",
+        //   "filled_amount": "9.0",
+        //   "avg_deal_price": "12.0",
+        //   "side": "ASK",
+        //   "state": "FILLED"
+        // }
         await this.loadMarkets ();
         let response = await this.privateGetOrdersId (this.extend ({
             'id': id,
         }, params));
         return this.parseOrder (response['data']);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //         Order
+        // Get user orders in a market
+        // GET /viewer/orders
+        // Parameters
+        // NAME	DESCRIPTION	EXAMPLE	REQUIRED
+        // market_id	market id	ETH-BTC	true
+        // after	ask for the server to return orders after the cursor	dGVzdGN1cmVzZQo=	false
+        // before	ask for the server to return orders before the cursor	dGVzdGN1cmVzZQo=	false
+        // first	slicing count	20	false
+        // last	slicing count	20	false
+        // side	order side	one of "ASK"/"BID"	false
+        // state	order state	one of "CANCELED"/"FILLED"/"PENDING"	false
+        // Response is Order collection
+        // {
+        //   "edges": [
+        //     {
+        //       "node": {
+        //         "id": 10,
+        //         "market_id": "ETH-BTC",
+        //         "price": "10.00",
+        //         "amount": "10.00",
+        //         "filled_amount": "9.0",
+        //         "avg_deal_price": "12.0",
+        //         "side": "ASK",
+        //         "state": "FILLED"
+        //       },
+        //       "cursor": "dGVzdGN1cmVzZQo="
+        //     }
+        //   ],
+        //   "page_info": {
+        //     "end_cursor": "dGVzdGN1cmVzZQo=",
+        //     "start_cursor": "dGVzdGN1cmVzZQo=",
+        //     "has_next_page": true,
+        //     "has_previous_page": false
+        //   }
+        // }
+        throw new NotSupported (this.id + ' fetchOrders is not supported yet');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -499,7 +621,7 @@ module.exports = class bigone extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
