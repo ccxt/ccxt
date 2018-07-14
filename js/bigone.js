@@ -23,7 +23,7 @@ module.exports = class bigone extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
-                'api': 'https://api.big.one',
+                'api': 'https://big.one/api/v2/',
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
                 'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
@@ -33,11 +33,13 @@ module.exports = class bigone extends Exchange {
                 'public': {
                     'get': [
                         'markets',
-                        'markets/{symbol}',
+                        // 'markets/{symbol}',
                         'markets/{symbol}/book',
                         'markets/{symbol}/trades',
+                        'markets/{symbol}/ticker',
                         'orders',
                         'orders/{id}',
+                        'tickers',
                         'trades',
                     ],
                 },
@@ -90,16 +92,28 @@ module.exports = class bigone extends Exchange {
         let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
+            //
+            //      {       uuid:   "550b34db-696e-4434-a126-196f827d9172",
+            //        quoteScale:    3,
+            //        quoteAsset: {   uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+            //                      symbol: "USDT",
+            //                        name: "TetherUS"                              },
+            //              name:   "BTC-USDT",
+            //         baseScale:    5,
+            //         baseAsset: {   uuid: "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+            //                      symbol: "BTC",
+            //                        name: "Bitcoin"                               }  } }
+            //
             let market = markets[i];
-            let id = market['symbol'];
-            let baseId = market['quote'];
-            let quoteId = market['base'];
+            let id = market['name'];
+            let baseId = market['baseAsset']['symbol'];
+            let quoteId = market['quoteAsset']['symbol'];
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': market['baseScale'],
+                'price': market['quoteScale'],
             };
             result.push ({
                 'id': id,
@@ -112,8 +126,8 @@ module.exports = class bigone extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (market['base_min']),
-                        'max': parseFloat (market['base_max']),
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -154,7 +168,7 @@ module.exports = class bigone extends Exchange {
         //         }
         //     ]
         //
-        if (typeof market !== 'undefined') {
+        if (typeof market === 'undefined') {
             let marketId = this.safeString (ticker, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -193,15 +207,15 @@ module.exports = class bigone extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketsSymbol (this.extend ({
+        let response = await this.publicGetMarketsSymbolTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        return this.parseTicker (response['data']['ticker'], market);
+        return this.parseTicker (response['data'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarkets (params);
+        let response = await this.publicGetTickers (params);
         let tickers = response['data'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
