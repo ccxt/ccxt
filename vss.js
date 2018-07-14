@@ -48,4 +48,10 @@ vss ('./python/ccxt/async_support/base/exchange.py', /\_\_version\_\_ \= \'[^\']
 
 //-----------------------------------------------------------------------------
 
+fs.createReadStream('package.json').pipe(fs.createWriteStream('./python/package.json'));
+fs.createReadStream('LICENSE.txt').pipe(fs.createWriteStream('./python/LICENSE.txt'));
+fs.createReadStream('keys.json').pipe(fs.createWriteStream('./python/keys.json'));
+
+//-----------------------------------------------------------------------------
+
 log.bright.green ('Version single-sourced successfully.')
