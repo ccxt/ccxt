@@ -374,6 +374,24 @@ class gateio (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        #
+        #    {'amount': '0.00000000',
+        #     'currencyPair': 'xlm_usdt',
+        #     'fee': '0.0113766632239302 USDT',
+        #     'feeCurrency': 'USDT',
+        #     'feePercentage': 0.18,
+        #     'feeValue': '0.0113766632239302',
+        #     'filledAmount': '30.14004987',
+        #     'filledRate': 0.2097,
+        #     'initialAmount': '30.14004987',
+        #     'initialRate': '0.2097',
+        #     'left': 0,
+        #     'orderNumber': '998307286',
+        #     'rate': '0.2097',
+        #     'status': 'closed',
+        #     'timestamp': 1531158583,
+        #     'type': 'sell'},
+        #
         id = self.safe_string(order, 'orderNumber')
         symbol = None
         marketId = self.safe_string(order, 'currencyPair')
@@ -399,6 +417,7 @@ class gateio (Exchange):
             remaining = self.safe_float(order, 'left')
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrency = self.safe_string(order, 'feeCurrency')
+        feeRate = self.safe_float(order, 'feePercentage')
         if feeCurrency is not None:
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
@@ -419,6 +438,7 @@ class gateio (Exchange):
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
+                'rate': feeRate,
             },
             'info': order,
         }

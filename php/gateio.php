@@ -388,6 +388,24 @@ class gateio extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //    array ('amount' => '0.00000000',
+        //     'currencyPair' => 'xlm_usdt',
+        //     'fee' => '0.0113766632239302 USDT',
+        //     'feeCurrency' => 'USDT',
+        //     'feePercentage' => 0.18,
+        //     'feeValue' => '0.0113766632239302',
+        //     'filledAmount' => '30.14004987',
+        //     'filledRate' => 0.2097,
+        //     'initialAmount' => '30.14004987',
+        //     'initialRate' => '0.2097',
+        //     'left' => 0,
+        //     'orderNumber' => '998307286',
+        //     'rate' => '0.2097',
+        //     'status' => 'closed',
+        //     'timestamp' => 1531158583,
+        //     'type' => 'sell'),
+        //
         $id = $this->safe_string($order, 'orderNumber');
         $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
@@ -416,6 +434,7 @@ class gateio extends Exchange {
         }
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
+        $feeRate = $this->safe_float($order, 'feePercentage');
         if ($feeCurrency !== null) {
             if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
@@ -438,6 +457,7 @@ class gateio extends Exchange {
             'fee' => array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
+                'rate' => $feeRate,
             ),
             'info' => $order,
         );
