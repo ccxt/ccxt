@@ -672,8 +672,7 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if (!price)
-            price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'price', price);
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('fee' in order) {
