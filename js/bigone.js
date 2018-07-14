@@ -20,6 +20,7 @@ module.exports = class bigone extends Exchange {
                 'fetchMyTrades': true,
                 'fetchDepositAddress': true,
                 'withdraw': true,
+                'fetchOHLCV': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
@@ -32,6 +33,7 @@ module.exports = class bigone extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'ping', // timestamp in nanoseconds
                         'markets',
                         'markets/{symbol}/depth',
                         'markets/{symbol}/trades',
@@ -44,8 +46,8 @@ module.exports = class bigone extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'accounts',
-                        'accounts/{currency}',
+                        'viewer/accounts',
+                        // 'accounts/{currency}',
                         'withdrawals',
                         'deposits',
                     ],
@@ -321,20 +323,42 @@ module.exports = class bigone extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccounts (params);
+        let response = await this.privateGetViewerAccounts (params);
+        //
+        //     { data: [ { locked_balance: "0",
+        //                        balance: "0",
+        //                     asset_uuid: "04479958-d7bb-40e4-b153-48bd63f2f77f",
+        //                       asset_id: "NKC"                                   },
+        //               { locked_balance: "0",
+        //                        balance: "0",
+        //                     asset_uuid: "04c8da0e-44fd-4d71-aeb0-8f4d54a4a907",
+        //                       asset_id: "UBTC"                                  },
+        //               { locked_balance: "0",
+        //                        balance: "0",
+        //                     asset_uuid: "05bc0d34-4809-4a39-a3c8-3a1851c8d224",
+        //                       asset_id: "READ"                                  },
+        //
         let result = { 'info': response };
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let id = balance['account_type'];
-            let currency = this.commonCurrencyCode (id);
+            let currencyId = balance['asset_id'];
+            let code = this.commonCurrencyCode (currencyId);
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            }
+            let total = this.safeFloat (balance, 'balance');
+            let used = this.safeFloat (balance, 'locked_balance');
+            let free = undefined;
+            if (typeof total != 'undefined' && typeof used !== 'undefined') {
+                free = total - used;
+            }
             let account = {
-                'free': parseFloat (balance['active_balance']),
-                'used': parseFloat (balance['frozen_balance']),
-                'total': 0.0,
+                'free': free,
+                'used': used,
+                'total': total,
             };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -481,9 +505,15 @@ module.exports = class bigone extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
+            let nonce = this.nonce () * 1000000000;
+            let request = {
+                'type': 'OpenAPI',
+                'sub': this.apiKey,
+                'nonce': nonce,
+            };
+            let jwt = this.jwt (request, this.secret);
             headers = {
-                'Authorization': 'Bearer ' + this.secret,
-                'Big-Device-Id': this.apiKey,
+                'Authorization': 'Bearer ' + jwt,
             };
             if (method === 'GET') {
                 if (Object.keys (query).length)
