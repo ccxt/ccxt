@@ -20,6 +20,7 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
