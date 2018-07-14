@@ -69,6 +69,7 @@ class binance extends Exchange {
                 'web' => array (
                     'get' => array (
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ),
                 ),
                 'wapi' => array (
@@ -723,7 +724,7 @@ class binance extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -740,7 +741,7 @@ class binance extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol param');
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (

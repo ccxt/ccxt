@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class okcoinusd (Exchange):
@@ -138,16 +139,25 @@ class okcoinusd (Exchange):
                 },
             },
             'exceptions': {
-                '1009': OrderNotFound,  # for spot markets, cancelling closed order
-                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
-                '1019': OrderNotFound,  # order closed?
-                '20015': OrderNotFound,  # for future markets
+                # see https://github.com/okcoin-okex/API-docs-OKEx.com/blob/master/API-For-Spot-EN/Error%20Code%20For%20Spot.md
+                '10000': ExchangeError,  # "Required field, can not be null"
+                '10001': DDoSProtection,  # "Request frequency too high to exceed the limit allowed"
+                '10005': AuthenticationError,  # "'SecretKey' does not exist"
+                '10006': AuthenticationError,  # "'Api_key' does not exist"
+                '10007': AuthenticationError,  # "Signature does not match"
+                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
+                '1003': InvalidOrder,  # "The transaction amount is less than the minimum requirement"
+                '1004': InvalidOrder,  # "The transaction amount is less than 0"
                 '1013': InvalidOrder,  # no contract type(PR-1101)
                 '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
                 '1050': InvalidOrder,  # returned when trying to cancel an order that was filled or canceled previously
-                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
-                '10005': AuthenticationError,  # bad apiKey
+                '1217': InvalidOrder,  # "Order was sent at ±5% of the current market price. Please resend"
+                '10014': InvalidOrder,  # "Order price must be between 0 and 1,000,000"
+                '1009': OrderNotFound,  # for spot markets, cancelling closed order
+                '1019': OrderNotFound,  # order closed?("Undo order failed")
+                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
+                '10009': OrderNotFound,  # for spot markets, "Order does not exist"
+                '20015': OrderNotFound,  # for future markets
                 '10008': ExchangeError,  # Illegal URL parameter
             },
             'options': {

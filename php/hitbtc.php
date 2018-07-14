@@ -771,16 +771,13 @@ class hitbtc extends Exchange {
         $status = $this->safe_string($order, 'orderStatus');
         if ($status)
             $status = $this->parse_order_status($status);
-        $averagePrice = $this->safe_float($order, 'avgPrice', 0.0);
         $price = $this->safe_float($order, 'orderPrice');
-        if ($price === null)
-            $price = $this->safe_float($order, 'price');
+        $price = $this->safe_float($order, 'price', $price);
+        $price = $this->safe_float($order, 'avgPrice', $price);
         $amount = $this->safe_float($order, 'orderQuantity');
-        if ($amount === null)
-            $amount = $this->safe_float($order, 'quantity');
+        $amount = $this->safe_float($order, 'quantity', $amount);
         $remaining = $this->safe_float($order, 'quantityLeaves');
-        if ($remaining === null)
-            $remaining = $this->safe_float($order, 'leavesQuantity');
+        $remaining = $this->safe_float($order, 'leavesQuantity', $remaining);
         $filled = null;
         $cost = null;
         $amountDefined = ($amount !== null);
@@ -799,7 +796,7 @@ class hitbtc extends Exchange {
         if ($amountDefined) {
             if ($remainingDefined) {
                 $filled = $amount - $remaining;
-                $cost = $averagePrice * $filled;
+                $cost = $price * $filled;
             }
         }
         $feeCost = $this->safe_float($order, 'fee');

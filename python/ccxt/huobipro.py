@@ -128,6 +128,7 @@ class huobipro (Exchange):
             },
             'exceptions': {
                 'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
@@ -208,6 +209,8 @@ class huobipro (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'active': True,
                 'precision': precision,

@@ -9,7 +9,7 @@ const { ExchangeError } = require ('./base/errors');
 
 module.exports = class btctradeim extends coinegg {
     describe () {
-        return this.deepExtend (super.describe (), {
+        let result = this.deepExtend (super.describe (), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
             'countries': [ 'HK' ],
@@ -34,10 +34,15 @@ module.exports = class btctradeim extends coinegg {
                     },
                 },
             },
-            'options': {
-                'quoteIds': [ 'btc', 'eth', 'usc' ],
-            },
+            // see the fix below
+            //     'options': {
+            //         'quoteIds': [ 'btc', 'eth', 'usc' ],
+            //     },
         });
+        // a fix for PHP array_merge not overwriting "lists" (integer-indexed arrays)
+        // https://github.com/ccxt/ccxt/issues/3343
+        result['options']['quoteIds'] = [ 'btc', 'eth', 'usc' ];
+        return result;
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -140,7 +140,7 @@ At first, all language-specific versions were developed in parallel, but separat
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
-- `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async subpackage
+- `./python/async/__init__.py` for the Python 3.5.3+ ccxt.async_support subpackage
 - `./ccxt.js` for the Node.js npm package
 - `./build/ccxt.browser.js` for the browser bundle
 - `./ccxt.php` for PHP

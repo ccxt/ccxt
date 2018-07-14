@@ -38,12 +38,13 @@ function vss (filename, regex, replacement) {
 
 //-----------------------------------------------------------------------------
 
-vss ('./php/Exchange.php',                   /\$version \= \'[^\']+\'/, "$version = '")
-vss ('./ccxt.js',                            /const version \= \'[^\']+\'/, "const version = '")
-vss ('./python/ccxt/__init__.py',            /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/async/__init__.py',      /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/base/exchange.py',       /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
-vss ('./python/ccxt/async/base/exchange.py', /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./php/Exchange.php',                           /\$version \= \'[^\']+\'/, "$version = '")
+vss ('./php/Exchange.php',                           /VERSION \= \'[^\']+\'/, "VERSION = '")
+vss ('./ccxt.js',                                    /const version \= \'[^\']+\'/, "const version = '")
+vss ('./python/ccxt/__init__.py',                    /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./python/ccxt/async_support/__init__.py',      /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./python/ccxt/base/exchange.py',               /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
+vss ('./python/ccxt/async_support/base/exchange.py', /\_\_version\_\_ \= \'[^\']+\'/, "__version__ = '")
 
 //-----------------------------------------------------------------------------
 

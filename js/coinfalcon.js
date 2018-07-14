@@ -24,6 +24,7 @@ module.exports = class coinfalcon extends Exchange {
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
@@ -204,14 +205,18 @@ module.exports = class coinfalcon extends Exchange {
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currencyId = balance['currency'];
-            let currency = this.commonCurrencyCode (currencyId);
+            let currencyId = this.safeString (balance, 'currency_code');
+            let uppercase = currencyId.toUpperCase ();
+            let code = this.commonCurrencyCode (uppercase);
+            if (uppercase in this.currencies_by_id) {
+                code = this.currencies_by_id[uppercase]['code'];
+            }
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['hold']),
+                'free': parseFloat (balance['available_balance']),
+                'used': parseFloat (balance['hold_balance']),
                 'total': parseFloat (balance['balance']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -309,17 +314,17 @@ module.exports = class coinfalcon extends Exchange {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            query = this.urlencode (query);
-            if (query.length)
-                url += '?' + query;
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
-                url += '?' + this.urlencode (query);
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);
             }
-            let seconds = this.seconds ();
+            let seconds = this.seconds ().toString ();
             let requestPath = url.split ('/');
             requestPath = requestPath.slice (3);
             requestPath = '/' + requestPath.join ('/');

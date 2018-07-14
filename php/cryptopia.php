@@ -41,9 +41,8 @@ class cryptopia extends Exchange {
                 'www' => 'https://www.cryptopia.co.nz',
                 'referral' => 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc' => array (
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ),
             ),
             'timeframes' => array (
@@ -98,6 +97,7 @@ class cryptopia extends Exchange {
             'commonCurrencies' => array (
                 'ACC' => 'AdCoin',
                 'BAT' => 'BatCoin',
+                'BEAN' => 'BITB', // rebranding, see issue #3380
                 'BLZ' => 'BlazeCoin',
                 'BTG' => 'Bitgem',
                 'CAN' => 'CanYa',
@@ -571,7 +571,7 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->safe_integer($order, 'TimeStamp');
+        $timestamp = $this->parse8601 ($order, 'TimeStamp');
         $datetime = null;
         if ($timestamp) {
             $datetime = $this->iso8601 ($timestamp);
@@ -769,6 +769,9 @@ class cryptopia extends Exchange {
                         $feedback = $this->id;
                         if (gettype ($error) === 'string') {
                             $feedback = $feedback . ' ' . $error;
+                            if (mb_strpos ($error, 'Invalid trade amount') !== false) {
+                                throw new InvalidOrder ($feedback);
+                            }
                             if (mb_strpos ($error, 'does not exist') !== false) {
                                 throw new OrderNotFound ($feedback);
                             }

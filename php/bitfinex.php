@@ -245,6 +245,7 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'ATM' => 'Atonomi', // issue #3383
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
                 'CTX' => 'CTXC',
@@ -253,6 +254,7 @@ class bitfinex extends Exchange {
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
                 'MNA' => 'MANA',
+                'ORS' => 'ORS Group', // conflict with Origin Sport #3230
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
                 'SNG' => 'SNGLS',

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.15.31'
+__version__ = '1.16.15'
 
 # ----------------------------------------------------------------------------
 
@@ -87,6 +87,7 @@ from ccxt.bitz import bitz                                  # noqa: F401
 from ccxt.bl3p import bl3p                                  # noqa: F401
 from ccxt.bleutrade import bleutrade                        # noqa: F401
 from ccxt.braziliex import braziliex                        # noqa: F401
+from ccxt.btcalpha import btcalpha                          # noqa: F401
 from ccxt.btcbox import btcbox                              # noqa: F401
 from ccxt.btcchina import btcchina                          # noqa: F401
 from ccxt.btcexchange import btcexchange                    # noqa: F401
@@ -167,6 +168,7 @@ from ccxt.poloniex import poloniex                          # noqa: F401
 from ccxt.qryptos import qryptos                            # noqa: F401
 from ccxt.quadrigacx import quadrigacx                      # noqa: F401
 from ccxt.quoinex import quoinex                            # noqa: F401
+from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
@@ -212,6 +214,7 @@ exchanges = [
     'bl3p',
     'bleutrade',
     'braziliex',
+    'btcalpha',
     'btcbox',
     'btcchina',
     'btcexchange',
@@ -292,6 +295,7 @@ exchanges = [
     'qryptos',
     'quadrigacx',
     'quoinex',
+    'rightbtc',
     'southxchange',
     'surbitcoin',
     'therock',

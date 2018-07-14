@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.15.31';
+$version = '1.16.15';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -45,6 +45,8 @@ const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
 class Exchange {
+
+    const VERSION = '1.16.15';
 
     public static $exchanges = array (
         '_1broker',
@@ -75,6 +77,7 @@ class Exchange {
         'bl3p',
         'bleutrade',
         'braziliex',
+        'btcalpha',
         'btcbox',
         'btcchina',
         'btcexchange',
@@ -155,6 +158,7 @@ class Exchange {
         'qryptos',
         'quadrigacx',
         'quoinex',
+        'rightbtc',
         'southxchange',
         'surbitcoin',
         'therock',
@@ -665,7 +669,7 @@ class Exchange {
         $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
-        $this->userAgent   = null; // 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->userAgents = array (
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
