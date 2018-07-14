@@ -571,7 +571,7 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->parse8601 ($order, 'TimeStamp');
+        $timestamp = $this->parse8601 ($order['TimeStamp']);
         $datetime = null;
         if ($timestamp) {
             $datetime = $this->iso8601 ($timestamp);
