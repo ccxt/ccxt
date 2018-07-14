@@ -761,7 +761,7 @@ class poloniex extends Exchange {
         return (is_array ($indexed) && array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,

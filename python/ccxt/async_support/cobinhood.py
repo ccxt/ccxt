@@ -487,7 +487,7 @@ class cobinhood (Exchange):
             return self.filter_by_symbol(orders, symbol)
         return orders
 
-    async def fetch_order_trades(self, id, symbol=None, params={}):
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         response = await self.privateGetTradingOrdersOrderIdTrades(self.extend({
             'order_id': id,

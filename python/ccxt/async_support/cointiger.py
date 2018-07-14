@@ -36,9 +36,10 @@ class cointiger (huobipro):
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
-                'fetchOrder': True,
+                'fetchOrder': False,  # not tested yet
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': False,  # not tested yet
             },
             'headers': {
                 'Language': 'en_US',
@@ -271,6 +272,19 @@ class cointiger (huobipro):
 
     def parse_trade(self, trade, market=None):
         #
+        #   {     volume: "0.014",
+        #          symbol: "ethbtc",
+        #         buy_fee: "0.00001400",
+        #         orderId:  32235710,
+        #           price: "0.06923825",
+        #         created:  1531605169000,
+        #              id:  3785005,
+        #          source:  1,
+        #            type: "buy-limit",
+        #     bid_user_id:  326317         }]}
+        #
+        # --------------------------------------------------------------------
+        #
         #     {
         #         "volume": {
         #             "amount": "1.000",
@@ -291,26 +305,43 @@ class cointiger (huobipro):
         #         "id": 138
         #     }
         #
-        side = self.safe_string(trade, 'side')
+        orderType = self.safe_string(trade, 'type')
+        type = None
+        side = None
+        if orderType is not None:
+            parts = orderType.split('-')
+            side = parts[0]
+            type = parts[1]
+        side = self.safe_string(trade, 'side', side)
         amount = None
         price = None
         cost = None
-        if side is not None:
-            side = side.lower()
-            price = self.safe_float(trade, 'price')
-            amount = self.safe_float(trade, 'amount')
-        else:
+        if side is None:
             price = self.safe_float(trade['price'], 'amount')
             amount = self.safe_float(trade['volume'], 'amount')
             cost = self.safe_float(trade['deal_price'], 'amount')
+        else:
+            side = side.lower()
+            price = self.safe_float(trade, 'price')
+            amount = self.safe_float_2(trade, 'amount', 'volume')
+        fee = None
+        if side is not None:
+            feeCostField = side + '_fee'
+            feeCost = self.safe_float(trade, feeCostField)
+            if feeCost is not None:
+                feeCurrency = None
+                if market is not None:
+                    feeCurrency = market['base']
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
         if amount is not None:
             if price is not None:
                 if cost is None:
                     cost = amount * price
-        timestamp = self.safe_value(trade, 'created_at')
-        if timestamp is None:
-            timestamp = self.safe_value(trade, 'ts')
-        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
+        timestamp = self.safe_integer_2(trade, 'created_at', 'ts')
+        timestamp = self.safe_integer(trade, 'created', timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -319,14 +350,14 @@ class cointiger (huobipro):
             'id': str(trade['id']),
             'order': None,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=1000, params={}):
@@ -399,6 +430,34 @@ class cointiger (huobipro):
             account['total'] = self.sum(account['used'], account['free'])
             result[code] = account
         return self.parse_balance(result)
+
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrderTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'order_id': id,
+        }
+        response = await self.v2GetOrderMakeDetail(self.extend(request, params))
+        #
+        # the above endpoint often returns an empty array
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: [{     volume: "0.014",
+        #                      symbol: "ethbtc",
+        #                     buy_fee: "0.00001400",
+        #                     orderId:  32235710,
+        #                       price: "0.06923825",
+        #                     created:  1531605169000,
+        #                          id:  3785005,
+        #                      source:  1,
+        #                        type: "buy-limit",
+        #                 bid_user_id:  326317         }]}
+        #
+        return self.parse_trades(response['data'], market, since, limit)
 
     async def fetch_orders_by_status(self, status=None, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -508,7 +567,8 @@ class cointiger (huobipro):
         #
         id = self.safe_string(order, 'id')
         side = self.safe_string(order, 'side')
-        type = self.safe_string(order, 'type')
+        type = None
+        orderType = self.safe_string(order, 'type')
         status = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'created_at')
         timestamp = self.safe_integer(order, 'ctime', timestamp)
@@ -535,14 +595,14 @@ class cointiger (huobipro):
             if price is None:
                 price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
         else:
-            if type is not None:
-                parts = type.split('-')
+            if orderType is not None:
+                parts = orderType.split('-')
                 side = parts[0]
                 type = parts[1]
                 cost = self.safe_float(order, 'deal_money')
                 price = self.safe_float(order, 'price')
                 price = self.safe_float(order, 'avg_price', price)
-                amount = self.safe_float(order, 'amount')
+                amount = self.safe_float_2(order, 'amount', 'volume')
                 filled = self.safe_float(order, 'deal_volume')
                 feeCost = self.safe_float(order, 'fee')
                 if feeCost is not None:

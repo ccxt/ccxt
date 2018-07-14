@@ -712,7 +712,7 @@ class poloniex (Exchange):
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 
-    async def fetch_order_trades(self, id, symbol=None, params={}):
+    async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         trades = await self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
