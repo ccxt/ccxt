@@ -319,9 +319,9 @@ class gateio (Exchange):
             timestamp *= 1000
         id = self.safe_string(trade, 'tradeID')
         id = self.safe_string(trade, 'id', id)
+        # take either of orderid or orderId
         orderId = self.safe_string(trade, 'orderid')
-        if orderId is not None:
-            orderId = self.safe_string(trade, 'orderNumber')
+        orderId = self.safe_string(trade, 'orderNumber', orderId)
         price = self.safe_float(trade, 'rate')
         amount = self.safe_float(trade, 'amount')
         cost = None
