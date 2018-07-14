@@ -14,8 +14,7 @@ const isNumber          = Number.isFinite
 const hasProps = o => (o !== undefined) &&
                       (o !== null)
 
-    , prop = (o, k) => isObject (o) ? o[k]
-                                    : undefined
+    , prop = (o, k) => isObject (o) ? o[k] : undefined
 
 /*  .............................................   */
 
@@ -38,7 +37,7 @@ module.exports =
 
     , asFloat
     , asInteger
-    
+
     , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
