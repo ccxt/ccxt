@@ -12,7 +12,7 @@ module.exports = class theocean extends Exchange {
             'rateLimit': 3000,
             'version': 'v0',
             'userAgent': this.userAgents['chrome'],
-            // todo: add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
+            // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
                 '15m': '900',
@@ -382,9 +382,7 @@ module.exports = class theocean extends Exchange {
         let timestamp = parseInt (trade['lastUpdated']) * 1000;
         let price = this.safeFloat (trade, 'price');
         let orderId = this.safeString (trade, 'transactionHash');
-        let id = undefined;
-        let parts = trade['id'].split ('_');
-        id = parts[1];
+        let id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
@@ -510,35 +508,59 @@ module.exports = class theocean extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
-        let status = this.safeString (order, 'status');
-        if (status !== 'undefined')
-            status = this.parseOrderStatus (status);
-        let timestamp = parseInt (order['timestamp_created']) * 1000;
+        //
+        //     {
+        //       "baseTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //       "quoteTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //       "side": "buy",
+        //       "amount": "10000000000000000000",
+        //       "price": "1.000",
+        //       "created": "1512929327792",
+        //       "expires": "1512929897118",
+        //       "zeroExOrder": {
+        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
+        //         "maker": "0x006dc83e5b21854d4afc44c9b92a91e0349dda13",
+        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //         "makerTokenAmount": "10000000000000000000",
+        //         "takerTokenAmount": "10000000000000000000",
+        //         "makerFee": "0",
+        //         "takerFee": "0",
+        //         "expirationUnixTimestampSec": "525600",
+        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
+        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //         "ecSignature": {
+        //           "v": 28,
+        //           "r": "0x5307b6a69e7cba8583e1de39efb93a9ae1afc11849e79d99f462e49c18c4d6e4",
+        //           "s": "0x5950e82364227ccca95c70b47375e8911a2039d3040ba0684329634ebdced160"
+        //         }
+        //       }
+        //     }
+        //
+        let zeroExOrder = this.safeValue (order, 'zeroExOrder');
+        let id = zeroExOrder['orderHash'].toString ();
+        let side = this.safeString (order, 'side');
+        let timestamp = parseInt (order['created']) * 1000;
+        let amount = this.safeFloat (order, 'amount');
+        let price = this.safeFloat (order, 'price');
         let symbol = undefined;
-        if (!market)
-            market = this.markets_by_id[order['pair']];
-        if (market)
-            symbol = market['symbol'];
-        let remaining = undefined;
-        let amount = undefined;
-        let price = this.safeFloat (order, 'rate');
-        let filled = undefined;
-        let cost = undefined;
-        if ('start_amount' in order) {
-            amount = this.safeFloat (order, 'start_amount');
-            remaining = this.safeFloat (order, 'amount');
-        } else {
-            remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders)
-                amount = this.orders[id]['amount'];
-        }
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
-                filled = amount - remaining;
-                cost = price * filled;
+        if (typeof market === 'undefined') {
+            let baseId = this.safeString (order, 'baseTokenAddress');
+            let quoteId = this.safeString (order, 'quoteTokenAddress');
+            let marketId = baseId + '/' + quoteId;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             }
         }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let status = undefined;
+        let remaining = undefined;
+        let filled = undefined;
+        let cost = undefined;
         let fee = undefined;
         let result = {
             'info': order,
@@ -548,7 +570,7 @@ module.exports = class theocean extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -556,6 +578,7 @@ module.exports = class theocean extends Exchange {
             'filled': filled,
             'status': status,
             'fee': fee,
+            'trades': undefined,
         };
         return result;
     }
@@ -597,125 +620,7 @@ module.exports = class theocean extends Exchange {
         //       }
         //     }
         //
-        return this.parseOrder (response, market);
-    }
-
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        // this will add unseen orders and overwrite existing ones
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        let cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            let cachedOrderId = cachedOrderIds[k];
-            let cachedOrder = this.orders[cachedOrderId];
-            if (!(cachedOrderId in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (typeof symbol !== 'undefined' && symbol !== cachedOrder['symbol'])
-                    continue;
-                // cached order is absent from the list of open orders -> mark the cached order as closed
-                if (cachedOrder['status'] === 'open') {
-                    cachedOrder = this.extend (cachedOrder, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (typeof cachedOrder['cost'] === 'undefined') {
-                        if (typeof cachedOrder['filled'] !== 'undefined')
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
-                    }
-                    this.orders[cachedOrderId] = cachedOrder;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (typeof symbol === 'undefined')
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            let market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privatePostActiveOrders (this.extend (request, params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
-        let openOrders = [];
-        if ('return' in response)
-            openOrders = this.parseOrders (response['return'], market);
-        let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'open');
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {
-            // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
-            // 'count': 1000, // the number of trades for display numerical, default = 1000
-            // 'from_id': trade ID, from which the display starts numerical 0
-            // 'end_id': trade ID on which the display ends numerical ∞
-            // 'order': 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
-            // 'since': 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
-            // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
-            // 'pair': 'eth_btc', // default = all markets
-        };
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        if (typeof limit !== 'undefined')
-            request['count'] = parseInt (limit);
-        if (typeof since !== 'undefined')
-            request['since'] = parseInt (since / 1000);
-        let response = await this.privatePostTradeHistory (this.extend (request, params));
-        let trades = [];
-        if ('return' in response)
-            trades = response['return'];
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
-            'amount': parseFloat (amount),
-            'address': address,
-        }, params));
-        return {
-            'info': response,
-            'id': response['return']['tId'],
-        };
-    }
-
-    signBodyWithSecret (body) {
-        return this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
+        return this.parseOrder (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
