@@ -300,6 +300,8 @@ module.exports = class cointiger extends huobipro {
         //         "id": 138
         //     }
         //
+        let id = this.safeString (trade, 'id');
+        let orderId = this.safeString (trade, 'orderId');
         let orderType = this.safeString (trade, 'type');
         let type = undefined;
         let side = undefined;
@@ -347,8 +349,8 @@ module.exports = class cointiger extends huobipro {
             symbol = market['symbol'];
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
