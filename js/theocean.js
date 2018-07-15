@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -63,14 +63,8 @@ module.exports = class theocean extends Exchange {
                 },
             },
             'exceptions': {
-                '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                "Schema validation failed for 'query'": ExchangeError, // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+                "Logic validation failed for 'query'": ExchangeError, // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
             },
         });
     }
