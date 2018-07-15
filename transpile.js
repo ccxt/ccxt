@@ -689,8 +689,11 @@ function transpileDerivedExchangeFile (folder, filename) {
 
 function transpileDerivedExchangeFiles (folder, pattern = '.js') {
 
+    // exchanges.json accounts for ids included in exchanges.cfg
+    const ids = require ('./exchanges.json').ids;
+
     const classNames = fs.readdirSync (folder)
-        .filter (file => file.includes (pattern))
+        .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))
         .map (file => transpileDerivedExchangeFile (folder, file))
 
     if (classNames.length === 0)
