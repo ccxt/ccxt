@@ -194,7 +194,7 @@ class exmo (Exchange):
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = ','.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
@@ -519,19 +519,19 @@ class exmo (Exchange):
         self.load_markets()
         response = self.privatePostDepositAddress(params)
         depositAddress = self.safe_string(response, code)
-        status = 'ok'
         address = None
         tag = None
         if depositAddress:
             addressAndTag = depositAddress.split(',')
             address = addressAndTag[0]
-            tag = addressAndTag[1]
+            numParts = len(addressAndTag)
+            if numParts > 1:
+                tag = addressAndTag[1]
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         }
 

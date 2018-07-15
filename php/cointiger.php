@@ -13,12 +13,16 @@ class cointiger extends huobipro {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cointiger',
             'name' => 'CoinTiger',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'hostname' => 'api.cointiger.pro',
             'has' => array (
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
-                'fetchOrder' => false,
+                'fetchTradingLimits' => false,
+                'fetchOrder' => false, // not tested yet
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
+                'fetchOrderTrades' => false, // not tested yet
             ),
             'headers' => array (
                 'Language' => 'en_US',
@@ -29,12 +33,32 @@ class cointiger extends huobipro {
                     'public' => 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private' => 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange' => 'https://www.cointiger.pro/exchange',
+                    'v2public' => 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2' => 'https://api.cointiger.com/exchange/trading/api/v2',
                 ),
                 'www' => 'https://www.cointiger.pro',
                 'referral' => 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
                 'doc' => 'https://github.com/cointiger/api-docs-en/wiki',
             ),
             'api' => array (
+                'v2public' => array (
+                    'get' => array (
+                        'timestamp',
+                        'currencys',
+                    ),
+                ),
+                'v2' => array (
+                    'get' => array (
+                        'order/orders',
+                        'order/match_results',
+                        'order/make_detail',
+                        'order/details',
+                    ),
+                    'post' => array (
+                        'order',
+                        'order/batchcancel',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'history/kline', // 获取K线数据
@@ -67,133 +91,96 @@ class cointiger extends huobipro {
                 ),
             ),
             'exceptions' => array (
-                '1' => '\\ccxt\\InsufficientFunds',
+                //    array ("code":"1","msg":"系统错误","data":null)
+                //    array (“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                '1' => '\\ccxt\\ExchangeError',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',
+                '6' => '\\ccxt\\InvalidOrder',
+                '8' => '\\ccxt\\OrderNotFound',
                 '16' => '\\ccxt\\AuthenticationError', // funding password not set
                 '100001' => '\\ccxt\\ExchangeError',
                 '100002' => '\\ccxt\\ExchangeNotAvailable',
                 '100003' => '\\ccxt\\ExchangeError',
                 '100005' => '\\ccxt\\AuthenticationError',
             ),
-            'markets' => array (
-                'AAC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 1, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'aacbtc', 'uppercaseId' => 'AACBTC', 'symbol' => 'AAC/BTC', 'base' => 'AAC', 'quote' => 'BTC', 'baseId' => 'aac', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'AFC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'afcbtc', 'uppercaseId' => 'AFCBTC', 'symbol' => 'AFC/BTC', 'base' => 'AFC', 'quote' => 'BTC', 'baseId' => 'afc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'AVH/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'avhbtc', 'uppercaseId' => 'AVHBTC', 'symbol' => 'AVH/BTC', 'base' => 'AVH', 'quote' => 'BTC', 'baseId' => 'avh', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BAI/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'baieth', 'uppercaseId' => 'BAIETH', 'symbol' => 'BAI/ETH', 'base' => 'BAI', 'quote' => 'ETH', 'baseId' => 'bai', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'BCH/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 3, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'bchbtc', 'uppercaseId' => 'BCHBTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BKBT/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'bkbtbtc', 'uppercaseId' => 'BKBTBTC', 'symbol' => 'BKBT/BTC', 'base' => 'BKBT', 'quote' => 'BTC', 'baseId' => 'bkbt', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BKBT/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'bkbteth', 'uppercaseId' => 'BKBTETH', 'symbol' => 'BKBT/ETH', 'base' => 'BKBT', 'quote' => 'ETH', 'baseId' => 'bkbt', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'BPTN/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 100, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'bptnbtc', 'uppercaseId' => 'BPTNBTC', 'symbol' => 'BPTN/BTC', 'base' => 'BPTN', 'quote' => 'BTC', 'baseId' => 'bptn', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BTC/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 4, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btcbitcny', 'uppercaseId' => 'BTCBITCNY', 'symbol' => 'BTC/BitCNY', 'base' => 'BTC', 'quote' => 'BitCNY', 'baseId' => 'btc', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'BTM/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btmbtc', 'uppercaseId' => 'BTMBTC', 'symbol' => 'BTM/BTC', 'base' => 'BTM', 'quote' => 'BTC', 'baseId' => 'btm', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BTM/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btmeth', 'uppercaseId' => 'BTMETH', 'symbol' => 'BTM/ETH', 'base' => 'BTM', 'quote' => 'ETH', 'baseId' => 'btm', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'BTS/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 3 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btsbitcny', 'uppercaseId' => 'BTSBITCNY', 'symbol' => 'BTS/BitCNY', 'base' => 'BTS', 'quote' => 'BitCNY', 'baseId' => 'bts', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'BTS/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btsbtc', 'uppercaseId' => 'BTSBTC', 'symbol' => 'BTS/BTC', 'base' => 'BTS', 'quote' => 'BTC', 'baseId' => 'bts', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'BTS/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'btseth', 'uppercaseId' => 'BTSETH', 'symbol' => 'BTS/ETH', 'base' => 'BTS', 'quote' => 'ETH', 'baseId' => 'bts', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'CTXC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ctxcbtc', 'uppercaseId' => 'CTXCBTC', 'symbol' => 'CTXC/BTC', 'base' => 'CTXC', 'quote' => 'BTC', 'baseId' => 'ctxc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'CTXC/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ctxceth', 'uppercaseId' => 'CTXCETH', 'symbol' => 'CTXC/ETH', 'base' => 'CTXC', 'quote' => 'ETH', 'baseId' => 'ctxc', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'ELF/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'elfbtc', 'uppercaseId' => 'ELFBTC', 'symbol' => 'ELF/BTC', 'base' => 'ELF', 'quote' => 'BTC', 'baseId' => 'elf', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'EOS/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'eosbtc', 'uppercaseId' => 'EOSBTC', 'symbol' => 'EOS/BTC', 'base' => 'EOS', 'quote' => 'BTC', 'baseId' => 'eos', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'EOS/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'eoseth', 'uppercaseId' => 'EOSETH', 'symbol' => 'EOS/ETH', 'base' => 'EOS', 'quote' => 'ETH', 'baseId' => 'eos', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'ETC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'etcbtc', 'uppercaseId' => 'ETCBTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'baseId' => 'etc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'ETH/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ethbitcny', 'uppercaseId' => 'ETHBITCNY', 'symbol' => 'ETH/BitCNY', 'base' => 'ETH', 'quote' => 'BitCNY', 'baseId' => 'eth', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'ETH/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 3, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ethbtc', 'uppercaseId' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'GTO/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'gtobitcny', 'uppercaseId' => 'GTOBITCNY', 'symbol' => 'GTO/BitCNY', 'base' => 'GTO', 'quote' => 'BitCNY', 'baseId' => 'gto', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'GUS/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'gusbtc', 'uppercaseId' => 'GUSBTC', 'symbol' => 'GUS/BTC', 'base' => 'GUS', 'quote' => 'BTC', 'baseId' => 'gus', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'ICX/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'icxbtc', 'uppercaseId' => 'ICXBTC', 'symbol' => 'ICX/BTC', 'base' => 'ICX', 'quote' => 'BTC', 'baseId' => 'icx', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'INC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 5, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'incbtc', 'uppercaseId' => 'INCBTC', 'symbol' => 'INC/BTC', 'base' => 'INC', 'quote' => 'BTC', 'baseId' => 'inc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'INC/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 5, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'inceth', 'uppercaseId' => 'INCETH', 'symbol' => 'INC/ETH', 'base' => 'INC', 'quote' => 'ETH', 'baseId' => 'inc', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'KKG/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'kkgbtc', 'uppercaseId' => 'KKGBTC', 'symbol' => 'KKG/BTC', 'base' => 'KKG', 'quote' => 'BTC', 'baseId' => 'kkg', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'KKG/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'kkgeth', 'uppercaseId' => 'KKGETH', 'symbol' => 'KKG/ETH', 'base' => 'KKG', 'quote' => 'ETH', 'baseId' => 'kkg', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'LTC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ltcbtc', 'uppercaseId' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'MEX/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 100, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'mexbtc', 'uppercaseId' => 'MEXBTC', 'symbol' => 'MEX/BTC', 'base' => 'MEX', 'quote' => 'BTC', 'baseId' => 'mex', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'MT/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'mtbtc', 'uppercaseId' => 'MTBTC', 'symbol' => 'MT/BTC', 'base' => 'MT', 'quote' => 'BTC', 'baseId' => 'mt', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'MT/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'mteth', 'uppercaseId' => 'MTETH', 'symbol' => 'MT/ETH', 'base' => 'MT', 'quote' => 'ETH', 'baseId' => 'mt', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'OCN/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 3 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ocnbitcny', 'uppercaseId' => 'OCNBITCNY', 'symbol' => 'OCN/BitCNY', 'base' => 'OCN', 'quote' => 'BitCNY', 'baseId' => 'ocn', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'OCN/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'ocnbtc', 'uppercaseId' => 'OCNBTC', 'symbol' => 'OCN/BTC', 'base' => 'OCN', 'quote' => 'BTC', 'baseId' => 'ocn', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'OLE/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'olebtc', 'uppercaseId' => 'OLEBTC', 'symbol' => 'OLE/BTC', 'base' => 'OLE', 'quote' => 'BTC', 'baseId' => 'ole', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'OLE/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'oleeth', 'uppercaseId' => 'OLEETH', 'symbol' => 'OLE/ETH', 'base' => 'OLE', 'quote' => 'ETH', 'baseId' => 'ole', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'OMG/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'omgbtc', 'uppercaseId' => 'OMGBTC', 'symbol' => 'OMG/BTC', 'base' => 'OMG', 'quote' => 'BTC', 'baseId' => 'omg', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'REP/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'repbtc', 'uppercaseId' => 'REPBTC', 'symbol' => 'REP/BTC', 'base' => 'REP', 'quote' => 'BTC', 'baseId' => 'rep', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'SDA/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'sdabtc', 'uppercaseId' => 'SDABTC', 'symbol' => 'SDA/BTC', 'base' => 'SDA', 'quote' => 'BTC', 'baseId' => 'sda', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'SDA/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'sdaeth', 'uppercaseId' => 'SDAETH', 'symbol' => 'SDA/ETH', 'base' => 'SDA', 'quote' => 'ETH', 'baseId' => 'sda', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'SNT/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'sntbtc', 'uppercaseId' => 'SNTBTC', 'symbol' => 'SNT/BTC', 'base' => 'SNT', 'quote' => 'BTC', 'baseId' => 'snt', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'SOC/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 1, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'socbtc', 'uppercaseId' => 'SOCBTC', 'symbol' => 'SOC/BTC', 'base' => 'SOC', 'quote' => 'BTC', 'baseId' => 'soc', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'SPH/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 100, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'sphbtc', 'uppercaseId' => 'SPHBTC', 'symbol' => 'SPH/BTC', 'base' => 'SPH', 'quote' => 'BTC', 'baseId' => 'sph', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'STORJ/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'storjbtc', 'uppercaseId' => 'STORJBTC', 'symbol' => 'STORJ/BTC', 'base' => 'STORJ', 'quote' => 'BTC', 'baseId' => 'storj', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'TCH/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ), 'price' => array ( 'min' => 0.001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 1, 'price' => 3 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'tchbitcny', 'uppercaseId' => 'TCHBITCNY', 'symbol' => 'TCH/BitCNY', 'base' => 'TCH', 'quote' => 'BitCNY', 'baseId' => 'tch', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'TCH/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 1, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'tchbtc', 'uppercaseId' => 'TCHBTC', 'symbol' => 'TCH/BTC', 'base' => 'TCH', 'quote' => 'BTC', 'baseId' => 'tch', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'TRX/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 0.001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 3 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'trxbitcny', 'uppercaseId' => 'TRXBITCNY', 'symbol' => 'TRX/BitCNY', 'base' => 'TRX', 'quote' => 'BitCNY', 'baseId' => 'trx', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'TRX/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'trxbtc', 'uppercaseId' => 'TRXBTC', 'symbol' => 'TRX/BTC', 'base' => 'TRX', 'quote' => 'BTC', 'baseId' => 'trx', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'TRX/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'trxeth', 'uppercaseId' => 'TRXETH', 'symbol' => 'TRX/ETH', 'base' => 'TRX', 'quote' => 'ETH', 'baseId' => 'trx', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'TUSD/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'tusdbtc', 'uppercaseId' => 'TUSDBTC', 'symbol' => 'TUSD/BTC', 'base' => 'TUSD', 'quote' => 'BTC', 'baseId' => 'tusd', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'TUSD/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 2, 'price' => 6 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'tusdeth', 'uppercaseId' => 'TUSDETH', 'symbol' => 'TUSD/ETH', 'base' => 'TUSD', 'quote' => 'ETH', 'baseId' => 'tusd', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'XEM/BitCNY' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 1, 'price' => 2 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'xembitcny', 'uppercaseId' => 'XEMBITCNY', 'symbol' => 'XEM/BitCNY', 'base' => 'XEM', 'quote' => 'BitCNY', 'baseId' => 'xem', 'quoteId' => 'bitcny', 'active' => true, 'info' => null ),
-                'YEE/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'yeebtc', 'uppercaseId' => 'YEEBTC', 'symbol' => 'YEE/BTC', 'base' => 'YEE', 'quote' => 'BTC', 'baseId' => 'yee', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-                'YEE/ETH' => array ( 'limits' => array ( 'amount' => array ( 'min' => 1, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 0, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'yeeeth', 'uppercaseId' => 'YEEETH', 'symbol' => 'YEE/ETH', 'base' => 'YEE', 'quote' => 'ETH', 'baseId' => 'yee', 'quoteId' => 'eth', 'active' => true, 'info' => null ),
-                'ZRX/BTC' => array ( 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ), 'price' => array ( 'min' => 1e-8, 'max' => null ), 'cost' => array ( 'min' => 0, 'max' => null )), 'precision' => array ( 'amount' => 4, 'price' => 8 ), 'tierBased' => false, 'percentage' => true, 'taker' => 0.001, 'maker' => 0.001, 'id' => 'zrxbtc', 'uppercaseId' => 'ZRXBTC', 'symbol' => 'ZRX/BTC', 'base' => 'ZRX', 'quote' => 'BTC', 'baseId' => 'zrx', 'quoteId' => 'btc', 'active' => true, 'info' => null ),
-            ),
         ));
     }
 
     public function fetch_markets () {
-        $this->parseJsonResponse = false;
-        $response = $this->exchangeGetFooterTradingruleHtml ();
-        $this->parseJsonResponse = true;
-        $rows = explode ('{tr}', $response);
-        $numRows = is_array ($rows) ? count ($rows) : 0;
-        $limit = $numRows - 1;
+        $response = $this->v2publicGetCurrencys ();
+        //
+        //     {
+        //         code => '0',
+        //         msg => 'suc',
+        //         data => array (
+        //             'bitcny-partition' => array (
+        //                 array (
+        //                     baseCurrency => 'btc',
+        //                     quoteCurrency => 'bitcny',
+        //                     pricePrecision => 2,
+        //                     amountPrecision => 4,
+        //                     withdrawFeeMin => 0.0005,
+        //                     withdrawFeeMax => 0.005,
+        //                     withdrawOneMin => 0.01,
+        //                     withdrawOneMax => 10,
+        //                     depthSelect => array ( step0 => '0.01', step1 => '0.1', step2 => '1' )
+        //                 ),
+        //                 ...
+        //             ),
+        //             ...
+        //         ),
+        //     }
+        //
+        $keys = is_array ($response['data']) ? array_keys ($response['data']) : array ();
         $result = array ();
-        for ($i = 1; $i < $limit; $i++) {
-            $row = $rows[$i];
-            $parts = explode ('<span style="color:#ffffff">', $row);
-            $numParts = is_array ($parts) ? count ($parts) : 0;
-            if (($numParts < 6) || (mb_strpos ($parts[1], 'Kind&nbsp') !== false))
-                continue;
-            $id = explode ('</span>', $parts[1])[0];
-            $minAmount = explode ('</span>', $parts[2])[0];
-            $minPrice = explode ('</span>', $parts[4])[0];
-            $precision = array (
-                'amount' => $this->precision_from_string($minAmount),
-                'price' => $this->precision_from_string($minPrice),
-            );
-            $id = explode ('&nbsp', $id)[0];
-            list ($baseId, $quoteId) = explode ('/', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
-            $baseId = strtolower ($baseId);
-            $quoteId = strtolower ($quoteId);
-            $id = $baseId . $quoteId;
-            $symbol = $base . '/' . $quote;
-            $result[] = array (
-                'id' => $id,
-                'uppercaseId' => strtoupper ($id),
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'active' => true,
-                'precision' => $precision,
-                'taker' => 0.001,
-                'maker' => 0.001,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => floatval ($minAmount),
-                        'max' => null,
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $partition = $response['data'][$key];
+            for ($j = 0; $j < count ($partition); $j++) {
+                $market = $partition[$j];
+                $baseId = $this->safe_string($market, 'baseCurrency');
+                $quoteId = $this->safe_string($market, 'quoteCurrency');
+                $base = strtoupper ($baseId);
+                $quote = strtoupper ($quoteId);
+                $base = $this->common_currency_code($base);
+                $quote = $this->common_currency_code($quote);
+                $id = $baseId . $quoteId;
+                $uppercaseId = strtoupper ($id);
+                $symbol = $base . '/' . $quote;
+                $precision = array (
+                    'amount' => $market['amountPrecision'],
+                    'price' => $market['pricePrecision'],
+                );
+                $active = true;
+                $entry = array (
+                    'id' => $id,
+                    'uppercaseId' => $uppercaseId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'info' => $market,
+                    'active' => $active,
+                    'precision' => $precision,
+                    'limits' => array (
+                        'amount' => array (
+                            'min' => pow (10, -$precision['amount']),
+                            'max' => null,
+                        ),
+                        'price' => array (
+                            'min' => pow (10, -$precision['price']),
+                            'max' => null,
+                        ),
+                        'cost' => array (
+                            'min' => 0,
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array (
-                        'min' => floatval ($minPrice),
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => 0,
-                        'max' => null,
-                    ),
-                ),
-                'info' => null,
-            );
+                );
+                $result[] = $entry;
+            }
         }
         $this->options['marketsByUppercaseId'] = $this->index_by($result, 'uppercaseId');
         return $result;
@@ -252,7 +239,7 @@ class cointiger extends huobipro {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $marketId = $market['id'];
+        $marketId = $market['uppercaseId'];
         $response = $this->exchangeGetApiPublicMarketDetail ($params);
         if (!(is_array ($response) && array_key_exists ($marketId, $response)))
             throw new ExchangeError ($this->id . ' fetchTicker $symbol ' . $symbol . ' (' . $marketId . ') not found');
@@ -271,6 +258,7 @@ class cointiger extends huobipro {
             if (is_array ($this->options['marketsByUppercaseId']) && array_key_exists ($id, $this->options['marketsByUppercaseId'])) {
                 // this endpoint returns uppercase $ids
                 $symbol = $this->options['marketsByUppercaseId'][$id]['symbol'];
+                $market = $this->options['marketsByUppercaseId'][$id];
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
@@ -278,6 +266,19 @@ class cointiger extends huobipro {
     }
 
     public function parse_trade ($trade, $market = null) {
+        //
+        //   {      volume => "0.014",
+        //          $symbol => "ethbtc",
+        //         buy_fee => "0.00001400",
+        //         $orderId =>  32235710,
+        //           $price => "0.06923825",
+        //         created =>  1531605169000,
+        //              $id =>  3785005,
+        //          source =>  1,
+        //            $type => "buy-limit",
+        //     bid_user_id =>  326317         } ] }
+        //
+        // --------------------------------------------------------------------
         //
         //     {
         //         "volume" => array (
@@ -296,46 +297,69 @@ class cointiger extends huobipro {
         //             "icon" => "",
         //             "title" => "成交价格"
         //                       ),
-        //         "id" => 138
+        //         "$id" => 138
         //     }
         //
-        $side = $this->safe_string($trade, 'side');
+        $id = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string($trade, 'orderId');
+        $orderType = $this->safe_string($trade, 'type');
+        $type = null;
+        $side = null;
+        if ($orderType !== null) {
+            $parts = explode ('-', $orderType);
+            $side = $parts[0];
+            $type = $parts[1];
+        }
+        $side = $this->safe_string($trade, 'side', $side);
         $amount = null;
         $price = null;
         $cost = null;
-        if ($side !== null) {
-            $side = strtolower ($side);
-            $price = $this->safe_float($trade, 'price');
-            $amount = $this->safe_float($trade, 'amount');
-        } else {
+        if ($side === null) {
             $price = $this->safe_float($trade['price'], 'amount');
             $amount = $this->safe_float($trade['volume'], 'amount');
             $cost = $this->safe_float($trade['deal_price'], 'amount');
+        } else {
+            $side = strtolower ($side);
+            $price = $this->safe_float($trade, 'price');
+            $amount = $this->safe_float_2($trade, 'amount', 'volume');
+        }
+        $fee = null;
+        if ($side !== null) {
+            $feeCostField = $side . '_fee';
+            $feeCost = $this->safe_float($trade, $feeCostField);
+            if ($feeCost !== null) {
+                $feeCurrency = null;
+                if ($market !== null) {
+                    $feeCurrency = $market['base'];
+                }
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
+                );
+            }
         }
         if ($amount !== null)
             if ($price !== null)
                 if ($cost === null)
                     $cost = $amount * $price;
-        $timestamp = $this->safe_value($trade, 'created_at');
-        if ($timestamp === null)
-            $timestamp = $this->safe_value($trade, 'ts');
-        $iso8601 = ($timestamp !== null) ? $this->iso8601 ($timestamp) : null;
+        $timestamp = $this->safe_integer_2($trade, 'created_at', 'ts');
+        $timestamp = $this->safe_integer($trade, 'created', $timestamp);
         $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
-            'order' => null,
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -410,11 +434,41 @@ class cointiger extends huobipro {
             }
             $account = $this->account ();
             $account['used'] = floatval ($balance['lock']);
-            $account['free'] = $balance['normal'];
+            $account['free'] = floatval ($balance['normal']);
             $account['total'] = $this->sum ($account['used'], $account['free']);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchOrderTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'order_id' => $id,
+        );
+        $response = $this->v2GetOrderMakeDetail (array_merge ($request, $params));
+        //
+        // the above endpoint often returns an empty array
+        //
+        //     { code =>   "0",
+        //        msg =>   "suc",
+        //       data => array ( {      volume => "0.014",
+        //                      $symbol => "ethbtc",
+        //                     buy_fee => "0.00001400",
+        //                     orderId =>  32235710,
+        //                       price => "0.06923825",
+        //                     created =>  1531605169000,
+        //                          $id =>  3785005,
+        //                      source =>  1,
+        //                        type => "buy-$limit",
+        //                 bid_user_id =>  326317         } ) }
+        //
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function fetch_orders_by_status ($status = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -430,7 +484,15 @@ class cointiger extends huobipro {
             'offset' => 1,
             'limit' => $limit,
         ), $params));
-        return $this->parse_orders($response['data']['list'], $market, $since, $limit);
+        $orders = $response['data']['list'];
+        $result = array ();
+        for ($i = 0; $i < count ($orders); $i++) {
+            $order = array_merge ($orders[$i], array (
+                'status' => $status,
+            ));
+            $result[] = $this->parse_order($order, $market, $since, $limit);
+        }
+        return $result;
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -441,9 +503,54 @@ class cointiger extends huobipro {
         return $this->fetch_orders_by_status ('closed', $symbol, $since, $limit, $params);
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        //
+        //     { code =>   "0",
+        //        msg =>   "suc",
+        //       data => {      $symbol => "ethbtc",
+        //                       fee => "0.00000200",
+        //                 avg_price => "0.06863752",
+        //                    source =>  1,
+        //                      type => "buy-limit",
+        //                     mtime =>  1531340305000,
+        //                    volume => "0.002",
+        //                   user_id =>  326317,
+        //                     price => "0.06863752",
+        //                     ctime =>  1531340304000,
+        //               deal_volume => "0.00200000",
+        //                        $id =>  31920243,
+        //                deal_money => "0.00013727",
+        //                    status =>  2              } }
+        //
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'order_id' => (string) $id,
+        );
+        $response = $this->v2GetOrderDetails (array_merge ($request, $params));
+        return $this->parse_order($response['data'], $market);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'closed',
+            '3' => 'open',
+            '4' => 'canceled',
+            '6' => 'error',
+        );
+        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+            return $statuses[$status];
+        return $status;
+    }
+
     public function parse_order ($order, $market = null) {
-        $side = $this->safe_string($order, 'side');
-        $side = strtolower ($side);
+        //
+        //  v1
         //
         //      {
         //            volume => array ( "$amount" => "0.054", "icon" => "", "title" => "volume" ),
@@ -453,57 +560,139 @@ class cointiger extends huobipro {
         //        created_at => 1525569480000,
         //       deal_volume => array ( "$amount" => "0.64593598", "icon" => "", "title" => "Deal volume" ),
         //   "remain_volume" => array ( "$amount" => "1.00000000", "icon" => "", "title" => "尚未成交"
-        //                id => 26834207,
+        //                $id => 26834207,
         //             label => array ( go => "trade", title => "Traded", click => 1 ),
         //          side_msg => "Buy"
         //      ),
         //
+        //  v2
+        //
+        //     { code =>   "0",
+        //        msg =>   "suc",
+        //       data => {      $symbol => "ethbtc",
+        //                       $fee => "0.00000200",
+        //                 avg_price => "0.06863752",
+        //                    source =>  1,
+        //                      $type => "buy-limit",
+        //                     mtime =>  1531340305000,
+        //                    volume => "0.002",
+        //                   user_id =>  326317,
+        //                     $price => "0.06863752",
+        //                     ctime =>  1531340304000,
+        //               deal_volume => "0.00200000",
+        //                        $id =>  31920243,
+        //                deal_money => "0.00013727",
+        //                    $status =>  2              } }
+        //
+        $id = $this->safe_string($order, 'id');
+        $side = $this->safe_string($order, 'side');
         $type = null;
-        $status = null;
+        $orderType = $this->safe_string($order, 'type');
+        $status = $this->safe_string($order, 'status');
+        $timestamp = $this->safe_integer($order, 'created_at');
+        $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
+        $lastTradeTimestamp = $this->safe_integer($order, 'mtime');
         $symbol = null;
-        if ($market !== null)
+        if ($market === null) {
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $order['created_at'];
-        $amount = $this->safe_float($order['volume'], 'amount');
-        $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
-        $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
-        $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
-        if ($price === null)
-            $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+        }
+        $remaining = null;
+        $amount = null;
+        $filled = null;
+        $price = null;
         $cost = null;
-        $average = null;
+        $fee = null;
+        if ($side !== null) {
+            $side = strtolower ($side);
+            $amount = $this->safe_float($order['volume'], 'amount');
+            $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
+            $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
+            $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
+            if ($price === null)
+                $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+        } else {
+            if ($orderType !== null) {
+                $parts = explode ('-', $orderType);
+                $side = $parts[0];
+                $type = $parts[1];
+                $cost = $this->safe_float($order, 'deal_money');
+                $price = $this->safe_float($order, 'price');
+                $price = $this->safe_float($order, 'avg_price', $price);
+                $amount = $this->safe_float_2($order, 'amount', 'volume');
+                $filled = $this->safe_float($order, 'deal_volume');
+                $feeCost = $this->safe_float($order, 'fee');
+                if ($feeCost !== null) {
+                    $feeCurrency = null;
+                    if ($market !== null) {
+                        if ($side === 'buy') {
+                            $feeCurrency = $market['base'];
+                        } else if ($side === 'sell') {
+                            $feeCurrency = $market['quote'];
+                        }
+                    }
+                    $fee = array (
+                        'cost' => $feeCost,
+                        'currency' => $feeCurrency,
+                    );
+                }
+            }
+            $status = $this->parse_order_status($status);
+        }
         if ($amount !== null) {
             if ($remaining !== null) {
                 if ($filled === null)
-                    $filled = $amount - $remaining;
+                    $filled = max (0, $amount - $remaining);
             } else if ($filled !== null) {
                 $cost = $filled * $price;
-                $average = floatval ($cost / $filled);
                 if ($remaining === null)
-                    $remaining = $amount - $filled;
+                    $remaining = max (0, $amount - $filled);
             }
         }
-        if (($remaining !== null) && ($remaining > 0))
-            $status = 'open';
+        if ($status === null) {
+            if (($remaining !== null) && ($remaining > 0))
+                $status = 'open';
+        }
         $result = array (
             'info' => $order,
-            'id' => (string) $order['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
-            'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
-            'fee' => null,
+            'fee' => $fee,
+            'trades' => null,
         );
         return $result;
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -542,7 +731,7 @@ class cointiger extends huobipro {
         $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,
-            'id' => (string) $response['order_id'],
+            'id' => (string) $response['data']['order_id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
@@ -565,16 +754,21 @@ class cointiger extends huobipro {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
         $market = $this->market ($symbol);
-        return $this->privateDeleteOrder (array_merge (array (
+        $response = $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
             'order_id' => $id,
         ), $params));
+        return array (
+            'id' => $id,
+            'symbol' => $symbol,
+            'info' => $response,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $this->check_required_credentials();
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
-        if ($api === 'private') {
+        if ($api === 'private' || $api === 'v2') {
             $timestamp = (string) $this->milliseconds ();
             $query = $this->keysort (array_merge (array (
                 'time' => $timestamp,
@@ -582,7 +776,7 @@ class cointiger extends huobipro {
             $keys = is_array ($query) ? array_keys ($query) : array ();
             $auth = '';
             for ($i = 0; $i < count ($keys); $i++) {
-                $auth .= $keys[$i] . $query[$keys[$i]];
+                $auth .= $keys[$i] . (string) $query[$keys[$i]];
             }
             $auth .= $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
@@ -592,14 +786,14 @@ class cointiger extends huobipro {
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,
             ), $urlParams)));
-            $url .= '&sign=' . $this->decode ($signature);
+            $url .= '&sign=' . $signature;
             if ($method === 'POST') {
                 $body = $this->urlencode ($query);
                 $headers = array (
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 );
             }
-        } else if ($api === 'public') {
+        } else if ($api === 'public' || $api === 'v2public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'api_key' => $this->apiKey,
             ), $params));
@@ -611,7 +805,7 @@ class cointiger extends huobipro {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
@@ -627,7 +821,13 @@ class cointiger extends huobipro {
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        if ($code === 2) {
+                        if ($code === 1) {
+                            //    array ("$code":"1","msg":"系统错误","data":null)
+                            //    array (“$code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                            if (mb_strpos ($message, 'Balance insufficient') !== false) {
+                                throw new InsufficientFunds ($feedback);
+                            }
+                        } else if ($code === 2) {
                             if ($message === 'offsetNot Null') {
                                 throw new ExchangeError ($feedback);
                             } else if ($message === 'Parameter error') {

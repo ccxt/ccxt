@@ -12,7 +12,7 @@ module.exports = class lbank extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lbank',
             'name': 'LBank',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'version': 'v1',
             'has': {
                 'fetchTickers': true,
@@ -40,7 +40,7 @@ module.exports = class lbank extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': 'https://api.lbank.info',
                 'www': 'https://www.lbank.info',
-                'doc': 'https://www.lbank.info/api/api-overview',
+                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
             },
             'api': {
@@ -51,6 +51,7 @@ module.exports = class lbank extends Exchange {
                         'depth',
                         'trades',
                         'kline',
+                        'accuracy',
                     ],
                 },
                 'private': {
@@ -95,23 +96,37 @@ module.exports = class lbank extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'VET_ERC20': 'VEN',
+            },
         });
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetCurrencyPairs ();
+        let markets = await this.publicGetAccuracy ();
         let result = [];
         for (let i = 0; i < markets.length; i++) {
-            let id = markets[i];
-            let [ baseId, quoteId ] = id.split ('_');
+            let market = markets[i];
+            let id = market['symbol'];
+            let parts = id.split ('_');
+            let baseId = undefined;
+            let quoteId = undefined;
+            let numParts = parts.length;
+            // lbank will return symbols like "vet_erc20_usdt"
+            if (numParts > 2) {
+                baseId = parts[0] + '_' + parts[1];
+                quoteId = parts[2];
+            } else {
+                baseId = parts[0];
+                quoteId = parts[1];
+            }
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                'amount': market['quantityAccuracy'],
+                'price': market['priceAccuracy'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -120,11 +135,10 @@ module.exports = class lbank extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
@@ -143,11 +157,41 @@ module.exports = class lbank extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'symbol');
+            if (marketId in this.markets_by_id) {
+                let market = this.marketsById[marketId];
+                symbol = market['symbol'];
+            } else {
+                let parts = marketId.split ('_');
+                let baseId = undefined;
+                let quoteId = undefined;
+                let numParts = parts.length;
+                // lbank will return symbols like "vet_erc20_usdt"
+                if (numParts > 2) {
+                    baseId = parts[0] + '_' + parts[1];
+                    quoteId = parts[2];
+                } else {
+                    baseId = parts[0];
+                    quoteId = parts[1];
+                }
+                let base = this.commonCurrencyCode (baseId.toUpperCase ());
+                let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                symbol = base + '/' + quote;
+            }
+        }
         let timestamp = this.safeInteger (ticker, 'timestamp');
         let info = ticker;
         ticker = info['ticker'];
         let last = this.safeFloat (ticker, 'latest');
+        let percentage = this.safeFloat (ticker, 'change');
+        let relativeChange = percentage / 100;
+        let open = last / this.sum (1, relativeChange);
+        let change = last - open;
+        let average = this.sum (last, open) / 2;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -163,9 +207,9 @@ module.exports = class lbank extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': this.safeFloat (ticker, 'turnover'),
             'info': info,
@@ -188,11 +232,9 @@ module.exports = class lbank extends Exchange {
         }, params));
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = tickers[i];
-            let id = ticker['symbol'];
-            let market = this.marketsById[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
@@ -235,26 +277,38 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
             'size': 100,
         };
-        if (since)
+        if (typeof since !== 'undefined')
             request['time'] = parseInt (since / 1000);
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['size'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000,
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            ohlcv[5],
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (typeof since === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
+        if (typeof limit === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'size': 1000,
+            'size': limit,
+            'time': parseInt (since / 1000),
         };
-        if (since)
-            request['time'] = parseInt (since / 1000);
-        if (limit)
-            request['size'] = limit;
         let response = await this.publicGetKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -387,11 +441,14 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfoHistory (this.extend ({
             'symbol': market['id'],
             'current_page': 1,
-            'page_length': 100,
+            'page_length': limit,
         }, params));
         return this.parseOrders (response['orders'], undefined, since, limit);
     }

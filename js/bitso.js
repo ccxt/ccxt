@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class bitso extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX', // Mexico
+            'countries': [ 'MX' ], // Mexico
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
@@ -71,6 +71,9 @@ module.exports = class bitso extends Exchange {
                         'phone_verification',
                         'phone_withdrawal',
                         'spei_withdrawal',
+                        'ripple_withdrawal',
+                        'bcash_withdrawal',
+                        'litecoin_withdrawal',
                     ],
                     'delete': [
                         'orders/{oid}',
@@ -301,9 +304,10 @@ module.exports = class bitso extends Exchange {
     parseOrderStatus (status) {
         let statuses = {
             'partial-fill': 'open', // this is a common substitution in ccxt
+            'completed': 'closed',
         };
         if (status in statuses)
-            return statuses['status'];
+            return statuses[status];
         return status;
     }
 
@@ -368,6 +372,78 @@ module.exports = class bitso extends Exchange {
         let response = await this.privateGetOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['payload'], market, since, limit);
         return orders;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privateGetOrdersOid ({
+            'oid': id,
+        });
+        let numOrders = response['payload'].length;
+        if (!Array.isArray (response['payload']) || (numOrders !== 1)) {
+            throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
+        }
+        return this.parseOrder (response['payload'][0], market);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privateGetOrderTradesOid ({
+            'oid': id,
+        });
+        return this.parseTrades (response['payload'], market);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'fund_currency': currency['id'],
+        };
+        let response = await this.privateGetFundingDestination (this.extend (request, params));
+        let address = this.safeString (response['payload'], 'account_identifier');
+        let tag = undefined;
+        if (code === 'XRP') {
+            let parts = address.split ('?dt=');
+            address = parts[0];
+            tag = parts[1];
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let methods = {
+            'BTC': 'Bitcoin',
+            'ETH': 'Ether',
+            'XRP': 'Ripple',
+            'BCH': 'Bcash',
+            'LTC': 'Litecoin',
+        };
+        let method = (code in methods) ? methods[code] : undefined;
+        if (typeof method === 'undefined') {
+            throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
+        }
+        let request = {
+            'amount': amount,
+            'address': address,
+            'destination_tag': tag,
+        };
+        let classMethod = 'privatePost' + method + 'Withdrawal';
+        let response = await this[classMethod] (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response['payload'], 'wid'),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

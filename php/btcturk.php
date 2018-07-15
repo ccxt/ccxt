@@ -13,7 +13,7 @@ class btcturk extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcturk',
             'name' => 'BTCTurk',
-            'countries' => 'TR', // Turkey
+            'countries' => array ( 'TR' ), // Turkey
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
@@ -50,32 +50,80 @@ class btcturk extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/TRY' => array ( 'id' => 'BTCTRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'ETH/TRY' => array ( 'id' => 'ETHTRY', 'symbol' => 'ETH/TRY', 'base' => 'ETH', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'XRP/TRY' => array ( 'id' => 'XRPTRY', 'symbol' => 'XRP/TRY', 'base' => 'XRP', 'quote' => 'TRY', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
-                'ETH/BTC' => array ( 'id' => 'ETHBTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.002 * 1.18, 'taker' => 0.0035 * 1.18 ),
+            'fees' => array (
+                'trading' => array (
+                    'maker' => 0.002 * 1.18,
+                    'taker' => 0.0035 * 1.18,
+                ),
             ),
         ));
+    }
+
+    public function fetch_markets () {
+        $response = $this->publicGetTicker ();
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $market['pair'];
+            $baseId = mb_substr ($id, 0, 3);
+            $quoteId = mb_substr ($id, 3, 6);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $baseId = strtolower ($baseId);
+            $quoteId = strtolower ($quoteId);
+            $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
+            $active = true;
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'info' => $market,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalance ();
         $result = array ( 'info' => $response );
-        $base = array (
-            'free' => $response['bitcoin_available'],
-            'used' => $response['bitcoin_reserved'],
-            'total' => $response['bitcoin_balance'],
-        );
-        $quote = array (
-            'free' => $response['money_available'],
-            'used' => $response['money_reserved'],
-            'total' => $response['money_balance'],
-        );
-        $symbol = $this->symbols[0];
-        $market = $this->markets[$symbol];
-        $result[$market['base']] = $base;
-        $result[$market['quote']] = $quote;
+        $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currencies[$code];
+            $account = $this->account ();
+            $free = $currency['id'] . '_available';
+            $total = $currency['id'] . '_balance';
+            $used = $currency['id'] . '_reserved';
+            if (is_array ($response) && array_key_exists ($free, $response)) {
+                $account['free'] = $this->safe_float($response, $free);
+                $account['total'] = $this->safe_float($response, $total);
+                $account['used'] = $this->safe_float($response, $used);
+            }
+            $result[$code] = $account;
+        }
         return $this->parse_balance($result);
     }
 

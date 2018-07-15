@@ -8,7 +8,7 @@ module.exports = class liqui extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': [ 'UA' ],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': this.userAgents['chrome'],
@@ -205,7 +205,7 @@ module.exports = class liqui extends Exchange {
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (typeof symbols === 'undefined') {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
@@ -266,7 +266,7 @@ module.exports = class liqui extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (typeof symbols === 'undefined') {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {

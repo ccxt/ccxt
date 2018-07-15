@@ -13,7 +13,7 @@ class yobit extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'yobit',
             'name' => 'YoBit',
-            'countries' => 'RU',
+            'countries' => array ( 'RU' ),
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array (
@@ -66,34 +66,68 @@ class yobit extends liqui {
             'commonCurrencies' => array (
                 'AIR' => 'AirCoin',
                 'ANI' => 'ANICoin',
-                'ANT' => 'AntsCoin',
+                'ANT' => 'AntsCoin',  // what is this, a coin for ants?
+                'ATMCHA' => 'ATM',
+                'ASN' => 'Ascension',
                 'AST' => 'Astral',
                 'ATM' => 'Autumncoin',
                 'BCC' => 'BCH',
                 'BCS' => 'BitcoinStake',
                 'BLN' => 'Bulleon',
+                'BOT' => 'BOTcoin',
+                'BON' => 'BONES',
+                'BPC' => 'BitcoinPremium',
                 'BTS' => 'Bitshares2',
                 'CAT' => 'BitClave',
+                'CMT' => 'CometCoin',
                 'COV' => 'Coven Coin',
+                'COVX' => 'COV',
                 'CPC' => 'Capricoin',
+                'CRC' => 'CryCash',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DGD' => 'DarkGoldCoin',
+                'DIRT' => 'DIRTY',
                 'DROP' => 'FaucetCoin',
+                'EKO' => 'EkoCoin',
+                'ENTER' => 'ENTRC',
+                'EPC' => 'ExperienceCoin',
                 'ERT' => 'Eristica Token',
+                'ESC' => 'EdwardSnowden',
+                'EUROPE' => 'EUROP',
+                'EXT' => 'LifeExtension',
+                'FUNK' => 'FUNKCoin',
+                'GCC' => 'GlobalCryptocurrency',
+                'GEN' => 'Genstake',
+                'GENE' => 'Genesiscoin',
+                'GOLD' => 'GoldMint',
+                'HTML5' => 'HTML',
+                'HYPERX' => 'HYPER',
                 'ICN' => 'iCoin',
+                'INSANE' => 'INSN',
+                'JNT' => 'JointCoin',
+                'JPC' => 'JupiterCoin',
                 'KNC' => 'KingN Coin',
+                'LBTCX' => 'LiteBitcoin',
                 'LIZI' => 'LiZi',
                 'LOC' => 'LocoCoin',
                 'LOCX' => 'LOC',
-                'LUN' => 'LunarCoin',
+                'LUNYR' => 'LUN',
+                'LUN' => 'LunarCoin',  // they just change the ticker if it is already taken
                 'MDT' => 'Midnight',
                 'NAV' => 'NavajoCoin',
+                'NBT' => 'NiceBytes',
                 'OMG' => 'OMGame',
+                'PAC' => '$PAC',
+                'PLAY' => 'PlayCoin',
+                'PIVX' => 'Darknet',
+                'PRS' => 'PRE',
+                'PUTIN' => 'PUT',
                 'STK' => 'StakeCoin',
                 'SUB' => 'Subscriptio',
                 'PAY' => 'EPAY',
                 'PLC' => 'Platin Coin',
+                'RCN' => 'RCoin',
                 'REP' => 'Republicoin',
                 'RUR' => 'RUB',
                 'XIN' => 'XINCoin',
@@ -139,7 +173,7 @@ class yobit extends liqui {
                         $account = $this->account ();
                     }
                     $account[$key] = $balances[$side][$lowercase];
-                    if (($account['total'] != null) && ($account['free'] != null))
+                    if (($account['total'] !== null) && ($account['free'] !== null))
                         $account['used'] = $account['total'] - $account['free'];
                     $result[$currency] = $account;
                 }
@@ -157,7 +191,7 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response['info'],
         );
     }
@@ -175,7 +209,7 @@ class yobit extends liqui {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -207,6 +241,9 @@ class yobit extends liqui {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                         } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                        } else if ($response['error_log'] === 'Total transaction amount') {
+                            // eg array ("success":0,"error":"Total transaction amount is less than minimal total => 0.00010000")
+                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                         }
                     }
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

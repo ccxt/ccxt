@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class yobit extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
@@ -65,34 +65,68 @@ module.exports = class yobit extends liqui {
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
-                'ANT': 'AntsCoin',
+                'ANT': 'AntsCoin',  // what is this, a coin for ants?
+                'ATMCHA': 'ATM',
+                'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
+                'BOT': 'BOTcoin',
+                'BON': 'BONES',
+                'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
+                'CMT': 'CometCoin',
                 'COV': 'Coven Coin',
+                'COVX': 'COV',
                 'CPC': 'Capricoin',
+                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
+                'EKO': 'EkoCoin',
+                'ENTER': 'ENTRC',
+                'EPC': 'ExperienceCoin',
                 'ERT': 'Eristica Token',
+                'ESC': 'EdwardSnowden',
+                'EUROPE': 'EUROP',
+                'EXT': 'LifeExtension',
+                'FUNK': 'FUNKCoin',
+                'GCC': 'GlobalCryptocurrency',
+                'GEN': 'Genstake',
+                'GENE': 'Genesiscoin',
+                'GOLD': 'GoldMint',
+                'HTML5': 'HTML',
+                'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
+                'INSANE': 'INSN',
+                'JNT': 'JointCoin',
+                'JPC': 'JupiterCoin',
                 'KNC': 'KingN Coin',
+                'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
                 'LOC': 'LocoCoin',
                 'LOCX': 'LOC',
-                'LUN': 'LunarCoin',
+                'LUNYR': 'LUN',
+                'LUN': 'LunarCoin',  // they just change the ticker if it is already taken
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'PAC': '$PAC',
+                'PLAY': 'PlayCoin',
+                'PIVX': 'Darknet',
+                'PRS': 'PRE',
+                'PUTIN': 'PUT',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'XIN': 'XINCoin',
@@ -156,7 +190,7 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response['info'],
         };
     }
@@ -174,7 +208,7 @@ module.exports = class yobit extends liqui {
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': undefined,
             'info': response,
         };
     }
@@ -206,6 +240,9 @@ module.exports = class yobit extends liqui {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                         } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Total transaction amount') {
+                            // eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            throw new InvalidOrder (this.id + ' ' + this.json (response));
                         }
                     }
                     throw new ExchangeError (this.id + ' ' + this.json (response));

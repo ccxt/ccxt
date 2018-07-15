@@ -13,17 +13,17 @@ class huobipro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v1',
             'accounts' => null,
             'accountsById' => null,
-            'hostname' => 'api.huobipro.com',
+            'hostname' => 'api.huobi.pro',
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => true,
-                'fetchOHCLV' => true,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
@@ -45,11 +45,11 @@ class huobipro extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api' => 'https://api.huobipro.com',
-                'www' => 'https://www.huobipro.com',
+                'api' => 'https://api.huobi.pro',
+                'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees' => 'https://www.huobipro.com/about/fee/',
+                'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
                 'market' => array (
@@ -113,10 +113,14 @@ class huobipro extends Exchange {
             ),
             'exceptions' => array (
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
+                'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
+                'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
+                'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
+                'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -126,21 +130,6 @@ class huobipro extends Exchange {
                 'language' => 'en-US',
             ),
         ));
-    }
-
-    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
-        if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
-            $response = $this->fetch_trading_limits ($symbols);
-            $limits = $response['limits'];
-            $keys = is_array ($limits) ? array_keys ($limits) : array ();
-            for ($i = 0; $i < count ($keys); $i++) {
-                $symbol = $keys[$i];
-                $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
-                    'limits' => $limits[$symbol],
-                ));
-            }
-        }
-        return $this->markets;
     }
 
     public function fetch_trading_limits ($symbols = null, $params = array ()) {
@@ -210,6 +199,8 @@ class huobipro extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
@@ -451,7 +442,6 @@ class huobipro extends Exchange {
                 // 'transfer' => null,
                 'name' => $currency['display-name'],
                 'active' => $active,
-                'status' => $active ? 'ok' : 'disabled',
                 'fee' => null, // todo need to fetch from fee endpoint
                 'precision' => $precision,
                 'limits' => array (
@@ -568,7 +558,7 @@ class huobipro extends Exchange {
             $status = $this->parse_order_status($order['state']);
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('symbol', $order)) {
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id)) {
                     $marketId = $order['symbol'];
@@ -666,7 +656,6 @@ class huobipro extends Exchange {
         $this->check_address($address);
         return array (
             'currency' => $code,
-            'status' => 'ok',
             'address' => $address,
             'info' => $response,
         );
@@ -759,7 +748,7 @@ class huobipro extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

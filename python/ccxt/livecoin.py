@@ -40,6 +40,7 @@ class livecoin (Exchange):
                 'fetchCurrencies': True,
                 'fetchTradingFees': True,
                 'fetchOrders': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'withdraw': True,
@@ -102,10 +103,18 @@ class livecoin (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CPC': 'Capricoin',
+                'BTCH': 'Bithash',
+                'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
+                'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
+                'eETT': 'EETT',
+                'FirstBlood': '1ST',
+                'FORTYTWO': '42',
                 'ORE': 'Orectic',
                 'RUR': 'RUB',
+                'SCT': 'SpaceCoin',
+                'TPI': 'ThaneCoin',
+                'wETT': 'WETT',
                 'XBT': 'Bricktox',
             },
             'exceptions': {
@@ -193,7 +202,6 @@ class livecoin (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': currency['withdrawFee'],  # todo: redesign
                 'precision': precision,
                 'limits': {
@@ -222,12 +230,11 @@ class livecoin (Exchange):
         result = self.append_fiat_currencies(result)
         return result
 
-    def append_fiat_currencies(self, result=[]):
+    def append_fiat_currencies(self, result):
         precision = 8
         defaults = {
             'info': None,
             'active': True,
-            'status': 'ok',
             'fee': None,
             'precision': precision,
             'limits': {
@@ -377,60 +384,96 @@ class livecoin (Exchange):
         }, params))
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'orderId': id,
+        }
+        response = self.privateGetExchangeOrder(self.extend(request, params))
+        return self.parse_order(response)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
+            'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
     def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'lastModificationTime')
-        if not timestamp:
-            timestamp = self.parse8601(order['lastModificationTime'])
+        timestamp = None
+        datetime = None
+        if 'lastModificationTime' in order:
+            timestamp = self.safe_string(order, 'lastModificationTime')
+            if timestamp is not None:
+                if timestamp.find('T') >= 0:
+                    timestamp = self.parse8601(timestamp)
+                else:
+                    timestamp = self.safe_integer(order, 'lastModificationTime')
+        if timestamp:
+            datetime = self.iso8601(timestamp)
+        # TODO currently not supported by livecoin
+        # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
-        if 'trades' in order:
-            # TODO currently not supported by livecoin
-            # trades = self.parse_trades(order['trades'], market, since, limit)
-            trades = None
-        status = None
-        if order['orderStatus'] == 'OPEN' or order['orderStatus'] == 'PARTIALLY_FILLED':
-            status = 'open'
-        elif order['orderStatus'] == 'EXECUTED' or order['orderStatus'] == 'PARTIALLY_FILLED_AND_CANCELLED':
-            status = 'closed'
-        else:
-            status = 'canceled'
-        symbol = order['currencyPair']
-        parts = symbol.split('/')
-        quote = parts[1]
-        # base, quote = symbol.split('/')
+        status = self.safe_string(order, 'status')
+        status = self.safe_string(order, 'orderStatus', status)
+        status = self.parse_order_status(status)
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'currencyPair')
+            marketId = self.safe_string(order, 'symbol', marketId)
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         type = None
         side = None
-        if order['type'].find('MARKET') >= 0:
-            type = 'market'
-        else:
-            type = 'limit'
-        if order['type'].find('SELL') >= 0:
-            side = 'sell'
-        else:
-            side = 'buy'
-        price = self.safe_float(order, 'price', 0.0)
-        cost = self.safe_float(order, 'commissionByTrade', 0.0)
-        remaining = self.safe_float(order, 'remainingQuantity', 0.0)
+        if 'type' in order:
+            lowercaseType = order['type'].lower()
+            orderType = lowercaseType.split('_')
+            type = orderType[0]
+            side = orderType[1]
+        price = self.safe_float(order, 'price')
+        # of the next two lines the latter overrides the former, if present in the order structure
+        remaining = self.safe_float(order, 'remainingQuantity')
+        remaining = self.safe_float(order, 'remaining_quantity', remaining)
         amount = self.safe_float(order, 'quantity', remaining)
-        filled = amount - remaining
+        filled = None
+        if remaining is not None:
+            filled = amount - remaining
+        cost = None
+        if filled is not None and price is not None:
+            cost = filled * price
+        feeRate = self.safe_float(order, 'commission_rate')
+        feeCost = None
+        if cost is not None and feeRate is not None:
+            feeCost = cost * feeRate
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
         return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
             'filled': filled,
             'remaining': remaining,
             'trades': trades,
             'fee': {
-                'cost': cost,
-                'currency': quote,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             },
         }
 
@@ -488,7 +531,7 @@ class livecoin (Exchange):
         return result
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -549,7 +592,6 @@ class livecoin (Exchange):
             'currency': currency,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 
@@ -586,7 +628,12 @@ class livecoin (Exchange):
             # returns status code 200 even if success == False
             success = self.safe_value(response, 'success', True)
             if not success:
-                message = self.safe_string(response, 'message', '')
-                if message.find('Cannot find order') >= 0:
-                    raise OrderNotFound(self.id + ' ' + body)
+                message = self.safe_string(response, 'message')
+                if message is not None:
+                    if message.find('Cannot find order') >= 0:
+                        raise OrderNotFound(self.id + ' ' + body)
+                exception = self.safe_string(response, 'exception')
+                if exception is not None:
+                    if exception.find('Minimal amount is') >= 0:
+                        raise InvalidOrder(self.id + ' ' + body)
                 raise ExchangeError(self.id + ' ' + body)

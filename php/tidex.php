@@ -13,7 +13,7 @@ class tidex extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'tidex',
             'name' => 'Tidex',
-            'countries' => 'UK',
+            'countries' => array ( 'UK' ),
             'rateLimit' => 2000,
             'version' => '3',
             'has' => array (
@@ -73,10 +73,6 @@ class tidex extends liqui {
             $code = strtoupper ($id);
             $code = $this->common_currency_code($code);
             $active = $currency['visible'] === true;
-            $status = 'ok';
-            if (!$active) {
-                $status = 'disabled';
-            }
             $canWithdraw = $currency['withdrawEnable'] === true;
             $canDeposit = $currency['depositEnable'] === true;
             if (!$canWithdraw || !$canDeposit) {
@@ -87,7 +83,6 @@ class tidex extends liqui {
                 'code' => $code,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => $status,
                 'precision' => $precision,
                 'funding' => array (
                     'withdraw' => array (

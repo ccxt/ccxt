@@ -15,7 +15,7 @@ class coinmarketcap extends Exchange {
             'name' => 'CoinMarketCap',
             'rateLimit' => 10000,
             'version' => 'v1',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'has' => array (
                 'CORS' => true,
                 'privateAPI' => false,
@@ -100,7 +100,7 @@ class coinmarketcap extends Exchange {
             'BlazeCoin' => 'BlazeCoin',
             'BlockCAT' => 'BlockCAT',
             'Catcoin' => 'Catcoin',
-            'CanYaCoin' => 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Content and AD Network' => 'Content and AD Network', // conflict with CAN (Content and AD Network)
             'Comet' => 'Comet', // conflict with CMT (CyberMiles)
             'CPChain' => 'CPChain',
             'Cubits' => 'Cubits', // conflict with QBT (Qbao)
@@ -177,7 +177,7 @@ class coinmarketcap extends Exchange {
         $last = null;
         $symbol = null;
         $volume = null;
-        if ($market) {
+        if ($market !== null) {
             $priceKey = 'price_' . $market['quoteId'];
             if (is_array ($ticker) && array_key_exists ($priceKey, $ticker))
                 if ($ticker[$priceKey])
@@ -223,7 +223,7 @@ class coinmarketcap extends Exchange {
         $tickers = array ();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $currencyId = (is_array ($this->currencies) && array_key_exists ($currency, $this->currencies)) ? $this->currencies[$currency]['id'] : strtolower ($currency);
+            $currencyId = strtolower ($currency);
             $id = $ticker['id'] . '/' . $currencyId;
             $symbol = $id;
             $market = null;
@@ -268,7 +268,6 @@ class coinmarketcap extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
                 'limits' => array (

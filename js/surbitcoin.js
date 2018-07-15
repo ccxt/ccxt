@@ -11,7 +11,7 @@ module.exports = class surbitcoin extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'surbitcoin',
             'name': 'SurBitcoin',
-            'countries': 'VE',
+            'countries': [ 'VE' ],
             'has': {
                 'CORS': false,
             },

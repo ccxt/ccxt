@@ -12,7 +12,7 @@ module.exports = class bitbank extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitbank',
             'name': 'bitbank',
-            'countries': 'JP',
+            'countries': [ 'JP' ],
             'version': 'v1',
             'has': {
                 'fetchOHLCV': true,
@@ -49,8 +49,8 @@ module.exports = class bitbank extends Exchange {
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
-                        '{pair}/transactions/{YYYYMMDD}',
-                        '{pair}/candlestick/{candle-type}/{YYYYMMDD}',
+                        '{pair}/transactions/{yyyymmdd}',
+                        '{pair}/candlestick/{candletype}/{yyyymmdd}',
                     ],
                 },
                 'private': {
@@ -227,10 +227,10 @@ module.exports = class bitbank extends Exchange {
         let date = this.milliseconds ();
         date = this.ymd (date);
         date = date.split ('-');
-        let response = await this.publicGetPairCandlestickCandleTypeYYYYMMDD (this.extend ({
+        let response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend ({
             'pair': market['id'],
-            'candle-type': this.timeframes[timeframe],
-            'YYYYMMDD': date.join (''),
+            'candletype': this.timeframes[timeframe],
+            'yyyymmdd': date.join (''),
         }, params));
         let ohlcv = response['data']['candlestick'][0]['ohlcv'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
@@ -356,9 +356,9 @@ module.exports = class bitbank extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['count'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
         let orders = await this.privateGetUserSpotActiveOrders (this.extend (request, params));
         return this.parseOrders (orders['data']['orders'], market, since, limit);
@@ -387,15 +387,13 @@ module.exports = class bitbank extends Exchange {
         let response = await this.privateGetUserWithdrawalAccount (this.extend ({
             'asset': currency['id'],
         }, params));
-        // Not sure about this if there could be more accounts...
+        // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
-        let status = address ? 'ok' : 'none';
         return {
             'currency': currency,
             'address': address,
             'tag': undefined,
-            'status': status,
             'info': response,
         };
     }

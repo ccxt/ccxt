@@ -14,7 +14,7 @@ class southxchange (Exchange):
         return self.deep_extend(super(southxchange, self).describe(), {
             'id': 'southxchange',
             'name': 'SouthXchange',
-            'countries': 'AR',  # Argentina
+            'countries': ['AR'],  # Argentina
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
@@ -61,6 +61,7 @@ class southxchange (Exchange):
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
+                'MTC': 'Marinecoin',
             },
         })
 
@@ -276,7 +277,6 @@ class southxchange (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

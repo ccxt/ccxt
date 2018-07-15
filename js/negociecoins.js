@@ -11,7 +11,7 @@ module.exports = class negociecoins extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'negociecoins',
             'name': 'NegocieCoins',
-            'countries': 'BR',
+            'countries': [ 'BR' ],
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
@@ -194,7 +194,7 @@ module.exports = class negociecoins extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             market = this.safeValue (this.marketsById, order['pair']);
             if (market)
                 symbol = market['symbol'];

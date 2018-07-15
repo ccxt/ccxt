@@ -22,7 +22,7 @@ class binance (Exchange):
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'JP',  # Japan
+            'countries': ['JP'],  # Japan
             'rateLimit': 500,
             # new metainfo interface
             'has': {
@@ -78,6 +78,7 @@ class binance (Exchange):
                 'web': {
                     'get': [
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ],
                 },
                 'wapi': {
@@ -85,6 +86,7 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
@@ -263,7 +265,6 @@ class binance (Exchange):
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             # exchange-specific options
             'options': {
@@ -274,15 +275,19 @@ class binance (Exchange):
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
+                'newOrderRespType': 'RESULT',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
             'exceptions': {
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
+                '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-2010': InsufficientFunds,  # createOrder -> 'Account has insufficient balance for requested action.'
+                '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
+                '-2014': AuthenticationError,  # {"code":-2014, "msg": "API-key format invalid."}
                 '-2015': AuthenticationError,  # "Invalid API-key, IP, or permissions for action."
             },
         })
@@ -495,21 +500,22 @@ class binance (Exchange):
 
     def parse_trade(self, trade, market=None):
         timestampField = 'T' if ('T' in list(trade.keys())) else 'time'
-        timestamp = trade[timestampField]
+        timestamp = self.safe_integer(trade, timestampField)
         priceField = 'p' if ('p' in list(trade.keys())) else 'price'
-        price = float(trade[priceField])
+        price = self.safe_float(trade, priceField)
         amountField = 'q' if ('q' in list(trade.keys())) else 'qty'
-        amount = float(trade[amountField])
+        amount = self.safe_float(trade, amountField)
         idField = 'a' if ('a' in list(trade.keys())) else 'id'
-        id = str(trade[idField])
+        id = self.safe_string(trade, idField)
         side = None
         order = None
         if 'orderId' in trade:
-            order = str(trade['orderId'])
+            order = self.safe_string(trade, 'orderId')
         if 'm' in trade:
             side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         else:
-            side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+            if 'isBuyer' in trade:
+                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -577,12 +583,15 @@ class binance (Exchange):
             iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
-        filled = self.safe_float(order, 'executedQty', 0.0)
+        filled = self.safe_float(order, 'executedQty')
         remaining = None
         cost = None
         if filled is not None:
             if amount is not None:
-                remaining = max(amount - filled, 0.0)
+                remaining = amount - filled
+                if self.options['parseOrderToPrecision']:
+                    remaining = float(self.amount_to_precision(symbol, remaining))
+                remaining = max(remaining, 0.0)
             if price is not None:
                 cost = price * filled
         id = self.safe_string(order, 'orderId')
@@ -592,6 +601,26 @@ class binance (Exchange):
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
+        fee = None
+        trades = None
+        fills = self.safe_value(order, 'fills')
+        if fills is not None:
+            trades = self.parse_trades(fills, market)
+            numTrades = len(trades)
+            if numTrades > 0:
+                cost = trades[0]['cost']
+                fee = {
+                    'cost': trades[0]['fee']['cost'],
+                    'currency': trades[0]['fee']['currency'],
+                }
+                for i in range(1, len(trades)):
+                    cost = self.sum(cost, trades[i]['cost'])
+                    fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
+                if cost and filled:
+                    price = cost / filled
+        if cost is not None:
+            if self.options['parseOrderToPrecision']:
+                cost = float(self.cost_to_precision(symbol, cost))
         result = {
             'info': order,
             'id': id,
@@ -607,7 +636,8 @@ class binance (Exchange):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': None,
+            'fee': fee,
+            'trades': trades,
         }
         return result
 
@@ -620,26 +650,46 @@ class binance (Exchange):
         if test:
             method += 'Test'
             params = self.omit(params, 'test')
+        uppercaseType = type.upper()
         order = {
             'symbol': market['id'],
             'quantity': self.amount_to_string(symbol, amount),
-            'type': type.upper(),
+            'type': uppercaseType,
             'side': side.upper(),
+            'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         }
-        if type == 'limit':
-            order['type'] = self.options['defaultLimitOrderType'].upper()
-            order = self.extend(order, {
-                'price': self.price_to_precision(symbol, price),
-                'timeInForce': self.options['defaultTimeInForce'],  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-            })
-        elif type == 'limit_maker':
+        timeInForceIsRequired = False
+        priceIsRequired = False
+        stopPriceIsRequired = False
+        if uppercaseType == 'LIMIT':
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
+            stopPriceIsRequired = True
+        elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
+            stopPriceIsRequired = True
+            priceIsRequired = True
+            timeInForceIsRequired = True
+        elif uppercaseType == 'LIMIT_MAKER':
+            priceIsRequired = True
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
             order['price'] = self.price_to_precision(symbol, price)
+        if timeInForceIsRequired:
+            order['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+        if stopPriceIsRequired:
+            stopPrice = self.safe_float(params, 'stopPrice')
+            if stopPrice is None:
+                raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
+            else:
+                order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = getattr(self, method)(self.extend(order, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -654,14 +704,14 @@ class binance (Exchange):
         return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -686,7 +736,7 @@ class binance (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -695,17 +745,17 @@ class binance (Exchange):
             'orderId': int(id),
             # 'origClientOrderId': id,
         }, params))
-        return response
+        return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -724,7 +774,6 @@ class binance (Exchange):
                     'currency': code,
                     'address': self.check_address(address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 }
 
@@ -792,7 +841,7 @@ class binance (Exchange):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            if (method == 'GET') or (api == 'wapi'):
+            if (method == 'GET') or (method == 'DELETE') or (api == 'wapi'):
                 url += '?' + query
             else:
                 body = query
@@ -837,6 +886,13 @@ class binance (Exchange):
                         # on a temporary ban(the API key is valid, but disabled for a while)
                         if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                             raise DDoSProtection(self.id + ' temporary banned: ' + body)
+                        message = self.safe_string(response, 'msg')
+                        if message == 'Order would trigger immediately.':
+                            raise InvalidOrder(self.id + ' ' + body)
+                        elif message == 'Account has insufficient balance for requested action.':
+                            raise InsufficientFunds(self.id + ' ' + body)
+                        elif message == 'Rest API trading is not enabled.':
+                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

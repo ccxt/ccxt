@@ -12,7 +12,7 @@ module.exports = class btctradeua extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btctradeua',
             'name': 'BTC Trade UA',
-            'countries': 'UA', // Ukraine,
+            'countries': [ 'UA' ], // Ukraine,
             'rateLimit': 3000,
             'has': {
                 'CORS': true,

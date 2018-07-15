@@ -15,7 +15,7 @@ class tidebit (Exchange):
         return self.deep_extend(super(tidebit, self).describe(), {
             'id': 'tidebit',
             'name': 'TideBit',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -40,7 +40,7 @@ class tidebit (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
-                'api': 'https://www.tidebit.com/api',
+                'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': 'https://www.tidebit.com/documents/api_v2',
             },
@@ -109,7 +109,6 @@ class tidebit (Exchange):
                     'currency': code,
                     'address': self.check_address(address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 }
 
@@ -136,7 +135,7 @@ class tidebit (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetV2Deposits()
+        response = self.privateGetV2MembersMe()
         balances = response['accounts']
         result = {'info': balances}
         for b in range(0, len(balances)):
@@ -265,7 +264,7 @@ class tidebit (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not limit:
+        if limit is None:
             limit = 30  # default is 30
         request = {
             'market': market['id'],
@@ -281,7 +280,7 @@ class tidebit (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']
@@ -356,19 +355,20 @@ class tidebit (Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = self.implode_params(path, params) + '.json'
+        request = '/' + 'api/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + '/' + request
+        url = self.urls['api'] + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            query = self.urlencode(self.extend({
+            sortedByKey = self.keysort(self.extend({
                 'access_key': self.apiKey,
                 'tonce': nonce,
             }, params))
+            query = self.urlencode(sortedByKey)
             payload = method + '|' + request + '|' + query
             signature = self.hmac(self.encode(payload), self.encode(self.secret))
             suffix = query + '&signature=' + signature

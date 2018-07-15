@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.14.90';
+$version = '1.16.34';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -44,7 +44,9 @@ const SIGNIFICANT_DIGITS = 1;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
-abstract class Exchange {
+class Exchange {
+
+    const VERSION = '1.16.34';
 
     public static $exchanges = array (
         '_1broker',
@@ -52,6 +54,7 @@ abstract class Exchange {
         'acx',
         'allcoin',
         'anxpro',
+        'anybits',
         'bibox',
         'binance',
         'bit2c',
@@ -65,6 +68,7 @@ abstract class Exchange {
         'bitlish',
         'bitmarket',
         'bitmex',
+        'bitsane',
         'bitso',
         'bitstamp',
         'bitstamp1',
@@ -73,6 +77,7 @@ abstract class Exchange {
         'bl3p',
         'bleutrade',
         'braziliex',
+        'btcalpha',
         'btcbox',
         'btcchina',
         'btcexchange',
@@ -87,10 +92,13 @@ abstract class Exchange {
         'chbtc',
         'chilebit',
         'cobinhood',
+        'coinbase',
+        'coinbasepro',
         'coincheck',
         'coinegg',
         'coinex',
         'coinexchange',
+        'coinfalcon',
         'coinfloor',
         'coingi',
         'coinmarketcap',
@@ -101,11 +109,14 @@ abstract class Exchange {
         'coinspot',
         'cointiger',
         'coolcoin',
+        'crypton',
         'cryptopia',
+        'deribit',
         'dsx',
         'ethfinex',
         'exmo',
         'exx',
+        'fcoin',
         'flowbtc',
         'foxbit',
         'fybse',
@@ -147,6 +158,7 @@ abstract class Exchange {
         'qryptos',
         'quadrigacx',
         'quoinex',
+        'rightbtc',
         'southxchange',
         'surbitcoin',
         'therock',
@@ -186,6 +198,29 @@ abstract class Exchange {
 
     public static function safe_value ($object, $key, $default_value = null) {
         return (is_array ($object) && array_key_exists ($key, $object)) ? $object[$key] : $default_value;
+    }
+
+    // we're not using safe_floats with a list argument as we're trying to save some cycles here
+    // we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
+
+    public static function safe_float_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_float ($object, $key1);
+        return isset ($value) ? $value : static::safe_float ($object, $key2, $default_value);
+    }
+
+    public static function safe_string_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string ($object, $key1);
+        return isset ($value) ? $value : static::safe_string ($object, $key2, $default_value);
+    }
+
+    public static function safe_integer_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_integer ($object, $key1);
+        return isset ($value) ? $value : static::safe_integer ($object, $key2, $default_value);
+    }
+
+    public static function safe_value_2 ($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_value ($object, $key1);
+        return isset ($value) ? $value : static::safe_value ($object, $key2, $default_value);
     }
 
     public static function truncate ($number, $precision = 0) {
@@ -376,6 +411,10 @@ abstract class Exchange {
         return array_values ($object);
     }
 
+    public static function is_empty ($object) {
+        return empty ($object);
+    }
+
     public static function keysort ($array) {
         $result = $array;
         ksort ($result);
@@ -484,28 +523,46 @@ abstract class Exchange {
         return $sec . str_pad (substr ($msec, 2, 6), 6, '0');
     }
 
-    public static function iso8601 ($timestamp) {
+    public static function iso8601 ($timestamp = null) {
         if (!isset ($timestamp))
-            return $timestamp;
+            return null;
+        if (!is_numeric ($timestamp) || intval ($timestamp) != $timestamp)
+            return null;
+        $timestamp = (int) $timestamp;
+        if ($timestamp < 0)
+            return null;
         $result = date ('c', (int) round ($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
-        return str_replace ('+', sprintf (".%03d+", $msec), $result);
+        $result = str_replace ('+00:00', sprintf (".%03dZ", $msec), $result);
+        return $result;
     }
 
     public static function parse_date ($timestamp) {
-        if (!isset ($timestamp))
-            return $timestamp;
-        if (strstr ($timestamp, 'GMT'))
-            return strtotime ($timestamp) * 1000;
         return static::parse8601 ($timestamp);
     }
 
-    public static function parse8601 ($timestamp) {
-        $time = strtotime ($timestamp) * 1000;
+    public static function parse8601 ($timestamp = null) {
+        if (!isset ($timestamp))
+            return null;
+        if (!$timestamp || !is_string ($timestamp))
+            return null;
+        $timedata = date_parse ($timestamp);
+        if (!$timedata || $timedata['error_count'] > 0 || $timedata['warning_count'] > 0 || (isset ($timedata['relative']) && count ($timedata['relative']) > 0))
+            return null;
+        if ($timedata['hour'] === false ||  $timedata['minute'] === false || $timedata['second'] === false || $timedata['year'] === false || $timedata['month'] === false || $timedata['day'] === false)
+            return null;
+        $time = strtotime($timestamp);
+        if ($time === false)
+            return null;
+        $time *= 1000;
         if (preg_match ('/\.(?<milliseconds>[0-9]{1,3})/', $timestamp, $match)) {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
+    }
+
+    public static function dmy ($timestamp, $infix = '-') {
+        return gmdate ('m' . $infix . 'd' . $infix . 'Y', (int) round ($timestamp / 1000));
     }
 
     public static function ymd ($timestamp, $infix = '-') {
@@ -635,7 +692,7 @@ abstract class Exchange {
         $this->marketsById = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
-        $this->userAgent   = null; // 'ccxt/' . $version . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
+        $this->userAgent   = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
         $this->userAgents = array (
             'chrome' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
             'chrome39' => 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
@@ -684,6 +741,7 @@ abstract class Exchange {
             'fetchTickers' => false,
             'fetchTrades' => true,
             'fetchTradingFees' => false,
+            'fetchTradingLimits' => false,
             'withdraw' => false,
         );
 
@@ -897,7 +955,7 @@ abstract class Exchange {
 
         // we probably only need to set it once on startup
         if ($this->curlopt_interface) {
-			curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
+            curl_setopt ($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
         /*
@@ -1197,12 +1255,14 @@ abstract class Exchange {
 
     public function parse_order_book ($orderbook, $timestamp = null, $bids_key = 'bids', $asks_key = 'asks', $price_key = 0, $amount_key = 1) {
         return array (
-            'bids' => is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) :
-                array (),
-            'asks' => is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
-                $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) :
-                array (),
+            'bids' => $this->sort_by (
+                is_array ($orderbook) && array_key_exists ($bids_key, $orderbook) ?
+                    $this->parse_bids_asks ($orderbook[$bids_key], $price_key, $amount_key) : array (),
+                0, true),
+            'asks' => $this->sort_by (
+                is_array ($orderbook) && array_key_exists ($asks_key, $orderbook) ?
+                    $this->parse_bids_asks ($orderbook[$asks_key], $price_key, $amount_key) : array (),
+                0),
             'timestamp' => $timestamp,
             'datetime' => isset ($timestamp) ? $this->iso8601 ($timestamp) : null,
             'nonce' => null,
@@ -1256,6 +1316,24 @@ abstract class Exchange {
 
     public function fetchTotalBalance ($params = array ()) {
         return $this->fetch_total_balance ($params);
+    }
+
+    public function load_trading_limits ($symbols = null, $reload = false, $params = array ()) {
+        if ($this->has['fetchTradingLimits']) {
+            if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
+                $response = $this->fetch_trading_limits ($symbols);
+                $limits = $response['limits'];
+                $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($keys); $i++) {
+                    $symbol = $keys[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
+                        'limits' => $limits[$symbol],
+                    ));
+                }
+                $this->options['limitsLoaded'] = $this->milliseconds ();
+            }
+        }
+        return $this->markets;
     }
 
     public function filter_by_since_limit ($array, $since = null, $limit = null) {
@@ -1448,9 +1526,9 @@ abstract class Exchange {
         return $this->fetch_balance ();
     }
 
-	public function fetch_balance ($params = array ()) {
-		throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
-	}
+    public function fetch_balance ($params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_balance() not implemented yet');
+    }
 
     public function fetchOrderBook ($symbol, $limit = null, $params = array ()) {
         return $this->fetch_order_book ($symbol, $limit, $params);
@@ -1806,6 +1884,7 @@ abstract class Exchange {
     }
 
     public static function decimal_to_precision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING) {
+
         if ($numPrecisionDigits < 0) {
             throw new BaseError ('Negative precision is not yet supported');
         }
@@ -1817,6 +1896,8 @@ abstract class Exchange {
         if (!is_numeric ($x)) {
             throw new BaseError ('Invalid number');
         }
+
+        assert ($roundingMode === ROUND || $roundingMode === TRUNCATE);
 
         $result = '';
         if ($roundingMode === ROUND) {
@@ -1849,6 +1930,8 @@ abstract class Exchange {
 
         $hasDot = strpos ($result, '.') !== false;
         if ($paddingMode === NO_PADDING) {
+            if ($result === '' && $numPrecisionDigits === 0)
+                return '0';
             if ($hasDot) {
                 $result = rtrim ($result, '0.');
             }

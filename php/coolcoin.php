@@ -13,7 +13,7 @@ class coolcoin extends coinegg {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coolcoin',
             'name' => 'CoolCoin',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg',
                 'api' => array (

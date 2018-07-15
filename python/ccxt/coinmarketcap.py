@@ -16,7 +16,7 @@ class coinmarketcap (Exchange):
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': ['US'],
             'has': {
                 'CORS': True,
                 'privateAPI': False,
@@ -99,7 +99,7 @@ class coinmarketcap (Exchange):
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'Content and AD Network': 'Content and AD Network',  # conflict with CAN(Content and AD Network)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
@@ -171,7 +171,7 @@ class coinmarketcap (Exchange):
         last = None
         symbol = None
         volume = None
-        if market:
+        if market is not None:
             priceKey = 'price_' + market['quoteId']
             if priceKey in ticker:
                 if ticker[priceKey]:
@@ -215,7 +215,7 @@ class coinmarketcap (Exchange):
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
-            currencyId = self.currencies[currency]['id'] if (currency in list(self.currencies.keys())) else currency.lower()
+            currencyId = currency.lower()
             id = ticker['id'] + '/' + currencyId
             symbol = id
             market = None
@@ -256,7 +256,6 @@ class coinmarketcap (Exchange):
                 'info': currency,
                 'name': name,
                 'active': True,
-                'status': 'ok',
                 'fee': None,  # todo: redesign
                 'precision': precision,
                 'limits': {

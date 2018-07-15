@@ -13,7 +13,7 @@ class liqui extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'liqui',
             'name' => 'Liqui',
-            'countries' => 'UA',
+            'countries' => array ( 'UA' ),
             'rateLimit' => 3000,
             'version' => '3',
             'userAgent' => $this->userAgents['chrome'],
@@ -210,7 +210,7 @@ class liqui extends Exchange {
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
-        if (!$symbols) {
+        if ($symbols === null) {
             $ids = implode ('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen ($ids) > 2048) {
@@ -271,7 +271,7 @@ class liqui extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
-        if (!$symbols) {
+        if ($symbols === null) {
             $ids = implode ('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen ($ids) > 2048) {
@@ -543,8 +543,8 @@ class liqui extends Exchange {
                         'filled' => $cachedOrder['amount'],
                         'remaining' => 0.0,
                     ));
-                    if ($cachedOrder['cost'] == null) {
-                        if ($cachedOrder['filled'] != null)
+                    if ($cachedOrder['cost'] === null) {
+                        if ($cachedOrder['filled'] !== null)
                             $cachedOrder['cost'] = $cachedOrder['filled'] * $cachedOrder['price'];
                     }
                     $this->orders[$cachedOrderId] = $cachedOrder;
@@ -676,7 +676,7 @@ class liqui extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler
@@ -710,7 +710,7 @@ class liqui extends Exchange {
                 // To cover points 1, 2, 3 and 4 combined this handler should work like this:
                 //
                 $success = $this->safe_value($response, 'success', false);
-                if (gettype ($success) == 'string') {
+                if (gettype ($success) === 'string') {
                     if (($success === 'true') || ($success === '1'))
                         $success = true;
                     else

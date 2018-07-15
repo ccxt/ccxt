@@ -14,7 +14,7 @@ class flowbtc (Exchange):
         return self.deep_extend(super(flowbtc, self).describe(), {
             'id': 'flowbtc',
             'name': 'flowBTC',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'version': 'v1',
             'rateLimit': 1000,
             'has': {
@@ -24,7 +24,7 @@ class flowbtc (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg',
                 'api': 'https://api.flowbtc.com:8405/ajax',
                 'www': 'https://trader.flowbtc.com',
-                'doc': 'http://www.flowbtc.com.br/api/',
+                'doc': 'https://www.flowbtc.com.br/api.html',
             },
             'requiredCredentials': {
                 'apiKey': True,

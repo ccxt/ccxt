@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const { NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class coinfloor extends Exchange {
             'id': 'coinfloor',
             'name': 'coinfloor',
             'rateLimit': 1000,
-            'countries': 'UK',
+            'countries': [ 'UK' ],
             'has': {
                 'CORS': false,
                 'fetchOpenOrders': true,
@@ -66,18 +66,33 @@ module.exports = class coinfloor extends Exchange {
         });
     }
 
-    fetchBalance (params = {}) {
-        let symbol = undefined;
+    async fetchBalance (params = {}) {
+        let market = undefined;
         if ('symbol' in params)
-            symbol = params['symbol'];
+            market = this.findMarket (params['symbol']);
         if ('id' in params)
-            symbol = params['id'];
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchBalance requires a symbol param');
-        // todo parse balance
-        return this.privatePostIdBalance ({
-            'id': this.marketId (symbol),
+            market = this.findMarket (params['id']);
+        if (!market)
+            throw new NotSupported (this.id + ' fetchBalance requires a symbol param');
+        let response = await this.privatePostIdBalance ({
+            'id': market['id'],
         });
+        let result = {
+            'info': response,
+        };
+        // base/quote used for keys e.g. "xbt_reserved"
+        let keys = market['id'].toLowerCase ().split ('/');
+        result[market['base']] = {
+            'free': parseFloat (response[keys[0] + '_available']),
+            'used': parseFloat (response[keys[0] + '_reserved']),
+            'total': parseFloat (response[keys[0] + '_balance']),
+        };
+        result[market['quote']] = {
+            'free': parseFloat (response[keys[1] + '_available']),
+            'used': parseFloat (response[keys[1] + '_reserved']),
+            'total': parseFloat (response[keys[1] + '_balance']),
+        };
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -91,7 +106,7 @@ module.exports = class coinfloor extends Exchange {
         // rewrite to get the timestamp from HTTP headers
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
@@ -209,7 +224,7 @@ module.exports = class coinfloor extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new NotSupported (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);

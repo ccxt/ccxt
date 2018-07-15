@@ -13,7 +13,7 @@ class _1broker extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => '_1broker',
             'name' => '1Broker',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 1500,
             'version' => 'v2',
             'has' => array (

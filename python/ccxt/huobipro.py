@@ -15,6 +15,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -27,17 +28,17 @@ class huobipro (Exchange):
         return self.deep_extend(super(huobipro, self).describe(), {
             'id': 'huobipro',
             'name': 'Huobi Pro',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
             'version': 'v1',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.huobipro.com',
+            'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': True,
-                'fetchOHCLV': True,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,
@@ -59,11 +60,11 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobipro.com',
-                'www': 'https://www.huobipro.com',
+                'api': 'https://api.huobi.pro',
+                'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
-                'fees': 'https://www.huobipro.com/about/fee/',
+                'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
                 'market': {
@@ -127,10 +128,14 @@ class huobipro (Exchange):
             },
             'exceptions': {
                 'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
+                'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
+                'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
+                'api-signature-check-failed': AuthenticationError,
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
@@ -140,18 +145,6 @@ class huobipro (Exchange):
                 'language': 'en-US',
             },
         })
-
-    def load_trading_limits(self, symbols=None, reload=False, params={}):
-        if reload or not('limitsLoaded' in list(self.options.keys())):
-            response = self.fetch_trading_limits(symbols)
-            limits = response['limits']
-            keys = list(limits.keys())
-            for i in range(0, len(keys)):
-                symbol = keys[i]
-                self.markets[symbol] = self.deep_extend(self.markets[symbol], {
-                    'limits': limits[symbol],
-                })
-        return self.markets
 
     def fetch_trading_limits(self, symbols=None, params={}):
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
@@ -216,6 +209,8 @@ class huobipro (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'active': True,
                 'precision': precision,
@@ -434,7 +429,6 @@ class huobipro (Exchange):
                 # 'transfer': None,
                 'name': currency['display-name'],
                 'active': active,
-                'status': 'ok' if active else 'disabled',
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
                 'limits': {
@@ -539,7 +533,7 @@ class huobipro (Exchange):
             type = orderType[1]
             status = self.parse_order_status(order['state'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in order:
                 if order['symbol'] in self.markets_by_id:
                     marketId = order['symbol']
@@ -628,7 +622,6 @@ class huobipro (Exchange):
         self.check_address(address)
         return {
             'currency': code,
-            'status': 'ok',
             'address': address,
             'info': response,
         }

@@ -12,7 +12,7 @@ module.exports = class southxchange extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'southxchange',
             'name': 'SouthXchange',
-            'countries': 'AR', // Argentina
+            'countries': [ 'AR' ], // Argentina
             'rateLimit': 1000,
             'has': {
                 'CORS': true,
@@ -59,6 +59,7 @@ module.exports = class southxchange extends Exchange {
             },
             'commonCurrencies': {
                 'SMT': 'SmartNode',
+                'MTC': 'Marinecoin',
             },
         });
     }
@@ -292,7 +293,6 @@ module.exports = class southxchange extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

@@ -12,7 +12,7 @@ module.exports = class acx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': [ 'AU' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -259,7 +259,7 @@ module.exports = class acx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit)
+        if (typeof limit === 'undefined')
             limit = 500; // default is 30
         let request = {
             'market': market['id'],
@@ -274,7 +274,7 @@ module.exports = class acx extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];
@@ -398,8 +398,8 @@ module.exports = class acx extends Exchange {
                 'tonce': nonce,
             }, params));
             let auth = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            let suffix = query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (auth), this.encode (this.secret));
+            let suffix = query + '&signature=' + signed;
             if (method === 'GET') {
                 url += '?' + suffix;
             } else {

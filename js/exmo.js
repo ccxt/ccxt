@@ -184,7 +184,7 @@ module.exports = class exmo extends Exchange {
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (typeof symbols === 'undefined') {
             ids = this.ids.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
@@ -547,20 +547,21 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostDepositAddress (params);
         let depositAddress = this.safeString (response, code);
-        let status = 'ok';
         let address = undefined;
         let tag = undefined;
         if (depositAddress) {
             let addressAndTag = depositAddress.split (',');
             address = addressAndTag[0];
-            tag = addressAndTag[1];
+            let numParts = addressAndTag.length;
+            if (numParts > 1) {
+                tag = addressAndTag[1];
+            }
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': status,
             'info': response,
         };
     }

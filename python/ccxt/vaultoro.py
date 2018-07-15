@@ -12,7 +12,7 @@ class vaultoro (Exchange):
         return self.deep_extend(super(vaultoro, self).describe(), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': ['CH'],
             'rateLimit': 1000,
             'version': '1',
             'has': {
@@ -62,8 +62,8 @@ class vaultoro (Exchange):
         result = []
         markets = self.publicGetMarkets()
         market = markets['data']
-        baseId = market['BaseCurrency']
-        quoteId = market['MarketCurrency']
+        baseId = market['MarketCurrency']
+        quoteId = market['BaseCurrency']
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote

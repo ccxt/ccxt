@@ -12,7 +12,7 @@ module.exports = class bitmex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC', // Seychelles
+            'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
@@ -42,6 +42,7 @@ module.exports = class bitmex extends Exchange {
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
+                'referral': 'https://www.bitmex.com/register/rm3C16',
             },
             'api': {
                 'public': {
@@ -134,7 +135,7 @@ module.exports = class bitmex extends Exchange {
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': true,
+                'fetchTickerQuotes': false,
             },
         });
     }
@@ -394,7 +395,7 @@ module.exports = class bitmex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in trade)
                 market = this.markets_by_id[trade['symbol']];
         }
@@ -431,7 +432,7 @@ module.exports = class bitmex extends Exchange {
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let id = order['symbol'];
@@ -454,7 +455,12 @@ module.exports = class bitmex extends Exchange {
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQty');
         let filled = this.safeFloat (order, 'cumQty', 0.0);
-        let remaining = Math.max (amount - filled, 0.0);
+        let remaining = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                remaining = Math.max (amount - filled, 0.0);
+            }
+        }
         let cost = undefined;
         if (typeof price !== 'undefined')
             if (typeof filled !== 'undefined')

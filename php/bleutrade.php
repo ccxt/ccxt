@@ -13,7 +13,7 @@ class bleutrade extends bittrex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
-            'countries' => 'BR', // Brazil
+            'countries' => array ( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
@@ -85,6 +85,9 @@ class bleutrade extends bittrex {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'EPC' => 'Epacoin',
+            ),
             'exceptions' => array (
                 'Insufficient funds!' => '\\ccxt\\InsufficientFunds',
                 'Invalid Order ID' => '\\ccxt\\InvalidOrder',
@@ -102,10 +105,10 @@ class bleutrade extends bittrex {
         for ($p = 0; $p < count ($markets['result']); $p++) {
             $market = $markets['result'][$p];
             $id = $market['MarketName'];
-            $base = $market['MarketCurrency'];
-            $quote = $market['BaseCurrency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['MarketCurrency'];
+            $quoteId = $market['BaseCurrency'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -122,6 +125,8 @@ class bleutrade extends bittrex {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'info' => $market,
                 'lot' => pow (10, -$precision['amount']),
@@ -165,7 +170,7 @@ class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         $this->load_markets();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $this->load_markets();
             $market = $this->market ($symbol);
         } else {

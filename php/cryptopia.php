@@ -14,7 +14,7 @@ class cryptopia extends Exchange {
             'id' => 'cryptopia',
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
-            'countries' => 'NZ', // New Zealand
+            'countries' => array ( 'NZ' ), // New Zealand
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
@@ -41,9 +41,8 @@ class cryptopia extends Exchange {
                 'www' => 'https://www.cryptopia.co.nz',
                 'referral' => 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc' => array (
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ),
             ),
             'timeframes' => array (
@@ -98,18 +97,24 @@ class cryptopia extends Exchange {
             'commonCurrencies' => array (
                 'ACC' => 'AdCoin',
                 'BAT' => 'BatCoin',
+                'BEAN' => 'BITB', // rebranding, see issue #3380
                 'BLZ' => 'BlazeCoin',
                 'BTG' => 'Bitgem',
+                'CAN' => 'CanYa',
+                'CAT' => 'Catcoin',
                 'CC' => 'CCX',
                 'CMT' => 'Comet',
                 'EPC' => 'ExperienceCoin',
                 'FCN' => 'Facilecoin',
                 'FUEL' => 'FC2', // FuelCoin != FUEL
                 'HAV' => 'Havecoin',
+                'KARM' => 'KARMA',
                 'LBTC' => 'LiteBitcoin',
                 'LDC' => 'LADACoin',
                 'MARKS' => 'Bitmark',
                 'NET' => 'NetCoin',
+                'RED' => 'RedCoin',
+                'STC' => 'StopTrumpCoin',
                 'QBT' => 'Cubits',
                 'WRC' => 'WarCoin',
             ),
@@ -339,14 +344,14 @@ class cryptopia extends Exchange {
             $price = $this->safe_float($trade, 'Rate');
         $cost = $this->safe_float($trade, 'Total');
         $id = $this->safe_string($trade, 'TradeId');
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('TradePairId', $trade))
                 if (is_array ($this->markets_by_id) && array_key_exists ($trade['TradePairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$trade['TradePairId']];
         }
         $symbol = null;
         $fee = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($trade) && array_key_exists ('Fee', $trade)) {
                 $fee = array (
@@ -393,7 +398,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['TradePairId'] = $market['id'];
         }
@@ -503,11 +508,10 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->milliseconds ();
         $order = array (
             'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
@@ -534,6 +538,8 @@ class cryptopia extends Exchange {
                 'Type' => 'Trade',
                 'OrderId' => $id,
             ), $params));
+            // We do not know if it is indeed canceled, but cryptopia lacks any
+            // reasonable method to get information on executed or canceled order.
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
                 $this->orders[$id]['status'] = 'canceled';
         } catch (Exception $e) {
@@ -546,12 +552,12 @@ class cryptopia extends Exchange {
             }
             throw $e;
         }
-        return $response;
+        return $this->parse_order($response);
     }
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else if (is_array ($order) && array_key_exists ('Market', $order)) {
             $id = $order['Market'];
@@ -566,19 +572,34 @@ class cryptopia extends Exchange {
             }
         }
         $timestamp = $this->parse8601 ($order['TimeStamp']);
+        $datetime = null;
+        if ($timestamp) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
         $amount = $this->safe_float($order, 'Amount');
         $remaining = $this->safe_float($order, 'Remaining');
-        $filled = $amount - $remaining;
+        $filled = null;
+        if ($amount !== null && $remaining !== null) {
+            $filled = $amount - $remaining;
+        }
+        $id = $this->safe_value($order, 'OrderId');
+        if ($id !== null) {
+            $id = (string) $id;
+        }
+        $side = $this->safe_string($order, 'Type');
+        if ($side !== null) {
+            $side = strtolower ($side);
+        }
         return array (
-            'id' => (string) $order['OrderId'],
+            'id' => $id,
             'info' => $this->omit ($order, 'status'),
             'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
+            'datetime' => $datetime,
             'lastTradeTimestamp' => null,
-            'status' => $order['status'],
+            'status' => $this->safe_string($order, 'status'),
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => strtolower ($order['Type']),
+            'side' => $side,
             'price' => $this->safe_float($order, 'Rate'),
             'cost' => $this->safe_float($order, 'Total'),
             'amount' => $amount,
@@ -680,7 +701,6 @@ class cryptopia extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -729,22 +749,58 @@ class cryptopia extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'web')
-            return $response;
-        if ($response) {
-            if (is_array ($response) && array_key_exists ('Success', $response))
-                if ($response['Success']) {
-                    return $response;
-                } else if (is_array ($response) && array_key_exists ('Error', $response)) {
-                    $error = $this->safe_string($response, 'error');
-                    if ($error !== null) {
-                        if (mb_strpos ($error, 'Insufficient Funds') !== false)
-                            throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default $error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default $error handler
+        $fixedJSONString = $this->sanitize_broken_json_string ($body);
+        if ($fixedJSONString[0] === '{') {
+            $response = json_decode ($fixedJSONString, $as_associative_array = true);
+            if (is_array ($response) && array_key_exists ('Success', $response)) {
+                $success = $this->safe_value($response, 'Success');
+                if ($success !== null) {
+                    if (!$success) {
+                        $error = $this->safe_string($response, 'Error');
+                        $feedback = $this->id;
+                        if (gettype ($error) === 'string') {
+                            $feedback = $feedback . ' ' . $error;
+                            if (mb_strpos ($error, 'Invalid trade amount') !== false) {
+                                throw new InvalidOrder ($feedback);
+                            }
+                            if (mb_strpos ($error, 'does not exist') !== false) {
+                                throw new OrderNotFound ($feedback);
+                            }
+                            if (mb_strpos ($error, 'Insufficient Funds') !== false) {
+                                throw new InsufficientFunds ($feedback);
+                            }
+                            if (mb_strpos ($error, 'Nonce has already been used') !== false) {
+                                throw new InvalidNonce ($feedback);
+                            }
+                        } else {
+                            $feedback = $feedback . ' ' . $fixedJSONString;
+                        }
+                        throw new ExchangeError ($feedback);
                     }
                 }
+            }
         }
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+    }
+
+    public function sanitize_broken_json_string ($jsonString) {
+        // sometimes cryptopia will return a unicode symbol before actual JSON string.
+        $indexOfBracket = mb_strpos ($jsonString, '{');
+        if ($indexOfBracket >= 0) {
+            return mb_substr ($jsonString, $indexOfBracket);
+        }
+        return $jsonString;
+    }
+
+    public function parse_json ($response, $responseBody, $url, $method) {
+        return parent::parseJson ($response, $this->sanitize_broken_json_string ($responseBody), $url, $method);
     }
 }

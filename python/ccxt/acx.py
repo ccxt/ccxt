@@ -15,7 +15,7 @@ class acx (Exchange):
         return self.deep_extend(super(acx, self).describe(), {
             'id': 'acx',
             'name': 'ACX',
-            'countries': 'AU',
+            'countries': ['AU'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -248,7 +248,7 @@ class acx (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not limit:
+        if limit is None:
             limit = 500  # default is 30
         request = {
             'market': market['id'],
@@ -262,7 +262,7 @@ class acx (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             marketId = order['market']
@@ -371,8 +371,8 @@ class acx (Exchange):
                 'tonce': nonce,
             }, params))
             auth = method + '|' + request + '|' + query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signature
+            signed = self.hmac(self.encode(auth), self.encode(self.secret))
+            suffix = query + '&signature=' + signed
             if method == 'GET':
                 url += '?' + suffix
             else:

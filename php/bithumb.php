@@ -13,7 +13,7 @@ class bithumb extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bithumb',
             'name' => 'Bithumb',
-            'countries' => 'KR', // South Korea
+            'countries' => array ( 'KR' ), // South Korea
             'rateLimit' => 500,
             'has' => array (
                 'CORS' => true,
@@ -344,7 +344,7 @@ class bithumb extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return; // fallback to default error handler
         if (strlen ($body) < 2)
             return; // fallback to default error handler

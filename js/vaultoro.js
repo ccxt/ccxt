@@ -11,7 +11,7 @@ module.exports = class vaultoro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'rateLimit': 1000,
             'version': '1',
             'has': {
@@ -62,8 +62,8 @@ module.exports = class vaultoro extends Exchange {
         let result = [];
         let markets = await this.publicGetMarkets ();
         let market = markets['data'];
-        let baseId = market['BaseCurrency'];
-        let quoteId = market['MarketCurrency'];
+        let baseId = market['MarketCurrency'];
+        let quoteId = market['BaseCurrency'];
         let base = this.commonCurrencyCode (baseId);
         let quote = this.commonCurrencyCode (quoteId);
         let symbol = base + '/' + quote;

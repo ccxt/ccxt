@@ -13,7 +13,7 @@ class kucoin extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kucoin',
             'name' => 'Kucoin',
-            'countries' => 'HK', // Hong Kong
+            'countries' => array ( 'HK' ), // Hong Kong
             'version' => 'v1',
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome'],
@@ -174,6 +174,173 @@ class kucoin extends Exchange {
                 'fetchOrderBookWarning' => true, // raises a warning on null response in fetchOrderBook
                 'timeDifference' => 0, // the difference between system clock and Kucoin clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
+                'limits' => array (
+                    'amount' => array (
+                        'min' => array (
+                            'BTC' => 0.00001,
+                            'ETH' => 0.00001,
+                            'BCH' => 0.00001,
+                            'GAS' => 0.1,
+                            'NEO' => 0.01,
+                            'KCS' => 1,
+                            'TMT' => 1,
+                            'TFD' => 1,
+                            'LALA' => 1,
+                            'CS' => 1,
+                            'DOCK' => 1,
+                            'ETN' => 1,
+                            'IHT' => 1,
+                            'KICK' => 1,
+                            'WAN' => 1,
+                            'ACT' => 1,
+                            'APH' => 1,
+                            'BAX' => 1,
+                            'DATX' => 1,
+                            'DEB' => 1,
+                            'ELEC' => 1,
+                            'GO' => 1,
+                            'HSR' => 1,
+                            'IOTX' => 1,
+                            'LOOM' => 1,
+                            'LYM' => 1,
+                            'MOBI' => 1,
+                            'OMX' => 1,
+                            'ONT' => 1,
+                            'OPEN' => 1,
+                            'QKC' => 1,
+                            'SHL' => 1,
+                            'SOUL' => 1,
+                            'SPHTX' => 1,
+                            'SRN' => 1,
+                            'TKY' => 1,
+                            'TOMO' => 1,
+                            'TRAC' => 1,
+                            'COV' => 1,
+                            'DADI' => 1,
+                            'ELF' => 1,
+                            'LTC' => 1,
+                            'MAN' => 1,
+                            'PRL' => 1,
+                            'STK' => 1,
+                            'ZIL' => 1,
+                            'ZPT' => 1,
+                            'BPT' => 1,
+                            'CAPP' => 1,
+                            'POLY' => 1,
+                            'TNC' => 1,
+                            'XRB' => 0.1,
+                            'AXP' => 1,
+                            'COFI' => 1,
+                            'CXO' => 1,
+                            'DRGN' => 1,
+                            'DTA' => 1,
+                            'ING' => 1,
+                            'MTN' => 1,
+                            'OCN' => 10,
+                            'PARETO' => 1,
+                            'SNC' => 1,
+                            'TEL' => 10,
+                            'WAX' => 1,
+                            'ADB' => 1,
+                            'BOS' => 1,
+                            'HAT' => 1,
+                            'HKN' => 1,
+                            'HPB' => 1,
+                            'IOST' => 1,
+                            'ARY' => 1,
+                            'DBC' => 1,
+                            'KEY' => 1,
+                            'GAT' => 1,
+                            'RPX' => 1,
+                            'ACAT' => 1,
+                            'CV' => 10,
+                            'QLC' => 1,
+                            'R' => 1,
+                            'TIO' => 1,
+                            'ITC' => 1,
+                            'AGI' => 10,
+                            'EXY' => 1,
+                            'MWAT' => 1,
+                            'DENT' => 1,
+                            'J8T' => 1,
+                            'LOCI' => 1,
+                            'CAT' => 1,
+                            'ARN' => 1,
+                            'CAN' => 1,
+                            'EOS' => 0.1,
+                            'ETC' => 0.1,
+                            'JNT' => 1,
+                            'PLAY' => 1,
+                            'CHP' => 1,
+                            'DASH' => 0.01,
+                            'DNA' => 1,
+                            'EBTC' => 1,
+                            'FOTA' => 1,
+                            'PURA' => 0.1,
+                            'UTK' => 1,
+                            'CAG' => 1,
+                            'GLA' => 1,
+                            'HAV' => 1,
+                            'SPF' => 1,
+                            'TIME' => 1,
+                            'ABT' => 1,
+                            'BNTY' => 1,
+                            'ELIX' => 1,
+                            'ENJ' => 1,
+                            'AIX' => 1,
+                            'VEN' => 1,
+                            'AION' => 1,
+                            'DAT' => 1,
+                            'QTUM' => 0.1,
+                            'WTC' => 0.1,
+                            'DGB' => 1,
+                            'SNOV' => 1,
+                            'BRD' => 1,
+                            'AMB' => 1,
+                            'BTM' => 1,
+                            'MANA' => 1,
+                            'RHOC' => 1,
+                            'XLR' => 1,
+                            'XAS' => 0.1,
+                            'CHSB' => 1,
+                            'UKG' => 1,
+                            'POLL' => 1,
+                            'FLIXX' => 0.1,
+                            'INS' => 1,
+                            'OMG' => 0.1,
+                            'TFL' => 1,
+                            'WPR' => 1,
+                            'LEND' => 1,
+                            'KNC' => 0.001,
+                            'BCD' => 0.001,
+                            'LA' => 1,
+                            'ONION' => 1,
+                            'POWR' => 0.1,
+                            'SNM' => 1,
+                            'BTG' => 0.001,
+                            'PBL' => 1,
+                            'MOD' => 0.1,
+                            'PPT' => 0.1,
+                            'BCPT' => 1,
+                            'GVT' => 0.1,
+                            'HST' => 0.1,
+                            'SNT' => 0.1,
+                            'SUB' => 0.1,
+                            'NEBL' => 0.1,
+                            'CVC' => 0.1,
+                            'MTH' => 1,
+                            'NULS' => 0.1,
+                            'PAY' => 0.1,
+                            'RDN' => 1,
+                            'REQ' => 1,
+                            'QSP' => 0.1,
+                        ),
+                    ),
+                ),
+            ),
+            'commonCurrencies' => array (
+                'CAN' => 'CanYa',
+                'XRB' => 'NANO',
             ),
         ));
     }
@@ -189,6 +356,24 @@ class kucoin extends Exchange {
         return $this->options['timeDifference'];
     }
 
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetMarketOpenSymbols ();
         if ($this->options['adjustForTimeDifference'])
@@ -198,21 +383,25 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $market['coinType'];
-            $quote = $market['coinTypePair'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['coinType'];
+            $quoteId = $market['coinTypePair'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
             );
+            $defaultMinAmount = pow (10, -$precision['amount']);
+            $minAmount = $this->safe_float($this->options['limits']['amount']['min'], $base, $defaultMinAmount);
             $active = $market['trading'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'taker' => $this->safe_float($market, 'feeRate'),
                 'maker' => $this->safe_float($market, 'feeRate'),
@@ -221,7 +410,7 @@ class kucoin extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
+                        'min' => $minAmount,
                         'max' => null,
                     ),
                     'price' => array (
@@ -248,7 +437,6 @@ class kucoin extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -268,18 +456,19 @@ class kucoin extends Exchange {
             $deposit = $currency['enableDeposit'];
             $withdraw = $currency['enableWithdraw'];
             $active = ($deposit && $withdraw);
+            $defaultMinAmount = pow (10, -$precision);
+            $minAmount = $this->safe_float($this->options['limits']['amount']['min'], $code, $defaultMinAmount);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
                 'name' => $currency['name'],
                 'active' => $active,
-                'status' => 'ok',
                 'fee' => $currency['withdrawMinFee'], // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
+                        'min' => $minAmount,
                         'max' => pow (10, $precision),
                     ),
                     'price' => array (
@@ -327,23 +516,28 @@ class kucoin extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOpenOrders (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-            'limit' => $limit,
-        ), $params));
-        $dataInResponse = (is_array ($response) && array_key_exists ('data', $response));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetOpenOrders (array_merge ($request, $params));
         $orderbook = null;
         $timestamp = null;
-        if (!$dataInResponse) {
+        // sometimes kucoin returns this:
+        // array ("success":true,"code":"OK","msg":"Operation succeeded.","$timestamp":xxxxxxxxxxxxx,"data":null)
+        if (!(is_array ($response) && array_key_exists ('data', $response)) || !$response['data']) {
             if ($this->options['fetchOrderBookWarning'])
-                throw new ExchangeError ($this->id . " fetchOrderBook returned an null $response. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
+                throw new ExchangeError ($this->id . " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
             $orderbook = array (
                 'BUY' => array (),
                 'SELL' => array (),
             );
         } else {
             $orderbook = $response['data'];
-            $timestamp = $response['data']['timestamp'];
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            $timestamp = $this->safe_integer($response['data'], 'timestamp', $timestamp);
         }
         return $this->parse_order_book($orderbook, $timestamp, 'BUY', 'SELL');
     }
@@ -376,7 +570,12 @@ class kucoin extends Exchange {
         }
         $timestamp = $this->safe_value($order, 'createdAt');
         $remaining = $this->safe_float($order, 'pendingAmount');
-        $status = $this->safe_value($order, 'status');
+        $status = null;
+        if ($this->safe_value($order, 'isActive', true)) {
+            $status = 'open';
+        } else {
+            $status = 'closed';
+        }
         $filled = $this->safe_float($order, 'dealAmount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'dealValue');
@@ -515,12 +714,17 @@ class kucoin extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a symbol');
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $marketId = null;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $marketId = $market['id'];
+        } else {
+            $marketId = '';
+        }
         $request = array (
-            'symbol' => $market['id'],
+            'symbol' => $marketId,
         );
         $response = $this->privateGetOrderActiveMap (array_merge ($request, $params));
         $sell = $this->safe_value($response['data'], 'SELL');
@@ -631,7 +835,7 @@ class kucoin extends Exchange {
         // docs say $symbol is required, but it seems to be optional
         // you can cancel all orders, or filter by $symbol or type or both
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $this->load_markets();
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
@@ -698,10 +902,11 @@ class kucoin extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['datetime'];
         $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
+        if ($market === null) {
+            $marketId = $ticker['coinType'] . '-' . $ticker['coinTypePair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         // TNC coin doesn't have changerate for some reason
         $change = $this->safe_float($ticker, 'change');
@@ -711,6 +916,9 @@ class kucoin extends Exchange {
             if ($change !== null)
                 $open = $last - $change;
         $changePercentage = $this->safe_float($ticker, 'changeRate');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -736,6 +944,7 @@ class kucoin extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetMarketOpenSymbols ($params);
         $tickers = $response['data'];
         $result = array ();
@@ -838,14 +1047,14 @@ class kucoin extends Exchange {
         // it improperly mimics fetchMyTrades with closed orders
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetDealOrders (array_merge ($request, $params));
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);

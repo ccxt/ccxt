@@ -40,6 +40,7 @@ class bibox (Exchange):
                 'fetchDepositAddress': True,
                 'fetchFundingFees': True,
                 'fetchTickers': True,
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
@@ -53,7 +54,7 @@ class bibox (Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
+                '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
             },
@@ -102,6 +103,7 @@ class bibox (Exchange):
             'exceptions': {
                 '2021': InsufficientFunds,  # Insufficient balance available for withdrawal
                 '2015': AuthenticationError,  # Google authenticator is wrong
+                '2027': InsufficientFunds,  # Insufficient balance available(for trade)
                 '2033': OrderNotFound,  # operation failednot  Orders have been completed or revoked
                 '2067': InvalidOrder,  # Does not support market orders
                 '2068': InvalidOrder,  # The number of orders can not be less than
@@ -131,7 +133,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
             id = base + '_' + quote
             precision = {
-                'amount': 8,
+                'amount': 4,
                 'price': 8,
             }
             result.append({
@@ -162,7 +164,7 @@ class bibox (Exchange):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             base = ticker['coin_symbol']
@@ -226,32 +228,54 @@ class bibox (Exchange):
         return self.parse_tickers(response['result'], symbols)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['time']
+        timestamp = self.safe_integer(trade, 'time')
+        timestamp = self.safe_integer(trade, 'createdAt', timestamp)
         side = self.safe_integer(trade, 'side')
         side = self.safe_integer(trade, 'order_side', side)
         side = 'buy' if (side == 1) else 'sell'
+        symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'pair')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-        symbol = market['symbol'] if (market is not None) else None
+            if marketId is None:
+                baseId = self.safe_string(trade, 'coin_symbol')
+                quoteId = self.safe_string(trade, 'currency_symbol')
+                if (baseId is not None) and(quoteId is not None):
+                    marketId = baseId + '_' + quoteId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
         fee = None
-        if 'fee' in trade:
+        feeCost = self.safe_float(trade, 'fee')
+        feeCurrency = self.safe_string(trade, 'fee_symbol')
+        if feeCurrency is not None:
+            if feeCurrency in self.currencies_by_id:
+                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
+        feeRate = None  # todo: deduce from market if market is defined
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = price * amount
+        if feeCost is not None:
             fee = {
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': None,
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': feeRate,
             }
         return {
-            'id': self.safe_string(trade, 'id'),
             'info': trade,
+            'id': self.safe_string(trade, 'id'),
+            'order': None,  # Bibox does not have it(documented) yet
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': 'limit',
+            'takerOrMaker': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -319,7 +343,6 @@ class bibox (Exchange):
                 'info': currency,
                 'name': currency['name'],
                 'active': active,
-                'status': 'ok',
                 'fee': None,
                 'precision': precision,
                 'limits': {
@@ -411,18 +434,39 @@ class bibox (Exchange):
         })
         return response
 
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privatePostOrderpending({
+            'cmd': 'orderpending/order',
+            'body': self.extend({
+                'id': id,
+            }, params),
+        })
+        order = self.safe_value(response, 'result')
+        if self.is_empty(order):
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
+        return self.parse_order(order)
+
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is None:
+            marketId = None
+            baseId = self.safe_string(order, 'coin_symbol')
+            quoteId = self.safe_string(order, 'currency_symbol')
+            if (baseId is not None) and(quoteId is not None):
+                marketId = baseId + '_' + quoteId
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
             symbol = market['symbol']
-        else:
-            symbol = order['coin_symbol'] + '/' + order['currency_symbol']
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'deal_price', price)
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'money')
+        cost = self.safe_float(order, 'deal_money', cost)
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -455,7 +499,7 @@ class bibox (Exchange):
     def parse_order_status(self, status):
         statuses = {
             # original comments from bibox:
-            '1': 'pending',  # pending
+            '1': 'open',  # pending
             '2': 'open',  # part completed
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled
@@ -502,7 +546,7 @@ class bibox (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -517,7 +561,7 @@ class bibox (Exchange):
             }, params),
         })
         trades = self.safe_value(response['result'], 'items', [])
-        return self.parse_orders(trades, market, since, limit)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()

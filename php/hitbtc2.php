@@ -13,7 +13,7 @@ class hitbtc2 extends hitbtc {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'hitbtc2',
             'name' => 'HitBTC v2',
-            'countries' => 'HK',
+            'countries' => array ( 'HK' ),
             'rateLimit' => 1500,
             'version' => '2',
             'has' => array (
@@ -615,10 +615,9 @@ class hitbtc2 extends hitbtc {
             $payout = $this->safe_value($currency, 'payoutEnabled');
             $transfer = $this->safe_value($currency, 'transferEnabled');
             $active = $payin && $payout && $transfer;
-            $status = 'ok';
             if (is_array ($currency) && array_key_exists ('disabled', $currency))
                 if ($currency['disabled'])
-                    $status = 'disabled';
+                    $active = false;
             $type = 'fiat';
             if ((is_array ($currency) && array_key_exists ('crypto', $currency)) && $currency['crypto'])
                 $type = 'crypto';
@@ -632,7 +631,6 @@ class hitbtc2 extends hitbtc {
                 'info' => $currency,
                 'name' => $currency['fullName'],
                 'active' => $active,
-                'status' => $status,
                 'fee' => $this->safe_float($currency, 'payoutFee'), // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
@@ -790,7 +788,7 @@ class hitbtc2 extends hitbtc {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $id = $trade['symbol'];
@@ -834,9 +832,14 @@ class hitbtc2 extends hitbtc {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        if ($since !== null)
+            $request['from'] = $this->iso8601 ($since);
+        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -863,6 +866,8 @@ class hitbtc2 extends hitbtc {
         }
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
+        if ($order['status'] === 'rejected')
+            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
         $id = $order['id'];
         $this->orders[$id] = $order;
         return $order;
@@ -891,9 +896,10 @@ class hitbtc2 extends hitbtc {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrderClientOrderId (array_merge (array (
+        $response = $this->privateDeleteOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
         ), $params));
+        return $this->parse_order($response);
     }
 
     public function parse_order ($order, $market = null) {
@@ -976,7 +982,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
@@ -988,7 +994,7 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
@@ -1014,7 +1020,7 @@ class hitbtc2 extends hitbtc {
             // 'offset' => 0,
         );
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
@@ -1027,9 +1033,9 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        // The $id needed here is the exchange's $id, and not the clientOrderID, which is
-        // the $id that is stored in the unified api order $id. In order the get the exchange's $id,
-        // you need to grab it from order['info']['id']
+        // The $id needed here is the exchange's $id, and not the clientOrderID,
+        // which is the $id that is stored in the unified order $id
+        // To get the exchange's $id you need to grab it from order['info']['id']
         $this->load_markets();
         $market = null;
         if ($symbol !== null)
@@ -1056,7 +1062,6 @@ class hitbtc2 extends hitbtc {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -1071,15 +1076,15 @@ class hitbtc2 extends hitbtc {
         $this->check_address($address);
         $tag = $this->safe_string($response, 'paymentId');
         return array (
-            'currency' => $currency.code,
+            'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
         $this->check_address($address);
         $currency = $this->currency ($code);
         $request = array (
@@ -1125,7 +1130,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) != 'string')
+        if (gettype ($body) !== 'string')
             return;
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;

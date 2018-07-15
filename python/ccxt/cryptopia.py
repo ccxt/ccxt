@@ -4,13 +4,23 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
+from ccxt.base.errors import InvalidNonce
 
 
 class cryptopia (Exchange):
@@ -20,7 +30,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -47,9 +57,8 @@ class cryptopia (Exchange):
                 'www': 'https://www.cryptopia.co.nz',
                 'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ],
             },
             'timeframes': {
@@ -104,18 +113,24 @@ class cryptopia (Exchange):
             'commonCurrencies': {
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
+                'BEAN': 'BITB',  # rebranding, see issue  #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
+                'CAN': 'CanYa',
+                'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
+                'RED': 'RedCoin',
+                'STC': 'StopTrumpCoin',
                 'QBT': 'Cubits',
                 'WRC': 'WarCoin',
             },
@@ -323,13 +338,13 @@ class cryptopia (Exchange):
             price = self.safe_float(trade, 'Rate')
         cost = self.safe_float(trade, 'Total')
         id = self.safe_string(trade, 'TradeId')
-        if not market:
+        if market is None:
             if 'TradePairId' in trade:
                 if trade['TradePairId'] in self.markets_by_id:
                     market = self.markets_by_id[trade['TradePairId']]
         symbol = None
         fee = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if 'Fee' in trade:
                 fee = {
@@ -371,7 +386,7 @@ class cryptopia (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
         if limit is not None:
@@ -471,11 +486,10 @@ class cryptopia (Exchange):
                 else:
                     filled = amount
                     status = 'closed'
-        timestamp = self.milliseconds()
         order = {
             'id': id,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
@@ -501,6 +515,8 @@ class cryptopia (Exchange):
                 'Type': 'Trade',
                 'OrderId': id,
             }, params))
+            # We do not know if it is indeed canceled, but cryptopia lacks any
+            # reasonable method to get information on executed or canceled order.
             if id in self.orders:
                 self.orders[id]['status'] = 'canceled'
         except Exception as e:
@@ -510,11 +526,11 @@ class cryptopia (Exchange):
                     if message.find('does not exist') >= 0:
                         raise OrderNotFound(self.id + ' cancelOrder() error: ' + self.last_http_response)
             raise e
-        return response
+        return self.parse_order(response)
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'Market' in order:
             id = order['Market']
@@ -526,19 +542,30 @@ class cryptopia (Exchange):
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
         timestamp = self.parse8601(order['TimeStamp'])
+        datetime = None
+        if timestamp:
+            datetime = self.iso8601(timestamp)
         amount = self.safe_float(order, 'Amount')
         remaining = self.safe_float(order, 'Remaining')
-        filled = amount - remaining
+        filled = None
+        if amount is not None and remaining is not None:
+            filled = amount - remaining
+        id = self.safe_value(order, 'OrderId')
+        if id is not None:
+            id = str(id)
+        side = self.safe_string(order, 'Type')
+        if side is not None:
+            side = side.lower()
         return {
-            'id': str(order['OrderId']),
+            'id': id,
             'info': self.omit(order, 'status'),
             'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
-            'status': order['status'],
+            'status': self.safe_string(order, 'status'),
             'symbol': symbol,
             'type': 'limit',
-            'side': order['Type'].lower(),
+            'side': side,
             'price': self.safe_float(order, 'Rate'),
             'cost': self.safe_float(order, 'Total'),
             'amount': amount,
@@ -625,7 +652,6 @@ class cryptopia (Exchange):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
             'info': response,
         }
 
@@ -670,17 +696,43 @@ class cryptopia (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'web':
-            return response
-        if response:
+    def nonce(self):
+        return self.milliseconds()
+
+    def handle_errors(self, code, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        fixedJSONString = self.sanitize_broken_json_string(body)
+        if fixedJSONString[0] == '{':
+            response = json.loads(fixedJSONString)
             if 'Success' in response:
-                if response['Success']:
-                    return response
-                elif 'Error' in response:
-                    error = self.safe_string(response, 'error')
-                    if error is not None:
-                        if error.find('Insufficient Funds') >= 0:
-                            raise InsufficientFunds(self.id + ' ' + self.json(response))
-        raise ExchangeError(self.id + ' ' + self.json(response))
+                success = self.safe_value(response, 'Success')
+                if success is not None:
+                    if not success:
+                        error = self.safe_string(response, 'Error')
+                        feedback = self.id
+                        if isinstance(error, basestring):
+                            feedback = feedback + ' ' + error
+                            if error.find('Invalid trade amount') >= 0:
+                                raise InvalidOrder(feedback)
+                            if error.find('does not exist') >= 0:
+                                raise OrderNotFound(feedback)
+                            if error.find('Insufficient Funds') >= 0:
+                                raise InsufficientFunds(feedback)
+                            if error.find('Nonce has already been used') >= 0:
+                                raise InvalidNonce(feedback)
+                        else:
+                            feedback = feedback + ' ' + fixedJSONString
+                        raise ExchangeError(feedback)
+
+    def sanitize_broken_json_string(self, jsonString):
+        # sometimes cryptopia will return a unicode symbol before actual JSON string.
+        indexOfBracket = jsonString.find('{')
+        if indexOfBracket >= 0:
+            return jsonString[indexOfBracket:]
+        return jsonString
+
+    def parse_json(self, response, responseBody, url, method):
+        return super(cryptopia, self).parseJson(response, self.sanitize_broken_json_string(responseBody), url, method)

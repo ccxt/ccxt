@@ -7,6 +7,7 @@ from ccxt.liqui import liqui
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
@@ -16,7 +17,7 @@ class yobit (liqui):
         return self.deep_extend(super(yobit, self).describe(), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 3000,  # responses are cached every 2 seconds
             'version': '3',
             'has': {
@@ -69,34 +70,68 @@ class yobit (liqui):
             'commonCurrencies': {
                 'AIR': 'AirCoin',
                 'ANI': 'ANICoin',
-                'ANT': 'AntsCoin',
+                'ANT': 'AntsCoin',  # what is self, a coin for ants?
+                'ATMCHA': 'ATM',
+                'ASN': 'Ascension',
                 'AST': 'Astral',
                 'ATM': 'Autumncoin',
                 'BCC': 'BCH',
                 'BCS': 'BitcoinStake',
                 'BLN': 'Bulleon',
+                'BOT': 'BOTcoin',
+                'BON': 'BONES',
+                'BPC': 'BitcoinPremium',
                 'BTS': 'Bitshares2',
                 'CAT': 'BitClave',
+                'CMT': 'CometCoin',
                 'COV': 'Coven Coin',
+                'COVX': 'COV',
                 'CPC': 'Capricoin',
+                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
+                'DIRT': 'DIRTY',
                 'DROP': 'FaucetCoin',
+                'EKO': 'EkoCoin',
+                'ENTER': 'ENTRC',
+                'EPC': 'ExperienceCoin',
                 'ERT': 'Eristica Token',
+                'ESC': 'EdwardSnowden',
+                'EUROPE': 'EUROP',
+                'EXT': 'LifeExtension',
+                'FUNK': 'FUNKCoin',
+                'GCC': 'GlobalCryptocurrency',
+                'GEN': 'Genstake',
+                'GENE': 'Genesiscoin',
+                'GOLD': 'GoldMint',
+                'HTML5': 'HTML',
+                'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
+                'INSANE': 'INSN',
+                'JNT': 'JointCoin',
+                'JPC': 'JupiterCoin',
                 'KNC': 'KingN Coin',
+                'LBTCX': 'LiteBitcoin',
                 'LIZI': 'LiZi',
                 'LOC': 'LocoCoin',
                 'LOCX': 'LOC',
-                'LUN': 'LunarCoin',
+                'LUNYR': 'LUN',
+                'LUN': 'LunarCoin',  # they just change the ticker if it is already taken
                 'MDT': 'Midnight',
                 'NAV': 'NavajoCoin',
+                'NBT': 'NiceBytes',
                 'OMG': 'OMGame',
+                'PAC': '$PAC',
+                'PLAY': 'PlayCoin',
+                'PIVX': 'Darknet',
+                'PRS': 'PRE',
+                'PUTIN': 'PUT',
                 'STK': 'StakeCoin',
                 'SUB': 'Subscriptio',
                 'PAY': 'EPAY',
                 'PLC': 'Platin Coin',
+                'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
                 'XIN': 'XINCoin',
@@ -153,7 +188,7 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response['info'],
         }
 
@@ -170,7 +205,7 @@ class yobit (liqui):
         return {
             'currency': code,
             'address': address,
-            'status': 'ok',
+            'tag': None,
             'info': response,
         }
 
@@ -200,4 +235,7 @@ class yobit (liqui):
                             raise DDoSProtection(self.id + ' ' + self.json(response))
                         elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
                             raise DDoSProtection(self.id + ' ' + self.json(response))
+                        elif response['error_log'] == 'Total transaction amount':
+                            # eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            raise InvalidOrder(self.id + ' ' + self.json(response))
                     raise ExchangeError(self.id + ' ' + self.json(response))

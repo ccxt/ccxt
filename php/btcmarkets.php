@@ -13,7 +13,7 @@ class btcmarkets extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcmarkets',
             'name' => 'BTC Markets',
-            'countries' => 'AU', // Australia
+            'countries' => array ( 'AU' ), // Australia
             'rateLimit' => 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'has' => array (
                 'CORS' => false,
@@ -285,7 +285,7 @@ class btcmarkets extends Exchange {
         $side = ($order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         $type = ($order['ordertype'] === 'Limit') ? 'limit' : 'market';
         $timestamp = $order['creationTime'];
-        if (!$market) {
+        if ($market === null) {
             $market = $this->market ($order['instrument'] . '/' . $order['currency']);
         }
         $status = 'open';
@@ -351,7 +351,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchOrders requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -361,7 +361,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchOpenOrders requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -376,7 +376,7 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new NotSupported ($this->id . ' => fetchMyTrades requires a `$symbol` parameter.');
         $this->load_markets();
         $market = $this->market ($symbol);

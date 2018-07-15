@@ -17,7 +17,7 @@ class braziliex (Exchange):
         return self.deep_extend(super(braziliex, self).describe(), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': 'BR',
+            'countries': ['BR'],
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': True,
@@ -56,6 +56,9 @@ class braziliex (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'fees': {
                 'trading': {
                     'maker': 0.005,
@@ -79,11 +82,9 @@ class braziliex (Exchange):
             uppercase = id.upper()
             code = self.common_currency_code(uppercase)
             active = self.safe_integer(currency, 'active') == 1
-            status = 'ok'
             maintenance = self.safe_integer(currency, 'under_maintenance')
             if maintenance != 0:
                 active = False
-                status = 'maintenance'
             canWithdraw = self.safe_integer(currency, 'is_withdrawal_active') == 1
             canDeposit = self.safe_integer(currency, 'is_deposit_active') == 1
             if not canWithdraw or not canDeposit:
@@ -93,7 +94,6 @@ class braziliex (Exchange):
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -296,7 +296,7 @@ class braziliex (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = self.safe_string(order, 'market')
             if marketId:
                 if marketId in self.markets_by_id:
@@ -408,7 +408,6 @@ class braziliex (Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         }
 

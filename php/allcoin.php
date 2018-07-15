@@ -13,7 +13,7 @@ class allcoin extends okcoinusd {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'allcoin',
             'name' => 'Allcoin',
-            'countries' => 'CA',
+            'countries' => array ( 'CA' ),
             'has' => array (
                 'CORS' => false,
             ),

@@ -13,7 +13,7 @@ class negociecoins extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'negociecoins',
             'name' => 'NegocieCoins',
-            'countries' => 'BR',
+            'countries' => array ( 'BR' ),
             'rateLimit' => 1000,
             'version' => 'v3',
             'has' => array (
@@ -196,7 +196,7 @@ class negociecoins extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $market = $this->safe_value($this->marketsById, $order['pair']);
             if ($market)
                 $symbol = $market['symbol'];

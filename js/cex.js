@@ -182,9 +182,13 @@ module.exports = class cex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderBookPair (this.extend ({
+        let request = {
             'pair': this.marketId (symbol),
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            request['depth'] = limit;
+        }
+        let orderbook = await this.publicGetOrderBookPair (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -203,11 +207,11 @@ module.exports = class cex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!since) {
+        if (typeof since === 'undefined') {
             since = this.milliseconds () - 86400000; // yesterday
         } else {
             if (this.options['fetchOHLCVWarning']) {
-                throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null response. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
+                throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
             }
         }
         let ymd = this.ymd (since);
@@ -362,7 +366,7 @@ module.exports = class cex extends Exchange {
             timestamp = parseInt (timestamp);
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let symbol = order['symbol1'] + '/' + order['symbol2'];
             if (symbol in this.markets)
                 market = this.market (symbol);
@@ -385,7 +389,7 @@ module.exports = class cex extends Exchange {
         let filled = amount - remaining;
         let fee = undefined;
         let cost = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             cost = this.safeFloat (order, 'ta:' + market['quote']);
             if (typeof cost === 'undefined')
@@ -446,7 +450,7 @@ module.exports = class cex extends Exchange {
         let request = {};
         let method = 'privatePostOpenOrders';
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
             method += 'Pair';
@@ -524,9 +528,9 @@ module.exports = class cex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        if (code === 'XRP') {
+        if (code === 'XRP' || code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -540,7 +544,6 @@ module.exports = class cex extends Exchange {
             'currency': code,
             'address': address,
             'tag': undefined,
-            'status': 'ok',
             'info': response,
         };
     }

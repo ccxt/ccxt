@@ -18,7 +18,7 @@ class bitmex (Exchange):
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC',  # Seychelles
+            'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
@@ -48,6 +48,7 @@ class bitmex (Exchange):
                     'https://github.com/BitMEX/api-connectors/tree/master/official-http',
                 ],
                 'fees': 'https://www.bitmex.com/app/fees',
+                'referral': 'https://www.bitmex.com/register/rm3C16',
             },
             'api': {
                 'public': {
@@ -140,7 +141,7 @@ class bitmex (Exchange):
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': True,
+                'fetchTickerQuotes': False,
             },
         })
 
@@ -381,7 +382,7 @@ class bitmex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
         if market:
@@ -415,7 +416,7 @@ class bitmex (Exchange):
         if status is not None:
             status = self.parse_order_status(status)
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = order['symbol']
@@ -435,7 +436,10 @@ class bitmex (Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
-        remaining = max(amount - filled, 0.0)
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = max(amount - filled, 0.0)
         cost = None
         if price is not None:
             if filled is not None:

@@ -26,6 +26,7 @@ __all__ = [
     'NotSupported',
     'AuthenticationError',
     'PermissionDenied',
+    'AccountSuspended',
     'InsufficientFunds',
     'InvalidOrder',
     'OrderNotFound',
@@ -36,6 +37,7 @@ __all__ = [
     'ExchangeNotAvailable',
     'InvalidNonce',
     'InvalidAddress',
+    'AddressPending',
     'BadResponse',
     'NullResponse',
 ]
@@ -78,6 +80,11 @@ class PermissionDenied(AuthenticationError):
     pass
 
 
+class AccountSuspended(AuthenticationError):
+    """Raised when user account has been suspended or deactivated by the exchange"""
+    pass
+
+
 class InsufficientFunds(ExchangeError):
     """Raised when you don't have enough currency on your account balance to place an order"""
     pass
@@ -90,6 +97,11 @@ class InvalidOrder(ExchangeError):
 
 class InvalidAddress(ExchangeError):
     """Raised on invalid funding address"""
+    pass
+
+
+class AddressPending(InvalidAddress):
+    """Raised when the address requested is pending (not ready yet, retry again later)"""
     pass
 
 

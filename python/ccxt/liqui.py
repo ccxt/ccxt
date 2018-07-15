@@ -28,7 +28,7 @@ class liqui (Exchange):
         return self.deep_extend(super(liqui, self).describe(), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': ['UA'],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': self.userAgents['chrome'],
@@ -215,7 +215,7 @@ class liqui (Exchange):
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = '-'.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
@@ -270,7 +270,7 @@ class liqui (Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = '-'.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:

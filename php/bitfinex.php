@@ -13,7 +13,7 @@ class bitfinex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
             // new metainfo interface
@@ -245,13 +245,16 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'ATM' => 'Atonomi', // issue #3383
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
+                'CTX' => 'CTXC',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
                 'MNA' => 'MANA',
+                'ORS' => 'ORS Group', // conflict with Origin Sport #3230
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
                 'SNG' => 'SNGLS',
@@ -272,6 +275,8 @@ class bitfinex extends Exchange {
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
+                    'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
+                    'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
@@ -281,6 +286,74 @@ class bitfinex extends Exchange {
                 ),
             ),
             'precisionMode' => SIGNIFICANT_DIGITS,
+            'options' => array (
+                'currencyNames' => array (
+                    'AGI' => 'agi',
+                    'AID' => 'aid',
+                    'AIO' => 'aio',
+                    'ANT' => 'ant',
+                    'AVT' => 'aventus', // #1811
+                    'BAT' => 'bat',
+                    'BCH' => 'bcash', // undocumented
+                    'BCI' => 'bci',
+                    'BFT' => 'bft',
+                    'BTC' => 'bitcoin',
+                    'BTG' => 'bgold',
+                    'CFI' => 'cfi',
+                    'DAI' => 'dai',
+                    'DADI' => 'dad',
+                    'DASH' => 'dash',
+                    'DATA' => 'datacoin',
+                    'DTH' => 'dth',
+                    'EDO' => 'eidoo', // #1811
+                    'ELF' => 'elf',
+                    'EOS' => 'eos',
+                    'ETC' => 'ethereumc',
+                    'ETH' => 'ethereum',
+                    'ETP' => 'metaverse',
+                    'FUN' => 'fun',
+                    'GNT' => 'golem',
+                    'IOST' => 'ios',
+                    'IOTA' => 'iota',
+                    'LRC' => 'lrc',
+                    'LTC' => 'litecoin',
+                    'LYM' => 'lym',
+                    'MANA' => 'mna',
+                    'MIT' => 'mit',
+                    'MKR' => 'mkr',
+                    'MTN' => 'mtn',
+                    'NEO' => 'neo',
+                    'ODE' => 'ode',
+                    'OMG' => 'omisego',
+                    'OMNI' => 'mastercoin',
+                    'QASH' => 'qash',
+                    'QTUM' => 'qtum', // #1811
+                    'RCN' => 'rcn',
+                    'RDN' => 'rdn',
+                    'REP' => 'rep',
+                    'REQ' => 'req',
+                    'RLC' => 'rlc',
+                    'SAN' => 'santiment',
+                    'SNGLS' => 'sng',
+                    'SNT' => 'status',
+                    'SPANK' => 'spk',
+                    'STORJ' => 'stj',
+                    'TNB' => 'tnb',
+                    'TRX' => 'trx',
+                    'USD' => 'wire',
+                    'UTK' => 'utk',
+                    'USDT' => 'tetheruso', // undocumented
+                    'VEE' => 'vee',
+                    'WAX' => 'wax',
+                    'XLM' => 'xlm',
+                    'XMR' => 'monero',
+                    'XRP' => 'ripple',
+                    'XVG' => 'xvg',
+                    'YOYOW' => 'yoyow',
+                    'ZEC' => 'zcash',
+                    'ZRX' => 'zrx',
+                ),
+            ),
         ));
     }
 
@@ -543,6 +616,8 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
@@ -596,13 +671,13 @@ class bitfinex extends Exchange {
             $status = 'closed';
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $exchange = strtoupper ($order['symbol']);
             if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;
@@ -638,7 +713,7 @@ class bitfinex extends Exchange {
                 throw new ExchangeError ($this->id . ' has no $symbol ' . $symbol);
         $response = $this->privatePostOrders ($params);
         $orders = $this->parse_orders($response, null, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }
@@ -694,69 +769,8 @@ class bitfinex extends Exchange {
     }
 
     public function get_currency_name ($currency) {
-        $names = array (
-            'AGI' => 'agi',
-            'AID' => 'aid',
-            'AIO' => 'aio',
-            'ANT' => 'ant',
-            'AVT' => 'aventus', // #1811
-            'BAT' => 'bat',
-            'BCH' => 'bcash', // undocumented
-            'BCI' => 'bci',
-            'BFT' => 'bft',
-            'BTC' => 'bitcoin',
-            'BTG' => 'bgold',
-            'CFI' => 'cfi',
-            'DAI' => 'dai',
-            'DASH' => 'dash',
-            'DATA' => 'datacoin',
-            'DTH' => 'dth',
-            'EDO' => 'eidoo', // #1811
-            'ELF' => 'elf',
-            'EOS' => 'eos',
-            'ETC' => 'ethereumc',
-            'ETH' => 'ethereum',
-            'ETP' => 'metaverse',
-            'FUN' => 'fun',
-            'GNT' => 'golem',
-            'IOST' => 'ios',
-            'IOTA' => 'iota',
-            'LRC' => 'lrc',
-            'LTC' => 'litecoin',
-            'MANA' => 'mna',
-            'MIT' => 'mit',
-            'MTN' => 'mtn',
-            'NEO' => 'neo',
-            'ODE' => 'ode',
-            'OMG' => 'omisego',
-            'OMNI' => 'mastercoin',
-            'QASH' => 'qash',
-            'QTUM' => 'qtum', // #1811
-            'RCN' => 'rcn',
-            'RDN' => 'rdn',
-            'REP' => 'rep',
-            'REQ' => 'req',
-            'RLC' => 'rlc',
-            'SAN' => 'santiment',
-            'SNGLS' => 'sng',
-            'SNT' => 'status',
-            'SPANK' => 'spk',
-            'STJ' => 'stj',
-            'TNB' => 'tnb',
-            'TRX' => 'trx',
-            'USD' => 'wire',
-            'USDT' => 'tetheruso', // undocumented
-            'WAX' => 'wax',
-            'XLM' => 'xlm',
-            'XMR' => 'monero',
-            'XRP' => 'ripple',
-            'XVG' => 'xvg',
-            'YOYOW' => 'yoyow',
-            'ZEC' => 'zcash',
-            'ZRX' => 'zrx',
-        );
-        if (is_array ($names) && array_key_exists ($currency, $names))
-            return $names[$currency];
+        if (is_array ($this->options['currencyNames']) && array_key_exists ($currency, $this->options['currencyNames']))
+            return $this->options['currencyNames'][$currency];
         throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
     }
 
@@ -769,7 +783,6 @@ class bitfinex extends Exchange {
         return array (
             'currency' => $currency,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response['info'],
         );
     }
@@ -793,7 +806,6 @@ class bitfinex extends Exchange {
             'currency' => $currency,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -816,8 +828,8 @@ class bitfinex extends Exchange {
         $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
-                $Exception = $this->exceptions['broad'][$errorMessage];
-                throw new $Exception ($this->id . ' ' . $message);
+                $ExceptionClass = $this->exceptions['broad'][$errorMessage];
+                throw new $ExceptionClass ($this->id . ' ' . $message);
             }
             throw new ExchangeError ($this->id . ' withdraw returned an $id of zero => ' . $this->json ($response));
         }

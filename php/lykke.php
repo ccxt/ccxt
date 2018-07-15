@@ -13,7 +13,7 @@ class lykke extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lykke',
             'name' => 'Lykke',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'version' => 'v1',
             'rateLimit' => 200,
             'has' => array (
@@ -32,11 +32,11 @@ class lykke extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34487620-3139a7b0-efe6-11e7-90f5-e520cef74451.jpg',
                 'api' => array (
-                    'mobile' => 'https://api.lykkex.com/api',
+                    'mobile' => 'https://public-api.lykke.com/api',
                     'public' => 'https://hft-api.lykke.com/api',
                     'private' => 'https://hft-api.lykke.com/api',
                     'test' => array (
-                        'mobile' => 'https://api.lykkex.com/api',
+                        'mobile' => 'https://public-api.lykke.com/api',
                         'public' => 'https://hft-service-dev.lykkex.net/api',
                         'private' => 'https://hft-service-dev.lykkex.net/api',
                     ),
@@ -51,7 +51,7 @@ class lykke extends Exchange {
             'api' => array (
                 'mobile' => array (
                     'get' => array (
-                        'AllAssetPairRates/{market}',
+                        'Market/{market}',
                     ),
                 ),
                 'public' => array (
@@ -185,27 +185,27 @@ class lykke extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
-        $ticker = $ticker['Result'];
+        $close = floatval ($ticker['lastPrice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['Rate']['Bid']),
+            'bid' => floatval ($ticker['bid']),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['Rate']['Ask']),
+            'ask' => floatval ($ticker['ask']),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
-            'close' => null,
-            'last' => null,
+            'close' => $close,
+            'last' => $close,
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => null,
+            'quoteVolume' => floatval ($ticker['volume24H']),
             'info' => $ticker,
         );
     }
@@ -213,7 +213,7 @@ class lykke extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->mobileGetAllAssetPairRatesMarket (array_merge (array (
+        $ticker = $this->mobileGetMarketMarket (array_merge (array (
             'market' => $market['id'],
         ), $params));
         return $this->parse_ticker($ticker, $market);
@@ -245,7 +245,7 @@ class lykke extends Exchange {
     public function parse_order ($order, $market = null) {
         $status = $this->parse_order_status($order['Status']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('AssetPairId', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['AssetPairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['AssetPairId']];

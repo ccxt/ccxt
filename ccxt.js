@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.14.90'
+const version = '1.16.34'
 
 Exchange.ccxtVersion = version
 
@@ -49,6 +49,7 @@ const exchanges = {
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
+    'anybits':                 require ('./js/anybits.js'),
     'bibox':                   require ('./js/bibox.js'),
     'binance':                 require ('./js/binance.js'),
     'bit2c':                   require ('./js/bit2c.js'),
@@ -62,6 +63,7 @@ const exchanges = {
     'bitlish':                 require ('./js/bitlish.js'),
     'bitmarket':               require ('./js/bitmarket.js'),
     'bitmex':                  require ('./js/bitmex.js'),
+    'bitsane':                 require ('./js/bitsane.js'),
     'bitso':                   require ('./js/bitso.js'),
     'bitstamp':                require ('./js/bitstamp.js'),
     'bitstamp1':               require ('./js/bitstamp1.js'),
@@ -70,6 +72,7 @@ const exchanges = {
     'bl3p':                    require ('./js/bl3p.js'),
     'bleutrade':               require ('./js/bleutrade.js'),
     'braziliex':               require ('./js/braziliex.js'),
+    'btcalpha':                require ('./js/btcalpha.js'),
     'btcbox':                  require ('./js/btcbox.js'),
     'btcchina':                require ('./js/btcchina.js'),
     'btcexchange':             require ('./js/btcexchange.js'),
@@ -84,10 +87,13 @@ const exchanges = {
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
     'cobinhood':               require ('./js/cobinhood.js'),
+    'coinbase':                require ('./js/coinbase.js'),
+    'coinbasepro':             require ('./js/coinbasepro.js'),
     'coincheck':               require ('./js/coincheck.js'),
     'coinegg':                 require ('./js/coinegg.js'),
     'coinex':                  require ('./js/coinex.js'),
     'coinexchange':            require ('./js/coinexchange.js'),
+    'coinfalcon':              require ('./js/coinfalcon.js'),
     'coinfloor':               require ('./js/coinfloor.js'),
     'coingi':                  require ('./js/coingi.js'),
     'coinmarketcap':           require ('./js/coinmarketcap.js'),
@@ -98,11 +104,14 @@ const exchanges = {
     'coinspot':                require ('./js/coinspot.js'),
     'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
+    'crypton':                 require ('./js/crypton.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
+    'deribit':                 require ('./js/deribit.js'),
     'dsx':                     require ('./js/dsx.js'),
     'ethfinex':                require ('./js/ethfinex.js'),
     'exmo':                    require ('./js/exmo.js'),
     'exx':                     require ('./js/exx.js'),
+    'fcoin':                   require ('./js/fcoin.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
     'foxbit':                  require ('./js/foxbit.js'),
     'fybse':                   require ('./js/fybse.js'),
@@ -144,6 +153,7 @@ const exchanges = {
     'qryptos':                 require ('./js/qryptos.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),
     'quoinex':                 require ('./js/quoinex.js'),
+    'rightbtc':                require ('./js/rightbtc.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),

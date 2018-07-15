@@ -13,7 +13,7 @@ class southxchange extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'southxchange',
             'name' => 'SouthXchange',
-            'countries' => 'AR', // Argentina
+            'countries' => array ( 'AR' ), // Argentina
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
@@ -60,6 +60,7 @@ class southxchange extends Exchange {
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SmartNode',
+                'MTC' => 'Marinecoin',
             ),
         ));
     }
@@ -293,7 +294,6 @@ class southxchange extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'status' => 'ok',
             'info' => $response,
         );
     }

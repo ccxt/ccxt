@@ -12,7 +12,7 @@ class okcoincny (okcoinusd):
         return self.deep_extend(super(okcoincny, self).describe(), {
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
-            'countries': 'CN',
+            'countries': ['CN'],
             'has': {
                 'CORS': False,
             },

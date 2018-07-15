@@ -13,7 +13,7 @@ class bitflyer extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
             'has' => array (
@@ -330,19 +330,23 @@ class bitflyer extends Exchange {
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        $params['child_order_state'] = 'ACTIVE';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $request = array (
+            'child_order_state' => 'ACTIVE',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        $params['child_order_state'] = 'COMPLETED';
-        return $this->fetch_orders($symbol, $since, $limit, $params);
+        $request = array (
+            'child_order_state' => 'COMPLETED',
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -363,7 +367,7 @@ class bitflyer extends Exchange {
         $request = array (
             'product_code' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = $limit;
         $response = $this->privateGetGetexecutions (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

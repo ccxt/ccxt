@@ -12,7 +12,7 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': [ 'VG' ],
             'version': 'v2',
             // new metainfo interface
             'has': {
@@ -238,6 +238,8 @@ module.exports = class bitfinex2 extends bitfinex {
                     currency = currency.slice (1);
                     code = currency.toUpperCase ();
                     code = this.commonCurrencyCode (code);
+                } else {
+                    code = this.commonCurrencyCode (code);
                 }
                 let account = this.account ();
                 account['total'] = total;
@@ -246,7 +248,7 @@ module.exports = class bitfinex2 extends bitfinex {
                         account['free'] = 0;
                         account['used'] = total;
                     } else {
-                        account['free'] = undefined;
+                        account['free'] = total;
                     }
                 } else {
                     account['free'] = available;

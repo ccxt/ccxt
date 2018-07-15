@@ -17,7 +17,7 @@ class bitfinex2 (bitfinex):
         return self.deep_extend(super(bitfinex2, self).describe(), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': ['VG'],
             'version': 'v2',
             # new metainfo interface
             'has': {
@@ -238,6 +238,8 @@ class bitfinex2 (bitfinex):
                     currency = currency[1:]
                     code = currency.upper()
                     code = self.common_currency_code(code)
+                else:
+                    code = self.common_currency_code(code)
                 account = self.account()
                 account['total'] = total
                 if not available:
@@ -245,7 +247,7 @@ class bitfinex2 (bitfinex):
                         account['free'] = 0
                         account['used'] = total
                     else:
-                        account['free'] = None
+                        account['free'] = total
                 else:
                     account['free'] = available
                     account['used'] = account['total'] - account['free']

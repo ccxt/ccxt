@@ -12,7 +12,7 @@ module.exports = class bithumb extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': 'KR', // South Korea
+            'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
                 'CORS': true,

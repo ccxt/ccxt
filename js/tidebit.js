@@ -12,7 +12,7 @@ module.exports = class tidebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'tidebit',
             'name': 'TideBit',
-            'countries': 'HK',
+            'countries': [ 'HK' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -37,7 +37,7 @@ module.exports = class tidebit extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
-                'api': 'https://www.tidebit.com/api',
+                'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
                 'doc': 'https://www.tidebit.com/documents/api_v2',
             },
@@ -107,7 +107,6 @@ module.exports = class tidebit extends Exchange {
                     'currency': code,
                     'address': this.checkAddress (address),
                     'tag': tag,
-                    'status': 'ok',
                     'info': response,
                 };
             }
@@ -139,7 +138,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetV2Deposits ();
+        let response = await this.privateGetV2MembersMe ();
         let balances = response['accounts'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -279,7 +278,7 @@ module.exports = class tidebit extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit)
+        if (typeof limit === 'undefined')
             limit = 30; // default is 30
         let request = {
             'market': market['id'],
@@ -297,7 +296,7 @@ module.exports = class tidebit extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];
@@ -382,9 +381,9 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params) + '.json';
+        let request = '/' + 'api/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/' + request;
+        let url = this.urls['api'] + request;
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -392,10 +391,11 @@ module.exports = class tidebit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let query = this.urlencode (this.extend ({
+            let sortedByKey = this.keysort (this.extend ({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
+            let query = this.urlencode (sortedByKey);
             let payload = method + '|' + request + '|' + query;
             let signature = this.hmac (this.encode (payload), this.encode (this.secret));
             let suffix = query + '&signature=' + signature;

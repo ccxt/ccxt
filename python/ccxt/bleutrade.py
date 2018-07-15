@@ -17,7 +17,7 @@ class bleutrade (bittrex):
         return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
@@ -89,6 +89,9 @@ class bleutrade (bittrex):
                     },
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'exceptions': {
                 'Insufficient fundsnot ': InsufficientFunds,
                 'Invalid Order ID': InvalidOrder,
@@ -105,10 +108,10 @@ class bleutrade (bittrex):
         for p in range(0, len(markets['result'])):
             market = markets['result'][p]
             id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['MarketCurrency']
+            quoteId = market['BaseCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -124,6 +127,8 @@ class bleutrade (bittrex):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
                 'lot': math.pow(10, -precision['amount']),
@@ -163,7 +168,7 @@ class bleutrade (bittrex):
         # depth(optional, default is 500, max is 20000)
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             self.load_markets()
             market = self.market(symbol)
         else:

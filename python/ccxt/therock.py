@@ -14,7 +14,7 @@ class therock (Exchange):
         return self.deep_extend(super(therock, self).describe(), {
             'id': 'therock',
             'name': 'TheRockTrading',
-            'countries': 'MT',
+            'countries': ['MT'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

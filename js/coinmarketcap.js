@@ -14,7 +14,7 @@ module.exports = class coinmarketcap extends Exchange {
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'has': {
                 'CORS': true,
                 'privateAPI': false,
@@ -99,7 +99,7 @@ module.exports = class coinmarketcap extends Exchange {
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            'Content and AD Network': 'Content and AD Network', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
@@ -176,7 +176,7 @@ module.exports = class coinmarketcap extends Exchange {
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             let priceKey = 'price_' + market['quoteId'];
             if (priceKey in ticker)
                 if (ticker[priceKey])
@@ -222,7 +222,7 @@ module.exports = class coinmarketcap extends Exchange {
         let tickers = {};
         for (let t = 0; t < response.length; t++) {
             let ticker = response[t];
-            let currencyId = (currency in this.currencies) ? this.currencies[currency]['id'] : currency.toLowerCase ();
+            let currencyId = currency.toLowerCase ();
             let id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
@@ -267,7 +267,6 @@ module.exports = class coinmarketcap extends Exchange {
                 'info': currency,
                 'name': name,
                 'active': true,
-                'status': 'ok',
                 'fee': undefined, // todo: redesign
                 'precision': precision,
                 'limits': {

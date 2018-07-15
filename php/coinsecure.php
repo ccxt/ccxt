@@ -13,7 +13,7 @@ class coinsecure extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinsecure',
             'name' => 'Coinsecure',
-            'countries' => 'IN', // India
+            'countries' => array ( 'IN' ), // India
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

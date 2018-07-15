@@ -12,7 +12,7 @@ module.exports = class braziliex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'braziliex',
             'name': 'Braziliex',
-            'countries': 'BR',
+            'countries': [ 'BR' ],
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': true,
@@ -51,6 +51,9 @@ module.exports = class braziliex extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
             'fees': {
                 'trading': {
                     'maker': 0.005,
@@ -75,11 +78,9 @@ module.exports = class braziliex extends Exchange {
             let uppercase = id.toUpperCase ();
             let code = this.commonCurrencyCode (uppercase);
             let active = this.safeInteger (currency, 'active') === 1;
-            let status = 'ok';
             let maintenance = this.safeInteger (currency, 'under_maintenance');
             if (maintenance !== 0) {
                 active = false;
-                status = 'maintenance';
             }
             let canWithdraw = this.safeInteger (currency, 'is_withdrawal_active') === 1;
             let canDeposit = this.safeInteger (currency, 'is_deposit_active') === 1;
@@ -90,7 +91,6 @@ module.exports = class braziliex extends Exchange {
                 'code': code,
                 'name': currency['name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'funding': {
                     'withdraw': {
@@ -307,7 +307,7 @@ module.exports = class braziliex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'market');
             if (marketId)
                 if (marketId in this.markets_by_id)
@@ -425,7 +425,6 @@ module.exports = class braziliex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'status': 'ok',
             'info': response,
         };
     }

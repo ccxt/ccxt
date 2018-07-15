@@ -15,12 +15,15 @@ module.exports = subclass (
             'ExchangeError': {
                 'AuthenticationError': {
                     'PermissionDenied': {},
+                    'AccountSuspended': {},
                 },
                 'BadResponse': {
                     'NullResponse': {},
                 },
                 'InsufficientFunds': {},
-                'InvalidAddress': {},
+                'InvalidAddress': {
+                    'AddressPending': {},
+                },
                 'InvalidOrder': {
                     'OrderNotFound': {},
                     'OrderNotCached': {},

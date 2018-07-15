@@ -11,7 +11,7 @@ module.exports = class lykke extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'lykke',
             'name': 'Lykke',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'version': 'v1',
             'rateLimit': 200,
             'has': {
@@ -183,7 +183,7 @@ module.exports = class lykke extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-
+        let close = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -196,14 +196,14 @@ module.exports = class lykke extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'last': parseFloat (ticker['lastPrice']),
+            'close': close,
+            'last': close,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume24H']),
-            'quoteVolume': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': parseFloat (ticker['volume24H']),
             'info': ticker,
         };
     }
@@ -243,7 +243,7 @@ module.exports = class lykke extends Exchange {
     parseOrder (order, market = undefined) {
         let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('AssetPairId' in order)
                 if (order['AssetPairId'] in this.markets_by_id)
                     market = this.markets_by_id[order['AssetPairId']];

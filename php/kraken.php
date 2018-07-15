@@ -13,7 +13,7 @@ class kraken extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kraken',
             'name' => 'Kraken',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => '0',
             'rateLimit' => 3000,
             'has' => array (
@@ -307,7 +307,8 @@ class kraken extends Exchange {
         return $result;
     }
 
-    public function append_inactive_markets ($result = []) {
+    public function append_inactive_markets ($result) {
+        // $result should be an array to append to
         $precision = array ( 'amount' => 8, 'price' => 8 );
         $costLimits = array ( 'min' => 0, 'max' => null );
         $priceLimits = array ( 'min' => pow (10, -$precision['price']), 'max' => null );
@@ -350,7 +351,6 @@ class kraken extends Exchange {
                 'info' => $currency,
                 'name' => $code,
                 'active' => true,
-                'status' => 'ok',
                 'fee' => null,
                 'precision' => $precision,
                 'limits' => array (
@@ -629,8 +629,13 @@ class kraken extends Exchange {
             'ordertype' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type === 'limit')
+        $priceIsDefined = ($price !== null);
+        $marketOrder = ($type === 'market');
+        $limitOrder = ($type === 'limit');
+        $shouldIncludePrice = $limitOrder || (!$marketOrder && $priceIsDefined);
+        if ($shouldIncludePrice) {
             $order['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostAddOrder (array_merge ($order, $params));
         $id = $this->safe_value($response['result'], 'txid');
         if ($id !== null) {
@@ -668,8 +673,10 @@ class kraken extends Exchange {
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price');
-        if (!$price)
-            $price = $this->safe_float($order, 'price');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($description, 'price2');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($order, 'price', $price);
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
@@ -811,7 +818,6 @@ class kraken extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -845,7 +851,6 @@ class kraken extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
-            'status' => 'ok',
             'info' => $response,
         );
     }
@@ -911,7 +916,7 @@ class kraken extends Exchange {
             throw new InvalidOrder ($this->id . ' ' . $body);
         if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
-            if (gettype ($response) != 'string') {
+            if (gettype ($response) !== 'string') {
                 if (is_array ($response) && array_key_exists ('error', $response)) {
                     $numErrors = is_array ($response['error']) ? count ($response['error']) : 0;
                     if ($numErrors) {

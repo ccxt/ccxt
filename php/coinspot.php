@@ -13,7 +13,7 @@ class coinspot extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinspot',
             'name' => 'CoinSpot',
-            'countries' => 'AU', // Australia
+            'countries' => array ( 'AU' ), // Australia
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => false,
