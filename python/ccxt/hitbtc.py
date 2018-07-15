@@ -27,6 +27,7 @@ class hitbtc (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': True,
                 'withdraw': True,
             },
             'urls': {

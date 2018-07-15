@@ -40,6 +40,7 @@ class gateio (Exchange):
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
             },
@@ -505,6 +506,17 @@ class gateio (Exchange):
             market = self.market(symbol)
         response = self.privatePostOpenOrders()
         return self.parse_orders(response['orders'], market, since, limit)
+
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.privatePostTradeHistory(self.extend({
+            'currencyPair': market['id'],
+            'orderNumber': id,
+        }, params))
+        return self.parse_trades(response['trades'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:

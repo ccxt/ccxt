@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.35'
+const version = '1.16.36'
 
 Exchange.ccxtVersion = version
 
@@ -29807,6 +29807,7 @@ module.exports = class gateio extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
+                'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
             },
@@ -30314,6 +30315,19 @@ module.exports = class gateio extends Exchange {
         }
         let response = await this.privatePostOpenOrders ();
         return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostTradeHistory (this.extend ({
+            'currencyPair': market['id'],
+            'orderNumber': id,
+        }, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -31540,6 +31554,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -32502,6 +32517,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
+                'fetchOrderTrades': false, // not implemented yet
             },
             'timeframes': {
                 '1m': 'M1',
