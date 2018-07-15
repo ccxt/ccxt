@@ -535,11 +535,15 @@ module.exports = class gateio extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchMyTrades requires symbol param');
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privatePostTradeHistory (this.extend ({ 'currencyPair': market['id'], 'orderNumber': id }, params));
+        let response = await this.privatePostTradeHistory (this.extend ({
+            'currencyPair': market['id'],
+            'orderNumber': id,
+        }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
