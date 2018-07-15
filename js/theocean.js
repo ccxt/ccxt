@@ -12,6 +12,7 @@ module.exports = class theocean extends Exchange {
             'rateLimit': 3000,
             'version': 'v0',
             'userAgent': this.userAgents['chrome'],
+            // todo: add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
                 '15m': '900',
@@ -252,11 +253,35 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            'baseTokenAddress': market['baseId'],
+            'quoteTokenAddress': market['quoteId'],
         };
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit; // default = 150, max = 2000
+        }
         let response = await this.publicGetDepthPair (this.extend (request, params));
+        //
+        //     {
+        //       "bids": [
+        //         {
+        //           "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //           "price": "0.00050915",
+        //           "availableAmount": "100000000000000000000",
+        //           "creationTimestamp": "1512929327792",
+        //           "expirationTimestampInSec": "525600"
+        //         }
+        //       ],
+        //       "asks": [
+        //         {
+        //           "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //           "price": "0.00054134",
+        //           "availableAmount": "100000000000000000000",
+        //           "creationTimestamp": "1512929323784",
+        //           "expirationTimestampInSec": "525600"
+        //         }
+        //       ]
+        //     }
+        //
         let market_id_in_reponse = (market['id'] in response);
         if (!market_id_in_reponse)
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
@@ -380,42 +405,40 @@ module.exports = class theocean extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
-        let side = trade['type'];
-        if (side === 'ask')
-            side = 'sell';
-        if (side === 'bid')
-            side = 'buy';
+        //
+        //     {
+        //         "id": "37212",
+        //         "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
+        //         "amount": "300000000000000000",
+        //         "price": "0.00052718",
+        // ------- they also have a "confirmed" status here ↓ -----------------
+        //         "status": "filled", // filled | settled | failed
+        //         "lastUpdated": "1520265048996"
+        //     }
+        //
+        let timestamp = parseInt (trade['lastUpdated']) * 1000;
         let price = this.safeFloat (trade, 'price');
-        if ('rate' in trade)
-            price = this.safeFloat (trade, 'rate');
-        let id = this.safeString (trade, 'tid');
-        if ('trade_id' in trade)
-            id = this.safeString (trade, 'trade_id');
-        let order = this.safeString (trade, this.getOrderIdKey ());
-        if ('pair' in trade) {
-            let marketId = trade['pair'];
-            market = this.markets_by_id[marketId];
-        }
+        let orderId = this.safeString (trade, 'transactionHash');
+        let id = undefined;
+        let parts = trade['id'].split ('_');
+        id = parts[1];
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        let amount = trade['amount'];
-        let type = 'limit'; // all trades are still limit trades
-        let isYourOrder = this.safeValue (trade, 'is_your_order');
+        }
+        let amount = this.safeString (trade, 'amount');
         let takerOrMaker = 'taker';
-        if (typeof isYourOrder !== 'undefined')
-            if (isYourOrder)
-                takerOrMaker = 'maker';
-        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+        let fee = undefined;
+        // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
-            'order': order,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': type,
-            'side': side,
+            'type': undefined,
+            'side': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
@@ -427,12 +450,23 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            'baseTokenAddress': market['baseId'],
+            'quoteTokenAddress': market['quoteId'],
         };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
-        let response = await this.publicGetTradesPair (this.extend (request, params));
-        return this.parseTrades (response[market['id']], market, since, limit);
+        let response = await this.publicGetTradeHistory (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "id": "37212",
+        //         "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
+        //         "amount": "300000000000000000",
+        //         "price": "0.00052718",
+        //         "status": "filled", // filled | settled | failed
+        //         "lastUpdated": "1520265048996"
+        //       }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
