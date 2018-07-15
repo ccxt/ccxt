@@ -249,6 +249,12 @@ module.exports = class theocean extends Exchange {
         return this.parseBalance (result);
     }
 
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+        let price = parseFloat (bidask[priceKey]);
+        let amount = parseFloat (bidask[amountKey]);
+        return [ price, amount, bidask ];
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -257,9 +263,9 @@ module.exports = class theocean extends Exchange {
             'quoteTokenAddress': market['quoteId'],
         };
         if (typeof limit !== 'undefined') {
-            request['limit'] = limit; // default = 150, max = 2000
+            request['depth'] = limit;
         }
-        let response = await this.publicGetDepthPair (this.extend (request, params));
+        let response = await this.publicGetOrderBook (this.extend (request, params));
         //
         //     {
         //       "bids": [
@@ -282,42 +288,7 @@ module.exports = class theocean extends Exchange {
         //       ]
         //     }
         //
-        let market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse)
-            throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        let orderbook = response[market['id']];
-        return this.parseOrderBook (orderbook);
-    }
-
-    async fetchOrderBooks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = undefined;
-        if (typeof symbols === 'undefined') {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        let response = await this.publicGetDepthPair (this.extend ({
-            'pair': ids,
-        }, params));
-        let result = {};
-        ids = Object.keys (response);
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
-            result[symbol] = this.parseOrderBook (response[id]);
-        }
-        return result;
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount');
     }
 
     parseTicker (ticker, market = undefined) {
