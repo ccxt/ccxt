@@ -18,7 +18,7 @@ manually into your working directory with language extension appropriate for you
 git clone https://github.com/ccxt/ccxt.git
 ```
 
-An alternative way of installing this library is to building minimal custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
+An alternative way of installing this library is to build a custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
 
 ### JavaScript (NPM)
 
