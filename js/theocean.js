@@ -44,11 +44,11 @@ module.exports = class theocean extends Exchange {
                         'trade_history',
                         'order_book',
                         'order/{orderHash}',
-                        'available_balance',
                     ],
                 },
                 'private': {
                     'get': [
+                        'available_balance',
                         'user_history',
                     ],
                     'post': [
@@ -214,32 +214,68 @@ module.exports = class theocean extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    async fetchBalanceByCode (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'walletAddress': this.uid,
+            'tokenAddress': currency['id'],
+        };
+        let response = await this.privateGetAvailableBalance (this.extend (request, params));
+        //
+        //     {
+        //       "availableBalance": "1001006594219628829207"
+        //     }
+        //
+        let balance = this.safeFloat (response, 'availableBalance');
+        return {
+            'free': balance,
+            'used': 0,
+            'total': balance,
+        };
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetInfo ();
-        let balances = response['return'];
-        let result = { 'info': balances };
-        let funds = balances['funds'];
-        let currencies = Object.keys (funds);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
-            let total = undefined;
-            let used = undefined;
-            if (balances['open_orders'] === 0) {
-                total = funds[currency];
-                used = 0.0;
-            }
-            let account = {
-                'free': funds[currency],
-                'used': used,
-                'total': total,
-            };
-            result[uppercase] = account;
+        const codes = this.safeValue (params, 'codes');
+        if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
+            throw new ExchangeError (this.id + ' fetchBalance requires a `codes` parameter (an array of currency codes)');
+        }
+        let result = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            result[code] = await this.fetchBalanceByCode (code);
+
         }
         return this.parseBalance (result);
     }
+
+    // async fetchBalance (params = {}) {
+    //     await this.loadMarkets ();
+    //     let response = await this.privatePostGetInfo ();
+    //     let balances = response['return'];
+    //     let result = { 'info': balances };
+    //     let funds = balances['funds'];
+    //     let currencies = Object.keys (funds);
+    //     for (let c = 0; c < currencies.length; c++) {
+    //         let currency = currencies[c];
+    //         let uppercase = currency.toUpperCase ();
+    //         uppercase = this.commonCurrencyCode (uppercase);
+    //         let total = undefined;
+    //         let used = undefined;
+    //         if (balances['open_orders'] === 0) {
+    //             total = funds[currency];
+    //             used = 0.0;
+    //         }
+    //         let account = {
+    //             'free': funds[currency],
+    //             'used': used,
+    //             'total': total,
+    //         };
+    //         result[uppercase] = account;
+    //     }
+    //     return this.parseBalance (result);
+    // }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey]);
@@ -628,16 +664,22 @@ module.exports = class theocean extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
-                'nonce': nonce,
-                'method': path,
-            }, query));
-            let signature = this.signBodyWithSecret (body);
+            let timestamp = this.seconds ().toString ();
+            let prehash = this.apiKey + timestamp + method;
+            if (method === 'POST') {
+                body = this.json (query);
+                prehash += body;
+            } else {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+                prehash += this.json ({});
+            }
+            let signature = this.hmac (this.encode (prehash), this.encode (this.secret), 'sha256', 'base64');
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': signature,
+                'TOX-ACCESS-KEY': this.apiKey,
+                'TOX-ACCESS-SIGN': signature,
+                'TOX-ACCESS-TIMESTAMP': timestamp,
             };
         } else if (api === 'public') {
             if (Object.keys (query).length) {
