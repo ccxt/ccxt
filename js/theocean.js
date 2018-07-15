@@ -10,24 +10,16 @@ module.exports = class theocean extends Exchange {
             'name': 'TheOcean',
             'countries': [ 'US' ],
             'rateLimit': 3000,
-            'version': '0',
+            'version': 'v0',
             'userAgent': this.userAgents['chrome'],
             'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchOrderBooks': true,
-                'fetchOrder': true,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
+                'CORS': false, // ?
                 'fetchTickers': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
                 'api': 'https://api.staging.theocean.trade/api',
-                'www': 'https://theocean.trade/fees/',
+                'www': 'https://theocean.trade',
                 'doc': 'https://docs.theocean.trade',
                 'fees': 'https://theocean.trade/fees',
             },
@@ -92,7 +84,7 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetInfo ();
+        let markets = await this.publicGetTokenPairs ();
         //
         //     [
         //       {
@@ -149,8 +141,7 @@ module.exports = class theocean extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            let hidden = this.safeInteger (market, 'hidden');
-            let active = (hidden === 0);
+            let active = true;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -244,7 +235,16 @@ module.exports = class theocean extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['updated'] * 1000;
+        //
+        //     {
+        //         "bid": "0.00050915",
+        //         "ask": "0.00054134",
+        //         "last": "0.00052718",
+        //         "volume": "3000000000000000000",
+        //         "timestamp": "1512929327792"
+        //     }
+        //
+        let timestamp = parseInt (ticker['timestamp'] / 1000);
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -253,22 +253,22 @@ module.exports = class theocean extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -307,8 +307,14 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let tickers = await this.fetchTickers ([ symbol ], params);
-        return tickers[symbol];
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'baseTokenAddress': market['baseId'],
+            'quoteTokenAddress': market['quoteId'],
+        };
+        let response = await this.publicGetTicker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -637,12 +643,8 @@ module.exports = class theocean extends Exchange {
         return this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
     }
 
-    getVersionString () {
-        return '/' + this.version;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -658,23 +660,8 @@ module.exports = class theocean extends Exchange {
                 'Sign': signature,
             };
         } else if (api === 'public') {
-            url += this.getVersionString () + '/' + this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
-            }
-        } else {
-            url += '/' + this.implodeParams (path, params);
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
