@@ -218,7 +218,7 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'walletAddress': this.uid,
+            'walletAddress': this.uid.toLowerCase (),
             'tokenAddress': currency['id'],
         };
         let response = await this.privateGetAvailableBalance (this.extend (request, params));
