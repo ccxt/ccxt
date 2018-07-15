@@ -12,9 +12,17 @@ module.exports = class theocean extends Exchange {
             'rateLimit': 3000,
             'version': 'v0',
             'userAgent': this.userAgents['chrome'],
+            'timeframes': {
+                '5m': '300',
+                '15m': '900',
+                '1h': '3600',
+                '6h': '21600',
+                '1d': '86400',
+            },
             'has': {
                 'CORS': false, // ?
                 'fetchTickers': true,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -160,6 +168,59 @@ module.exports = class theocean extends Exchange {
         return result;
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'startTime') * 1000,
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeString (ohlcv, 'baseVolume'),
+            // this.safeString (ohlcv, 'quoteVolume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+
+        //{"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+        //{"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'baseTokenAddress': market['baseId'],
+            'quoteTokenAddress': market['quoteId'],
+            'interval': this.timeframes[timeframe],
+            // 'endTime': endTime, // (optional) Snapshot end time
+        };
+        if (typeof since === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
+        }
+        request['startTime'] = parseInt (since / 1000);
+        let response = await this.publicGetCandlesticks (this.extend (request, params));
+        //
+        //   [
+        //     {
+        //         "high": "100.52",
+        //         "low": "97.23",
+        //         "open": "98.45",
+        //         "close": "99.23",
+        //         "baseVolume": "2400000000000000000000",
+        //         "quoteVolume": "1200000000000000000000",
+        //         "startTime": "1512929323784"
+        //     },
+        //     {
+        //         "high": "100.52",
+        //         "low": "97.23",
+        //         "open": "98.45",
+        //         "close": "99.23",
+        //         "volume": "2400000000000000000000",
+        //         "startTime": "1512929198980"
+        //     }
+        //   ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
@@ -246,8 +307,9 @@ module.exports = class theocean extends Exchange {
         //
         let timestamp = parseInt (ticker['timestamp'] / 1000);
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -275,33 +337,33 @@ module.exports = class theocean extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = undefined;
-        if (typeof symbols === 'undefined') {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
-            }
-        } else {
-            ids = this.marketIds (symbols);
-            ids = ids.join ('-');
-        }
-        let tickers = await this.publicGetTickerPair (this.extend ({
-            'pair': ids,
-        }, params));
+        let tickers = await this.publicGetTickers (params);
+        //
+        //     [{
+        //     "baseTokenAddress": "0xa8e9fa8f91e5ae138c74648c9c304f1c75003a8d",
+        //     "quoteTokenAddress": "0xc00fd9820cd2898cc4c054b7bf142de637ad129a",
+        //     "ticker": {
+        //         "bid": "0.00050915",
+        //         "ask": "0.00054134",
+        //         "last": "0.00052718",
+        //         "volume": "3000000000000000000",
+        //         "timestamp": "1512929327792"
+        //     }
+        //     }]
+        //
         let result = {};
-        let keys = Object.keys (tickers);
-        for (let k = 0; k < keys.length; k++) {
-            let id = keys[k];
-            let ticker = tickers[id];
-            let symbol = id;
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
+            let baseId = this.safeString (ticker, 'baseTokenAddress');
+            let quoteId = this.safeString (ticker, 'quoteTokenAddress');
+            let marketId = baseId + '/' + quoteId;
             let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             }
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker (ticker['ticker'], market);
         }
         return result;
     }
