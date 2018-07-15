@@ -858,6 +858,8 @@ class hitbtc2 (hitbtc):
             request['timeInForce'] = self.options['defaultTimeInForce']
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
+        if order['status'] == 'rejected':
+            raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
         id = order['id']
         self.orders[id] = order
         return order

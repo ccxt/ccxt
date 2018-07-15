@@ -4,10 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class exx (Exchange):
@@ -86,6 +95,9 @@ class exx (Exchange):
             },
             'commonCurrencies': {
                 'CAN': 'Content and AD Network',
+            },
+            'exceptions': {
+                '103': AuthenticationError,
             },
         })
 
@@ -350,12 +362,31 @@ class exx (Exchange):
             url += '?' + query + '&signature=' + signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        code = self.safe_integer(response, 'code')
-        message = self.safe_string(response, 'message')
-        if code and code != 100 and message:
-            if code == 103:
-                raise AuthenticationError(message)
-            raise ExchangeError(message)
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            #
+            #  {"result":false,"message":"服务端忙碌"}
+            #  ... and other formats
+            #
+            code = self.safe_string(response, 'code')
+            message = self.safe_string(response, 'message')
+            feedback = self.id + ' ' + self.json(response)
+            if code == '100':
+                return
+            if code is not None:
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                raise ExchangeError(feedback)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

@@ -175,19 +175,31 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
+    divideSafeFloat (x, key, divisor) {
+        let value = this.safeFloat (x, key);
+        if (typeof value !== 'undefined')
+            return value / divisor;
+        return value;
+    }
+
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
         let timestamp = ticker['date'];
-        let last = this.safeFloat (ticker, 'last') / 1e8;
+        let last = this.divideSafeFloat (ticker, 'last', 1e8);
+        let high = this.divideSafeFloat (ticker, 'high', 1e8);
+        let low = this.divideSafeFloat (ticker, 'low', 1e8);
+        let bid = this.divideSafeFloat (ticker, 'buy', 1e8);
+        let ask = this.divideSafeFloat (ticker, 'sell', 1e8);
+        let baseVolume = this.divideSafeFloat (ticker, 'vol24h', 1e8);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high') / 1e8,
-            'low': this.safeFloat (ticker, 'low') / 1e8,
-            'bid': this.safeFloat (ticker, 'buy') / 1e8,
+            'high': high,
+            'low': low,
+            'bid': bid,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell') / 1e8,
+            'ask': ask,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -197,7 +209,7 @@ module.exports = class rightbtc extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol24h') / 1e8,
+            'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -273,9 +285,7 @@ module.exports = class rightbtc extends Exchange {
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);
         let orderId = this.safeString (trade, 'order_id');
-        let price = parseFloat (trade['price']);
-        if (typeof price !== 'undefined')
-            price = price / 1e8;
+        let price = this.divideSafeFloat (trade, 'price', 1e8);
         let amount = this.safeFloat (trade, 'amount');
         amount = this.safeFloat (trade, 'quantity', amount);
         if (typeof amount !== 'undefined')
@@ -379,13 +389,11 @@ module.exports = class rightbtc extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
-            let total = this.safeFloat (balance, 'balance');
-            let used = this.safeFloat (balance, 'frozen');
+            let total = this.divideSafeFloat (balance, 'balance', 1e8);
+            let used = this.divideSafeFloat (balance, 'frozen', 1e8);
             let free = undefined;
             if (typeof total !== 'undefined') {
-                total = total / 1e8;
                 if (typeof used !== 'undefined') {
-                    used = used / 1e8;
                     free = total - used;
                 }
             }
@@ -491,18 +499,10 @@ module.exports = class rightbtc extends Exchange {
         price = this.safeFloat (order, 'price', price);
         if (typeof price !== 'undefined')
             price = price / 1e8;
-        let amount = this.safeFloat (order, 'quantity');
-        if (typeof amount !== 'undefined')
-            amount = amount / 1e8;
-        let filled = this.safeFloat (order, 'filled_quantity');
-        if (typeof filled !== 'undefined')
-            filled = filled / 1e8;
-        let remaining = this.safeFloat (order, 'rest');
-        if (typeof remaining !== 'undefined')
-            remaining = remaining / 1e8;
-        let cost = this.safeFloat (order, 'cost');
-        if (typeof cost !== 'undefined')
-            cost = cost / 1e8;
+        let amount = this.divideSafeFloat (order, 'quantity', 1e8);
+        let filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
+        let remaining = this.divideSafeFloat (order, 'rest', 1e8);
+        let cost = this.divideSafeFloat (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
         if (typeof amount !== 'undefined') {
             if (typeof remaining === 'undefined') {
@@ -520,10 +520,9 @@ module.exports = class rightbtc extends Exchange {
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
-        let feeCost = this.safeFloat (order, 'min_fee');
+        let feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
         if (typeof feeCost !== 'undefined') {
-            feeCost = feeCost / 1e8;
             let feeCurrency = undefined;
             if (typeof market !== 'undefined')
                 feeCurrency = market['quote'];

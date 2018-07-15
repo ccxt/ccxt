@@ -20,7 +20,6 @@ class xbtce (Exchange):
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {
-                'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
                 'createMarketOrder': False,

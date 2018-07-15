@@ -39,6 +39,10 @@ function regexAll (text, array) {
 const commonRegexes = [
 
     [ /\.deepExtend\s/g, '.deep_extend'],
+    [ /\.safeFloat2\s/g, '.safe_float_2'],
+    [ /\.safeInteger2\s/g, '.safe_integer_2'],
+    [ /\.safeString2\s/g, '.safe_string_2'],
+    [ /\.safeValue2\s/g, '.safe_value_2'],
     [ /\.safeFloat\s/g, '.safe_float'],
     [ /\.safeInteger\s/g, '.safe_integer'],
     [ /\.safeString\s/g, '.safe_string'],

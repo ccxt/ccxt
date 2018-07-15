@@ -84,6 +84,9 @@ class exx extends Exchange {
             'commonCurrencies' => array (
                 'CAN' => 'Content and AD Network',
             ),
+            'exceptions' => array (
+                '103' => '\\ccxt\\AuthenticationError',
+            ),
         ));
     }
 
@@ -369,15 +372,39 @@ class exx extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        $code = $this->safe_integer($response, 'code');
-        $message = $this->safe_string($response, 'message');
-        if ($code && $code !== 100 && $message) {
-            if ($code === 103)
-                throw new AuthenticationError ($message);
-            throw new ExchangeError ($message);
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (gettype ($body) !== 'string')
+            return; // fallback to default error handler
+        if (strlen ($body) < 2)
+            return; // fallback to default error handler
+        if (($body[0] === '{') || ($body[0] === '[')) {
+            $response = json_decode ($body, $as_associative_array = true);
+            //
+            //  array ("$result":false,"$message":"服务端忙碌")
+            //  ... and other formats
+            //
+            $code = $this->safe_string($response, 'code');
+            $message = $this->safe_string($response, 'message');
+            $feedback = $this->id . ' ' . $this->json ($response);
+            if ($code === '100')
+                return;
+            if ($code !== null) {
+                $exceptions = $this->exceptions;
+                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                    throw new $exceptions[$code] ($feedback);
+                }
+                throw new ExchangeError ($feedback);
+            }
+            $result = $this->safe_value($response, 'result');
+            if ($result !== null) {
+                if (!$result) {
+                    if ($message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
+                }
+            }
         }
-        return $response;
     }
 }

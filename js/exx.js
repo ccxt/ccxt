@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -82,6 +82,9 @@ module.exports = class exx extends Exchange {
             },
             'commonCurrencies': {
                 'CAN': 'Content and AD Network',
+            },
+            'exceptions': {
+                '103': AuthenticationError,
             },
         });
     }
@@ -368,15 +371,39 @@ module.exports = class exx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let code = this.safeInteger (response, 'code');
-        let message = this.safeString (response, 'message');
-        if (code && code !== 100 && message) {
-            if (code === 103)
-                throw new AuthenticationError (message);
-            throw new ExchangeError (message);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            //
+            //  {"result":false,"message":"服务端忙碌"}
+            //  ... and other formats
+            //
+            let code = this.safeString (response, 'code');
+            let message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + this.json (response);
+            if (code === '100')
+                return;
+            if (typeof code !== 'undefined') {
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                }
+                throw new ExchangeError (feedback);
+            }
+            let result = this.safeValue (response, 'result');
+            if (typeof result !== 'undefined') {
+                if (!result) {
+                    if (message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
         }
-        return response;
     }
 };

@@ -866,6 +866,8 @@ class hitbtc2 extends hitbtc {
         }
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
+        if ($order['status'] === 'rejected')
+            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
         $id = $order['id'];
         $this->orders[$id] = $order;
         return $order;

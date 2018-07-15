@@ -21,6 +21,7 @@ class cobinhood extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrder' => true,
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
@@ -307,7 +308,7 @@ class cobinhood extends Exchange {
         $timestamp = $trade['timestamp'];
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        $cost = $price * $amount;
         $side = $trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return array (
             'info' => $trade,
@@ -509,7 +510,7 @@ class cobinhood extends Exchange {
         return $orders;
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetTradingOrdersOrderIdTrades (array_merge (array (
             'order_id' => $id,

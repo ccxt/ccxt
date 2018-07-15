@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -725,7 +725,7 @@ module.exports = class hitbtc extends Exchange {
         if (Math.abs (difference) > market['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         let clientOrderId = this.milliseconds ();
-        let order = {
+        let request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -733,12 +733,15 @@ module.exports = class hitbtc extends Exchange {
             'type': type,
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = this.options['defaultTimeInForce'];
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         }
-        let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return this.parseOrder (response['ExecutionReport'], market);
+        let response = await this.tradingPostNewOrder (this.extend (request, params));
+        let order = this.parseOrder (response['ExecutionReport'], market);
+        if (order['status'] === 'rejected')
+            throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

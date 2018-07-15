@@ -653,8 +653,7 @@ class kraken (Exchange):
         fee = None
         cost = self.safe_float(order, 'cost')
         price = self.safe_float(description, 'price')
-        if not price:
-            price = self.safe_float(order, 'price')
+        price = self.safe_float(order, 'price', price)
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
