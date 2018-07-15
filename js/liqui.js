@@ -192,12 +192,14 @@ module.exports = class liqui extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit; // default = 150, max = 2000
+        }
         let response = await this.publicGetDepthPair (this.extend (request, params));
         let market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse)
+        if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
+        }
         let orderbook = response[market['id']];
         return this.parseOrderBook (orderbook);
     }
