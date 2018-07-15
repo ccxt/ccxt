@@ -39,7 +39,7 @@ function replaceInFile (filename, regex, replacement) {
 const includedIds = fs.readFileSync ('exchanges.cfg')
                         .toString () // Buffer → String
                         .split ('\n') // String → Array
-                        .map (line => /([^#]*)/.exec (line)[0].trim ()) // trim comments
+                        .map (line => line.split ('#')[0].trim ()) // trim comments
                         .filter (exchange => exchange); // filter empty lines
 
 const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
