@@ -24,6 +24,7 @@ module.exports = class theocean extends Exchange {
                 'CORS': false, // ?
                 'fetchTickers': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -182,9 +183,6 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
-
-        //{"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
-        //{"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -568,28 +566,44 @@ module.exports = class theocean extends Exchange {
         return result;
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let ids = Object.keys (orders);
-        let result = [];
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = orders[id];
-            let extended = this.extend (order, { 'id': id });
-            result.push (this.parseOrder (extended, market));
-        }
-        return this.filterBySinceLimit (result, since, limit);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
-        id = id.toString ();
-        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        let oldOrder = (id in this.orders) ? this.orders[id] : {};
-        this.orders[id] = this.extend (oldOrder, newOrder);
-        return this.orders[id];
+        let request = {
+            'orderHash': id,
+        };
+        let response = await this.publicGetOrderOrderHash (this.extend (request, params));
+        //
+        //     {
+        //       "baseTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //       "quoteTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //       "side": "buy",
+        //       "amount": "10000000000000000000",
+        //       "price": "1.000",
+        //       "created": "1512929327792",
+        //       "expires": "1512929897118",
+        //       "zeroExOrder": {
+        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
+        //         "maker": "0x006dc83e5b21854d4afc44c9b92a91e0349dda13",
+        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //         "makerTokenAmount": "10000000000000000000",
+        //         "takerTokenAmount": "10000000000000000000",
+        //         "makerFee": "0",
+        //         "takerFee": "0",
+        //         "expirationUnixTimestampSec": "525600",
+        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
+        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //         "ecSignature": {
+        //           "v": 28,
+        //           "r": "0x5307b6a69e7cba8583e1de39efb93a9ae1afc11849e79d99f462e49c18c4d6e4",
+        //           "s": "0x5950e82364227ccca95c70b47375e8911a2039d3040ba0684329634ebdced160"
+        //         }
+        //       }
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     updateCachedOrders (openOrders, symbol) {
@@ -741,70 +755,18 @@ module.exports = class theocean extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            if ('success' in response) {
+            if ('errors' in response) {
                 //
-                // 1 - Liqui only returns the integer 'success' key from their private API
+                // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
+                // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 //
-                //     { "success": 1, ... } httpCode === 200
-                //     { "success": 0, ... } httpCode === 200
-                //
-                // 2 - However, exchanges derived from Liqui, can return non-integers
-                //
-                //     It can be a numeric string
-                //     { "sucesss": "1", ... }
-                //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-                //
-                //     Or just a string
-                //     { "success": "true", ... }
-                //     { "success": "false", ... }, httpCode >= 200
-                //
-                //     Or a boolean
-                //     { "success": true, ... }
-                //     { "success": false, ... }, httpCode >= 200
-                //
-                // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-                //
-                // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-                //
-                // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-                //
-                let success = this.safeValue (response, 'success', false);
-                if (typeof success === 'string') {
-                    if ((success === 'true') || (success === '1'))
-                        success = true;
-                    else
-                        success = false;
-                }
-                if (!success) {
-                    const code = this.safeString (response, 'code');
-                    const message = this.safeString (response, 'error');
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    }
-                    // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if (message === 'invalid api key') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'invalid sign') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'api key dont have trade permission') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'invalid order') {
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'Requests too often') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'not available') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'data unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'external service unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                const message = this.safeString (response, 'error');
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (message in exceptions) {
+                    throw new exceptions[message] (feedback);
+                } else {
+                        throw new ExchangeError (feedback);
                     }
                 }
             }
