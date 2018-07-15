@@ -760,8 +760,7 @@ module.exports = class theocean extends Exchange {
                 if (message in exceptions) {
                     throw new exceptions[message] (feedback);
                 } else {
-                        throw new ExchangeError (feedback);
-                    }
+                    throw new ExchangeError (feedback);
                 }
             }
         }
