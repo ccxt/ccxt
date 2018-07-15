@@ -44,6 +44,7 @@ class hitbtc2 (hitbtc):
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
+                'fetchOrderTrades': False,  # not implemented yet
             },
             'timeframes': {
                 '1m': 'M1',

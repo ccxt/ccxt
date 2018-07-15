@@ -30,6 +30,7 @@ class hitbtc2 extends hitbtc {
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => true,
+                'fetchOrderTrades' => false, // not implemented yet
             ),
             'timeframes' => array (
                 '1m' => 'M1',
