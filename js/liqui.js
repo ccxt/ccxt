@@ -759,7 +759,7 @@ module.exports = class liqui extends Exchange {
                     } else if (message === 'external service unavailable') {
                         throw new ExchangeNotAvailable (feedback);
                     } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                        throw new ExchangeError (feedback);
                     }
                 }
             }
