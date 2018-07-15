@@ -270,10 +270,10 @@ class cointiger extends huobipro {
         //   {      volume => "0.014",
         //          $symbol => "ethbtc",
         //         buy_fee => "0.00001400",
-        //         orderId =>  32235710,
+        //         $orderId =>  32235710,
         //           $price => "0.06923825",
         //         created =>  1531605169000,
-        //              id =>  3785005,
+        //              $id =>  3785005,
         //          source =>  1,
         //            $type => "buy-limit",
         //     bid_user_id =>  326317         } ] }
@@ -297,9 +297,11 @@ class cointiger extends huobipro {
         //             "icon" => "",
         //             "title" => "成交价格"
         //                       ),
-        //         "id" => 138
+        //         "$id" => 138
         //     }
         //
+        $id = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string($trade, 'orderId');
         $orderType = $this->safe_string($trade, 'type');
         $type = null;
         $side = null;
@@ -347,8 +349,8 @@ class cointiger extends huobipro {
             $symbol = $market['symbol'];
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
-            'order' => null,
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
