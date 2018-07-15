@@ -305,6 +305,8 @@ class cointiger (huobipro):
         #         "id": 138
         #     }
         #
+        id = self.safe_string(trade, 'id')
+        orderId = self.safe_string(trade, 'orderId')
         orderType = self.safe_string(trade, 'type')
         type = None
         side = None
@@ -347,8 +349,8 @@ class cointiger (huobipro):
             symbol = market['symbol']
         return {
             'info': trade,
-            'id': str(trade['id']),
-            'order': None,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
