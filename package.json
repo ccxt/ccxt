@@ -30,7 +30,7 @@
     "check-js-syntax": "eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
-    "browserify": "browserify ./ccxt.browser.js > ./build/ccxt.browser.js && browserify --debug ./ccxt.browser.debug.js > ./build/ccxt.browser.debug.js",
+    "browserify": "browserify ./ccxt.browser.js > ./build/ccxt.browser.js && browserify",
     "pandoc-all": "npm run pandoc-python-readme && npm run pandoc-doc-readme && npm run pandoc-doc-faq && npm run pandoc-doc-manual && npm run pandoc-doc-install && npm run pandoc-doc-exchanges && npm run pandoc-doc-exchanges-by-country",
     "pandoc-python-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=python/README.rst README.md",
     "pandoc-doc-readme": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/README.rst README.md",
