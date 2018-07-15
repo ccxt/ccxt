@@ -250,33 +250,6 @@ module.exports = class theocean extends Exchange {
         return this.parseBalance (result);
     }
 
-    // async fetchBalance (params = {}) {
-    //     await this.loadMarkets ();
-    //     let response = await this.privatePostGetInfo ();
-    //     let balances = response['return'];
-    //     let result = { 'info': balances };
-    //     let funds = balances['funds'];
-    //     let currencies = Object.keys (funds);
-    //     for (let c = 0; c < currencies.length; c++) {
-    //         let currency = currencies[c];
-    //         let uppercase = currency.toUpperCase ();
-    //         uppercase = this.commonCurrencyCode (uppercase);
-    //         let total = undefined;
-    //         let used = undefined;
-    //         if (balances['open_orders'] === 0) {
-    //             total = funds[currency];
-    //             used = 0.0;
-    //         }
-    //         let account = {
-    //             'free': funds[currency],
-    //             'used': used,
-    //             'total': total,
-    //         };
-    //         result[uppercase] = account;
-    //     }
-    //     return this.parseBalance (result);
-    // }
-
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey]);
         let amount = parseFloat (bidask[amountKey]);
