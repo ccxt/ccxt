@@ -46,6 +46,7 @@ module.exports = class okcoinusd extends Exchange {
                     'get': [
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ],
                 },
                 'public': {
