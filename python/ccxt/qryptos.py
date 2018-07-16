@@ -305,12 +305,11 @@ class qryptos (Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        queryByTimestamp = False
         if since is not None:
-            request['timestamp'] = since
-            queryByTimestamp = True
+            # timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = int(since / 1000)
         response = self.publicGetExecutions(self.extend(request, params))
-        result = response if queryByTimestamp else response['models']
+        result = response if (since is not None) else response['models']
         return self.parse_trades(result, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

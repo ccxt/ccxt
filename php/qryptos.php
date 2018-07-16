@@ -320,13 +320,12 @@ class qryptos extends Exchange {
         );
         if ($limit !== null)
             $request['limit'] = $limit;
-        $queryByTimestamp = false;
         if ($since !== null) {
-            $request['timestamp'] = $since;
-            $queryByTimestamp = true;
+            // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
+            $request['timestamp'] = intval ($since / 1000);
         }
         $response = $this->publicGetExecutions (array_merge ($request, $params));
-        $result = $queryByTimestamp ? $response : $response['models'];
+        $result = ($since !== null) ? $response : $response['models'];
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
