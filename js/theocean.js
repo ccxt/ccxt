@@ -440,19 +440,26 @@ module.exports = class theocean extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
-            throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
-            'type': side,
-            'amount': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
+            'walletAddress': this.uid, // Your Wallet Address
+            'baseTokenAddress': market['baseId'], // Base token address
+            'quoteTokenAddress': market['quoteId'], // Quote token address
+            'side': side, // "buy" or "sell"
+            'orderAmount': this.amountToPrecision (symbol, amount),	// Base token amount in wei
+            'feeOption': 'feeInNative', // Fees can be paid in native currency ("feeInNative"), or ZRX ("feeInZRX")
         };
-        price = parseFloat (price);
-        amount = parseFloat (amount);
-        let response = await this.privatePostTrade (this.extend (request, params));
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
+        }
+        let method = 'privatePost' + this.capitalize (type) + 'OrderReserve';
+        let response = await this[method] (this.extend (request, params));
+
+        const log = require ('ololog').unlimited;
+        log.green (response);
+        process.exit ();
+
         let id = undefined;
         let status = 'open';
         let filled = 0.0;
@@ -482,7 +489,7 @@ module.exports = class theocean extends Exchange {
             'remaining': remaining,
             'filled': filled,
             'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
+            'trades': undefined,
         };
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
