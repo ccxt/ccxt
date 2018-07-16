@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.37'
+const version = '1.16.38'
 
 Exchange.ccxtVersion = version
 
@@ -25874,7 +25874,10 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.parse8601 (order['TimeStamp']);
+        let timestamp = this.safeString (order, 'TimeStamp');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = this.parse8601 (order['TimeStamp']);
+        }
         let datetime = undefined;
         if (timestamp) {
             datetime = this.iso8601 (timestamp);
@@ -42789,6 +42792,7 @@ module.exports = class okcoinusd extends Exchange {
                     'get': [
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ],
                 },
                 'public': {

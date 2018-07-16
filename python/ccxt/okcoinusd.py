@@ -54,6 +54,7 @@ class okcoinusd (Exchange):
                     'get': [
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ],
                 },
                 'public': {
