@@ -456,9 +456,49 @@ module.exports = class theocean extends Exchange {
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
         let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
-
-        //---------------------------------------------------------------------
-
+        //
+        //     {
+        //       "unsignedTargetOrder": {
+        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
+        //         "maker": "",
+        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //         "makerTokenAmount": "10000000000000000000",
+        //         "takerTokenAmount": "10000000000000000000",
+        //         "makerFee": "0",
+        //         "takerFee": "0",
+        //         "expirationUnixTimestampSec": "525600",
+        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
+        //         "ecSignature": {
+        //           "v": 0,
+        //           "r": "",
+        //           "s": ""
+        //         }
+        //       },
+        //       "unsignedMarketOrder": {
+        //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
+        //         "maker": "",
+        //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //         "makerTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
+        //         "takerTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
+        //         "feeRecipient": "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //         "makerTokenAmount": "10000000000000000000",
+        //         "takerTokenAmount": "10000000000000000000",
+        //         "makerFee": "0",
+        //         "takerFee": "0",
+        //         "expirationUnixTimestampSec": "525600",
+        //         "salt": "37800593840622773016017857006417214310534675667008850948421364357744823963318",
+        //         "ecSignature": {
+        //           "v": 0,
+        //           "r": "",
+        //           "s": ""
+        //         }
+        //       },
+        //       "marketOrderID": "892879202"
+        //     }
+        //
         const log = require ('ololog').unlimited;
         log.green (reserveResponse);
         process.exit ();
@@ -478,6 +518,19 @@ module.exports = class theocean extends Exchange {
         let placeMethod = method + 'Place';
         process.exit ();
         let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        //
+        //     {
+        //       "targetOrder": {
+        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //         "amount": "100000000000"
+        //       },
+        //       "matchingOrder": {
+        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
+        //         "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
+        //         "amount": "100000000000"
+        //       }
+        //     }
+        //
         log.green (placeResponse);
         process.exit ();
         // send signed
@@ -523,6 +576,14 @@ module.exports = class theocean extends Exchange {
             'orderHash': id,
         };
         let response = await this.privateDeleteOrderOrderHash (this.extend (request, params));
+        //
+        //     {
+        //       "canceledOrder": {
+        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
+        //         "amount": "100000000000"
+        //       }
+        //     }
+        //
         return response;
     }
 
@@ -653,6 +714,8 @@ module.exports = class theocean extends Exchange {
         //
         return this.parseOrder (response);
     }
+
+    async
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
