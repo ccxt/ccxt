@@ -333,7 +333,10 @@ module.exports = class fcoin extends Exchange {
             order['price'] = this.priceToPrecision (symbol, price);
         }
         let result = await this.privatePostOrders (this.extend (order, params));
-        return result['data'];
+        return {
+            'info': result,
+            'id': result['data'],
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
