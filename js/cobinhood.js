@@ -14,6 +14,7 @@ module.exports = class cobinhood extends Exchange {
             'name': 'COBINHOOD',
             'countries': [ 'TW' ],
             'rateLimit': 1000 / 10,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -24,7 +25,7 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
-                'withdraw': true,
+                'withdraw': false,
                 'fetchMyTrades': true,
             },
             'requiredCredentials': {
@@ -48,10 +49,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
-                'api': {
-                    'web': 'https://api.cobinhood.com/v1',
-                    'ws': 'wss://feed.cobinhood.com',
-                },
+                'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
                 'doc': 'https://cobinhood.github.io/api-public',
             },
@@ -553,6 +551,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     async withdraw (code, amount, address, params = {}) {
+        // this method is for fetching withdrawals
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostWalletWithdrawals (this.extend ({
@@ -578,7 +577,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['web'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         headers = {};
         if (api === 'private') {
