@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.40'
+const version = '1.16.41'
 
 Exchange.ccxtVersion = version
 
@@ -42789,9 +42789,9 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        'spot/markets/currencies',
-                        'spot/markets/products',
-                        'spot/markets/tickers',
+                        'currencies',
+                        'products',
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -42860,7 +42860,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2',
+                    'web': 'https://www.okcoin.com/v2/spot/markets',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -42921,7 +42921,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.webGetSpotMarketsProducts ();
+        let response = await this.webGetProducts ();
         let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -43013,7 +43013,29 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['timestamp'];
+        //
+        //     {              buy:   "48.777300",
+        //                 change:   "-1.244500",
+        //       changePercentage:   "-2.47%",
+        //                  close:   "49.064000",
+        //            createdDate:    1531704852254,
+        //             currencyId:    527,
+        //                dayHigh:   "51.012500",
+        //                 dayLow:   "48.124200",
+        //                   high:   "51.012500",
+        //                inflows:   "0",
+        //                   last:   "49.064000",
+        //                    low:   "48.124200",
+        //             marketFrom:    627,
+        //                   name: {  },
+        //                   open:   "50.308500",
+        //               outflows:   "0",
+        //              productId:    527,
+        //                   sell:   "49.064000",
+        //                 symbol:   "zec_okb",
+        //                 volume:   "1049.092535"   }
+        //
+        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
@@ -43022,9 +43044,13 @@ module.exports = class okcoinusd extends Exchange {
                     market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
+        let open = this.safeFloat (ticker, 'open');
+        let change = this.safeFloat (ticker, 'change');
+        let percentage = this.safeFloat (ticker, 'changePercentage');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -43036,14 +43062,14 @@ module.exports = class okcoinusd extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -43552,7 +43578,7 @@ module.exports = class okex extends okcoinusd {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'web': 'https://www.okex.com/v2',
+                    'web': 'https://www.okex.com/v2/spot/markets',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
                 },
@@ -43565,6 +43591,9 @@ module.exports = class okex extends okcoinusd {
                 'FAIR': 'FairGame',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
+            },
+            'options': {
+                'fetchTickersMethod': 'fetchTickersFromWeb',
             },
         });
     }
@@ -43604,7 +43633,7 @@ module.exports = class okex extends okcoinusd {
         return markets;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickersFromAPI (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let response = await this.publicGetTickers (this.extend (request, params));
@@ -43624,6 +43653,26 @@ module.exports = class okex extends okcoinusd {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTickersFromWeb (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let response = await this.webGetTickers (this.extend (request, params));
+        let tickers = response['data'];
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
+    async fetchTickers (symbol = undefined, params = {}) {
+        let method = this.options['fetchTickersMethod'];
+        let response = await this[method] (symbol, params);
+        return response;
     }
 };
 
@@ -44325,7 +44374,7 @@ module.exports = class poloniex extends Exchange {
         let request = { 'currencyPair': pair };
         if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
-            request['end'] = this.seconds ();
+            request['end'] = this.seconds () + 1; // adding 1 is a fix for #3411
         }
         // limit is disabled (does not really work as expected)
         if (typeof limit !== 'undefined')
