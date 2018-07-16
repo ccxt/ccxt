@@ -305,8 +305,13 @@ class qryptos (Exchange):
         }
         if limit is not None:
             request['limit'] = limit
+        queryByTimestamp = False
+        if since is not None:
+            request['timestamp'] = since
+            queryByTimestamp = True
         response = await self.publicGetExecutions(self.extend(request, params))
-        return self.parse_trades(response['models'], market, since, limit)
+        result = response if queryByTimestamp else response['models']
+        return self.parse_trades(result, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

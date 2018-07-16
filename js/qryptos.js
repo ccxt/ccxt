@@ -325,7 +325,8 @@ module.exports = class qryptos extends Exchange {
             queryByTimestamp = true;
         }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades((queryByTimestamp ? response : response['models']), market, since, limit);
+        let result = queryByTimestamp ? response : response['models'];
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
