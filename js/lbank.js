@@ -124,8 +124,8 @@ module.exports = class lbank extends Exchange {
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['quantityAccuracy'],
-                'price': market['priceAccuracy'],
+                'amount': this.safeInteger (market, 'quantityAccuracy'),
+                'price': this.safeInteger (market, 'priceAccuracy'),
             };
             result.push ({
                 'id': id,
