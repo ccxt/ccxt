@@ -35,7 +35,7 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromAPI',
+                'fetchTickersMethod': 'fetchTickersFromApi',
             },
         });
     }
@@ -75,7 +75,7 @@ module.exports = class okex extends okcoinusd {
         return markets;
     }
 
-    async fetchTickersFromAPI (symbols = undefined, params = {}) {
+    async fetchTickersFromApi (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let response = await this.publicGetTickers (this.extend (request, params));
