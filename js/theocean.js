@@ -442,7 +442,7 @@ module.exports = class theocean extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = {
+        let reserveRequest = {
             'walletAddress': this.uid, // Your Wallet Address
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
@@ -451,61 +451,78 @@ module.exports = class theocean extends Exchange {
             'feeOption': 'feeInNative', // Fees can be paid in native currency ("feeInNative"), or ZRX ("feeInZRX")
         };
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
+            reserveRequest['price'] = this.priceToPrecision (symbol, price); // Price denominated in quote tokens (limit orders only)
         }
-        let method = 'privatePost' + this.capitalize (type) + 'OrderReserve';
-        let response = await this[method] (this.extend (request, params));
+        let method = 'privatePost' + this.capitalize (type) + 'Order';
+        let reserveMethod = method + 'Reserve';
+        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+
+        //---------------------------------------------------------------------
 
         const log = require ('ololog').unlimited;
-        log.green (response);
+        log.green (reserveResponse);
         process.exit ();
 
-        let id = undefined;
-        let status = 'open';
-        let filled = 0.0;
-        let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], this.getOrderIdKey ());
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeFloat (response['return'], 'received', 0.0);
-            remaining = this.safeFloat (response['return'], 'remains', amount);
-        }
-        let timestamp = this.milliseconds ();
-        let order = {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            'trades': undefined,
-        };
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
-    }
+        //---------------------------------------------------------------------
 
-    getOrderIdKey () {
-        return 'order_id';
+        const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
+            'maker': account
+        });
+        const signedMarketOrder = await this._signOrder (marketOrder, account)
+        const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
+        const placeRequest = {
+            'signedOrder': serializedMarketOrder,
+            'marketOrderID': reserveResponse['marketOrderID'],
+        };
+        // return api.trade.placeMarketOrder({order})
+        let placeMethod = method + 'Place';
+        process.exit ();
+        let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        log.green (placeResponse);
+        process.exit ();
+        // send signed
+
+        // let id = undefined;
+        // let status = 'open';
+        // let filled = 0.0;
+        // let remaining = amount;
+        // if ('return' in response) {
+        //     id = this.safeString (response['return'], this.getOrderIdKey ());
+        //     if (id === '0') {
+        //         id = this.safeString (response['return'], 'init_order_id');
+        //         status = 'closed';
+        //     }
+        //     filled = this.safeFloat (response['return'], 'received', 0.0);
+        //     remaining = this.safeFloat (response['return'], 'remains', amount);
+        // }
+        // let timestamp = this.milliseconds ();
+        // let order = {
+        //     'id': id,
+        //     'timestamp': timestamp,
+        //     'datetime': this.iso8601 (timestamp),
+        //     'lastTradeTimestamp': undefined,
+        //     'status': status,
+        //     'symbol': symbol,
+        //     'type': type,
+        //     'side': side,
+        //     'price': price,
+        //     'cost': price * filled,
+        //     'amount': amount,
+        //     'remaining': remaining,
+        //     'filled': filled,
+        //     'fee': undefined,
+        //     'trades': undefined,
+        // };
+        // this.orders[id] = order;
+        // return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
         let request = {};
         let idKey = this.getOrderIdKey ();
         request[idKey] = id;
-        response = await this.privatePostCancelOrder (this.extend (request, params));
+        let response = await this.privatePostCancelOrder (this.extend (request, params));
         if (id in this.orders)
             this.orders[id]['status'] = 'canceled';
         return response;
