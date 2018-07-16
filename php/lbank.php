@@ -125,8 +125,8 @@ class lbank extends Exchange {
             $quote = $this->common_currency_code(strtoupper ($quoteId));
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $market['quantityAccuracy'],
-                'price' => $market['priceAccuracy'],
+                'amount' => $this->safe_integer($market, 'quantityAccuracy'),
+                'price' => $this->safe_integer($market, 'priceAccuracy'),
             );
             $result[] = array (
                 'id' => $id,
