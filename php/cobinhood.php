@@ -15,6 +15,7 @@ class cobinhood extends Exchange {
             'name' => 'COBINHOOD',
             'countries' => array ( 'TW' ),
             'rateLimit' => 1000 / 10,
+            'version' => 'v1',
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
@@ -23,9 +24,9 @@ class cobinhood extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrder' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'withdraw' => true,
+                'fetchDepositAddress' => false,
+                'createDepositAddress' => false,
+                'withdraw' => false,
                 'fetchMyTrades' => true,
             ),
             'requiredCredentials' => array (
@@ -49,10 +50,7 @@ class cobinhood extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
-                'api' => array (
-                    'web' => 'https://api.cobinhood.com/v1',
-                    'ws' => 'wss://feed.cobinhood.com',
-                ),
+                'api' => 'https://api.cobinhood.com',
                 'www' => 'https://cobinhood.com',
                 'doc' => 'https://cobinhood.github.io/api-public',
             ),
@@ -100,20 +98,16 @@ class cobinhood extends Exchange {
                         'trading/order_history',
                         'trading/trades',
                         'trading/trades/{trade_id}',
+                        'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals/{withdrawal_id}',
-                        'wallet/withdrawals',
-                        'wallet/deposits/{deposit_id}',
-                        'wallet/deposits',
+                        'wallet/generic_deposits',
+                        'wallet/generic_deposits/{generic_deposit_id}',
+                        'wallet/generic_withdrawals',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
                     ),
                     'post' => array (
                         'trading/orders',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals',
                     ),
                     'delete' => array (
                         'trading/orders/{order_id}',
@@ -519,54 +513,6 @@ class cobinhood extends Exchange {
         return $this->parse_trades($response['result']['trades'], $market);
     }
 
-    public function create_deposit_address ($code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency ($code);
-        $response = $this->privatePostWalletDepositAddresses (array (
-            'currency' => $currency['id'],
-        ));
-        $address = $this->safe_string($response['result']['deposit_address'], 'address');
-        $this->check_address($address);
-        return array (
-            'currency' => $code,
-            'address' => $address,
-            'info' => $response,
-        );
-    }
-
-    public function fetch_deposit_address ($code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency ($code);
-        $response = $this->privateGetWalletDepositAddresses (array_merge (array (
-            'currency' => $currency['id'],
-        ), $params));
-        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
-        $address = null;
-        if (strlen ($addresses) > 0) {
-            $address = $this->safe_string($addresses[0], 'address');
-        }
-        $this->check_address($address);
-        return array (
-            'currency' => $code,
-            'address' => $address,
-            'info' => $response,
-        );
-    }
-
-    public function withdraw ($code, $amount, $address, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency ($code);
-        $response = $this->privatePostWalletWithdrawals (array_merge (array (
-            'currency' => $currency['id'],
-            'amount' => $amount,
-            'address' => $address,
-        ), $params));
-        return array (
-            'id' => $response['result']['withdrawal_id'],
-            'info' => $response,
-        );
-    }
-
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -579,7 +525,7 @@ class cobinhood extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api']['web'] . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $headers = array ();
         if ($api === 'private') {

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.36'
+const version = '1.16.42'
 
 Exchange.ccxtVersion = version
 
@@ -1774,10 +1774,6 @@ module.exports = class Exchange {
 
             // undefined, null and lots of nasty non-numeric values yield NaN
             if (isNaN (_timestampNumber) || _timestampNumber < 0) {
-                return undefined;
-            }
-
-            if (_timestampNumber < 0) {
                 return undefined;
             }
 
@@ -11737,14 +11733,13 @@ module.exports = class bitstamp extends Exchange {
         let cost = undefined;
         if (typeof transactions !== 'undefined') {
             if (Array.isArray (transactions)) {
+                feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (this.extend ({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market);
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
-                        feeCost = 0.0;
                     feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;
@@ -18103,6 +18098,7 @@ module.exports = class cobinhood extends Exchange {
             'name': 'COBINHOOD',
             'countries': [ 'TW' ],
             'rateLimit': 1000 / 10,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -18111,9 +18107,9 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchOrder': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
-                'withdraw': true,
+                'fetchDepositAddress': false,
+                'createDepositAddress': false,
+                'withdraw': false,
                 'fetchMyTrades': true,
             },
             'requiredCredentials': {
@@ -18137,10 +18133,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
-                'api': {
-                    'web': 'https://api.cobinhood.com/v1',
-                    'ws': 'wss://feed.cobinhood.com',
-                },
+                'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
                 'doc': 'https://cobinhood.github.io/api-public',
             },
@@ -18188,20 +18181,16 @@ module.exports = class cobinhood extends Exchange {
                         'trading/order_history',
                         'trading/trades',
                         'trading/trades/{trade_id}',
+                        'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals/{withdrawal_id}',
-                        'wallet/withdrawals',
-                        'wallet/deposits/{deposit_id}',
-                        'wallet/deposits',
+                        'wallet/generic_deposits',
+                        'wallet/generic_deposits/{generic_deposit_id}',
+                        'wallet/generic_withdrawals',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
                     ],
                     'post': [
                         'trading/orders',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -18607,54 +18596,6 @@ module.exports = class cobinhood extends Exchange {
         return this.parseTrades (response['result']['trades'], market);
     }
 
-    async createDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostWalletDepositAddresses ({
-            'currency': currency['id'],
-        });
-        let address = this.safeString (response['result']['deposit_address'], 'address');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetWalletDepositAddresses (this.extend ({
-            'currency': currency['id'],
-        }, params));
-        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
-        let address = undefined;
-        if (addresses.length > 0) {
-            address = this.safeString (addresses[0], 'address');
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        };
-    }
-
-    async withdraw (code, amount, address, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostWalletWithdrawals (this.extend ({
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        }, params));
-        return {
-            'id': response['result']['withdrawal_id'],
-            'info': response,
-        };
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -18667,7 +18608,7 @@ module.exports = class cobinhood extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['web'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         headers = {};
         if (api === 'private') {
@@ -25878,7 +25819,10 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.parse8601 (order['TimeStamp']);
+        let timestamp = this.safeString (order, 'TimeStamp');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = this.parse8601 (order['TimeStamp']);
+        }
         let datetime = undefined;
         if (timestamp) {
             datetime = this.iso8601 (timestamp);
@@ -30218,6 +30162,9 @@ module.exports = class gateio extends Exchange {
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
         let feeRate = this.safeFloat (order, 'feePercentage');
+        if (typeof feeRate !== 'undefined') {
+            feeRate = feeRate / 100;
+        }
         if (typeof feeCurrency !== 'undefined') {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
@@ -39087,8 +39034,8 @@ module.exports = class lbank extends Exchange {
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['quantityAccuracy'],
-                'price': market['priceAccuracy'],
+                'amount': this.safeInteger (market, 'quantityAccuracy'),
+                'price': this.safeInteger (market, 'priceAccuracy'),
             };
             result.push ({
                 'id': id,
@@ -42788,8 +42735,9 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        'spot/markets/currencies',
-                        'spot/markets/products',
+                        'currencies',
+                        'products',
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -42858,7 +42806,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2',
+                    'web': 'https://www.okcoin.com/v2/spot/markets',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -42919,7 +42867,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.webGetSpotMarketsProducts ();
+        let response = await this.webGetProducts ();
         let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -43011,7 +42959,29 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['timestamp'];
+        //
+        //     {              buy:   "48.777300",
+        //                 change:   "-1.244500",
+        //       changePercentage:   "-2.47%",
+        //                  close:   "49.064000",
+        //            createdDate:    1531704852254,
+        //             currencyId:    527,
+        //                dayHigh:   "51.012500",
+        //                 dayLow:   "48.124200",
+        //                   high:   "51.012500",
+        //                inflows:   "0",
+        //                   last:   "49.064000",
+        //                    low:   "48.124200",
+        //             marketFrom:    627,
+        //                   name: {  },
+        //                   open:   "50.308500",
+        //               outflows:   "0",
+        //              productId:    527,
+        //                   sell:   "49.064000",
+        //                 symbol:   "zec_okb",
+        //                 volume:   "1049.092535"   }
+        //
+        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
@@ -43020,9 +42990,13 @@ module.exports = class okcoinusd extends Exchange {
                     market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
+        let open = this.safeFloat (ticker, 'open');
+        let change = this.safeFloat (ticker, 'change');
+        let percentage = this.safeFloat (ticker, 'changePercentage');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -43034,14 +43008,14 @@ module.exports = class okcoinusd extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -43550,7 +43524,7 @@ module.exports = class okex extends okcoinusd {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'web': 'https://www.okex.com/v2',
+                    'web': 'https://www.okex.com/v2/spot/markets',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
                 },
@@ -43563,6 +43537,9 @@ module.exports = class okex extends okcoinusd {
                 'FAIR': 'FairGame',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
+            },
+            'options': {
+                'fetchTickersMethod': 'fetchTickersFromApi',
             },
         });
     }
@@ -43602,7 +43579,7 @@ module.exports = class okex extends okcoinusd {
         return markets;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickersFromApi (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let response = await this.publicGetTickers (this.extend (request, params));
@@ -43622,6 +43599,26 @@ module.exports = class okex extends okcoinusd {
             result[symbol] = ticker;
         }
         return result;
+    }
+
+    async fetchTickersFromWeb (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let response = await this.webGetTickers (this.extend (request, params));
+        let tickers = response['data'];
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
+    }
+
+    async fetchTickers (symbol = undefined, params = {}) {
+        let method = this.options['fetchTickersMethod'];
+        let response = await this[method] (symbol, params);
+        return response;
     }
 };
 
@@ -44323,7 +44320,7 @@ module.exports = class poloniex extends Exchange {
         let request = { 'currencyPair': pair };
         if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
-            request['end'] = this.seconds ();
+            request['end'] = this.seconds () + 1; // adding 1 is a fix for #3411
         }
         // limit is disabled (does not really work as expected)
         if (typeof limit !== 'undefined')
@@ -45048,8 +45045,13 @@ module.exports = class qryptos extends Exchange {
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
+        if (typeof since !== 'undefined') {
+            // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = parseInt (since / 1000);
+        }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades (response['models'], market, since, limit);
+        let result = (typeof since !== 'undefined') ? response : response['models'];
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

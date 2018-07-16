@@ -419,6 +419,8 @@ class gateio (Exchange):
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrency = self.safe_string(order, 'feeCurrency')
         feeRate = self.safe_float(order, 'feePercentage')
+        if feeRate is not None:
+            feeRate = feeRate / 100
         if feeCurrency is not None:
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']

@@ -127,8 +127,8 @@ class lbank (Exchange):
             quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             precision = {
-                'amount': market['quantityAccuracy'],
-                'price': market['priceAccuracy'],
+                'amount': self.safe_integer(market, 'quantityAccuracy'),
+                'price': self.safe_integer(market, 'priceAccuracy'),
             }
             result.append({
                 'id': id,

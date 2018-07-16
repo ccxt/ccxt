@@ -174,7 +174,7 @@ const printHumanReadable = (exchange, result) => {
 
     } else {
 
-        log.maxDepth (10).maxArrayLength (1000) (result)
+        log (result)
     }
 }
 

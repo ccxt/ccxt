@@ -45,8 +45,9 @@ class okcoinusd extends Exchange {
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        'spot/markets/currencies',
-                        'spot/markets/products',
+                        'currencies',
+                        'products',
+                        'tickers',
                     ),
                 ),
                 'public' => array (
@@ -115,7 +116,7 @@ class okcoinusd extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => array (
-                    'web' => 'https://www.okcoin.com/v2',
+                    'web' => 'https://www.okcoin.com/v2/spot/markets',
                     'public' => 'https://www.okcoin.com/api',
                     'private' => 'https://www.okcoin.com/api',
                 ),
@@ -176,7 +177,7 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->webGetSpotMarketsProducts ();
+        $response = $this->webGetProducts ();
         $markets = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -268,7 +269,29 @@ class okcoinusd extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['timestamp'];
+        //
+        //     {              buy =>   "48.777300",
+        //                 $change =>   "-1.244500",
+        //       changePercentage =>   "-2.47%",
+        //                  close =>   "49.064000",
+        //            createdDate =>    1531704852254,
+        //             currencyId =>    527,
+        //                dayHigh =>   "51.012500",
+        //                 dayLow =>   "48.124200",
+        //                   high =>   "51.012500",
+        //                inflows =>   "0",
+        //                   $last =>   "49.064000",
+        //                    low =>   "48.124200",
+        //             marketFrom =>    627,
+        //                   name => array (  ),
+        //                   $open =>   "50.308500",
+        //               outflows =>   "0",
+        //              productId =>    527,
+        //                   sell =>   "49.064000",
+        //                 $symbol =>   "zec_okb",
+        //                 volume =>   "1049.092535"   }
+        //
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'createdDate');
         $symbol = null;
         if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
@@ -277,9 +300,13 @@ class okcoinusd extends Exchange {
                     $market = $this->markets_by_id[$marketId];
             }
         }
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
+        $open = $this->safe_float($ticker, 'open');
+        $change = $this->safe_float($ticker, 'change');
+        $percentage = $this->safe_float($ticker, 'changePercentage');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -291,14 +318,14 @@ class okcoinusd extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_float_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
