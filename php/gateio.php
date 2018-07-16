@@ -436,6 +436,9 @@ class gateio extends Exchange {
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
         $feeRate = $this->safe_float($order, 'feePercentage');
+        if ($feeRate !== null) {
+            $feeRate = $feeRate / 100;
+        }
         if ($feeCurrency !== null) {
             if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
