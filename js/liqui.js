@@ -422,11 +422,10 @@ module.exports = class liqui extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
         let request = {};
         let idKey = this.getOrderIdKey ();
         request[idKey] = id;
-        response = await this.privatePostCancelOrder (this.extend (request, params));
+        let response = await this.privatePostCancelOrder (this.extend (request, params));
         if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
         }
