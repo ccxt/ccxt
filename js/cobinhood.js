@@ -23,8 +23,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchOrder': true,
-                'fetchDepositAddress': true,
-                'createDepositAddress': true,
+                'fetchDepositAddress': false,
+                'createDepositAddress': false,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -97,20 +97,16 @@ module.exports = class cobinhood extends Exchange {
                         'trading/order_history',
                         'trading/trades',
                         'trading/trades/{trade_id}',
+                        'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals/{withdrawal_id}',
-                        'wallet/withdrawals',
-                        'wallet/deposits/{deposit_id}',
-                        'wallet/deposits',
+                        'wallet/generic_deposits',
+                        'wallet/generic_deposits/{generic_deposit_id}',
+                        'wallet/generic_withdrawals',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
                     ],
                     'post': [
                         'trading/orders',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -514,55 +510,6 @@ module.exports = class cobinhood extends Exchange {
         }, params));
         let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
         return this.parseTrades (response['result']['trades'], market);
-    }
-
-    async createDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostWalletDepositAddresses ({
-            'currency': currency['id'],
-        });
-        let address = this.safeString (response['result']['deposit_address'], 'address');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetWalletDepositAddresses (this.extend ({
-            'currency': currency['id'],
-        }, params));
-        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
-        let address = undefined;
-        if (addresses.length > 0) {
-            address = this.safeString (addresses[0], 'address');
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        };
-    }
-
-    async withdraw (code, amount, address, params = {}) {
-        // this method is for fetching withdrawals
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privatePostWalletWithdrawals (this.extend ({
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        }, params));
-        return {
-            'id': response['result']['withdrawal_id'],
-            'info': response,
-        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
