@@ -22,7 +22,7 @@ const ccxt         = require ('../../ccxt.js')
     , asTable      = require ('as-table')
     , util         = require ('util')
     , { execSync } = require ('child_process')
-    , log          = require ('ololog').configure ({ locate: false })
+    , log          = require ('ololog').configure ({ locate: false }).unlimited
     , { ExchangeError, NetworkError } = ccxt
 
 
@@ -174,7 +174,7 @@ const printHumanReadable = (exchange, result) => {
 
     } else {
 
-        log.maxDepth (10).maxArrayLength (1000) (result)
+        log (result)
     }
 }
 
