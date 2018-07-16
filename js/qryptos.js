@@ -319,13 +319,12 @@ module.exports = class qryptos extends Exchange {
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        let queryByTimestamp = false;
         if (typeof since !== 'undefined') {
-            request['timestamp'] = since;
-            queryByTimestamp = true;
+            // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = parseInt (since / 1000);
         }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        let result = queryByTimestamp ? response : response['models'];
+        let result = (typeof since !== 'undefined') ? response : response['models'];
         return this.parseTrades (result, market, since, limit);
     }
 
