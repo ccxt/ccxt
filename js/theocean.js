@@ -519,12 +519,10 @@ module.exports = class theocean extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let idKey = this.getOrderIdKey ();
-        request[idKey] = id;
-        let response = await this.privatePostCancelOrder (this.extend (request, params));
-        if (id in this.orders)
-            this.orders[id]['status'] = 'canceled';
+        let request = {
+            'orderHash': id,
+        };
+        let response = await this.privateDeleteOrderOrderHash (this.extend (request, params));
         return response;
     }
 
