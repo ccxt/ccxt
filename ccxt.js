@@ -173,12 +173,6 @@ const exchanges = {
 
 //-----------------------------------------------------------------------------
 
-function loadKeys (keys) {
-    if (keys.StandardRelayer) {
-        this.StandardRelayer.ethereumNodeAddress = keys.StandardRelayer.ethereumNodeAddress;
-    }
-}
-
 const merged = Object.assign (
     {
         version,
@@ -190,9 +184,6 @@ const merged = Object.assign (
     exchanges,
     functions,
     errors,
-    {
-        loadKeys
-    }
 );
 
 module.exports = merged;

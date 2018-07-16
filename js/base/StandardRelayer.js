@@ -1,7 +1,7 @@
 'use strict';
 
-const Web3 = require ('web3');
-const { ZeroEx } = require ('0x.js');
+// const Web3 = require ('web3');
+// const { ZeroEx } = require ('0x.js');
 const { toUnitAmount } = require ('0x.js').ZeroEx;
 const { HttpClient } = require ('@0xproject/connect');
 const { BigNumber } = require ('@0xproject/utils');
@@ -52,27 +52,27 @@ class StandardRelayer extends Exchange {
         return this.zeroXClient;
     }
 
-    static web3 () {
-        if (!this.web3Client) {
-            if (!this.ethereumNodeAddress) {
-                throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
-            }
-            const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
-            this.web3Client = new Web3 (provider);
-        }
-        return this.web3Client;
-    }
-
-    static provider () {
-        if (!this.zeroExNetwork) {
-            if (!this.ethereumNodeAddress) {
-                throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
-            }
-            const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
-            this.zeroExNetwork = new ZeroEx (provider, { 'networkId': this.networkId });
-        }
-        return this.zeroExNetwork;
-    }
+    // static web3 () {
+    //     if (!this.web3Client) {
+    //         if (!this.ethereumNodeAddress) {
+    //             throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
+    //         }
+    //         const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
+    //         this.web3Client = new Web3 (provider);
+    //     }
+    //     return this.web3Client;
+    // }
+    //
+    // static provider () {
+    //     if (!this.zeroExNetwork) {
+    //         if (!this.ethereumNodeAddress) {
+    //             throw new Error ('ethereumNodeAddress not found. Make sure to loadKeys() before using StandardRelayer subclasses');
+    //         }
+    //         const provider = new Web3.providers.HttpProvider (this.ethereumNodeAddress);
+    //         this.zeroExNetwork = new ZeroEx (provider, { 'networkId': this.networkId });
+    //     }
+    //     return this.zeroExNetwork;
+    // }
 
     // ccxt equivalents -----------------------------------------
 
@@ -243,10 +243,6 @@ class StandardRelayer extends Exchange {
     }
 
     // helpers --------------------------------------------------
-
-    static paginateResults () {
-
-    }
 
     static calculateRates (orders, baseDecimals, quoteDecimals, isBid) {
         const orderCount = orders.length;

@@ -46,8 +46,8 @@ module.exports = class changelly extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
+                'apiKey': true,
+                'secret': true,
             },
         });
     }
@@ -73,14 +73,10 @@ module.exports = class changelly extends Exchange {
     sign (path, api = 'public', method = 'POST', params = {}, headers = undefined, body = undefined) {
         const rpcMethod = path.includes ('/') ? path.split ('/').shift () : path;
         const rpcBody = changelly.formRequestBody (rpcMethod, params);
-        // TODO: factor out
-        const apiKey = '641832a401e546329d3ed50e30ee49c3';
-        const secret = '80e67f5ac2ca87a75cd520a5be992aca28b3a6be494ff843fa20e96194c4e627';
-        const secretHash = changelly.signBody (rpcBody, secret);
         const rpcHeaders = {
             'Content-Type': 'application/json',
-            'api-key': apiKey,
-            'sign': secretHash,
+            'api-key': this.apiKey,
+            'sign': changelly.signBody (rpcBody, this.secret),
         };
         return {
             'url': this.urls['api'],
