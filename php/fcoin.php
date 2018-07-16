@@ -334,7 +334,10 @@ class fcoin extends Exchange {
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
         $result = $this->privatePostOrders (array_merge ($order, $params));
-        return $result['data'];
+        return array (
+            'info' => $result,
+            'id' => $result['data'],
+        );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

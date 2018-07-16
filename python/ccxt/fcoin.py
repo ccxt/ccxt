@@ -329,7 +329,10 @@ class fcoin (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         result = self.privatePostOrders(self.extend(order, params))
-        return result['data']
+        return {
+            'info': result,
+            'id': result['data'],
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()

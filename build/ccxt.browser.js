@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.42'
+const version = '1.16.43'
 
 Exchange.ccxtVersion = version
 
@@ -28124,7 +28124,10 @@ module.exports = class fcoin extends Exchange {
             order['price'] = this.priceToPrecision (symbol, price);
         }
         let result = await this.privatePostOrders (this.extend (order, params));
-        return result['data'];
+        return {
+            'info': result,
+            'id': result['data'],
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
