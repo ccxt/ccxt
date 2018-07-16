@@ -102,26 +102,17 @@ module.exports = class okex extends okcoinusd {
         let request = {};
         let response = await this.webGetTickers (this.extend (request, params));
         let tickers = response['data'];
-        return tickers;
-        // let timestamp = parseInt (response['date']) * 1000;
-        // let result = {};
-        // for (let i = 0; i < tickers.length; i++) {
-        //     let ticker = tickers[i];
-        //     let market = undefined;
-        //     if ('symbol' in ticker) {
-        //         let marketId = ticker['symbol'];
-        //         if (marketId in this.markets_by_id)
-        //             market = this.markets_by_id[marketId];
-        //     }
-        //     ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
-        //     let symbol = ticker['symbol'];
-        //     result[symbol] = ticker;
-        // }
-        // return result;
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = this.parseTicker (tickers[i]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
+        }
+        return result;
     }
 
     async fetchTickers (symbol = undefined, params = {}) {
-        let method = this.options['fetchTickersMethod']
+        let method = this.options['fetchTickersMethod'];
         let response = await this[method] (symbol, params);
         return response;
     }
