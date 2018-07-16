@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.38'
+const version = '1.16.39'
 
 Exchange.ccxtVersion = version
 
@@ -11733,14 +11733,13 @@ module.exports = class bitstamp extends Exchange {
         let cost = undefined;
         if (typeof transactions !== 'undefined') {
             if (Array.isArray (transactions)) {
+                feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (this.extend ({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market);
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
-                        feeCost = 0.0;
                     feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;
