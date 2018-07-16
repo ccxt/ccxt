@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.38'
+const version = '1.16.40'
 
 Exchange.ccxtVersion = version
 
@@ -11733,14 +11733,13 @@ module.exports = class bitstamp extends Exchange {
         let cost = undefined;
         if (typeof transactions !== 'undefined') {
             if (Array.isArray (transactions)) {
+                feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (this.extend ({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market);
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
-                        feeCost = 0.0;
                     feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;
@@ -45051,8 +45050,13 @@ module.exports = class qryptos extends Exchange {
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
+        if (typeof since !== 'undefined') {
+            // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = parseInt (since / 1000);
+        }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades (response['models'], market, since, limit);
+        let result = (typeof since !== 'undefined') ? response : response['models'];
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
