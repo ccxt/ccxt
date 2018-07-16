@@ -52,9 +52,9 @@ class okcoinusd (Exchange):
             'api': {
                 'web': {
                     'get': [
-                        'spot/markets/currencies',
-                        'spot/markets/products',
-                        'spot/markets/tickers',
+                        'currencies',
+                        'products',
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -123,7 +123,7 @@ class okcoinusd (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2',
+                    'web': 'https://www.okcoin.com/v2/spot/markets',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -183,7 +183,7 @@ class okcoinusd (Exchange):
         })
 
     async def fetch_markets(self):
-        response = await self.webGetSpotMarketsProducts()
+        response = await self.webGetProducts()
         markets = response['data']
         result = []
         for i in range(0, len(markets)):
@@ -269,16 +269,41 @@ class okcoinusd (Exchange):
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['timestamp']
+        #
+        #     {             buy:   "48.777300",
+        #                 change:   "-1.244500",
+        #       changePercentage:   "-2.47%",
+        #                  close:   "49.064000",
+        #            createdDate:    1531704852254,
+        #             currencyId:    527,
+        #                dayHigh:   "51.012500",
+        #                 dayLow:   "48.124200",
+        #                   high:   "51.012500",
+        #                inflows:   "0",
+        #                   last:   "49.064000",
+        #                    low:   "48.124200",
+        #             marketFrom:    627,
+        #                   name: {},
+        #                   open:   "50.308500",
+        #               outflows:   "0",
+        #              productId:    527,
+        #                   sell:   "49.064000",
+        #                 symbol:   "zec_okb",
+        #                 volume:   "1049.092535"   }
+        #
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 'createdDate')
         symbol = None
         if market is None:
             if 'symbol' in ticker:
                 marketId = ticker['symbol']
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
+        open = self.safe_float(ticker, 'open')
+        change = self.safe_float(ticker, 'change')
+        percentage = self.safe_float(ticker, 'changePercentage')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -290,14 +315,14 @@ class okcoinusd (Exchange):
             'ask': self.safe_float(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': None,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': None,
+            'change': change,
+            'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float_2(ticker, 'vol', 'volume'),
             'quoteVolume': None,
             'info': ticker,
         }
