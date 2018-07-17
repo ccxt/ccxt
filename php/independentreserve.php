@@ -367,20 +367,17 @@ class independentreserve extends Exchange {
                 'apiKey=' . $this->apiKey,
                 'nonce=' . (string) $nonce,
             );
-            // remove this crap
             $keys = is_array ($params) ? array_keys ($params) : array ();
-            $payload = array ();
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
-                $payload[] = $key . '=' . $params[$key];
+                $auth[] = $key . '=' . $params[$key];
             }
-            $auth = $this->array_concat($auth, $payload);
             $message = implode (',', $auth);
             $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
             $body = $this->json (array (
                 'apiKey' => $this->apiKey,
                 'nonce' => $nonce,
-                'signature' => $signature,
+                'signature' => strtoupper ($signature),
             ));
             $headers = array ( 'Content-Type' => 'application/json' );
         }
