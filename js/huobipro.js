@@ -326,15 +326,16 @@ module.exports = class huobipro extends Exchange {
                     market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (typeof market !== 'undefined)
             symbol = market['symbol'];
-        let timestamp = this.safeInteger (trade, 'ts');
-        timestamp = this.safeInteger (trade, 'created-at', timestamp);
+        let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         let order = this.safeString (trade, 'order-id');
         let side = trade['direction'];
-        let type = undefined;
-        if ('type' in trade) {
-            [ side, type ] = trade['type'].split ('-');
+        let type = this.safeString (trade, 'type');
+        if (typeof type !== 'undefined') {
+            let typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
         }
         let amount = this.safeFloat (trade, 'amount');
         amount = this.safeFloat (trade, 'filled-amount', amount);
