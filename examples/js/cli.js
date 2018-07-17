@@ -105,7 +105,7 @@ Object.assign (exchange, settings)
 
 //-----------------------------------------------------------------------------
 
-let printSupportedExchanges = function () {
+function printSupportedExchanges () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
 }
 
