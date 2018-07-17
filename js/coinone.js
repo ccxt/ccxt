@@ -425,7 +425,7 @@ module.exports = class coinone extends Exchange {
             'is_ask': side,
             'currency': this.marketId (symbol),
         };
-		this.orders[id]['status'] = 'canceled';
+        this.orders[id]['status'] = 'canceled';
         return await this.privatePostOrderCancel (this.extend (request, params));
     }
 
