@@ -330,7 +330,7 @@ module.exports = class huobipro extends Exchange {
             symbol = market['symbol'];
         let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         let order = this.safeString (trade, 'order-id');
-        let side = trade['direction'];
+        let side = this.safeString (trade, 'direction');
         let type = this.safeString (trade, 'type');
         if (typeof type !== 'undefined') {
             let typeParts = type.split ('-');
