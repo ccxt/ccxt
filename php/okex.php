@@ -22,7 +22,7 @@ class okex extends okcoinusd {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api' => array (
-                    'web' => 'https://www.okex.com/v2',
+                    'web' => 'https://www.okex.com/v2/spot/markets',
                     'public' => 'https://www.okex.com/api',
                     'private' => 'https://www.okex.com/api',
                 ),
@@ -35,6 +35,9 @@ class okex extends okcoinusd {
                 'FAIR' => 'FairGame',
                 'MAG' => 'Maggie',
                 'YOYO' => 'YOYOW',
+            ),
+            'options' => array (
+                'fetchTickersMethod' => 'fetchTickersFromApi',
             ),
         ));
     }
@@ -74,7 +77,7 @@ class okex extends okcoinusd {
         return $markets;
     }
 
-    public function fetch_tickers ($symbols = null, $params = array ()) {
+    public function fetch_tickers_from_api ($symbols = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
         $response = $this->publicGetTickers (array_merge ($request, $params));
@@ -94,5 +97,25 @@ class okex extends okcoinusd {
             $result[$symbol] = $ticker;
         }
         return $result;
+    }
+
+    public function fetch_tickers_from_web ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $response = $this->webGetTickers (array_merge ($request, $params));
+        $tickers = $response['data'];
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $ticker = $this->parse_ticker($tickers[$i]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
+        }
+        return $result;
+    }
+
+    public function fetch_tickers ($symbol = null, $params = array ()) {
+        $method = $this->options['fetchTickersMethod'];
+        $response = $this->$method ($symbol, $params);
+        return $response;
     }
 }

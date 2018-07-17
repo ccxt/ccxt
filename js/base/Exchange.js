@@ -188,10 +188,6 @@ module.exports = class Exchange {
                 return undefined;
             }
 
-            if (_timestampNumber < 0) {
-                return undefined;
-            }
-
             // last line of defence
             try {
                 return new Date (_timestampNumber).toISOString ();

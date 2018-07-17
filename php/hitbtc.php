@@ -23,6 +23,7 @@ class hitbtc extends Exchange {
                 'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrderTrades' => true,
                 'withdraw' => true,
             ),
             'urls' => array (

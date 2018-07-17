@@ -36,9 +36,16 @@ function replaceInFile (filename, regex, replacement) {
 
 // ---------------------------------------------------------------------------
 
+const includedIds = fs.readFileSync ('exchanges.cfg')
+                        .toString () // Buffer → String
+                        .split ('\n') // String → Array
+                        .map (line => line.split ('#')[0].trim ()) // trim comments
+                        .filter (exchange => exchange); // filter empty lines
+
+const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 try {
 
-    exchanges = require ('./config')
+    exchanges = require ('./config').ids.filter (isIncluded)
 
 } catch (e) {
 
@@ -47,6 +54,7 @@ try {
     const ids = fs.readdirSync ('./js/')
                   .filter (file => file.includes ('.js'))
                   .map (file => file.slice (0, -3))
+                  .filter (isIncluded);
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)

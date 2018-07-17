@@ -19,9 +19,10 @@ class cointiger extends huobipro {
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
                 'fetchTradingLimits' => false,
-                'fetchOrder' => true,
+                'fetchOrder' => false, // not tested yet
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrderTrades' => false, // not tested yet
             ),
             'headers' => array (
                 'Language' => 'en_US',
@@ -266,6 +267,19 @@ class cointiger extends huobipro {
 
     public function parse_trade ($trade, $market = null) {
         //
+        //   {      volume => "0.014",
+        //          $symbol => "ethbtc",
+        //         buy_fee => "0.00001400",
+        //         $orderId =>  32235710,
+        //           $price => "0.06923825",
+        //         created =>  1531605169000,
+        //              $id =>  3785005,
+        //          source =>  1,
+        //            $type => "buy-limit",
+        //     bid_user_id =>  326317         } ] }
+        //
+        // --------------------------------------------------------------------
+        //
         //     {
         //         "volume" => array (
         //             "$amount" => "1.000",
@@ -283,46 +297,69 @@ class cointiger extends huobipro {
         //             "icon" => "",
         //             "title" => "成交价格"
         //                       ),
-        //         "id" => 138
+        //         "$id" => 138
         //     }
         //
-        $side = $this->safe_string($trade, 'side');
+        $id = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string($trade, 'orderId');
+        $orderType = $this->safe_string($trade, 'type');
+        $type = null;
+        $side = null;
+        if ($orderType !== null) {
+            $parts = explode ('-', $orderType);
+            $side = $parts[0];
+            $type = $parts[1];
+        }
+        $side = $this->safe_string($trade, 'side', $side);
         $amount = null;
         $price = null;
         $cost = null;
-        if ($side !== null) {
-            $side = strtolower ($side);
-            $price = $this->safe_float($trade, 'price');
-            $amount = $this->safe_float($trade, 'amount');
-        } else {
+        if ($side === null) {
             $price = $this->safe_float($trade['price'], 'amount');
             $amount = $this->safe_float($trade['volume'], 'amount');
             $cost = $this->safe_float($trade['deal_price'], 'amount');
+        } else {
+            $side = strtolower ($side);
+            $price = $this->safe_float($trade, 'price');
+            $amount = $this->safe_float_2($trade, 'amount', 'volume');
+        }
+        $fee = null;
+        if ($side !== null) {
+            $feeCostField = $side . '_fee';
+            $feeCost = $this->safe_float($trade, $feeCostField);
+            if ($feeCost !== null) {
+                $feeCurrency = null;
+                if ($market !== null) {
+                    $feeCurrency = $market['base'];
+                }
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $feeCurrency,
+                );
+            }
         }
         if ($amount !== null)
             if ($price !== null)
                 if ($cost === null)
                     $cost = $amount * $price;
-        $timestamp = $this->safe_value($trade, 'created_at');
-        if ($timestamp === null)
-            $timestamp = $this->safe_value($trade, 'ts');
-        $iso8601 = ($timestamp !== null) ? $this->iso8601 ($timestamp) : null;
+        $timestamp = $this->safe_integer_2($trade, 'created_at', 'ts');
+        $timestamp = $this->safe_integer($trade, 'created', $timestamp);
         $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
-            'order' => null,
+            'id' => $id,
+            'order' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         );
     }
 
@@ -402,6 +439,36 @@ class cointiger extends huobipro {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchOrderTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'order_id' => $id,
+        );
+        $response = $this->v2GetOrderMakeDetail (array_merge ($request, $params));
+        //
+        // the above endpoint often returns an empty array
+        //
+        //     { code =>   "0",
+        //        msg =>   "suc",
+        //       data => array ( {      volume => "0.014",
+        //                      $symbol => "ethbtc",
+        //                     buy_fee => "0.00001400",
+        //                     orderId =>  32235710,
+        //                       price => "0.06923825",
+        //                     created =>  1531605169000,
+        //                          $id =>  3785005,
+        //                      source =>  1,
+        //                        type => "buy-$limit",
+        //                 bid_user_id =>  326317         } ) }
+        //
+        return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
     public function fetch_orders_by_status ($status = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -519,7 +586,8 @@ class cointiger extends huobipro {
         //
         $id = $this->safe_string($order, 'id');
         $side = $this->safe_string($order, 'side');
-        $type = $this->safe_string($order, 'type');
+        $type = null;
+        $orderType = $this->safe_string($order, 'type');
         $status = $this->safe_string($order, 'status');
         $timestamp = $this->safe_integer($order, 'created_at');
         $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
@@ -549,14 +617,14 @@ class cointiger extends huobipro {
             if ($price === null)
                 $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
         } else {
-            if ($type !== null) {
-                $parts = explode ('-', $type);
+            if ($orderType !== null) {
+                $parts = explode ('-', $orderType);
                 $side = $parts[0];
                 $type = $parts[1];
                 $cost = $this->safe_float($order, 'deal_money');
                 $price = $this->safe_float($order, 'price');
                 $price = $this->safe_float($order, 'avg_price', $price);
-                $amount = $this->safe_float($order, 'amount');
+                $amount = $this->safe_float_2($order, 'amount', 'volume');
                 $filled = $this->safe_float($order, 'deal_volume');
                 $feeCost = $this->safe_float($order, 'fee');
                 if ($feeCost !== null) {

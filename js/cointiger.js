@@ -19,9 +19,10 @@ module.exports = class cointiger extends huobipro {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
-                'fetchOrder': true,
+                'fetchOrder': false, // not tested yet
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': false, // not tested yet
             },
             'headers': {
                 'Language': 'en_US',
@@ -266,6 +267,19 @@ module.exports = class cointiger extends huobipro {
 
     parseTrade (trade, market = undefined) {
         //
+        //   {      volume: "0.014",
+        //          symbol: "ethbtc",
+        //         buy_fee: "0.00001400",
+        //         orderId:  32235710,
+        //           price: "0.06923825",
+        //         created:  1531605169000,
+        //              id:  3785005,
+        //          source:  1,
+        //            type: "buy-limit",
+        //     bid_user_id:  326317         } ] }
+        //
+        // --------------------------------------------------------------------
+        //
         //     {
         //         "volume": {
         //             "amount": "1.000",
@@ -286,43 +300,66 @@ module.exports = class cointiger extends huobipro {
         //         "id": 138
         //     }
         //
-        let side = this.safeString (trade, 'side');
+        let id = this.safeString (trade, 'id');
+        let orderId = this.safeString (trade, 'orderId');
+        let orderType = this.safeString (trade, 'type');
+        let type = undefined;
+        let side = undefined;
+        if (typeof orderType !== 'undefined') {
+            let parts = orderType.split ('-');
+            side = parts[0];
+            type = parts[1];
+        }
+        side = this.safeString (trade, 'side', side);
         let amount = undefined;
         let price = undefined;
         let cost = undefined;
-        if (typeof side !== 'undefined') {
-            side = side.toLowerCase ();
-            price = this.safeFloat (trade, 'price');
-            amount = this.safeFloat (trade, 'amount');
-        } else {
+        if (typeof side === 'undefined') {
             price = this.safeFloat (trade['price'], 'amount');
             amount = this.safeFloat (trade['volume'], 'amount');
             cost = this.safeFloat (trade['deal_price'], 'amount');
+        } else {
+            side = side.toLowerCase ();
+            price = this.safeFloat (trade, 'price');
+            amount = this.safeFloat2 (trade, 'amount', 'volume');
+        }
+        let fee = undefined;
+        if (typeof side !== 'undefined') {
+            let feeCostField = side + '_fee';
+            let feeCost = this.safeFloat (trade, feeCostField);
+            if (typeof feeCost !== 'undefined') {
+                let feeCurrency = undefined;
+                if (typeof market !== 'undefined') {
+                    feeCurrency = market['base'];
+                }
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
         }
         if (typeof amount !== 'undefined')
             if (typeof price !== 'undefined')
                 if (typeof cost === 'undefined')
                     cost = amount * price;
-        let timestamp = this.safeValue (trade, 'created_at');
-        if (typeof timestamp === 'undefined')
-            timestamp = this.safeValue (trade, 'ts');
-        let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
+        let timestamp = this.safeInteger2 (trade, 'created_at', 'ts');
+        timestamp = this.safeInteger (trade, 'created', timestamp);
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -402,6 +439,36 @@ module.exports = class cointiger extends huobipro {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrderTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+            'order_id': id,
+        };
+        let response = await this.v2GetOrderMakeDetail (this.extend (request, params));
+        //
+        // the above endpoint often returns an empty array
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: [ {      volume: "0.014",
+        //                      symbol: "ethbtc",
+        //                     buy_fee: "0.00001400",
+        //                     orderId:  32235710,
+        //                       price: "0.06923825",
+        //                     created:  1531605169000,
+        //                          id:  3785005,
+        //                      source:  1,
+        //                        type: "buy-limit",
+        //                 bid_user_id:  326317         } ] }
+        //
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchOrdersByStatus (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -519,7 +586,8 @@ module.exports = class cointiger extends huobipro {
         //
         let id = this.safeString (order, 'id');
         let side = this.safeString (order, 'side');
-        let type = this.safeString (order, 'type');
+        let type = undefined;
+        let orderType = this.safeString (order, 'type');
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'created_at');
         timestamp = this.safeInteger (order, 'ctime', timestamp);
@@ -549,14 +617,14 @@ module.exports = class cointiger extends huobipro {
             if (typeof price === 'undefined')
                 price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
         } else {
-            if (typeof type !== 'undefined') {
-                let parts = type.split ('-');
+            if (typeof orderType !== 'undefined') {
+                let parts = orderType.split ('-');
                 side = parts[0];
                 type = parts[1];
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
                 price = this.safeFloat (order, 'avg_price', price);
-                amount = this.safeFloat (order, 'amount');
+                amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');
                 if (typeof feeCost !== 'undefined') {
