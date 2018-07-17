@@ -99,6 +99,7 @@ module.exports = class bigone extends Exchange {
         let response = await this.publicGetMarkets ();
         let markets = response['data'];
         let result = [];
+        this.options['marketsByUuid'] = {};
         for (let i = 0; i < markets.length; i++) {
             //
             //      {       uuid:   "550b34db-696e-4434-a126-196f827d9172",
@@ -114,6 +115,7 @@ module.exports = class bigone extends Exchange {
             //
             let market = markets[i];
             let id = market['name'];
+            let uuid = market['uuid'];
             let baseId = market['baseAsset']['symbol'];
             let quoteId = market['quoteAsset']['symbol'];
             let base = this.commonCurrencyCode (baseId);
@@ -123,7 +125,7 @@ module.exports = class bigone extends Exchange {
                 'amount': market['baseScale'],
                 'price': market['quoteScale'],
             };
-            result.push ({
+            const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -147,9 +149,10 @@ module.exports = class bigone extends Exchange {
                     },
                 },
                 'info': market,
-            });
+            };
+            this.options['marketsByUuid'][uuid] = entry;
+            result.push (entry);
         }
-        this.options['marketsByUuid'] = this.indexBy (result, )
         return result;
     }
 
@@ -647,5 +650,4 @@ module.exports = class bigone extends Exchange {
             }
         }
     }
-
 };
