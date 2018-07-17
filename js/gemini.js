@@ -24,7 +24,7 @@ module.exports = class gemini extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
                 'withdraw': true,
             },
@@ -171,7 +171,7 @@ module.exports = class gemini extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'],
+            'side': trade['type'].toLowerCase(),
             'price': price,
             'cost': price * amount,
             'amount': amount,
@@ -219,11 +219,11 @@ module.exports = class gemini extends Exchange {
             status = 'canceled';
         }
         let price = this.safeFloat (order, 'price');
-        price = this.safeFloat (order, 'avg_execution_price', price);
+        let average = this.safeFloat (order, 'avg_execution_price');
         let cost = undefined;
         if (typeof filled !== 'undefined') {
-            if (typeof price !== 'undefined') {
-                cost = filled * price;
+            if (typeof average !== 'undefined') {
+                cost = filled * average;
             }
         }
         let type = this.safeString (order, 'type');
@@ -254,8 +254,9 @@ module.exports = class gemini extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'],
+            'side': order['side'].toLowerCase(),
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -270,6 +271,16 @@ module.exports = class gemini extends Exchange {
             'order_id': id,
         }, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+        }
+        let response = await this.privatePostOrders (params);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
