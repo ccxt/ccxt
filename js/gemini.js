@@ -215,11 +215,14 @@ module.exports = class gemini extends Exchange {
         if (order['is_live']) {
             status = 'open';
         }
-        if (order['is_canceled']) {
+        if (order['is_cancelled']) {
             status = 'canceled';
         }
         let price = this.safeFloat (order, 'price');
         let average = this.safeFloat (order, 'avg_execution_price');
+        if (average !== 0.0) {
+            price = average
+        }
         let cost = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof average !== 'undefined') {
