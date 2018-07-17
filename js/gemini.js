@@ -282,7 +282,7 @@ module.exports = class gemini extends Exchange {
         let orders = this.parseOrders (response, undefined, since, limit);
         if (typeof symbol !== 'undefined') {
             let market = this.market (symbol); // throws on non-existent symbol
-            orders = this.filterBySymbol (orders, market['symbol']);
+            orders = this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
         }
         return orders;
     }
