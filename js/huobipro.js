@@ -326,7 +326,7 @@ module.exports = class huobipro extends Exchange {
                     market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         let order = this.safeString (trade, 'order-id');
