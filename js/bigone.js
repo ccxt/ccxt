@@ -477,30 +477,22 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        //         Get one order
-        // [暂未上线使用]
-        // GET /viewer/orders/{order_id}
-        // Parameters
-        // NAME	DESCRIPTION	EXAMPLE	REQUIRED
-        // order_id	id of order	45	true
-        // {
-        //   "id": 10,
-        //   "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
-        //   "price": "10.00",
-        //   "amount": "10.00",
-        //   "filled_amount": "9.0",
-        //   "avg_deal_price": "12.0",
-        //   "side": "ASK",
-        //   "state": "FILLED"
-        // }
         await this.loadMarkets ();
         let request = { 'order_id': id };
-        let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
-
-        let response = await this.privateGetOrdersId (this.extend ({
-            'id': id,
-        }, params));
-        return this.parseOrder (response['data']);
+        let response = await this.privateGetOrdersOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "id": 10,
+        //         "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
+        //         "price": "10.00",
+        //         "amount": "10.00",
+        //         "filled_amount": "9.0",
+        //         "avg_deal_price": "12.0",
+        //         "side": "ASK",
+        //         "state": "FILLED"
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -516,30 +508,44 @@ module.exports = class bigone extends Exchange {
         // last      slicing count                                         20              false
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
-        // {
-        //   "edges": [
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market_id': market['id'],
+        };
+        if (typeof limit !== 'undefined') {
+            request['first'] = limit;
+        }
+        let response = await this.privateGetOrders (this.extend (request, params));
+        //
         //     {
-        //       "node": {
-        //         "id": 10,
-        //         "market_id": "ETH-BTC",
-        //         "price": "10.00",
-        //         "amount": "10.00",
-        //         "filled_amount": "9.0",
-        //         "avg_deal_price": "12.0",
-        //         "side": "ASK",
-        //         "state": "FILLED"
-        //       },
-        //       "cursor": "dGVzdGN1cmVzZQo="
+        //       "edges": [
+        //         {
+        //           "node": {
+        //             "id": 10,
+        //             "market_id": "ETH-BTC",
+        //             "price": "10.00",
+        //             "amount": "10.00",
+        //             "filled_amount": "9.0",
+        //             "avg_deal_price": "12.0",
+        //             "side": "ASK",
+        //             "state": "FILLED"
+        //           },
+        //           "cursor": "dGVzdGN1cmVzZQo="
+        //         }
+        //       ],
+        //       "page_info": {
+        //         "end_cursor": "dGVzdGN1cmVzZQo=",
+        //         "start_cursor": "dGVzdGN1cmVzZQo=",
+        //         "has_next_page": true,
+        //         "has_previous_page": false
+        //       }
         //     }
-        //   ],
-        //   "page_info": {
-        //     "end_cursor": "dGVzdGN1cmVzZQo=",
-        //     "start_cursor": "dGVzdGN1cmVzZQo=",
-        //     "has_next_page": true,
-        //     "has_previous_page": false
-        //   }
-        // }
-        throw new NotSupported (this.id + ' fetchOrders is not supported yet');
+        //
+        return this.parseOrders (response['edges'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -549,61 +555,11 @@ module.exports = class bigone extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit;
+        }
         let response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-        };
-        if (limit) {
-            request['limit'] = limit;
-        }
-        let response = await this.privateGetTrades (this.extend (request, params));
-        let trades = response['data']['trade_history'];
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetAccountsCurrency (this.extend ({
-            'currency': currency['id'],
-        }, params));
-        let address = this.safeString (response['data'], 'public_key');
-        let status = address ? 'ok' : 'none';
-        return {
-            'currency': code,
-            'address': address,
-            'status': status,
-            'info': response,
-        };
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
-            'withdrawal_type': currency['id'],
-            'address': address,
-            'amount': amount,
-            // 'fee': 0.0,
-            // 'asset_pin': 'YOUR_ASSET_PIN',
-        };
-        if (tag) {
-            // probably it's not the same
-            request['label'] = tag;
-        }
-        let response = await this.privatePostWithdrawals (this.extend (request, params));
-        return {
-            'id': undefined,
-            'info': response,
-        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
