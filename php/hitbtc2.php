@@ -1004,8 +1004,15 @@ class hitbtc2 extends hitbtc {
         if ($since !== null)
             $request['from'] = $this->iso8601 ($since);
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
-        $orders = $this->parse_orders($response, $market);
-        $orders = $this->filter_by($orders, 'status', 'closed');
+        $parsedOrders = $this->parse_orders($response, $market);
+        $orders = array ();
+        for ($i = 0; $i < count ($parsedOrders); $i++) {
+            $order = $parsedOrders[$i];
+            $status = $order['status'];
+            if (($status === 'closed') || ($status === 'canceled')) {
+                $orders[] = $order;
+            }
+        }
         return $this->filter_by_since_limit($orders, $since, $limit);
     }
 
