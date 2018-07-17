@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -349,7 +349,7 @@ module.exports = class bigone extends Exchange {
             let total = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked_balance');
             let free = undefined;
-            if (typeof total != 'undefined' && typeof used !== 'undefined') {
+            if (typeof total !=== 'undefined' && typeof used !== 'undefined') {
                 free = total - used;
             }
             let account = {
@@ -363,35 +363,55 @@ module.exports = class bigone extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let marketId = this.safeString (order, 'order_market');
-        let symbol = undefined;
-        if (marketId && !market && (marketId in this.marketsById)) {
-            market = this.marketsById[marketId];
+        //
+        //     {
+        //       "id": 10,
+        //       "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
+        //       "market_uuid": "BTC-EOS", // not sure which one is correct
+        //       "market_id": "BTC-EOS",   // not sure which one is correct
+        //       "price": "10.00",
+        //       "amount": "10.00",
+        //       "filled_amount": "9.0",
+        //       "avg_deal_price": "12.0",
+        //       "side": "ASK",
+        //       "state": "FILLED"
+        //     }
+        //
+        let id = this.safeString (order, 'order_id');
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'market_id');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let marketUuid = this.safeString (order, 'market_uuid');
+                if (marketUuid in this.options['marketsByUuid']) {
+                    market = this.options['marketsByUuid'][marketUuid];
+                }
+            }
         }
-        if (market)
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let timestamp = this.parse8601 (order['created_at']);
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'filled_amount');
-        let remaining = amount - filled;
-        let status = this.safeString (order, 'order_state');
-        if (status === 'filled') {
-            status = 'closed';
-        }
-        let side = this.safeInteger (order, 'order_side');
+        let remaining = Math.max (0, amount - filled);
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        let side = this.safeString (order, 'side');
         if (side === 'BID') {
             side = 'buy';
         } else {
             side = 'sell';
         }
         return {
-            'id': this.safeString (order, 'order_id'),
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': order['order_type'].toLowerCase (),
+            'type': undefined,
             'side': side,
             'price': price,
             'cost': undefined,
@@ -405,51 +425,50 @@ module.exports = class bigone extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        //         Create Order
-        // POST /viewer/orders
-        // Parameters
-        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
-        // market_id	market uuid	d2185614-50c3-4588-b146-b8afe7534da6	true
-        // side	order side	one of "ASK"/"BID"	true
-        // price	order price	string	true
-        // amount	order amount	string, must larger than 0	true
-        // Response is an order
-        // {
-        //   "id": 10,
-        //   "market_uuid": "BTC-EOS",
-        //   "price": "10.00",
-        //   "amount": "10.00",
-        //   "filled_amount": "9.0",
-        //   "avg_deal_price": "12.0",
-        //   "side": "ASK",
-        //   "state": "FILLED"
-        // }
+        // NAME      DESCRIPTION       EXAMPLE                              REQUIRE
+        // market_id market uuid       d2185614-50c3-4588-b146-b8afe7534da6 true
+        // side      order side one of "ASK"/"BID"                          true
+        // price     order price       string                               true
+        // amount    order amount      string, must larger than 0           true
+        //
+        //     {
+        //       "id": 10,
+        //       "market_uuid": "BTC-EOS",
+        //       "price": "10.00",
+        //       "amount": "10.00",
+        //       "filled_amount": "9.0",
+        //       "avg_deal_price": "12.0",
+        //       "side": "ASK",
+        //       "state": "FILLED"
+        //     }
+        //
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrders (this.extend ({
             'order_market': market['id'],
             'order_side': (side === 'buy' ? 'BID' : 'ASK'),
-            'amount': amount,
-            'price': price,
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         }, params));
-        // TODO: what's the actual response here
-        return response['data'];
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = { 'order_id': id };
         let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
-        // {
-        //   "id": 10,
-        //   "market_uuid": "BTC-EOS",
-        //   "price": "10.00",
-        //   "amount": "10.00",
-        //   "filled_amount": "9.0",
-        //   "avg_deal_price": "12.0",
-        //   "side": "ASK",
-        //   "state": "FILLED"
-        // }
+        //
+        //     {
+        //       "id": 10,
+        //       "market_uuid": "BTC-EOS",
+        //       "price": "10.00",
+        //       "amount": "10.00",
+        //       "filled_amount": "9.0",
+        //       "avg_deal_price": "12.0",
+        //       "side": "ASK",
+        //       "state": "FILLED"
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -496,11 +515,7 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //         Order
-        // Get user orders in a market
-        // GET /viewer/orders
-        // Parameters
-        // NAME	     DESCRIPTION                                           EXAMPLE         REQUIRED
+        // NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
         // market_id market id                                             ETH-BTC         true
         // after     ask for the server to return orders after the cursor  dGVzdGN1cmVzZQo false
         // before    ask for the server to return orders before the cursor dGVzdGN1cmVzZQo false
@@ -545,21 +560,24 @@ module.exports = class bigone extends Exchange {
         //       }
         //     }
         //
-        return this.parseOrders (response['edges'], market, since, limit);
+        let orders = response['edges'];
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.parseOrder (orders[i]['node'], market));
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        // TODO: check if it's for open orders only
-        let request = {
-            'market': market['id'],
-        };
-        if (typeof limit !== 'undefined') {
-            request['limit'] = limit;
-        }
-        let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        return this.fetchOrders (symbol, since, limit, this.extend ({
+            'state': 'PENDING',
+        }, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({
+            'state': 'FILLED',
+        }, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
