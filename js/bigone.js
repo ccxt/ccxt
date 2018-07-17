@@ -52,21 +52,12 @@ module.exports = class bigone extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{order_id}',
-                        // 'accounts/{currency}',
-                        // 'withdrawals',
-                        // 'deposits',
                     ],
                     'post': [
                         'orders',
                         'orders/{order_id}/cancel',
                         'orders/cancel_all',
-                        // 'orders',
-                        // 'orders/cancel',
-                        // 'withdrawals',
                     ],
-                    // 'delete': [
-                    //     'orders/{id}',
-                    // ],
                 },
             },
             'fees': {
@@ -446,14 +437,9 @@ module.exports = class bigone extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        //         Cancle Order
-        // POST /viewer/orders/{order_id}/cancel
-        // Parameters
-
-        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
-        // order_id	id of the order	id1	true
-        // Response is an order
-
+        await this.loadMarkets ();
+        let request = { 'order_id': id };
+        let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
         // {
         //   "id": 10,
         //   "market_uuid": "BTC-EOS",
@@ -464,30 +450,30 @@ module.exports = class bigone extends Exchange {
         //   "side": "ASK",
         //   "state": "FILLED"
         // }
-        let response = await this.privatePostOrdersOrderIdCancelDeleteOrdersId (this.extend ({
-            'order_id': id,
-        }, params));
         return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
-        //     Cancle All Orders
-        // POST /viewer/orders/cancel_all
-        // Parameters
-        // NAME	DESCRIPTION	EXAMPLE	REQUIRE
-        // market_id	market uuid	d2185614-50c3-4588-b146-b8afe7534da6	true
-        // Response is the cancelled orders
-        // {
-        //   "id": 10,
-        //   "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
-        //   "price": "10.00",
-        //   "amount": "10.00",
-        //   "filled_amount": "9.0",
-        //   "avg_deal_price": "12.0",
-        //   "side": "ASK",
-        //   "state": "FILLED"
-        // }
-        throw new NotSupported (this.id + ' cancelAllOrders is not supported yet');
+        await this.loadMarkets ();
+        let response = await this.privatePostOrdersOrderIdCancel (params);
+        //
+        //     [
+        //         {
+        //             "id": 10,
+        //             "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
+        //             "price": "10.00",
+        //             "amount": "10.00",
+        //             "filled_amount": "9.0",
+        //             "avg_deal_price": "12.0",
+        //             "side": "ASK",
+        //             "state": "FILLED"
+        //         },
+        //         {
+        //             ...
+        //         },
+        //     ]
+        //
+        return this.parseOrders (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -497,7 +483,6 @@ module.exports = class bigone extends Exchange {
         // Parameters
         // NAME	DESCRIPTION	EXAMPLE	REQUIRED
         // order_id	id of order	45	true
-        // Response is Order collection
         // {
         //   "id": 10,
         //   "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
@@ -509,6 +494,9 @@ module.exports = class bigone extends Exchange {
         //   "state": "FILLED"
         // }
         await this.loadMarkets ();
+        let request = { 'order_id': id };
+        let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
+
         let response = await this.privateGetOrdersId (this.extend ({
             'id': id,
         }, params));
@@ -520,15 +508,14 @@ module.exports = class bigone extends Exchange {
         // Get user orders in a market
         // GET /viewer/orders
         // Parameters
-        // NAME	DESCRIPTION	EXAMPLE	REQUIRED
-        // market_id	market id	ETH-BTC	true
-        // after	ask for the server to return orders after the cursor	dGVzdGN1cmVzZQo=	false
-        // before	ask for the server to return orders before the cursor	dGVzdGN1cmVzZQo=	false
-        // first	slicing count	20	false
-        // last	slicing count	20	false
-        // side	order side	one of "ASK"/"BID"	false
-        // state	order state	one of "CANCELED"/"FILLED"/"PENDING"	false
-        // Response is Order collection
+        // NAME	     DESCRIPTION                                           EXAMPLE         REQUIRED
+        // market_id market id                                             ETH-BTC         true
+        // after     ask for the server to return orders after the cursor  dGVzdGN1cmVzZQo false
+        // before    ask for the server to return orders before the cursor dGVzdGN1cmVzZQo false
+        // first     slicing count                                         20              false
+        // last      slicing count                                         20              false
+        // side      order side one of                                     "ASK"/"BID"     false
+        // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
         // {
         //   "edges": [
         //     {
