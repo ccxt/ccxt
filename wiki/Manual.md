@@ -479,6 +479,12 @@ A later retry is usually enough to handle that. More on that here:
 
 Some exchanges are [DDoS](https://en.wikipedia.org/wiki/Denial-of-service_attack)-protected by [Cloudflare](https://www.cloudflare.com) or [Incapsula](https://www.incapsula.com). Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
 
+The most common symptoms for a DDoS protection problem, rate-limiting problem or for a location-based filtering issue:
+- Getting `RequestTimeout` exceptions with all types of exchange methods
+- Catching `ExchangeError` or `ExchangeNotAvailable` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
+- Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
+- Getting a template HTML page instead of JSON from the exchange
+
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
 - try using a cloudscraper:
