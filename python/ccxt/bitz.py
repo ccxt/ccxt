@@ -130,6 +130,7 @@ class bitz (Exchange):
                 'price': 8,
             },
             'options': {
+                'fetchOHLCVVolume': True,
                 'fetchOHLCVWarning': True,
                 'lastNonceTimestamp': 0,
             },
@@ -280,26 +281,7 @@ class bitz (Exchange):
         trades = response['data']['d']
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        ohlcvs = self.to_array(ohlcvs)
-        num_ohlcvs = len(ohlcvs)
-        if limit and (limit < num_ohlcvs):
-            ohlcvs = ohlcvs[-limit:]
-            num_ohlcvs = limit
-        i = 0
-        result = []
-        while i < num_ohlcvs:
-            ohlcv = self.parse_ohlcv(ohlcvs[i], market, timeframe, since, limit)
-            i = i + 1
-            if since and (ohlcv[0] < since):
-                continue
-            result.append(ohlcv)
-        return result
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if self.options['fetchOHLCVWarning']:
-            # eslint-disable-next-line quotes
-            raise ExchangeError(self.id + " API will return incontinous klines if there is no trades in some time periods. Set .options['fetchOHLCVWarning'] = False to suppress self warning message.")
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetKline(self.extend({
