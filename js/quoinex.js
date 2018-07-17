@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const qryptos = require ('./qryptos.js');
+const qryptos = require('./qryptos.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class quoinex extends qryptos {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'quoinex',
             'name': 'QUOINEX',
             'countries': [ 'JP', 'SG', 'VN' ],

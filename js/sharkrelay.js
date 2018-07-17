@@ -1,10 +1,10 @@
 'use strict';
 
-const StandardRelayer = require ('./base/StandardRelayer');
+const StandardRelayer = require('./base/StandardRelayer');
 
 module.exports = class sharkrelay extends StandardRelayer {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'sharkrelay',
             'name': 'Shark Relay',
             'countries': 'USA',
@@ -29,7 +29,7 @@ module.exports = class sharkrelay extends StandardRelayer {
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
-                'fetchTicker': true,
+                'fetchTicker': false,
                 'fetchTrades': false,
                 'privateAPI': false,
             },
@@ -37,19 +37,15 @@ module.exports = class sharkrelay extends StandardRelayer {
         });
     }
 
-    fetchCurrencies () {
-        return this.listedCurrencies ();
+    fetchCurrencies() {
+        return this.listedCurrencies();
     }
 
-    fetchMarkets () {
-        return this.tokenPairs ();
+    fetchMarkets() {
+        return this.tokenPairs();
     }
 
-    fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return this.orderbook (symbol);
-    }
-
-    fetchTicker (symbol, params = {}) {
-        return this.ticker (symbol);
+    fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.orderbook(symbol);
     }
 };

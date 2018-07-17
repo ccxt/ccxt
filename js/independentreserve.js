@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
+const Exchange = require('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class independentreserve extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'independentreserve',
             'name': 'Independent Reserve',
             'countries': [ 'AU', 'NZ' ], // Australia, New Zealand
@@ -72,21 +72,21 @@ module.exports = class independentreserve extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes ();
-        let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes ();
+    async fetchMarkets() {
+        let baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes();
+        let quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes();
         let result = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             let baseId = baseCurrencies[i];
-            let baseIdUppercase = baseId.toUpperCase ();
-            let base = this.commonCurrencyCode (baseIdUppercase);
+            let baseIdUppercase = baseId.toUpperCase();
+            let base = this.commonCurrencyCode(baseIdUppercase);
             for (let j = 0; j < quoteCurrencies.length; j++) {
                 let quoteId = quoteCurrencies[j];
-                let quoteIdUppercase = quoteId.toUpperCase ();
-                let quote = this.commonCurrencyCode (quoteIdUppercase);
+                let quoteIdUppercase = quoteId.toUpperCase();
+                let quote = this.commonCurrencyCode(quoteIdUppercase);
                 let id = baseId + '/' + quoteId;
                 let symbol = base + '/' + quote;
-                result.push ({
+                result.push({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -100,37 +100,37 @@ module.exports = class independentreserve extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let balances = await this.privatePostGetAccounts ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let balances = await this.privatePostGetAccounts();
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyCode = balance['CurrencyCode'];
-            let uppercase = currencyCode.toUpperCase ();
-            let currency = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
+            let uppercase = currencyCode.toUpperCase();
+            let currency = this.commonCurrencyCode(uppercase);
+            let account = this.account();
             account['free'] = balance['AvailableBalance'];
             account['total'] = balance['TotalBalance'];
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetOrderBook (this.extend ({
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetGetOrderBook(this.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
-        let timestamp = this.parse8601 (response['CreatedTimestampUtc']);
-        return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        let timestamp = this.parse8601(response['CreatedTimestampUtc']);
+        return this.parseOrderBook(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
-    parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['CreatedTimestampUtc']);
+    parseTicker(ticker, market = undefined) {
+        let timestamp = this.parse8601(ticker['CreatedTimestampUtc']);
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
@@ -138,7 +138,7 @@ module.exports = class independentreserve extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'high': ticker['DayHighestPrice'],
             'low': ticker['DayLowestPrice'],
             'bid': ticker['CurrentHighestBidPrice'],
@@ -159,40 +159,40 @@ module.exports = class independentreserve extends Exchange {
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetMarketSummary (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetGetMarketSummary(this.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
         }, params));
-        return this.parseTicker (response, market);
+        return this.parseTicker(response, market);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         let symbol = undefined;
         if (typeof market === 'undefined') {
             symbol = market['symbol'];
         } else {
-            market = this.findMarket (order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode']);
+            market = this.findMarket(order['PrimaryCurrencyCode'] + '/' + order['SecondaryCurrencyCode']);
         }
-        let orderType = this.safeValue (order, 'Type');
-        if (orderType.indexOf ('Market') >= 0)
+        let orderType = this.safeValue(order, 'Type');
+        if (orderType.indexOf('Market') >= 0)
             orderType = 'market';
-        else if (orderType.indexOf ('Limit') >= 0)
+        else if (orderType.indexOf('Limit') >= 0)
             orderType = 'limit';
         let side = undefined;
-        if (orderType.indexOf ('Bid') >= 0)
+        if (orderType.indexOf('Bid') >= 0)
             side = 'buy';
-        else if (orderType.indexOf ('Offer') >= 0)
+        else if (orderType.indexOf('Offer') >= 0)
             side = 'sell';
-        let timestamp = this.parse8601 (order['CreatedTimestampUtc']);
-        let amount = this.safeFloat (order, 'VolumeOrdered');
+        let timestamp = this.parse8601(order['CreatedTimestampUtc']);
+        let amount = this.safeFloat(order, 'VolumeOrdered');
         if (typeof amount === 'undefined')
-            amount = this.safeFloat (order, 'Volume');
-        let filled = this.safeFloat (order, 'VolumeFilled');
+            amount = this.safeFloat(order, 'Volume');
+        let filled = this.safeFloat(order, 'VolumeFilled');
         let remaining = undefined;
-        let feeRate = this.safeFloat (order, 'FeePercent');
+        let feeRate = this.safeFloat(order, 'FeePercent');
         let feeCost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
@@ -212,15 +212,15 @@ module.exports = class independentreserve extends Exchange {
             'currency': feeCurrency,
         };
         let id = order['OrderGuid'];
-        let status = this.parseOrderStatus (order['Status']);
-        let cost = this.safeFloat (order, 'Value');
-        let average = this.safeFloat (order, 'AvgPrice');
-        let price = this.safeFloat (order, 'Price', average);
+        let status = this.parseOrderStatus(order['Status']);
+        let cost = this.safeFloat(order, 'Value');
+        let average = this.safeFloat(order, 'AvgPrice');
+        let price = this.safeFloat(order, 'Price', average);
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
@@ -236,7 +236,7 @@ module.exports = class independentreserve extends Exchange {
         };
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         let statuses = {
             'Open': 'open',
             'PartiallyFilled': 'open',
@@ -251,59 +251,59 @@ module.exports = class independentreserve extends Exchange {
         return status;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostGetOrderDetails (this.extend ({
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const response = await this.privatePostGetOrderDetails(this.extend({
             'orderGuid': id,
         }, params));
         let market = undefined;
         if (typeof symbol !== 'undefined')
-            market = this.market (symbol);
-        return this.parseOrder (response, market);
+            market = this.market(symbol);
+        return this.parseOrder(response, market);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        await this.loadMarkets ();
-        let pageIndex = this.safeInteger (params, 'pageIndex', 1);
-        const request = this.ordered ({
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = 50, params = {}) {
+        await this.loadMarkets();
+        let pageIndex = this.safeInteger(params, 'pageIndex', 1);
+        const request = this.ordered({
             'pageIndex': pageIndex,
             'pageSize': limit,
         });
-        const response = await this.privatePostGetTrades (this.extend (request, params));
+        const response = await this.privatePostGetTrades(this.extend(request, params));
         let market = undefined;
         if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
+            market = this.market(symbol);
         }
-        return this.parseTrades (response['Data'], market, since, limit);
+        return this.parseTrades(response['Data'], market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
-        let id = this.safeString (trade, 'TradeGuid');
-        let orderId = this.safeString (trade, 'OrderGuid');
-        let price = this.safeFloat (trade, 'Price');
+    parseTrade(trade, market = undefined) {
+        let timestamp = this.parse8601(trade['TradeTimestampUtc']);
+        let id = this.safeString(trade, 'TradeGuid');
+        let orderId = this.safeString(trade, 'OrderGuid');
+        let price = this.safeFloat(trade, 'Price');
         if (typeof price === 'undefined') {
-            price = this.safeFloat (trade, 'SecondaryCurrencyTradePrice');
+            price = this.safeFloat(trade, 'SecondaryCurrencyTradePrice');
         }
-        let amount = this.safeFloat (trade, 'VolumeTraded');
+        let amount = this.safeFloat(trade, 'VolumeTraded');
         if (typeof amount === 'undefined') {
-            amount = this.safeFloat (trade, 'PrimaryCurrencyAmount');
+            amount = this.safeFloat(trade, 'PrimaryCurrencyAmount');
         }
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let side = this.safeString (trade, 'OrderType');
+        let side = this.safeString(trade, 'OrderType');
         if (typeof side !== 'undefined') {
-            if (side.indexOf ('Bid') >= 0)
+            if (side.indexOf('Bid') >= 0)
                 side = 'buy';
-            else if (side.indexOf ('Offer') >= 0)
+            else if (side.indexOf('Offer') >= 0)
                 side = 'sell';
         }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
             'type': undefined,
@@ -314,25 +314,25 @@ module.exports = class independentreserve extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetRecentTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetGetRecentTrades(this.extend({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50, // max = 50
         }, params));
-        return this.parseTrades (response['Trades'], market, since, limit);
+        return this.parseTrades(response['Trades'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let capitalizedOrderType = this.capitalize (type);
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let capitalizedOrderType = this.capitalize(type);
         let method = 'privatePostPlace' + capitalizedOrderType + 'Order';
         let orderType = capitalizedOrderType;
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
-        let order = this.ordered ({
+        let order = this.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
@@ -340,42 +340,42 @@ module.exports = class independentreserve extends Exchange {
         if (type === 'limit')
             order['price'] = price;
         order['volume'] = amount;
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method](this.extend(order, params));
         return {
             'info': response,
             'id': response['OrderGuid'],
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'orderGuid': id });
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        return await this.privatePostCancelOrder({ 'orderGuid': id });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys(params).length)
+                url += '?' + this.urlencode(params);
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            this.checkRequiredCredentials();
+            let nonce = this.nonce();
             let auth = [
                 url,
                 'apiKey=' + this.apiKey,
-                'nonce=' + nonce.toString (),
+                'nonce=' + nonce.toString(),
             ];
             // remove this crap
-            let keys = Object.keys (params);
+            let keys = Object.keys(params);
             let payload = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                payload.push (key + '=' + params[key]);
+                payload.push(key + '=' + params[key]);
             }
-            auth = this.arrayConcat (auth, payload);
-            let message = auth.join (',');
-            let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            body = this.json ({
+            auth = this.arrayConcat(auth, payload);
+            let message = auth.join(',');
+            let signature = this.hmac(this.encode(message), this.encode(this.secret));
+            body = this.json({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
                 'signature': signature,

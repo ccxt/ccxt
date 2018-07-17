@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError, NotSupported } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinsecure extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coinsecure',
             'name': 'Coinsecure',
             'countries': 'IN', // India
@@ -171,9 +171,9 @@ module.exports = class coinsecure extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetUserExchangeBankSummary ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privateGetUserExchangeBankSummary();
         let balance = response['message'];
         let coin = {
             'free': balance['availableCoinBalance'],
@@ -190,45 +190,45 @@ module.exports = class coinsecure extends Exchange {
             'BTC': coin,
             'INR': fiat,
         };
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let bids = await this.publicGetExchangeBidOrders (params);
-        let asks = await this.publicGetExchangeAskOrders (params);
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let bids = await this.publicGetExchangeBidOrders(params);
+        let asks = await this.publicGetExchangeAskOrders(params);
         let orderbook = {
             'bids': bids['message'],
             'asks': asks['message'],
         };
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
+        return this.parseOrderBook(orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetExchangeTicker (params);
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let response = await this.publicGetExchangeTicker(params);
         let ticker = response['message'];
         let timestamp = ticker['timestamp'];
-        let baseVolume = this.safeFloat (ticker, 'coinvolume');
+        let baseVolume = this.safeFloat(ticker, 'coinvolume');
         if (symbol === 'BTC/INR') {
             let satoshi = 0.00000001;
             baseVolume = baseVolume * satoshi;
         }
-        let quoteVolume = this.safeFloat (ticker, 'fiatvolume') / 100;
+        let quoteVolume = this.safeFloat(ticker, 'fiatvolume') / 100;
         let vwap = quoteVolume / baseVolume;
-        let last = this.safeFloat (ticker, 'lastPrice') / 100;
+        let last = this.safeFloat(ticker, 'lastPrice') / 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high') / 100,
-            'low': this.safeFloat (ticker, 'low') / 100,
-            'bid': this.safeFloat (ticker, 'bid') / 100,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high') / 100,
+            'low': this.safeFloat(ticker, 'low') / 100,
+            'bid': this.safeFloat(ticker, 'bid') / 100,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask') / 100,
+            'ask': this.safeFloat(ticker, 'ask') / 100,
             'askVolume': undefined,
             'vwap': vwap,
-            'open': this.safeFloat (ticker, 'open') / 100,
+            'open': this.safeFloat(ticker, 'open') / 100,
             'close': last,
             'last': last,
             'previousClose': undefined,
@@ -241,40 +241,40 @@ module.exports = class coinsecure extends Exchange {
         };
     }
 
-    parseTrade (trade, symbol = undefined) {
+    parseTrade(trade, symbol = undefined) {
         let timestamp = trade['time'];
         let side = (trade['ordType'] === 'bid') ? 'buy' : 'sell';
         return {
             'id': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'rate') / 100,
-            'amount': this.safeFloat (trade, 'vol') / 100000000,
+            'price': this.safeFloat(trade, 'rate') / 100,
+            'amount': this.safeFloat(trade, 'vol') / 100000000,
             'fee': undefined,
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let result = await this.publicGetExchangeTrades (params);
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let result = await this.publicGetExchangeTrades(params);
         if ('message' in result) {
             let trades = result['message'];
-            return this.parseTrades (trades, market);
+            return this.parseTrades(trades, market);
         }
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
         let method = 'privatePutUserExchange';
         let order = {};
         if (type === 'market') {
-            method += 'Instant' + this.capitalize (side);
+            method += 'Instant' + this.capitalize(side);
             if (side === 'buy')
                 order['maxFiat'] = amount;
             else
@@ -285,52 +285,52 @@ module.exports = class coinsecure extends Exchange {
             order['rate'] = price;
             order['vol'] = amount;
         }
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method](this.extend(order, params));
         return {
             'info': response,
             'id': response['message']['orderID'],
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
         // let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
         // return await this[method] ({ 'orderID': id });
-        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported(this.id + ' cancelOrder () is not fully implemented yet');
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
         if (api === 'private') {
-            this.checkRequiredCredentials ();
+            this.checkRequiredCredentials();
             headers = { 'Authorization': this.apiKey };
-            if (Object.keys (query).length) {
-                body = this.json (query);
+            if (Object.keys(query).length) {
+                body = this.json(query);
                 headers['Content-Type'] = 'application/json';
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
-                let response = JSON.parse (body);
+                let response = JSON.parse(body);
                 if ('success' in response) {
                     let success = response['success'];
                     if (!success) {
-                        throw new ExchangeError (this.id + ' error returned: ' + body);
+                        throw new ExchangeError(this.id + ' error returned: ' + body);
                     }
                     if (!('message' in response)) {
-                        throw new ExchangeError (this.id + ' malformed response: no "message" in response: ' + body);
+                        throw new ExchangeError(this.id + ' malformed response: no "message" in response: ' + body);
                     }
                 } else {
-                    throw new ExchangeError (this.id + ' malformed response: no "success" in response: ' + body);
+                    throw new ExchangeError(this.id + ' malformed response: no "success" in response: ' + body);
                 }
             } else {
                 // if not a JSON response
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+                throw new ExchangeError(this.id + ' returned a non-JSON reply: ' + body);
             }
         }
     }

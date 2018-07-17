@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const fybse = require ('./fybse.js');
+const fybse = require('./fybse.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class fybsg extends fybse {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'fybsg',
             'name': 'FYB-SG',
             'countries': 'SG', // Singapore

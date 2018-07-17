@@ -125,6 +125,7 @@ const exchanges = {
     'huobicny':                require ('./js/huobicny.js'),
     'huobipro':                require ('./js/huobipro.js'),
     'ice3x':                   require ('./js/ice3x.js'),
+    'idex':                    require ('./js/idex.js'),
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),
     'itbit':                   require ('./js/itbit.js'),

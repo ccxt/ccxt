@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { InsufficientFunds, OrderNotFound } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class tidebit extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'tidebit',
             'name': 'TideBit',
             'countries': 'HK',
@@ -93,19 +93,19 @@ module.exports = class tidebit extends Exchange {
         });
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetV2DepositAddress (this.extend ({
+    async fetchDepositAddress(code, params = {}) {
+        await this.loadMarkets();
+        let currency = this.currency(code);
+        let response = await this.privateGetV2DepositAddress(this.extend({
             'currency': currency['id'],
         }, params));
         if ('success' in response) {
             if (response['success']) {
-                let address = this.safeString (response, 'address');
-                let tag = this.safeString (response, 'addressTag');
+                let address = this.safeString(response, 'address');
+                let tag = this.safeString(response, 'addressTag');
                 return {
                     'currency': code,
-                    'address': this.checkAddress (address),
+                    'address': this.checkAddress(address),
                     'tag': tag,
                     'status': 'ok',
                     'info': response,
@@ -114,17 +114,17 @@ module.exports = class tidebit extends Exchange {
         }
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetV2Markets ();
+    async fetchMarkets() {
+        let markets = await this.publicGetV2Markets();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ baseId, quoteId ] = symbol.split ('/');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            result.push ({
+            let [ baseId, quoteId ] = symbol.split('/');
+            let base = this.commonCurrencyCode(baseId);
+            let quote = this.commonCurrencyCode(quoteId);
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -137,57 +137,57 @@ module.exports = class tidebit extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetV2Deposits ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privateGetV2Deposits();
         let balances = response['accounts'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currencyId = balance['currency'];
-            let code = currencyId.toUpperCase ();
+            let code = currencyId.toUpperCase();
             if (currencyId in this.currencies_by_id)
                 code = this.currencies_by_id[currencyId]['code'];
             let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['locked']),
+                'free': parseFloat(balance['balance']),
+                'used': parseFloat(balance['locked']),
                 'total': 0.0,
             };
-            account['total'] = this.sum (account['free'], account['used']);
+            account['total'] = this.sum(account['free'], account['used']);
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
         let request = {
             'market': market['id'],
         };
         if (typeof limit === 'undefined')
             request['limit'] = limit; // default = 300
         request['market'] = market['id'];
-        let orderbook = await this.publicGetV2Depth (this.extend (request, params));
+        let orderbook = await this.publicGetV2Depth(this.extend(request, params));
         let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook(orderbook, timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         let timestamp = ticker['at'] * 1000;
         ticker = ticker['ticker'];
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'ask': this.safeFloat (ticker, 'sell'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'buy'),
+            'ask': this.safeFloat(ticker, 'sell'),
             'bidVolume': undefined,
             'askVolume': undefined,
             'vwap': undefined,
@@ -198,16 +198,16 @@ module.exports = class tidebit extends Exchange {
             'percentage': undefined,
             'previousClose': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat(ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let tickers = await this.publicGetV2Tickers (params);
-        let ids = Object.keys (tickers);
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let tickers = await this.publicGetV2Tickers(params);
+        let ids = Object.keys(tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -217,55 +217,55 @@ module.exports = class tidebit extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let base = id.slice (0, 3);
-                let quote = id.slice (3, 6);
-                base = base.toUpperCase ();
-                quote = quote.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                let base = id.slice(0, 3);
+                let quote = id.slice(3, 6);
+                base = base.toUpperCase();
+                quote = quote.toUpperCase();
+                base = this.commonCurrencyCode(base);
+                quote = this.commonCurrencyCode(quote);
                 symbol = base + '/' + quote;
             }
             let ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker(ticker, market);
         }
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetV2TickersMarket (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetV2TickersMarket(this.extend({
             'market': market['id'],
         }, params));
-        return this.parseTicker (response, market);
+        return this.parseTicker(response, market);
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['created_at']);
+    parseTrade(trade, market = undefined) {
+        let timestamp = this.parse8601(trade['created_at']);
         return {
-            'id': trade['id'].toString (),
+            'id': trade['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
-            'cost': this.safeFloat (trade, 'funds'),
+            'price': this.safeFloat(trade, 'price'),
+            'amount': this.safeFloat(trade, 'volume'),
+            'cost': this.safeFloat(trade, 'funds'),
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetV2Trades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetV2Trades(this.extend({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV(ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             ohlcv[0] * 1000,
             ohlcv[1],
@@ -276,9 +276,9 @@ module.exports = class tidebit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
         if (!limit)
             limit = 30; // default is 30
         let request = {
@@ -291,11 +291,11 @@ module.exports = class tidebit extends Exchange {
         } else {
             request['timestamp'] = 1800000;
         }
-        let response = await this.publicGetV2K (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        let response = await this.publicGetV2K(this.extend(request, params));
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
@@ -303,7 +303,7 @@ module.exports = class tidebit extends Exchange {
             let marketId = order['market'];
             symbol = this.markets_by_id[marketId]['symbol'];
         }
-        let timestamp = this.parse8601 (order['created_at']);
+        let timestamp = this.parse8601(order['created_at']);
         let state = order['state'];
         let status = undefined;
         if (state === 'done') {
@@ -314,56 +314,56 @@ module.exports = class tidebit extends Exchange {
             status = 'canceled';
         }
         return {
-            'id': order['id'].toString (),
+            'id': order['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['ord_type'],
             'side': order['side'],
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'volume'),
-            'filled': this.safeFloat (order, 'executed_volume'),
-            'remaining': this.safeFloat (order, 'remaining_volume'),
+            'price': this.safeFloat(order, 'price'),
+            'amount': this.safeFloat(order, 'volume'),
+            'filled': this.safeFloat(order, 'executed_volume'),
+            'remaining': this.safeFloat(order, 'remaining_volume'),
             'trades': undefined,
             'fee': undefined,
             'info': order,
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
         let order = {
-            'market': this.marketId (symbol),
+            'market': this.marketId(symbol),
             'side': side,
-            'volume': amount.toString (),
+            'volume': amount.toString(),
             'ord_type': type,
         };
         if (type === 'limit') {
-            order['price'] = price.toString ();
+            order['price'] = price.toString();
         }
-        let response = await this.privatePostV2Order (this.extend (order, params));
+        let response = await this.privatePostV2Order(this.extend(order, params));
         let market = this.markets_by_id[response['market']];
-        return this.parseOrder (response, market);
+        return this.parseOrder(response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let result = await this.privatePostV2OrderDelete ({ 'id': id });
-        let order = this.parseOrder (result);
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let result = await this.privatePostV2OrderDelete({ 'id': id });
+        let order = this.parseOrder(result);
         let status = order['status'];
         if (status === 'closed' || status === 'canceled') {
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
+            throw new OrderNotFound(this.id + ' ' + this.json(order));
         }
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+    async withdraw(currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress(address);
+        await this.loadMarkets();
+        let result = await this.privatePostWithdraw(this.extend({
+            'currency': currency.toLowerCase(),
             'sum': amount,
             'address': address,
         }, params));
@@ -373,31 +373,31 @@ module.exports = class tidebit extends Exchange {
         };
     }
 
-    nonce () {
-        return this.milliseconds ();
+    nonce() {
+        return this.milliseconds();
     }
 
-    encodeParams (params) {
-        return this.urlencode (this.keysort (params));
+    encodeParams(params) {
+        return this.urlencode(this.keysort(params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params) + '.json';
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = this.implodeParams(path, params) + '.json';
+        let query = this.omit(params, this.extractParams(path));
         let url = this.urls['api'] + '/' + request;
         if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (Object.keys(query).length) {
+                url += '?' + this.urlencode(query);
             }
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let query = this.urlencode (this.extend ({
+            this.checkRequiredCredentials();
+            let nonce = this.nonce().toString();
+            let query = this.urlencode(this.extend({
                 'access_key': this.apiKey,
                 'tonce': nonce,
             }, params));
             let payload = method + '|' + request + '|' + query;
-            let signature = this.hmac (this.encode (payload), this.encode (this.secret));
+            let signature = this.hmac(this.encode(payload), this.encode(this.secret));
             let suffix = query + '&signature=' + signature;
             if (method === 'GET') {
                 url += '?' + suffix;
@@ -409,15 +409,15 @@ module.exports = class tidebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (code === 400) {
-            const response = JSON.parse (body);
-            const error = this.safeValue (response, 'error');
-            const errorCode = this.safeString (error, 'code');
-            const feedback = this.id + ' ' + this.json (response);
+            const response = JSON.parse(body);
+            const error = this.safeValue(response, 'error');
+            const errorCode = this.safeString(error, 'code');
+            const feedback = this.id + ' ' + this.json(response);
             const exceptions = this.exceptions;
             if (errorCode in exceptions) {
-                throw new exceptions[errorCode] (feedback);
+                throw new exceptions[errorCode](feedback);
             }
             // fallback to default error handler
         }

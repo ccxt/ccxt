@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js');
+const liqui = require('./liqui.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class dsx extends liqui {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'dsx',
             'name': 'DSX',
             'countries': 'UK',
@@ -76,26 +76,26 @@ module.exports = class dsx extends liqui {
         });
     }
 
-    getBaseQuoteFromMarketId (id) {
-        let uppercase = id.toUpperCase ();
-        let base = uppercase.slice (0, 3);
-        let quote = uppercase.slice (3, 6);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
+    getBaseQuoteFromMarketId(id) {
+        let uppercase = id.toUpperCase();
+        let base = uppercase.slice(0, 3);
+        let quote = uppercase.slice(3, 6);
+        base = this.commonCurrencyCode(base);
+        quote = this.commonCurrencyCode(quote);
         return [ base, quote ];
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostGetInfo ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privatePostGetInfo();
         let balances = response['return'];
         let result = { 'info': balances };
         let funds = balances['funds'];
-        let currencies = Object.keys (funds);
+        let currencies = Object.keys(funds);
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
+            let uppercase = currency.toUpperCase();
+            uppercase = this.commonCurrencyCode(uppercase);
             let account = {
                 'free': funds[currency],
                 'used': 0.0,
@@ -104,28 +104,28 @@ module.exports = class dsx extends liqui {
             account['used'] = account['total'] - account['free'];
             result[uppercase] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let average = this.safeFloat (ticker, 'avg');
+        let average = this.safeFloat(ticker, 'avg');
         if (typeof average !== 'undefined')
             if (average > 0)
                 average = 1 / average;
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat(ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -135,21 +135,21 @@ module.exports = class dsx extends liqui {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
+            'baseVolume': this.safeFloat(ticker, 'vol'),
+            'quoteVolume': this.safeFloat(ticker, 'vol_cur'),
             'info': ticker,
         };
     }
 
-    getOrderIdKey () {
+    getOrderIdKey() {
         return 'orderId';
     }
 
-    signBodyWithSecret (body) {
-        return this.decode (this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'));
+    signBodyWithSecret(body) {
+        return this.decode(this.hmac(this.encode(body), this.encode(this.secret), 'sha512', 'base64'));
     }
 
-    getVersionString () {
+    getVersionString() {
         return ''; // they don't prepend version number to public URLs as other BTC-e clones do
     }
 };

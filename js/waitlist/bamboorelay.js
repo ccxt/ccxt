@@ -1,14 +1,14 @@
 'use strict';
 
-const StandardRelayer = require ('../base/StandardRelayer');
+const StandardRelayer = require('../base/StandardRelayer');
 
 /**
  * This API is inconsistent and seems to hang half the time. Rife with 502 errors...
  */
 
 module.exports = class bamboorelay extends StandardRelayer {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bamboorelay',
             'name': 'Bamboo Relay',
             'countries': 'USA',
@@ -41,19 +41,19 @@ module.exports = class bamboorelay extends StandardRelayer {
         });
     }
 
-    fetchCurrencies () {
-        return this.listedCurrencies ();
+    fetchCurrencies() {
+        return this.listedCurrencies();
     }
 
-    fetchMarkets () {
-        return this.tokenPairs ();
+    fetchMarkets() {
+        return this.tokenPairs();
     }
 
-    fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return this.orderbook (symbol);
+    fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.orderbook(symbol);
     }
 
-    fetchTicker (symbol, params = {}) {
-        return this.ticker (symbol);
+    fetchTicker(symbol, params = {}) {
+        return this.ticker(symbol);
     }
 };

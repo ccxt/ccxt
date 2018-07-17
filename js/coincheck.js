@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError, NotSupported } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coincheck extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coincheck',
             'name': 'coincheck',
             'countries': [ 'JP', 'ID' ],
@@ -95,47 +95,47 @@ module.exports = class coincheck extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        let balances = await this.privateGetAccountsBalance ();
+    async fetchBalance(params = {}) {
+        let balances = await this.privateGetAccountsBalance();
         let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
+        let currencies = Object.keys(this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
+            let lowercase = currency.toLowerCase();
+            let account = this.account();
             if (lowercase in balances)
-                account['free'] = parseFloat (balances[lowercase]);
+                account['free'] = parseFloat(balances[lowercase]);
             let reserved = lowercase + '_reserved';
             if (reserved in balances)
-                account['used'] = parseFloat (balances[reserved]);
-            account['total'] = this.sum (account['free'], account['used']);
+                account['used'] = parseFloat(balances[reserved]);
+            account['total'] = this.sum(account['free'], account['used']);
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (symbol !== 'BTC/JPY')
-            throw new NotSupported (this.id + ' fetchOrderBook () supports BTC/JPY only');
-        let orderbook = await this.publicGetOrderBooks (params);
-        return this.parseOrderBook (orderbook);
+            throw new NotSupported(this.id + ' fetchOrderBook () supports BTC/JPY only');
+        let orderbook = await this.publicGetOrderBooks(params);
+        return this.parseOrderBook(orderbook);
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker(symbol, params = {}) {
         if (symbol !== 'BTC/JPY')
-            throw new NotSupported (this.id + ' fetchTicker () supports BTC/JPY only');
-        let ticker = await this.publicGetTicker (params);
+            throw new NotSupported(this.id + ' fetchTicker () supports BTC/JPY only');
+        let ticker = await this.publicGetTicker(params);
         let timestamp = ticker['timestamp'] * 1000;
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -145,44 +145,44 @@ module.exports = class coincheck extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat(ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['created_at']);
+    parseTrade(trade, market) {
+        let timestamp = this.parse8601(trade['created_at']);
         return {
-            'id': trade['id'].toString (),
+            'id': trade['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['order_type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'price': this.safeFloat(trade, 'rate'),
+            'amount': this.safeFloat(trade, 'amount'),
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol !== 'BTC/JPY')
-            throw new NotSupported (this.id + ' fetchTrades () supports BTC/JPY only');
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+            throw new NotSupported(this.id + ' fetchTrades () supports BTC/JPY only');
+        let market = this.market(symbol);
+        let response = await this.publicGetTrades(this.extend({
             'pair': market['id'],
         }, params));
         if ('success' in response)
             if (response['success'])
                 if (typeof response['data'] !== 'undefined')
-                    return this.parseTrades (response['data'], market, since, limit);
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+                    return this.parseTrades(response['data'], market, since, limit);
+        throw new ExchangeError(this.id + ' ' + this.json(response));
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         let order = {
-            'pair': this.marketId (symbol),
+            'pair': this.marketId(symbol),
         };
         if (type === 'market') {
             let order_type = type + '_' + side;
@@ -194,33 +194,33 @@ module.exports = class coincheck extends Exchange {
             order['rate'] = price;
             order['amount'] = amount;
         }
-        let response = await this.privatePostExchangeOrders (this.extend (order, params));
+        let response = await this.privatePostExchangeOrders(this.extend(order, params));
         return {
             'info': response,
-            'id': response['id'].toString (),
+            'id': response['id'].toString(),
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privateDeleteExchangeOrdersId ({ 'id': id });
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        return await this.privateDeleteExchangeOrdersId({ 'id': id });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
+            if (Object.keys(query).length)
+                url += '?' + this.urlencode(query);
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            this.checkRequiredCredentials();
+            let nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys (query).length)
-                    url += '?' + this.urlencode (this.keysort (query));
+                if (Object.keys(query).length)
+                    url += '?' + this.urlencode(this.keysort(query));
             } else {
-                if (Object.keys (query).length) {
-                    body = this.urlencode (this.keysort (query));
+                if (Object.keys(query).length) {
+                    body = this.urlencode(this.keysort(query));
                     queryString = body;
                 }
             }
@@ -229,19 +229,19 @@ module.exports = class coincheck extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
-                'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret)),
+                'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret)),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2(path, api, method, params, headers, body);
         if (api === 'public')
             return response;
         if ('success' in response)
             if (response['success'])
                 return response;
-        throw new ExchangeError (this.id + ' ' + this.json (response));
+        throw new ExchangeError(this.id + ' ' + this.json(response));
     }
 };

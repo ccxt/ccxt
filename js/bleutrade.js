@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const bittrex = require ('./bittrex.js');
-const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const bittrex = require('./bittrex.js');
+const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = require('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class bleutrade extends bittrex {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
             'countries': 'BR', // Brazil
@@ -95,35 +95,35 @@ module.exports = class bleutrade extends bittrex {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+    async fetchMarkets() {
+        let markets = await this.publicGetMarkets();
         let result = [];
         for (let p = 0; p < markets['result'].length; p++) {
             let market = markets['result'][p];
             let id = market['MarketName'];
             let base = market['MarketCurrency'];
             let quote = market['BaseCurrency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.commonCurrencyCode(base);
+            quote = this.commonCurrencyCode(quote);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
                 'price': 8,
             };
-            let active = this.safeString (market, 'IsActive');
+            let active = this.safeString(market, 'IsActive');
             if (active === 'true') {
                 active = true;
             } else if (active === 'false') {
                 active = false;
             }
-            result.push ({
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': active,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
+                'lot': Math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -144,7 +144,7 @@ module.exports = class bleutrade extends bittrex {
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         let statuses = {
             'OK': 'closed',
             'OPEN': 'open',
@@ -157,44 +157,44 @@ module.exports = class bleutrade extends bittrex {
         }
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // Possible params
         // orderstatus (ALL, OK, OPEN, CANCELED)
         // ordertype (ALL, BUY, SELL)
         // depth (optional, default is 500, max is 20000)
-        await this.loadMarkets ();
+        await this.loadMarkets();
         let market = undefined;
         if (symbol) {
-            await this.loadMarkets ();
-            market = this.market (symbol);
+            await this.loadMarkets();
+            market = this.market(symbol);
         } else {
             market = undefined;
         }
-        let response = await this.accountGetOrders (this.extend ({ 'market': 'ALL', 'orderstatus': 'ALL' }, params));
-        return this.parseOrders (response['result'], market, since, limit);
+        let response = await this.accountGetOrders(this.extend({ 'market': 'ALL', 'orderstatus': 'ALL' }, params));
+        return this.parseOrders(response['result'], market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (response, 'status', 'closed');
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchOrders(symbol, since, limit, params);
+        return this.filterBy(response, 'status', 'closed');
     }
 
-    getOrderIdField () {
+    getOrderIdField() {
         return 'orderid';
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
         let request = {
-            'market': this.marketId (symbol),
+            'market': this.marketId(symbol),
             'type': 'ALL',
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 50
-        let response = await this.publicGetOrderbook (this.extend (request, params));
-        let orderbook = this.safeValue (response, 'result');
+        let response = await this.publicGetOrderbook(this.extend(request, params));
+        let orderbook = this.safeValue(response, 'result');
         if (!orderbook)
-            throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+            throw new ExchangeError(this.id + ' publicGetOrderbook() returneded no result ' + this.json(response));
+        return this.parseOrderBook(orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 };

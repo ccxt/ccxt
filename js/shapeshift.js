@@ -1,11 +1,11 @@
 'use strict';
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 
 module.exports = class shapeshift extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'shapeshift',
             'name': 'ShapeShift',
             'countries': 'CHE',
@@ -58,12 +58,12 @@ module.exports = class shapeshift extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const request = '/' + this.implodeParams (path, params);
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const request = '/' + this.implodeParams(path, params);
         const url = this.urls['api'] + request;
         if (method === 'POST') {
             headers = { 'Content-Type': 'application/json' };
-            body = JSON.stringify (params);
+            body = JSON.stringify(params);
         }
         return {
             'url': url,
@@ -73,19 +73,19 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async startInstantTransaction (symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
-        const [base, quote] = symbol.split ('/');
+    async startInstantTransaction(symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
+        const [base, quote] = symbol.split('/');
         const pair = side === 'buy' ?
-            `${quote.toLowerCase ()}_${base.toLowerCase ()}` :
-            `${base.toLowerCase ()}_${quote.toLowerCase ()}`;
+            `${quote.toLowerCase()}_${base.toLowerCase()}` :
+            `${base.toLowerCase()}_${quote.toLowerCase()}`;
         const request = {
             'withdrawal': withdrawalAddress,
             'pair': pair,
             'returnAddress': withdrawalAddress,
             'apiKey': affiliateAPIKey,
         };
-        const response = await this.publicPostShift (this.extend (request, params));
-        if (response.error) throw new ExchangeError (response.error);
+        const response = await this.publicPostShift(this.extend(request, params));
+        if (response.error) throw new ExchangeError(response.error);
         return {
             'transactionId': response.deposit,
             'depositAddress': response.deposit,
@@ -93,30 +93,30 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async cancelInstantTransaction (transactionId, params = {}) {
+    async cancelInstantTransaction(transactionId, params = {}) {
         const request = {
             'address': transactionId,
         };
-        const response = await this.publicPostCancelpending (this.extend (request, params));
-        if (response.error) throw new ExchangeError (response.error);
+        const response = await this.publicPostCancelpending(this.extend(request, params));
+        if (response.error) throw new ExchangeError(response.error);
         return {
             'success': true,
             'info': response,
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        const [base, quote] = symbol.split ('/');
-        const bidSymbol = `${base.toLowerCase ()}_${quote.toLowerCase ()}`;
-        const askSymbol = `${quote.toLowerCase ()}_${base.toLowerCase ()}`;
-        const [bidResponse, askResponse] = await Promise.all ([
-            this.publicGetMarketinfoPair ({ 'pair': bidSymbol }),
-            this.publicGetMarketinfoPair ({ 'pair': askSymbol }),
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        const [base, quote] = symbol.split('/');
+        const bidSymbol = `${base.toLowerCase()}_${quote.toLowerCase()}`;
+        const askSymbol = `${quote.toLowerCase()}_${base.toLowerCase()}`;
+        const [bidResponse, askResponse] = await Promise.all([
+            this.publicGetMarketinfoPair({ 'pair': bidSymbol }),
+            this.publicGetMarketinfoPair({ 'pair': askSymbol }),
         ]);
-        const now = new Date ();
+        const now = new Date();
         return {
-            'timestamp': now.getTime (),
-            'datetime': now.toISOString (),
+            'timestamp': now.getTime(),
+            'datetime': now.toISOString(),
             'nonce': undefined,
             'bids': [
                 [bidResponse.rate, bidResponse.limit],
@@ -127,9 +127,9 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async calculateFee (symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
-        await this.loadMarkets ();
-        const [base, quote] = symbol.split ('/');
+    async calculateFee(symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
+        await this.loadMarkets();
+        const [base, quote] = symbol.split('/');
         let fee = undefined;
         if (side === 'sell') {
             const { info } = this.markets[symbol];
@@ -148,15 +148,15 @@ module.exports = class shapeshift extends Exchange {
 
     // TODO: figure out how to get the other side of the market in here
     // TODO: think we can overload the params to include a conversion rate that'll be ignored by other exchanges
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const baseToQuoteInfo = this.market (symbol).info;
-        const now = new Date ();
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const baseToQuoteInfo = this.market(symbol).info;
+        const now = new Date();
         return {
             'symbol': symbol,
             'info': baseToQuoteInfo,
-            'timestamp': now.getTime (),
-            'datetime': now.toISOString (),
+            'timestamp': now.getTime(),
+            'datetime': now.toISOString(),
             'high': undefined,
             'low': undefined,
             'bid': undefined, // baseToQuoteInfo.rate - baseToQuoteInfo.minerFee
@@ -176,9 +176,9 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async fetchCurrencies (params = {}) {
-        const coinsResponse = await this.publicGetGetcoins ();
-        const coins = Object.keys (coinsResponse);
+    async fetchCurrencies(params = {}) {
+        const coinsResponse = await this.publicGetGetcoins();
+        const coins = Object.keys(coinsResponse);
         const result = {};
         for (let i = 0, len = coins.length; i < len; i++) {
             const coinKey = coins[i];
@@ -216,13 +216,13 @@ module.exports = class shapeshift extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
-        const marketsResponse = await this.publicGetMarketinfoPair ({ 'pair': '' });
+    async fetchMarkets() {
+        const marketsResponse = await this.publicGetMarketinfoPair({ 'pair': '' });
         const numMarkets = marketsResponse.length;
-        const result = new Array (numMarkets);
+        const result = new Array(numMarkets);
         for (let i = 0; i < numMarkets; i++) {
             const market = marketsResponse[i];
-            const [base, quote] = market.pair.split ('_');
+            const [base, quote] = market.pair.split('_');
             result[i] = {
                 'id': market.pair,
                 'symbol': `${base}/${quote}`,

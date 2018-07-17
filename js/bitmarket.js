@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmarket extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bitmarket',
             'name': 'BitMarket',
             'countries': [ 'PL', 'EU' ],
@@ -177,51 +177,51 @@ module.exports = class bitmarket extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostInfo ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privatePostInfo();
         let data = response['data'];
         let balance = data['balances'];
         let result = { 'info': data };
-        let currencies = Object.keys (this.currencies);
+        let currencies = Object.keys(this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let account = this.account ();
+            let account = this.account();
             if (currency in balance['available'])
                 account['free'] = balance['available'][currency];
             if (currency in balance['blocked'])
                 account['used'] = balance['blocked'][currency];
-            account['total'] = this.sum (account['free'], account['used']);
+            account['total'] = this.sum(account['free'], account['used']);
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
-            'market': this.marketId (symbol),
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetJsonMarketOrderbook(this.extend({
+            'market': this.marketId(symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook(orderbook);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetJsonMarketTicker (this.extend ({
-            'market': this.marketId (symbol),
+    async fetchTicker(symbol, params = {}) {
+        let ticker = await this.publicGetJsonMarketTicker(this.extend({
+            'market': this.marketId(symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        let vwap = this.safeFloat (ticker, 'vwap');
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        let timestamp = this.milliseconds();
+        let vwap = this.safeFloat(ticker, 'vwap');
+        let baseVolume = this.safeFloat(ticker, 'volume');
         let quoteVolume = baseVolume * vwap;
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -237,14 +237,14 @@ module.exports = class bitmarket extends Exchange {
         };
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         let side = (trade['type'] === 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['tid'].toString (),
+            'id': trade['tid'].toString(),
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'order': undefined,
             'type': undefined,
@@ -254,38 +254,38 @@ module.exports = class bitmarket extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetJsonMarketTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetJsonMarketTrades(this.extend({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '90m', since = undefined, limit = undefined) {
+    parseOHLCV(ohlcv, market = undefined, timeframe = '90m', since = undefined, limit = undefined) {
         return [
             ohlcv['time'] * 1000,
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['vol']),
+            parseFloat(ohlcv['open']),
+            parseFloat(ohlcv['high']),
+            parseFloat(ohlcv['low']),
+            parseFloat(ohlcv['close']),
+            parseFloat(ohlcv['vol']),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '90m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOHLCV(symbol, timeframe = '90m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
         let method = 'publicGetGraphsMarket' + this.timeframes[timeframe];
-        let market = this.market (symbol);
-        let response = await this[method] (this.extend ({
+        let market = this.market(symbol);
+        let response = await this[method](this.extend({
             'market': market['id'],
         }, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let response = await this.privatePostTrade (this.extend ({
-            'market': this.marketId (symbol),
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        let response = await this.privatePostTrade(this.extend({
+            'market': this.marketId(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
@@ -298,11 +298,11 @@ module.exports = class bitmarket extends Exchange {
         return result;
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancel ({ 'id': id });
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        return await this.privatePostCancel({ 'id': id });
     }
 
-    isFiat (currency) {
+    isFiat(currency) {
         if (currency === 'EUR')
             return true;
         if (currency === 'PLN')
@@ -310,59 +310,59 @@ module.exports = class bitmarket extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
+    async withdraw(currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress(address);
+        await this.loadMarkets();
         let method = undefined;
         let request = {
             'currency': currency,
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat(currency)) {
             method = 'privatePostWithdrawFiat';
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal
             } else {
-                throw new ExchangeError (this.id + ' requires account parameter to withdraw fiat currency');
+                throw new ExchangeError(this.id + ' requires account parameter to withdraw fiat currency');
             }
             if ('account2' in params) {
                 request['account2'] = params['account2']; // bank SWIFT code (EUR only)
             } else {
                 if (currency === 'EUR')
-                    throw new ExchangeError (this.id + ' requires account2 parameter to withdraw EUR');
+                    throw new ExchangeError(this.id + ' requires account2 parameter to withdraw EUR');
             }
             if ('withdrawal_note' in params) {
                 request['withdrawal_note'] = params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
                 if (currency === 'PLN')
-                    throw new ExchangeError (this.id + ' requires withdrawal_note parameter to withdraw PLN');
+                    throw new ExchangeError(this.id + ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
             method = 'privatePostWithdraw';
             request['address'] = address;
         }
-        let response = await this[method] (this.extend (request, params));
+        let response = await this[method](this.extend(request, params));
         return {
             'info': response,
             'id': response,
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
-            url += '/' + this.implodeParams (path + '.json', params);
+            url += '/' + this.implodeParams(path + '.json', params);
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let query = this.extend ({
+            this.checkRequiredCredentials();
+            let nonce = this.nonce();
+            let query = this.extend({
                 'tonce': nonce,
                 'method': path,
             }, params);
-            body = this.urlencode (query);
+            body = this.urlencode(query);
             headers = {
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

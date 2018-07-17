@@ -2,10 +2,11 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const functions = require ('./functions')
-    , Market    = require ('./Market');
+const functions = require('./functions')
+    , Market = require('./Market');
 
-const { isNode
+const {
+    isNode
     , keys
     , values
     , deepExtend
@@ -25,19 +26,22 @@ const { isNode
     , sleep
     , timeout
     , TimedOut
-    , buildOHLCVC } = functions;
+    , buildOHLCVC
+} = functions;
 
-const { ExchangeError
+const {
+    ExchangeError
     , InvalidAddress
     , NotSupported
     , AuthenticationError
     , DDoSProtection
     , RequestTimeout
-    , ExchangeNotAvailable } = require ('./errors');
+    , ExchangeNotAvailable
+} = require('./errors');
 
 const { DECIMAL_PLACES } = functions.precisionConstants;
 
-const defaultFetch = isNode ? require ('fetch-ponyfill') ().fetch : fetch;
+const defaultFetch = isNode ? require('fetch-ponyfill')().fetch : fetch;
 
 const journal = undefined; // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -45,7 +49,7 @@ const journal = undefined; // isNode && require ('./journal') // stub until we g
 
 module.exports = class Exchange {
 
-    getMarket (symbol) {
+    getMarket(symbol) {
         if (!this.marketClasses)
             this.marketClasses = {};
 
@@ -54,12 +58,12 @@ module.exports = class Exchange {
         if (marketClass)
             return marketClass;
 
-        marketClass = new Market (this, symbol);
+        marketClass = new Market(this, symbol);
         this.marketClasses[symbol] = marketClass; // only one Market instance per market
         return marketClass
     }
 
-    describe () {
+    describe() {
         return {
             'id': undefined,
             'name': undefined,
@@ -111,12 +115,12 @@ module.exports = class Exchange {
             },
             'api': undefined,
             'requiredCredentials': {
-                'apiKey':   true,
-                'secret':   true,
-                'uid':      false,
-                'login':    false,
+                'apiKey': true,
+                'secret': true,
+                'uid': false,
+                'login': false,
                 'password': false,
-                'twofa':    false, // 2-factor authentication (one-time password key)
+                'twofa': false, // 2-factor authentication (one-time password key)
                 'ethereumNodeAddress': false,
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
@@ -153,12 +157,12 @@ module.exports = class Exchange {
         } // return
     } // describe ()
 
-    constructor (userConfig = {}) {
+    constructor(userConfig = {}) {
 
-        Object.assign (this, functions, { encode: string => string, decode: string => string });
+        Object.assign(this, functions, { encode: string => string, decode: string => string });
 
         if (isNode)
-            this.nodeVersion = process.version.match (/\d+\.\d+.\d+/)[0];
+            this.nodeVersion = process.version.match(/\d+\.\d+.\d+/)[0];
 
         // if (isNode) {
         //     this.userAgent = {
@@ -183,10 +187,10 @@ module.exports = class Exchange {
         this.origin = '*'; // CORS origin
 
         this.iso8601 = (timestamp) => {
-            const _timestampNumber = parseInt (timestamp, 10);
+            const _timestampNumber = parseInt(timestamp, 10);
 
             // undefined, null and lots of nasty non-numeric values yield NaN
-            if (global.isNaN (_timestampNumber) || _timestampNumber < 0) {
+            if (global.isNaN(_timestampNumber) || _timestampNumber < 0) {
                 return undefined;
             }
 
@@ -196,7 +200,7 @@ module.exports = class Exchange {
 
             // last line of defence
             try {
-                return new Date (_timestampNumber).toISOString ();
+                return new Date(_timestampNumber).toISOString();
             } catch (e) {
                 return undefined;
             }
@@ -207,19 +211,19 @@ module.exports = class Exchange {
                 return undefined;
             }
 
-            if (x.match (/^[0-9]+$/)) {
+            if (x.match(/^[0-9]+$/)) {
                 // a valid number in a string, not a date.
                 return undefined;
             }
 
-            if (x.indexOf ('-') < 0 || x.indexOf (':') < 0) { // no date can be without a dash and a colon
+            if (x.indexOf('-') < 0 || x.indexOf(':') < 0) { // no date can be without a dash and a colon
                 return undefined;
             }
 
             // last line of defence
             try {
-                const candidate = Date.parse (((x.indexOf ('+') >= 0) || (x.slice (-1) === 'Z')) ? x : (x + 'Z').replace (/\s(\d\d):/, 'T$1:'));
-                if (global.isNaN (candidate)) {
+                const candidate = Date.parse(((x.indexOf('+') >= 0) || (x.slice(-1) === 'Z')) ? x : (x + 'Z').replace(/\s(\d\d):/, 'T$1:'));
+                if (global.isNaN(candidate)) {
                     return undefined;
                 }
                 return candidate;
@@ -233,19 +237,19 @@ module.exports = class Exchange {
                 return undefined;
             }
 
-            if (x.indexOf ('GMT') >= 0) {
+            if (x.indexOf('GMT') >= 0) {
                 try {
-                    return Date.parse (x);
+                    return Date.parse(x);
                 } catch (e) {
                     return undefined;
                 }
             }
 
-            return this.parse8601 (x);
+            return this.parse8601(x);
         };
 
-        this.microseconds     = () => now () * 1000; // TODO: utilize performance.now for that purpose
-        this.seconds          = () => Math.floor (now () / 1000);
+        this.microseconds = () => now() * 1000; // TODO: utilize performance.now for that purpose
+        this.seconds = () => Math.floor(now() / 1000);
 
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true;  // reserved
@@ -253,155 +257,161 @@ module.exports = class Exchange {
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch;
 
-        this.timeout          = 10000; // milliseconds
-        this.verbose          = false;
-        this.debug            = false;
-        this.journal          = 'debug.json';
-        this.userAgent        = undefined;
-        this.twofa            = false; // two-factor authentication (2FA)
+        this.timeout = 10000; // milliseconds
+        this.verbose = false;
+        this.debug = false;
+        this.journal = 'debug.json';
+        this.userAgent = undefined;
+        this.twofa = false; // two-factor authentication (2FA)
 
-        this.apiKey   = undefined;
-        this.secret   = undefined;
-        this.uid      = undefined;
-        this.login    = undefined;
+        this.apiKey = undefined;
+        this.secret = undefined;
+        this.uid = undefined;
+        this.login = undefined;
         this.password = undefined;
 
-        this.balance    = {};
+        this.balance = {};
         this.orderbooks = {};
-        this.tickers    = {};
-        this.orders     = {};
-        this.trades     = {};
+        this.tickers = {};
+        this.orders = {};
+        this.trades = {};
 
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
 
-        this.arrayConcat = (a, b) => a.concat (b);
+        this.arrayConcat = (a, b) => a.concat(b);
 
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                const propNames = Object.getOwnPropertyNames (obj);
+                const propNames = Object.getOwnPropertyNames(obj);
                 for (let i = 0, len = propNames.length; i < propNames.length; i++) {
                     const k = propNames[i];
-                    this[unCamelCase (k)] = this[k];
+                    this[unCamelCase(k)] = this[k];
                 }
-                unCamelCaseProperties (Object.getPrototypeOf (obj))
+                unCamelCaseProperties(Object.getPrototypeOf(obj))
             }
         };
-        unCamelCaseProperties ();
+        unCamelCaseProperties();
 
         // merge configs
-        const config = deepExtend (this.describe (), userConfig);
+        const config = deepExtend(this.describe(), userConfig);
 
         // merge to this
-        for (const [property, value] of Object.entries (config))
-            this[property] = deepExtend (this[property], value)
+        for (const [property, value] of Object.entries(config))
+            this[property] = deepExtend(this[property], value)
 
         // generate old metainfo interface
         for (const k in this.has) {
-            this['has' + capitalize (k)] = !!this.has[k] // converts 'emulated' to true
+            this['has' + capitalize(k)] = !!this.has[k] // converts 'emulated' to true
         }
 
         if (this.api)
-            this.defineRestApi (this.api, 'request');
+            this.defineRestApi(this.api, 'request');
 
-        this.initRestRateLimiter ();
+        this.initRestRateLimiter();
 
         if (this.markets)
-            this.setMarkets (this.markets);
+            this.setMarkets(this.markets);
 
         if (this.debug && journal) {
-            journal (() => this.journal, this, Object.keys (this.has))
+            journal(() => this.journal, this, Object.keys(this.has))
         }
     }
 
-    defaults () {
+    defaults() {
         return { /* override me */ }
     }
 
-    nonce () {
-        return this.seconds ()
+    nonce() {
+        return this.seconds()
     }
 
-    milliseconds () {
-        return now ()
+    milliseconds() {
+        return now()
     }
 
-    encodeURIComponent (...args) {
-        return encodeURIComponent (...args)
+    encodeURIComponent(...args) {
+        return encodeURIComponent(...args)
     }
 
-    checkRequiredCredentials () {
-        Object.keys (this.requiredCredentials).forEach ((key) => {
+    checkRequiredCredentials() {
+        Object.keys(this.requiredCredentials).forEach((key) => {
             if (this.requiredCredentials[key] && !this[key])
-                throw new AuthenticationError (this.id + ' requires `' + key + '`')
+                throw new AuthenticationError(this.id + ' requires `' + key + '`')
         })
     }
 
-    checkAddress (address) {
+    checkAddress(address) {
         if (typeof address === 'undefined')
-            throw new InvalidAddress (this.id + ' address is undefined');
+            throw new InvalidAddress(this.id + ' address is undefined');
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' '))
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
+        if ((unique(address).length === 1) || address.length < this.minFundingAddressLength || address.includes(' '))
+            throw new InvalidAddress(this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString() + ' characters: "' + address.toString() + '"');
 
         return address
     }
 
-    initRestRateLimiter () {
+    initRestRateLimiter() {
 
         const fetchImplementation = this.fetchImplementation;
 
         if (this.rateLimit === undefined)
-            throw new Error (this.id + '.rateLimit property is not configured');
+            throw new Error(this.id + '.rateLimit property is not configured');
 
-        this.tokenBucket = this.extend ({
-            refillRate:  1 / this.rateLimit,
-            delay:       1,
-            capacity:    1,
+        this.tokenBucket = this.extend({
+            refillRate: 1 / this.rateLimit,
+            delay: 1,
+            capacity: 1,
             defaultCost: 1,
             maxCapacity: 1000,
         }, this.tokenBucket);
 
-        this.throttle = throttle (this.tokenBucket);
+        this.throttle = throttle(this.tokenBucket);
 
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
 
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
-                    .catch ((e) => {
+                fetchImplementation(url, this.extend({
+                    method,
+                    headers,
+                    body,
+                    'agent': this.agent || null,
+                    timeout: this.timeout
+                }, this.fetchOptions))
+                    .catch((e) => {
                         if (isNode)
-                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '));
+                            throw new ExchangeNotAvailable([this.id, method, url, e.type, e.message].join(' '));
                         throw e // rethrow all unknown errors
                     })
-                    .then (response => this.handleRestResponse (response, url, method, headers, body));
+                    .then(response => this.handleRestResponse(response, url, method, headers, body));
 
-            return timeout (this.timeout, promise).catch ((e) => {
+            return timeout(this.timeout, promise).catch((e) => {
                 if (e instanceof TimedOut)
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+                    throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
                 throw e
             })
         }
     }
 
-    defineRestApi (api, methodName, options = {}) {
+    defineRestApi(api, methodName, options = {}) {
 
-        for (const type of Object.keys (api)) {
-            for (const httpMethod of Object.keys (api[type])) {
+        for (const type of Object.keys(api)) {
+            for (const httpMethod of Object.keys(api[type])) {
 
                 let paths = api[type][httpMethod];
                 for (let i = 0; i < paths.length; i++) {
-                    let path = paths[i].trim ();
-                    let splitPath = path.split (/[^a-zA-Z0-9]/);
+                    let path = paths[i].trim();
+                    let splitPath = path.split(/[^a-zA-Z0-9]/);
 
-                    let uppercaseMethod  = httpMethod.toUpperCase ();
-                    let lowercaseMethod  = httpMethod.toLowerCase ();
-                    let camelcaseMethod  = this.capitalize (lowercaseMethod);
-                    let camelcaseSuffix  = splitPath.map (this.capitalize).join ('');
-                    let underscoreSuffix = splitPath.map (x => x.trim ().toLowerCase ()).filter (x => x.length > 0).join ('_');
+                    let uppercaseMethod = httpMethod.toUpperCase();
+                    let lowercaseMethod = httpMethod.toLowerCase();
+                    let camelcaseMethod = this.capitalize(lowercaseMethod);
+                    let camelcaseSuffix = splitPath.map(this.capitalize).join('');
+                    let underscoreSuffix = splitPath.map(x => x.trim().toLowerCase()).filter(x => x.length > 0).join('_');
 
-                    let camelcase  = type + camelcaseMethod + this.capitalize (camelcaseSuffix);
+                    let camelcase = type + camelcaseMethod + this.capitalize(camelcaseSuffix);
                     let underscore = type + '_' + lowercaseMethod + '_' + underscoreSuffix;
 
                     if ('suffixes' in options) {
@@ -416,77 +426,77 @@ module.exports = class Exchange {
                     if ('camelcase_suffix' in options)
                         camelcase += options.camelcaseSuffix;
 
-                    let partial = async params => this[methodName] (path, type, uppercaseMethod, params || {});
+                    let partial = async params => this[methodName](path, type, uppercaseMethod, params || {});
 
-                    this[camelcase]  = partial;
+                    this[camelcase] = partial;
                     this[underscore] = partial
                 }
             }
         }
     }
 
-    fetch (url, method = 'GET', headers = undefined, body = undefined) {
+    fetch(url, method = 'GET', headers = undefined, body = undefined) {
 
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string')
-                headers = extend ({ 'User-Agent': this.userAgent }, headers);
+                headers = extend({ 'User-Agent': this.userAgent }, headers);
             else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent))
-                headers = extend (this.userAgent, headers)
+                headers = extend(this.userAgent, headers)
         }
 
         if (typeof this.proxy === 'function') {
 
-            url = this.proxy (url);
+            url = this.proxy(url);
             if (isNode)
-                headers = extend ({ 'Origin': this.origin }, headers)
+                headers = extend({ 'Origin': this.origin }, headers)
 
         } else if (typeof this.proxy === 'string') {
 
             if (this.proxy.length)
                 if (isNode)
-                    headers = extend ({ 'Origin': this.origin }, headers);
+                    headers = extend({ 'Origin': this.origin }, headers);
 
             url = this.proxy + url
         }
 
-        headers = extend (this.headers, headers);
+        headers = extend(this.headers, headers);
 
         if (this.verbose)
-            console.log ("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n");
+            console.log("fetch:\n", this.id, method, url, "\nRequest:\n", headers, "\n", body, "\n");
 
-        return this.executeRestRequest (url, method, headers, body)
+        return this.executeRestRequest(url, method, headers, body)
     }
 
-    async fetch2 (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetch2(path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
 
         if (this.enableRateLimit)
-            await this.throttle ();
+            await this.throttle();
 
-        let request = this.sign (path, type, method, params, headers, body);
-        return this.fetch (request.url, request.method, request.headers, request.body)
+        let request = this.sign(path, type, method, params, headers, body);
+        return this.fetch(request.url, request.method, request.headers, request.body)
     }
 
-    request (path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return this.fetch2 (path, type, method, params, headers, body)
+    request(path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        return this.fetch2(path, type, method, params, headers, body)
     }
 
-    parseJson (response, responseBody, url, method) {
+    parseJson(response, responseBody, url, method) {
         try {
 
-            return (responseBody.length > 0) ? JSON.parse (responseBody) : {} // empty object for empty body
+            return (responseBody.length > 0) ? JSON.parse(responseBody) : {} // empty object for empty body
 
         } catch (e) {
 
             if (this.verbose)
-                console.log ('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n");
+                console.log('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n");
 
             let title = undefined;
-            let match = responseBody.match (/<title>([^<]+)/i);
+            let match = responseBody.match(/<title>([^<]+)/i);
             if (match)
-                title = match[1].trim ();
+                title = match[1].trim();
 
-            let maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = responseBody.match (/cloudflare|incapsula|overload|ddos/i);
+            let maintenance = responseBody.match(/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            let ddosProtection = responseBody.match(/cloudflare|incapsula|overload|ddos/i);
 
             if (e instanceof SyntaxError) {
 
@@ -496,32 +506,32 @@ module.exports = class Exchange {
                     details = 'offline, on maintenance or unreachable from this location at the moment';
                 if (ddosProtection)
                     ExceptionClass = DDoSProtection;
-                throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
+                throw new ExceptionClass([this.id, method, url, response.status, title, details].join(' '))
             }
 
             throw e
         }
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
+    handleErrors(statusCode, statusText, url, method, responseHeaders, responseBody, json) {
         // override me
     }
 
-    defaultErrorHandler (response, responseBody, url, method) {
+    defaultErrorHandler(response, responseBody, url, method) {
         const { status: code, statusText: reason } = response;
         if ((code >= 200) && (code <= 299))
             return;
         let error = undefined;
         let details = responseBody;
-        let match = responseBody.match (/<title>([^<]+)/i);
+        let match = responseBody.match(/<title>([^<]+)/i);
         if (match)
-            details = match[1].trim ();
-        if ([ 418, 429 ].includes (code)) {
+            details = match[1].trim();
+        if ([418, 429].includes(code)) {
             error = DDoSProtection
-        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+        } else if ([404, 409, 500, 501, 502, 520, 521, 522, 525].includes(code)) {
             error = ExchangeNotAvailable
-        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = responseBody.match (/cloudflare|incapsula/i);
+        } else if ([400, 403, 405, 503, 530].includes(code)) {
+            let ddosProtection = responseBody.match(/cloudflare|incapsula/i);
             if (ddosProtection) {
                 error = DDoSProtection
             } else {
@@ -533,28 +543,28 @@ module.exports = class Exchange {
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting',
-                ].join (', ') + ')'
+                ].join(', ') + ')'
             }
-        } else if ([ 408, 504 ].includes (code)) {
+        } else if ([408, 504].includes(code)) {
             error = RequestTimeout
-        } else if ([ 401, 511 ].includes (code)) {
+        } else if ([401, 511].includes(code)) {
             error = AuthenticationError
         } else {
             error = ExchangeError
         }
-        throw new error ([ this.id, method, url, code, reason, details ].join (' '))
+        throw new error([this.id, method, url, code, reason, details].join(' '))
     }
 
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+    handleRestResponse(response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
-        return response.text ().then ((responseBody) => {
+        return response.text().then((responseBody) => {
 
-            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status);
-            let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined;
+            let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes(response.status);
+            let json = jsonRequired ? this.parseJson(response, responseBody, url, method) : undefined;
 
             let responseHeaders = {};
-            response.headers.forEach ((value, key) => {
-                key = key.split ('-').map (word => capitalize (word)).join ('-');
+            response.headers.forEach((value, key) => {
+                key = key.split('-').map(word => capitalize(word)).join('-');
                 responseHeaders[key] = value;
             });
 
@@ -563,97 +573,97 @@ module.exports = class Exchange {
             this.last_json_response = json;         // FIXME: for those classes that haven't switched to handleErrors yet
 
             if (this.verbose)
-                console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
+                console.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ];
-            this.handleErrors (...args);
-            this.defaultErrorHandler (response, responseBody, url, method);
+            const args = [response.status, response.statusText, url, method, responseHeaders, responseBody, json];
+            this.handleErrors(...args);
+            this.defaultErrorHandler(response, responseBody, url, method);
 
             return jsonRequired ? json : responseBody
         })
     }
 
-    setMarkets (markets, currencies = undefined) {
-        let values = Object.values (markets).map (market => deepExtend ({
+    setMarkets(markets, currencies = undefined) {
+        let values = Object.values(markets).map(market => deepExtend({
             'limits': this.limits,
             'precision': this.precision,
         }, this.fees['trading'], market));
-        this.markets = deepExtend (this.markets, indexBy (values, 'symbol'));
-        this.marketsById = indexBy (markets, 'id');
+        this.markets = deepExtend(this.markets, indexBy(values, 'symbol'));
+        this.marketsById = indexBy(markets, 'id');
         this.markets_by_id = this.marketsById;
-        this.symbols = Object.keys (this.markets).sort ();
-        this.ids = Object.keys (this.markets_by_id).sort ();
+        this.symbols = Object.keys(this.markets).sort();
+        this.ids = Object.keys(this.markets_by_id).sort();
         if (currencies) {
-            this.currencies = deepExtend (currencies, this.currencies)
+            this.currencies = deepExtend(currencies, this.currencies)
         } else {
             const baseCurrencies =
-                values.filter (market => 'base' in market)
-                    .map (market => ({
+                values.filter(market => 'base' in market)
+                    .map(market => ({
                         id: market.baseId || market.base,
                         numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }));
             const quoteCurrencies =
-                values.filter (market => 'quote' in market)
-                    .map (market => ({
+                values.filter(market => 'quote' in market)
+                    .map(market => ({
                         id: market.quoteId || market.quote,
                         numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }));
-            const allCurrencies = baseCurrencies.concat (quoteCurrencies);
-            const groupedCurrencies = groupBy (allCurrencies, 'code');
-            const currencies = Object.keys (groupedCurrencies).map (code =>
-                groupedCurrencies[code].reduce ((previous, current) =>
+            const allCurrencies = baseCurrencies.concat(quoteCurrencies);
+            const groupedCurrencies = groupBy(allCurrencies, 'code');
+            const currencies = Object.keys(groupedCurrencies).map(code =>
+                groupedCurrencies[code].reduce((previous, current) =>
                     ((previous.precision > current.precision) ? previous : current), groupedCurrencies[code][0]));
-            const sortedCurrencies = sortBy (flatten (currencies), 'code');
-            this.currencies = deepExtend (indexBy (sortedCurrencies, 'code'), this.currencies)
+            const sortedCurrencies = sortBy(flatten(currencies), 'code');
+            this.currencies = deepExtend(indexBy(sortedCurrencies, 'code'), this.currencies)
         }
-        this.currencies_by_id = indexBy (this.currencies, 'id');
+        this.currencies_by_id = indexBy(this.currencies, 'id');
         return this.markets
     }
 
-    async loadMarkets (reload = false) {
+    async loadMarkets(reload = false) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarkets(this.markets)
             }
             return this.markets
         }
-        const markets = await this.fetchMarkets ();
+        const markets = await this.fetchMarkets();
         let currencies = undefined;
         if (this.has.fetchCurrencies) {
-            currencies = await this.fetchCurrencies ()
+            currencies = await this.fetchCurrencies()
         }
-        return this.setMarkets (markets, currencies)
+        return this.setMarkets(markets, currencies)
     }
 
-    fetchBidsAsks (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchBidsAsks not supported yet')
+    fetchBidsAsks(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchBidsAsks not supported yet')
     }
 
-    async fetchOHLCVC (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+    async fetchOHLCVC(symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
         if (!this.has['fetchTrades'])
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet');
-        await this.loadMarkets ();
-        let trades = await this.fetchTrades (symbol, since, limits, params);
-        return buildOHLCVC (trades, timeframe, since, limits);
+            throw new NotSupported(this.id + ' fetchOHLCV() not supported yet');
+        await this.loadMarkets();
+        let trades = await this.fetchTrades(symbol, since, limits, params);
+        return buildOHLCVC(trades, timeframe, since, limits);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limits = undefined, params = {}) {
         if (!this.has['fetchTrades'])
-            throw new NotSupported (this.id + ' fetchOHLCV() not supported yet');
-        await this.loadMarkets ();
-        let trades = await this.fetchTrades (symbol, since, limits, params);
-        let ohlcvc = buildOHLCVC (trades, timeframe, since, limits);
-        return ohlcvc.map (c => c.slice (0, -1))
+            throw new NotSupported(this.id + ' fetchOHLCV() not supported yet');
+        await this.loadMarkets();
+        let trades = await this.fetchTrades(symbol, since, limits, params);
+        let ohlcvc = buildOHLCVC(trades, timeframe, since, limits);
+        return ohlcvc.map(c => c.slice(0, -1))
     }
 
-    convertTradingViewToOHLCV (ohlcvs) {
+    convertTradingViewToOHLCV(ohlcvs) {
         let result = [];
         for (let i = 0; i < ohlcvs['t'].length; i++) {
-            result.push ([
+            result.push([
                 ohlcvs['t'][i] * 1000,
                 ohlcvs['o'][i],
                 ohlcvs['h'][i],
@@ -665,7 +675,7 @@ module.exports = class Exchange {
         return result;
     }
 
-    convertOHLCVToTradingView (ohlcvs) {
+    convertOHLCVToTradingView(ohlcvs) {
         let result = {
             't': [],
             'o': [],
@@ -675,64 +685,64 @@ module.exports = class Exchange {
             'v': [],
         };
         for (let i = 0; i < ohlcvs.length; i++) {
-            result['t'].push (parseInt (ohlcvs[i][0] / 1000));
-            result['o'].push (ohlcvs[i][1]);
-            result['h'].push (ohlcvs[i][2]);
-            result['l'].push (ohlcvs[i][3]);
-            result['c'].push (ohlcvs[i][4]);
-            result['v'].push (ohlcvs[i][5]);
+            result['t'].push(parseInt(ohlcvs[i][0] / 1000));
+            result['o'].push(ohlcvs[i][1]);
+            result['h'].push(ohlcvs[i][2]);
+            result['l'].push(ohlcvs[i][3]);
+            result['c'].push(ohlcvs[i][4]);
+            result['v'].push(ohlcvs[i][5]);
         }
         return result;
     }
 
-    fetchTickers (symbols = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTickers not supported yet')
+    fetchTickers(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchTickers not supported yet')
     }
 
-    purgeCachedOrders (before) {
+    purgeCachedOrders(before) {
         const orders = Object
-            .values (this.orders)
-            .filter (order =>
+            .values(this.orders)
+            .filter(order =>
                 (order.status === 'open') ||
                 (order.timestamp >= before));
-        this.orders = indexBy (orders, 'id');
+        this.orders = indexBy(orders, 'id');
         return this.orders
     }
 
-    fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrder not supported yet');
+    fetchOrder(id, symbol = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrder not supported yet');
     }
 
-    fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOrders not supported yet');
+    fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOrders not supported yet');
     }
 
-    fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchOpenOrders not supported yet');
+    fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchOpenOrders not supported yet');
     }
 
-    fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchClosedOrders not supported yet');
+    fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchClosedOrders not supported yet');
     }
 
-    fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchMyTrades not supported yet');
     }
 
-    fetchCurrencies () {
-        throw new NotSupported (this.id + ' fetchCurrencies not supported yet');
+    fetchCurrencies() {
+        throw new NotSupported(this.id + ' fetchCurrencies not supported yet');
     }
 
-    fetchMarkets () {
-        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    fetchMarkets() {
+        return new Promise((resolve, reject) => resolve(Object.values(this.markets)))
     }
 
-    async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id, market);
+    async fetchOrderStatus(id, market = undefined) {
+        let order = await this.fetchOrder(id, market);
         return order['status'];
     }
 
-    account () {
+    account() {
         return {
             'free': 0.0,
             'used': 0.0,
@@ -740,37 +750,37 @@ module.exports = class Exchange {
         }
     }
 
-    commonCurrencyCode (currency) {
+    commonCurrencyCode(currency) {
         if (!this.substituteCommonCurrencyCodes)
             return currency;
-        return this.safeString (this.commonCurrencies, currency, currency)
+        return this.safeString(this.commonCurrencies, currency, currency)
     }
 
-    currencyId (commonCode) {
+    currencyId(commonCode) {
         let currencyIds = {};
-        let distinct = Object.keys (this.commonCurrencies);
+        let distinct = Object.keys(this.commonCurrencies);
         for (let i = 0; i < distinct.length; i++) {
             let k = distinct[i];
             currencyIds[this.commonCurrencies[k]] = k;
         }
-        return this.safeString (currencyIds, commonCode, commonCode)
+        return this.safeString(currencyIds, commonCode, commonCode)
     }
 
-    currency (code) {
+    currency(code) {
 
         if (typeof this.currencies === 'undefined')
-            throw new ExchangeError (this.id + ' currencies not loaded');
+            throw new ExchangeError(this.id + ' currencies not loaded');
 
         if ((typeof code === 'string') && (code in this.currencies))
             return this.currencies[code];
 
-        throw new ExchangeError (this.id + ' does not have currency code ' + code)
+        throw new ExchangeError(this.id + ' does not have currency code ' + code)
     }
 
-    findMarket (string) {
+    findMarket(string) {
 
         if (typeof this.markets === 'undefined')
-            throw new ExchangeError (this.id + ' markets not loaded');
+            throw new ExchangeError(this.id + ' markets not loaded');
 
         if (typeof string === 'string') {
 
@@ -784,10 +794,10 @@ module.exports = class Exchange {
         return string
     }
 
-    findSymbol (string, market = undefined) {
+    findSymbol(string, market = undefined) {
 
         if (typeof market === 'undefined')
-            market = this.findMarket (string);
+            market = this.findMarket(string);
 
         if (typeof market === 'object')
             return market['symbol'];
@@ -795,85 +805,85 @@ module.exports = class Exchange {
         return string
     }
 
-    market (symbol) {
+    market(symbol) {
 
         if (typeof this.markets === 'undefined')
-            throw new ExchangeError (this.id + ' markets not loaded');
+            throw new ExchangeError(this.id + ' markets not loaded');
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol];
 
-        throw new ExchangeError (this.id + ' does not have market symbol ' + symbol)
+        throw new ExchangeError(this.id + ' does not have market symbol ' + symbol)
     }
 
-    marketId (symbol) {
-        let market = this.market (symbol);
+    marketId(symbol) {
+        let market = this.market(symbol);
         return (typeof market !== 'undefined' ? market['id'] : symbol)
     }
 
-    marketIds (symbols) {
-        return symbols.map (symbol => this.marketId (symbol));
+    marketIds(symbols) {
+        return symbols.map(symbol => this.marketId(symbol));
     }
 
-    symbol (symbol) {
-        return this.market (symbol).symbol || symbol
+    symbol(symbol) {
+        return this.market(symbol).symbol || symbol
     }
 
-    extractParams (string) {
+    extractParams(string) {
         let re = /{([\w-]+)}/g;
         let matches = [];
-        let match = re.exec (string);
+        let match = re.exec(string);
         while (match) {
-            matches.push (match[1]);
-            match = re.exec (string);
+            matches.push(match[1]);
+            match = re.exec(string);
         }
         return matches
     }
 
-    implodeParams (string, params) {
+    implodeParams(string, params) {
         for (let property in params)
-            string = string.replace ('{' + property + '}', params[property])
+            string = string.replace('{' + property + '}', params[property])
         return string
     }
 
-    url (path, params = {}) {
-        let result = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length)
-            result += '?' + this.urlencode (query);
+    url(path, params = {}) {
+        let result = this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
+        if (Object.keys(query).length)
+            result += '?' + this.urlencode(query);
         return result
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = parseFloat (bidask[priceKey]);
-        let amount = parseFloat (bidask[amountKey]);
-        return [ price, amount ]
+    parseBidAsk(bidask, priceKey = 0, amountKey = 1) {
+        let price = parseFloat(bidask[priceKey]);
+        let amount = parseFloat(bidask[amountKey]);
+        return [price, amount]
     }
 
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
+    parseBidsAsks(bidasks, priceKey = 0, amountKey = 1) {
+        return Object.values(bidasks || []).map(bidask => this.parseBidAsk(bidask, priceKey, amountKey))
     }
 
-    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.fetchOrderBook (symbol, limit, params);
-        return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+    async fetchL2OrderBook(symbol, limit = undefined, params = {}) {
+        let orderbook = await this.fetchOrderBook(symbol, limit, params);
+        return extend(orderbook, {
+            'bids': sortBy(aggregate(orderbook.bids), 0, true),
+            'asks': sortBy(aggregate(orderbook.asks), 0),
         })
     }
 
-    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook(orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         return {
-            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
+            'bids': sortBy((bidsKey in orderbook) ? this.parseBidsAsks(orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            'asks': sortBy((asksKey in orderbook) ? this.parseBidsAsks(orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
+            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601(timestamp) : undefined,
             'nonce': undefined,
         }
     }
 
-    getCurrencyUsedOnOpenOrders (currency) {
-        return Object.values (this.orders).filter (order => (order['status'] === 'open')).reduce ((total, order) => {
+    getCurrencyUsedOnOpenOrders(currency) {
+        return Object.values(this.orders).filter(order => (order['status'] === 'open')).reduce((total, order) => {
             let symbol = order['symbol'];
             let market = this.markets[symbol];
             let remaining = order['remaining'];
@@ -887,11 +897,11 @@ module.exports = class Exchange {
         }, 0)
     }
 
-    parseBalance (balance) {
+    parseBalance(balance) {
 
-        const currencies = Object.keys (this.omit (balance, 'info'));
+        const currencies = Object.keys(this.omit(balance, 'info'));
 
-        currencies.forEach ((currency) => {
+        currencies.forEach((currency) => {
 
             if (typeof balance[currency].used === 'undefined') {
                 // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
@@ -900,18 +910,18 @@ module.exports = class Exchange {
                     // liqui exchange reports number of open orders with balance response
                     // use it to validate the cache
                     const exchangeOrdersCount = balance['info']['open_orders'];
-                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
+                    const cachedOrdersCount = Object.values(this.orders).filter(order => (order['status'] === 'open')).length;
                     if (cachedOrdersCount === exchangeOrdersCount) {
-                        balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency);
+                        balance[currency].used = this.getCurrencyUsedOnOpenOrders(currency);
                         balance[currency].total = balance[currency].used + balance[currency].free
                     }
                 } else {
-                    balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency);
+                    balance[currency].used = this.getCurrencyUsedOnOpenOrders(currency);
                     balance[currency].total = balance[currency].used + balance[currency].free
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach ((account) => {
+            ['free', 'used', 'total'].forEach((account) => {
                 balance[account] = balance[account] || {};
                 balance[account][currency] = balance[currency][account]
             })
@@ -920,227 +930,227 @@ module.exports = class Exchange {
         return balance
     }
 
-    async fetchPartialBalance (part, params = {}) {
-        let balance = await this.fetchBalance (params);
+    async fetchPartialBalance(part, params = {}) {
+        let balance = await this.fetchBalance(params);
         return balance[part]
     }
 
-    fetchFreeBalance (params = {}) {
-        return this.fetchPartialBalance ('free', params)
+    fetchFreeBalance(params = {}) {
+        return this.fetchPartialBalance('free', params)
     }
 
-    fetchUsedBalance (params = {}) {
-        return this.fetchPartialBalance ('used', params)
+    fetchUsedBalance(params = {}) {
+        return this.fetchPartialBalance('used', params)
     }
 
-    fetchTotalBalance (params = {}) {
-        return this.fetchPartialBalance ('total', params)
+    fetchTotalBalance(params = {}) {
+        return this.fetchPartialBalance('total', params)
     }
 
-    async loadTradingLimits (symbols = undefined, reload = false, params = {}) {
+    async loadTradingLimits(symbols = undefined, reload = false, params = {}) {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
-                let response = await this.fetchTradingLimits (symbols);
+                let response = await this.fetchTradingLimits(symbols);
                 let limits = response['limits'];
-                let keys = Object.keys (limits);
+                let keys = Object.keys(limits);
                 for (let i = 0; i < keys.length; i++) {
                     let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
+                    this.markets[symbol] = this.deepExtend(this.markets[symbol], {
                         'limits': limits[symbol],
                     });
                 }
-                this.options['limitsLoaded'] = this.milliseconds ();
+                this.options['limitsLoaded'] = this.milliseconds();
             }
         }
         return this.markets;
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined) {
+    filterBySinceLimit(array, since = undefined, limit = undefined) {
         if (typeof since !== 'undefined' && since !== null)
-            array = array.filter (entry => entry.timestamp >= since);
+            array = array.filter(entry => entry.timestamp >= since);
         if (typeof limit !== 'undefined' && limit !== null)
-            array = array.slice (0, limit);
+            array = array.slice(0, limit);
         return array
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
+    filterBySymbolSinceLimit(array, symbol = undefined, since = undefined, limit = undefined) {
 
         const symbolIsDefined = typeof symbol !== 'undefined' && symbol !== null;
         const sinceIsDefined = typeof since !== 'undefined' && since !== null;
 
         // single-pass filter for both symbol and since
         if (symbolIsDefined || sinceIsDefined)
-            array = Object.values (array).filter (entry =>
-                ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
-                 (sinceIsDefined  ? (entry.timestamp >= since) : true)));
+            array = Object.values(array).filter(entry =>
+                ((symbolIsDefined ? (entry.symbol === symbol) : true) &&
+                    (sinceIsDefined ? (entry.timestamp >= since) : true)));
 
         if (typeof limit !== 'undefined' && limit !== null)
-            array = Object.values (array).slice (0, limit);
+            array = Object.values(array).slice(0, limit);
 
         return array
     }
 
-    filterByArray (objects, key, values = undefined, indexed = true) {
-        objects = Object.values (objects);
+    filterByArray(objects, key, values = undefined, indexed = true) {
+        objects = Object.values(objects);
 
         // return all of them if no values were passed
         if (typeof values === 'undefined' || values === null)
-            return indexed ? indexBy (objects, key) : objects;
+            return indexed ? indexBy(objects, key) : objects;
 
         let result = [];
         for (let i = 0; i < objects.length; i++) {
-            if (values.includes (objects[i][key]))
-                result.push (objects[i])
+            if (values.includes(objects[i][key]))
+                result.push(objects[i])
         }
-        return indexed ? indexBy (result, key) : result
+        return indexed ? indexBy(result, key) : result
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market));
-        result = sortBy (result, 'timestamp');
+    parseTrades(trades, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values(trades || []).map(trade => this.parseTrade(trade, market));
+        result = sortBy(result, 'timestamp');
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (orders).map (order => this.parseOrder (order, market));
-        result = sortBy (result, 'timestamp');
+    parseOrders(orders, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values(orders).map(order => this.parseOrder(order, market));
+        result = sortBy(result, 'timestamp');
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    filterBySymbol (array, symbol = undefined) {
-        return ((typeof symbol !== 'undefined') ? array.filter (entry => entry.symbol === symbol) : array)
+    filterBySymbol(array, symbol = undefined) {
+        return ((typeof symbol !== 'undefined') ? array.filter(entry => entry.symbol === symbol) : array)
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return Array.isArray (ohlcv) ? ohlcv.slice (0, 6) : ohlcv
+    parseOHLCV(ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return Array.isArray(ohlcv) ? ohlcv.slice(0, 6) : ohlcv
     }
 
-    parseOHLCVs (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        ohlcvs = Object.values (ohlcvs);
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        ohlcvs = Object.values(ohlcvs);
         let result = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             if (limit && (result.length >= limit))
                 break;
-            let ohlcv = this.parseOHLCV (ohlcvs[i], market, timeframe, since, limit);
+            let ohlcv = this.parseOHLCV(ohlcvs[i], market, timeframe, since, limit);
             if (since && (ohlcv[0] < since))
                 continue;
-            result.push (ohlcv)
+            result.push(ohlcv)
         }
         return result
     }
 
-    editLimitBuyOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'buy', ...args)
+    editLimitBuyOrder(id, symbol, ...args) {
+        return this.editLimitOrder(id, symbol, 'buy', ...args)
     }
 
-    editLimitSellOrder (id, symbol, ...args) {
-        return this.editLimitOrder (id, symbol, 'sell', ...args)
+    editLimitSellOrder(id, symbol, ...args) {
+        return this.editLimitOrder(id, symbol, 'sell', ...args)
     }
 
-    editLimitOrder (id, symbol, ...args) {
-        return this.editOrder (id, symbol, 'limit', ...args)
+    editLimitOrder(id, symbol, ...args) {
+        return this.editOrder(id, symbol, 'limit', ...args)
     }
 
-    async editOrder (id, symbol, ...args) {
+    async editOrder(id, symbol, ...args) {
         if (!this.enableRateLimit)
-            throw new ExchangeError (this.id + ' editOrder() requires enableRateLimit = true');
-        await this.cancelOrder (id, symbol);
-        return this.createOrder (symbol, ...args)
+            throw new ExchangeError(this.id + ' editOrder() requires enableRateLimit = true');
+        await this.cancelOrder(id, symbol);
+        return this.createOrder(symbol, ...args)
     }
 
-    createLimitOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'limit', ...args)
+    createLimitOrder(symbol, ...args) {
+        return this.createOrder(symbol, 'limit', ...args)
     }
 
-    createMarketOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'market', ...args)
+    createMarketOrder(symbol, ...args) {
+        return this.createOrder(symbol, 'market', ...args)
     }
 
-    createLimitBuyOrder (symbol, ...args) {
-        return this.createOrder  (symbol, 'limit', 'buy', ...args)
+    createLimitBuyOrder(symbol, ...args) {
+        return this.createOrder(symbol, 'limit', 'buy', ...args)
     }
 
-    createLimitSellOrder (symbol, ...args) {
-        return this.createOrder (symbol, 'limit', 'sell', ...args)
+    createLimitSellOrder(symbol, ...args) {
+        return this.createOrder(symbol, 'limit', 'sell', ...args)
     }
 
-    createMarketBuyOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'buy', amount, undefined, params)
+    createMarketBuyOrder(symbol, amount, params = {}) {
+        return this.createOrder(symbol, 'market', 'buy', amount, undefined, params)
     }
 
-    createMarketSellOrder (symbol, amount, params = {}) {
-        return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
+    createMarketSellOrder(symbol, amount, params = {}) {
+        return this.createOrder(symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    costToPrecision (symbol, cost) {
-        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+    costToPrecision(symbol, cost) {
+        return parseFloat(cost).toFixed(this.markets[symbol].precision.price)
     }
 
-    priceToPrecision (symbol, price) {
-        return parseFloat (price).toFixed (this.markets[symbol].precision.price)
+    priceToPrecision(symbol, price) {
+        return parseFloat(price).toFixed(this.markets[symbol].precision.price)
     }
 
-    amountToPrecision (symbol, amount) {
-        return this.truncate (amount, this.markets[symbol].precision.amount)
+    amountToPrecision(symbol, amount) {
+        return this.truncate(amount, this.markets[symbol].precision.amount)
     }
 
-    amountToString (symbol, amount) {
-        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
+    amountToString(symbol, amount) {
+        return this.truncate_to_string(amount, this.markets[symbol].precision.amount)
     }
 
-    amountToLots (symbol, amount) {
+    amountToLots(symbol, amount) {
         const lot = this.markets[symbol].lot;
-        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
+        return this.amountToPrecision(symbol, Math.floor(amount / lot) * lot)
     }
 
-    feeToPrecision (symbol, fee) {
-        return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+    feeToPrecision(symbol, fee) {
+        return parseFloat(fee).toFixed(this.markets[symbol].precision.price)
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * price));
+        let cost = parseFloat(this.costToPrecision(symbol, amount * price));
         return {
             'type': takerOrMaker,
             'currency': market['quote'],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+            'cost': parseFloat(this.feeToPrecision(symbol, rate * cost)),
         }
     }
 
-    mdy (timestamp, infix = '-') {
+    mdy(timestamp, infix = '-') {
         infix = infix || '';
-        let date = new Date (timestamp);
-        let Y = date.getUTCFullYear ().toString ();
-        let m = date.getUTCMonth () + 1;
-        let d = date.getUTCDate ();
-        m = m < 10 ? ('0' + m) : m.toString ();
-        d = d < 10 ? ('0' + d) : d.toString ();
+        let date = new Date(timestamp);
+        let Y = date.getUTCFullYear().toString();
+        let m = date.getUTCMonth() + 1;
+        let d = date.getUTCDate();
+        m = m < 10 ? ('0' + m) : m.toString();
+        d = d < 10 ? ('0' + d) : d.toString();
         return m + infix + d + infix + y;
     }
 
-    ymd (timestamp, infix = '-') {
+    ymd(timestamp, infix = '-') {
         infix = infix || '';
-        let date = new Date (timestamp);
-        let Y = date.getUTCFullYear ().toString ();
-        let m = date.getUTCMonth () + 1;
-        let d = date.getUTCDate ();
-        m = m < 10 ? ('0' + m) : m.toString ();
-        d = d < 10 ? ('0' + d) : d.toString ();
+        let date = new Date(timestamp);
+        let Y = date.getUTCFullYear().toString();
+        let m = date.getUTCMonth() + 1;
+        let d = date.getUTCDate();
+        m = m < 10 ? ('0' + m) : m.toString();
+        d = d < 10 ? ('0' + d) : d.toString();
         return Y + infix + m + infix + d;
     }
 
-    ymdhms (timestamp, infix = ' ') {
-        let date = new Date (timestamp);
-        let Y = date.getUTCFullYear ();
-        let m = date.getUTCMonth () + 1;
-        let d = date.getUTCDate ();
-        let H = date.getUTCHours ();
-        let M = date.getUTCMinutes ();
-        let S = date.getUTCSeconds ();
+    ymdhms(timestamp, infix = ' ') {
+        let date = new Date(timestamp);
+        let Y = date.getUTCFullYear();
+        let m = date.getUTCMonth() + 1;
+        let d = date.getUTCDate();
+        let H = date.getUTCHours();
+        let M = date.getUTCMinutes();
+        let S = date.getUTCSeconds();
         m = m < 10 ? ('0' + m) : m;
         d = d < 10 ? ('0' + d) : d;
         H = H < 10 ? ('0' + H) : H;

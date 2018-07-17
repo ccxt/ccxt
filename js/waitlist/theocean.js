@@ -1,6 +1,6 @@
 'use strict';
 
-const StandardRelayer = require ('../base/StandardRelayer');
+const StandardRelayer = require('../base/StandardRelayer');
 
 /**
  * This does not work as advertised. It uses the same routes as the Standard Relayer spec
@@ -8,8 +8,8 @@ const StandardRelayer = require ('../base/StandardRelayer');
  */
 
 module.exports = class theocean extends StandardRelayer {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'theocean',
             'name': 'The Ocean',
             'version': undefined,
@@ -43,19 +43,19 @@ module.exports = class theocean extends StandardRelayer {
         });
     }
 
-    fetchCurrencies () {
-        return this.listedCurrencies ();
+    fetchCurrencies() {
+        return this.listedCurrencies();
     }
 
-    fetchMarkets () {
-        return this.tokenPairs ();
+    fetchMarkets() {
+        return this.tokenPairs();
     }
 
-    fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return this.orderbook (symbol);
+    fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.orderbook(symbol);
     }
 
-    fetchTicker (symbol, params = {}) {
-        return this.ticker (symbol);
+    fetchTicker(symbol, params = {}) {
+        return this.ticker(symbol);
     }
 };

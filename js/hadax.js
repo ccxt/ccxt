@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const huobipro = require ('./huobipro.js');
-const { PermissionDenied } = require ('./base/errors');
+const huobipro = require('./huobipro.js');
+const { PermissionDenied } = require('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class hadax extends huobipro {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'hadax',
             'name': 'HADAX',
             'countries': 'CN',

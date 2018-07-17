@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const zb = require ('./zb.js');
-const { ExchangeError } = require ('./base/errors');
+const zb = require('./zb.js');
+const { ExchangeError } = require('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class chbtc extends zb {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'chbtc',
             'name': 'CHBTC',
             'countries': 'CN',
@@ -42,19 +42,19 @@ module.exports = class chbtc extends zb {
         });
     }
 
-    getMarketFieldName () {
+    getMarketFieldName() {
         return 'currency';
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2(path, api, method, params, headers, body);
         if (api === 'private') {
             if ('code' in response)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError(this.id + ' ' + this.json(response));
         }
         if ('result' in response) {
             if (!response['result'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError(this.id + ' ' + this.json(response));
         }
         return response;
     }

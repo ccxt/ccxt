@@ -3,7 +3,9 @@
 
 const { timeout } = require ('../base/functions')
 
-;(async function () {
+;
+
+(async function () {
 
     await timeout (10000, Promise.resolve ('foo'))
 

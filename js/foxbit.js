@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class foxbit extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'foxbit',
             'name': 'FoxBit',
             'countries': 'BR',
@@ -66,14 +66,14 @@ module.exports = class foxbit extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        let response = await this.privatePostU2 ({
-            'BalanceReqID': this.nonce (),
+    async fetchBalance(params = {}) {
+        let response = await this.privatePostU2({
+            'BalanceReqID': this.nonce(),
         });
-        let balances = this.safeValue (response['Responses'], this.options['brokerId']);
+        let balances = this.safeValue(response['Responses'], this.options['brokerId']);
         let result = { 'info': response };
         if (typeof balances !== 'undefined') {
-            let currencyIds = Object.keys (this.currencies_by_id);
+            let currencyIds = Object.keys(this.currencies_by_id);
             for (let i = 0; i < currencyIds.length; i++) {
                 let currencyId = currencyIds[i];
                 let currency = this.currencies_by_id[currencyId];
@@ -81,45 +81,45 @@ module.exports = class foxbit extends Exchange {
                 // we only set the balance for the currency if that currency is present in response
                 // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (currencyId in balances) {
-                    let account = this.account ();
-                    account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
-                    account['total'] = parseFloat (balances[currencyId]) * 1e-8;
+                    let account = this.account();
+                    account['used'] = parseFloat(balances[currencyId + '_locked']) * 1e-8;
+                    account['total'] = parseFloat(balances[currencyId]) * 1e-8;
                     account['free'] = account['total'] - account['used'];
                     result[code] = account;
                 }
             }
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let orderbook = await this.publicGetCurrencyOrderbook(this.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook(orderbook);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let market = this.market (symbol);
-        let ticker = await this.publicGetCurrencyTicker (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        let market = this.market(symbol);
+        let ticker = await this.publicGetCurrencyTicker(this.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        let timestamp = this.milliseconds ();
-        let lowercaseQuote = market['quote'].toLowerCase ();
+        let timestamp = this.milliseconds();
+        let lowercaseQuote = market['quote'].toLowerCase();
         let quoteVolume = 'vol_' + lowercaseQuote;
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
+            'ask': this.safeFloat(ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -129,19 +129,19 @@ module.exports = class foxbit extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
+            'baseVolume': this.safeFloat(ticker, 'vol'),
+            'quoteVolume': parseFloat(ticker[quoteVolume]),
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade(trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': this.safeString (trade, 'tid'),
+            'id': this.safeString(trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['side'],
@@ -150,22 +150,22 @@ module.exports = class foxbit extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetCurrencyTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetCurrencyTrades(this.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market')
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        let market = this.market (symbol);
+            throw new ExchangeError(this.id + ' allows limit orders only');
+        let market = this.market(symbol);
         let orderSide = (side === 'buy') ? '1' : '2';
         let order = {
-            'ClOrdID': this.nonce (),
+            'ClOrdID': this.nonce(),
             'Symbol': market['id'],
             'Side': orderSide,
             'OrdType': '2',
@@ -173,8 +173,8 @@ module.exports = class foxbit extends Exchange {
             'OrderQty': amount,
             'BrokerID': market['brokerId'],
         };
-        let response = await this.privatePostD (this.extend (order, params));
-        let indexed = this.indexBy (response['Responses'], 'MsgType');
+        let response = await this.privatePostD(this.extend(order, params));
+        let indexed = this.indexBy(response['Responses'], 'MsgType');
         let execution = indexed['8'];
         return {
             'info': response,
@@ -182,38 +182,38 @@ module.exports = class foxbit extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostF (this.extend ({
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        return await this.privatePostF(this.extend({
             'ClOrdID': id,
         }, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
+            if (Object.keys(query).length)
+                url += '?' + this.urlencode(query);
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let request = this.extend ({ 'MsgType': path }, query);
-            body = this.json (request);
+            this.checkRequiredCredentials();
+            let nonce = this.nonce().toString();
+            let request = this.extend({ 'MsgType': path }, query);
+            body = this.json(request);
             headers = {
                 'APIKey': this.apiKey,
                 'Nonce': nonce,
-                'Signature': this.hmac (this.encode (nonce), this.encode (this.secret)),
+                'Signature': this.hmac(this.encode(nonce), this.encode(this.secret)),
                 'Content-Type': 'application/json',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2(path, api, method, params, headers, body);
         if ('Status' in response)
             if (response['Status'] !== 200)
-                throw new ExchangeError (this.id + ' ' + this.json (response));
+                throw new ExchangeError(this.id + ' ' + this.json(response));
         return response;
     }
 };

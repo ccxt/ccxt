@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js');
+const liqui = require('./liqui.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class tidex extends liqui {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'tidex',
             'name': 'Tidex',
             'countries': 'UK',
@@ -61,15 +61,15 @@ module.exports = class tidex extends liqui {
         });
     }
 
-    async fetchCurrencies (params = {}) {
-        let currencies = await this.webGetCurrency (params);
+    async fetchCurrencies(params = {}) {
+        let currencies = await this.webGetCurrency(params);
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['symbol'];
             let precision = currency['amountPoint'];
-            let code = id.toUpperCase ();
-            code = this.commonCurrencyCode (code);
+            let code = id.toUpperCase();
+            code = this.commonCurrencyCode(code);
             let active = currency['visible'] === true;
             let status = 'ok';
             if (!active) {
@@ -100,11 +100,11 @@ module.exports = class tidex extends liqui {
                 'limits': {
                     'amount': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'max': Math.pow(10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': Math.pow(10, -precision),
+                        'max': Math.pow(10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -125,40 +125,40 @@ module.exports = class tidex extends liqui {
         return result;
     }
 
-    getVersionString () {
+    getVersionString() {
         return '';
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
+        let query = this.omit(params, this.extractParams(path));
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
+            this.checkRequiredCredentials();
+            let nonce = this.nonce();
+            body = this.urlencode(this.extend({
                 'nonce': nonce,
                 'method': path,
             }, query));
-            let signature = this.signBodyWithSecret (body);
+            let signature = this.signBodyWithSecret(body);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
                 'Sign': signature,
             };
         } else if (api === 'public') {
-            url += this.getVersionString () + '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            url += this.getVersionString() + '/' + this.implodeParams(path, params);
+            if (Object.keys(query).length) {
+                url += '?' + this.urlencode(query);
             }
         } else {
-            url += '/' + this.implodeParams (path, params);
+            url += '/' + this.implodeParams(path, params);
             if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                if (Object.keys(query).length) {
+                    url += '?' + this.urlencode(query);
                 }
             } else {
-                if (Object.keys (query).length) {
-                    body = this.urlencode (query);
+                if (Object.keys(query).length) {
+                    body = this.urlencode(query);
                     headers = {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     };

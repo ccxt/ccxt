@@ -14,8 +14,8 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
         const id = openOrders[j]['id'];
         this.orders[id] = openOrders[j];
     }
-    let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-    let cachedOrderIds = Object.keys (this.orders);
+    let openOrdersIndexedById = this.indexBy(openOrders, 'id');
+    let cachedOrderIds = Object.keys(this.orders);
     let result = [];
     for (let k = 0; k < cachedOrderIds.length; k++) {
         // match each cached order to an order in the open orders array
@@ -24,7 +24,7 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
         // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
         let id = cachedOrderIds[k];
         let order = this.orders[id];
-        result.push (order);
+        result.push(order);
         if (!(id in openOrdersIndexedById)) {
             // cached order is not in open orders array
             // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
@@ -32,7 +32,7 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
                 continue;
             // order is cached but not present in the list of open orders -> mark the cached order as closed
             if (order['status'] === 'open') {
-                order = this.extend (order, {
+                order = this.extend(order, {
                     'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                     'cost': undefined,
                     'filled': order['amount'],
@@ -48,8 +48,8 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
     }
     return result;
 
-    console.log (this.id, orders, openOrders, closedOrders, canceledOrders)
-    process.exit ()
+    console.log(this.id, orders, openOrders, closedOrders, canceledOrders)
+    process.exit()
 }
 // -----------------------------------------------------------------------------
 

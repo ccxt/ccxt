@@ -1,11 +1,11 @@
 'use strict';
 
-const HydroClient = require ('@hydro-protocol/sdk').HydroClient;
-const Exchange = require ('./base/Exchange');
+const HydroClient = require('@hydro-protocol/sdk').HydroClient;
+const Exchange = require('./base/Exchange');
 
 module.exports = class ddex extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'ddex',
             'name': 'DDEX',
             'userAgent': undefined,
@@ -42,43 +42,43 @@ module.exports = class ddex extends Exchange {
      * Instantiates and/or returns an instance of the Hydro SDK client.
      * @returns {HydroClient}
      */
-    ddexAPI () {
+    ddexAPI() {
         if (!this.hydroClient) {
-            this.hydroClient = HydroClient.withoutAuth ();
+            this.hydroClient = HydroClient.withoutAuth();
         }
         return this.hydroClient;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const [baseSymbol, quoteSymbol] = symbol.split ('/');
-        const orderbook = await this.ddexAPI ().getOrderbook (`${baseSymbol}-${quoteSymbol}`);
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const [baseSymbol, quoteSymbol] = symbol.split('/');
+        const orderbook = await this.ddexAPI().getOrderbook(`${baseSymbol}-${quoteSymbol}`);
         const { bids, asks } = orderbook;
 
-        const formattedBids = new Array (bids.length);
+        const formattedBids = new Array(bids.length);
         for (let i = 0; i < bids.length; i++) {
             const bid = bids[i];
-            formattedBids[i] = [bid.price.toString (), bid.amount.toString ()];
+            formattedBids[i] = [bid.price.toNumber(), bid.amount.toNumber()];
         }
-        const formattedAsks = new Array (asks.length);
+        const formattedAsks = new Array(asks.length);
         for (let i = 0; i < asks.length; i++) {
             const ask = asks[i];
-            formattedBids[i] = [ask.price.toString (), ask.amount.toString ()];
+            formattedAsks[i] = [ask.price.toNumber(), ask.amount.toNumber()];
         }
-        const now = new Date ();
+        const now = new Date();
         return {
-            'timestamp': now.getTime (),
-            'datetime': now.toISOString (),
+            'timestamp': now.getTime(),
+            'datetime': now.toISOString(),
             'nonce': undefined,
             'bids': formattedBids,
             'asks': formattedAsks,
         };
     }
 
-    async fetchMarkets () {
-        const markets = await this.ddexAPI ().listMarkets ();
+    async fetchMarkets() {
+        const markets = await this.ddexAPI().listMarkets();
         const numMarkets = markets.length;
-        const result = new Array (numMarkets);
+        const result = new Array(numMarkets);
         for (let i = 0; i < numMarkets; i++) {
             const market = markets[i];
             const { baseToken, quoteToken } = market;

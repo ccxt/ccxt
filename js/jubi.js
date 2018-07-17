@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const btcbox = require ('./btcbox.js');
+const btcbox = require('./btcbox.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class jubi extends btcbox {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'jubi',
             'name': 'jubi.com',
             'countries': 'CN',
@@ -27,18 +27,18 @@ module.exports = class jubi extends btcbox {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetAllticker ();
-        let keys = Object.keys (markets);
+    async fetchMarkets() {
+        let markets = await this.publicGetAllticker();
+        let keys = Object.keys(markets);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
-            let base = id.toUpperCase ();
+            let base = id.toUpperCase();
             let quote = 'CNY'; // todo
             let symbol = base + '/' + quote;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            result.push ({
+            base = this.commonCurrencyCode(base);
+            quote = this.commonCurrencyCode(quote);
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,

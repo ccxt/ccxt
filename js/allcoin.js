@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js');
+const okcoinusd = require('./okcoinusd.js');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class allcoin extends okcoinusd {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
             'countries': 'CA',
@@ -57,9 +57,9 @@ module.exports = class allcoin extends okcoinusd {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets() {
         let result = [];
-        let response = await this.webGetHomeMarketOverViewDetail ();
+        let response = await this.webGetHomeMarketOverViewDetail();
         let coins = response['marketCoins'];
         for (let j = 0; j < coins.length; j++) {
             let markets = coins[j]['Markets'];
@@ -67,12 +67,12 @@ module.exports = class allcoin extends okcoinusd {
                 let market = markets[k]['Market'];
                 let base = market['Primary'];
                 let quote = market['Secondary'];
-                let baseId = base.toLowerCase ();
-                let quoteId = quote.toLowerCase ();
+                let baseId = base.toLowerCase();
+                let quoteId = quote.toLowerCase();
                 let id = baseId + '_' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
-                result.push ({
+                result.push({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -110,7 +110,7 @@ module.exports = class allcoin extends okcoinusd {
         return result;
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus(status) {
         if (status === -1)
             return 'canceled';
         if (status === 0)
@@ -124,12 +124,12 @@ module.exports = class allcoin extends okcoinusd {
         return status;
     }
 
-    getCreateDateField () {
+    getCreateDateField() {
         // allcoin typo create_data instead of create_date
         return 'create_data';
     }
 
-    getOrdersField () {
+    getOrdersField() {
         // allcoin typo order instead of orders (expected based on their API docs)
         return 'order';
     }

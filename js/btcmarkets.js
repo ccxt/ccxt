@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, NotSupported, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError, OrderNotFound, NotSupported, InvalidOrder, DDoSProtection } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class btcmarkets extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
             'countries': 'AU', // Australia
@@ -90,16 +90,16 @@ module.exports = class btcmarkets extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let balances = await this.privateGetAccountBalance ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let balances = await this.privateGetAccountBalance();
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let multiplier = 100000000;
-            let total = parseFloat (balance['balance'] / multiplier);
-            let used = parseFloat (balance['pendingFunds'] / multiplier);
+            let total = parseFloat(balance['balance'] / multiplier);
+            let used = parseFloat(balance['pendingFunds'] / multiplier);
             let free = total - used;
             let account = {
                 'free': free,
@@ -108,59 +108,59 @@ module.exports = class btcmarkets extends Exchange {
             };
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV(ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let multiplier = 100000000; // for price and volume
         return [
             ohlcv[0],
-            parseFloat (ohlcv[1]) / multiplier,
-            parseFloat (ohlcv[2]) / multiplier,
-            parseFloat (ohlcv[3]) / multiplier,
-            parseFloat (ohlcv[4]) / multiplier,
-            parseFloat (ohlcv[5]) / multiplier,
+            parseFloat(ohlcv[1]) / multiplier,
+            parseFloat(ohlcv[2]) / multiplier,
+            parseFloat(ohlcv[3]) / multiplier,
+            parseFloat(ohlcv[4]) / multiplier,
+            parseFloat(ohlcv[5]) / multiplier,
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.load_markets ();
-        let market = this.market (symbol);
+    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.load_markets();
+        let market = this.market(symbol);
         let request = {
             'id': market['id'],
             'timeWindow': this.timeframes[timeframe],
         };
         if (typeof since !== 'undefined')
             request['since'] = since;
-        let response = await this.webGetMarketBTCMarketsIdTickByTime (this.extend (request, params));
-        return this.parseOHLCVs (response['ticks'], market, timeframe, since, limit);
+        let response = await this.webGetMarketBTCMarketsIdTickByTime(this.extend(request, params));
+        return this.parseOHLCVs(response['ticks'], market, timeframe, since, limit);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let orderbook = await this.publicGetMarketIdOrderbook(this.extend({
             'id': market['id'],
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        return this.parseOrderBook(orderbook, timestamp);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         let timestamp = ticker['timestamp'] * 1000;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'lastPrice');
+        let last = this.safeFloat(ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': this.safeFloat (ticker, 'bestBid'),
+            'bid': this.safeFloat(ticker, 'bestBid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'bestAsk'),
+            'ask': this.safeFloat(ticker, 'bestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -170,29 +170,29 @@ module.exports = class btcmarkets extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24h'),
+            'baseVolume': this.safeFloat(ticker, 'volume24h'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetMarketIdTick (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let ticker = await this.publicGetMarketIdTick(this.extend({
             'id': market['id'],
         }, params));
-        return this.parseTicker (ticker, market);
+        return this.parseTicker(ticker, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade(trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
             'info': trade,
-            'id': trade['tid'].toString (),
+            'id': trade['tid'].toString(),
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
@@ -201,52 +201,52 @@ module.exports = class btcmarkets extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketIdTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetMarketIdTrades(this.extend({
             // 'since': 59868345231,
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
         let multiplier = 100000000; // for price and volume
         let orderSide = (side === 'buy') ? 'Bid' : 'Ask';
-        let order = this.ordered ({
+        let order = this.ordered({
             'currency': market['quote'],
         });
         order['currency'] = market['quote'];
         order['instrument'] = market['base'];
-        order['price'] = parseInt (price * multiplier);
-        order['volume'] = parseInt (amount * multiplier);
+        order['price'] = parseInt(price * multiplier);
+        order['volume'] = parseInt(amount * multiplier);
         order['orderSide'] = orderSide;
-        order['ordertype'] = this.capitalize (type);
-        order['clientRequestId'] = this.nonce ().toString ();
-        let response = await this.privatePostOrderCreate (order);
+        order['ordertype'] = this.capitalize(type);
+        order['clientRequestId'] = this.nonce().toString();
+        let response = await this.privatePostOrderCreate(order);
         return {
             'info': response,
-            'id': response['id'].toString (),
+            'id': response['id'].toString(),
         };
     }
 
-    async cancelOrders (ids) {
-        await this.loadMarkets ();
+    async cancelOrders(ids) {
+        await this.loadMarkets();
         for (let i = 0; i < ids.length; i++) {
-            ids[i] = parseInt (ids[i]);
+            ids[i] = parseInt(ids[i]);
         }
-        return await this.privatePostOrderCancel ({ 'orderIds': ids });
+        return await this.privatePostOrderCancel({ 'orderIds': ids });
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.cancelOrders ([ id ]);
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        return await this.cancelOrders([ id ]);
     }
 
-    parseMyTrade (trade, market) {
+    parseMyTrade(trade, market) {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
         let side = (trade['side'] === 'Bid') ? 'buy' : 'sell';
@@ -254,9 +254,9 @@ module.exports = class btcmarkets extends Exchange {
         let currency = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
         return {
             'info': trade,
-            'id': trade['id'].toString (),
+            'id': trade['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
@@ -266,26 +266,26 @@ module.exports = class btcmarkets extends Exchange {
                 'cost': trade['fee'] / multiplier,
             },
             'amount': trade['volume'] / multiplier,
-            'order': this.safeString (trade, 'orderId'),
+            'order': this.safeString(trade, 'orderId'),
         };
     }
 
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
+    parseMyTrades(trades, market = undefined, since = undefined, limit = undefined) {
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            let trade = this.parseMyTrade (trades[i], market);
-            result.push (trade);
+            let trade = this.parseMyTrade(trades[i], market);
+            result.push(trade);
         }
         return result;
     }
 
-    parseOrder (order, market = undefined) {
+    parseOrder(order, market = undefined) {
         let multiplier = 100000000;
         let side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
         let type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
         let timestamp = order['creationTime'];
         if (!market) {
-            market = this.market (order['instrument'] + '/' + order['currency']);
+            market = this.market(order['instrument'] + '/' + order['currency']);
         }
         let status = 'open';
         if (order['status'] === 'Failed' || order['status'] === 'Cancelled' || order['status'] === 'Partially Cancelled' || order['status'] === 'Error') {
@@ -293,17 +293,17 @@ module.exports = class btcmarkets extends Exchange {
         } else if (order['status'] === 'Fully Matched' || order['status'] === 'Partially Matched') {
             status = 'closed';
         }
-        let price = this.safeFloat (order, 'price') / multiplier;
-        let amount = this.safeFloat (order, 'volume') / multiplier;
-        let remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
+        let price = this.safeFloat(order, 'price') / multiplier;
+        let amount = this.safeFloat(order, 'volume') / multiplier;
+        let remaining = this.safeFloat(order, 'openVolume', 0.0) / multiplier;
         let filled = amount - remaining;
         let cost = price * amount;
-        let trades = this.parseMyTrades (order['trades'], market);
+        let trades = this.parseMyTrades(order['trades'], market);
         let result = {
             'info': order,
-            'id': order['id'].toString (),
+            'id': order['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
@@ -320,21 +320,21 @@ module.exports = class btcmarkets extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let ids = [ parseInt (id) ];
-        let response = await this.privatePostOrderDetail (this.extend ({
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let ids = [ parseInt(id) ];
+        let response = await this.privatePostOrderDetail(this.extend({
             'orderIds': ids,
         }, params));
         let numOrders = response['orders'].length;
         if (numOrders < 1)
-            throw new OrderNotFound (this.id + ' No matching order found: ' + id);
+            throw new OrderNotFound(this.id + ' No matching order found: ' + id);
         let order = response['orders'][0];
-        return this.parseOrder (order);
+        return this.parseOrder(order);
     }
 
-    prepareHistoryRequest (market, since = undefined, limit = undefined) {
-        let request = this.ordered ({
+    prepareHistoryRequest(market, since = undefined, limit = undefined) {
+        let request = this.ordered({
             'currency': market['quote'],
             'instrument': market['base'],
         });
@@ -349,51 +349,51 @@ module.exports = class btcmarkets extends Exchange {
         return request;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+            throw new NotSupported(this.id + ': fetchOrders requires a `symbol` parameter.');
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let request = this.prepareHistoryRequest(market, since, limit);
+        let response = await this.privatePostOrderHistory(this.extend(request, params));
+        return this.parseOrders(response['orders'], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new NotSupported (this.id + ': fetchOpenOrders requires a `symbol` parameter.');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderOpen (this.extend (request, params));
-        return this.parseOrders (response['orders'], market);
+            throw new NotSupported(this.id + ': fetchOpenOrders requires a `symbol` parameter.');
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let request = this.prepareHistoryRequest(market, since, limit);
+        let response = await this.privatePostOrderOpen(this.extend(request, params));
+        return this.parseOrders(response['orders'], market);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+    async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders(symbol, since, limit, params);
+        return this.filterBy(orders, 'status', 'closed');
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new NotSupported (this.id + ': fetchMyTrades requires a `symbol` parameter.');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
-        return this.parseMyTrades (response['trades'], market);
+            throw new NotSupported(this.id + ': fetchMyTrades requires a `symbol` parameter.');
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let request = this.prepareHistoryRequest(market, since, limit);
+        let response = await this.privatePostOrderTradeHistory(this.extend(request, params));
+        return this.parseMyTrades(response['trades'], market);
     }
 
-    nonce () {
-        return this.milliseconds ();
+    nonce() {
+        return this.milliseconds();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let uri = '/' + this.implodeParams (path, params);
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let uri = '/' + this.implodeParams(path, params);
         let url = this.urls['api'][api] + uri;
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            this.checkRequiredCredentials();
+            let nonce = this.nonce().toString();
             // eslint-disable-next-line quotes
             let auth = uri + "\n" + nonce + "\n";
             headers = {
@@ -402,41 +402,41 @@ module.exports = class btcmarkets extends Exchange {
                 'timestamp': nonce,
             };
             if (method === 'POST') {
-                body = this.json (params);
+                body = this.json(params);
                 auth += body;
             }
-            let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
-            headers['signature'] = this.decode (signature);
+            let secret = this.base64ToBinary(this.secret);
+            let signature = this.hmac(this.encode(auth), secret, 'sha512', 'base64');
+            headers['signature'] = this.decode(signature);
         } else {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys(params).length)
+                url += '?' + this.urlencode(params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (body.length < 2)
             return; // fallback to default error handler
         if (body[0] === '{') {
-            let response = JSON.parse (body);
+            let response = JSON.parse(body);
             if ('success' in response) {
                 if (!response['success']) {
-                    let error = this.safeString (response, 'errorCode');
-                    let message = this.id + ' ' + this.json (response);
+                    let error = this.safeString(response, 'errorCode');
+                    let message = this.id + ' ' + this.json(response);
                     if (error in this.exceptions) {
                         let ExceptionClass = this.exceptions[error];
-                        throw new ExceptionClass (message);
+                        throw new ExceptionClass(message);
                     } else {
-                        throw new ExchangeError (message);
+                        throw new ExchangeError(message);
                     }
                 }
             }
         }
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2(path, api, method, params, headers, body);
         return response;
     }
 };
