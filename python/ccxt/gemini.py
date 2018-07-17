@@ -259,11 +259,12 @@ class gemini (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         response = self.privatePostOrders(params)
-        return self.parse_orders(response, market, since, limit)
+        orders = self.parse_orders(response, None, since, limit)
+        if symbol is not None:
+            market = self.market(symbol)  # throws on non-existent symbol
+            orders = self.filter_by_symbol(orders, market['symbol'])
+        return orders
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
