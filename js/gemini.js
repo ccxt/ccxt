@@ -171,7 +171,7 @@ module.exports = class gemini extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['type'].toLowerCase(),
+            'side': trade['type'].toLowerCase (),
             'price': price,
             'cost': price * amount,
             'amount': amount,
@@ -221,7 +221,7 @@ module.exports = class gemini extends Exchange {
         let price = this.safeFloat (order, 'price');
         let average = this.safeFloat (order, 'avg_execution_price');
         if (average !== 0.0) {
-            price = average;
+            price = average; // prefer filling (execution) price over the submitted price
         }
         let cost = undefined;
         if (typeof filled !== 'undefined') {
@@ -257,7 +257,7 @@ module.exports = class gemini extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'].toLowerCase(),
+            'side': order['side'].toLowerCase (),
             'price': price,
             'average': average,
             'cost': cost,
