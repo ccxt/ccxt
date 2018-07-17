@@ -356,9 +356,8 @@ module.exports = class huobipro extends Exchange {
         let response = await this.privateGetOrderMatchresults (params);
         let trades = this.parseTrades (response['data'], undefined, since, limit);
         if (typeof symbol !== 'undefined') {
-            if (!(symbol in this.markets))
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            trades = this.filterBySymbol (trades, symbol);
+            let market = this.market (symbol);
+            trades = this.filterBySymbol (trades, market['symbol']);
         }
         return trades;
     }
