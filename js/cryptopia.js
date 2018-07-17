@@ -318,7 +318,7 @@ module.exports = class cryptopia extends Exchange {
         let tickers = response['Data'];
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let id = ticker['Market'];
+            let id = ticker['Label'].replace ('/', '_');
             let recognized = (id in this.markets_by_id);
             if (!recognized) {
                 if (this.options['fetchTickersErrors'])
@@ -346,14 +346,9 @@ module.exports = class cryptopia extends Exchange {
         let id = this.safeString (trade, 'TradeId');
         if (typeof market === 'undefined') {
             let marketId = this.safeString (trade, 'Market');
+            marketId = marketId.replace ('/', '_');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            } else {
-                marketId = this.safeString (trade, 'Market');
-                marketId = marketId.replace ('/', '_');
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
             }
         }
         let symbol = undefined;
