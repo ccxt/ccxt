@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -23,10 +23,10 @@ module.exports = class bigone extends Exchange {
                 'fetchOHLCV': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42704835-0e48c7aa-86da-11e8-8e91-a4d1024a91b5.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
                 'api': {
                     'public': 'https://big.one/api/v2',
-                    'private': 'https://big.one.api/v2/viewer',
+                    'private': 'https://big.one/api/v2/viewer',
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
@@ -82,6 +82,14 @@ module.exports = class bigone extends Exchange {
                         'GXS': 0.1,
                         'BITCNY': 1.0,
                     },
+                },
+            },
+            'exceptions': {
+                'codes': {
+                    '401': AuthenticationError,
+                },
+                'detail': {
+                    'Internal server error': ExchangeNotAvailable,
                 },
             },
         });
@@ -141,6 +149,7 @@ module.exports = class bigone extends Exchange {
                 'info': market,
             });
         }
+        this.options['marketsByUuid'] = this.indexBy (result, )
         return result;
     }
 
@@ -349,7 +358,7 @@ module.exports = class bigone extends Exchange {
             let total = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked_balance');
             let free = undefined;
-            if (typeof total !=== 'undefined' && typeof used !== 'undefined') {
+            if (typeof total !== 'undefined' && typeof used !== 'undefined') {
                 free = total - used;
             }
             let account = {
@@ -560,7 +569,7 @@ module.exports = class bigone extends Exchange {
         //       }
         //     }
         //
-        let orders = response['edges'];
+        let orders = this.safeValue (response, 'edges', []);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             result.push (this.parseOrder (orders[i]['node'], market));
@@ -609,19 +618,34 @@ module.exports = class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let error = this.safeValue (response, 'error');
-        let data = this.safeValue (response, 'data');
-        if (error || !data) {
-            let code = this.safeInteger (error, 'code');
-            let errorClasses = {
-                '401': AuthenticationError,
-            };
-            let message = this.safeString (error, 'description', 'Error');
-            let ErrorClass = this.safeString (errorClasses, code, ExchangeError);
-            throw new ErrorClass (message);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            //
+            //      {"errors":{"detail":"Internal server error"}}
+            //
+            const error = this.safeValue (response, 'error');
+            const errors = this.safeValue (response, 'errors');
+            const data = this.safeValue (response, 'data');
+            if (typeof error !== 'undefined' || typeof errors !== 'undefined' || typeof data === 'undefined') {
+                const feedback = this.id + ' ' + this.json (response);
+                let code = this.safeInteger (error, 'code');
+                let exceptions = this.exceptions['codes'];
+                if (typeof errors !== 'undefined') {
+                    code = this.safeString (errors, 'detail');
+                    exceptions = this.exceptions['detail'];
+                }
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
+                }
+            }
         }
-        return response;
     }
+
 };
