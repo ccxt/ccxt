@@ -57,7 +57,33 @@ module.exports = class bcex extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetApiMarketGetPriceList ();
-        return 0;
+        let result = [];
+        let keys = Object.keys(response);
+        for (let i = 0; i < keys.length; i++) {
+            var currentMarketId = keys[i];
+            var currentMarkets = response[currentMarketId];
+            for (let j = 0; j < currentMarkets.length; j++) {
+                var market = currentMarkets[j];
+                let baseId = market.coin_from;
+                let quoteId = market.coin_to;
+                let base = this.commonCurrencyCode(baseId);
+                let quote = this.commonCurrencyCode(quoteId);
+                let id = base + "2" + quote;
+                let symbol = base + '/' + quote;
+                let active = true;
+                result.push({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
+                    'info': market
+                    });
+            }
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
