@@ -281,9 +281,8 @@ module.exports = class gemini extends Exchange {
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
         if (typeof symbol !== 'undefined') {
-            if (!(symbol in this.markets))
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            orders = this.filterBySymbol (orders, symbol);
+            let market = this.market (symbol); // throws on non-existent symbol
+            orders = this.filterBySymbol (orders, market['symbol']);
         }
         return orders;
     }
