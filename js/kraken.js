@@ -524,7 +524,7 @@ module.exports = class kraken extends Exchange {
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
-            id = trade['id'];
+            id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];
