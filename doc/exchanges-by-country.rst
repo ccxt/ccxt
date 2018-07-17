@@ -260,6 +260,8 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | Turkey                   | |btcturk|            | btcturk            | `BTCTurk <https://www.btcturk.com>`__                                           | \*  | `API <https://github.com/BTCTrader/broker-api-docs>`__                                              |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
+| UK                       | |bigone|             | bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                             | 2   | `API <https://open.big.one/docs/api.html>`__                                                        |
++--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | UK                       | |bitlish|            | bitlish            | `Bitlish <https://bitlish.com>`__                                               | 1   | `API <https://bitlish.com/api>`__                                                                   |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+
 | UK                       | |bitstamp|           | bitstamp           | `Bitstamp <https://www.bitstamp.net>`__                                         | 2   | `API <https://www.bitstamp.net/api>`__                                                              |
@@ -442,6 +444,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |nova| image:: https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
+.. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |bitstamp| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
 .. |bitstamp1| image:: https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg
 .. |coinfalcon| image:: https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg

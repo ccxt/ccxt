@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.16.49'
+__version__ = '1.16.50'
 
 # ----------------------------------------------------------------------------
 
@@ -66,6 +66,7 @@ from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
+from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
@@ -193,6 +194,7 @@ exchanges = [
     'anxpro',
     'anybits',
     'bibox',
+    'bigone',
     'binance',
     'bit2c',
     'bitbank',

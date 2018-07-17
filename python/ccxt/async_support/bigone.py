@@ -212,7 +212,7 @@ class bigone (Exchange):
             'open': self.safe_float(ticker, 'open'),
             'close': close,
             'last': close,
-            'previousDayClose': None,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'daily_change'),
             'percentage': self.safe_float(ticker, 'daily_change_perc'),
             'average': None,

@@ -207,7 +207,7 @@ class bigone extends Exchange {
             'open' => $this->safe_float($ticker, 'open'),
             'close' => $close,
             'last' => $close,
-            'previousDayClose' => null,
+            'previousClose' => null,
             'change' => $this->safe_float($ticker, 'daily_change'),
             'percentage' => $this->safe_float($ticker, 'daily_change_perc'),
             'average' => null,
