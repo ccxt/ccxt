@@ -320,10 +320,9 @@ module.exports = class huobipro extends Exchange {
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('symbol' in trade) {
-                let marketId = trade['symbol'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
+            let marketId = this.safeString (trade, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             }
         }
         if (typeof market !== 'undefined')
