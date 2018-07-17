@@ -206,7 +206,7 @@ module.exports = class bigone extends Exchange {
             'open': this.safeFloat (ticker, 'open'),
             'close': close,
             'last': close,
-            'previousDayClose': undefined,
+            'previousClose': undefined,
             'change': this.safeFloat (ticker, 'daily_change'),
             'percentage': this.safeFloat (ticker, 'daily_change_perc'),
             'average': undefined,
