@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.43'
+const version = '1.16.44'
 
 Exchange.ccxtVersion = version
 
@@ -35463,20 +35463,17 @@ module.exports = class independentreserve extends Exchange {
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            // remove this crap
             let keys = Object.keys (params);
-            let payload = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                payload.push (key + '=' + params[key]);
+                auth.push (key + '=' + params[key]);
             }
-            auth = this.arrayConcat (auth, payload);
             let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
             body = this.json ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
-                'signature': signature,
+                'signature': signature.toUpperCase (),
             });
             headers = { 'Content-Type': 'application/json' };
         }
