@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const _1btcxe = require ('./_1btcxe.js');
+const _1btcxe = require('./_1btcxe.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class getbtc extends _1btcxe {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'getbtc',
             'name': 'GetBTC',
             'countries': [ 'VC', 'RU' ], // Saint Vincent and the Grenadines, Russia, CIS

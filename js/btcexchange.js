@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const btcturk = require ('./btcturk.js');
+const btcturk = require('./btcturk.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class btcexchange extends btcturk {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'btcexchange',
             'name': 'BTCExchange',
             'countries': 'PH', // Philippines

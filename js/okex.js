@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js');
+const okcoinusd = require('./okcoinusd.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class okex extends okcoinusd {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'okex',
             'name': 'OKEX',
             'countries': [ 'CN', 'US' ],
@@ -37,11 +37,11 @@ module.exports = class okex extends okcoinusd {
         });
     }
 
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+    calculateFee(symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let cost = parseFloat(this.costToPrecision(symbol, amount * rate));
         if (side === 'sell') {
             cost *= price;
         } else {
@@ -51,12 +51,12 @@ module.exports = class okex extends okcoinusd {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            'cost': parseFloat(this.feeToPrecision(symbol, cost)),
         };
     }
 
-    async fetchMarkets () {
-        let markets = await super.fetchMarkets ();
+    async fetchMarkets() {
+        let markets = await super.fetchMarkets();
         // TODO: they have a new fee schedule as of Feb 7
         // the new fees are progressive and depend on 30-day traded volume
         // the following is the worst case
@@ -72,12 +72,12 @@ module.exports = class okex extends okcoinusd {
         return markets;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
         let request = {};
-        let response = await this.publicGetTickers (this.extend (request, params));
+        let response = await this.publicGetTickers(this.extend(request, params));
         let tickers = response['tickers'];
-        let timestamp = parseInt (response['date']) * 1000;
+        let timestamp = parseInt(response['date']) * 1000;
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
@@ -87,7 +87,7 @@ module.exports = class okex extends okcoinusd {
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
             }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker(this.extend(tickers[i], { 'timestamp': timestamp }), market);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

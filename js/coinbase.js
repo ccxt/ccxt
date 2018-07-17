@@ -2,14 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError, AuthenticationError, DDoSProtection } = require('./base/errors');
 
 // ----------------------------------------------------------------------------
 
 module.exports = class coinbase extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coinbase',
             'name': 'coinbase',
             'countries': 'US',
@@ -144,22 +144,22 @@ module.exports = class coinbase extends Exchange {
         });
     }
 
-    async fetchTime () {
-        let response = await this.publicGetTime ();
+    async fetchTime() {
+        let response = await this.publicGetTime();
         let data = response['data'];
-        return this.parse8601 (data['iso']);
+        return this.parse8601(data['iso']);
     }
 
-    async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
+    async fetchCurrencies(params = {}) {
+        let response = await this.publicGetCurrencies(params);
         let currencies = response['data'];
         let result = {};
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let id = currency['id'];
             let name = currency['name'];
-            let code = this.commonCurrencyCode (id);
-            let minimum = this.safeFloat (currency, 'min_size');
+            let code = this.commonCurrencyCode(id);
+            let minimum = this.safeFloat(currency, 'min_size');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -192,23 +192,23 @@ module.exports = class coinbase extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let timestamp = this.seconds ();
-        let market = this.market (symbol);
-        let request = this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let timestamp = this.seconds();
+        let market = this.market(symbol);
+        let request = this.extend({
             'symbol': market['id'],
         }, params);
-        let buy = await this.publicGetPricesSymbolBuy (request);
-        let sell = await this.publicGetPricesSymbolSell (request);
-        let spot = await this.publicGetPricesSymbolSpot (request);
-        let ask = this.safeFloat (buy['data'], 'amount');
-        let bid = this.safeFloat (sell['data'], 'amount');
-        let last = this.safeFloat (spot['data'], 'amount');
+        let buy = await this.publicGetPricesSymbolBuy(request);
+        let sell = await this.publicGetPricesSymbolSell(request);
+        let spot = await this.publicGetPricesSymbolSpot(request);
+        let ask = this.safeFloat(buy['data'], 'amount');
+        let bid = this.safeFloat(sell['data'], 'amount');
+        let last = this.safeFloat(spot['data'], 'amount');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'bid': bid,
             'ask': ask,
             'last': last,
@@ -233,43 +233,43 @@ module.exports = class coinbase extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}) {
-        let response = await this.privateGetAccounts ();
+    async fetchBalance(params = {}) {
+        let response = await this.privateGetAccounts();
         let balances = response['data'];
         let result = { 'info': response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['balance']['currency'];
             let account = {
-                'free': this.safeFloat (balance['balance'], 'amount'),
+                'free': this.safeFloat(balance['balance'], 'amount'),
                 'used': undefined,
-                'total': this.safeFloat (balance['balance'], 'amount'),
+                'total': this.safeFloat(balance['balance'], 'amount'),
             };
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = '/' + this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys (query).length)
-                request += '?' + this.urlencode (query);
+            if (Object.keys(query).length)
+                request += '?' + this.urlencode(query);
         }
         let url = this.urls['api'] + '/' + this.version + request;
         if (api === 'private') {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            this.checkRequiredCredentials();
+            let nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
+                if (Object.keys(query).length) {
+                    body = this.json(query);
                     payload = body;
                 }
             }
             let what = nonce + method + '/' + this.version + request + payload;
-            let signature = this.hmac (this.encode (what), this.encode (this.secret));
+            let signature = this.hmac(this.encode(what), this.encode(this.secret));
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
                 'CB-ACCESS-SIGN': signature,
@@ -280,13 +280,13 @@ module.exports = class coinbase extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            let response = JSON.parse(body);
             let feedback = this.id + ' ' + body;
             //
             //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
@@ -303,33 +303,33 @@ module.exports = class coinbase extends Exchange {
             //    }
             //
             let exceptions = this.exceptions;
-            let errorCode = this.safeString (response, 'error');
+            let errorCode = this.safeString(response, 'error');
             if (typeof errorCode !== 'undefined') {
                 if (errorCode in exceptions) {
-                    throw new exceptions[errorCode] (feedback);
+                    throw new exceptions[errorCode](feedback);
                 } else {
-                    throw new ExchangeError (feedback);
+                    throw new ExchangeError(feedback);
                 }
             }
-            let errors = this.safeValue (response, 'errors');
+            let errors = this.safeValue(response, 'errors');
             if (typeof errors !== 'undefined') {
-                if (Array.isArray (errors)) {
+                if (Array.isArray(errors)) {
                     let numErrors = errors.length;
                     if (numErrors > 0) {
-                        errorCode = this.safeString (errors[0], 'id');
+                        errorCode = this.safeString(errors[0], 'id');
                         if (typeof errorCode !== 'undefined') {
                             if (errorCode in exceptions) {
-                                throw new exceptions[errorCode] (feedback);
+                                throw new exceptions[errorCode](feedback);
                             } else {
-                                throw new ExchangeError (feedback);
+                                throw new ExchangeError(feedback);
                             }
                         }
                     }
                 }
             }
-            let data = this.safeValue (response, 'data');
+            let data = this.safeValue(response, 'data');
             if (typeof data === 'undefined')
-                throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
+                throw new ExchangeError(this.id + ' failed due to a malformed response ' + this.json(response));
         }
     }
 };

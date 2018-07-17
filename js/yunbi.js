@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const acx = require ('./acx.js');
+const acx = require('./acx.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class yunbi extends acx {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'yunbi',
             'name': 'YUNBI',
             'countries': 'CN',

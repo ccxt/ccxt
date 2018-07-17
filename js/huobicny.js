@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const huobipro = require ('./huobipro.js');
+const huobipro = require('./huobipro.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class huobicny extends huobipro {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'huobicny',
             'name': 'Huobi CNY',
             'hostname': 'be.huobi.com',

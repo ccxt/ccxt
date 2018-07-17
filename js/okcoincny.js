@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const okcoinusd = require ('./okcoinusd.js');
+const okcoinusd = require('./okcoinusd.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class okcoincny extends okcoinusd {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
             'countries': 'CN',

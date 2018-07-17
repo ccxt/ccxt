@@ -1,19 +1,19 @@
 "use strict";
 
-const fs = require ('fs')
+const fs = require('fs')
 
 module.exports = (logFileName, object, methodNames) => {
 
-    for (const name of Object.getOwnPropertyNames (object.constructor.prototype)) {
+    for (const name of Object.getOwnPropertyNames(object.constructor.prototype)) {
 
-        if (methodNames.includes (name)) {
+        if (methodNames.includes(name)) {
 
-            const impl = object[name].bind (object)
+            const impl = object[name].bind(object)
 
             // generates a wrapper around CCXT method
             object[name] = async (...args) => {
 
-                const start = new Date ()
+                const start = new Date()
 
                 let response = undefined
                 let exception = undefined
@@ -21,7 +21,7 @@ module.exports = (logFileName, object, methodNames) => {
 
                 try {
 
-                    response = await impl (...args)
+                    response = await impl(...args)
 
                 } catch (e) {
 
@@ -32,12 +32,12 @@ module.exports = (logFileName, object, methodNames) => {
                     }
                 }
 
-                const end = new Date ()
+                const end = new Date()
                 const log = {
                     start,
-                    startDatetime: start.toISOString (),
+                    startDatetime: start.toISOString(),
                     end,
-                    endDatetime: end.toISOString (),
+                    endDatetime: end.toISOString(),
                     id: object.id,
                     method: name,
                     args,
@@ -45,10 +45,10 @@ module.exports = (logFileName, object, methodNames) => {
                     exception,
                 }
 
-                const fileName = (typeof logFileName === 'string') ? logFileName : logFileName ()
-                const line = JSON.stringify (log) + '\n'
+                const fileName = (typeof logFileName === 'string') ? logFileName : logFileName()
+                const line = JSON.stringify(log) + '\n'
 
-                fs.appendFileSync (fileName, line)
+                fs.appendFileSync(fileName, line)
 
                 if (response)
                     return response

@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError, ExchangeNotAvailable, InvalidOrder } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinone extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': 'KR', // Korea
@@ -110,23 +110,23 @@ module.exports = class coinone extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        let response = await this.privatePostAccountBalance ();
+    async fetchBalance(params = {}) {
+        let response = await this.privatePostAccountBalance();
         let result = { 'info': response };
-        let balances = this.omit (response, [
+        let balances = this.omit(response, [
             'errorCode',
             'result',
             'normalWallets',
         ]);
-        let ids = Object.keys (balances);
+        let ids = Object.keys(balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let balance = balances[id];
-            let code = id.toUpperCase ();
+            let code = id.toUpperCase();
             if (id in this.currencies_by_id)
                 code = this.currencies_by_id[id]['code'];
-            let free = parseFloat (balance['avail']);
-            let total = parseFloat (balance['balance']);
+            let free = parseFloat(balance['avail']);
+            let total = parseFloat(balance['balance']);
             let used = total - free;
             let account = {
                 'free': free,
@@ -135,27 +135,27 @@ module.exports = class coinone extends Exchange {
             };
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetOrderbook (this.extend ({
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetOrderbook(this.extend({
             'currency': market['id'],
             'format': 'json',
         }, params));
-        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'qty');
+        return this.parseOrderBook(response, undefined, 'bid', 'ask', 'price', 'qty');
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetTicker (this.extend ({
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let response = await this.publicGetTicker(this.extend({
             'currency': 'all',
             'format': 'json',
         }, params));
         let result = {};
         let tickers = response;
-        let ids = Object.keys (tickers);
+        let ids = Object.keys(tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let symbol = id;
@@ -164,25 +164,25 @@ module.exports = class coinone extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
                 let ticker = tickers[id];
-                result[symbol] = this.parseTicker (ticker, market);
+                result[symbol] = this.parseTicker(ticker, market);
             }
         }
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetTicker(this.extend({
             'currency': market['id'],
             'format': 'json',
         }, params));
-        return this.parseTicker (response, market);
+        return this.parseTicker(response, market);
     }
 
-    parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last');
-        let previousClose = this.safeFloat (ticker, 'yesterday_last');
+    parseTicker(ticker, market = undefined) {
+        let timestamp = this.milliseconds();
+        let last = this.safeFloat(ticker, 'last');
+        let previousClose = this.safeFloat(ticker, 'yesterday_last');
         let change = undefined;
         if (typeof last !== 'undefined' && typeof previousClose !== 'undefined')
             change = previousClose - last;
@@ -190,74 +190,74 @@ module.exports = class coinone extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'first'),
+            'open': this.safeFloat(ticker, 'first'),
             'close': last,
             'last': last,
             'previousClose': previousClose,
             'change': change,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat(ticker, 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
+    parseTrade(trade, market = undefined) {
+        let timestamp = parseInt(trade['timestamp']) * 1000;
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         return {
             'id': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'qty'),
+            'price': this.safeFloat(trade, 'price'),
+            'amount': this.safeFloat(trade, 'qty'),
             'fee': undefined,
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetTrades(this.extend({
             'currency': market['id'],
             'period': 'hour',
             'format': 'json',
         }, params));
-        return this.parseTrades (response['completeOrders'], market, since, limit);
+        return this.parseTrades(response['completeOrders'], market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit')
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        await this.loadMarkets ();
+            throw new ExchangeError(this.id + ' allows limit orders only');
+        await this.loadMarkets();
         let request = {
             'price': price,
-            'currency': this.marketId (symbol),
+            'currency': this.marketId(symbol),
             'qty': amount,
         };
-        let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
-        let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId');
-        let timestamp = this.milliseconds ();
+        let method = 'privatePostOrder' + this.capitalize(type) + this.capitalize(side);
+        let response = await this[method](this.extend(request, params));
+        let id = this.safeString(response, 'orderId');
+        let timestamp = this.milliseconds();
         let cost = price * amount;
         let order = {
             'info': response,
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -275,26 +275,26 @@ module.exports = class coinone extends Exchange {
         return order;
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        let order = this.safeValue (this.orders, id);
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        let order = this.safeValue(this.orders, id);
         let amount = undefined;
         let price = undefined;
         let side = undefined;
         if (typeof order === 'undefined') {
-            price = this.safeFloat (params, 'price');
+            price = this.safeFloat(params, 'price');
             if (typeof price === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder(this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The price parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
-            amount = this.safeFloat (params, 'qty');
+            amount = this.safeFloat(params, 'qty');
             if (typeof amount === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder(this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
-            side = this.safeFloat (params, 'is_ask');
+            side = this.safeFloat(params, 'is_ask');
             if (typeof side === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder(this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
         } else {
             price = order['price'];
@@ -307,30 +307,30 @@ module.exports = class coinone extends Exchange {
             'qty': amount,
             'is_ask': side,
         };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await this.privatePostOrderCancel(this.extend(request, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = this.implodeParams(path, params);
+        let query = this.omit(params, this.extractParams(path));
         let url = this.urls['api'] + '/';
         if (api === 'public') {
             url += request;
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (Object.keys(query).length) {
+                url += '?' + this.urlencode(query);
             }
         } else {
-            this.checkRequiredCredentials ();
+            this.checkRequiredCredentials();
             url += this.version + '/' + request;
-            let nonce = this.nonce ().toString ();
-            let json = this.json (this.extend ({
+            let nonce = this.nonce().toString();
+            let json = this.json(this.extend({
                 'access_token': this.apiKey,
                 'nonce': nonce,
             }, params));
-            let payload = this.stringToBase64 (this.encode (json));
-            body = this.decode (payload);
-            let secret = this.secret.toUpperCase ();
-            let signature = this.hmac (payload, this.encode (secret), 'sha512');
+            let payload = this.stringToBase64(this.encode(json));
+            body = this.decode(payload);
+            let secret = this.secret.toUpperCase();
+            let signature = this.hmac(payload, this.encode(secret), 'sha512');
             headers = {
                 'content-type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
@@ -340,26 +340,26 @@ module.exports = class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            let response = JSON.parse(body);
             if ('result' in response) {
                 let result = response['result'];
                 if (result !== 'success') {
                     //
                     //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
                     //
-                    const code = this.safeString (response, 'errorCode');
-                    const feedback = this.id + ' ' + this.json (response);
+                    const code = this.safeString(response, 'errorCode');
+                    const feedback = this.id + ' ' + this.json(response);
                     const exceptions = this.exceptions;
                     if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
+                        throw new exceptions[code](feedback);
                     } else {
-                        throw new ExchangeError (feedback);
+                        throw new ExchangeError(feedback);
                     }
                 }
             } else {
-                throw new ExchangeError (this.id + ' ' + body);
+                throw new ExchangeError(this.id + ' ' + body);
             }
         }
     }

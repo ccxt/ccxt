@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class virwox extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'virwox',
             'name': 'VirWoX',
             'countries': [ 'AT', 'EU' ],
@@ -81,9 +81,9 @@ module.exports = class virwox extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetGetInstruments ();
-        let keys = Object.keys (markets['result']);
+    async fetchMarkets() {
+        let markets = await this.publicGetGetInstruments();
+        let keys = Object.keys(markets['result']);
         let result = [];
         for (let p = 0; p < keys.length; p++) {
             let market = markets['result'][keys[p]];
@@ -91,7 +91,7 @@ module.exports = class virwox extends Exchange {
             let symbol = market['symbol'];
             let base = market['longCurrency'];
             let quote = market['shortCurrency'];
-            result.push ({
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -102,9 +102,9 @@ module.exports = class virwox extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostGetBalances ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privatePostGetBalances();
         let balances = response['result']['accountList'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -118,23 +118,23 @@ module.exports = class virwox extends Exchange {
             };
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchMarketPrice (symbol, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicPostGetBestPrices (this.extend ({
+    async fetchMarketPrice(symbol, params = {}) {
+        await this.loadMarkets();
+        let response = await this.publicPostGetBestPrices(this.extend({
             'symbols': [ symbol ],
         }, params));
         let result = response['result'];
         return {
-            'bid': this.safeFloat (result[0], 'bestBuyPrice'),
-            'ask': this.safeFloat (result[0], 'bestSellPrice'),
+            'bid': this.safeFloat(result[0], 'bestBuyPrice'),
+            'ask': this.safeFloat(result[0], 'bestSellPrice'),
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
         let request = {
             'symbols': [ symbol ],
         };
@@ -142,149 +142,149 @@ module.exports = class virwox extends Exchange {
             request['buyDepth'] = limit; // 100
             request['sellDepth'] = limit; // 100
         }
-        let response = await this.publicPostGetMarketDepth (this.extend (request, params));
+        let response = await this.publicPostGetMarketDepth(this.extend(request, params));
         let orderbook = response['result'][0];
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'price', 'volume');
+        return this.parseOrderBook(orderbook, undefined, 'buy', 'sell', 'price', 'volume');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let end = this.milliseconds ();
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let end = this.milliseconds();
         let start = end - 86400000;
-        let response = await this.publicGetGetTradedPriceVolume (this.extend ({
+        let response = await this.publicGetGetTradedPriceVolume(this.extend({
             'instrument': symbol,
-            'endDate': this.ymdhms (end),
-            'startDate': this.ymdhms (start),
+            'endDate': this.ymdhms(end),
+            'startDate': this.ymdhms(start),
             'HLOC': 1,
         }, params));
         let tickers = response['result']['priceVolumeList'];
-        let keys = Object.keys (tickers);
+        let keys = Object.keys(tickers);
         let length = keys.length;
         let lastKey = keys[length - 1];
         let ticker = tickers[lastKey];
-        let timestamp = this.milliseconds ();
-        let close = this.safeFloat (ticker, 'close');
+        let timestamp = this.milliseconds();
+        let close = this.safeFloat(ticker, 'close');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': this.safeFloat(ticker, 'open'),
             'close': close,
             'last': close,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'longVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'shortVolume'),
+            'baseVolume': this.safeFloat(ticker, 'longVolume'),
+            'quoteVolume': this.safeFloat(ticker, 'shortVolume'),
             'info': ticker,
         };
     }
 
-    parseTrade (trade, symbol = undefined) {
-        let sec = this.safeInteger (trade, 'time');
+    parseTrade(trade, symbol = undefined) {
+        let sec = this.safeInteger(trade, 'time');
         let timestamp = sec * 1000;
         return {
             'id': trade['tid'],
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'vol'),
+            'price': this.safeFloat(trade, 'price'),
+            'amount': this.safeFloat(trade, 'vol'),
             'fee': undefined,
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetRawTradeData (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetGetRawTradeData(this.extend({
             'instrument': symbol,
             'timespan': 3600,
         }, params));
         let result = response['result'];
         let trades = result['data'];
-        return this.parseTrades (trades, market);
+        return this.parseTrades(trades, market);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
         let order = {
             'instrument': market['symbol'],
-            'orderType': side.toUpperCase (),
+            'orderType': side.toUpperCase(),
             'amount': amount,
         };
         if (type === 'limit')
             order['price'] = price;
-        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        let response = await this.privatePostPlaceOrder(this.extend(order, params));
         return {
             'info': response,
-            'id': response['result']['orderID'].toString (),
+            'id': response['result']['orderID'].toString(),
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder (this.extend ({
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        return await this.privatePostCancelOrder(this.extend({
             'orderID': id,
         }, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let auth = {};
         if (api === 'private') {
-            this.checkRequiredCredentials ();
+            this.checkRequiredCredentials();
             auth['key'] = this.apiKey;
             auth['user'] = this.login;
             auth['pass'] = this.password;
         }
-        let nonce = this.nonce ();
+        let nonce = this.nonce();
         if (method === 'GET') {
-            url += '?' + this.urlencode (this.extend ({
+            url += '?' + this.urlencode(this.extend({
                 'method': path,
                 'id': nonce,
             }, auth, params));
         } else {
             headers = { 'Content-Type': 'application/json' };
-            body = this.json ({
+            body = this.json({
                 'method': path,
-                'params': this.extend (auth, params),
+                'params': this.extend(auth, params),
                 'id': nonce,
             });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
-                let response = JSON.parse (body);
+                let response = JSON.parse(body);
                 if ('result' in response) {
                     let result = response['result'];
                     if ('errorCode' in result) {
                         let errorCode = result['errorCode'];
                         if (errorCode !== 'OK') {
-                            throw new ExchangeError (this.id + ' error returned: ' + body);
+                            throw new ExchangeError(this.id + ' error returned: ' + body);
                         }
                     }
                 } else {
-                    throw new ExchangeError (this.id + ' malformed response: no result in response: ' + body);
+                    throw new ExchangeError(this.id + ' malformed response: no result in response: ' + body);
                 }
             } else {
                 // if not a JSON response
-                throw new ExchangeError (this.id + ' returned a non-JSON reply: ' + body);
+                throw new ExchangeError(this.id + ' returned a non-JSON reply: ' + body);
             }
         }
     }

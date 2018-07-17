@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitbay extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bitbay',
             'name': 'BitBay',
             'countries': [ 'MT', 'EU' ], // Malta
@@ -140,54 +140,54 @@ module.exports = class bitbay extends Exchange {
         });
     }
 
-    async fetchBalance (params = {}) {
-        let response = await this.privatePostInfo ();
+    async fetchBalance(params = {}) {
+        let response = await this.privatePostInfo();
         if ('balances' in response) {
             let balance = response['balances'];
             let result = { 'info': balance };
-            let codes = Object.keys (this.currencies);
+            let codes = Object.keys(this.currencies);
             for (let i = 0; i < codes.length; i++) {
                 let code = codes[i];
                 let currency = this.currencies[code];
                 let id = currency['id'];
-                let account = this.account ();
+                let account = this.account();
                 if (id in balance) {
-                    account['free'] = parseFloat (balance[id]['available']);
-                    account['used'] = parseFloat (balance[id]['locked']);
-                    account['total'] = this.sum (account['free'], account['used']);
+                    account['free'] = parseFloat(balance[id]['available']);
+                    account['used'] = parseFloat(balance[id]['locked']);
+                    account['total'] = this.sum(account['free'], account['used']);
                 }
                 result[code] = account;
             }
-            return this.parseBalance (result);
+            return this.parseBalance(result);
         }
-        throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
+        throw new ExchangeError(this.id + ' empty balance response ' + this.json(response));
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let orderbook = await this.publicGetIdOrderbook (this.extend ({
-            'id': this.marketId (symbol),
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        let orderbook = await this.publicGetIdOrderbook(this.extend({
+            'id': this.marketId(symbol),
         }, params));
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook(orderbook);
     }
 
-    async fetchTicker (symbol, params = {}) {
-        let ticker = await this.publicGetIdTicker (this.extend ({
-            'id': this.marketId (symbol),
+    async fetchTicker(symbol, params = {}) {
+        let ticker = await this.publicGetIdTicker(this.extend({
+            'id': this.marketId(symbol),
         }, params));
-        let timestamp = this.milliseconds ();
-        let baseVolume = this.safeFloat (ticker, 'volume');
-        let vwap = this.safeFloat (ticker, 'vwap');
+        let timestamp = this.milliseconds();
+        let baseVolume = this.safeFloat(ticker, 'volume');
+        let vwap = this.safeFloat(ticker, 'vwap');
         let quoteVolume = baseVolume * vwap;
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max'),
-            'low': this.safeFloat (ticker, 'min'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'max'),
+            'low': this.safeFloat(ticker, 'min'),
+            'bid': this.safeFloat(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': vwap,
             'open': undefined,
@@ -196,20 +196,20 @@ module.exports = class bitbay extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average'),
+            'average': this.safeFloat(ticker, 'average'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade(trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
             'id': trade['tid'],
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': trade['type'],
@@ -218,19 +218,19 @@ module.exports = class bitbay extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetIdTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        let market = this.market(symbol);
+        let response = await this.publicGetIdTrades(this.extend({
             'id': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit')
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        let market = this.market (symbol);
-        return this.privatePostTrade (this.extend ({
+            throw new ExchangeError(this.id + ' allows limit orders only');
+        let market = this.market(symbol);
+        return this.privatePostTrade(this.extend({
             'type': side,
             'currency': market['baseId'],
             'amount': amount,
@@ -239,11 +239,11 @@ module.exports = class bitbay extends Exchange {
         }, params));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancel ({ 'id': id });
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        return await this.privatePostCancel({ 'id': id });
     }
 
-    isFiat (currency) {
+    isFiat(currency) {
         let fiatCurrencies = {
             'USD': true,
             'EUR': true,
@@ -254,16 +254,16 @@ module.exports = class bitbay extends Exchange {
         return false;
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress(address);
+        await this.loadMarkets();
         let method = undefined;
-        let currency = this.currency (code);
+        let currency = this.currency(code);
         let request = {
             'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (code)) {
+        if (this.isFiat(code)) {
             method = 'privatePostWithdraw';
             // request['account'] = params['account']; // they demand an account number
             // request['express'] = params['express']; // whatever it means, they don't explain
@@ -271,44 +271,44 @@ module.exports = class bitbay extends Exchange {
         } else {
             method = 'privatePostTransfer';
             if (typeof tag !== 'undefined')
-                address += '?dt=' + tag.toString ();
+                address += '?dt=' + tag.toString();
             request['address'] = address;
         }
-        let response = await this[method] (this.extend (request, params));
+        let response = await this[method](this.extend(request, params));
         return {
             'info': response,
             'id': undefined,
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         if (api === 'public') {
-            let query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params) + '.json';
-            url += '?' + this.urlencode (query);
+            let query = this.omit(params, this.extractParams(path));
+            url += '/' + this.implodeParams(path, params) + '.json';
+            url += '?' + this.urlencode(query);
         } else {
-            this.checkRequiredCredentials ();
-            body = this.urlencode (this.extend ({
+            this.checkRequiredCredentials();
+            body = this.urlencode(this.extend({
                 'method': path,
-                'moment': this.nonce (),
+                'moment': this.nonce(),
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'API-Key': this.apiKey,
-                'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                'API-Hash': this.hmac(this.encode(body), this.encode(this.secret), 'sha512'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
+    handleErrors(httpCode, reason, url, method, headers, body) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
         if (body.length < 2)
             return;
         if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
+            let response = JSON.parse(body);
             if ('code' in response) {
                 //
                 // bitbay returns the integer 'success': 1 key from their private API
@@ -336,12 +336,12 @@ module.exports = class bitbay extends Exchange {
                 //      510 Invalid market name
                 //
                 let code = response['code']; // always an integer
-                const feedback = this.id + ' ' + this.json (response);
+                const feedback = this.id + ' ' + this.json(response);
                 const exceptions = this.exceptions;
                 if (code in this.exceptions) {
-                    throw new exceptions[code] (feedback);
+                    throw new exceptions[code](feedback);
                 } else {
-                    throw new ExchangeError (feedback);
+                    throw new ExchangeError(feedback);
                 }
             }
         }

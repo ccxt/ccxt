@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { NotSupported } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { NotSupported } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitlish extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bitlish',
             'name': 'Bitlish',
             'countries': [ 'GB', 'EU', 'RU' ],
@@ -122,19 +122,19 @@ module.exports = class bitlish extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let markets = await this.publicGetPairs ();
+    async fetchMarkets() {
+        let markets = await this.publicGetPairs();
         let result = [];
-        let keys = Object.keys (markets);
+        let keys = Object.keys(markets);
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let [ base, quote ] = symbol.split('/');
+            base = this.commonCurrencyCode(base);
+            quote = this.commonCurrencyCode(quote);
             symbol = base + '/' + quote;
-            result.push ({
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -145,95 +145,95 @@ module.exports = class bitlish extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market) {
-        let timestamp = this.milliseconds ();
+    parseTicker(ticker, market) {
+        let timestamp = this.milliseconds();
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'high': this.safeFloat (ticker, 'max'),
-            'low': this.safeFloat (ticker, 'min'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeFloat(ticker, 'max'),
+            'low': this.safeFloat(ticker, 'min'),
+            'bid': this.safeFloat(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeFloat(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'first'),
+            'open': this.safeFloat(ticker, 'first'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': this.safeFloat (ticker, 'prc') * 100,
+            'percentage': this.safeFloat(ticker, 'prc') * 100,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'sum'),
+            'baseVolume': this.safeFloat(ticker, 'sum'),
             'quoteVolume': undefined,
             'info': ticker,
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
-        let ids = Object.keys (tickers);
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let tickers = await this.publicGetTickers(params);
+        let ids = Object.keys(tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             let ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker(ticker, market);
         }
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let tickers = await this.publicGetTickers (params);
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let tickers = await this.publicGetTickers(params);
         let ticker = tickers[market['id']];
-        return this.parseTicker (ticker, market);
+        return this.parseTicker(ticker, market);
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOHLCV(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
         // let market = this.market (symbol);
-        let now = this.seconds ();
+        let now = this.seconds();
         let start = now - 86400 * 30; // last 30 days
         if (typeof since !== 'undefined')
-            start = parseInt (since / 1000);
-        let interval = [ start.toString (), undefined ];
-        return await this.publicPostOhlcv (this.extend ({
+            start = parseInt(since / 1000);
+        let interval = [ start.toString(), undefined ];
+        return await this.publicPostOhlcv(this.extend({
             'time_range': interval,
         }, params));
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let orderbook = await this.publicGetTradesDepth (this.extend ({
-            'pair_id': this.marketId (symbol),
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let orderbook = await this.publicGetTradesDepth(this.extend({
+            'pair_id': this.marketId(symbol),
         }, params));
         let timestamp = undefined;
-        let last = this.safeInteger (orderbook, 'last');
+        let last = this.safeInteger(orderbook, 'last');
         if (last)
-            timestamp = parseInt (last / 1000);
-        return this.parseOrderBook (orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
+            timestamp = parseInt(last / 1000);
+        return this.parseOrderBook(orderbook, timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
-    parseTrade (trade, market = undefined) {
+    parseTrade(trade, market = undefined) {
         let side = (trade['dir'] === 'bid') ? 'buy' : 'sell';
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let timestamp = parseInt (trade['created'] / 1000);
+        let timestamp = parseInt(trade['created'] / 1000);
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
@@ -243,25 +243,25 @@ module.exports = class bitlish extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTradesHistory (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetTradesHistory(this.extend({
             'pair_id': market['id'],
         }, params));
-        return this.parseTrades (response['list'], market, since, limit);
+        return this.parseTrades(response['list'], market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privatePostBalance();
         let result = { 'info': response };
-        let currencies = Object.keys (response);
+        let currencies = Object.keys(response);
         let balance = {};
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let account = response[currency];
-            currency = currency.toUpperCase ();
+            currency = currency.toUpperCase();
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if (currency === 'DSH')
                 currency = 'DASH';
@@ -269,58 +269,58 @@ module.exports = class bitlish extends Exchange {
                 currency = 'DOGE';
             balance[currency] = account;
         }
-        currencies = Object.keys (this.currencies);
+        currencies = Object.keys(this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let account = this.account ();
+            let account = this.account();
             if (currency in balance) {
-                account['free'] = parseFloat (balance[currency]['funds']);
-                account['used'] = parseFloat (balance[currency]['holded']);
-                account['total'] = this.sum (account['free'], account['used']);
+                account['free'] = parseFloat(balance[currency]['funds']);
+                account['used'] = parseFloat(balance[currency]['holded']);
+                account['total'] = this.sum(account['free'], account['used']);
             }
             result[currency] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    signIn () {
-        return this.privatePostSignin ({
+    signIn() {
+        return this.privatePostSignin({
             'login': this.login,
             'passwd': this.password,
         });
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
         let order = {
-            'pair_id': this.marketId (symbol),
+            'pair_id': this.marketId(symbol),
             'dir': (side === 'buy') ? 'bid' : 'ask',
             'amount': amount,
         };
         if (type === 'limit')
             order['price'] = price;
-        let result = await this.privatePostCreateTrade (this.extend (order, params));
+        let result = await this.privatePostCreateTrade(this.extend(order, params));
         return {
             'info': result,
             'id': result['id'],
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostCancelTrade ({ 'id': id });
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        return await this.privatePostCancelTrade({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
+    async withdraw(currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress(address);
+        await this.loadMarkets();
         if (currency !== 'BTC') {
             // they did not document other types...
-            throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
+            throw new NotSupported(this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
-        let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
-            'amount': parseFloat (amount),
+        let response = await this.privatePostWithdraw(this.extend({
+            'currency': currency.toLowerCase(),
+            'amount': parseFloat(amount),
             'account': address,
             'payment_method': 'bitcoin', // they did not document other types...
         }, params));
@@ -330,19 +330,19 @@ module.exports = class bitlish extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys (params).length)
-                    url += '?' + this.urlencode (params);
+                if (Object.keys(params).length)
+                    url += '?' + this.urlencode(params);
             } else {
-                body = this.json (params);
+                body = this.json(params);
                 headers = { 'Content-Type': 'application/json' };
             }
         } else {
-            this.checkRequiredCredentials ();
-            body = this.json (this.extend ({ 'token': this.apiKey }, params));
+            this.checkRequiredCredentials();
+            body = this.json(this.extend({ 'token': this.apiKey }, params));
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

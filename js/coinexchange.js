@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const Exchange = require('./base/Exchange');
+const { ExchangeError } = require('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coinexchange extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coinexchange',
             'name': 'CoinExchange',
             'countries': [ 'IN', 'JP', 'KR', 'VN', 'US' ],
@@ -553,15 +553,15 @@ module.exports = class coinexchange extends Exchange {
         });
     }
 
-    async fetchCurrencies (params = {}) {
-        let response = await this.publicGetGetcurrencies (params);
+    async fetchCurrencies(params = {}) {
+        let response = await this.publicGetGetcurrencies(params);
         let currencies = response['result'];
         let precision = this.precision['amount'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             let id = currency['CurrencyID'];
-            let code = this.commonCurrencyCode (currency['TickerCode']);
+            let code = this.commonCurrencyCode(currency['TickerCode']);
             let active = currency['WalletStatus'] === 'online';
             let status = 'ok';
             if (!active)
@@ -576,11 +576,11 @@ module.exports = class coinexchange extends Exchange {
                 'limits': {
                     'amount': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'max': Math.pow(10, precision),
                     },
                     'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                        'min': Math.pow(10, -precision),
+                        'max': Math.pow(10, precision),
                     },
                     'cost': {
                         'min': undefined,
@@ -588,7 +588,7 @@ module.exports = class coinexchange extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': Math.pow (10, precision),
+                        'max': Math.pow(10, precision),
                     },
                 },
                 'info': currency,
@@ -597,17 +597,17 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetGetmarkets ();
+    async fetchMarkets() {
+        let response = await this.publicGetGetmarkets();
         let markets = response['result'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['MarketID'];
-            let base = this.commonCurrencyCode (market['MarketAssetCode']);
-            let quote = this.commonCurrencyCode (market['BaseCurrencyCode']);
+            let base = this.commonCurrencyCode(market['MarketAssetCode']);
+            let quote = this.commonCurrencyCode(market['BaseCurrencyCode']);
             let symbol = base + '/' + quote;
-            result.push ({
+            result.push({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -622,7 +622,7 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         let symbol = undefined;
         if (!market) {
             let marketId = ticker['MarketID'];
@@ -633,78 +633,78 @@ module.exports = class coinexchange extends Exchange {
         }
         if (market)
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'LastPrice');
+        let timestamp = this.milliseconds();
+        let last = this.safeFloat(ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'HighPrice'),
-            'low': this.safeFloat (ticker, 'LowPrice'),
-            'bid': this.safeFloat (ticker, 'BidPrice'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'HighPrice'),
+            'low': this.safeFloat(ticker, 'LowPrice'),
+            'bid': this.safeFloat(ticker, 'BidPrice'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'AskPrice'),
+            'ask': this.safeFloat(ticker, 'AskPrice'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Change'),
+            'change': this.safeFloat(ticker, 'Change'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'Volume'),
+            'quoteVolume': this.safeFloat(ticker, 'Volume'),
             'info': ticker,
         };
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetGetmarketsummary (this.extend ({
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let ticker = await this.publicGetGetmarketsummary(this.extend({
             'market_id': market['id'],
         }, params));
-        return this.parseTicker (ticker['result'], market);
+        return this.parseTicker(ticker['result'], market);
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetGetmarketsummaries (params);
+    async fetchTickers(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        let response = await this.publicGetGetmarketsummaries(params);
         let tickers = response['result'];
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
+            let ticker = this.parseTicker(tickers[i]);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let orderbook = await this.publicGetGetorderbook (this.extend ({
-            'market_id': this.marketId (symbol),
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let orderbook = await this.publicGetGetorderbook(this.extend({
+            'market_id': this.marketId(symbol),
         }, params));
-        return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
+        return this.parseOrderBook(orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
+            params = this.urlencode(params);
             if (params.length)
                 url += '?' + params;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let success = this.safeInteger (response, 'success');
+    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2(path, api, method, params, headers, body);
+        let success = this.safeInteger(response, 'success');
         if (success !== 1) {
-            let message = this.safeString (response, 'message', 'Error');
-            throw new ExchangeError (message);
+            let message = this.safeString(response, 'message', 'Error');
+            throw new ExchangeError(message);
         }
         return response;
     }

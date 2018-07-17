@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const acx = require ('./acx.js');
-const { ExchangeError } = require ('./base/errors');
+const acx = require('./acx.js');
+const { ExchangeError } = require('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class kuna extends acx {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'kuna',
             'name': 'Kuna',
             'countries': 'UA',
@@ -56,7 +56,7 @@ module.exports = class kuna extends acx {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets() {
         let predefinedMarkets = [
             { 'id': 'btcuah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
             { 'id': 'ethuah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah', 'precision': { 'amount': 6, 'price': 0 }, 'lot': 0.000001, 'limits': { 'amount': { 'min': 0.000001, 'max': undefined }, 'price': { 'min': 1, 'max': undefined }, 'cost': { 'min': 0.000001, 'max': undefined }}},
@@ -73,29 +73,29 @@ module.exports = class kuna extends acx {
             { 'id': 'rmcbtc', 'symbol': 'RMC/BTC', 'base': 'RMC', 'quote': 'BTC', 'baseId': 'rmc', 'quoteId': 'btc' },
         ];
         let markets = [];
-        let tickers = await this.publicGetTickers ();
+        let tickers = await this.publicGetTickers();
         for (let i = 0; i < predefinedMarkets.length; i++) {
             let market = predefinedMarkets[i];
             if (market['id'] in tickers)
-                markets.push (market);
+                markets.push(market);
         }
-        let marketsById = this.indexBy (markets, 'id');
-        let ids = Object.keys (tickers);
+        let marketsById = this.indexBy(markets, 'id');
+        let ids = Object.keys(tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             if (!(id in marketsById)) {
-                let baseId = id.replace ('btc', '');
-                baseId = baseId.replace ('uah', '');
-                baseId = baseId.replace ('gbg', '');
+                let baseId = id.replace('btc', '');
+                baseId = baseId.replace('uah', '');
+                baseId = baseId.replace('gbg', '');
                 if (baseId.length > 0) {
                     let baseIdLength = baseId.length - 0; // a transpiler workaround
-                    let quoteId = id.slice (baseIdLength);
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (base);
-                    quote = this.commonCurrencyCode (quote);
+                    let quoteId = id.slice(baseIdLength);
+                    let base = baseId.toUpperCase();
+                    let quote = quoteId.toUpperCase();
+                    base = this.commonCurrencyCode(base);
+                    quote = this.commonCurrencyCode(quote);
                     let symbol = base + '/' + quote;
-                    markets.push ({
+                    markets.push({
                         'id': id,
                         'symbol': symbol,
                         'base': base,
@@ -109,76 +109,76 @@ module.exports = class kuna extends acx {
         return markets;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderBook = await this.publicGetOrderBook (this.extend ({
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let orderBook = await this.publicGetOrderBook(this.extend({
             'market': market['id'],
         }, params));
-        return this.parseOrderBook (orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
+        return this.parseOrderBook(orderBook, undefined, 'bids', 'asks', 'price', 'remaining_volume');
     }
 
-    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        return this.fetchOrderBook (symbol, limit, params);
+    async fetchL3OrderBook(symbol, limit = undefined, params = {}) {
+        return this.fetchOrderBook(symbol, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orders = await this.privateGetOrders (this.extend ({
+            throw new ExchangeError(this.id + ' fetchOpenOrders requires a symbol argument');
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let orders = await this.privateGetOrders(this.extend({
             'market': market['id'],
         }, params));
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache + fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders(orders, market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['created_at']);
+    parseTrade(trade, market = undefined) {
+        let timestamp = this.parse8601(trade['created_at']);
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let side = this.safeString (trade, 'side');
+        let side = this.safeString(trade, 'side');
         let sideMap = {
             'ask': 'sell',
             'bid': 'buy',
         };
         side = sideMap[side];
-        let cost = this.safeFloat (trade, 'funds');
-        let order = this.safeString (trade, 'order_id');
+        let cost = this.safeFloat(trade, 'funds');
+        let order = this.safeString(trade, 'order_id');
         return {
-            'id': trade['id'].toString (),
+            'id': trade['id'].toString(),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
+            'price': this.safeFloat(trade, 'price'),
+            'amount': this.safeFloat(trade, 'volume'),
             'cost': cost,
             'order': order,
             'info': trade,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetTrades(this.extend({
             'market': market['id'],
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetTradesMy ({ 'market': market['id'] });
-        return this.parseTrades (response, market, since, limit);
+            throw new ExchangeError(this.id + ' fetchOpenOrders requires a symbol argument');
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.privateGetTradesMy({ 'market': market['id'] });
+        return this.parseTrades(response, market, since, limit);
     }
 };

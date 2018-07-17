@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const bitfinex = require ('./bitfinex.js');
+const bitfinex = require('./bitfinex.js');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class ethfinex extends bitfinex {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'ethfinex',
             'name': 'Ethfinex',
             'countries': 'VG',

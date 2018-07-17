@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const zb = require ('./zb.js');
+const zb = require('./zb.js');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitkk extends zb {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'bitkk',
             'name': 'bitkk',
             'comment': 'a Chinese ZB clone',

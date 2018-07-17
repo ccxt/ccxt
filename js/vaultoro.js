@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const Exchange = require ('./base/Exchange');
+const Exchange = require('./base/Exchange');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class vaultoro extends Exchange {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
             'countries': 'CH',
@@ -58,17 +58,17 @@ module.exports = class vaultoro extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets() {
         let result = [];
-        let markets = await this.publicGetMarkets ();
+        let markets = await this.publicGetMarkets();
         let market = markets['data'];
         let baseId = market['MarketCurrency'];
         let quoteId = market['BaseCurrency'];
-        let base = this.commonCurrencyCode (baseId);
-        let quote = this.commonCurrencyCode (quoteId);
+        let base = this.commonCurrencyCode(baseId);
+        let quote = this.commonCurrencyCode(quoteId);
         let symbol = base + '/' + quote;
         let id = market['MarketName'];
-        result.push ({
+        result.push({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -80,20 +80,20 @@ module.exports = class vaultoro extends Exchange {
         return result;
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privateGetBalance ();
+    async fetchBalance(params = {}) {
+        await this.loadMarkets();
+        let response = await this.privateGetBalance();
         let balances = response['data'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
-            let currencyId = balance['currency_code'].toUpperCase ();
+            let currencyId = balance['currency_code'].toUpperCase();
             let code = currencyId;
             if (currencyId in this.currencies_by_id[currencyId])
                 code = this.currencies_by_id[currencyId]['code'];
             let free = balance['cash'];
             let used = balance['reserved'];
-            let total = this.sum (free, used);
+            let total = this.sum(free, used);
             let account = {
                 'free': free,
                 'used': used,
@@ -101,35 +101,35 @@ module.exports = class vaultoro extends Exchange {
             };
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return this.parseBalance(result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (params);
+    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let response = await this.publicGetOrderbook(params);
         let orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
+        return this.parseOrderBook(orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        let quote = await this.publicGetBidandask (params);
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        let quote = await this.publicGetBidandask(params);
         let bidsLength = quote['bids'].length;
         let bid = quote['bids'][bidsLength - 1];
         let ask = quote['asks'][0];
-        let response = await this.publicGetMarkets (params);
+        let response = await this.publicGetMarkets(params);
         let ticker = response['data'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'LastPrice');
+        let timestamp = this.milliseconds();
+        let last = this.safeFloat(ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, '24hHigh'),
-            'low': this.safeFloat (ticker, '24hLow'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, '24hHigh'),
+            'low': this.safeFloat(ticker, '24hLow'),
             'bid': bid[0],
             'bidVolume': undefined,
             'ask': ask[0],
@@ -143,18 +143,18 @@ module.exports = class vaultoro extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
+            'quoteVolume': this.safeFloat(ticker, '24hVolume'),
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['Time']);
+    parseTrade(trade, market) {
+        let timestamp = this.parse8601(trade['Time']);
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': this.iso8601(timestamp),
             'symbol': market['symbol'],
             'order': undefined,
             'type': undefined,
@@ -164,19 +164,19 @@ module.exports = class vaultoro extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTransactionsDay (params);
-        return this.parseTrades (response, market, since, limit);
+    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let response = await this.publicGetTransactionsDay(params);
+        return this.parseTrades(response, market, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
-        let response = await this[method] (this.extend ({
-            'symbol': market['quoteId'].toLowerCase (),
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = this.market(symbol);
+        let method = 'privatePost' + this.capitalize(side) + 'SymbolType';
+        let response = await this[method](this.extend({
+            'symbol': market['quoteId'].toLowerCase(),
             'type': type,
             'gld': amount,
             'price': price || 1,
@@ -187,29 +187,29 @@ module.exports = class vaultoro extends Exchange {
         };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        return await this.privatePostCancelId (this.extend ({
+    async cancelOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        return await this.privatePostCancelId(this.extend({
             'id': id,
         }, params));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/';
         if (api === 'public') {
             url += path;
         } else {
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            url += this.version + '/' + this.implodeParams (path, params);
-            let query = this.extend ({
+            this.checkRequiredCredentials();
+            let nonce = this.nonce();
+            url += this.version + '/' + this.implodeParams(path, params);
+            let query = this.extend({
                 'nonce': nonce,
                 'apikey': this.apiKey,
-            }, this.omit (params, this.extractParams (path)));
-            url += '?' + this.urlencode (query);
+            }, this.omit(params, this.extractParams(path)));
+            url += '?' + this.urlencode(query);
             headers = {
                 'Content-Type': 'application/json',
-                'X-Signature': this.hmac (this.encode (url), this.encode (this.secret)),
+                'X-Signature': this.hmac(this.encode(url), this.encode(this.secret)),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

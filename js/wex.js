@@ -2,14 +2,14 @@
 
 // ---------------------------------------------------------------------------
 
-const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const liqui = require('./liqui.js');
+const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection } = require('./base/errors');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class wex extends liqui {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'wex',
             'name': 'WEX',
             'countries': 'NZ', // New Zealand
@@ -90,21 +90,21 @@ module.exports = class wex extends liqui {
         });
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseTicker(ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        let last = this.safeFloat(ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'sell'),
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeFloat(ticker, 'high'),
+            'low': this.safeFloat(ticker, 'low'),
+            'bid': this.safeFloat(ticker, 'sell'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'buy'),
+            'ask': this.safeFloat(ticker, 'buy'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -113,16 +113,16 @@ module.exports = class wex extends liqui {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
+            'average': this.safeFloat(ticker, 'avg'),
+            'baseVolume': this.safeFloat(ticker, 'vol_cur'),
+            'quoteVolume': this.safeFloat(ticker, 'vol'),
             'info': ticker,
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
-        let request = { 'coinName': this.commonCurrencyCode (code) };
-        let response = await this.privatePostCoinDepositAddress (this.extend (request, params));
+    async fetchDepositAddress(code, params = {}) {
+        let request = { 'coinName': this.commonCurrencyCode(code) };
+        let response = await this.privatePostCoinDepositAddress(this.extend(request, params));
         return {
             'currency': code,
             'address': response['return']['address'],
@@ -132,32 +132,32 @@ module.exports = class wex extends liqui {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors(code, reason, url, method, headers, body) {
         if (code === 200) {
             if (body[0] !== '{') {
                 // response is not JSON -> resort to default error handler
                 return;
             }
-            let response = JSON.parse (body);
+            let response = JSON.parse(body);
             if ('success' in response) {
                 if (!response['success']) {
-                    const error = this.safeString (response, 'error');
+                    const error = this.safeString(response, 'error');
                     if (!error) {
-                        throw new ExchangeError (this.id + ' returned a malformed error: ' + body);
+                        throw new ExchangeError(this.id + ' returned a malformed error: ' + body);
                     }
                     if (error === 'no orders') {
                         // returned by fetchOpenOrders if no open orders (fix for #489) -> not an error
                         return;
                     }
-                    const feedback = this.id + ' ' + this.json (response);
+                    const feedback = this.id + ' ' + this.json(response);
                     const messages = this.exceptions['messages'];
                     if (error in messages) {
-                        throw new messages[error] (feedback);
+                        throw new messages[error](feedback);
                     }
-                    if (error.indexOf ('It is not enough') >= 0) {
-                        throw new InsufficientFunds (feedback);
+                    if (error.indexOf('It is not enough') >= 0) {
+                        throw new InsufficientFunds(feedback);
                     } else {
-                        throw new ExchangeError (feedback);
+                        throw new ExchangeError(feedback);
                     }
                 }
             }

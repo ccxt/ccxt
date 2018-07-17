@@ -11,10 +11,8 @@ module.exports = {
   },
   "extends": ["eslint:recommended"],
   "rules": {
-      "semi": ["error", "never"],
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
-      "func-call-spacing": ["error", "always"],
       "one-var": "off",
       "indent": ["error", 4],
       "comma-style": "off",

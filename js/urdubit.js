@@ -2,13 +2,13 @@
 
 // ---------------------------------------------------------------------------
 
-const foxbit = require ('./foxbit.js');
+const foxbit = require('./foxbit.js');
 
 // ---------------------------------------------------------------------------
 
 module.exports = class urdubit extends foxbit {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'urdubit',
             'name': 'UrduBit',
             'countries': 'PK',

@@ -2,13 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const coinegg = require ('./coinegg.js');
+const coinegg = require('./coinegg.js');
 
 //  ---------------------------------------------------------------------------
 
 module.exports = class coolcoin extends coinegg {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'coolcoin',
             'name': 'CoolCoin',
             'countries': 'HK',

@@ -1,14 +1,14 @@
 'use strict';
 
-const StandardRelayer = require ('../base/StandardRelayer');
+const StandardRelayer = require('../base/StandardRelayer');
 
 /**
  * Amadeus relay is currently only live on the test RPC network right now.
  */
 
 module.exports = class amadeusrelay extends StandardRelayer {
-    describe () {
-        return this.deepExtend (super.describe (), {
+    describe() {
+        return this.deepExtend(super.describe(), {
             'id': 'amadeusrelay',
             'name': 'Amadeus Relay',
             'countries': 'USA',
@@ -42,19 +42,19 @@ module.exports = class amadeusrelay extends StandardRelayer {
         });
     }
 
-    fetchCurrencies () {
-        return this.listedCurrencies ();
+    fetchCurrencies() {
+        return this.listedCurrencies();
     }
 
-    fetchMarkets () {
-        return this.tokenPairs ();
+    fetchMarkets() {
+        return this.tokenPairs();
     }
 
-    fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return this.orderbook (symbol);
+    fetchOrderBook(symbol, limit = undefined, params = {}) {
+        return this.orderbook(symbol);
     }
 
-    fetchTicker (symbol, params = {}) {
-        return this.ticker (symbol);
+    fetchTicker(symbol, params = {}) {
+        return this.ticker(symbol);
     }
 };
