@@ -337,8 +337,7 @@ module.exports = class huobipro extends Exchange {
             side = typeParts[0];
             type = typeParts[1];
         }
-        let amount = this.safeFloat (trade, 'amount');
-        amount = this.safeFloat (trade, 'filled-amount', amount);
+        let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
         return {
             'info': trade,
             'id': this.safeString (trade, 'id'),
