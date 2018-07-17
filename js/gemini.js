@@ -221,7 +221,7 @@ module.exports = class gemini extends Exchange {
         let price = this.safeFloat (order, 'price');
         let average = this.safeFloat (order, 'avg_execution_price');
         if (average !== 0.0) {
-            price = average
+            price = average;
         }
         let cost = undefined;
         if (typeof filled !== 'undefined') {
