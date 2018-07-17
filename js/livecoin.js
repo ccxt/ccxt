@@ -85,6 +85,7 @@ module.exports = class livecoin extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'BTCH': 'Bithash',
                 'CPC': 'CapriCoin',
                 'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
@@ -550,7 +551,7 @@ module.exports = class livecoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -660,9 +661,17 @@ module.exports = class livecoin extends Exchange {
             // returns status code 200 even if success === false
             let success = this.safeValue (response, 'success', true);
             if (!success) {
-                const message = this.safeString (response, 'message', '');
-                if (message.indexOf ('Cannot find order') >= 0) {
-                    throw new OrderNotFound (this.id + ' ' + body);
+                const message = this.safeString (response, 'message');
+                if (typeof message !== 'undefined') {
+                    if (message.indexOf ('Cannot find order') >= 0) {
+                        throw new OrderNotFound (this.id + ' ' + body);
+                    }
+                }
+                const exception = this.safeString (response, 'exception');
+                if (typeof exception !== 'undefined') {
+                    if (exception.indexOf ('Minimal amount is') >= 0) {
+                        throw new InvalidOrder (this.id + ' ' + body);
+                    }
                 }
                 throw new ExchangeError (this.id + ' ' + body);
             }

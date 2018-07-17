@@ -17,6 +17,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import InvalidNonce
@@ -29,7 +30,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -56,9 +57,8 @@ class cryptopia (Exchange):
                 'www': 'https://www.cryptopia.co.nz',
                 'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ],
             },
             'timeframes': {
@@ -113,6 +113,7 @@ class cryptopia (Exchange):
             'commonCurrencies': {
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
+                'BEAN': 'BITB',  # rebranding, see issue  #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
                 'CAN': 'CanYa',
@@ -337,13 +338,13 @@ class cryptopia (Exchange):
             price = self.safe_float(trade, 'Rate')
         cost = self.safe_float(trade, 'Total')
         id = self.safe_string(trade, 'TradeId')
-        if not market:
+        if market is None:
             if 'TradePairId' in trade:
                 if trade['TradePairId'] in self.markets_by_id:
                     market = self.markets_by_id[trade['TradePairId']]
         symbol = None
         fee = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if 'Fee' in trade:
                 fee = {
@@ -385,7 +386,7 @@ class cryptopia (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['TradePairId'] = market['id']
         if limit is not None:
@@ -529,7 +530,7 @@ class cryptopia (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'Market' in order:
             id = order['Market']
@@ -540,7 +541,9 @@ class cryptopia (Exchange):
                 if id in self.options['marketsByLabel']:
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'TimeStamp')
+        timestamp = self.safe_string(order, 'TimeStamp')
+        if timestamp is not None:
+            timestamp = self.parse8601(order['TimeStamp'])
         datetime = None
         if timestamp:
             datetime = self.iso8601(timestamp)
@@ -714,6 +717,8 @@ class cryptopia (Exchange):
                         feedback = self.id
                         if isinstance(error, basestring):
                             feedback = feedback + ' ' + error
+                            if error.find('Invalid trade amount') >= 0:
+                                raise InvalidOrder(feedback)
                             if error.find('does not exist') >= 0:
                                 raise OrderNotFound(feedback)
                             if error.find('Insufficient Funds') >= 0:

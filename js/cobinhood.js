@@ -12,7 +12,7 @@ module.exports = class cobinhood extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'cobinhood',
             'name': 'COBINHOOD',
-            'countries': 'TW',
+            'countries': [ 'TW' ],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchCurrencies': true,
@@ -20,6 +20,7 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
@@ -41,8 +42,8 @@ module.exports = class cobinhood extends Exchange {
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
-                '7d': '7D',
-                '14d': '14D',
+                '1w': '7D',
+                '2w': '14D',
                 '1M': '1M',
             },
             'urls': {
@@ -130,8 +131,12 @@ module.exports = class cobinhood extends Exchange {
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+            },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
             },
         });
     }
@@ -302,7 +307,7 @@ module.exports = class cobinhood extends Exchange {
         let timestamp = trade['timestamp'];
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
-        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let cost = price * amount;
         let side = trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return {
             'info': trade,
@@ -426,7 +431,9 @@ module.exports = class cobinhood extends Exchange {
             if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
+            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+                cost = price * filled;
+            } else if (typeof price !== 'undefined') {
                 cost = price * amount;
             }
         }
@@ -502,7 +509,7 @@ module.exports = class cobinhood extends Exchange {
         return orders;
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,

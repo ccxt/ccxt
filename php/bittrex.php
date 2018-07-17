@@ -13,7 +13,7 @@ class bittrex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bittrex',
             'name' => 'Bittrex',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => 'v1.1',
             'rateLimit' => 1500,
             // new metainfo interface
@@ -146,13 +146,17 @@ class bittrex extends Exchange {
                 'INSUFFICIENT_FUNDS' => '\\ccxt\\InsufficientFunds',
                 'QUANTITY_NOT_PROVIDED' => '\\ccxt\\InvalidOrder',
                 'MIN_TRADE_REQUIREMENT_NOT_MET' => '\\ccxt\\InvalidOrder',
-                'ORDER_NOT_OPEN' => '\\ccxt\\InvalidOrder',
+                'ORDER_NOT_OPEN' => '\\ccxt\\OrderNotFound',
                 'INVALID_ORDER' => '\\ccxt\\InvalidOrder',
                 'UUID_INVALID' => '\\ccxt\\OrderNotFound',
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
             ),
             'options' => array (
+                // price precision by quote currency code
+                'pricePrecisionByCode' => array (
+                    'USD' => 3,
+                ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
             ),
@@ -182,9 +186,12 @@ class bittrex extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            $pricePrecision = 8;
+            if (is_array ($this->options['pricePrecisionByCode']) && array_key_exists ($quote, $this->options['pricePrecisionByCode']))
+                $pricePrecision = $this->options['pricePrecisionByCode'][$quote];
             $precision = array (
                 'amount' => 8,
-                'price' => 8,
+                'price' => $pricePrecision,
             );
             $active = $market['IsActive'] || $market['IsActive'] === 'true';
             $result[] = array (
@@ -449,7 +456,7 @@ class bittrex extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
@@ -567,7 +574,7 @@ class bittrex extends Exchange {
             );
             if ($market !== null) {
                 $fee['currency'] = $market['quote'];
-            } else if ($symbol) {
+            } else if ($symbol !== null) {
                 $currencyIds = explode ('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
                 if (is_array ($this->currencies_by_id) && array_key_exists ($quoteCurrencyId, $this->currencies_by_id))
@@ -643,13 +650,13 @@ class bittrex extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['market'] = $market['id'];
         }
         $response = $this->accountGetOrderhistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['result'], $market, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }

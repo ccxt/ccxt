@@ -11,7 +11,7 @@ module.exports = class yunbi extends acx {
         return this.deepExtend (super.describe (), {
             'id': 'yunbi',
             'name': 'YUNBI',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {

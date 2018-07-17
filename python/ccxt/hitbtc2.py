@@ -27,7 +27,7 @@ class hitbtc2 (hitbtc):
         return self.deep_extend(super(hitbtc2, self).describe(), {
             'id': 'hitbtc2',
             'name': 'HitBTC v2',
-            'countries': 'HK',
+            'countries': ['HK'],
             'rateLimit': 1500,
             'version': '2',
             'has': {
@@ -44,6 +44,7 @@ class hitbtc2 (hitbtc):
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
+                'fetchOrderTrades': False,  # not implemented yet
             },
             'timeframes': {
                 '1m': 'M1',
@@ -786,7 +787,7 @@ class hitbtc2 (hitbtc):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = trade['symbol']
@@ -826,9 +827,14 @@ class hitbtc2 (hitbtc):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['from'] = self.iso8601(since)
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -853,6 +859,8 @@ class hitbtc2 (hitbtc):
             request['timeInForce'] = self.options['defaultTimeInForce']
         response = self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
+        if order['status'] == 'rejected':
+            raise InvalidOrder(self.id + ' order was rejected by the exchange ' + self.json(order))
         id = order['id']
         self.orders[id] = order
         return order
@@ -956,7 +964,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
@@ -966,7 +974,7 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if limit is not None:
@@ -990,7 +998,7 @@ class hitbtc2 (hitbtc):
             # 'offset': 0,
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         if since is not None:
@@ -1049,6 +1057,7 @@ class hitbtc2 (hitbtc):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {

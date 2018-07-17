@@ -16,7 +16,7 @@ class coinfalcon (Exchange):
         return self.deep_extend(super(coinfalcon, self).describe(), {
             'id': 'coinfalcon',
             'name': 'CoinFalcon',
-            'countries': 'GB',
+            'countries': ['GB'],
             'rateLimit': 1000,
             'has': {
                 'fetchTickers': True,
@@ -28,6 +28,7 @@ class coinfalcon (Exchange):
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
@@ -105,7 +106,7 @@ class coinfalcon (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        if not market:
+        if market is None:
             marketId = ticker['name']
             market = self.marketsById[marketId]
         symbol = market['symbol']
@@ -184,7 +185,7 @@ class coinfalcon (Exchange):
         request = {
             'market': market['id'],
         }
-        if since:
+        if since is not None:
             request['since'] = self.iso8601(since)
         response = self.publicGetMarketsMarketTrades(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
@@ -196,18 +197,21 @@ class coinfalcon (Exchange):
         balances = response['data']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            currency = self.common_currency_code(currencyId)
+            currencyId = self.safe_string(balance, 'currency_code')
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            if uppercase in self.currencies_by_id:
+                code = self.currencies_by_id[uppercase]['code']
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['hold']),
+                'free': float(balance['available_balance']),
+                'used': float(balance['hold_balance']),
                 'total': float(balance['balance']),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        if not market:
+        if market is None:
             market = self.marketsById[order['market']]
         symbol = market['symbol']
         timestamp = self.parse8601(order['created_at'])
@@ -274,9 +278,9 @@ class coinfalcon (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        if symbol:
+        if symbol is not None:
             request['market'] = self.market_id(symbol)
-        if since:
+        if since is not None:
             request['since_time'] = self.iso8601(self.milliseconds())
         # TODO: test status=all if it works for closed orders too
         response = self.privateGetUserOrders(self.extend(request, params))
@@ -289,16 +293,16 @@ class coinfalcon (Exchange):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            query = self.urlencode(query)
-            if len(query):
-                url += '?' + query
+            if query:
+                url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             if method == 'GET':
-                url += '?' + self.urlencode(query)
+                if query:
+                    url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-            seconds = self.seconds()
+            seconds = str(self.seconds())
             requestPath = url.split('/')
             requestPath = requestPath[3:]
             requestPath = '/' + '/'.join(requestPath)

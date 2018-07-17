@@ -12,7 +12,7 @@ module.exports = class _1btcxe extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': '_1btcxe',
             'name': '1BTCXE',
-            'countries': 'PA', // Panama
+            'countries': [ 'PA' ], // Panama
             'comment': 'Crypto Capital API',
             'has': {
                 'CORS': true,

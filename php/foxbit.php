@@ -13,7 +13,7 @@ class foxbit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'foxbit',
             'name' => 'FoxBit',
-            'countries' => 'BR',
+            'countries' => array ( 'BR' ),
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,

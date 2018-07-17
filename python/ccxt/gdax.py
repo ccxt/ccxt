@@ -21,7 +21,7 @@ class gdax (Exchange):
         return self.deep_extend(super(gdax, self).describe(), {
             'id': 'gdax',
             'name': 'GDAX',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
@@ -253,7 +253,7 @@ class gdax (Exchange):
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
         symbol = None
-        if not market:
+        if market is None:
             if 'product_id' in trade:
                 marketId = trade['product_id']
                 if marketId in self.markets_by_id:
@@ -262,7 +262,7 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
                 rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
@@ -360,7 +360,7 @@ class gdax (Exchange):
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['created_at'])
         symbol = None
-        if not market:
+        if market is None:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
         status = self.parse_order_status(order['status'])
@@ -414,7 +414,7 @@ class gdax (Exchange):
             'status': 'all',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -424,7 +424,7 @@ class gdax (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -436,7 +436,7 @@ class gdax (Exchange):
             'status': 'done',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))

@@ -16,7 +16,7 @@ class coinmarketcap (Exchange):
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': ['US'],
             'has': {
                 'CORS': True,
                 'privateAPI': False,
@@ -171,7 +171,7 @@ class coinmarketcap (Exchange):
         last = None
         symbol = None
         volume = None
-        if market:
+        if market is not None:
             priceKey = 'price_' + market['quoteId']
             if priceKey in ticker:
                 if ticker[priceKey]:

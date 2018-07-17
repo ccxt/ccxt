@@ -32,7 +32,7 @@ class kraken (Exchange):
         return self.deep_extend(super(kraken, self).describe(), {
             'id': 'kraken',
             'name': 'Kraken',
-            'countries': 'US',
+            'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
             'has': {
@@ -653,8 +653,10 @@ class kraken (Exchange):
         fee = None
         cost = self.safe_float(order, 'cost')
         price = self.safe_float(description, 'price')
-        if not price:
-            price = self.safe_float(order, 'price')
+        if (price is None) or (price == 0):
+            price = self.safe_float(description, 'price2')
+        if (price is None) or (price == 0):
+            price = self.safe_float(order, 'price', price)
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:

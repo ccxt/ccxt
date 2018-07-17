@@ -14,7 +14,7 @@ class flowbtc (Exchange):
         return self.deep_extend(super(flowbtc, self).describe(), {
             'id': 'flowbtc',
             'name': 'flowBTC',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'version': 'v1',
             'rateLimit': 1000,
             'has': {

@@ -12,7 +12,7 @@ module.exports = class foxbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'FoxBit',
-            'countries': 'BR',
+            'countries': [ 'BR' ],
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,

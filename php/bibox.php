@@ -37,7 +37,7 @@ class bibox extends Exchange {
                 '15m' => '15min',
                 '30m' => '30min',
                 '1h' => '1hour',
-                '8h' => '12hour',
+                '12h' => '12hour',
                 '1d' => 'day',
                 '1w' => 'week',
             ),
@@ -150,7 +150,7 @@ class bibox extends Exchange {
         // we don't set values that are not defined by the exchange
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $base = $ticker['coin_symbol'];
@@ -570,7 +570,7 @@ class bibox extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);

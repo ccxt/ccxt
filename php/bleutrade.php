@@ -13,7 +13,7 @@ class bleutrade extends bittrex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bleutrade',
             'name' => 'Bleutrade',
-            'countries' => 'BR', // Brazil
+            'countries' => array ( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
@@ -170,7 +170,7 @@ class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         $this->load_markets();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $this->load_markets();
             $market = $this->market ($symbol);
         } else {

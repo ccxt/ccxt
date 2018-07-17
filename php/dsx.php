@@ -13,7 +13,7 @@ class dsx extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'dsx',
             'name' => 'DSX',
-            'countries' => 'UK',
+            'countries' => array ( 'UK' ),
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,

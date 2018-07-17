@@ -13,7 +13,7 @@ module.exports = class gatecoin extends Exchange {
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK', // Hong Kong
+            'countries': [ 'HK' ], // Hong Kong
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': false,

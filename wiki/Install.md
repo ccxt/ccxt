@@ -11,13 +11,14 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [`./python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [`ccxt.php`](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
 
-You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
+You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
+manually into your working directory with language extension appropriate for your environment.
 
 ```shell
 git clone https://github.com/ccxt/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
+An alternative way of installing this library is to build a custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
 
 ### JavaScript (NPM)
 
@@ -65,7 +66,7 @@ print(ccxt.exchanges) # print a list of all available exchange classes
 The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
 ```Python
-import ccxt.async as ccxt # link against the asynchronous version of ccxt
+import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 ```
 
 ### PHP
@@ -193,7 +194,7 @@ pprint(exchange.fetch_ticker('ETH/BTC'))
 import asyncio
 import os
 import sys
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 from pprint import pprint
 
 

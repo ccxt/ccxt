@@ -13,7 +13,7 @@ class bxinth extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bxinth',
             'name' => 'BX.in.th',
-            'countries' => 'TH', // Thailand
+            'countries' => array ( 'TH' ), // Thailand
             'rateLimit' => 1500,
             'has' => array (
                 'CORS' => false,

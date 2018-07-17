@@ -12,7 +12,7 @@ module.exports = class bitz extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitz',
             'name': 'Bit-Z',
-            'countries': 'HK',
+            'countries': [ 'HK' ],
             'rateLimit': 2000,
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
@@ -123,9 +123,12 @@ module.exports = class bitz extends Exchange {
                 'price': 8,
             },
             'options': {
+                'fetchOHLCVVolume': true,
+                'fetchOHLCVWarning': true,
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
         });
@@ -232,7 +235,10 @@ module.exports = class bitz extends Exchange {
             let id = ids[i];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (tickers[id], market);
+            // they will return some rare tickers set to boolean false under their symbol key
+            if (tickers[id]) {
+                result[symbol] = this.parseTicker (tickers[id], market);
+            }
         }
         return result;
     }
@@ -283,7 +289,23 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let volume = this.options['fetchOHLCVVolume'] ? ohlcv[5] : undefined;
+        return [
+            ohlcv[0],
+            ohlcv[1],
+            ohlcv[2],
+            ohlcv[3],
+            ohlcv[4],
+            volume,
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (this.options['fetchOHLCVWarning']) {
+            // eslint-disable-next-line quotes
+            throw new ExchangeError (this.id + " will return 24h volumes instead of volumes for " + timeframe + " from their API. Set .options['fetchOHLCVWarning'] = false to suppress this warning message. You can set .options['fetchOHLCVVolume'] = false to fetch candles with volume set to undefined.");
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetKline (this.extend ({

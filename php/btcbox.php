@@ -13,7 +13,7 @@ class btcbox extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcbox',
             'name' => 'BtcBox',
-            'countries' => 'JP',
+            'countries' => array ( 'JP' ),
             'rateLimit' => 1000,
             'version' => 'v1',
             'has' => array (

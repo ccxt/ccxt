@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 
 
 async def poll(tickers):

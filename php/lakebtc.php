@@ -13,7 +13,7 @@ class lakebtc extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lakebtc',
             'name' => 'LakeBTC',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => 'api_v2',
             'has' => array (
                 'CORS' => true,
@@ -214,7 +214,9 @@ class lakebtc extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'params' => $id ));
+        return $this->privatePostCancelOrder (array (
+            'params' => array ( $id ),
+        ));
     }
 
     public function nonce () {
@@ -232,7 +234,8 @@ class lakebtc extends Exchange {
             $nonce = $this->nonce ();
             $queryParams = '';
             if (is_array ($params) && array_key_exists ('params', $params)) {
-                $queryParams = $params['params'].join ();
+                $paramsList = $params['params'];
+                $queryParams = implode (',', $paramsList);
             }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,

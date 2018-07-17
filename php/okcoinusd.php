@@ -47,6 +47,7 @@ class okcoinusd extends Exchange {
                     'get' => array (
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ),
                 ),
                 'public' => array (
@@ -132,19 +133,29 @@ class okcoinusd extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                '1009' => '\\ccxt\\OrderNotFound', // for spot markets, cancelling closed order
-                '1051' => '\\ccxt\\OrderNotFound', // for spot markets, cancelling "just closed" order
-                '1019' => '\\ccxt\\OrderNotFound', // order closed?
-                '20015' => '\\ccxt\\OrderNotFound', // for future markets
+                // see https://github.com/okcoin-okex/API-docs-OKEx.com/blob/master/API-For-Spot-EN/Error%20Code%20For%20Spot.md
+                '10000' => '\\ccxt\\ExchangeError', // "Required field, can not be null"
+                '10001' => '\\ccxt\\DDoSProtection', // "Request frequency too high to exceed the limit allowed"
+                '10005' => '\\ccxt\\AuthenticationError', // "'SecretKey' does not exist"
+                '10006' => '\\ccxt\\AuthenticationError', // "'Api_key' does not exist"
+                '10007' => '\\ccxt\\AuthenticationError', // "Signature does not match"
+                '1002' => '\\ccxt\\InsufficientFunds', // "The transaction amount exceed the balance"
+                '1003' => '\\ccxt\\InvalidOrder', // "The transaction amount is less than the minimum requirement"
+                '1004' => '\\ccxt\\InvalidOrder', // "The transaction amount is less than 0"
                 '1013' => '\\ccxt\\InvalidOrder', // no contract type (PR-1101)
                 '1027' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder(symbol, 0, 0) => Incorrect parameter may exceeded limits
-                '1002' => '\\ccxt\\InsufficientFunds', // "The transaction amount exceed the balance"
                 '1050' => '\\ccxt\\InvalidOrder', // returned when trying to cancel an order that was filled or canceled previously
-                '10000' => '\\ccxt\\ExchangeError', // createLimitBuyOrder(symbol, null, null)
-                '10005' => '\\ccxt\\AuthenticationError', // bad apiKey
+                '1217' => '\\ccxt\\InvalidOrder', // "Order was sent at ±5% of the current market price. Please resend"
+                '10014' => '\\ccxt\\InvalidOrder', // "Order price must be between 0 and 1,000,000"
+                '1009' => '\\ccxt\\OrderNotFound', // for spot markets, cancelling closed order
+                '1019' => '\\ccxt\\OrderNotFound', // order closed? ("Undo order failed")
+                '1051' => '\\ccxt\\OrderNotFound', // for spot markets, cancelling "just closed" order
+                '10009' => '\\ccxt\\OrderNotFound', // for spot markets, "Order does not exist"
+                '20015' => '\\ccxt\\OrderNotFound', // for future markets
                 '10008' => '\\ccxt\\ExchangeError', // Illegal URL parameter
             ),
             'options' => array (
+                'marketBuyPrice' => false,
                 'defaultContractType' => 'this_week', // next_week, quarter
                 'warnOnFetchOHLCVLimitArgument' => true,
                 'fiats' => array ( 'USD', 'CNY' ),
@@ -260,7 +271,7 @@ class okcoinusd extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['timestamp'];
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
                 $marketId = $ticker['symbol'];
                 if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
@@ -435,9 +446,19 @@ class okcoinusd extends Exchange {
             } else {
                 $order['type'] .= '_market';
                 if ($side === 'buy') {
-                    $order['price'] = $this->safe_float($params, 'cost');
-                    if (!$order['price'])
-                        throw new ExchangeError ($this->id . ' $market buy orders require an additional cost parameter, cost = $price * amount');
+                    if ($this->options['marketBuyPrice']) {
+                        if ($price === null) {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError ($this->id . " $market buy orders require a $price argument (the $amount you want to spend or the cost of the $order) when $this->options['marketBuyPrice'] is true.");
+                        }
+                        $order['price'] = $price;
+                    } else {
+                        $order['price'] = $this->safe_float($params, 'cost');
+                        if (!$order['price']) {
+                            // eslint-disable-next-line quotes
+                            throw new ExchangeError ($this->id . " $market buy orders require an additional cost parameter, cost = $price * $amount-> If you want to pass the cost of the $market $order (the $amount you want to spend) in the $price argument (the default " . $this->id . " behaviour), set $this->options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                        }
+                    }
                 } else {
                     $order['amount'] = $amount;
                 }
@@ -468,7 +489,7 @@ class okcoinusd extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -536,7 +557,7 @@ class okcoinusd extends Exchange {
         }
         $status = $this->parse_order_status($order['status']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('symbol', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['symbol']];
@@ -591,7 +612,7 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -617,7 +638,7 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);

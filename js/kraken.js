@@ -12,7 +12,7 @@ module.exports = class kraken extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
             'name': 'Kraken',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
             'has': {
@@ -672,8 +672,10 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if (!price)
-            price = this.safeFloat (order, 'price');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (description, 'price2');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (order, 'price', price);
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('fee' in order) {

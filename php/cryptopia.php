@@ -14,7 +14,7 @@ class cryptopia extends Exchange {
             'id' => 'cryptopia',
             'name' => 'Cryptopia',
             'rateLimit' => 1500,
-            'countries' => 'NZ', // New Zealand
+            'countries' => array ( 'NZ' ), // New Zealand
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
@@ -41,9 +41,8 @@ class cryptopia extends Exchange {
                 'www' => 'https://www.cryptopia.co.nz',
                 'referral' => 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc' => array (
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ),
             ),
             'timeframes' => array (
@@ -98,6 +97,7 @@ class cryptopia extends Exchange {
             'commonCurrencies' => array (
                 'ACC' => 'AdCoin',
                 'BAT' => 'BatCoin',
+                'BEAN' => 'BITB', // rebranding, see issue #3380
                 'BLZ' => 'BlazeCoin',
                 'BTG' => 'Bitgem',
                 'CAN' => 'CanYa',
@@ -344,14 +344,14 @@ class cryptopia extends Exchange {
             $price = $this->safe_float($trade, 'Rate');
         $cost = $this->safe_float($trade, 'Total');
         $id = $this->safe_string($trade, 'TradeId');
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('TradePairId', $trade))
                 if (is_array ($this->markets_by_id) && array_key_exists ($trade['TradePairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$trade['TradePairId']];
         }
         $symbol = null;
         $fee = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($trade) && array_key_exists ('Fee', $trade)) {
                 $fee = array (
@@ -398,7 +398,7 @@ class cryptopia extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['TradePairId'] = $market['id'];
         }
@@ -557,7 +557,7 @@ class cryptopia extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else if (is_array ($order) && array_key_exists ('Market', $order)) {
             $id = $order['Market'];
@@ -571,7 +571,10 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->safe_integer($order, 'TimeStamp');
+        $timestamp = $this->safe_string($order, 'TimeStamp');
+        if ($timestamp !== null) {
+            $timestamp = $this->parse8601 ($order['TimeStamp']);
+        }
         $datetime = null;
         if ($timestamp) {
             $datetime = $this->iso8601 ($timestamp);
@@ -769,6 +772,9 @@ class cryptopia extends Exchange {
                         $feedback = $this->id;
                         if (gettype ($error) === 'string') {
                             $feedback = $feedback . ' ' . $error;
+                            if (mb_strpos ($error, 'Invalid trade amount') !== false) {
+                                throw new InvalidOrder ($feedback);
+                            }
                             if (mb_strpos ($error, 'does not exist') !== false) {
                                 throw new OrderNotFound ($feedback);
                             }

@@ -13,7 +13,7 @@ class quadrigacx extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'quadrigacx',
             'name' => 'QuadrigaCX',
-            'countries' => 'CA',
+            'countries' => array ( 'CA' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (

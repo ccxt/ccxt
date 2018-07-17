@@ -12,7 +12,7 @@ module.exports = class nova extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'TZ', // Tanzania
+            'countries': [ 'TZ' ], // Tanzania
             'rateLimit': 2000,
             'version': 'v2',
             'has': {

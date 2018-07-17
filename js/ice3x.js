@@ -12,7 +12,7 @@ module.exports = class ice3x extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA', // South Africa
+            'countries': [ 'ZA' ], // South Africa
             'rateLimit': 1000,
             'has': {
                 'fetchCurrencies': true,
@@ -369,9 +369,9 @@ module.exports = class ice3x extends Exchange {
         let request = {
             'pair_id': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['items_per_page'] = limit;
-        if (since)
+        if (typeof since !== 'undefined')
             request['date_from'] = parseInt (since / 1000);
         let response = await this.privatePostTradeList (this.extend (request, params));
         let trades = response['response']['entities'];

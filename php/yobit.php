@@ -13,7 +13,7 @@ class yobit extends liqui {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'yobit',
             'name' => 'YoBit',
-            'countries' => 'RU',
+            'countries' => array ( 'RU' ),
             'rateLimit' => 3000, // responses are cached every 2 seconds
             'version' => '3',
             'has' => array (
@@ -241,6 +241,9 @@ class yobit extends liqui {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
                         } else if (($response['error_log'] === 'not available') || ($response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection ($this->id . ' ' . $this->json ($response));
+                        } else if ($response['error_log'] === 'Total transaction amount') {
+                            // eg array ("success":0,"error":"Total transaction amount is less than minimal total => 0.00010000")
+                            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
                         }
                     }
                     throw new ExchangeError ($this->id . ' ' . $this->json ($response));

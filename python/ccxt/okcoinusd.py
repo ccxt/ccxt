@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
 
 
 class okcoinusd (Exchange):
@@ -53,6 +54,7 @@ class okcoinusd (Exchange):
                     'get': [
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ],
                 },
                 'public': {
@@ -138,19 +140,29 @@ class okcoinusd (Exchange):
                 },
             },
             'exceptions': {
-                '1009': OrderNotFound,  # for spot markets, cancelling closed order
-                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
-                '1019': OrderNotFound,  # order closed?
-                '20015': OrderNotFound,  # for future markets
+                # see https://github.com/okcoin-okex/API-docs-OKEx.com/blob/master/API-For-Spot-EN/Error%20Code%20For%20Spot.md
+                '10000': ExchangeError,  # "Required field, can not be null"
+                '10001': DDoSProtection,  # "Request frequency too high to exceed the limit allowed"
+                '10005': AuthenticationError,  # "'SecretKey' does not exist"
+                '10006': AuthenticationError,  # "'Api_key' does not exist"
+                '10007': AuthenticationError,  # "Signature does not match"
+                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
+                '1003': InvalidOrder,  # "The transaction amount is less than the minimum requirement"
+                '1004': InvalidOrder,  # "The transaction amount is less than 0"
                 '1013': InvalidOrder,  # no contract type(PR-1101)
                 '1027': InvalidOrder,  # createLimitBuyOrder(symbol, 0, 0): Incorrect parameter may exceeded limits
-                '1002': InsufficientFunds,  # "The transaction amount exceed the balance"
                 '1050': InvalidOrder,  # returned when trying to cancel an order that was filled or canceled previously
-                '10000': ExchangeError,  # createLimitBuyOrder(symbol, None, None)
-                '10005': AuthenticationError,  # bad apiKey
+                '1217': InvalidOrder,  # "Order was sent at ±5% of the current market price. Please resend"
+                '10014': InvalidOrder,  # "Order price must be between 0 and 1,000,000"
+                '1009': OrderNotFound,  # for spot markets, cancelling closed order
+                '1019': OrderNotFound,  # order closed?("Undo order failed")
+                '1051': OrderNotFound,  # for spot markets, cancelling "just closed" order
+                '10009': OrderNotFound,  # for spot markets, "Order does not exist"
+                '20015': OrderNotFound,  # for future markets
                 '10008': ExchangeError,  # Illegal URL parameter
             },
             'options': {
+                'marketBuyPrice': False,
                 'defaultContractType': 'this_week',  # next_week, quarter
                 'warnOnFetchOHLCVLimitArgument': True,
                 'fiats': ['USD', 'CNY'],
@@ -259,7 +271,7 @@ class okcoinusd (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in ticker:
                 marketId = ticker['symbol']
                 if marketId in self.markets_by_id:
@@ -419,9 +431,16 @@ class okcoinusd (Exchange):
             else:
                 order['type'] += '_market'
                 if side == 'buy':
-                    order['price'] = self.safe_float(params, 'cost')
-                    if not order['price']:
-                        raise ExchangeError(self.id + ' market buy orders require an additional cost parameter, cost = price * amount')
+                    if self.options['marketBuyPrice']:
+                        if price is None:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require a price argument(the amount you want to spend or the cost of the order) when self.options['marketBuyPrice'] is True.")
+                        order['price'] = price
+                    else:
+                        order['price'] = self.safe_float(params, 'cost')
+                        if not order['price']:
+                            # eslint-disable-next-line quotes
+                            raise ExchangeError(self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = True. It will effectively suppress self warning exception as well.")
                 else:
                     order['amount'] = amount
         params = self.omit(params, 'cost')
@@ -448,7 +467,7 @@ class okcoinusd (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -510,7 +529,7 @@ class okcoinusd (Exchange):
                     type = 'margin'
         status = self.parse_order_status(order['status'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in order:
                 if order['symbol'] in self.markets_by_id:
                     market = self.markets_by_id[order['symbol']]
@@ -560,7 +579,7 @@ class okcoinusd (Exchange):
         return 'orders'
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -584,7 +603,7 @@ class okcoinusd (Exchange):
         raise OrderNotFound(self.id + ' order ' + id + ' not found')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)

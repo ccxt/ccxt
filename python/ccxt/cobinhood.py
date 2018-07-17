@@ -18,7 +18,7 @@ class cobinhood (Exchange):
         return self.deep_extend(super(cobinhood, self).describe(), {
             'id': 'cobinhood',
             'name': 'COBINHOOD',
-            'countries': 'TW',
+            'countries': ['TW'],
             'rateLimit': 1000 / 10,
             'has': {
                 'fetchCurrencies': True,
@@ -26,6 +26,7 @@ class cobinhood (Exchange):
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrder': True,
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
@@ -47,8 +48,8 @@ class cobinhood (Exchange):
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '1D',
-                '7d': '7D',
-                '14d': '14D',
+                '1w': '7D',
+                '2w': '14D',
                 '1M': '1M',
             },
             'urls': {
@@ -136,8 +137,12 @@ class cobinhood (Exchange):
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+            },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
             },
         })
 
@@ -297,7 +302,7 @@ class cobinhood (Exchange):
         timestamp = trade['timestamp']
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
-        cost = float(self.cost_to_precision(symbol, price * amount))
+        cost = price * amount
         side = trade['maker_side'] == 'sell' if 'bid' else 'buy'
         return {
             'info': trade,
@@ -412,7 +417,9 @@ class cobinhood (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-            if price is not None:
+            if filled is not None and price is not None:
+                cost = price * filled
+            elif price is not None:
                 cost = price * amount
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
@@ -480,7 +487,7 @@ class cobinhood (Exchange):
             return self.filter_by_symbol(orders, symbol)
         return orders
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privateGetTradingOrdersOrderIdTrades(self.extend({
             'order_id': id,

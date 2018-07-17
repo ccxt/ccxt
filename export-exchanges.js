@@ -36,9 +36,16 @@ function replaceInFile (filename, regex, replacement) {
 
 // ---------------------------------------------------------------------------
 
+const includedIds = fs.readFileSync ('exchanges.cfg')
+                        .toString () // Buffer → String
+                        .split ('\n') // String → Array
+                        .map (line => line.split ('#')[0].trim ()) // trim comments
+                        .filter (exchange => exchange); // filter empty lines
+
+const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 try {
 
-    exchanges = require ('./config')
+    exchanges = require ('./config').ids.filter (isIncluded)
 
 } catch (e) {
 
@@ -47,6 +54,7 @@ try {
     const ids = fs.readdirSync ('./js/')
                   .filter (file => file.includes ('.js'))
                   .map (file => file.slice (0, -3))
+                  .filter (isIncluded);
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
@@ -69,12 +77,12 @@ try {
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
-            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
+            file: './python/ccxt/async_support/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },

@@ -13,7 +13,7 @@ class cobinhood extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'cobinhood',
             'name' => 'COBINHOOD',
-            'countries' => 'TW',
+            'countries' => array ( 'TW' ),
             'rateLimit' => 1000 / 10,
             'has' => array (
                 'fetchCurrencies' => true,
@@ -21,6 +21,7 @@ class cobinhood extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrder' => true,
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
@@ -42,8 +43,8 @@ class cobinhood extends Exchange {
                 '6h' => '6h',
                 '12h' => '12h',
                 '1d' => '1D',
-                '7d' => '7D',
-                '14d' => '14D',
+                '1w' => '7D',
+                '2w' => '14D',
                 '1M' => '1M',
             ),
             'urls' => array (
@@ -131,8 +132,12 @@ class cobinhood extends Exchange {
             ),
             'exceptions' => array (
                 'insufficient_balance' => '\\ccxt\\InsufficientFunds',
+                'invalid_order_size' => '\\ccxt\\InvalidOrder',
                 'invalid_nonce' => '\\ccxt\\InvalidNonce',
                 'unauthorized_scope' => '\\ccxt\\PermissionDenied',
+            ),
+            'commonCurrencies' => array (
+                'SMT' => 'SocialMedia.Market',
             ),
         ));
     }
@@ -303,7 +308,7 @@ class cobinhood extends Exchange {
         $timestamp = $trade['timestamp'];
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        $cost = $price * $amount;
         $side = $trade['maker_side'] === 'bid' ? 'sell' : 'buy';
         return array (
             'info' => $trade,
@@ -427,7 +432,9 @@ class cobinhood extends Exchange {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
             }
-            if ($price !== null) {
+            if ($filled !== null && $price !== null) {
+                $cost = $price * $filled;
+            } else if ($price !== null) {
                 $cost = $price * $amount;
             }
         }
@@ -503,7 +510,7 @@ class cobinhood extends Exchange {
         return $orders;
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetTradingOrdersOrderIdTrades (array_merge (array (
             'order_id' => $id,

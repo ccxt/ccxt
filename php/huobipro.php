@@ -13,7 +13,7 @@ class huobipro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'huobipro',
             'name' => 'Huobi Pro',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v1',
@@ -113,6 +113,7 @@ class huobipro extends Exchange {
             ),
             'exceptions' => array (
                 'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array ("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
+                'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                 'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
@@ -198,6 +199,8 @@ class huobipro extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
@@ -555,7 +558,7 @@ class huobipro extends Exchange {
             $status = $this->parse_order_status($order['state']);
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('symbol', $order)) {
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id)) {
                     $marketId = $order['symbol'];

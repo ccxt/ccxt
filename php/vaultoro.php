@@ -13,7 +13,7 @@ class vaultoro extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'vaultoro',
             'name' => 'Vaultoro',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'rateLimit' => 1000,
             'version' => '1',
             'has' => array (
