@@ -57,7 +57,7 @@ module.exports = class stocksexchange extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'logo': undefined,
+                'logo': 'https://user-images.githubusercontent.com/75267/42912719-91dc4ff6-8af9-11e8-8944-a202520b01bb.jpg',
                 'api': {
                     'public': 'https://app.stocks.exchange/api2',
                 },
