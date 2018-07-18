@@ -59,16 +59,14 @@ from decimal import Decimal
 # -----------------------------------------------------------------------------
 
 try:
-    import urllib.parse as _urlencode  # Python 3
-except ImportError:
-    import urllib as _urlencode        # Python 2
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
+    # Python 3
+    basestring
+    import urllib.parse as _urlencode
+    import web3
+except (ImportError, NameError) as e:
+    # Python 2
+    import urllib as _urlencode
+    basestring = str
 
 # -----------------------------------------------------------------------------
 
