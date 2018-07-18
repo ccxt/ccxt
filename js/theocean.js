@@ -638,7 +638,7 @@ module.exports = class theocean extends Exchange {
         let id = zeroExOrder['orderHash'].toString ();
         let side = this.safeString (order, 'side');
         let timestamp = parseInt (order['created']) * 1000;
-        let amount = this.safeFloat (order, 'amount');
+        let amount = this.fromWei (this.safeFloat (order, 'amount'));
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
         if (typeof market === 'undefined') {
