@@ -124,22 +124,24 @@ module.exports = class bcex extends Exchange {
         let url = this.urls['api'] + request;
         if (api === 'private') {
             this.checkRequiredCredentials();
-            let timestamp = this.milliseconds().toString();
-            let payload = '';
             if (method !== 'GET') {
                 if (Object.keys(query).length) {
-                    body = this.json(query);
-                    payload = body;
+                    let messageParts = []
+                    let paramsKeys = Object.keys(params).sort();
+                    for (let i = 0; i < paramsKeys.length; i++) {
+                        let paramKey = paramsKeys[i];
+                        let param = params[paramKey];
+                        messageParts.push(this.encode(paramKey) + '=' + encodeURIComponent(param));
+                    }
+                    body = messageParts.join ('&');
+                    let message = body + "&secret_key=" + this.secret;
+                    let signedMessage = this.hash(message);
+                    body = body + "&sign=" + signedMessage;
+                    params['sign'] = signedMessage;
+                    headers = {}
+                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 }
             }
-            let what = timestamp + method + request + payload;
-            let signature = this.hmac(this.encode(what), this.encode(this.secret), 'sha256');
-            headers = {
-                'CRYPTON-APIKEY': this.apiKey,
-                'CRYPTON-SIGNATURE': signature,
-                'CRYPTON-TIMESTAMP': timestamp,
-                'Content-Type': 'application/json',
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
