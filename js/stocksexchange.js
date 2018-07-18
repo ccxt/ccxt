@@ -160,7 +160,7 @@ module.exports = class stocksexchange extends Exchange {
         for (let ticker of tickers) {
             let id = ticker['market_name'];
             let market = this.markets_by_id[id];
-            let symbol = market['market_name'];
+            let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
