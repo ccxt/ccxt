@@ -624,7 +624,7 @@ module.exports = class cointiger extends huobipro {
             price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
             if ('age_price' in order) {
                 let average = this.safeFloat (order['age_price'], 'amount');
-                if ((typeof average !== undefined) && (average > 0)) {
+                if ((typeof average !== 'undefined') && (average > 0)) {
                     price = average;
                 }
             }
@@ -636,7 +636,7 @@ module.exports = class cointiger extends huobipro {
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
                 let average = this.safeFloat (order, 'avg_price');
-                if ((typeof average !== undefined) && (average > 0))
+                if ((typeof average !== 'undefined') && (average > 0))
                     price = average;
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
