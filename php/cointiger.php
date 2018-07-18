@@ -90,6 +90,14 @@ class cointiger extends huobipro {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.001,
+                    'taker' => 0.001,
+                ),
+            ),
             'exceptions' => array (
                 //    array ("code":"1","msg":"系统错误","data":null)
                 //    array (“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
@@ -591,7 +599,7 @@ class cointiger extends huobipro {
         $status = $this->safe_string($order, 'status');
         $timestamp = $this->safe_integer($order, 'created_at');
         $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
-        $lastTradeTimestamp = $this->safe_integer($order, 'mtime');
+        $lastTradeTimestamp = $this->safe_integer_2($order, 'mtime', 'finished-at');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');

@@ -107,6 +107,14 @@ class cointiger (huobipro):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.001,
+                    'taker': 0.001,
+                },
+            },
             'exceptions': {
                 #    {"code":"1","msg":"系统错误","data":null}
                 #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
@@ -574,7 +582,7 @@ class cointiger (huobipro):
         status = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'created_at')
         timestamp = self.safe_integer(order, 'ctime', timestamp)
-        lastTradeTimestamp = self.safe_integer(order, 'mtime')
+        lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'symbol')
