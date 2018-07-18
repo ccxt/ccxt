@@ -41,6 +41,9 @@ const { DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
+const Web3 = require ('web3')
+const BigNumber = require ('bignumber.js')
+
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
 /*  ------------------------------------------------------------------------ */
@@ -304,6 +307,18 @@ module.exports = class Exchange {
 
         if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
+        }
+
+        if (!this.web3) {
+            this.web3 = new Web3 (new Web3.providers.HttpProvider ())
+        }
+
+        this.fromWei = function (amount, unit = 'ether') {
+            return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+        }
+
+        this.toWei = function (amount, unit = 'ether') {
+            return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
         }
     }
 
