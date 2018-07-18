@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.64'
+const version = '1.16.65'
 
 Exchange.ccxtVersion = version
 
@@ -24597,8 +24597,8 @@ module.exports = class cointiger extends huobipro {
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -25109,6 +25109,7 @@ module.exports = class cointiger extends huobipro {
 
     parseOrderStatus (status) {
         let statuses = {
+            '0': 'open', // pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
