@@ -63,8 +63,8 @@ module.exports = class theocean extends Exchange {
                 },
             },
             'exceptions': {
-                "Schema validation failed for 'query'": ExchangeError, // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
-                "Logic validation failed for 'query'": ExchangeError, // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+                "Schema validation failed for 'query'": ExchangeError, // { "message": "Schema validation failed for 'query'", "errors": ... }
+                "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
             },
         });
     }
@@ -505,72 +505,70 @@ module.exports = class theocean extends Exchange {
         //       "marketOrderID": "892879202"
         //     }
         //
-        // const log = require ('ololog').unlimited;
+        //  const log = require ('ololog').unlimited;
         console.log (reserveResponse);
+        //  process.exit ();
+        // --------------------------------------------------------------------
+        //     const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
+        //         'maker': account
+        //     });
+        //     const signedMarketOrder = await this._signOrder (marketOrder, account)
+        //     const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
+        //     const placeRequest = {
+        //         'signedOrder': serializedMarketOrder,
+        //         'marketOrderID': reserveResponse['marketOrderID'],
+        //     };
+        //     return api.trade.placeMarketOrder({order})
+        //     let placeMethod = method + 'Place';
         // process.exit ();
-        //---------------------------------------------------------------------
-        // const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
-        //     'maker': account
-        // });
-        // const signedMarketOrder = await this._signOrder (marketOrder, account)
-        // const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
-        // const placeRequest = {
-        //     'signedOrder': serializedMarketOrder,
-        //     'marketOrderID': reserveResponse['marketOrderID'],
-        // };
-        // return api.trade.placeMarketOrder({order})
-        // let placeMethod = method + 'Place';
-        process.exit ();
-        // let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
-        //
-        //     {
-        //       "targetOrder": {
-        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
-        //         "amount": "100000000000"
-        //       },
-        //       "matchingOrder": {
-        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
-        //         "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
-        //         "amount": "100000000000"
-        //       }
+        //     let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        //         {
+        //         "targetOrder": {
+        //             "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //             "amount": "100000000000"
+        //         },
+        //         "matchingOrder": {
+        //             "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
+        //             "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
+        //             "amount": "100000000000"
+        //         }
+        //         }
+        //     console.log (placeResponse);
+        // process.exit ();
+        //     send signed
+        //     let id = undefined;
+        //     let status = 'open';
+        //     let filled = 0.0;
+        //     let remaining = amount;
+        //     if ('return' in response) {
+        //         id = this.safeString (response['return'], this.getOrderIdKey ());
+        //         if (id === '0') {
+        //             id = this.safeString (response['return'], 'init_order_id');
+        //             status = 'closed';
+        //         }
+        //         filled = this.safeFloat (response['return'], 'received', 0.0);
+        //         remaining = this.safeFloat (response['return'], 'remains', amount);
         //     }
-        //
-        // console.log (placeResponse);
-        process.exit ();
-        // send signed
-        // let id = undefined;
-        // let status = 'open';
-        // let filled = 0.0;
-        // let remaining = amount;
-        // if ('return' in response) {
-        //     id = this.safeString (response['return'], this.getOrderIdKey ());
-        //     if (id === '0') {
-        //         id = this.safeString (response['return'], 'init_order_id');
-        //         status = 'closed';
-        //     }
-        //     filled = this.safeFloat (response['return'], 'received', 0.0);
-        //     remaining = this.safeFloat (response['return'], 'remains', amount);
-        // }
-        // let timestamp = this.milliseconds ();
-        // let order = {
-        //     'id': id,
-        //     'timestamp': timestamp,
-        //     'datetime': this.iso8601 (timestamp),
-        //     'lastTradeTimestamp': undefined,
-        //     'status': status,
-        //     'symbol': symbol,
-        //     'type': type,
-        //     'side': side,
-        //     'price': price,
-        //     'cost': price * filled,
-        //     'amount': amount,
-        //     'remaining': remaining,
-        //     'filled': filled,
-        //     'fee': undefined,
-        //     'trades': undefined,
-        // };
-        // this.orders[id] = order;
-        // return this.extend ({ 'info': response }, order);
+        //     let timestamp = this.milliseconds ();
+        //     let order = {
+        //         'id': id,
+        //         'timestamp': timestamp,
+        //         'datetime': this.iso8601 (timestamp),
+        //         'lastTradeTimestamp': undefined,
+        //         'status': status,
+        //         'symbol': symbol,
+        //         'type': type,
+        //         'side': side,
+        //         'price': price,
+        //         'cost': price * filled,
+        //         'amount': amount,
+        //         'remaining': remaining,
+        //         'filled': filled,
+        //         'fee': undefined,
+        //         'trades': undefined,
+        //     };
+        //     this.orders[id] = order;
+        //     return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
