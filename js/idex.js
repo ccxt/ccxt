@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,37 @@ module.exports = class idex extends Exchange {
             'rateLimit': 1000, // up to 6 calls per second
             'has': {
                 'CORS': false,
-                'fetchTickers': true
+                'publicAPI': true,
+                'privateAPI': false,
+                'cancelOrder': false,
+                'cancelOrders': false,
+                'createDepositAddress': false,
+                'createOrder': false,
+                'createMarketOrder': false,
+                'createLimitOrder': false,
+                'deposit': false,
+                'editOrder': false,
+                'fetchBalance': false,
+                'fetchBidsAsks': false,
+                'fetchClosedOrders': false,
+                'fetchCurrencies': false,
+                'fetchDepositAddress': false,
+                'fetchFundingFees': false,
+                'fetchL2OrderBook': false,
+                'fetchMarkets': true,
+                'fetchMyTrades': false,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': false,
+                'fetchOrder': false,
+                'fetchOrderBook': false,
+                'fetchOrderBooks': false,
+                'fetchOrders': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTrades': false,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '5m': 300,
@@ -29,19 +59,19 @@ module.exports = class idex extends Exchange {
             'urls': {
                 'logo': undefined,
                 'api': {
-                    'public': 'https://api.idex.market'
+                    'public': 'https://api.idex.market',
                 },
                 'www': 'https://idex.market/eth/aura',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs'
-                ]
+                    'https://github.com/AuroraDAO/idex-api-docs',
+                ],
             },
             'api': {
                 'public': {
                     'get': [
                         'returnTicker',
-                        'returnCurrencies'
-                    ]
+                        'returnCurrencies',
+                    ],
                 },
                 'private': {
                     'post': [
@@ -203,15 +233,6 @@ module.exports = class idex extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + path;
-        } else {
-            this.checkRequiredCredentials ();
-            query['nonce'] = this.nonce ();
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
