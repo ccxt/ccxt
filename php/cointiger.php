@@ -621,9 +621,13 @@ class cointiger extends huobipro {
             $amount = $this->safe_float($order['volume'], 'amount');
             $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
             $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
-            $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
-            if ($price === null)
-                $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+            $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+            if (is_array ($order) && array_key_exists ('age_price', $order)) {
+                $average = $this->safe_float($order['age_price'], 'amount');
+                if (($average !== null) && ($average > 0)) {
+                    $price = $average;
+                }
+            }
         } else {
             if ($orderType !== null) {
                 $parts = explode ('-', $orderType);
@@ -631,7 +635,9 @@ class cointiger extends huobipro {
                 $type = $parts[1];
                 $cost = $this->safe_float($order, 'deal_money');
                 $price = $this->safe_float($order, 'price');
-                $price = $this->safe_float($order, 'avg_price', $price);
+                $average = $this->safe_float($order, 'avg_price');
+                if (($average !== null) && ($average > 0))
+                    $price = $average;
                 $amount = $this->safe_float_2($order, 'amount', 'volume');
                 $filled = $this->safe_float($order, 'deal_volume');
                 $feeCost = $this->safe_float($order, 'fee');

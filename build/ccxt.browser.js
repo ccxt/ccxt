@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.60'
+const version = '1.16.61'
 
 Exchange.ccxtVersion = version
 
@@ -25185,9 +25185,13 @@ module.exports = class cointiger extends huobipro {
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
             filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
-            price = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
-            if (typeof price === 'undefined')
-                price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            if ('age_price' in order) {
+                let average = this.safeFloat (order['age_price'], 'amount');
+                if ((typeof average !== 'undefined') && (average > 0)) {
+                    price = average;
+                }
+            }
         } else {
             if (typeof orderType !== 'undefined') {
                 let parts = orderType.split ('-');
@@ -25195,7 +25199,9 @@ module.exports = class cointiger extends huobipro {
                 type = parts[1];
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
-                price = this.safeFloat (order, 'avg_price', price);
+                let average = this.safeFloat (order, 'avg_price');
+                if ((typeof average !== 'undefined') && (average > 0))
+                    price = average;
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');
