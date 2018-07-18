@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -23,7 +23,7 @@ module.exports = class theocean extends Exchange {
             'has': {
                 'CORS': false, // ?
                 'fetchTickers': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchOrder': true,
             },
             'urls': {
@@ -129,16 +129,16 @@ module.exports = class theocean extends Exchange {
                 'price': this.safeInteger (quoteToken, 'precision'),
             };
             let amountLimits = {
-                'min': this.safeFloat (baseToken, 'minAmount'),
-                'max': this.safeFloat (baseToken, 'maxAmount'),
+                'min': this.fromWei (this.safeString (baseToken, 'minAmount')),
+                'max': this.fromWei (this.safeString (baseToken, 'maxAmount')),
             };
             let priceLimits = {
                 'min': undefined,
                 'max': undefined,
             };
             let costLimits = {
-                'min': this.safeFloat (quoteToken, 'minAmount'),
-                'max': this.safeFloat (quoteToken, 'maxAmount'),
+                'min': this.fromWei (this.safeString (quoteToken, 'minAmount')),
+                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount')),
             };
             let limits = {
                 'amount': amountLimits,
@@ -171,7 +171,7 @@ module.exports = class theocean extends Exchange {
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeString (ohlcv, 'baseVolume'),
+            this.fromWei (this.safeString (ohlcv, 'baseVolume')),
             // this.safeString (ohlcv, 'quoteVolume'),
         ];
     }
@@ -227,7 +227,7 @@ module.exports = class theocean extends Exchange {
         //       "availableBalance": "1001006594219628829207"
         //     }
         //
-        let balance = this.safeFloat (response, 'availableBalance');
+        let balance = this.fromWei (this.safeString (response, 'availableBalance'));
         return {
             'free': balance,
             'used': 0,
@@ -245,14 +245,13 @@ module.exports = class theocean extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             result[code] = await this.fetchBalanceByCode (code);
-
         }
         return this.parseBalance (result);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey]);
-        let amount = parseFloat (bidask[amountKey]);
+        let amount = this.fromWei (bidask[amountKey]);
         return [ price, amount, bidask ];
     }
 
@@ -326,7 +325,7 @@ module.exports = class theocean extends Exchange {
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
+            'baseVolume': this.fromWei (this.safeString (ticker, 'volume')),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -396,7 +395,13 @@ module.exports = class theocean extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let amount = this.safeString (trade, 'amount');
+        let amount = this.fromWei (this.safeString (trade, 'amount'));
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof price !== 'undefined') {
+                cost = amount * price;
+            }
+        }
         let takerOrMaker = 'taker';
         let fee = undefined;
         // let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
@@ -411,6 +416,7 @@ module.exports = class theocean extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         };
@@ -447,7 +453,7 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
-            'orderAmount': this.amountToPrecision (symbol, amount),	// Base token amount in wei
+            'orderAmount': this.amountToPrecision (symbol, amount), // Base token amount in wei
             'feeOption': 'feeInNative', // Fees can be paid in native currency ("feeInNative"), or ZRX ("feeInZRX")
         };
         if (type === 'limit') {
@@ -499,25 +505,23 @@ module.exports = class theocean extends Exchange {
         //       "marketOrderID": "892879202"
         //     }
         //
-        const log = require ('ololog').unlimited;
-        log.green (reserveResponse);
-        process.exit ();
-
+        // const log = require ('ololog').unlimited;
+        console.log (reserveResponse);
+        // process.exit ();
         //---------------------------------------------------------------------
-
-        const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
-            'maker': account
-        });
-        const signedMarketOrder = await this._signOrder (marketOrder, account)
-        const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
-        const placeRequest = {
-            'signedOrder': serializedMarketOrder,
-            'marketOrderID': reserveResponse['marketOrderID'],
-        };
+        // const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
+        //     'maker': account
+        // });
+        // const signedMarketOrder = await this._signOrder (marketOrder, account)
+        // const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
+        // const placeRequest = {
+        //     'signedOrder': serializedMarketOrder,
+        //     'marketOrderID': reserveResponse['marketOrderID'],
+        // };
         // return api.trade.placeMarketOrder({order})
-        let placeMethod = method + 'Place';
+        // let placeMethod = method + 'Place';
         process.exit ();
-        let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        // let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
         //
         //     {
         //       "targetOrder": {
@@ -531,10 +535,9 @@ module.exports = class theocean extends Exchange {
         //       }
         //     }
         //
-        log.green (placeResponse);
+        // console.log (placeResponse);
         process.exit ();
         // send signed
-
         // let id = undefined;
         // let status = 'open';
         // let filled = 0.0;
@@ -714,8 +717,6 @@ module.exports = class theocean extends Exchange {
         //
         return this.parseOrder (response);
     }
-
-    async
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
