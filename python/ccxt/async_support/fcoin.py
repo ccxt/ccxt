@@ -368,12 +368,15 @@ class fcoin (Exchange):
         filled = self.safe_float(order, 'filled_amount')
         remaining = None
         price = self.safe_float(order, 'price')
-        cost = None
+        cost = self.safe_float(order, 'executed_value')
         if filled is not None:
             if amount is not None:
                 remaining = amount - filled
-            if price is not None:
-                cost = price * filled
+            if cost is None:
+                if price is not None:
+                    cost = price * filled
+            elif (cost > 0) and(filled > 0):
+                price = cost / filled
         feeCurrency = None
         if market is not None:
             symbol = market['symbol']
