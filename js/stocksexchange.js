@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -59,12 +59,12 @@ module.exports = class stocksexchange extends Exchange {
             'urls': {
                 'logo': undefined,
                 'api': {
-                    'public': 'https://app.stocks.exchange/api2'
+                    'public': 'https://app.stocks.exchange/api2',
                 },
                 'www': 'https://www.stocks.exchange',
                 'doc': [
-                    'http://help.stocks.exchange/api-integration'
-                ]
+                    'http://help.stocks.exchange/api-integration',
+                ],
             },
             'api': {
                 'public': {
@@ -76,12 +76,11 @@ module.exports = class stocksexchange extends Exchange {
                         'prices',
                         'trades',
                         'orderbook',
-                        'grafic_public'
-                    ]
+                        'grafic_public',
+                    ],
                 },
                 'private': {
-                    'post': [
-                    ],
+                    'post': [],
                 },
             },
             'fees': {
@@ -101,7 +100,8 @@ module.exports = class stocksexchange extends Exchange {
     async fetchMarkets () {
         let markets = await this.publicGetMarkets ();
         let result = [];
-        for (let market of markets) {
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
             let marketName = market['market_name'];
             let base = market['currency'];
             let quote = market['partner'];
@@ -157,7 +157,8 @@ module.exports = class stocksexchange extends Exchange {
         await this.loadMarkets ();
         let tickers = await this.publicGetTicker ();
         let result = {};
-        for (let ticker of tickers) {
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
             let id = ticker['market_name'];
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
@@ -214,7 +215,8 @@ module.exports = class stocksexchange extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let tickers = await this.publicGetTicker ();
-        for (let ticker of tickers) {
+        for (let i = 0; i < tickers.length; i++) {
+            let ticker = tickers[i];
             if (ticker['market_name'] === market['id']) {
                 return this.parseTicker (ticker, market);
             }
@@ -229,15 +231,6 @@ module.exports = class stocksexchange extends Exchange {
         let url = this.urls['api'][api];
         if (api === 'public') {
             url += '/' + path;
-        } else {
-            this.checkRequiredCredentials ();
-            query['nonce'] = this.nonce ();
-            body = this.urlencode (query);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
-            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
