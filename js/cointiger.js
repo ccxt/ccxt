@@ -90,6 +90,14 @@ module.exports = class cointiger extends huobipro {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.001,
+                    'taker': 0.001,
+                },
+            },
             'exceptions': {
                 //    {"code":"1","msg":"系统错误","data":null}
                 //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
@@ -591,7 +599,7 @@ module.exports = class cointiger extends huobipro {
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'created_at');
         timestamp = this.safeInteger (order, 'ctime', timestamp);
-        let lastTradeTimestamp = this.safeInteger (order, 'mtime');
+        let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'symbol');
