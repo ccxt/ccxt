@@ -545,6 +545,7 @@ module.exports = class cointiger extends huobipro {
 
     parseOrderStatus (status) {
         let statuses = {
+            '0': 'open', // pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
