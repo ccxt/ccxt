@@ -531,14 +531,16 @@ class huobipro extends Exchange {
     }
 
     public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOrderOrders (array_merge (array (
-            'symbol' => $market['id'],
+        $request = array (
             'states' => $states,
-        ), $params));
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetOrderOrders (array_merge ($request, $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 

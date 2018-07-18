@@ -509,14 +509,15 @@ class huobipro (Exchange):
         return self.parse_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         await self.load_markets()
-        market = self.market(symbol)
-        response = await self.privateGetOrderOrders(self.extend({
-            'symbol': market['id'],
+        request = {
             'states': states,
-        }, params))
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = await self.privateGetOrderOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

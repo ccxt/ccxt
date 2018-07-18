@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.58'
+const version = '1.16.59'
 
 Exchange.ccxtVersion = version
 
@@ -35084,14 +35084,16 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderOrders (this.extend ({
-            'symbol': market['id'],
+        let request = {
             'states': states,
-        }, params));
+        };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.privateGetOrderOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
