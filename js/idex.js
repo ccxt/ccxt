@@ -57,7 +57,7 @@ module.exports = class idex extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'logo': undefined,
+                'logo': 'https://user-images.githubusercontent.com/75267/42912592-dc88dd90-8af8-11e8-8371-a3245044f481.png',
                 'api': {
                     'public': 'https://api.idex.market',
                 },
