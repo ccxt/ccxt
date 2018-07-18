@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.16.34';
+$version = '1.16.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -46,7 +46,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.16.34';
+    const VERSION = '1.16.64';
 
     public static $exchanges = array (
         '_1broker',
@@ -56,6 +56,7 @@ class Exchange {
         'anxpro',
         'anybits',
         'bibox',
+        'bigone',
         'binance',
         'bit2c',
         'bitbank',

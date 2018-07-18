@@ -298,6 +298,7 @@ declare module 'ccxt' {
     export class anxpro extends Exchange {}
     export class anybits extends bitsane {}
     export class bibox extends Exchange {}
+    export class bigone extends Exchange {}
     export class binance extends Exchange {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}

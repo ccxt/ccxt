@@ -24,11 +24,12 @@ class huobipro extends Exchange {
                 'CORS' => false,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
                 'fetchTradingLimits' => true,
+                'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchCurrencies' => true,
             ),
@@ -317,20 +318,49 @@ class huobipro extends Exchange {
         return $this->parse_ticker($response['tick'], $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $trade['ts'];
+    public function parse_trade ($trade, $market = null) {
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
+        $order = $this->safe_string($trade, 'order-id');
+        $side = $this->safe_string($trade, 'direction');
+        $type = $this->safe_string($trade, 'type');
+        if ($type !== null) {
+            $typeParts = explode ('-', $type);
+            $side = $typeParts[0];
+            $type = $typeParts[1];
+        }
+        $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
-            'order' => null,
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $trade['direction'],
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $amount,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderMatchresults ($params);
+        $trades = $this->parse_trades($response['data'], null, $since, $limit);
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $trades = $this->filter_by_symbol($trades, $market['symbol']);
+        }
+        return $trades;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = 1000, $params = array ()) {
@@ -501,14 +531,16 @@ class huobipro extends Exchange {
     }
 
     public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOrderOrders (array_merge (array (
-            'symbol' => $market['id'],
+        $request = array (
             'states' => $states,
-        ), $params));
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetOrderOrders (array_merge ($request, $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 

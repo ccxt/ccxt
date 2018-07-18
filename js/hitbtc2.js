@@ -29,6 +29,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
+                'fetchOrderTrades': false, // not implemented yet
             },
             'timeframes': {
                 '1m': 'M1',
@@ -1002,8 +1003,15 @@ module.exports = class hitbtc2 extends hitbtc {
         if (typeof since !== 'undefined')
             request['from'] = this.iso8601 (since);
         let response = await this.privateGetHistoryOrder (this.extend (request, params));
-        let orders = this.parseOrders (response, market);
-        orders = this.filterBy (orders, 'status', 'closed');
+        let parsedOrders = this.parseOrders (response, market);
+        let orders = [];
+        for (let i = 0; i < parsedOrders.length; i++) {
+            let order = parsedOrders[i];
+            let status = order['status'];
+            if ((status === 'closed') || (status === 'canceled')) {
+                orders.push (order);
+            }
+        }
         return this.filterBySinceLimit (orders, since, limit);
     }
 

@@ -27,7 +27,7 @@ class gemini (Exchange):
                 'fetchMyTrades': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchOpenOrders': False,
+                'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
                 'withdraw': True,
             },
@@ -167,7 +167,7 @@ class gemini (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
+            'side': trade['type'].lower(),
             'price': price,
             'cost': price * amount,
             'amount': amount,
@@ -206,14 +206,16 @@ class gemini (Exchange):
         status = 'closed'
         if order['is_live']:
             status = 'open'
-        if order['is_canceled']:
+        if order['is_cancelled']:
             status = 'canceled'
         price = self.safe_float(order, 'price')
-        price = self.safe_float(order, 'avg_execution_price', price)
+        average = self.safe_float(order, 'avg_execution_price')
+        if average != 0.0:
+            price = average  # prefer filling(execution) price over the submitted price
         cost = None
         if filled is not None:
-            if price is not None:
-                cost = filled * price
+            if average is not None:
+                cost = filled * average
         type = self.safe_string(order, 'type')
         if type == 'exchange limit':
             type = 'limit'
@@ -238,8 +240,9 @@ class gemini (Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'],
+            'side': order['side'].lower(),
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -253,6 +256,15 @@ class gemini (Exchange):
             'order_id': id,
         }, params))
         return self.parse_order(response)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        response = await self.privatePostOrders(params)
+        orders = self.parse_orders(response, None, since, limit)
+        if symbol is not None:
+            market = self.market(symbol)  # throws on non-existent symbol
+            orders = self.filter_by_symbol(orders, market['symbol'])
+        return orders
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

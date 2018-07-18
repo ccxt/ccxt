@@ -341,19 +341,16 @@ class independentreserve (Exchange):
                 'apiKey=' + self.apiKey,
                 'nonce=' + str(nonce),
             ]
-            # remove self crap
             keys = list(params.keys())
-            payload = []
             for i in range(0, len(keys)):
                 key = keys[i]
-                payload.append(key + '=' + params[key])
-            auth = self.array_concat(auth, payload)
+                auth.append(key + '=' + params[key])
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret))
             body = self.json({
                 'apiKey': self.apiKey,
                 'nonce': nonce,
-                'signature': signature,
+                'signature': signature.upper(),
             })
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -19,7 +19,7 @@ class cointiger extends huobipro {
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
                 'fetchTradingLimits' => false,
-                'fetchOrder' => false, // not tested yet
+                'fetchOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => false, // not tested yet
@@ -88,6 +88,14 @@ class cointiger extends huobipro {
                     'delete' => array (
                         'order',
                     ),
+                ),
+            ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.001,
+                    'taker' => 0.001,
                 ),
             ),
             'exceptions' => array (
@@ -591,7 +599,7 @@ class cointiger extends huobipro {
         $status = $this->safe_string($order, 'status');
         $timestamp = $this->safe_integer($order, 'created_at');
         $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
-        $lastTradeTimestamp = $this->safe_integer($order, 'mtime');
+        $lastTradeTimestamp = $this->safe_integer_2($order, 'mtime', 'finished-at');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');
@@ -613,9 +621,13 @@ class cointiger extends huobipro {
             $amount = $this->safe_float($order['volume'], 'amount');
             $remaining = (is_array ($order) && array_key_exists ('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
             $filled = (is_array ($order) && array_key_exists ('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;
-            $price = (is_array ($order) && array_key_exists ('age_price', $order)) ? $this->safe_float($order['age_price'], 'amount') : null;
-            if ($price === null)
-                $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+            $price = (is_array ($order) && array_key_exists ('price', $order)) ? $this->safe_float($order['price'], 'amount') : null;
+            if (is_array ($order) && array_key_exists ('age_price', $order)) {
+                $average = $this->safe_float($order['age_price'], 'amount');
+                if (($average !== null) && ($average > 0)) {
+                    $price = $average;
+                }
+            }
         } else {
             if ($orderType !== null) {
                 $parts = explode ('-', $orderType);
@@ -623,7 +635,9 @@ class cointiger extends huobipro {
                 $type = $parts[1];
                 $cost = $this->safe_float($order, 'deal_money');
                 $price = $this->safe_float($order, 'price');
-                $price = $this->safe_float($order, 'avg_price', $price);
+                $average = $this->safe_float($order, 'avg_price');
+                if (($average !== null) && ($average > 0))
+                    $price = $average;
                 $amount = $this->safe_float_2($order, 'amount', 'volume');
                 $filled = $this->safe_float($order, 'deal_volume');
                 $feeCost = $this->safe_float($order, 'fee');

@@ -289,23 +289,7 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let volume = this.options['fetchOHLCVVolume'] ? ohlcv[5] : undefined;
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            volume,
-        ];
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (this.options['fetchOHLCVWarning']) {
-            // eslint-disable-next-line quotes
-            throw new ExchangeError (this.id + " will return 24h volumes instead of volumes for " + timeframe + " from their API. Set .options['fetchOHLCVWarning'] = false to suppress this warning message. You can set .options['fetchOHLCVVolume'] = false to fetch candles with volume set to undefined.");
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetKline (this.extend ({
