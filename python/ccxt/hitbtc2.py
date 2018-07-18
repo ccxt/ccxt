@@ -982,8 +982,13 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['from'] = self.iso8601(since)
         response = self.privateGetHistoryOrder(self.extend(request, params))
-        orders = self.parse_orders(response, market)
-        orders = self.filter_by(orders, 'status', 'closed')
+        parsedOrders = self.parse_orders(response, market)
+        orders = []
+        for i in range(0, len(parsedOrders)):
+            order = parsedOrders[i]
+            status = order['status']
+            if (status == 'closed') or (status == 'canceled'):
+                orders.append(order)
         return self.filter_by_since_limit(orders, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

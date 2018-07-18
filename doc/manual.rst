@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                            | ver | doc                                                                                                 | countries                                |
@@ -73,6 +73,8 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 | |anybits|            | anybits            | `Anybits <https://anybits.com>`__                                               | \*  | `API <https://anybits.com/help/api>`__                                                              | Ireland                                  |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bibox|              | bibox              | `Bibox <https://www.bibox.com>`__                                               | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    | China, US, South Korea                   |
++----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |bigone|             | bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                             | 2   | `API <https://open.big.one/docs/api.html>`__                                                        | UK                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |binance|            | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                             | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__     | Japan                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -611,6 +613,12 @@ DDoS Protection By Cloudflare / Incapsula
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack>`__-protected by `Cloudflare <https://www.cloudflare.com>`__ or `Incapsula <https://www.incapsula.com>`__. Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
+
+The most common symptoms for a DDoS protection problem, rate-limiting problem or for a location-based filtering issue:
+- Getting ``RequestTimeout`` exceptions with all types of exchange methods
+- Catching ``ExchangeError`` or ``ExchangeNotAvailable`` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
+- Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
+- Getting a template HTML page instead of JSON from the exchange
 
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
@@ -2751,6 +2759,7 @@ Notes
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
+.. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg

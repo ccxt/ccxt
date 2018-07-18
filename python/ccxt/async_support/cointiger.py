@@ -36,7 +36,7 @@ class cointiger (huobipro):
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
-                'fetchOrder': False,  # not tested yet
+                'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': False,  # not tested yet
@@ -50,8 +50,8 @@ class cointiger (huobipro):
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -105,6 +105,14 @@ class cointiger (huobipro):
                     'delete': [
                         'order',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -521,6 +529,7 @@ class cointiger (huobipro):
 
     def parse_order_status(self, status):
         statuses = {
+            '0': 'open',  # pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -574,7 +583,7 @@ class cointiger (huobipro):
         status = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'created_at')
         timestamp = self.safe_integer(order, 'ctime', timestamp)
-        lastTradeTimestamp = self.safe_integer(order, 'mtime')
+        lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'symbol')
@@ -593,9 +602,11 @@ class cointiger (huobipro):
             amount = self.safe_float(order['volume'], 'amount')
             remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
             filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
-            price = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
-            if price is None:
-                price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+            if 'age_price' in order:
+                average = self.safe_float(order['age_price'], 'amount')
+                if (average is not None) and(average > 0):
+                    price = average
         else:
             if orderType is not None:
                 parts = orderType.split('-')
@@ -603,7 +614,9 @@ class cointiger (huobipro):
                 type = parts[1]
                 cost = self.safe_float(order, 'deal_money')
                 price = self.safe_float(order, 'price')
-                price = self.safe_float(order, 'avg_price', price)
+                average = self.safe_float(order, 'avg_price')
+                if (average is not None) and(average > 0):
+                    price = average
                 amount = self.safe_float_2(order, 'amount', 'volume')
                 filled = self.safe_float(order, 'deal_volume')
                 feeCost = self.safe_float(order, 'fee')

@@ -23,7 +23,7 @@ Current feature list:
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                            | ver | doc                                                                                                 | countries                                |
@@ -41,6 +41,8 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 | anybits            | `Anybits <https://anybits.com>`__                                               | \*  | `API <https://anybits.com/help/api>`__                                                              | Ireland                                  |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | bibox              | `Bibox <https://www.bibox.com>`__                                               | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    | China, US, South Korea                   |
++--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                             | 2   | `API <https://open.big.one/docs/api.html>`__                                                        | UK                                       |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                             | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__     | Japan                                    |
 +--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -590,6 +592,7 @@ Thank you!
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
+.. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg

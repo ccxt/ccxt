@@ -19,7 +19,7 @@ module.exports = class cointiger extends huobipro {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
-                'fetchOrder': false, // not tested yet
+                'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': false, // not tested yet
@@ -33,8 +33,8 @@ module.exports = class cointiger extends huobipro {
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -88,6 +88,14 @@ module.exports = class cointiger extends huobipro {
                     'delete': [
                         'order',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -537,6 +545,7 @@ module.exports = class cointiger extends huobipro {
 
     parseOrderStatus (status) {
         let statuses = {
+            '0': 'open', // pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -591,7 +600,7 @@ module.exports = class cointiger extends huobipro {
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'created_at');
         timestamp = this.safeInteger (order, 'ctime', timestamp);
-        let lastTradeTimestamp = this.safeInteger (order, 'mtime');
+        let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'symbol');
@@ -613,9 +622,13 @@ module.exports = class cointiger extends huobipro {
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
             filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
-            price = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
-            if (typeof price === 'undefined')
-                price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            if ('age_price' in order) {
+                let average = this.safeFloat (order['age_price'], 'amount');
+                if ((typeof average !== 'undefined') && (average > 0)) {
+                    price = average;
+                }
+            }
         } else {
             if (typeof orderType !== 'undefined') {
                 let parts = orderType.split ('-');
@@ -623,7 +636,9 @@ module.exports = class cointiger extends huobipro {
                 type = parts[1];
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
-                price = this.safeFloat (order, 'avg_price', price);
+                let average = this.safeFloat (order, 'avg_price');
+                if ((typeof average !== 'undefined') && (average > 0))
+                    price = average;
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');

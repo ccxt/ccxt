@@ -21,7 +21,7 @@ class okex (okcoinusd):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'web': 'https://www.okex.com/v2/spot/markets',
+                    'web': 'https://www.okex.com/v2',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
                 },
@@ -92,7 +92,7 @@ class okex (okcoinusd):
     async def fetch_tickers_from_web(self, symbols=None, params={}):
         await self.load_markets()
         request = {}
-        response = await self.webGetTickers(self.extend(request, params))
+        response = await self.webGetSpotMarketsTickers(self.extend(request, params))
         tickers = response['data']
         result = {}
         for i in range(0, len(tickers)):
