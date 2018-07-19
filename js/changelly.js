@@ -21,7 +21,6 @@ module.exports = class changelly extends Exchange {
                 ],
             },
             'has': {
-                'cancelInstantTransaction': false,
                 'createLimitOrder': false,
                 'createMarketOrder': false,
                 'createOrder': false,
@@ -106,18 +105,6 @@ module.exports = class changelly extends Exchange {
     //     };
     // }
 
-    // async cancelInstantTransaction (transactionId, params = {}) {
-    //     const request = {
-    //         'address': transactionId,
-    //     };
-    //     const response = await this.publicPostCancelpending (this.extend (request, params));
-    //     if (response.error) throw new ExchangeError (response.error);
-    //     return {
-    //         'success': true,
-    //         'info': response,
-    //     };
-    // }
-
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
         const [base, quote] = symbol.split('/');
@@ -141,49 +128,9 @@ module.exports = class changelly extends Exchange {
         };
     }
 
-    async getMinimums(currencies, defaultQuote) {
-        const numCurrencies = currencies.length;
-        const minimums = {};
-        const toDelete = new Set(); // delete markets we can't procure a minimum for
-        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-        for (let i = 0; i < numCurrencies; i++) {
-            const currency = currencies[i];
-            if (currency === defaultQuote.toLowerCase()) continue;
-            const toEth = `${currency.toUpperCase()}/${defaultQuote}`;
-            const fromEth = `${defaultQuote}/${currency.toUpperCase()}`;
-            const paramsToEth = { 'from': currency, 'to': defaultQuote.toLowerCase() };
-            const paramsFromEth = { 'from': currency, 'to': defaultQuote.toLowerCase() };
-            try {
-                [minimums[toEth], minimums[fromEth]] = await Promise.all([
-                    this.publicPostGetMinAmount(paramsToEth).then(r => r.result),
-                    this.publicPostGetMinAmount(paramsFromEth).then(r => r.result),
-                ]);
-            } catch (e) {
-                toDelete.add(toEth);
-                toDelete.add(fromEth);
-            }
-            await sleep(40);
-        }
-        let tryCount = 0;
-        while (!this.markets && tryCount < 20) {
-            await sleep(50);
-            tryCount++;
-        }
-        this.setMinimums(minimums, toDelete);
-    }
-
-    setMinimums(minimums, toDelete) {
-        const minKeys = Object.keys(minimums);
-        for (let i = 0, len = minKeys.length; i < len; i++) {
-            const k = minKeys[i];
-            if (this.markets[k])
-                this.markets[k].limits.amount.min = minimums[k];
-        }
-        if (toDelete.size) {
-            toDelete.forEach((d) => {
-                if (this.markets[d]) delete this.markets[d];
-            });
-        }
+    async getMinimums(requests) {
+        const response = await this.publicPostGetMinAmount(requests);
+        return response.result;
     }
 
     // TODO: this hard-codes the quote to ETH for our needs. Won't bother with others for now.
@@ -191,15 +138,19 @@ module.exports = class changelly extends Exchange {
         const marketsResponse = await this.publicPostGetCurrenciesFull();
         const currencies = marketsResponse.result;
         const defaultQuote = 'ETH';
-        const markets = [];
+        const marketsObj = {};
+        const minimumRequests = [];
         for (let i = 0, len = currencies.length; i < len; i++) {
             const currency = currencies[i];
             if (!currency.enabled || currency.name === 'eth') {
                 continue;
             }
+            minimumRequests.push({ 'from': 'eth', 'to': currency.name });
+            minimumRequests.push({ 'from': currency.name, 'to': 'eth' });
+
             const uppercaseName = currency.name.toUpperCase();
             const marketToEth = `${uppercaseName}/${defaultQuote}`;
-            markets.push({
+            marketsObj[marketToEth] = {
                 'id': marketToEth,
                 'symbol': marketToEth,
                 'base': uppercaseName,
@@ -209,9 +160,9 @@ module.exports = class changelly extends Exchange {
                     'amount': {},
                 },
                 'info': currency,
-            });
+            };
             const marketFromEth = `${defaultQuote}/${uppercaseName}`;
-            markets.push({
+            marketsObj[marketFromEth] = {
                 'id': marketFromEth,
                 'symbol': marketFromEth,
                 'base': defaultQuote,
@@ -221,11 +172,22 @@ module.exports = class changelly extends Exchange {
                     'amount': {},
                 },
                 'info': currency,
-            });
+            };
         }
-        const validCurrencies = markets.map(k => k.symbol.split('/').find(i => i !== 'ETH'));
-        const unique = new Set(validCurrencies);
-        this.getMinimums(Array.from(unique), defaultQuote); // run in background to stop aggressive throttling
-        return markets;
+        let minimumResponses = [];
+        try {
+            minimumResponses = await this.getMinimums(minimumRequests);
+        } catch (e) {
+            console.error(e);
+            minimumResponses = [];
+        }
+        const result = [];
+        for (let i = 0, len = minimumResponses.length; i < len; i++) {
+            const minimum = minimumResponses[i];
+            const symbol = `${minimum.from.toUpperCase()}/${minimum.to.toUpperCase()}`;
+            marketsObj[symbol].limits.amount.min = minimum.minAmount;
+            result.push(marketsObj[symbol]);
+        }
+        return result;
     }
 };
