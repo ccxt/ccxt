@@ -48,6 +48,33 @@ class Exchange {
 
     const VERSION = '1.16.67';
 
+    public static $eth_units = array (
+        'wei'        => '1',
+        'kwei'       => '1000',
+        'babbage'    => '1000',
+        'femtoether' => '1000',
+        'mwei'       => '1000000',
+        'lovelace'   => '1000000',
+        'picoether'  => '1000000',
+        'gwei'       => '1000000000',
+        'nano'       => '1000000000',
+        'shannon'    => '1000000000',
+        'nanoether'  => '1000000000',
+        'szabo'      => '1000000000000',
+        'micro'      => '1000000000000',
+        'microether' => '1000000000000',
+        'finney'     => '1000000000000000',
+        'milli'      => '1000000000000000',
+        'milliether' => '1000000000000000',
+        'ether'      => '1000000000000000000',
+        'kether'     => '1000000000000000000000',
+        'einstein'   => '1000000000000000000000',
+        'grand'      => '1000000000000000000000',
+        'mether'     => '1000000000000000000000000',
+        'gether'     => '1000000000000000000000000000',
+        'tether'     => '1000000000000000000000000000000',
+    );
+
     public static $exchanges = array (
         '_1broker',
         '_1btcxe',
@@ -162,6 +189,7 @@ class Exchange {
         'rightbtc',
         'southxchange',
         'surbitcoin',
+        'theocean',
         'therock',
         'tidebit',
         'tidex',
@@ -1717,6 +1745,22 @@ class Exchange {
         }
         return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
+
+    public function fromWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
+        return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
+    }
+
+    public function toWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        return (string) (int) (($unit === 'wei') ? $amount : bcmul ($amount, Exchange::$eth_units[$unit]));
+    }
+
 
     public function precision_from_string ($string) {
         $parts = explode ('.', preg_replace ('/0+$/', '', $string));
