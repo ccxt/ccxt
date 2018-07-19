@@ -312,14 +312,6 @@ module.exports = class Exchange {
         if (!this.web3) {
             this.web3 = new Web3 (new Web3.providers.HttpProvider ())
         }
-
-        this.fromWei = function (amount, unit = 'ether') {
-            return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
-        }
-
-        this.toWei = function (amount, unit = 'ether') {
-            return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
-        }
     }
 
     defaults () {
@@ -1083,6 +1075,14 @@ module.exports = class Exchange {
 
     createMarketSellOrder (symbol, amount, params = {}) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
+    }
+
+    fromWei (amount, unit = 'ether') {
+        return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+    }
+
+    toWei (amount, unit = 'ether') {
+        return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
     }
 
     costToPrecision (symbol, cost) {
