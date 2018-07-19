@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.68'
+const version = '1.16.69'
 
 Exchange.ccxtVersion = version
 
@@ -44256,7 +44256,7 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromApi',
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         });
     }
