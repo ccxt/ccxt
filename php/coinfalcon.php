@@ -15,13 +15,14 @@ class coinfalcon extends Exchange {
             'name' => 'CoinFalcon',
             'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api' => 'https://coinfalcon.com/api/v1',
+                'api' => 'https://coinfalcon.com',
                 'www' => 'https://coinfalcon.com',
                 'doc' => 'https://docs.coinfalcon.com',
                 'fees' => 'https://coinfalcon.com/fees',
@@ -312,7 +313,8 @@ class coinfalcon extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $request = '/' . 'api/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($query)
@@ -326,10 +328,7 @@ class coinfalcon extends Exchange {
                 $body = $this->json ($query);
             }
             $seconds = (string) $this->seconds ();
-            $requestPath = explode ('/', $url);
-            $requestPath = mb_substr ($requestPath, 3);
-            $requestPath = '/' . implode ('/', $requestPath);
-            $payload = implode ('|', array ($seconds, $method, $requestPath));
+            $payload = implode ('|', array ($seconds, $method, $request));
             if ($body) {
                 $payload .= '|' . $body;
             }
