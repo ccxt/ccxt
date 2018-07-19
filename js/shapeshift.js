@@ -21,7 +21,6 @@ module.exports = class shapeshift extends Exchange {
                 ],
             },
             'has': {
-                'cancelInstantTransaction': true,
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
@@ -73,11 +72,13 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async startInstantTransaction(symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
-        const [base, quote] = symbol.split('/');
-        const pair = side === 'buy' ?
-            `${quote.toLowerCase()}_${base.toLowerCase()}` :
-            `${base.toLowerCase()}_${quote.toLowerCase()}`;
+    async startInstantTransaction(input, output, withdrawalAddress, affiliateAPIKey, params = {}) {
+        await this.loadMarkets();
+        const marketFrom = `${input.toUpperCase()}/${output.toUpperCase()}`;
+        const marketTo = `${output.toUpperCase()}/${input.toUpperCase()}`;
+        if (!this.markets[marketFrom] && !this.markets[marketTo])
+            throw new ExchangeError(`Market ${input} to ${output} does not exist.`);
+        const pair = `${input.toLowerCase()}_${output.toLowerCase()}`;
         const request = {
             'withdrawal': withdrawalAddress,
             'pair': pair,
@@ -89,18 +90,6 @@ module.exports = class shapeshift extends Exchange {
         return {
             'transactionId': response.deposit,
             'depositAddress': response.deposit,
-            'info': response,
-        };
-    }
-
-    async cancelInstantTransaction(transactionId, params = {}) {
-        const request = {
-            'address': transactionId,
-        };
-        const response = await this.publicPostCancelpending(this.extend(request, params));
-        if (response.error) throw new ExchangeError(response.error);
-        return {
-            'success': true,
             'info': response,
         };
     }
