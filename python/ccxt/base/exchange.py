@@ -59,14 +59,19 @@ from decimal import Decimal
 # -----------------------------------------------------------------------------
 
 try:
-    # Python 3
-    basestring
-    import urllib.parse as _urlencode
-    import web3
-except (ImportError, NameError) as e:
-    # Python 2
-    import urllib as _urlencode
+    basestring  # basestring was removed in python 3.0
+except NameError:
     basestring = str
+
+# -----------------------------------------------------------------------------
+
+try:
+    import urllib.parse as _urlencode    # Python 3
+    from web3 import Web3, HTTPProvider
+except ImportError:
+    import urllib as _urlencode          # Python 2
+    Web3 = HTTPProvider = None
+
 
 # -----------------------------------------------------------------------------
 
@@ -186,6 +191,7 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+    web3 = None
 
     commonCurrencies = {
         'XBT': 'BTC',
@@ -245,6 +251,9 @@ class Exchange(object):
 
         self.session = self.session if self.session else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
+
+        if Web3 and not self.web3:
+            self.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -868,6 +877,16 @@ class Exchange(object):
     def currency_id(self, commonCode):
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
+
+    def fromWei(self, amount, unit='ether'):
+        if Web3 is None:
+            self.raise_error(NotSupported, details="Ethereum's web3 methods don't support Python 2: https://pythonclock.org")
+        return float(Web3.fromWei(int(amount), unit))
+
+    def toWei(self, amount, unit='ether'):
+        if Web3 is None:
+            self.raise_error(NotSupported, details="Ethereum's web3 methods don't support Python 2: https://pythonclock.org")
+        return str(Web3.toWei(int(amount), unit))
 
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
