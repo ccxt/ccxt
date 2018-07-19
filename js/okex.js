@@ -209,7 +209,7 @@ module.exports = class okex extends okcoinusd {
                 let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
                 symbolData['ob'] = ob;
                 this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-                this.emit ('ob', symbol, this._cloneOrderBook (data['ob'], data['depth']));
+                this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
             }
         }
     }
