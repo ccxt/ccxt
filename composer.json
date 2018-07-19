@@ -227,6 +227,7 @@
     },
     "require": {
         "php": ">=5.3.0",
+        "ext-bcmath": "*",
         "ext-curl": "*",
         "ext-iconv": "*",
         "ext-pcre": "*",
