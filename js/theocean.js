@@ -1,7 +1,8 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -12,6 +13,7 @@ module.exports = class theocean extends Exchange {
             'rateLimit': 3000,
             'version': 'v0',
             'userAgent': this.userAgents['chrome'],
+            'parseJsonResponse': false,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
@@ -28,7 +30,7 @@ module.exports = class theocean extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
-                'api': 'https://api.staging.theocean.trade/api',
+                'api': 'https://api.dev.theocean.trade/api',
                 'www': 'https://theocean.trade',
                 'doc': 'https://docs.theocean.trade',
                 'fees': 'https://theocean.trade/fees',
@@ -125,8 +127,8 @@ module.exports = class theocean extends Exchange {
             let symbol = base + '/' + quote;
             let id = baseId + '/' + quoteId;
             let precision = {
-                'amount': this.safeInteger (baseToken, 'precision'),
-                'price': this.safeInteger (quoteToken, 'precision'),
+                'amount': this.safeInteger (baseToken, 'decimals'),
+                'price': this.safeInteger (quoteToken, 'decimals'),
             };
             let amountLimits = {
                 'min': this.fromWei (this.safeString (baseToken, 'minAmount')),
@@ -445,15 +447,19 @@ module.exports = class theocean extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let reserveRequest = {
-            'walletAddress': this.uid, // Your Wallet Address
+            'walletAddress': this.uid.toLowerCase (), // Your Wallet Address
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
-            'orderAmount': this.amountToPrecision (symbol, amount), // Base token amount in wei
+            'orderAmount': this.toWei (this.amountToPrecision (symbol, amount)), // Base token amount in wei
             'feeOption': 'feeInNative', // Fees can be paid in native currency ("feeInNative"), or ZRX ("feeInZRX")
         };
         if (type === 'limit') {
@@ -461,6 +467,9 @@ module.exports = class theocean extends Exchange {
         }
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
+        // const log = require ('ololog').unlimited;
+        // console.log (reserveRequest);
+        // process.exit ();
         let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
         //
         //     {
@@ -505,9 +514,8 @@ module.exports = class theocean extends Exchange {
         //       "marketOrderID": "892879202"
         //     }
         //
-        //  const log = require ('ololog').unlimited;
-        console.log (reserveResponse);
-        //  process.exit ();
+        // log.magenta (reserveResponse);
+        // process.exit ();
         // --------------------------------------------------------------------
         //     const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
         //         'maker': account
@@ -721,23 +729,33 @@ module.exports = class theocean extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = this.seconds ().toString ();
+            let timestamp = '1532034273'; // this.seconds ().toString ();
             let prehash = this.apiKey + timestamp + method;
+            console.log (this.apiKey, this.secret);
             if (method === 'POST') {
                 body = this.json (query);
+                console.log (body)
                 prehash += body;
+                console.log (prehash)
             } else {
+                console.log (body)
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
                 prehash += this.json ({});
+                console.log (prehash)
             }
             let signature = this.hmac (this.encode (prehash), this.encode (this.secret), 'sha256', 'base64');
+            console.log (signature);
             headers = {
                 'TOX-ACCESS-KEY': this.apiKey,
                 'TOX-ACCESS-SIGN': signature,
                 'TOX-ACCESS-TIMESTAMP': timestamp,
+                'Content-Length': body.length,
             };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+            }
         } else if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -751,6 +769,9 @@ module.exports = class theocean extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
+        if (body === "'Authentication failed'") {
+            throw new AuthenticationError (this.id + ' ' + body);
+        }
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             if ('errors' in response) {
@@ -769,4 +790,16 @@ module.exports = class theocean extends Exchange {
             }
         }
     }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        if (typeof response !== 'string') {
+            throw new ExchangeError (this.id + ' returned a non-string response: ' + response.toString ());
+        }
+        if ((response[0] === '{' || response[0] === '[')) {
+            return JSON.parse (response);
+        }
+        return response;
+    }
+
 };
