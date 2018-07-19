@@ -35,7 +35,7 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromApi',
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         });
     }
