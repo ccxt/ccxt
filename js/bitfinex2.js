@@ -310,7 +310,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'last': last,
             'previousClose': undefined,
             'change': ticker[length - 6],
-            'percentage': ticker[length - 5],
+            'percentage': ticker[length - 5] * 100,
             'average': undefined,
             'baseVolume': ticker[length - 3],
             'quoteVolume': undefined,
