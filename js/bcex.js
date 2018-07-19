@@ -103,7 +103,7 @@ module.exports = class bcex extends Exchange {
             if (!(currency in result)) {
                 let account = this.account ()
                 result[currency] = account;
-
+            }
             if (lockOrOver == 'lock') {
                 result[currency]['used'] = parseFloat(currentAmount);
             } else {
