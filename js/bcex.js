@@ -142,6 +142,16 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+
+        await this.loadMarkets();
+        let request = {
+            'order_id': id,
+            'symbol' : symbol
+        }
+
+        let response = await this.privatePostApiOrderCancel(this.extend(request, params));
+
+
         return 0;
     }
 
