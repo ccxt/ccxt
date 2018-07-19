@@ -344,8 +344,6 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
-        const fetchImplementation = this.fetchImplementation
-
         if (this.rateLimit === undefined)
             throw new Error (this.id + '.rateLimit property is not configured')
 
@@ -359,10 +357,10 @@ module.exports = class Exchange {
 
         this.throttle = throttle (this.tokenBucket)
 
-        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+        this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
 
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                this.fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
