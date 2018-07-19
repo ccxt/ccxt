@@ -301,7 +301,7 @@ module.exports = class theocean extends Exchange {
         //         "timestamp": "1512929327792"
         //     }
         //
-        let timestamp = parseInt (ticker['timestamp'] / 1000);
+        let timestamp = parseInt (this.safeFloat (ticker, 'timestamp') / 1000);
         let symbol = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
@@ -322,7 +322,7 @@ module.exports = class theocean extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'priceChange'),
+            'change': this.fromWei (this.safeFloat (ticker, 'priceChange')),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.fromWei (this.safeString (ticker, 'volume')),
