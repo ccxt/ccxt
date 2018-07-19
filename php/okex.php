@@ -37,7 +37,7 @@ class okex extends okcoinusd {
                 'YOYO' => 'YOYOW',
             ),
             'options' => array (
-                'fetchTickersMethod' => 'fetchTickersFromApi',
+                'fetchTickersMethod' => 'fetch_tickers_from_api',
             ),
         ));
     }

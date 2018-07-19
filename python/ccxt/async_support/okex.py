@@ -36,7 +36,7 @@ class okex (okcoinusd):
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromApi',
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         })
 
