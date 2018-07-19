@@ -297,7 +297,7 @@ module.exports = class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
