@@ -617,18 +617,14 @@ module.exports = class cointiger extends huobipro {
         let price = undefined;
         let cost = undefined;
         let fee = undefined;
+        let average = undefined;
         if (typeof side !== 'undefined') {
             side = side.toLowerCase ();
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
             filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
             price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
-            if ('age_price' in order) {
-                let average = this.safeFloat (order['age_price'], 'amount');
-                if ((typeof average !== 'undefined') && (average > 0)) {
-                    price = average;
-                }
-            }
+            average = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
         } else {
             if (typeof orderType !== 'undefined') {
                 let parts = orderType.split ('-');
@@ -636,9 +632,7 @@ module.exports = class cointiger extends huobipro {
                 type = parts[1];
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
-                let average = this.safeFloat (order, 'avg_price');
-                if ((typeof average !== 'undefined') && (average > 0))
-                    price = average;
+                average = this.safeFloat (order, 'avg_price');
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');
@@ -683,6 +677,7 @@ module.exports = class cointiger extends huobipro {
             'type': type,
             'side': side,
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,

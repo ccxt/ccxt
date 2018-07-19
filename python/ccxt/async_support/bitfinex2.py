@@ -302,7 +302,7 @@ class bitfinex2 (bitfinex):
             'last': last,
             'previousClose': None,
             'change': ticker[length - 6],
-            'percentage': ticker[length - 5],
+            'percentage': ticker[length - 5] * 100,
             'average': None,
             'baseVolume': ticker[length - 3],
             'quoteVolume': None,
