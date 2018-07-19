@@ -87,7 +87,38 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        return 0;
+        await this.loadMarkets ();
+        params['api_key'] = this.apiKey
+        let response = await this.privatePostApiUserUserBalance (params)
+        let data = response['data'];
+        let keys = Object.keys(data);
+        let result = { }
+        for (let i = 0; i < keys.length; i++) {
+            let currentKey = keys[i];
+            let currentAmount = data[currentKey];
+            let split = currentKey.split('_')
+            let id = split[0];
+            let lockOrOver = split[1];
+            let currency = this.commonCurrencyCode(id);
+            if (!(currency in result)) {
+                let account = this.account ()
+                result[currency] = account;
+
+            if (lockOrOver == 'lock') {
+                result[currency]['used'] = parseFloat(currentAmount);
+            } else {
+                result[currency]['free'] = parseFloat(currentAmount);
+            }
+        }
+        keys = Object.keys(result)
+        for (let i = 0; i < keys.length; i++) {
+            let currentKey = keys[i];
+            let x = result[currentKey]
+            let total = result[currentKey]['used'] + result[currentKey]['total']
+            result[currentKey]['total'] = total;
+        }
+        result['info'] = data
+        return this.parseBalance(result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
