@@ -311,7 +311,7 @@ class bitfinex2 extends bitfinex {
             'last' => $last,
             'previousClose' => null,
             'change' => $ticker[$length - 6],
-            'percentage' => $ticker[$length - 5],
+            'percentage' => $ticker[$length - 5] * 100,
             'average' => null,
             'baseVolume' => $ticker[$length - 3],
             'quoteVolume' => null,
