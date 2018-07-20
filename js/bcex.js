@@ -113,7 +113,6 @@ module.exports = class bcex extends Exchange {
         keys = Object.keys(result)
         for (let i = 0; i < keys.length; i++) {
             let currentKey = keys[i];
-            let x = result[currentKey]
             let total = result[currentKey]['used'] + result[currentKey]['total']
             result[currentKey]['total'] = total;
         }
@@ -133,8 +132,63 @@ module.exports = class bcex extends Exchange {
         return 0;
     }
 
+    parseOrder (order, market = undefined) {
+        let id = order['id'].toString ();
+        let timestamp = order['datetime'] * 1000;
+        let iso8601 = this.iso8601 (timestamp);
+        let symbol = market['symbol'];
+        let type = order['type'];
+        let side = "TODO";
+        let price = order['price']
+        let average = order['avg_price']
+        let amount = order['amount']
+        let remaining = order['amount_outstanding']
+        let filled = amount - remaining;
+        let status = order['status']
+        let cost = filled * price;
+        let fee = undefined;
+        if ('fee' in order) {
+            fee = {
+                'cost': parseFloat (order['fee']),
+                'currency': this.commonCurrencyCode (order['feeCurrency']),
+            };
+        }
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return 0;
+        await this.loadMarkets();
+        let request = {};
+        request['api_key'] = this.apiKey;
+        if (typeof symbol !== 'undefined') {
+            request['symbol'] = symbol;
+            request['type'] = 'open';
+        }
+        let response = await this.privatePostApiOrderTradeList(this.extend(request, params));
+        let market = undefined;
+        if (symbol in this.markets_by_id) {
+            market = this.markets_by_id[symbol];
+        }
+        let results = this.parseOrders(response['data'], market, since, limit);
+        return results;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -142,16 +196,6 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-
-        await this.loadMarkets();
-        let request = {
-            'order_id': id,
-            'symbol' : symbol
-        }
-
-        let response = await this.privatePostApiOrderCancel(this.extend(request, params));
-
-
         return 0;
     }
 
