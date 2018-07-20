@@ -178,9 +178,9 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets();
         let request = {};
         request['api_key'] = this.apiKey;
+        request['type'] = 'open';
         if (typeof symbol !== 'undefined') {
             request['symbol'] = symbol;
-            request['type'] = 'open';
         }
         let response = await this.privatePostApiOrderTradeList(this.extend(request, params));
         let market = undefined;
@@ -196,7 +196,17 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return 0;
+        await this.loadMarkets ();
+        let request = {};
+        request['api_key'] = this.apiKey;
+        if (typeof symbol !== 'undefined') {
+            request['symbol'] = symbol;
+        }
+        if (typeof id !== 'undefined') {
+            request['order_id'] = id;
+        }
+        let results = await this.privatePostApiOrderCancel(this.extend(request, params));
+        return results;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
