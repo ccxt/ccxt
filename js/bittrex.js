@@ -500,7 +500,9 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.extend (this.parseOrder (response), {
+            'status': 'canceled',
+        });
     }
 
     parseSymbol (id) {
