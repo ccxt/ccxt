@@ -297,7 +297,7 @@ class coinex extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv[0],
+            $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
             floatval ($ohlcv[4]),

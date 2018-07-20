@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.72'
+const version = '1.16.73'
 
 Exchange.ccxtVersion = version
 
@@ -20770,7 +20770,7 @@ module.exports = class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
