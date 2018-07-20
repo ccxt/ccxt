@@ -288,7 +288,7 @@ class coinex (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             float(ohlcv[1]),
             float(ohlcv[3]),
             float(ohlcv[4]),

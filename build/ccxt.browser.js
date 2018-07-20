@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.71'
+const version = '1.16.73'
 
 Exchange.ccxtVersion = version
 
@@ -20770,7 +20770,7 @@ module.exports = class coinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
@@ -44331,9 +44331,9 @@ module.exports = class okex extends okcoinusd {
         return result;
     }
 
-    async fetchTickers (symbol = undefined, params = {}) {
+    async fetchTickers (symbols = undefined, params = {}) {
         let method = this.options['fetchTickersMethod'];
-        let response = await this[method] (symbol, params);
+        let response = await this[method] (symbols, params);
         return response;
     }
 };
