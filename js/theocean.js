@@ -492,7 +492,7 @@ module.exports = class theocean extends Exchange {
 
     signOrder (order, account = undefined) {
         const orderHash = ZeroEx.getOrderHashHex (order);
-        log.red ('orderHash:', orderHash)
+        log.red ('orderHash:', orderHash);
         let unpacked = [
             order['exchangeContractAddress'], // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
             order['maker'], // { value: order.maker, type: types_1.SolidityTypes.Address },
@@ -523,11 +523,11 @@ module.exports = class theocean extends Exchange {
             'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
         ];
         // log.bright.blue (types)
-        log.bright.blue (unpacked)
+        log.bright.blue (unpacked);
         const sha256 = ethAbi.soliditySHA3 (types, unpacked);
         const sha256Hex = sha256.toString ('hex');
         const hash = '0x' + sha256Hex;
-        log.red ('orderHas2:', hash)
+        log.red ('orderHas2:', hash);
 
         let acc = this.decryptAccountFromPrivateKey (this.privateKey)
 
