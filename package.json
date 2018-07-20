@@ -43,7 +43,9 @@
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
+    "0x.js": "^0.38.6",
     "bignumber.js": "^7.2.1",
+    "bn.js": "^4.11.8",
     "cloudscraper": "1.4.1",
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
