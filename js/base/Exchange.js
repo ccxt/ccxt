@@ -1159,4 +1159,19 @@ module.exports = class Exchange {
         S = S < 10 ? ('0' + S) : S
         return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
     }
+
+    // ------------------------------------------------------------------------
+    // web3 / 0x methods
+
+    decryptAccountFromJSON (json, password) {
+        return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password);
+    }
+
+    decryptAccount (key, password) {
+        return this.web3.eth.accounts.decrypt (key, password)
+    }
+
+    decryptAccountFromPrivateKey (privateKey) {
+        return this.web3.eth.accounts.privateKeyToAccount (privateKey)
+    }
 }
