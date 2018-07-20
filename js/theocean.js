@@ -3,6 +3,12 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
+const log = require ('ololog').unlimited;
+const { ZeroEx } = require ('0x.js')
+const ethAbi = require ('ethereumjs-abi')
+const ethUtil = require ('ethereumjs-util')
+var BN = require("bn.js");
+
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -30,7 +36,7 @@ module.exports = class theocean extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
-                'api': 'https://api.dev.theocean.trade/api',
+                'api': 'https://api.staging.theocean.trade/api',
                 'www': 'https://theocean.trade',
                 'doc': 'https://docs.theocean.trade',
                 'fees': 'https://theocean.trade/fees',
@@ -67,6 +73,8 @@ module.exports = class theocean extends Exchange {
             'exceptions': {
                 "Schema validation failed for 'query'": ExchangeError, // { "message": "Schema validation failed for 'query'", "errors": ... }
                 "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
+                "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
+                "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
             },
         });
     }
@@ -451,6 +459,103 @@ module.exports = class theocean extends Exchange {
         return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
+    getOrderHash (contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce) {
+        let unpacked = [ contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce ];
+        let types = [ 'address', 'address', 'uint256', 'address', 'uint256', 'uint256', 'uint256' ];
+        const sha256 = ethAbi.soliditySHA256 (types, unpacked);
+        const sha256Hex = sha256.toString ('hex');
+        const hash = '0x' + sha256Hex;
+        return hash
+    }
+
+    // getOrderHashHex (order) {
+    //     var orderParts = [
+    //         { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+    //         { value: order.maker, type: types_1.SolidityTypes.Address },
+    //         { value: order.taker, type: types_1.SolidityTypes.Address },
+    //         { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+    //         { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+    //         { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+    //         { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+    //         { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+    //         { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+    //         { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+    //         { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+    //         { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+    //     ];
+    //     var types = _.map(orderParts, function (o) { return o.type; });
+    //     var values = _.map(orderParts, function (o) { return o.value; });
+    //     var hashBuff = ethABI.soliditySHA3(types, values);
+    //     var hashHex = ethUtil.bufferToHex(hashBuff);
+    //     return hashHex;
+    // }
+
+    signOrder (order, account = undefined) {
+        const orderHash = ZeroEx.getOrderHashHex (order);
+        log.red ('orderHash:', orderHash)
+        let unpacked = [
+            order['exchangeContractAddress'], // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            order['maker'], // { value: order.maker, type: types_1.SolidityTypes.Address },
+            order['taker'], // { value: order.taker, type: types_1.SolidityTypes.Address },
+            order['makerTokenAddress'], // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['takerTokenAddress'], // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['feeRecipient'], // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            new BN(order['makerTokenAmount'], 10), // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            new BN(order['takerTokenAmount'], 10), // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            new BN(order['makerFee'], 10), // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            new BN(order['takerFee'], 10), // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            new BN(order['expirationUnixTimestampSec'], 10), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            new BN(order['salt'], 10), // 'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+            // contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce ];
+        ];
+        let types = [
+            'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
+            'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
+            'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        ];
+        // log.bright.blue (types)
+        log.bright.blue (unpacked)
+        const sha256 = ethAbi.soliditySHA3 (types, unpacked);
+        const sha256Hex = sha256.toString ('hex');
+        const hash = '0x' + sha256Hex;
+        log.red ('orderHas2:', hash)
+
+        let acc = this.decryptAccountFromPrivateKey (this.privateKey)
+
+        const signature = acc.sign (hash, this.privateKey.slice (2));
+        const sig2 = ethUtil.ecsign (new Buffer(signature.messageHash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
+        const sig3 = ethUtil.ecsign (new Buffer(hash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
+        log.red (signature)
+        log.green ('----------------------------------------------------------')
+        log.red (sig2.v.toString (16))
+        log.red ({
+            v: '0x' + sig2.v.toString (16),
+            r: '0x' + sig2.r.toString ('hex'),
+            s: '0x' + sig2.s.toString ('hex'),
+        })
+        log.magenta ({
+            v: '0x' + sig3.v.toString (16),
+            r: '0x' + sig3.r.toString ('hex'),
+            s: '0x' + sig3.s.toString ('hex'),
+        })
+        process.exit ();
+        // const signature = await this.zeroEx.signOrderHashAsync (orderHash, signerAddress)
+        // return this.extend (order, {
+        //     'orderHash': orderHash,
+        //     'ecSignature': signature
+        // });
+        process.exit ()
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -467,10 +572,28 @@ module.exports = class theocean extends Exchange {
         }
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
-        // const log = require ('ololog').unlimited;
-        // console.log (reserveRequest);
+        log.green (reserveRequest);
         // process.exit ();
-        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        // let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        //
+        // ---- market orders -------------------------------------------------
+        //
+        let reserveResponse =
+            {       matchingOrderID:   "MARKET_INTENT:8yjjtgkt6k8yjjtgkt6ljjtgkt6m",
+              unsignedMatchingOrder: {                      maker: "",
+                                                            taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+                                                makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+                                                takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
+                                                 makerTokenAmount: "27100000000000000",
+                                                 takerTokenAmount: "881877819717396973",
+                                                         makerFee: "0",
+                                                         takerFee: "0",
+                                       expirationUnixTimestampSec: "1534651346",
+                                                     feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+                                                             salt: "73665372381710778176321403164539964478925879098761330710742710411655889865098",
+                                          exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                     } }
+        //
+        // ---- limit orders --------------------------------------------------
         //
         //     {
         //       "unsignedTargetOrder": {
@@ -514,21 +637,23 @@ module.exports = class theocean extends Exchange {
         //       "marketOrderID": "892879202"
         //     }
         //
-        // log.magenta (reserveResponse);
+        // console.log (reserveResponse);
+        log.magenta (reserveResponse);
         // process.exit ();
         // --------------------------------------------------------------------
-        //     const marketOrder = this.extend (reserveResponse['unsignedOrder'], {
-        //         'maker': account
-        //     });
-        //     const signedMarketOrder = await this._signOrder (marketOrder, account)
-        //     const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
-        //     const placeRequest = {
-        //         'signedOrder': serializedMarketOrder,
-        //         'marketOrderID': reserveResponse['marketOrderID'],
-        //     };
-        //     return api.trade.placeMarketOrder({order})
-        //     let placeMethod = method + 'Place';
-        // process.exit ();
+        const marketOrder = this.extend (reserveResponse['unsignedMatchingOrder'], {
+            'maker': this.uid.toLowerCase (),
+        });
+        const signedMarketOrder = this.signOrder (marketOrder)
+        const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
+        const placeRequest = {
+            'signedOrder': serializedMarketOrder,
+            'marketOrderID': reserveResponse['marketOrderID'],
+        };
+        // return api.trade.placeMarketOrder({order})
+        let placeMethod = method + 'Place';
+        log.yellow (placeRequest)
+        process.exit ();
         //     let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
         //         {
         //         "targetOrder": {
@@ -729,33 +854,25 @@ module.exports = class theocean extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = '1532034273'; // this.seconds ().toString ();
+            let timestamp = this.seconds ().toString ();
             let prehash = this.apiKey + timestamp + method;
-            console.log (this.apiKey, this.secret);
             if (method === 'POST') {
                 body = this.json (query);
-                console.log (body)
                 prehash += body;
-                console.log (prehash)
             } else {
-                console.log (body)
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
                 prehash += this.json ({});
-                console.log (prehash)
             }
             let signature = this.hmac (this.encode (prehash), this.encode (this.secret), 'sha256', 'base64');
-            console.log (signature);
             headers = {
                 'TOX-ACCESS-KEY': this.apiKey,
                 'TOX-ACCESS-SIGN': signature,
                 'TOX-ACCESS-TIMESTAMP': timestamp,
-                'Content-Length': body.length,
+                'Content-Type': 'application/json',
+                // 'Content-Length': body.length,
             };
-            if (method === 'POST') {
-                headers['Content-Type'] = 'application/json';
-            }
         } else if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -769,6 +886,8 @@ module.exports = class theocean extends Exchange {
             return; // fallback to default error handler
         if (body.length < 2)
             return; // fallback to default error handler
+        // code 401 and plain body 'Authentication failed' (with single quotes)
+        // this error is sent if you do not submit a proper Content-Type
         if (body === "'Authentication failed'") {
             throw new AuthenticationError (this.id + ' ' + body);
         }
@@ -801,5 +920,4 @@ module.exports = class theocean extends Exchange {
         }
         return response;
     }
-
 };
