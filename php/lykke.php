@@ -245,7 +245,7 @@ class lykke extends Exchange {
     public function parse_order ($order, $market = null) {
         $status = $this->parse_order_status($order['Status']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('AssetPairId', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['AssetPairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['AssetPairId']];

@@ -243,7 +243,7 @@ module.exports = class lykke extends Exchange {
     parseOrder (order, market = undefined) {
         let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('AssetPairId' in order)
                 if (order['AssetPairId'] in this.markets_by_id)
                     market = this.markets_by_id[order['AssetPairId']];

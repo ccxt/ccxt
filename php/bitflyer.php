@@ -330,7 +330,7 @@ class bitflyer extends Exchange {
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }
@@ -367,7 +367,7 @@ class bitflyer extends Exchange {
         $request = array (
             'product_code' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['count'] = $limit;
         $response = $this->privateGetGetexecutions (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);

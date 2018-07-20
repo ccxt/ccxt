@@ -142,7 +142,7 @@ class bitsane extends Exchange {
             $limits = $this->safe_value($market, 'limits');
             $minLimit = null;
             $maxLimit = null;
-            if ($limits) {
+            if ($limits !== null) {
                 $minLimit = $this->safe_float($limits, 'minimum');
                 $maxLimit = $this->safe_float($limits, 'maximum');
             }
@@ -227,7 +227,7 @@ class bitsane extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $this->safe_value($this->marketsById, $id);
-            if (!$market) {
+            if ($market === null) {
                 continue;
             }
             $symbol = $market['symbol'];
@@ -273,9 +273,9 @@ class bitsane extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);

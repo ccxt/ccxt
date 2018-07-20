@@ -183,7 +183,7 @@ class mercado extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -199,7 +199,7 @@ class mercado extends Exchange {
             $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
         $status = $order['status'];
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('coin_pair', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['coin_pair'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['coin_pair']];
@@ -244,7 +244,7 @@ class mercado extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);

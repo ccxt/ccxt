@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -22,6 +22,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
                 'withdraw': true,
             },
             'urls': {
@@ -725,7 +726,7 @@ module.exports = class hitbtc extends Exchange {
         if (Math.abs (difference) > market['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         let clientOrderId = this.milliseconds ();
-        let order = {
+        let request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -733,12 +734,15 @@ module.exports = class hitbtc extends Exchange {
             'type': type,
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = this.options['defaultTimeInForce'];
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         }
-        let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return this.parseOrder (response['ExecutionReport'], market);
+        let response = await this.tradingPostNewOrder (this.extend (request, params));
+        let order = this.parseOrder (response['ExecutionReport'], market);
+        if (order['status'] === 'rejected')
+            throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -770,16 +774,13 @@ module.exports = class hitbtc extends Exchange {
         let status = this.safeString (order, 'orderStatus');
         if (status)
             status = this.parseOrderStatus (status);
-        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'price', price);
+        price = this.safeFloat (order, 'avgPrice', price);
         let amount = this.safeFloat (order, 'orderQuantity');
-        if (typeof amount === 'undefined')
-            amount = this.safeFloat (order, 'quantity');
+        amount = this.safeFloat (order, 'quantity', amount);
         let remaining = this.safeFloat (order, 'quantityLeaves');
-        if (typeof remaining === 'undefined')
-            remaining = this.safeFloat (order, 'leavesQuantity');
+        remaining = this.safeFloat (order, 'leavesQuantity', remaining);
         let filled = undefined;
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
@@ -798,7 +799,7 @@ module.exports = class hitbtc extends Exchange {
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = averagePrice * filled;
+                cost = price * filled;
             }
         }
         let feeCost = this.safeFloat (order, 'fee');
@@ -850,7 +851,7 @@ module.exports = class hitbtc extends Exchange {
             'sort': 'desc',
             'statuses': statuses.join (','),
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }
@@ -867,7 +868,7 @@ module.exports = class hitbtc extends Exchange {
             'statuses': statuses.join (','),
             'max_results': 1000,
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }

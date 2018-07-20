@@ -15,16 +15,18 @@ class coinfalcon extends Exchange {
             'name' => 'CoinFalcon',
             'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
                 'fetchTickers' => true,
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api' => 'https://coinfalcon.com/api/v1',
+                'api' => 'https://coinfalcon.com',
                 'www' => 'https://coinfalcon.com',
                 'doc' => 'https://docs.coinfalcon.com',
                 'fees' => 'https://coinfalcon.com/fees',
+                'referral' => 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             ),
             'api' => array (
                 'public' => array (
@@ -105,7 +107,7 @@ class coinfalcon extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        if (!$market) {
+        if ($market === null) {
             $marketId = $ticker['name'];
             $market = $this->marketsById[$marketId];
         }
@@ -191,7 +193,7 @@ class coinfalcon extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($since) {
+        if ($since !== null) {
             $request['since'] = $this->iso8601 ($since);
         }
         $response = $this->publicGetMarketsMarketTrades (array_merge ($request, $params));
@@ -205,20 +207,24 @@ class coinfalcon extends Exchange {
         $balances = $response['data'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency'];
-            $currency = $this->common_currency_code($currencyId);
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $uppercase = strtoupper ($currencyId);
+            $code = $this->common_currency_code($uppercase);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($uppercase, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$uppercase]['code'];
+            }
             $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['hold']),
+                'free' => floatval ($balance['available_balance']),
+                'used' => floatval ($balance['hold_balance']),
                 'total' => floatval ($balance['balance']),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function parse_order ($order, $market = null) {
-        if (!$market) {
+        if ($market === null) {
             $market = $this->marketsById[$order['market']];
         }
         $symbol = $market['symbol'];
@@ -291,10 +297,10 @@ class coinfalcon extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $request['market'] = $this->market_id($symbol);
         }
-        if ($since) {
+        if ($since !== null) {
             $request['since_time'] = $this->iso8601 ($this->milliseconds ());
         }
         // TODO => test status=all if it works for closed orders too
@@ -307,24 +313,22 @@ class coinfalcon extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
+        $request = '/' . 'api/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api'] . $request;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            $query = $this->urlencode ($query);
-            if (strlen ($query))
-                $url .= '?' . $query;
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
             if ($method === 'GET') {
-                $url .= '?' . $this->urlencode ($query);
+                if ($query)
+                    $url .= '?' . $this->urlencode ($query);
             } else {
                 $body = $this->json ($query);
             }
-            $seconds = $this->seconds ();
-            $requestPath = explode ('/', $url);
-            $requestPath = mb_substr ($requestPath, 3);
-            $requestPath = '/' . implode ('/', $requestPath);
-            $payload = implode ('|', array ($seconds, $method, $requestPath));
+            $seconds = (string) $this->seconds ();
+            $payload = implode ('|', array ($seconds, $method, $request));
             if ($body) {
                 $payload .= '|' . $body;
             }

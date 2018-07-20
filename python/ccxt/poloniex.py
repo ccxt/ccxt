@@ -198,7 +198,7 @@ class poloniex (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not since:
+        if since is None:
             since = 0
         request = {
             'currencyPair': market['id'],
@@ -406,7 +406,7 @@ class poloniex (Exchange):
                 quote = parts[0]
                 base = parts[1]
                 symbol = base + '/' + quote
-        if market:
+        if market is not None:
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
@@ -461,19 +461,19 @@ class poloniex (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = {'currencyPair': pair}
         if since is not None:
             request['start'] = int(since / 1000)
-            request['end'] = self.seconds()
+            request['end'] = self.seconds() + 1  # adding 1 is a fix for  #3411
         # limit is disabled(does not really work as expected)
-        if limit:
+        if limit is not None:
             request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
-        if market:
+        if market is not None:
             result = self.parse_trades(response, market)
         else:
             if response:
@@ -552,14 +552,14 @@ class poloniex (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
         openOrders = []
-        if market:
+        if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
@@ -591,7 +591,7 @@ class poloniex (Exchange):
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
             order = self.orders[id]
-            if market:
+            if market is not None:
                 if order['symbol'] == symbol:
                     result.append(order)
             else:
@@ -674,7 +674,7 @@ class poloniex (Exchange):
             result = self.extend(self.orders[newid], {'info': response})
         else:
             market = None
-            if symbol:
+            if symbol is not None:
                 market = self.market(symbol)
             result = self.parse_order(response, market)
             self.orders[result['id']] = result
@@ -712,7 +712,7 @@ class poloniex (Exchange):
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,

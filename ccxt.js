@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.15.8'
+const version = '1.16.76'
 
 Exchange.ccxtVersion = version
 
@@ -51,6 +51,7 @@ const exchanges = {
     'anxpro':                  require ('./js/anxpro.js'),
     'anybits':                 require ('./js/anybits.js'),
     'bibox':                   require ('./js/bibox.js'),
+    'bigone':                  require ('./js/bigone.js'),
     'binance':                 require ('./js/binance.js'),
     'bit2c':                   require ('./js/bit2c.js'),
     'bitbank':                 require ('./js/bitbank.js'),
@@ -72,6 +73,7 @@ const exchanges = {
     'bl3p':                    require ('./js/bl3p.js'),
     'bleutrade':               require ('./js/bleutrade.js'),
     'braziliex':               require ('./js/braziliex.js'),
+    'btcalpha':                require ('./js/btcalpha.js'),
     'btcbox':                  require ('./js/btcbox.js'),
     'btcchina':                require ('./js/btcchina.js'),
     'btcexchange':             require ('./js/btcexchange.js'),
@@ -152,6 +154,7 @@ const exchanges = {
     'qryptos':                 require ('./js/qryptos.js'),
     'quadrigacx':              require ('./js/quadrigacx.js'),
     'quoinex':                 require ('./js/quoinex.js'),
+    'rightbtc':                require ('./js/rightbtc.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'surbitcoin':              require ('./js/surbitcoin.js'),
     'therock':                 require ('./js/therock.js'),

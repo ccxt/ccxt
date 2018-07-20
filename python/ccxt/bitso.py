@@ -378,7 +378,7 @@ class bitso (Exchange):
             raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
         return self.parse_order(response['payload'][0], market)
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.privateGetOrderTradesOid({

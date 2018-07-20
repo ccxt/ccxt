@@ -234,6 +234,13 @@ module.exports = class zaif extends Exchange {
         let response = await this.publicGetTradesPair (this.extend ({
             'pair': market['id'],
         }, params));
+        let numTrades = response.length;
+        if (numTrades === 1) {
+            let firstTrade = response[0];
+            if (!Object.keys (firstTrade).length) {
+                response = [];
+            }
+        }
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -304,7 +311,7 @@ module.exports = class zaif extends Exchange {
             // 'is_token': false,
             // 'is_token_both': false,
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
@@ -325,7 +332,7 @@ module.exports = class zaif extends Exchange {
             // 'end': 1503821051,
             // 'is_token': false,
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }

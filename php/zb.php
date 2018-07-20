@@ -370,7 +370,7 @@ class zb extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . 'fetchOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -396,7 +396,7 @@ class zb extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 10, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . 'fetchOpenOrders requires a $symbol parameter');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -514,14 +514,26 @@ class zb extends Exchange {
             return; // fallback to default error handler
         if ($body[0] === '{') {
             $response = json_decode ($body, $as_associative_array = true);
+            $feedback = $this->id . ' ' . $this->json ($response);
             if (is_array ($response) && array_key_exists ('code', $response)) {
                 $code = $this->safe_string($response, 'code');
-                $message = $this->id . ' ' . $this->json ($response);
                 if (is_array ($this->exceptions) && array_key_exists ($code, $this->exceptions)) {
                     $ExceptionClass = $this->exceptions[$code];
-                    throw new $ExceptionClass ($message);
+                    throw new $ExceptionClass ($feedback);
                 } else if ($code !== '1000') {
-                    throw new ExchangeError ($message);
+                    throw new ExchangeError ($feedback);
+                }
+            }
+            // special case for array ("$result":false,"$message":"服务端忙碌") (a "Busy Server" reply)
+            $result = $this->safe_value($response, 'result');
+            if ($result !== null) {
+                if (!$result) {
+                    $message = $this->safe_string($response, 'message');
+                    if ($message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable ($feedback);
+                    } else {
+                        throw new ExchangeError ($feedback);
+                    }
                 }
             }
         }

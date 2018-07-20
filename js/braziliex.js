@@ -307,7 +307,7 @@ module.exports = class braziliex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'market');
             if (marketId)
                 if (marketId in this.markets_by_id)

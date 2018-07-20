@@ -170,7 +170,7 @@ class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         $this->load_markets();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $this->load_markets();
             $market = $this->market ($symbol);
         } else {

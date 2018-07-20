@@ -78,6 +78,7 @@ class binance (Exchange):
                 'web': {
                     'get': [
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ],
                 },
                 'wapi': {
@@ -85,6 +86,7 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
@@ -686,8 +688,8 @@ class binance (Exchange):
         return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol param')
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -702,14 +704,14 @@ class binance (Exchange):
         return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol param')
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
         return self.parse_orders(response, market, since, limit)
@@ -734,7 +736,7 @@ class binance (Exchange):
         return self.filter_by(orders, 'status', 'closed')
 
     def cancel_order(self, id, symbol=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -746,14 +748,14 @@ class binance (Exchange):
         return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -890,7 +892,7 @@ class binance (Exchange):
                         elif message == 'Account has insufficient balance for requested action.':
                             raise InsufficientFunds(self.id + ' ' + body)
                         elif message == 'Rest API trading is not enabled.':
-                            raise InsufficientFunds(self.id + ' ' + body)
+                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)

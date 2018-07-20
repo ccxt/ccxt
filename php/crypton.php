@@ -208,7 +208,7 @@ class crypton extends Exchange {
                 $symbol = $this->parse_symbol ($marketId);
             }
         }
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $fee = null;
@@ -239,7 +239,7 @@ class crypton extends Exchange {
         $request = array (
             'id' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->publicGetMarketsIdTrades (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
@@ -249,7 +249,7 @@ class crypton extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ();
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
         $trades = $this->parse_trades($response['result'], $market, $since, $limit);
@@ -317,7 +317,7 @@ class crypton extends Exchange {
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $request['market'] = $this->market_id($symbol);
         }
         $response = $this->privateGetOrders (array_merge ($request, $params));

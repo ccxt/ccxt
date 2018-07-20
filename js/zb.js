@@ -369,7 +369,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -395,7 +395,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -513,14 +513,26 @@ module.exports = class zb extends Exchange {
             return; // fallback to default error handler
         if (body[0] === '{') {
             let response = JSON.parse (body);
+            let feedback = this.id + ' ' + this.json (response);
             if ('code' in response) {
                 let code = this.safeString (response, 'code');
-                let message = this.id + ' ' + this.json (response);
                 if (code in this.exceptions) {
                     let ExceptionClass = this.exceptions[code];
-                    throw new ExceptionClass (message);
+                    throw new ExceptionClass (feedback);
                 } else if (code !== '1000') {
-                    throw new ExchangeError (message);
+                    throw new ExchangeError (feedback);
+                }
+            }
+            // special case for {"result":false,"message":"服务端忙碌"} (a "Busy Server" reply)
+            let result = this.safeValue (response, 'result');
+            if (typeof result !== 'undefined') {
+                if (!result) {
+                    let message = this.safeString (response, 'message');
+                    if (message === '服务端忙碌') {
+                        throw new ExchangeNotAvailable (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
                 }
             }
         }

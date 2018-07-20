@@ -23,11 +23,12 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
                 'fetchTradingLimits': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
             },
@@ -112,6 +113,7 @@ module.exports = class huobipro extends Exchange {
             },
             'exceptions': {
                 'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder, // limit order price error
@@ -197,6 +199,8 @@ module.exports = class huobipro extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'active': true,
                 'precision': precision,
@@ -313,20 +317,49 @@ module.exports = class huobipro extends Exchange {
         return this.parseTicker (response['tick'], market);
     }
 
-    parseTrade (trade, market) {
-        let timestamp = trade['ts'];
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
+        let order = this.safeString (trade, 'order-id');
+        let side = this.safeString (trade, 'direction');
+        let type = this.safeString (trade, 'type');
+        if (typeof type !== 'undefined') {
+            let typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
+        }
+        let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': this.safeString (trade, 'id'),
+            'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['direction'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': amount,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderMatchresults (params);
+        let trades = this.parseTrades (response['data'], undefined, since, limit);
+        if (typeof symbol !== 'undefined') {
+            let market = this.market (symbol);
+            trades = this.filterBySymbol (trades, market['symbol']);
+        }
+        return trades;
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
@@ -497,14 +530,16 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderOrders (this.extend ({
-            'symbol': market['id'],
+        let request = {
             'states': states,
-        }, params));
+        };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.privateGetOrderOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -554,7 +589,7 @@ module.exports = class huobipro extends Exchange {
             status = this.parseOrderStatus (order['state']);
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in order) {
                 if (order['symbol'] in this.markets_by_id) {
                     let marketId = order['symbol'];

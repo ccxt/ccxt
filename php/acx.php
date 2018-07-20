@@ -260,7 +260,7 @@ class acx extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$limit)
+        if ($limit === null)
             $limit = 500; // default is 30
         $request = array (
             'market' => $market['id'],
@@ -275,7 +275,7 @@ class acx extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $marketId = $order['market'];

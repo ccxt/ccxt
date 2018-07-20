@@ -169,7 +169,7 @@ module.exports = class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             await this.loadMarkets ();
             market = this.market (symbol);
         } else {

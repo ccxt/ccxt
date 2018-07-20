@@ -525,7 +525,7 @@ class kraken extends Exchange {
             $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (is_array ($trade) && array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
-            $id = $trade['id'];
+            $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = intval ($trade['time'] * 1000);
             $side = $trade['type'];
             $type = $trade['ordertype'];
@@ -673,8 +673,10 @@ class kraken extends Exchange {
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price');
-        if (!$price)
-            $price = $this->safe_float($order, 'price');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($description, 'price2');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($order, 'price', $price);
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {

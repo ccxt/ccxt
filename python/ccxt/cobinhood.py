@@ -20,16 +20,18 @@ class cobinhood (Exchange):
             'name': 'COBINHOOD',
             'countries': ['TW'],
             'rateLimit': 1000 / 10,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchOrderTrades': True,
                 'fetchOrder': True,
-                'fetchDepositAddress': True,
-                'createDepositAddress': True,
-                'withdraw': True,
+                'fetchDepositAddress': False,
+                'createDepositAddress': False,
+                'withdraw': False,
                 'fetchMyTrades': True,
             },
             'requiredCredentials': {
@@ -53,10 +55,7 @@ class cobinhood (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
-                'api': {
-                    'web': 'https://api.cobinhood.com/v1',
-                    'ws': 'wss://feed.cobinhood.com',
-                },
+                'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
                 'doc': 'https://cobinhood.github.io/api-public',
             },
@@ -104,20 +103,16 @@ class cobinhood (Exchange):
                         'trading/order_history',
                         'trading/trades',
                         'trading/trades/{trade_id}',
+                        'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals/{withdrawal_id}',
-                        'wallet/withdrawals',
-                        'wallet/deposits/{deposit_id}',
-                        'wallet/deposits',
+                        'wallet/generic_deposits',
+                        'wallet/generic_deposits/{generic_deposit_id}',
+                        'wallet/generic_withdrawals',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
                     ],
                     'post': [
                         'trading/orders',
-                        'wallet/deposit_addresses',
-                        'wallet/withdrawal_addresses',
-                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -136,8 +131,12 @@ class cobinhood (Exchange):
             },
             'exceptions': {
                 'insufficient_balance': InsufficientFunds,
+                'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+            },
+            'commonCurrencies': {
+                'SMT': 'SocialMedia.Market',
             },
         })
 
@@ -297,7 +296,7 @@ class cobinhood (Exchange):
         timestamp = trade['timestamp']
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
-        cost = float(self.cost_to_precision(symbol, price * amount))
+        cost = price * amount
         side = trade['maker_side'] == 'sell' if 'bid' else 'buy'
         return {
             'info': trade,
@@ -412,7 +411,9 @@ class cobinhood (Exchange):
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-            if price is not None:
+            if filled is not None and price is not None:
+                cost = price * filled
+            elif price is not None:
                 cost = price * amount
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
@@ -480,57 +481,13 @@ class cobinhood (Exchange):
             return self.filter_by_symbol(orders, symbol)
         return orders
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         response = self.privateGetTradingOrdersOrderIdTrades(self.extend({
             'order_id': id,
         }, params))
         market = None if (symbol is None) else self.market(symbol)
         return self.parse_trades(response['result']['trades'], market)
-
-    def create_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privatePostWalletDepositAddresses({
-            'currency': currency['id'],
-        })
-        address = self.safe_string(response['result']['deposit_address'], 'address')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        }
-
-    def fetch_deposit_address(self, code, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privateGetWalletDepositAddresses(self.extend({
-            'currency': currency['id'],
-        }, params))
-        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
-        address = None
-        if len(addresses) > 0:
-            address = self.safe_string(addresses[0], 'address')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'info': response,
-        }
-
-    def withdraw(self, code, amount, address, params={}):
-        self.load_markets()
-        currency = self.currency(code)
-        response = self.privatePostWalletWithdrawals(self.extend({
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        }, params))
-        return {
-            'id': response['result']['withdrawal_id'],
-            'info': response,
-        }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -542,7 +499,7 @@ class cobinhood (Exchange):
         return self.parse_trades(response['result']['trades'], market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']['web'] + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {}
         if api == 'private':

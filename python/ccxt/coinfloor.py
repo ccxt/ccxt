@@ -105,7 +105,7 @@ class coinfloor (Exchange):
         # rewrite to get the timestamp from HTTP headers
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -214,7 +214,7 @@ class coinfloor (Exchange):
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise NotSupported(self.id + ' fetchOpenOrders requires a symbol param')
         self.load_markets()
         market = self.market(symbol)

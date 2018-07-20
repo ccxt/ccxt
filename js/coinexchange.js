@@ -554,6 +554,7 @@ module.exports = class coinexchange extends Exchange {
                 'IBC': 'RCoin',
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
                 'PUT': 'PutinCoin',
                 'RUB': 'RubbleCoin',
                 'UP': 'UpscaleToken',
@@ -632,7 +633,7 @@ module.exports = class coinexchange extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];

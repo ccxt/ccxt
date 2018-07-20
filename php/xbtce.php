@@ -17,7 +17,6 @@ class xbtce extends Exchange {
             'rateLimit' => 2000, // responses are cached every 2 seconds
             'version' => 'v1',
             'has' => array (
-                'publicAPI' => false,
                 'CORS' => false,
                 'fetchTickers' => true,
                 'createMarketOrder' => false,
@@ -267,9 +266,9 @@ class xbtce extends Exchange {
         //     $periodicity = (string) $minutes;
         //     $this->load_markets();
         //     $market = $this->market ($symbol);
-        //     if (!$since)
+        //     if ($since === null)
         //         $since = $this->seconds () - 86400 * 7; // last day by defulat
-        //     if (!$limit)
+        //     if ($limit === null)
         //         $limit = 1000; // default
         //     $response = $this->privateGetQuotehistorySymbolPeriodicityBarsBid (array_merge (array (
         //         'symbol' => $market['id'],

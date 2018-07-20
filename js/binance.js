@@ -71,6 +71,7 @@ module.exports = class binance extends Exchange {
                 'web': {
                     'get': [
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ],
                 },
                 'wapi': {
@@ -78,6 +79,7 @@ module.exports = class binance extends Exchange {
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
@@ -723,8 +725,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let origClientOrderId = this.safeValue (params, 'origClientOrderId');
@@ -740,14 +742,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -776,7 +778,7 @@ module.exports = class binance extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -789,14 +791,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -1050,7 +1052,7 @@ module.exports = class binance extends Exchange {
                         } else if (message === 'Account has insufficient balance for requested action.') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Rest API trading is not enabled.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
+                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {

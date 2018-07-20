@@ -185,7 +185,7 @@ class exmo extends Exchange {
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
         $ids = null;
-        if (!$symbols) {
+        if ($symbols === null) {
             $ids = implode (',', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen ($ids) > 2048) {

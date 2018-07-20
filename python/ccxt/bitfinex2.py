@@ -82,11 +82,11 @@ class bitfinex2 (bitfinex):
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/long/last',
-                        'stats1/{key}:{size}:{symbol}/long/hist',
-                        'stats1/{key}:{size}:{symbol}/short/last',
-                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -238,6 +238,8 @@ class bitfinex2 (bitfinex):
                     currency = currency[1:]
                     code = currency.upper()
                     code = self.common_currency_code(code)
+                else:
+                    code = self.common_currency_code(code)
                 account = self.account()
                 account['total'] = total
                 if not available:
@@ -300,7 +302,7 @@ class bitfinex2 (bitfinex):
             'last': last,
             'previousClose': None,
             'change': ticker[length - 6],
-            'percentage': ticker[length - 5],
+            'percentage': ticker[length - 5] * 100,
             'average': None,
             'baseVolume': ticker[length - 3],
             'quoteVolume': None,

@@ -219,7 +219,7 @@ class fcoin (Exchange):
     def fetch_order_book(self, symbol=None, limit=None, params={}):
         self.load_markets()
         if limit is not None:
-            if (limit == 20) and(limit == 100):
+            if (limit == 20) or (limit == 100):
                 limit = 'L' + str(limit)
             else:
                 raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted')
@@ -245,8 +245,6 @@ class fcoin (Exchange):
         timestamp = None
         symbol = None
         if market is None:
-            symbol = market['symbol']
-        else:
             tickerType = self.safe_string(ticker, 'type')
             if tickerType is not None:
                 parts = tickerType.split('.')
@@ -331,7 +329,10 @@ class fcoin (Exchange):
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         result = self.privatePostOrders(self.extend(order, params))
-        return result['data']
+        return {
+            'info': result,
+            'id': result['data'],
+        }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -367,12 +368,15 @@ class fcoin (Exchange):
         filled = self.safe_float(order, 'filled_amount')
         remaining = None
         price = self.safe_float(order, 'price')
-        cost = None
+        cost = self.safe_float(order, 'executed_value')
         if filled is not None:
             if amount is not None:
                 remaining = amount - filled
-            if price is not None:
-                cost = price * filled
+            if cost is None:
+                if price is not None:
+                    cost = price * filled
+            elif (cost > 0) and(filled > 0):
+                price = cost / filled
         feeCurrency = None
         if market is not None:
             symbol = market['symbol']
@@ -408,7 +412,7 @@ class fcoin (Exchange):
             'order_id': id,
         }, params)
         response = self.privateGetOrdersOrderId(request)
-        return self.parse_order(response)
+        return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         result = self.fetch_orders(symbol, since, limit, {'states': 'submitted'})
@@ -432,7 +436,7 @@ class fcoin (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],

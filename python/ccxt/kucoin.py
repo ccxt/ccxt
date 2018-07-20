@@ -362,6 +362,22 @@ class kucoin (Exchange):
         self.options['timeDifference'] = int(after - response['timestamp'])
         return self.options['timeDifference']
 
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, cost)),
+        }
+
     def fetch_markets(self):
         response = self.publicGetMarketOpenSymbols()
         if self.options['adjustForTimeDifference']:
@@ -371,10 +387,10 @@ class kucoin (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['symbol']
-            base = market['coinType']
-            quote = market['coinTypePair']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['coinType']
+            quoteId = market['coinTypePair']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -388,6 +404,8 @@ class kucoin (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': self.safe_float(market, 'feeRate'),
                 'maker': self.safe_float(market, 'feeRate'),
@@ -543,7 +561,11 @@ class kucoin (Exchange):
             symbol = order['coinType'] + '/' + order['coinTypePair']
         timestamp = self.safe_value(order, 'createdAt')
         remaining = self.safe_float(order, 'pendingAmount')
-        status = self.safe_value(order, 'status')
+        status = None
+        if self.safe_value(order, 'isActive', True):
+            status = 'open'
+        else:
+            status = 'closed'
         filled = self.safe_float(order, 'dealAmount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'dealValue')
@@ -783,7 +805,7 @@ class kucoin (Exchange):
         # docs say symbol is required, but it seems to be optional
         # you can cancel all orders, or filter by symbol or type or both
         request = {}
-        if symbol:
+        if symbol is not None:
             self.load_markets()
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -845,10 +867,10 @@ class kucoin (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['datetime']
         symbol = None
-        if market:
-            symbol = market['symbol']
-        else:
-            symbol = ticker['coinType'] + '/' + ticker['coinTypePair']
+        if market is None:
+            marketId = ticker['coinType'] + '-' + ticker['coinTypePair']
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         # TNC coin doesn't have changerate for some reason
         change = self.safe_float(ticker, 'change')
         last = self.safe_float(ticker, 'lastDealPrice')
@@ -857,6 +879,8 @@ class kucoin (Exchange):
             if change is not None:
                 open = last - change
         changePercentage = self.safe_float(ticker, 'changeRate')
+        if market is not None:
+            symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -881,6 +905,7 @@ class kucoin (Exchange):
         }
 
     def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
         response = self.publicGetMarketOpenSymbols(params)
         tickers = response['data']
         result = {}
@@ -974,14 +999,14 @@ class kucoin (Exchange):
         # it improperly mimics fetchMyTrades with closed orders
         # kucoin does not have any means of fetching personal trades at all
         # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)

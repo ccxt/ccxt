@@ -227,6 +227,11 @@ class zaif (Exchange):
         response = self.publicGetTradesPair(self.extend({
             'pair': market['id'],
         }, params))
+        numTrades = len(response)
+        if numTrades == 1:
+            firstTrade = response[0]
+            if not firstTrade:
+                response = []
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -291,7 +296,7 @@ class zaif (Exchange):
             # 'is_token': False,
             # 'is_token_both': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
@@ -310,7 +315,7 @@ class zaif (Exchange):
             # 'end': 1503821051,
             # 'is_token': False,
         }
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = self.privatePostTradeHistory(self.extend(request, params))

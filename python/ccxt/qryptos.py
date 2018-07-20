@@ -305,8 +305,12 @@ class qryptos (Exchange):
         }
         if limit is not None:
             request['limit'] = limit
+        if since is not None:
+            # timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = int(since / 1000)
         response = self.publicGetExecutions(self.extend(request, params))
-        return self.parse_trades(response['models'], market, since, limit)
+        result = response if (since is not None) else response['models']
+        return self.parse_trades(result, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -360,7 +364,7 @@ class qryptos (Exchange):
         filled = self.safe_float(order, 'filled_quantity')
         price = self.safe_float(order, 'price')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         return {
             'id': str(order['id']),
@@ -394,7 +398,7 @@ class qryptos (Exchange):
         self.load_markets()
         market = None
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         status = self.safe_value(params, 'status')

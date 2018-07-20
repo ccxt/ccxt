@@ -320,8 +320,13 @@ class qryptos extends Exchange {
         );
         if ($limit !== null)
             $request['limit'] = $limit;
+        if ($since !== null) {
+            // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
+            $request['timestamp'] = intval ($since / 1000);
+        }
         $response = $this->publicGetExecutions (array_merge ($request, $params));
-        return $this->parse_trades($response['models'], $market, $since, $limit);
+        $result = ($since !== null) ? $response : $response['models'];
+        return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -382,7 +387,7 @@ class qryptos extends Exchange {
         $filled = $this->safe_float($order, 'filled_quantity');
         $price = $this->safe_float($order, 'price');
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         return array (
@@ -419,7 +424,7 @@ class qryptos extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['product_id'] = $market['id'];
         }

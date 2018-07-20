@@ -555,6 +555,7 @@ class coinexchange extends Exchange {
                 'IBC' => 'RCoin',
                 'MARS' => 'MarsBux',
                 'MER' => 'TheMermaidCoin',
+                'OC' => 'occnetwork',
                 'PUT' => 'PutinCoin',
                 'RUB' => 'RubbleCoin',
                 'UP' => 'UpscaleToken',
@@ -633,7 +634,7 @@ class coinexchange extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $marketId = $ticker['MarketID'];
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];

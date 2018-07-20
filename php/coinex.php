@@ -149,6 +149,7 @@ class coinex extends Exchange {
                 'price' => $market['buy_asset_type_places'],
             );
             $numMergeLevels = is_array ($market['merge']) ? count ($market['merge']) : 0;
+            $active = ($market['status'] === 'pass');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -156,7 +157,7 @@ class coinex extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => $active,
                 'taker' => $this->safe_float($market, 'taker_fee_rate'),
                 'maker' => $this->safe_float($market, 'maker_fee_rate'),
                 'info' => $market,
@@ -249,23 +250,25 @@ class coinex extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'create_time');
-        $tradeId = $this->safe_string($trade, 'id');
-        $orderId = $this->safe_string($trade, 'id');
-        if (!$timestamp) {
-            $timestamp = $trade['date'];
-            $orderId = null;
-        } else {
-            $tradeId = null;
+        // this method parses both public and private trades
+        $timestamp = $this->safe_integer($trade, 'create_time') * 1000;
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer($trade, 'date_ms');
         }
-        $timestamp *= 1000;
+        $tradeId = $this->safe_string($trade, 'id');
+        $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
         $cost = $this->safe_float($trade, 'deal_money');
         if (!$cost)
             $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-        $fee = $this->safe_float($trade, 'fee');
+        $fee = array (
+            'cost' => $this->safe_float($trade, 'fee'),
+            'currency' => $this->safe_string($trade, 'fee_asset'),
+        );
+        $takerOrMaker = $this->safe_string($trade, 'role');
+        $side = $this->safe_string($trade, 'type');
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -273,8 +276,9 @@ class coinex extends Exchange {
             'symbol' => $symbol,
             'id' => $tradeId,
             'order' => $orderId,
-            'type' => 'limit',
-            'side' => $trade['type'],
+            'type' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -293,7 +297,7 @@ class coinex extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv[0],
+            $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
             floatval ($ohlcv[4]),
@@ -425,7 +429,7 @@ class coinex extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetOrderPending (array_merge ($request, $params));
         return $this->parse_orders($response['data']['data'], $market);
@@ -437,7 +441,7 @@ class coinex extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetOrderFinished (array_merge ($request, $params));
         return $this->parse_orders($response['data']['data'], $market);

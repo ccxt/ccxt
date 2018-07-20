@@ -201,7 +201,7 @@ class indodax extends Exchange {
         $amount = null;
         $remaining = null;
         $filled = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
             $baseId = $market['baseId'];
@@ -251,7 +251,7 @@ class indodax extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrder requires a symbol');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -268,7 +268,7 @@ class indodax extends Exchange {
         $this->load_markets();
         $market = null;
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
@@ -294,19 +294,19 @@ class indodax extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrders requires a symbol');
         $this->load_markets();
         $request = array ();
         $market = null;
-        if ($symbol) {
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostOrderHistory (array_merge ($request, $params));
         $orders = $this->parse_orders($response['return']['orders'], $market, $since, $limit);
         $orders = $this->filter_by($orders, 'status', 'closed');
-        if ($symbol)
+        if ($symbol !== null)
             return $this->filter_by_symbol($orders, $symbol);
         return $orders;
     }

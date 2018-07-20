@@ -524,7 +524,7 @@ module.exports = class kraken extends Exchange {
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
-            id = trade['id'];
+            id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];
@@ -672,8 +672,10 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if (!price)
-            price = this.safeFloat (order, 'price');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (description, 'price2');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (order, 'price', price);
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('fee' in order) {

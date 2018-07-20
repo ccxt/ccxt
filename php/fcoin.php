@@ -210,7 +210,7 @@ class fcoin extends Exchange {
     public function fetch_order_book ($symbol = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($limit !== null) {
-            if (($limit === 20) && ($limit === 100)) {
+            if (($limit === 20) || ($limit === 100)) {
                 $limit = 'L' . (string) $limit;
             } else {
                 throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20, 100 or no $limit-> Other values are not accepted');
@@ -240,8 +240,6 @@ class fcoin extends Exchange {
         $timestamp = null;
         $symbol = null;
         if ($market === null) {
-            $symbol = $market['symbol'];
-        } else {
             $tickerType = $this->safe_string($ticker, 'type');
             if ($tickerType !== null) {
                 $parts = explode ('.', $tickerType);
@@ -336,7 +334,10 @@ class fcoin extends Exchange {
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
         $result = $this->privatePostOrders (array_merge ($order, $params));
-        return $result['data'];
+        return array (
+            'info' => $result,
+            'id' => $result['data'],
+        );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -378,13 +379,17 @@ class fcoin extends Exchange {
         $filled = $this->safe_float($order, 'filled_amount');
         $remaining = null;
         $price = $this->safe_float($order, 'price');
-        $cost = null;
+        $cost = $this->safe_float($order, 'executed_value');
         if ($filled !== null) {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
             }
-            if ($price !== null) {
-                $cost = $price * $filled;
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
+            } else if (($cost > 0) && ($filled > 0)) {
+                $price = $cost / $filled;
             }
         }
         $feeCurrency = null;
@@ -424,7 +429,7 @@ class fcoin extends Exchange {
             'order_id' => $id,
         ), $params);
         $response = $this->privateGetOrdersOrderId ($request);
-        return $this->parse_order($response);
+        return $this->parse_order($response['data']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -452,7 +457,7 @@ class fcoin extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
-            $ohlcv['seq'],
+            $ohlcv['id'] * 1000,
             $ohlcv['open'],
             $ohlcv['high'],
             $ohlcv['low'],

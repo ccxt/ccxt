@@ -207,7 +207,7 @@ module.exports = class cex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!since) {
+        if (typeof since === 'undefined') {
             since = this.milliseconds () - 86400000; // yesterday
         } else {
             if (this.options['fetchOHLCVWarning']) {
@@ -366,7 +366,7 @@ module.exports = class cex extends Exchange {
             timestamp = parseInt (timestamp);
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             let symbol = order['symbol1'] + '/' + order['symbol2'];
             if (symbol in this.markets)
                 market = this.market (symbol);
@@ -389,7 +389,7 @@ module.exports = class cex extends Exchange {
         let filled = amount - remaining;
         let fee = undefined;
         let cost = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             cost = this.safeFloat (order, 'ta:' + market['quote']);
             if (typeof cost === 'undefined')
@@ -450,7 +450,7 @@ module.exports = class cex extends Exchange {
         let request = {};
         let method = 'privatePostOpenOrders';
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
             method += 'Pair';

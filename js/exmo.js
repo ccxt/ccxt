@@ -184,7 +184,7 @@ module.exports = class exmo extends Exchange {
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (typeof symbols === 'undefined') {
             ids = this.ids.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {

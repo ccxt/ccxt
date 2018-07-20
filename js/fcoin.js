@@ -209,7 +209,7 @@ module.exports = class fcoin extends Exchange {
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof limit !== 'undefined') {
-            if ((limit === 20) && (limit === 100)) {
+            if ((limit === 20) || (limit === 100)) {
                 limit = 'L' + limit.toString ();
             } else {
                 throw new ExchangeError (this.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted');
@@ -239,8 +239,6 @@ module.exports = class fcoin extends Exchange {
         let timestamp = undefined;
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            symbol = market['symbol'];
-        } else {
             let tickerType = this.safeString (ticker, 'type');
             if (typeof tickerType !== 'undefined') {
                 let parts = tickerType.split ('.');
@@ -335,7 +333,10 @@ module.exports = class fcoin extends Exchange {
             order['price'] = this.priceToPrecision (symbol, price);
         }
         let result = await this.privatePostOrders (this.extend (order, params));
-        return result['data'];
+        return {
+            'info': result,
+            'id': result['data'],
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -377,13 +378,17 @@ module.exports = class fcoin extends Exchange {
         let filled = this.safeFloat (order, 'filled_amount');
         let remaining = undefined;
         let price = this.safeFloat (order, 'price');
-        let cost = undefined;
+        let cost = this.safeFloat (order, 'executed_value');
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
-                cost = price * filled;
+            if (typeof cost === 'undefined') {
+                if (typeof price !== 'undefined') {
+                    cost = price * filled;
+                }
+            } else if ((cost > 0) && (filled > 0)) {
+                price = cost / filled;
             }
         }
         let feeCurrency = undefined;
@@ -423,7 +428,7 @@ module.exports = class fcoin extends Exchange {
             'order_id': id,
         }, params);
         let response = await this.privateGetOrdersOrderId (request);
-        return this.parseOrder (response);
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -451,7 +456,7 @@ module.exports = class fcoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],

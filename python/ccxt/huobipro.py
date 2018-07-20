@@ -39,11 +39,12 @@ class huobipro (Exchange):
                 'CORS': False,
                 'fetchDepositAddress': True,
                 'fetchOHLCV': True,
+                'fetchOrder': True,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
-                'fetchOrder': True,
-                'fetchOrders': False,
                 'fetchTradingLimits': True,
+                'fetchMyTrades': True,
                 'withdraw': True,
                 'fetchCurrencies': True,
             },
@@ -128,6 +129,7 @@ class huobipro (Exchange):
             },
             'exceptions': {
                 'account-frozen-balance-insufficient-error': InsufficientFunds,  # {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'invalid-amount': InvalidOrder,  # eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
@@ -208,6 +210,8 @@ class huobipro (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'lot': lot,
                 'active': True,
                 'precision': precision,
@@ -312,20 +316,44 @@ class huobipro (Exchange):
         }, params))
         return self.parse_ticker(response['tick'], market)
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['ts']
+    def parse_trade(self, trade, market=None):
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(trade, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.safe_integer_2(trade, 'ts', 'created-at')
+        order = self.safe_string(trade, 'order-id')
+        side = self.safe_string(trade, 'direction')
+        type = self.safe_string(trade, 'type')
+        if type is not None:
+            typeParts = type.split('-')
+            side = typeParts[0]
+            type = typeParts[1]
+        amount = self.safe_float_2(trade, 'filled-amount', 'amount')
         return {
             'info': trade,
-            'id': str(trade['id']),
-            'order': None,
+            'id': self.safe_string(trade, 'id'),
+            'order': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['direction'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': self.safe_float(trade, 'price'),
+            'amount': amount,
         }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privateGetOrderMatchresults(params)
+        trades = self.parse_trades(response['data'], None, since, limit)
+        if symbol is not None:
+            market = self.market(symbol)
+            trades = self.filter_by_symbol(trades, market['symbol'])
+        return trades
 
     def fetch_trades(self, symbol, since=None, limit=1000, params={}):
         self.load_markets()
@@ -481,14 +509,15 @@ class huobipro (Exchange):
         return self.parse_balance(result)
 
     def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
-            raise ExchangeError(self.id + ' fetchOrders() requires a symbol parameter')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetOrderOrders(self.extend({
-            'symbol': market['id'],
+        request = {
             'states': states,
-        }, params))
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = self.privateGetOrderOrders(self.extend(request, params))
         return self.parse_orders(response['data'], market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -530,7 +559,7 @@ class huobipro (Exchange):
             type = orderType[1]
             status = self.parse_order_status(order['state'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in order:
                 if order['symbol'] in self.markets_by_id:
                     marketId = order['symbol']

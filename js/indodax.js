@@ -200,7 +200,7 @@ module.exports = class indodax extends Exchange {
         let amount = undefined;
         let remaining = undefined;
         let filled = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
             let baseId = market['baseId'];
@@ -250,7 +250,7 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -267,7 +267,7 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -293,19 +293,19 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
         orders = this.filterBy (orders, 'status', 'closed');
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             return this.filterBySymbol (orders, symbol);
         return orders;
     }

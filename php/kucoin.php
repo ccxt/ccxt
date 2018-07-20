@@ -356,6 +356,24 @@ class kucoin extends Exchange {
         return $this->options['timeDifference'];
     }
 
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+        );
+    }
+
     public function fetch_markets () {
         $response = $this->publicGetMarketOpenSymbols ();
         if ($this->options['adjustForTimeDifference'])
@@ -365,10 +383,10 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
-            $base = $market['coinType'];
-            $quote = $market['coinTypePair'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['coinType'];
+            $quoteId = $market['coinTypePair'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -382,6 +400,8 @@ class kucoin extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'taker' => $this->safe_float($market, 'feeRate'),
                 'maker' => $this->safe_float($market, 'feeRate'),
@@ -550,7 +570,12 @@ class kucoin extends Exchange {
         }
         $timestamp = $this->safe_value($order, 'createdAt');
         $remaining = $this->safe_float($order, 'pendingAmount');
-        $status = $this->safe_value($order, 'status');
+        $status = null;
+        if ($this->safe_value($order, 'isActive', true)) {
+            $status = 'open';
+        } else {
+            $status = 'closed';
+        }
         $filled = $this->safe_float($order, 'dealAmount');
         $amount = $this->safe_float($order, 'amount');
         $cost = $this->safe_float($order, 'dealValue');
@@ -810,7 +835,7 @@ class kucoin extends Exchange {
         // docs say $symbol is required, but it seems to be optional
         // you can cancel all orders, or filter by $symbol or type or both
         $request = array ();
-        if ($symbol) {
+        if ($symbol !== null) {
             $this->load_markets();
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
@@ -877,10 +902,11 @@ class kucoin extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $ticker['datetime'];
         $symbol = null;
-        if ($market) {
-            $symbol = $market['symbol'];
-        } else {
-            $symbol = $ticker['coinType'] . '/' . $ticker['coinTypePair'];
+        if ($market === null) {
+            $marketId = $ticker['coinType'] . '-' . $ticker['coinTypePair'];
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         // TNC coin doesn't have changerate for some reason
         $change = $this->safe_float($ticker, 'change');
@@ -890,6 +916,9 @@ class kucoin extends Exchange {
             if ($change !== null)
                 $open = $last - $change;
         $changePercentage = $this->safe_float($ticker, 'changeRate');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -915,6 +944,7 @@ class kucoin extends Exchange {
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetMarketOpenSymbols ($params);
         $tickers = $response['data'];
         $result = array ();
@@ -1017,14 +1047,14 @@ class kucoin extends Exchange {
         // it improperly mimics fetchMyTrades with closed orders
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetDealOrders (array_merge ($request, $params));
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);

@@ -182,7 +182,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -198,7 +198,7 @@ module.exports = class mercado extends Exchange {
             side = (order['order_type'] === 1) ? 'buy' : 'sell';
         let status = order['status'];
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('coin_pair' in order)
                 if (order['coin_pair'] in this.markets_by_id)
                     market = this.markets_by_id[order['coin_pair']];
@@ -243,7 +243,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);

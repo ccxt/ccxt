@@ -207,7 +207,7 @@ module.exports = class crypton extends Exchange {
                 symbol = this.parseSymbol (marketId);
             }
         }
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
         let fee = undefined;
@@ -238,7 +238,7 @@ module.exports = class crypton extends Exchange {
         let request = {
             'id': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.publicGetMarketsIdTrades (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
@@ -248,7 +248,7 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
         let trades = this.parseTrades (response['result'], market, since, limit);
@@ -316,7 +316,7 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             request['market'] = this.marketId (symbol);
         }
         let response = await this.privateGetOrders (this.extend (request, params));

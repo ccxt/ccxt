@@ -24,6 +24,7 @@ module.exports = class gateio extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
+                'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
             },
@@ -325,9 +326,9 @@ module.exports = class gateio extends Exchange {
             timestamp *= 1000;
         let id = this.safeString (trade, 'tradeID');
         id = this.safeString (trade, 'id', id);
+        // take either of orderid or orderId
         let orderId = this.safeString (trade, 'orderid');
-        if (typeof orderId !== 'undefined')
-            orderId = this.safeString (trade, 'orderNumber');
+        orderId = this.safeString (trade, 'orderNumber', orderId);
         let price = this.safeFloat (trade, 'rate');
         let amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -387,6 +388,24 @@ module.exports = class gateio extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //    {'amount': '0.00000000',
+        //     'currencyPair': 'xlm_usdt',
+        //     'fee': '0.0113766632239302 USDT',
+        //     'feeCurrency': 'USDT',
+        //     'feePercentage': 0.18,
+        //     'feeValue': '0.0113766632239302',
+        //     'filledAmount': '30.14004987',
+        //     'filledRate': 0.2097,
+        //     'initialAmount': '30.14004987',
+        //     'initialRate': '0.2097',
+        //     'left': 0,
+        //     'orderNumber': '998307286',
+        //     'rate': '0.2097',
+        //     'status': 'closed',
+        //     'timestamp': 1531158583,
+        //     'type': 'sell'},
+        //
         let id = this.safeString (order, 'orderNumber');
         let symbol = undefined;
         let marketId = this.safeString (order, 'currencyPair');
@@ -415,6 +434,10 @@ module.exports = class gateio extends Exchange {
         }
         let feeCost = this.safeFloat (order, 'feeValue');
         let feeCurrency = this.safeString (order, 'feeCurrency');
+        let feeRate = this.safeFloat (order, 'feePercentage');
+        if (typeof feeRate !== 'undefined') {
+            feeRate = feeRate / 100;
+        }
         if (typeof feeCurrency !== 'undefined') {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
@@ -437,6 +460,7 @@ module.exports = class gateio extends Exchange {
             'fee': {
                 'cost': feeCost,
                 'currency': feeCurrency,
+                'rate': feeRate,
             },
             'info': order,
         };
@@ -462,6 +486,8 @@ module.exports = class gateio extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({
             'orderNumber': id,
@@ -509,6 +535,19 @@ module.exports = class gateio extends Exchange {
         }
         let response = await this.privatePostOpenOrders ();
         return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.privatePostTradeHistory (this.extend ({
+            'currencyPair': market['id'],
+            'orderNumber': id,
+        }, params));
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

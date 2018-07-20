@@ -152,6 +152,10 @@ module.exports = class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                // price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             },
@@ -181,9 +185,12 @@ module.exports = class bittrex extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let pricePrecision = 8;
+            if (quote in this.options['pricePrecisionByCode'])
+                pricePrecision = this.options['pricePrecisionByCode'][quote];
             let precision = {
                 'amount': 8,
-                'price': 8,
+                'price': pricePrecision,
             };
             let active = market['IsActive'] || market['IsActive'] === 'true';
             result.push ({
@@ -448,7 +455,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
@@ -493,7 +500,9 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.extend (this.parseOrder (response), {
+            'status': 'canceled',
+        });
     }
 
     parseSymbol (id) {
@@ -566,7 +575,7 @@ module.exports = class bittrex extends Exchange {
             };
             if (typeof market !== 'undefined') {
                 fee['currency'] = market['quote'];
-            } else if (symbol) {
+            } else if (typeof symbol !== 'undefined') {
                 let currencyIds = symbol.split ('/');
                 let quoteCurrencyId = currencyIds[1];
                 if (quoteCurrencyId in this.currencies_by_id)
@@ -642,13 +651,13 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
