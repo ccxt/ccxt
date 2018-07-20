@@ -532,9 +532,11 @@ module.exports = class theocean extends Exchange {
         let acc = this.decryptAccountFromPrivateKey (this.privateKey)
 
         const signature = acc.sign (hash, this.privateKey.slice (2));
+        const signature2 = this.web3.eth.accounts.sign (hash, this.privateKey.slice (2))
         const sig2 = ethUtil.ecsign (new Buffer(signature.messageHash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
         const sig3 = ethUtil.ecsign (new Buffer(hash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
         log.red (signature)
+        log.yellow (signature2)
         log.green ('----------------------------------------------------------')
         log.red (sig2.v.toString (16))
         log.red ({
