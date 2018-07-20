@@ -2475,7 +2475,7 @@ The ccxt library throws this error if it detects any of the following keywords i
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication) section. This type of exception is thrown in these cases (in order of precedence for checking):
 
   - You are not rate-limiting your requests or sending too many of them too often.
-  - Your API keys are not fresh and new (have been used with some different software or script already).
+  - Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
   - The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
   - Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *"time synch frequency"* for your OS).
 
