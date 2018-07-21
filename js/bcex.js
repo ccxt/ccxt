@@ -27,8 +27,8 @@ module.exports = class bcex extends Exchange {
                 'fetchOpenOrders': true,
             },
             'urls': {
-                'logo': 'https://www.bcex.top/images/bcex_logo0.png',
-                'api': 'https://www.bcex.top',
+                'logo': 'https://www.bcex.ca/images/bcex_logo0.png',
+                'api': 'https://www.bcex.ca',
                 'www': 'https://www.bcex.ca',
                 'doc': 'https://www.bcex.ca/api_market/market/',
                 'fees': 'http://bcex.udesk.cn/hc/articles/57085',
