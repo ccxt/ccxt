@@ -47,6 +47,7 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/ticker',
                         'Api_Order/orderList',
                         'Api_Order/tradeList',
+                        'Api_Order/depth',
                     ],
                 },
             },
@@ -121,7 +122,15 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return 0;
+        await this.loadMarkets();
+        let marketId = this.marketId(symbol);
+        let request = {
+            'symbol': marketId
+        };
+        let response = await this.privatePostApiOrderDepth(this.extend(request, params));
+        let data = response['data'];
+        let orderbook = this.parseOrderBook(data, data['date']);
+        return orderbook;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
