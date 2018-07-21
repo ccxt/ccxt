@@ -488,7 +488,9 @@ class bittrex (Exchange):
         request = {}
         request[orderIdField] = id
         response = self.marketGetCancel(self.extend(request, params))
-        return self.parse_order(response)
+        return self.extend(self.parse_order(response), {
+            'status': 'canceled',
+        })
 
     def parse_symbol(self, id):
         quote, base = id.split('-')

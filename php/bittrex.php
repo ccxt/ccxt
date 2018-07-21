@@ -501,7 +501,9 @@ class bittrex extends Exchange {
         $request = array ();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge ($request, $params));
-        return $this->parse_order($response);
+        return array_merge ($this->parse_order($response), array (
+            'status' => 'canceled',
+        ));
     }
 
     public function parse_symbol ($id) {

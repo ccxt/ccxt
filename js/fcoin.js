@@ -456,7 +456,7 @@ module.exports = class fcoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.73'
+const version = '1.16.75'
 
 Exchange.ccxtVersion = version
 
@@ -13344,7 +13344,9 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.extend (this.parseOrder (response), {
+            'status': 'canceled',
+        });
     }
 
     parseSymbol (id) {
@@ -28905,7 +28907,7 @@ module.exports = class fcoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
