@@ -809,10 +809,7 @@ class cointiger extends huobipro {
             }
             $auth .= $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
-            $isCreateOrderMethod = ($path === 'order') && ($method === 'POST');
-            $isCancelOrdersMethod = ($path === 'order/batch_cancel');
-            $urlParams = $isCreateOrderMethod ? array () : $query;
-            $urlParams = $isCancelOrdersMethod ? array () : $urlParams;
+            $urlParams = ($method === 'POST') ? array () : $query;
             $url .= '?' . $this->urlencode ($this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,

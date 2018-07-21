@@ -768,10 +768,7 @@ class cointiger (huobipro):
                 auth += keys[i] + str(query[keys[i]])
             auth += self.secret
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            isCreateOrderMethod = (path == 'order') and(method == 'POST')
-            isCancelOrdersMethod = (path == 'order/batch_cancel')
-            urlParams = {} if isCreateOrderMethod else query
-            urlParams = {} if isCancelOrdersMethod else urlParams
+            urlParams = {} if (method == 'POST') else query
             url += '?' + self.urlencode(self.keysort(self.extend({
                 'api_key': self.apiKey,
                 'time': timestamp,
