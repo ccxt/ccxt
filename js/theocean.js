@@ -4,8 +4,6 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 const log = require ('ololog').unlimited;
-const { ZeroEx } = require ('0x.js');
-const ethUtil = require ('ethereumjs-util');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -457,52 +455,6 @@ module.exports = class theocean extends Exchange {
     }
 
     signOrder (order, account = undefined) {
-        const orderHash = ZeroEx.getOrderHashHex (order);
-        log.red ('orderHash:', orderHash);
-        const hash = this.getZeroExOrderHash (order);
-        log.red ('orderHas2:', hash);
-
-        let acc = this.decryptAccountFromPrivateKey (this.privateKey)
-
-        const signature = acc.sign (hash, this.privateKey.slice (2));
-
-        const msgHash = this.hashMessage (hash)
-        console.log (msgHash.slice (2).length)
-        console.log (this.privateKey.slice (2).length)
-
-        const signature2 = this.signMessage (hash, this.privateKey)
-
-        log.green ('messgHas3:', msgHash)
-        const sig2 = ethUtil.ecsign (new Buffer(signature.messageHash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
-        const sig3 = ethUtil.ecsign (new Buffer(hash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
-        const sig4 = this.signMessage2 (hash, this.privateKey)// ethUtil.ecsign (new Buffer(msgHash.slice (-64), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
-
-        log.red (signature)
-        log.yellow (signature2)
-        log.green ('----------------------------------------------------------')
-        log.red (sig2.v.toString (16))
-        log.red ({
-            v: '0x' + sig2.v.toString (16),
-            r: '0x' + sig2.r.toString ('hex'),
-            s: '0x' + sig2.s.toString ('hex'),
-        })
-        log.magenta ({
-            v: '0x' + sig3.v.toString (16),
-            r: '0x' + sig3.r.toString ('hex'),
-            s: '0x' + sig3.s.toString ('hex'),
-        })
-        log.cyan ({
-            v: '0x' + sig4.v.toString (16),
-            r: '0x' + sig4.r.toString ('hex'),
-            s: '0x' + sig4.s.toString ('hex'),
-        })
-        process.exit ();
-        // const signature = await this.zeroEx.signOrderHashAsync (orderHash, signerAddress)
-        // return this.extend (order, {
-        //     'orderHash': orderHash,
-        //     'ecSignature': signature
-        // });
-        process.exit ()
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -593,11 +545,10 @@ module.exports = class theocean extends Exchange {
         const marketOrder = this.extend (reserveResponse['unsignedMatchingOrder'], {
             'maker': this.uid.toLowerCase (),
         });
-        const signedMarketOrder = this.signOrder (marketOrder)
-        const serializedMarketOrder = serializers.serializeOrder (signedMarketOrder)
+        const signedMarketOrder = this.signZeroExOrder (marketOrder)
         const placeRequest = {
-            'signedOrder': serializedMarketOrder,
-            'marketOrderID': reserveResponse['marketOrderID'],
+            'signedOrder': signedMarketOrder,
+            'matchingOrderID': reserveResponse['matchingOrderID'],
         };
         // return api.trade.placeMarketOrder({order})
         let placeMethod = method + 'Place';
