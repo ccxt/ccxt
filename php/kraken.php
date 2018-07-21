@@ -214,6 +214,7 @@ class kraken extends Exchange {
         $html = null;
         $oldParseJsonResponse = $this->parseJsonResponse;
         try {
+            $this->parseJsonResponse = false;
             $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
             $this->parseJsonResponse = $oldParseJsonResponse;
         } catch (Exception $e) {

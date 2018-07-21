@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.83'
+const version = '1.16.84'
 
 Exchange.ccxtVersion = version
 
@@ -37283,6 +37283,7 @@ module.exports = class kraken extends Exchange {
         let html = undefined;
         let oldParseJsonResponse = this.parseJsonResponse;
         try {
+            this.parseJsonResponse = false;
             html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
             this.parseJsonResponse = oldParseJsonResponse;
         } catch (e) {

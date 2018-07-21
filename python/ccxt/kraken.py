@@ -230,6 +230,7 @@ class kraken (Exchange):
         html = None
         oldParseJsonResponse = self.parseJsonResponse
         try:
+            self.parseJsonResponse = False
             html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
             self.parseJsonResponse = oldParseJsonResponse
         except Exception as e:
