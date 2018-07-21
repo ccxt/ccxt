@@ -213,6 +213,7 @@ module.exports = class kraken extends Exchange {
         let html = undefined;
         let oldParseJsonResponse = this.parseJsonResponse;
         try {
+            this.parseJsonResponse = false;
             html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
             this.parseJsonResponse = oldParseJsonResponse;
         } catch (e) {
