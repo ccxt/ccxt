@@ -884,7 +884,7 @@ module.exports = class cointiger extends huobipro {
                         //
                         if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
                             if (feedback.indexOf ('Parameter error') >= 0) {
-                                throw new OrderNotFound (feedback)
+                                throw new OrderNotFound (feedback);
                             } else {
                                 throw new InvalidOrder (feedback);
                             }
