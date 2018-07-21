@@ -810,11 +810,13 @@ module.exports = class cointiger extends huobipro {
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
             let isCreateOrderMethod = (path === 'order') && (method === 'POST');
+            let isCancelOrdersMethod = (path === 'order/batch_cancel');
             let urlParams = isCreateOrderMethod ? {} : query;
+            urlParams = isCancelOrdersMethod ? {} : urlParams;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
                 'time': timestamp,
-            }, {})))//urlParams)));
+            }, urlParams)));
             url += '&sign=' + signature;
             if (method === 'POST') {
                 body = this.urlencode (query);
@@ -871,24 +873,24 @@ module.exports = class cointiger extends huobipro {
                             throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                         }
                     } else {
-                            //
-                            // Google Translate:
-                            // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
-                            // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
-                            //
-                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
-                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
-                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
-                            //
-                            if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
-                                if (feedback.indexOf ('Parameter error') >= 0) {
-                                    throw new OrderNotFound (feedback)
-                                } else {
-                                    throw new InvalidOrder (feedback);
-                                }
-                            } else if (feedback.indexOf ('根据订单号没有查询到订单,订单取消失败') >= 0) {
-                                throw new OrderNotFound (feedback);
+                        //
+                        // Google Translate:
+                        // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        //
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        //
+                        if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
+                            if (feedback.indexOf ('Parameter error') >= 0) {
+                                throw new OrderNotFound (feedback)
+                            } else {
+                                throw new InvalidOrder (feedback);
                             }
+                        } else if (feedback.indexOf ('根据订单号没有查询到订单,订单取消失败') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
                     }
                 }
             }
