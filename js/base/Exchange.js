@@ -47,8 +47,9 @@ const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill')
 const Web3      = require ('web3')
     , ethAbi    = require ('ethereumjs-abi')
     , ethUtil   = require ('ethereumjs-util')
-    , BigNumber = require ('bignumber.js') // do we really need them both?
-    , BN        = require ('bn.js')        // do we really need them both?
+    , BigNumber = require ('bignumber.js')
+    // we prefer bignumber.js over BN.js
+    // , BN        = require ('bn.js')
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -1183,18 +1184,18 @@ module.exports = class Exchange {
 
     getZeroExOrderHash (order) {
         let unpacked = [
-            order['exchangeContractAddress'],       // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            order['maker'],                         // { value: order.maker, type: types_1.SolidityTypes.Address },
-            order['taker'],                         // { value: order.taker, type: types_1.SolidityTypes.Address },
-            order['makerTokenAddress'],             // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['takerTokenAddress'],             // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['feeRecipient'],                  // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            new BigNumber (order['makerTokenAmount']).toFixed (), // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['takerTokenAmount']).toFixed (), // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['makerFee']).toFixed (),         // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['takerFee']).toFixed (),         // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            order['exchangeContractAddress'],                       // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            order['maker'],                                         // { value: order.maker, type: types_1.SolidityTypes.Address },
+            order['taker'],                                         // { value: order.taker, type: types_1.SolidityTypes.Address },
+            order['makerTokenAddress'],                             // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['takerTokenAddress'],                             // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['feeRecipient'],                                  // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            new BigNumber (order['makerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            new BigNumber (order['takerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            new BigNumber (order['makerFee']).toFixed (),           // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            new BigNumber (order['takerFee']).toFixed (),           // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
             new BigNumber (order['expirationUnixTimestampSec']).toFixed (), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['salt']).toFixed (),             // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+            new BigNumber (order['salt']).toFixed (),               // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
         ];
         let types = [
             'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
@@ -1213,20 +1214,47 @@ module.exports = class Exchange {
         return '0x' + ethAbi.soliditySHA3 (types, unpacked).toString ('hex');
     }
 
+    signZeroExOrder (order) {
+        const orderHash = this.getZeroExOrderHash (order);
+        const signature = this.signMessage (orderHash, this.privateKey);
+        // const signature2 = this.signMessage2 (orderHash, this.privateKey);
+        // const log = require ('ololog').unlimited;
+        // log ('----------------------------------------------------------')
+        // log.green ('messageHash:', messageHash)
+        // log.red ('orderHash:', orderHash);
+        // log.red ('signature1:', signature1)
+        // log.yellow ('signature2:', signature2)
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'ecSignature': signature, // todo fix v if needed
+        })
+    }
+
     hashMessage (message) {
         return this.web3.eth.accounts.hashMessage (message)
     }
 
     // works with Node only
-    signMessageHash (hash, privateKey) {
-        return ethUtil.ecsign (new Buffer (hash.slice (-64), 'hex'), new Buffer (privateKey.slice (-64), 'hex'));
+    signHash (hash, privateKey) {
+        const signature = ethUtil.ecsign (new Buffer (hash.slice (-64), 'hex'), new Buffer (privateKey.slice (-64), 'hex'))
+        return {
+            v: signature.v,
+            r: '0x' + signature.r.toString ('hex'),
+            s: '0x' + signature.s.toString ('hex'),
+        }
     }
 
     signMessage (message, privateKey) {
-        return this.web3.eth.accounts.sign (message, privateKey.slice (2))
+        const signature = this.decryptAccountFromPrivateKey (this.privateKey).sign (message, privateKey.slice (-64))
+        return {
+            v: parseInt (signature.v.slice (2), 16),
+            r: signature.r,
+            s: signature.s,
+        }
     }
 
     signMessage2 (message, privateKey) {
-        return this.signMessageHash (this.hashMessage (message), privateKey)
+        // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 }
