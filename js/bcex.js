@@ -191,7 +191,22 @@ module.exports = class bcex extends Exchange {
         return results;
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets();
+
+        let x = this.marketId(symbol);
+
+        let order = {
+            'api_key': this.apiKey,
+            'symbol': this.marketId (symbol),
+            'price': price,
+            'number': amount,
+            'side': type,
+        };
+        let response = await this.privatePostOrders (this.extend (order, params));
+        return this.parseOrder (response['result']);
+
+
         return 0;
     }
 
