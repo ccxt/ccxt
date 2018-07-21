@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.81'
+const version = '1.16.82'
 
 Exchange.ccxtVersion = version
 
@@ -25376,10 +25376,7 @@ module.exports = class cointiger extends huobipro {
             }
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            let isCreateOrderMethod = (path === 'order') && (method === 'POST');
-            let isCancelOrdersMethod = (path === 'order/batch_cancel');
-            let urlParams = isCreateOrderMethod ? {} : query;
-            urlParams = isCancelOrdersMethod ? {} : urlParams;
+            let urlParams = (method === 'POST') ? {} : query;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
                 'time': timestamp,
