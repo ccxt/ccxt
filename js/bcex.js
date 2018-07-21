@@ -47,6 +47,7 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/ticker',
                         'Api_Order/orderList',
                         'Api_Order/tradeList',
+                        'Api_Order/trustList',
                         'Api_Order/depth',
                     ],
                 },
@@ -133,8 +134,36 @@ module.exports = class bcex extends Exchange {
         return orderbook;
     }
 
+    parseTrade (trade, market) {
+        let timestamp = trade['updated'];
+         return {
+            'id': trade['id'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market.symbol,
+            'type': undefined,
+            'side': trade['flag'],
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'size'),
+            'order': this.safeString (trade, 'orderId'),
+            'fee': undefined,
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return 0;
+        await this.loadMarkets();
+        let request = {};
+        let marketId = this.marketId(symbol);
+        request['api_key'] = this.apiKey;
+        if (typeof symbol !== 'undefined') {
+            request['symbol'] = marketId
+        }
+        let response = await this.privatePostApiOrderTrustList(this.extend(request, params));
+        let market = this.markets_by_id[marketId];
+        let trades = response['data'];
+        let result = this.parseTrades(trades, market);
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
