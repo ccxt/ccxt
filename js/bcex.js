@@ -191,23 +191,21 @@ module.exports = class bcex extends Exchange {
         return results;
     }
 
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
-
-        let x = this.marketId(symbol);
-
         let order = {
             'api_key': this.apiKey,
             'symbol': this.marketId (symbol),
+            'type': side,
             'price': price,
             'number': amount,
-            'side': type,
         };
-        let response = await this.privatePostOrders (this.extend (order, params));
-        return this.parseOrder (response['result']);
-
-
-        return 0;
+        let response = await this.privatePostApiOrderCoinTrust (this.extend (order, params));
+        let data = response['data']
+        return {
+            'info': response,
+            'id': this.safeString (data, 'order_id'),
+        }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
