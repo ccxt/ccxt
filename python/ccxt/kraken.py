@@ -228,13 +228,13 @@ class kraken (Exchange):
 
     def fetch_min_order_sizes(self):
         html = None
+        oldParseJsonResponse = self.parseJsonResponse
         try:
-            self.parseJsonResponse = False
             html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
-            self.parseJsonResponse = True
+            self.parseJsonResponse = oldParseJsonResponse
         except Exception as e:
             # ensure parseJsonResponse is restored no matter what
-            self.parseJsonResponse = True
+            self.parseJsonResponse = oldParseJsonResponse
             raise e
         parts = html.split('ul>')
         ul = parts[1]
