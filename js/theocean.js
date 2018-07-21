@@ -13,7 +13,6 @@ module.exports = class theocean extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v0',
-            'userAgent': this.userAgents['chrome'],
             'parseJsonResponse': false,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
@@ -454,9 +453,6 @@ module.exports = class theocean extends Exchange {
         return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
-    signOrder (order, account = undefined) {
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -547,14 +543,15 @@ module.exports = class theocean extends Exchange {
         });
         const signedMarketOrder = this.signZeroExOrder (marketOrder)
         const placeRequest = {
-            'signedOrder': signedMarketOrder,
+            'signedMatchingOrder': signedMarketOrder,
             'matchingOrderID': reserveResponse['matchingOrderID'],
         };
         // return api.trade.placeMarketOrder({order})
         let placeMethod = method + 'Place';
         log.yellow (placeRequest)
         process.exit ();
-        //     let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        log.magenta (placeResponse)
         //         {
         //         "targetOrder": {
         //             "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
