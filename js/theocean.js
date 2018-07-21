@@ -4,11 +4,8 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 const log = require ('ololog').unlimited;
-const { ZeroEx } = require ('0x.js')
-const ethAbi = require ('ethereumjs-abi')
-const ethUtil = require ('ethereumjs-util')
-var BN = require("bn.js");
-
+const { ZeroEx } = require ('0x.js');
+const ethUtil = require ('ethereumjs-util');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -459,82 +456,27 @@ module.exports = class theocean extends Exchange {
         return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
-    getOrderHash (contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce) {
-        let unpacked = [ contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce ];
-        let types = [ 'address', 'address', 'uint256', 'address', 'uint256', 'uint256', 'uint256' ];
-        const sha256 = ethAbi.soliditySHA256 (types, unpacked);
-        const sha256Hex = sha256.toString ('hex');
-        const hash = '0x' + sha256Hex;
-        return hash
-    }
-
-    // getOrderHashHex (order) {
-    //     var orderParts = [
-    //         { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-    //         { value: order.maker, type: types_1.SolidityTypes.Address },
-    //         { value: order.taker, type: types_1.SolidityTypes.Address },
-    //         { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-    //         { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-    //         { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-    //         { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-    //         { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-    //     ];
-    //     var types = _.map(orderParts, function (o) { return o.type; });
-    //     var values = _.map(orderParts, function (o) { return o.value; });
-    //     var hashBuff = ethABI.soliditySHA3(types, values);
-    //     var hashHex = ethUtil.bufferToHex(hashBuff);
-    //     return hashHex;
-    // }
-
     signOrder (order, account = undefined) {
         const orderHash = ZeroEx.getOrderHashHex (order);
         log.red ('orderHash:', orderHash);
-        let unpacked = [
-            order['exchangeContractAddress'], // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            order['maker'], // { value: order.maker, type: types_1.SolidityTypes.Address },
-            order['taker'], // { value: order.taker, type: types_1.SolidityTypes.Address },
-            order['makerTokenAddress'], // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['takerTokenAddress'], // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['feeRecipient'], // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            new BN(order['makerTokenAmount'], 10), // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BN(order['takerTokenAmount'], 10), // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BN(order['makerFee'], 10), // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            new BN(order['takerFee'], 10), // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            new BN(order['expirationUnixTimestampSec'], 10), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            new BN(order['salt'], 10), // 'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-            // contractAddress, tokenGet, amountGet, tokenGive, amountGive, expires, orderNonce ];
-        ];
-        let types = [
-            'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ];
-        // log.bright.blue (types)
-        log.bright.blue (unpacked);
-        const sha256 = ethAbi.soliditySHA3 (types, unpacked);
-        const sha256Hex = sha256.toString ('hex');
-        const hash = '0x' + sha256Hex;
+        const hash = this.getZeroExOrderHash (order);
         log.red ('orderHas2:', hash);
 
         let acc = this.decryptAccountFromPrivateKey (this.privateKey)
 
         const signature = acc.sign (hash, this.privateKey.slice (2));
-        const signature2 = this.web3.eth.accounts.sign (hash, this.privateKey.slice (2))
+
+        const msgHash = this.hashMessage (hash)
+        console.log (msgHash.slice (2).length)
+        console.log (this.privateKey.slice (2).length)
+
+        const signature2 = this.signMessage (hash, this.privateKey)
+
+        log.green ('messgHas3:', msgHash)
         const sig2 = ethUtil.ecsign (new Buffer(signature.messageHash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
         const sig3 = ethUtil.ecsign (new Buffer(hash.slice (2), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
+        const sig4 = this.signMessage2 (hash, this.privateKey)// ethUtil.ecsign (new Buffer(msgHash.slice (-64), 'hex'), new Buffer(this.privateKey.slice (2), 'hex'));
+
         log.red (signature)
         log.yellow (signature2)
         log.green ('----------------------------------------------------------')
@@ -548,6 +490,11 @@ module.exports = class theocean extends Exchange {
             v: '0x' + sig3.v.toString (16),
             r: '0x' + sig3.r.toString ('hex'),
             s: '0x' + sig3.s.toString ('hex'),
+        })
+        log.cyan ({
+            v: '0x' + sig4.v.toString (16),
+            r: '0x' + sig4.r.toString ('hex'),
+            s: '0x' + sig4.s.toString ('hex'),
         })
         process.exit ();
         // const signature = await this.zeroEx.signOrderHashAsync (orderHash, signerAddress)
