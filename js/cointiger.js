@@ -57,7 +57,7 @@ module.exports = class cointiger extends huobipro {
                     ],
                     'post': [
                         'order',
-                        'order/batchcancel',
+                        'order/batch_cancel',
                     ],
                 },
                 'public': {
@@ -776,6 +776,23 @@ module.exports = class cointiger extends huobipro {
         };
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let orderIdList = {};
+        orderIdList[marketId] = ids;
+        let request = {
+            'orderIdList': this.json (orderIdList),
+        };
+        let response = await this.v2PostOrderBatchCancel (this.extend (request, params));
+        return {
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -796,7 +813,7 @@ module.exports = class cointiger extends huobipro {
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
                 'time': timestamp,
-            }, urlParams)));
+            }, {})))//urlParams)));
             url += '&sign=' + signature;
             if (method === 'POST') {
                 body = this.urlencode (query);
@@ -827,27 +844,50 @@ module.exports = class cointiger extends huobipro {
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }
                 //
                 let code = this.safeString (response, 'code');
-                if ((typeof code !== 'undefined') && (code !== '0')) {
+                if (typeof code !== 'undefined') {
                     const message = this.safeString (response, 'msg');
                     const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        if (code === 1) {
-                            //    {"code":"1","msg":"系统错误","data":null}
-                            //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
-                            if (message.indexOf ('Balance insufficient') >= 0) {
-                                throw new InsufficientFunds (feedback);
+                    if (code !== '0') {
+                        const exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            if (code === '1') {
+                                //
+                                //    {"code":"1","msg":"系统错误","data":null}
+                                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                //
+                                if (message.indexOf ('Balance insufficient') >= 0) {
+                                    throw new InsufficientFunds (feedback);
+                                }
+                            } else if (code === '2') {
+                                if (message === 'offsetNot Null') {
+                                    throw new ExchangeError (feedback);
+                                } else if (message === 'Parameter error') {
+                                    throw new ExchangeError (feedback);
+                                }
                             }
-                        } else if (code === 2) {
-                            if (message === 'offsetNot Null') {
-                                throw new ExchangeError (feedback);
-                            } else if (message === 'Parameter error') {
-                                throw new ExchangeError (feedback);
-                            }
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                         }
-                        throw new exceptions[code] (feedback);
                     } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                            //
+                            // Google Translate:
+                            // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                            // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                            //
+                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                            // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                            //
+                            if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
+                                if (feedback.indexOf ('Parameter error') >= 0) {
+                                    throw new OrderNotFound (feedback)
+                                } else {
+                                    throw new InvalidOrder (feedback);
+                                }
+                            } else if (feedback.indexOf ('根据订单号没有查询到订单,订单取消失败') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            }
                     }
                 }
             }
