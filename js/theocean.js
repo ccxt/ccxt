@@ -3,7 +3,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
-const log = require ('ololog').unlimited;
+// const log = require ('ololog').unlimited;
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -469,28 +469,41 @@ module.exports = class theocean extends Exchange {
         }
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
-        log.green (reserveRequest);
-        // process.exit ();
-        // let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
         //
         // ---- market orders -------------------------------------------------
         //
-        let reserveResponse =
-            {       matchingOrderID:   "MARKET_INTENT:8yjjtgkt6k8yjjtgkt6ljjtgkt6m",
-              unsignedMatchingOrder: {                      maker: "",
-                                                            taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
-                                                makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-                                                takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
-                                                 makerTokenAmount: "27100000000000000",
-                                                 takerTokenAmount: "881877819717396973",
-                                                         makerFee: "0",
-                                                         takerFee: "0",
-                                       expirationUnixTimestampSec: "1534651346",
-                                                     feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
-                                                             salt: "73665372381710778176321403164539964478925879098761330710742710411655889865098",
-                                          exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                     } }
+        // let reserveResponse =
+        //     {       matchingOrderID:   "MARKET_INTENT:8yjjtgkt6k8yjjtgkt6ljjtgkt6m",
+        //       unsignedMatchingOrder: {                      maker: "",
+        //                                                     taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //                                         makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+        //                                         takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
+        //                                          makerTokenAmount: "27100000000000000",
+        //                                          takerTokenAmount: "881877819717396973",
+        //                                                  makerFee: "0",
+        //                                                  takerFee: "0",
+        //                                expirationUnixTimestampSec: "1534651346",
+        //                                              feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //                                                      salt: "73665372381710778176321403164539964478925879098761330710742710411655889865098",
+        //                                   exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                     } }
         //
         // ---- limit orders --------------------------------------------------
+        //
+        // 1. if the order is completely fillable:
+        //    + unsignedMatchingOrder will be present
+        //    - unsignedTargetOrder will be missing
+        // 2. if the order is partially fillable:
+        //    + unsignedMatchingOrder and
+        //    + unsignedTarget order will be present
+        // 3. if the order is not fillable at the moment:
+        //    + unsignedTargetOrder will be present
+        //    - unsignedMatchingOrder will be missing
+        // In other words, unsignedMatchingOrder is only present
+        // if there is some fillable amount in the order book.
+        //
+        // Note: ecSignature is empty at this point and missing in the actual
+        // response, there's no need for it here at this point anyway.
         //
         //     {
         //       "unsignedTargetOrder": {
@@ -512,7 +525,7 @@ module.exports = class theocean extends Exchange {
         //           "s": ""
         //         }
         //       },
-        //       "unsignedMarketOrder": {
+        //       "unsignedMatchingOrder": {
         //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
         //         "maker": "",
         //         "taker": "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
@@ -531,28 +544,44 @@ module.exports = class theocean extends Exchange {
         //           "s": ""
         //         }
         //       },
-        //       "marketOrderID": "892879202"
+        //       "matchingOrderID": "MARKET_INTENT:8ajjh92s1r8ajjh92s1sjjh92s1t"
         //     }
         //
-        // console.log (reserveResponse);
-        log.magenta (reserveResponse);
-        // process.exit ();
         // --------------------------------------------------------------------
-        const marketOrder = this.extend (reserveResponse['unsignedMatchingOrder'], {
+        let unsignedMatchingOrder = this.safeValue (reserveResponse, 'unsignedMatchingOrder');
+        let unsignedTargetOrder = this.safeValue (reserveResponse, 'unsignedTargetOrder');
+        const maker = {
             'maker': this.uid.toLowerCase (),
-        });
-        const signedMarketOrder = this.signZeroExOrder (marketOrder)
-        const placeRequest = {
-            'signedMatchingOrder': signedMarketOrder,
-            'matchingOrderID': reserveResponse['matchingOrderID'],
         };
-        // return api.trade.placeMarketOrder({order})
+        const placeRequest = {};
+        const isUnsignedMatchingOrderDefined =  (typeof unsignedMatchingOrder !== 'undefined');
+        const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
+        const isLimitOrderAndTargetOrderDefined = (type === 'limit') && isUnsignedTargetOrderDefined;
+        if (isUnsignedMatchingOrderDefined) {
+            let signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, maker));
+            placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+            placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+        }
+        if (isLimitOrderAndTargetOrderDefined) {
+            let signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, maker));
+            placeRequest['signedTargetOrder'] = signedTargetOrder;
+        }
+        if (!(isUnsignedMatchingOrderDefined || isLimitOrderAndTargetOrderDefined)) {
+            throw new InvalidOrder (this.id + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment, make sure the order book is not empty.');
+        }
         let placeMethod = method + 'Place';
-        log.yellow (placeRequest)
-        process.exit ();
         let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
-        log.magenta (placeResponse)
-        //         {
+        //
+        // ---- market orders -------------------------------------------------
+        //
+        //     { matchingOrder: { transactionHash: "0x043488fdc3f995bf9e632a32424e41ed126de90f8cb340a1ff006c2a74ca8336",
+        //                                 amount: "1000000000000000000",
+        //                              orderHash: "0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5"  },
+        //            parentID:   "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl"                                              }
+        //
+        // ---- limit orders -------------------------------------------------
+        //
+        //     {
         //         "targetOrder": {
         //             "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
         //             "amount": "100000000000"
@@ -562,43 +591,29 @@ module.exports = class theocean extends Exchange {
         //             "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
         //             "amount": "100000000000"
         //         }
-        //         }
-        //     console.log (placeResponse);
-        // process.exit ();
-        //     send signed
-        //     let id = undefined;
-        //     let status = 'open';
-        //     let filled = 0.0;
-        //     let remaining = amount;
-        //     if ('return' in response) {
-        //         id = this.safeString (response['return'], this.getOrderIdKey ());
-        //         if (id === '0') {
-        //             id = this.safeString (response['return'], 'init_order_id');
-        //             status = 'closed';
-        //         }
-        //         filled = this.safeFloat (response['return'], 'received', 0.0);
-        //         remaining = this.safeFloat (response['return'], 'remains', amount);
         //     }
-        //     let timestamp = this.milliseconds ();
-        //     let order = {
-        //         'id': id,
-        //         'timestamp': timestamp,
-        //         'datetime': this.iso8601 (timestamp),
-        //         'lastTradeTimestamp': undefined,
-        //         'status': status,
-        //         'symbol': symbol,
-        //         'type': type,
-        //         'side': side,
-        //         'price': price,
-        //         'cost': price * filled,
-        //         'amount': amount,
-        //         'remaining': remaining,
-        //         'filled': filled,
-        //         'fee': undefined,
-        //         'trades': undefined,
-        //     };
-        //     this.orders[id] = order;
-        //     return this.extend ({ 'info': response }, order);
+        //
+        const info = [ reserveResponse, placeResponse ];
+        const result = this.extend ({ 'info': info }, {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': price * filled,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'fee': undefined,
+            'trades': undefined,
+        });
+        // log.green (result);
+        process.exit ();
+        return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
