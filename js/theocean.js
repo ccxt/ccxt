@@ -640,7 +640,16 @@ module.exports = class theocean extends Exchange {
     }
 
     async cancelAllOrders (params = {}) {
-        return await this.privateDeleteOrders (params);
+        const response = await this.privateDeleteOrders (params);
+        //
+        //     [{
+        //       "canceledOrder": {
+        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
+        //         "amount": "100000000000"
+        //       }
+        //     }]
+        //
+        return response;
     }
 
     parseOrderStatus (status) {
@@ -769,6 +778,51 @@ module.exports = class theocean extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            // openAmount (optional) Return orders with an openAmount greater than or equal to this value
+            // reservedAmount (optional) Return orders with a reservedAmount greater than or equal to this value
+            // filledAmount (optional) Return orders with a filledAmount greater than or equal to this value
+            // confirmedAmount (optional) Return orders with a confirmedAmount greater than or equal to this value
+            // deadAmount (optional) Return orders with a deadAmount greater than or equal to this value
+            // baseTokenAddress (optional) Return orders with a baseTokenAddress equal to this value
+            // quoteTokenAddress (optional) Return orders with a quoteTokenAddress equal to this value
+        };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['baseTokenAddress'] = market['baseId'];
+            request['quoteTokenAddress'] = market['quoteId'];
+        }
+        let response = await this.privateGetUserHistory (this.extend (request, params));
+        //
+        //     [
+        //       {
+        //         "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //         "baseTokenAddress": "0x323b5d4c32345ced77393b3530b1eed0f346429d",
+        //         "quoteTokenAddress": "0xef7fff64389b814a946f3e92105513705ca6b990",
+        //         "side": "buy",
+        //         "openAmount": "10000000000000000000",
+        //         "filledAmount": "0",
+        //         "reservedAmount": "0",
+        //         "settledAmount": "0",
+        //         "confirmedAmount": "0",
+        //         "deadAmount": "0",
+        //         "price": "0.00050915",
+        //         "timeline": [
+        //           {
+        //             "action": "placed",
+        //             "amount": "10000000000000000000",
+        //             "timestamp": "1512929327792"
+        //           }
+        //         ]
+        //       }
+        //     ]
+        //
+        return this.parseOrders (response, undefined, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
