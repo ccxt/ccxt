@@ -1248,6 +1248,8 @@ module.exports = class Exchange {
 
     signMessage (message, privateKey) {
         //
+        // The following comment is related to MetaMask, we use the upper type of signature prefix:
+        //
         // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
         //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
         //                              prefixType: 'ETH_SIGN',
