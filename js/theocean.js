@@ -1,9 +1,8 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
-// const log = require ('ololog').unlimited;
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -61,6 +60,7 @@ module.exports = class theocean extends Exchange {
                     ],
                     'delete': [
                         'order/{orderHash}',
+                        'orders',
                     ],
                 },
             },
@@ -69,6 +69,7 @@ module.exports = class theocean extends Exchange {
                 "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
                 "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
                 "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
+                'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
             },
         });
     }
@@ -554,7 +555,7 @@ module.exports = class theocean extends Exchange {
             'maker': this.uid.toLowerCase (),
         };
         const placeRequest = {};
-        const isUnsignedMatchingOrderDefined =  (typeof unsignedMatchingOrder !== 'undefined');
+        const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
         const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
         const isLimitOrderAndTargetOrderDefined = (type === 'limit') && isUnsignedTargetOrderDefined;
         if (isUnsignedMatchingOrderDefined) {
@@ -567,10 +568,10 @@ module.exports = class theocean extends Exchange {
             placeRequest['signedTargetOrder'] = signedTargetOrder;
         }
         if (!(isUnsignedMatchingOrderDefined || isLimitOrderAndTargetOrderDefined)) {
-            throw new InvalidOrder (this.id + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment, make sure the order book is not empty.');
+            throw new InvalidOrder (this.id + ' cannot place order to ' + side + ' ' + symbol + ' at the moment, make sure the order book is not empty.');
         }
         let placeMethod = method + 'Place';
-        let placeResponse =  await this[placeMethod] (this.extend (placeRequest, params));
+        let placeResponse = await this[placeMethod] (this.extend (placeRequest, params));
         //
         // ---- market orders -------------------------------------------------
         //
@@ -594,6 +595,13 @@ module.exports = class theocean extends Exchange {
         //     }
         //
         const info = [ reserveResponse, placeResponse ];
+        const targetOrder = this.safeValue (placeResponse, 'targetOrder');
+        let id = undefined;
+        if (typeof targetOrder !== 'undefined') {
+            id = this.safeString (targetOrder, 'orderHash');
+        }
+        const timestamp = this.milliseconds ();
+        const status = 'open';
         const result = this.extend ({ 'info': info }, {
             'id': id,
             'timestamp': timestamp,
@@ -611,8 +619,6 @@ module.exports = class theocean extends Exchange {
             'fee': undefined,
             'trades': undefined,
         });
-        // log.green (result);
-        process.exit ();
         return result;
     }
 
@@ -631,6 +637,10 @@ module.exports = class theocean extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async cancelAllOrders (params = {}) {
+        return await this.privateDeleteOrders (params);
     }
 
     parseOrderStatus (status) {
@@ -809,8 +819,9 @@ module.exports = class theocean extends Exchange {
                 //
                 // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
+                // {"message":"Order not found","errors":[]}
                 //
-                const message = this.safeString (response, 'error');
+                const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
                 if (message in exceptions) {
