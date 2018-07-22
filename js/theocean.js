@@ -382,6 +382,8 @@ module.exports = class theocean extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchTrades
+        //
         //     {
         //         "id": "37212",
         //         "transactionHash": "0x5e6e75e1aa681b51b034296f62ac19be7460411a2ad94042dd8ba637e13eac0c",
@@ -390,6 +392,14 @@ module.exports = class theocean extends Exchange {
         // ------- they also have a "confirmed" status here ↓ -----------------
         //         "status": "filled", // filled | settled | failed
         //         "lastUpdated": "1520265048996"
+        //     }
+        //
+        // parseOrder trades (timeline "actions", "fills")
+        //
+        //     {
+        //       "action": "filled",
+        //       "amount": "10000000000000000000",
+        //       "timestamp": "1512929805948"
         //     }
         //
         let timestamp = parseInt (trade['lastUpdated']) * 1000;
@@ -666,6 +676,8 @@ module.exports = class theocean extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // fetchOrder, fetchOrderBook
+        //
         //     {
         //       "baseTokenAddress": "0x7cc7fdd065cfa9c7f4f6a3c1bfc6dfcb1a3177aa",
         //       "quoteTokenAddress": "0x17f15936ef3a2da5593033f84487cbe9e268f02f",
@@ -696,11 +708,55 @@ module.exports = class theocean extends Exchange {
         //       }
         //     }
         //
+        // fetchOrders
+        //
+        //     {
+        //       "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
+        //       "baseTokenAddress": "0x323b5d4c32345ced77393b3530b1eed0f346429d",
+        //       "quoteTokenAddress": "0xef7fff64389b814a946f3e92105513705ca6b990",
+        //       "side": "buy",
+        //       "openAmount": "10000000000000000000",
+        //       "filledAmount": "0",
+        //       "reservedAmount": "0",
+        //       "settledAmount": "0",
+        //       "confirmedAmount": "0",
+        //       "deadAmount": "0",
+        //       "price": "0.00050915",
+        //       "timeline": [
+        //         {
+        //           "action": "placed",
+        //           "amount": "10000000000000000000",
+        //           "timestamp": "1512929327792"
+        //         },
+        //         {
+        //           "action": "filled",
+        //           "amount": "10000000000000000000",
+        //           "timestamp": "1512929805948"
+        //         }
+        //       ]
+        //     }
+        //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = zeroExOrder['orderHash'].toString ();
         let side = this.safeString (order, 'side');
-        let timestamp = parseInt (order['created']) * 1000;
-        let amount = this.fromWei (this.safeFloat (order, 'amount'));
+        let timestamp = this.safeInteger (order, 'created');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = parseInt (timestamp) * 1000;
+        }
+        let amountInWei = this.safeFloat2 (order, 'amount', 'openAmount');
+        let amount = this.fromWei (amountInWei);
+        let filledInWei = this.safeFloat (order, 'filledAmount');
+        let filled = this.fromWei (filledInWei);
+        let remaining = undefined;
+        let cost = undefined;
+        if (typeof filled !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+            }
+            if (typeof price !== 'undefined') {
+                cost = filled * price;
+            }
+        }
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
         if (typeof market === 'undefined') {
@@ -714,10 +770,40 @@ module.exports = class theocean extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
+        let lastTradeTimestamp = undefined;
+        let timeline = this.safeValue (order, 'timeline');
+        let trades = undefined;
+        if (typeof timeline !== 'undefined') {
+            if (Array.isArray (timeline)) {
+                let numEvents = timeline.length;
+                if (numEvents > 0) {
+                    let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
+                    if ('placed' in timelineEventsGroupedByAction) {
+                        let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
+                        if (typeof placeEvents !== 'undefined') {
+                            let numPlaceEvents = placeEvents.length;
+                            if (numPlaceEvents > 0) {
+                                timestamp = this.safeInteger (placeEvents[0], 'timestamp');
+                            }
+                        }
+                    }
+                    if ('filled' in timelineEventsGroupedByAction) {
+                        let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
+                        if (typeof fillEvents !== 'undefined') {
+                            let numFillEvents = fillEvents.length;
+                            if (numFillEvents > 0) {
+                                lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
+                                trades = [];
+                                for (let i = 0; i < numFillEvents; i++) {
+                                    trades.push (this.parseTrade (fillEvent[i], market));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         let status = undefined;
-        let remaining = undefined;
-        let filled = undefined;
-        let cost = undefined;
         let fee = undefined;
         let result = {
             'info': order,
@@ -725,7 +811,7 @@ module.exports = class theocean extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'type': 'limit',
             'side': side,
             'price': price,
@@ -735,7 +821,7 @@ module.exports = class theocean extends Exchange {
             'filled': filled,
             'status': status,
             'fee': fee,
-            'trades': undefined,
+            'trades': trades,
         };
         return result;
     }
