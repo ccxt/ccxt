@@ -1247,6 +1247,33 @@ module.exports = class Exchange {
     }
 
     signMessage (message, privateKey) {
+        //
+        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        //                              prefixType: 'ETH_SIGN',
+        //                              shouldAddPrefixBeforeCallingEthSign: true
+        //                          }).then ((e, r) => console.log (e,r))
+        //
+        //     {                            ↓
+        //         v: 28,
+        //         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
+        //         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
+        //     }
+        //
+        // --------------------------------------------------------------------
+        //
+        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        //                              prefixType: 'NONE',
+        //                              shouldAddPrefixBeforeCallingEthSign: true
+        //                          }).then ((e, r) => console.log (e,r))
+        //
+        //     {                            ↓
+        //         v: 27,
+        //         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
+        //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
+        //     }
+        //
         const signature = this.decryptAccountFromPrivateKey (this.privateKey).sign (message, privateKey.slice (-64))
         return {
             v: parseInt (signature.v.slice (2), 16),
