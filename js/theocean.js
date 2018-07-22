@@ -612,6 +612,9 @@ module.exports = class theocean extends Exchange {
         }
         const timestamp = this.milliseconds ();
         const status = 'open';
+        let cost = undefined;
+        let remaining = undefined;
+        let filled = undefined;
         const result = this.extend ({ 'info': info }, {
             'id': id,
             'timestamp': timestamp,
@@ -622,7 +625,7 @@ module.exports = class theocean extends Exchange {
             'type': type,
             'side': side,
             'price': price,
-            'cost': price * filled,
+            'cost': cost,
             'amount': amount,
             'remaining': remaining,
             'filled': filled,
@@ -743,6 +746,7 @@ module.exports = class theocean extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp = parseInt (timestamp) * 1000;
         }
+        let price = this.safeFloat (order, 'price');
         let amountInWei = this.safeFloat2 (order, 'amount', 'openAmount');
         let amount = this.fromWei (amountInWei);
         let filledInWei = this.safeFloat (order, 'filledAmount');
@@ -757,7 +761,6 @@ module.exports = class theocean extends Exchange {
                 cost = filled * price;
             }
         }
-        let price = this.safeFloat (order, 'price');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let baseId = this.safeString (order, 'baseTokenAddress');
@@ -795,7 +798,7 @@ module.exports = class theocean extends Exchange {
                                 lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
                                 trades = [];
                                 for (let i = 0; i < numFillEvents; i++) {
-                                    trades.push (this.parseTrade (fillEvent[i], market));
+                                    trades.push (this.parseTrade (fillEvents[i], market));
                                 }
                             }
                         }

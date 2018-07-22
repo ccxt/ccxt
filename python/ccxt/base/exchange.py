@@ -67,10 +67,14 @@ except NameError:
 
 try:
     import urllib.parse as _urlencode    # Python 3
+    from web3.auto import w3           # web3/0x imports
     from web3 import Web3, HTTPProvider
+    import eth_account
+    from eth_account.messages import defunct_hash_message
+
 except ImportError:
     import urllib as _urlencode          # Python 2
-    Web3 = HTTPProvider = None
+    Web3 = HTTPProvider = None           # web3/0x not supported in Python 2
 
 
 # -----------------------------------------------------------------------------
@@ -253,7 +257,7 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if Web3 and not self.web3:
-            self.web3 = Web3(HTTPProvider())
+            self.web3 = w3 if w3 else Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
@@ -1365,3 +1369,109 @@ class Exchange(object):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+
+    # -------------------------------------------------------------------------
+    # web3 / 0x methods
+
+    def decryptAccountFromJSON(self, value, password):
+        return self.decryptAccount(json.loads(value) if isinstance(value, basestring) else value, password)
+
+    def decryptAccount(self, key, password):
+        return self.web3.eth.accounts.decrypt(key, password)
+
+    def decryptAccountFromPrivateKey(self, privateKey):
+        return self.web3.eth.accounts.privateKeyToAccount(privateKey)
+
+    def getZeroExOrderHash(self, order):
+        unpacked = [
+            order['exchangeContractAddress'],                  # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            order['maker'],                                    # { value: order.maker, type: types_1.SolidityTypes.Address },
+            order['taker'],                                    # { value: order.taker, type: types_1.SolidityTypes.Address },
+            order['makerTokenAddress'],                        # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['takerTokenAddress'],                        # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            order['feeRecipient'],                             # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            BigNumber(order['makerTokenAmount']).toFixed (),   # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            BigNumber(order['takerTokenAmount']).toFixed (),   # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            BigNumber(order['makerFee']).toFixed (),           # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            BigNumber(order['takerFee']).toFixed (),           # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            BigNumber(order['expirationUnixTimestampSec']).toFixed (), # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            BigNumber(order['salt']).toFixed (),               # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        ]
+        types = [
+            'address', # { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            'address', # { value: order.maker, type: types_1.SolidityTypes.Address },
+            'address', # { value: order.taker, type: types_1.SolidityTypes.Address },
+            'address', # { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            'address', # { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            'address', # { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            'uint256', # { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            'uint256', # { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            'uint256', # { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            'uint256', # { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            'uint256', # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            'uint256', # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        ]
+        self.web3.soliditySha3(types, unpacked)
+        # HexBytes("0x2ff37b5607484cd4eecf6d13292e22bd6e5401eaffcc07e279583bc742c68882")
+        return '0x' + ethAbi.soliditySHA3(types, unpacked).toString('hex')
+
+    def signZeroExOrder(self, order):
+        orderHash = self.getZeroExOrderHash(order);
+        signature = self.signMessage(orderHash, this.privateKey)
+        # signature2 = this.signMessage2(orderHash, this.privateKey)
+        # print('messageHash:', messageHash)
+        # print('orderHash:', orderHash)
+        # print('signature1:', signature1)
+        # print('signature2:', signature2)
+        return self.extend(order, {
+            'orderHash': orderHash,
+            'ecSignature': signature, # todo fix v if needed
+        })
+
+    def hashMessage(self, message):
+        message_bytes = bytes.fromhex(message)
+        # message_hash is HexBytes('0x6c108792ad8506a14f0cf483a87d79f3597954797e566aeaaac2b6f1ef1bf379')
+        return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode () + message_bytes).hex()
+
+    def signHash(self, hash, privateKey):
+        signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
+        print(signature)
+        return {
+            'v': signature.v,
+            'r': self.web3.toHex(signature.r),
+            's': self.web3.toHex(signature.s),
+        }
+
+    def signMessage(self, message, privateKey):
+        #
+        # The following comment is related to MetaMask, we use the upper type of signature prefix:
+        #
+        # z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        #                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        #                              prefixType: 'ETH_SIGN',
+        #                              shouldAddPrefixBeforeCallingEthSign: true
+        #                          }).then ((e, r) => console.log (e,r))
+        #
+        #     {                            ↓
+        #         v: 28,
+        #         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
+        #         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
+        #     }
+        #
+        # --------------------------------------------------------------------
+        #
+        # z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        #                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        #                              prefixType: 'NONE',
+        #                              shouldAddPrefixBeforeCallingEthSign: true
+        #                          }).then ((e, r) => console.log (e,r))
+        #
+        #     {                            ↓
+        #         v: 27,
+        #         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
+        #         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
+        #     }
+        #
+        message_hash = self.hashMessage(message)
+        signature = self.signHash(message_hash[-64:], privateKey[-64:])
+        return signature
