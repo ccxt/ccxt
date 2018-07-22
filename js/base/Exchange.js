@@ -122,12 +122,13 @@ module.exports = class Exchange {
             },
             'api': undefined,
             'requiredCredentials': {
-                'apiKey':   true,
-                'secret':   true,
-                'uid':      false,
-                'login':    false,
-                'password': false,
-                'twofa':    false, // 2-factor authentication (one-time password key)
+                'apiKey':     true,
+                'secret':     true,
+                'uid':        false,
+                'login':      false,
+                'password':   false,
+                'twofa':      false, // 2-factor authentication (one-time password key)
+                'privateKey': false,
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -1240,9 +1241,9 @@ module.exports = class Exchange {
     signHash (hash, privateKey) {
         const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
         return {
-            v: signature.v,
-            r: '0x' + signature.r.toString ('hex'),
-            s: '0x' + signature.s.toString ('hex'),
+            v: signature.v, // integer
+            r: '0x' + signature.r.toString ('hex'), // '0x'-prefixed hex string
+            s: '0x' + signature.s.toString ('hex'), // '0x'-prefixed hex string
         }
     }
 
@@ -1278,9 +1279,9 @@ module.exports = class Exchange {
         //
         const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
         return {
-            v: parseInt (signature.v.slice (2), 16),
-            r: signature.r,
-            s: signature.s,
+            v: parseInt (signature.v.slice (2), 16), // integer
+            r: signature.r, // '0x'-prefixed hex string
+            s: signature.s, // '0x'-prefixed hex string
         }
     }
 
