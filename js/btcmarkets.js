@@ -233,7 +233,7 @@ module.exports = class btcmarkets extends Exchange {
         };
     }
 
-    async cancelOrders (ids) {
+    async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         for (let i = 0; i < ids.length; i++) {
             ids[i] = parseInt (ids[i]);
