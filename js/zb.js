@@ -18,6 +18,7 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -241,6 +242,19 @@ module.exports = class zb extends Exchange {
 
     getMarketFieldName () {
         return 'market';
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetUserAddress ({
+            'currency': currency['id'],
+        });
+        let address = response['message']['datas']['key'];
+        return {
+            'info': response,
+            'address': address,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
