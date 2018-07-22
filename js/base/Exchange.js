@@ -1173,7 +1173,7 @@ module.exports = class Exchange {
     // web3 / 0x methods
 
     decryptAccountFromJSON (json, password) {
-        return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password);
+        return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
     }
 
     decryptAccount (key, password) {
@@ -1198,7 +1198,7 @@ module.exports = class Exchange {
             new BigNumber (order['takerFee']).toFixed (),           // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
             new BigNumber (order['expirationUnixTimestampSec']).toFixed (), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
             new BigNumber (order['salt']).toFixed (),               // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ];
+        ]
         let types = [
             'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
             'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
@@ -1212,8 +1212,8 @@ module.exports = class Exchange {
             'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
             'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
             'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ];
-        return '0x' + ethAbi.soliditySHA3 (types, unpacked).toString ('hex');
+        ]
+        return '0x' + ethAbi.soliditySHA3 (types, unpacked).toString ('hex')
     }
 
     signZeroExOrder (order) {
@@ -1238,7 +1238,7 @@ module.exports = class Exchange {
 
     // works with Node only
     signHash (hash, privateKey) {
-        const signature = ethUtil.ecsign (new Buffer (hash.slice (-64), 'hex'), new Buffer (privateKey.slice (-64), 'hex'))
+        const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
         return {
             v: signature.v,
             r: '0x' + signature.r.toString ('hex'),
@@ -1276,7 +1276,7 @@ module.exports = class Exchange {
         //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
         //     }
         //
-        const signature = this.decryptAccountFromPrivateKey (this.privateKey).sign (message, privateKey.slice (-64))
+        const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
         return {
             v: parseInt (signature.v.slice (2), 16),
             r: signature.r,
