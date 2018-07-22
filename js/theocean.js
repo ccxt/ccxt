@@ -474,8 +474,6 @@ module.exports = class theocean extends Exchange {
         //
         // ---- market orders -------------------------------------------------
         //
-        //
-        //
         // let reserveResponse =
         //     {       matchingOrderID:   "MARKET_INTENT:8yjjtgkt6k8yjjtgkt6ljjtgkt6m",
         //       unsignedMatchingOrder: {                      maker: "",
