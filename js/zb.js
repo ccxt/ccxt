@@ -247,7 +247,7 @@ module.exports = class zb extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privateGetUserAddress ({
+        let response = await this.privateGetGetUserAddress ({
             'currency': currency['id'],
         });
         let address = response['message']['datas']['key'];
