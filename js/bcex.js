@@ -22,6 +22,7 @@ module.exports = class bcex extends Exchange {
                 'cancelOrder': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
