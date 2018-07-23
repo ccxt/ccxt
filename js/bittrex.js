@@ -797,13 +797,13 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
-    parse8601 (x) {
+    appendTimezoneParse8601 (x) {
         let length = x.length;
         let lastSymbol = x[length - 1];
         if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
-            return super.parse8601 (x);
+            return this.parse8601 (x);
         }
-        return super.parse8601 (x + 'Z');
+        return this.parse8601 (x + 'Z');
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
