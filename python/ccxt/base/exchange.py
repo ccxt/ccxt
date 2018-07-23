@@ -69,9 +69,6 @@ try:
     import urllib.parse as _urlencode    # Python 3
     from web3.auto import w3           # web3/0x imports
     from web3 import Web3, HTTPProvider
-    from eth_abi import encode_single
-    # import eth_account
-    # from eth_account.messages import defunct_hash_message
 except ImportError:
     import urllib as _urlencode          # Python 2
     Web3 = HTTPProvider = None           # web3/0x not supported in Python 2
@@ -1413,7 +1410,7 @@ class Exchange(object):
             'uint256',  # { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
             'uint256',  # { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
         ]
-        return self.web3.soliditySha3(types, unpacked).hex ()
+        return self.web3.soliditySha3(types, unpacked).hex()
 
     def signZeroExOrder(self, order):
         orderHash = self.getZeroExOrderHash(order)
