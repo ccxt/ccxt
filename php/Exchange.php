@@ -840,6 +840,16 @@ class Exchange {
                 }
     }
 
+    public function underscore ($camelcase) {
+        // todo: write conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
+        throw new NotSupported ($this->id . ' underscore() not implemented yet');
+    }
+
+    public function camelcase ($underscore) {
+        // todo: write conversion foo_bar10_ohlcv2_candles → fooBar10OHLCV2Candles
+        throw new NotSupported ($this->id . ' camelcase() not implemented yet');
+    }
+
     public function hash ($request, $type = 'md5', $digest = 'hex') {
         $base64 = ($digest === 'base64');
         $binary = ($digest === 'binary');
@@ -1888,9 +1898,9 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists ($function, $this))
+        if (array_key_exists ($function, $this)) {
             return call_user_func_array ($this->$function, $params);
-        else {
+        } else {
             /* handle errors */
             throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
