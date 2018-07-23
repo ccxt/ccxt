@@ -795,6 +795,14 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
+    parse8601 (x) {
+        let lastSymbol = x[x.length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return super.parse8601 (x);
+        }
+        return super.parse8601 (x + 'Z');
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for APIKEY_INVALID
