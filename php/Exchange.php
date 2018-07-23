@@ -2088,10 +2088,6 @@ class Exchange {
 
     public function signHash ($hash, $privateKey) {
         $secp256k1 = new Secp256k1();
-        // return signature contains r, s and recovery param (v).
-        // message and privateKey are hex strings
-        // $message = '0x6c108792ad8506a14f0cf483a87d79f3597954797e566aeaaac2b6f1ef1bf379';
-        // $privateKey = '0x4da78add428afbc519204913fcdc313f5912f082f45d5735d1a73647decca3a2';
         $signature = $secp256k1->sign ($hash, $privateKey);
         return array (
             'v' => $signature->getRecoveryParam () + 27, // integer
