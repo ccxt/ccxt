@@ -91,7 +91,6 @@ module.exports = class bcex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        params['api_key'] = this.apiKey
         let response = await this.privatePostApiUserUserBalance (params)
         let data = response['data'];
         let keys = Object.keys(data);
@@ -156,7 +155,6 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets();
         let request = {};
         let marketId = this.marketId(symbol);
-        request['api_key'] = this.apiKey;
         if (typeof symbol !== 'undefined') {
             request['symbol'] = marketId
         }
@@ -170,7 +168,6 @@ module.exports = class bcex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         let request = {
-            'api_key': this.apiKey,
             'symbol': this.marketId(symbol),
             'trust_id': id
         }
@@ -244,7 +241,6 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets();
         let request = {};
         let marketId = this.marketId(symbol);
-        request['api_key'] = this.apiKey;
         request['type'] = 'open';
         if (typeof symbol !== 'undefined') {
             request['symbol'] = marketId
@@ -262,7 +258,6 @@ module.exports = class bcex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
         let order = {
-            'api_key': this.apiKey,
             'symbol': this.marketId (symbol),
             'type': side,
             'price': price,
@@ -279,7 +274,6 @@ module.exports = class bcex extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        request['api_key'] = this.apiKey;
         if (typeof symbol !== 'undefined') {
             request['symbol'] = symbol;
         }
@@ -301,22 +295,20 @@ module.exports = class bcex extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials();
             if (method !== 'GET') {
-                if (Object.keys(query).length) {
-                    let messageParts = []
-                    let paramsKeys = Object.keys(params).sort();
-                    for (let i = 0; i < paramsKeys.length; i++) {
-                        let paramKey = paramsKeys[i];
-                        let param = params[paramKey];
-                        messageParts.push(this.encode(paramKey) + '=' + encodeURIComponent(param));
-                    }
-                    body = messageParts.join ('&');
-                    let message = body + "&secret_key=" + this.secret;
-                    let signedMessage = this.hash(message);
-                    body = body + "&sign=" + signedMessage;
-                    params['sign'] = signedMessage;
-                    headers = {}
-                    headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                let messageParts = ['api_key=' + this.encodeURIComponent(this.apiKey)];
+                let paramsKeys = Object.keys(params).sort();
+                for (let i = 0; i < paramsKeys.length; i++) {
+                    let paramKey = paramsKeys[i];
+                    let param = params[paramKey];
+                    messageParts.push(this.encode(paramKey) + '=' + encodeURIComponent(param));
                 }
+                body = messageParts.join('&');
+                let message = body + "&secret_key=" + this.secret;
+                let signedMessage = this.hash(message);
+                body = body + "&sign=" + signedMessage;
+                params['sign'] = signedMessage;
+                headers = {}
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
