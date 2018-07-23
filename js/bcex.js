@@ -69,6 +69,7 @@ module.exports = class bcex extends Exchange {
                     },
                     'deposit': {},
                 },
+            }
         });
     }
 
