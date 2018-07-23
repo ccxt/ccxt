@@ -261,7 +261,8 @@ module.exports = class theocean extends Exchange {
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey]);
         let amount = this.fromWei (bidask[amountKey]);
-        return [ price, amount, bidask ];
+        // return [ price, amount, bidask ];
+        return [ price, amount ];
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -283,7 +284,7 @@ module.exports = class theocean extends Exchange {
         //           "price": "0.00050915",
         //           "availableAmount": "100000000000000000000",
         //           "creationTimestamp": "1512929327792",
-        //           "expirationTimestampInSec": "525600"
+        //           "expirationTimestampInSec": "1534449466"
         //         }
         //       ],
         //       "asks": [
@@ -292,7 +293,7 @@ module.exports = class theocean extends Exchange {
         //           "price": "0.00054134",
         //           "availableAmount": "100000000000000000000",
         //           "creationTimestamp": "1512929323784",
-        //           "expirationTimestampInSec": "525600"
+        //           "expirationTimestampInSec": "1534449466"
         //         }
         //       ]
         //     }
@@ -493,24 +494,24 @@ module.exports = class theocean extends Exchange {
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
         let info = {};
-        // let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
         //
         // ---- market orders -------------------------------------------------
         //
-        let reserveResponse =
-            {       matchingOrderID:   "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
-              unsignedMatchingOrder: {                      maker: "",
-                                                            taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
-                                                makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-                                                takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
-                                                 makerTokenAmount: "27100000000000000",
-                                                 takerTokenAmount: "874377028175459241",
-                                                         makerFee: "0",
-                                                         takerFee: "0",
-                                       expirationUnixTimestampSec: "1534809575",
-                                                     feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
-                                                             salt: "3610846705800197954038657082705100176266402776121341340841167002345284333867",
-                                          exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                    } }
+        // let reserveResponse =
+        //     {       matchingOrderID:   "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl",
+        //       unsignedMatchingOrder: {                      maker: "",
+        //                                                     taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //                                         makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+        //                                         takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
+        //                                          makerTokenAmount: "27100000000000000",
+        //                                          takerTokenAmount: "874377028175459241",
+        //                                                  makerFee: "0",
+        //                                                  takerFee: "0",
+        //                                expirationUnixTimestampSec: "1534809575",
+        //                                              feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //                                                      salt: "3610846705800197954038657082705100176266402776121341340841167002345284333867",
+        //                                   exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                    } }
         //
         // ---- limit orders --------------------------------------------------
         //
@@ -529,6 +530,21 @@ module.exports = class theocean extends Exchange {
         // Note: ecSignature is empty at this point and missing in the actual
         // response, there's no need for it here at this point anyway.
         //
+        // let reserveResponse =
+        //     { unsignedTargetOrder: {                      maker: "",
+        //                                                   taker: "0x00ba938cc0df182c25108d7bf2ee3d37bce07513",
+        //                                       makerTokenAddress: "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+        //                                       takerTokenAddress: "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570",
+        //                                        makerTokenAmount: "2700000000000000",
+        //                                        takerTokenAmount: "937912044575392743",
+        //                                                makerFee: "0",
+        //                                                takerFee: "0",
+        //                              expirationUnixTimestampSec: "1534813319",
+        //                                            feeRecipient: "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe",
+        //                                                    salt: "54933934472162523007303314622614098849759889305199720392701919179357703099693",
+        //                                 exchangeContractAddress: "0x90fe2af704b34e0224bf2299c838e04d4dcf1364"                                     } }
+        //
+        // let reserveResponse =
         //     {
         //       "unsignedTargetOrder": {
         //         "exchangeContractAddress": "0x516bdc037df84d70672b2d140835833d3623e451",
@@ -605,16 +621,11 @@ module.exports = class theocean extends Exchange {
             throw new InvalidOrder (this.id + ' cannot place order to ' + side + ' ' + symbol + ' at the moment, make sure the order book is not empty.');
         }
         let placeMethod = method + 'Place';
-        // let placeResponse = await this[placeMethod] (this.extend (placeRequest, params));
-        //
-        let placeResponse =
-            { matchingOrder: { transactionHash: "0x043488fdc3f995bf9e632a32424e41ed126de90f8cb340a1ff006c2a74ca8336",
-                                        amount: "1000000000000000000",
-                                     orderHash: "0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5"  },
-                   parentID:   "MARKET_INTENT:90jjw2s7gj90jjw2s7gkjjw2s7gl"                                              }
+        let placeResponse = await this[placeMethod] (this.extend (placeRequest, params));
         //
         // ---- market orders -------------------------------------------------
         //
+        // let placeResponse =
         //     { matchingOrder: { transactionHash: "0x043488fdc3f995bf9e632a32424e41ed126de90f8cb340a1ff006c2a74ca8336",
         //                                 amount: "1000000000000000000",
         //                              orderHash: "0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5"  },
@@ -622,6 +633,12 @@ module.exports = class theocean extends Exchange {
         //
         // ---- limit orders -------------------------------------------------
         //
+        // let placeResponse =
+        //     { targetOrder: {    amount: "1000000000000000000",
+        //                      orderHash: "0x517aef1ce5027328c40204833b624f04a54c913e93cffcdd500fe9252c535251" },
+        //          parentID:   "MARKET_INTENT:90jjw50gpk90jjw50gpljjw50gpm"                                       }
+        //
+        // let placeResponse =
         //     {
         //         "targetOrder": {
         //             "orderHash": "0x94629386298dee69ae63cd3e414336ae153b3f02cffb9ffc53ad71e166615618",
@@ -658,11 +675,11 @@ module.exports = class theocean extends Exchange {
             }, orderParams);
         }
         if (typeof targetOrder !== 'undefined') {
-            target = this.extend (target, targetOrder, orderParams);
-            let marketOrder = this.parseOrder (target, market);
-            result['maker'] = this.extennd (makerOrder, {
+            target = this.extend (target, targetOrder);
+            let makerOrder = this.parseOrder (target, market);
+            result['maker'] = this.extend (makerOrder, {
                 'type': 'limit',
-                'remaining': takerOrder['amount'],
+                'remaining': makerOrder['amount'],
             }, orderParams);
         }
         return result;
@@ -792,13 +809,20 @@ module.exports = class theocean extends Exchange {
             symbol = market['symbol'];
         }
         let price = this.safeFloat (order, 'price');
-        let amountInWei = this.safeFloat (order, 'amount');
-        let amount = this.fromWei (amountInWei);
-        let remainingInWei = this.safeFloat2 (order, 'openAmount');
-        let remaining = this.fromWei (remainingInWei);
-        let filledField = this.options['filledField'];
-        let filledInWei = this.safeFloat (order, filledField + 'Amount');
-        let filled = this.fromWei (filledInWei);
+        let openAmount = this.fromWei (this.safeFloat (order, 'openAmount'));
+        let reservedAmount = this.fromWei (this.safeFloat (order, 'reservedAmount'));
+        let filledAmount = this.fromWei (this.safeFloat (order, 'filledAmount'));
+        let settledAmount = this.fromWei (this.safeFloat (order, 'settledAmount'));
+        let confirmedAmount = this.fromWei (this.safeFloat (order, 'confirmedAmount'));
+        let failedAmount = this.fromWei (this.safeFloat (order, 'failedAmount'));
+        let deadAmount = this.fromWei (this.safeFloat (order, 'deadAmount'));
+        let prunedAmount = this.fromWei (this.safeFloat (order, 'prunedAmount'));
+        let amount = this.fromWei (this.safeFloat (order, 'amount'));
+        if (typeof amount === 'undefined') {
+            amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
+        }
+        let filled = this.sum (filledAmount, settledAmount, confirmedAmount);
+        let remaining = undefined;
         let lastTradeTimestamp = undefined;
         let timeline = this.safeValue (order, 'timeline');
         let trades = undefined;
@@ -820,9 +844,9 @@ module.exports = class theocean extends Exchange {
                 }
                 type = 'market';
             }
-            if (filledField in timelineEventsGroupedByAction) {
+            if ('filled' in timelineEventsGroupedByAction) {
                 status = 'closed';
-                let fillEvents = this.safeValue (timelineEventsGroupedByAction, filledField);
+                let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
                 let numFillEvents = fillEvents.length;
                 if (typeof timestamp === 'undefined') {
                     timestamp = this.safeInteger (fillEvents[0], 'timestamp');
@@ -832,7 +856,10 @@ module.exports = class theocean extends Exchange {
                 lastTradeTimestamp = (typeof lastTradeTimestamp !== 'undefined') ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
                 trades = [];
                 for (let i = 0; i < numFillEvents; i++) {
-                    trades.push (this.extend (this.parseTrade (fillEvents[i], market), {
+                    let trade = this.parseTrade (this.extend (fillEvents[i], {
+                        'price': price,
+                    }), market);
+                    trades.push (this.extend (trade, {
                         'order': id,
                         'type': type,
                         'side': side,
@@ -846,24 +873,18 @@ module.exports = class theocean extends Exchange {
             }
         }
         let cost = undefined;
-        if (typeof remaining !== 'undefined') {
-            if (remaining === 0) {
-                status = 'closed';
-            }
-            if (typeof filled !== 'undefined') {
-                if (typeof amount === 'undefined') {
-                    amount = filled + remaining;
+        if (typeof filled !== 'undefined') {
+            if (typeof remaining === 'undefined') {
+                if (typeof amount !== 'undefined') {
+                    remaining = amount - filled;
                 }
-            } else if (typeof amount !== 'undefined') {
-                filled = amount - remaining;
             }
             if (typeof price !== 'undefined') {
                 cost = filled * price;
             }
         }
         let fee = undefined;
-        let feeCostInWei = this.safeFloat (order, 'feeAmount');
-        let feeCost = this.fromWei (feeCostInWei);
+        let feeCost = this.fromWei (this.safeFloat (order, 'feeAmount'));
         if (typeof feeCost !== 'undefined') {
             let feeOption = this.safeString (order, 'feeOption');
             let feeCurrency = undefined;
