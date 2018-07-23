@@ -798,7 +798,8 @@ module.exports = class bittrex extends Exchange {
     }
 
     parse8601 (x) {
-        let lastSymbol = x[x.length - 1];
+        let length = x.length;
+        let lastSymbol = x[length - 1];
         if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
             return super.parse8601 (x);
         }
