@@ -313,4 +313,14 @@ module.exports = class bcex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (body[0] === '{' && method == 'POST') {
+            let response = JSON.parse (body);
+            let code = this.safeValue (response, 'code');
+            if (code != 0) {
+                throw new ExchangeError (this.id + ' ' + body);
+            }
+        }
+    }
 };
