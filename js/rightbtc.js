@@ -118,6 +118,9 @@ module.exports = class rightbtc extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'XRB': 'NANO',
+            },
             'exceptions': {
                 'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
                 'ERR_ASSET_NOT_EXISTS': ExchangeError,

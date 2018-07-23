@@ -797,6 +797,15 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
+    appendTimezoneParse8601 (x) {
+        let length = x.length;
+        let lastSymbol = x[length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return this.parse8601 (x);
+        }
+        return this.parse8601 (x + 'Z');
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for APIKEY_INVALID

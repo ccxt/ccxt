@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.85'
+const version = '1.16.89'
 
 Exchange.ccxtVersion = version
 
@@ -13643,6 +13643,15 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
+    appendTimezoneParse8601 (x) {
+        let length = x.length;
+        let lastSymbol = x[length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return this.parse8601 (x);
+        }
+        return this.parse8601 (x + 'Z');
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for APIKEY_INVALID
@@ -20591,7 +20600,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'balance',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -20840,7 +20849,27 @@ module.exports = class coinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance (params);
+        let response = await this.privateGetBalanceInfo (params);
+        //
+        //     {
+        //       "code": 0,
+        //       "data": {
+        //         "BCH": {                     # BCH account
+        //           "available": "13.60109",   # Available BCH
+        //           "frozen": "0.00000"        # Frozen BCH
+        //         },
+        //         "BTC": {                     # BTC account
+        //           "available": "32590.16",   # Available BTC
+        //           "frozen": "7000.00"        # Frozen BTC
+        //         },
+        //         "ETH": {                     # ETH account
+        //           "available": "5.06000",    # Available ETH
+        //           "frozen": "0.00000"        # Frozen ETH
+        //         }
+        //       },
+        //       "message": "Ok"
+        //     }
+        //
         let result = { 'info': response };
         let balances = response['data'];
         let currencies = Object.keys (balances);
@@ -46533,6 +46562,9 @@ module.exports = class rightbtc extends Exchange {
                         'NXS': 0.1,
                     },
                 },
+            },
+            'commonCurrencies': {
+                'XRB': 'NANO',
             },
             'exceptions': {
                 'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
