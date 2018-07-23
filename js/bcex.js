@@ -13,7 +13,6 @@ module.exports = class bcex extends Exchange {
             'id': 'bcex',
             'name': 'bcex',
             'countries': [ 'CA' ],
-            'rateLimit': 500,
             'version': '1',
             'has': {
                 'fetchBalance': true,
@@ -55,7 +54,21 @@ module.exports = class bcex extends Exchange {
                 },
             },
             'fees': {
-            },
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'bid': 0.0,
+                    'ask': 0.02 / 100,
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {
+                        'ckusd': 0.0,
+                        'other': 0.05 / 100
+                    },
+                    'deposit': {},
+                },
         });
     }
 
