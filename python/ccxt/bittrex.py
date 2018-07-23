@@ -749,6 +749,13 @@ class bittrex (Exchange):
                         raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 raise ExchangeError(feedback)
 
+    def append_timezone_parse8601(self, x):
+        length = len(x)
+        lastSymbol = x[length - 1]
+        if (lastSymbol == 'Z') or (x.find('+') >= 0):
+            return self.parse8601(x)
+        return self.parse8601(x + 'Z')
+
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
         # a workaround for APIKEY_INVALID
