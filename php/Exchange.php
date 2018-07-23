@@ -31,6 +31,7 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Eth;
+use kornrunner\Secp256k1;
 
 $version = '1.16.85';
 
@@ -2085,14 +2086,19 @@ class Exchange {
         return '0x' . Eth::hashPersonalMessage ($message);
     }
 
-    // signHash (hash, privateKey) {
-    //     const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
-    //     return {
-    //         v: signature.v, // integer
-    //         r: '0x' + signature.r.toString ('hex'), // '0x'-prefixed hex string
-    //         s: '0x' + signature.s.toString ('hex'), // '0x'-prefixed hex string
-    //     }
-    // }
+    public function signHash ($hash, $privateKey) {
+        $secp256k1 = new Secp256k1();
+        // return signature contains r, s and recovery param (v).
+        // message and privateKey are hex strings
+        // $message = '0x6c108792ad8506a14f0cf483a87d79f3597954797e566aeaaac2b6f1ef1bf379';
+        // $privateKey = '0x4da78add428afbc519204913fcdc313f5912f082f45d5735d1a73647decca3a2';
+        $signature = $secp256k1->sign ($hash, $privateKey);
+        return array (
+            'v' => $signature->getRecoveryParam () + 27, // integer
+            'r' => "0x" . gmp_strval ($signature->getR (), 16), // '0x'-prefixed hex string
+            's' => "0x" . gmp_strval ($signature->getS (), 16), // '0x'-prefixed hex string
+        );
+    }
 
     // signMessage (message, privateKey) {
     //     //
@@ -2132,9 +2138,9 @@ class Exchange {
     //     }
     // }
 
-    signMessage2 (message, privateKey) {
-        // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
-        return this.signHash (this.hashMessage (message), privateKey.slice (-64))
-    }
+    // signMessage2 (message, privateKey) {
+    //     // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
+    //     return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    // }
 
 }
