@@ -30,6 +30,8 @@ SOFTWARE.
 
 namespace ccxt;
 
+require ('vendor/autoload.php');
+
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register (function ($class_name) {
