@@ -231,7 +231,11 @@
         "ext-curl": "*",
         "ext-iconv": "*",
         "ext-pcre": "*",
-        "symfony/polyfill-mbstring": "^1.7"
+        "kornrunner/secp256k1": "0.1.0",
+        "ext-gmp": "*",
+        "symfony/polyfill-mbstring": "^1.7",
+        "kornrunner/ethereum-util": "0.0.3",
+        "kornrunner/keccak": "1.0.2"
     },
     "archive": {
         "exclude": [
