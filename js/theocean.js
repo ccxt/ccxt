@@ -28,7 +28,7 @@ module.exports = class theocean extends Exchange {
                 'fetchOrder': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
                 'api': 'https://api.staging.theocean.trade/api',
                 'www': 'https://theocean.trade',
                 'doc': 'https://docs.theocean.trade',
