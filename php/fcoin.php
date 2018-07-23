@@ -457,7 +457,7 @@ class fcoin extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
-            $ohlcv['seq'],
+            $ohlcv['id'] * 1000,
             $ohlcv['open'],
             $ohlcv['high'],
             $ohlcv['low'],

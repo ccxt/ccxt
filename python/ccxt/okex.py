@@ -36,7 +36,7 @@ class okex (okcoinusd):
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromApi',
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         })
 
@@ -101,7 +101,7 @@ class okex (okcoinusd):
             result[symbol] = ticker
         return result
 
-    def fetch_tickers(self, symbol=None, params={}):
+    def fetch_tickers(self, symbols=None, params={}):
         method = self.options['fetchTickersMethod']
-        response = getattr(self, method)(symbol, params)
+        response = getattr(self, method)(symbols, params)
         return response

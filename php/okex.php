@@ -37,7 +37,7 @@ class okex extends okcoinusd {
                 'YOYO' => 'YOYOW',
             ),
             'options' => array (
-                'fetchTickersMethod' => 'fetchTickersFromApi',
+                'fetchTickersMethod' => 'fetch_tickers_from_api',
             ),
         ));
     }
@@ -113,9 +113,9 @@ class okex extends okcoinusd {
         return $result;
     }
 
-    public function fetch_tickers ($symbol = null, $params = array ()) {
+    public function fetch_tickers ($symbols = null, $params = array ()) {
         $method = $this->options['fetchTickersMethod'];
-        $response = $this->$method ($symbol, $params);
+        $response = $this->$method ($symbols, $params);
         return $response;
     }
 }

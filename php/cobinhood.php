@@ -24,8 +24,8 @@ class cobinhood extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrder' => true,
-                'fetchDepositAddress' => false,
-                'createDepositAddress' => false,
+                'fetchDepositAddress' => true,
+                'createDepositAddress' => true,
                 'withdraw' => false,
                 'fetchMyTrades' => true,
             ),
@@ -105,9 +105,20 @@ class cobinhood extends Exchange {
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals/{withdrawal_id}',
+                        'wallet/withdrawals',
+                        'wallet/deposits/{deposit_id}',
+                        'wallet/deposits',
                     ),
                     'post' => array (
                         'trading/orders',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals',
                     ),
                     'delete' => array (
                         'trading/orders/{order_id}',
@@ -522,6 +533,40 @@ class cobinhood extends Exchange {
         }
         $response = $this->privateGetTradingTrades (array_merge ($request, $params));
         return $this->parse_trades($response['result']['trades'], $market, $since, $limit);
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostWalletDepositAddresses (array (
+            'currency' => $currency['id'],
+        ));
+        $address = $this->safe_string($response['result']['deposit_address'], 'address');
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetWalletDepositAddresses (array_merge (array (
+            'currency' => $currency['id'],
+        ), $params));
+        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
+        $address = null;
+        if (strlen ($addresses) > 0) {
+            $address = $this->safe_string($addresses[0], 'address');
+        }
+        $this->check_address($address);
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'info' => $response,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
