@@ -325,24 +325,28 @@ module.exports = class bcex extends Exchange {
                 request += '?' + this.urlencode(query);
         }
         let url = this.urls['api'] + request;
-        if (api === 'private') {
-            this.checkRequiredCredentials();
-            if (method !== 'GET') {
-                let messageParts = ['api_key=' + this.encodeURIComponent(this.apiKey)];
-                let paramsKeys = Object.keys(params).sort();
-                for (let i = 0; i < paramsKeys.length; i++) {
-                    let paramKey = paramsKeys[i];
-                    let param = params[paramKey];
-                    messageParts.push(this.encode(paramKey) + '=' + encodeURIComponent(param));
-                }
+        if (method === 'POST') {
+            let messageParts = []
+            let paramsKeys = Object.keys(params).sort();
+            for (let i = 0; i < paramsKeys.length; i++) {
+                let paramKey = paramsKeys[i];
+                let param = params[paramKey];
+                messageParts.push(this.encode(paramKey) + '=' + encodeURIComponent(param));
+            }
+            if (api === 'private') {
+                this.checkRequiredCredentials();
+                messageParts.unshift('api_key=' + this.encodeURIComponent(this.apiKey));
                 body = messageParts.join('&');
                 let message = body + "&secret_key=" + this.secret;
                 let signedMessage = this.hash(message);
                 body = body + "&sign=" + signedMessage;
                 params['sign'] = signedMessage;
-                headers = {}
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
+            else {
+                body = messageParts.join('&');
+            }
+            headers = {}
+            headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
