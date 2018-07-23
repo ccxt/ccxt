@@ -715,6 +715,23 @@ module.exports = class theocean extends Exchange {
         return response;
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'placed': 'open',
+            'reserved': 'open',
+            'filled': 'closed',
+            'settled': 'closed',
+            'confirmed': 'closed',
+            'returned': 'open',
+            'canceled': 'canceled',
+            'pruned': 'failed',
+        };
+        if (status in statuses) {
+            return statuses[status];
+        }
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
         //
         // fetchOrder, fetchOrderBook
@@ -828,6 +845,11 @@ module.exports = class theocean extends Exchange {
         let trades = undefined;
         let status = 'open';
         if (typeof timeline !== 'undefined') {
+            let numEvents = timeline.length;
+            if (numEvents > 0) {
+                status = this.safeString (timeline[numEvents - 1], 'action');
+                status = this.parseOrderStatus (status);
+            }
             let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
             if ('placed' in timelineEventsGroupedByAction) {
                 let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
@@ -845,7 +867,6 @@ module.exports = class theocean extends Exchange {
                 type = 'market';
             }
             if ('filled' in timelineEventsGroupedByAction) {
-                status = 'closed';
                 let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
                 let numFillEvents = fillEvents.length;
                 if (typeof timestamp === 'undefined') {
@@ -865,11 +886,6 @@ module.exports = class theocean extends Exchange {
                         'side': side,
                     }));
                 }
-            }
-            if ('canceled' in timelineEventsGroupedByAction) {
-                status = 'canceled';
-            } else if ('pruned' in timelineEventsGroupedByAction) {
-                status = 'failed';
             }
         }
         let cost = undefined;
