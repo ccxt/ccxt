@@ -49,6 +49,7 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/tradeList',
                         'Api_Order/trustList',
                         'Api_Order/depth',
+                        'Api_Order/orderInfo'
                     ],
                 },
             },
@@ -167,7 +168,34 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        return 0;
+        await this.loadMarkets();
+        let request = {
+            'api_key': this.apiKey,
+            'symbol': this.marketId(symbol),
+            'trust_id': id
+        }
+        let response = await this.privatePostApiOrderOrderInfo(this.extend(request, params));
+        let order = response['data']
+        let timestamp = order['created'];
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': order['flag'],
+            'side': undefined,
+            'price': order['price'],
+            'cost': undefined,
+            'average': undefined,
+            'amount': order['number'],
+            'filled': order['numberdeal'],
+            'remaining': order['numberover'],
+            'status': order['status'],
+            'fee': undefined,
+        };
+        return result;
     }
 
     parseOrder (order, market = undefined) {
@@ -221,9 +249,13 @@ module.exports = class bcex extends Exchange {
         if (typeof symbol !== 'undefined') {
             request['symbol'] = marketId
         }
+        let orders = []
         let response = await this.privatePostApiOrderTradeList(this.extend(request, params));
+        if ('data' in response) {
+            orders = response['data']
+        }
         let market = this.markets_by_id[marketId];
-        let results = this.parseOrders(response['data'], market, since, limit);
+        let results = this.parseOrders(orders, market, since, limit);
         return results;
     }
 
