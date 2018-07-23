@@ -123,6 +123,9 @@ class rightbtc extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'XRB' => 'NANO',
+            ),
             'exceptions' => array (
                 'ERR_USERTOKEN_NOT_FOUND' => '\\ccxt\\AuthenticationError',
                 'ERR_ASSET_NOT_EXISTS' => '\\ccxt\\ExchangeError',

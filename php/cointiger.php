@@ -24,6 +24,7 @@ class cointiger extends huobipro {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => false, // not tested yet
+                'cancelOrders' => true,
             ),
             'headers' => array (
                 'Language' => 'en_US',
@@ -57,7 +58,7 @@ class cointiger extends huobipro {
                     ),
                     'post' => array (
                         'order',
-                        'order/batchcancel',
+                        'order/batch_cancel',
                     ),
                 ),
                 'public' => array (
@@ -776,6 +777,23 @@ class cointiger extends huobipro {
         );
     }
 
+    public function cancel_orders ($ids, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' cancelOrders requires a $symbol argument');
+        $market = $this->market ($symbol);
+        $marketId = $market['id'];
+        $orderIdList = array ();
+        $orderIdList[$marketId] = $ids;
+        $request = array (
+            'orderIdList' => $this->json ($orderIdList),
+        );
+        $response = $this->v2PostOrderBatchCancel (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+        );
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $this->check_required_credentials();
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
@@ -791,8 +809,7 @@ class cointiger extends huobipro {
             }
             $auth .= $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
-            $isCreateOrderMethod = ($path === 'order') && ($method === 'POST');
-            $urlParams = $isCreateOrderMethod ? array () : $query;
+            $urlParams = ($method === 'POST') ? array () : $query;
             $url .= '?' . $this->urlencode ($this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,
@@ -827,27 +844,50 @@ class cointiger extends huobipro {
                 //     array ( "$code" => "100005", "msg" => "request sign illegal", "data" => null )
                 //
                 $code = $this->safe_string($response, 'code');
-                if (($code !== null) && ($code !== '0')) {
+                if ($code !== null) {
                     $message = $this->safe_string($response, 'msg');
                     $feedback = $this->id . ' ' . $this->json ($response);
-                    $exceptions = $this->exceptions;
-                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        if ($code === 1) {
-                            //    array ("$code":"1","msg":"系统错误","data":null)
-                            //    array (“$code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
-                            if (mb_strpos ($message, 'Balance insufficient') !== false) {
-                                throw new InsufficientFunds ($feedback);
+                    if ($code !== '0') {
+                        $exceptions = $this->exceptions;
+                        if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
+                            if ($code === '1') {
+                                //
+                                //    array ("$code":"1","msg":"系统错误","data":null)
+                                //    array (“$code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                                //
+                                if (mb_strpos ($message, 'Balance insufficient') !== false) {
+                                    throw new InsufficientFunds ($feedback);
+                                }
+                            } else if ($code === '2') {
+                                if ($message === 'offsetNot Null') {
+                                    throw new ExchangeError ($feedback);
+                                } else if ($message === 'Parameter error') {
+                                    throw new ExchangeError ($feedback);
+                                }
                             }
-                        } else if ($code === 2) {
-                            if ($message === 'offsetNot Null') {
-                                throw new ExchangeError ($feedback);
-                            } else if ($message === 'Parameter error') {
-                                throw new ExchangeError ($feedback);
-                            }
+                            throw new $exceptions[$code] ($feedback);
+                        } else {
+                            throw new ExchangeError ($this->id . ' unknown "error" value => ' . $this->json ($response));
                         }
-                        throw new $exceptions[$code] ($feedback);
                     } else {
-                        throw new ExchangeError ($this->id . ' unknown "error" value => ' . $this->json ($response));
+                        //
+                        // Google Translate:
+                        // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        //
+                        // array ("$code":"0","msg":"suc","data":{"success":array (),"failed":[array ("err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-$code":"8")])}
+                        // array ("$code":"0","msg":"suc","data":{"success":array (),"failed":[array ("err-msg":"Parameter error","order-id":32857050,"err-$code":"2"),array ("err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-$code":"8")])}
+                        // array ("$code":"0","msg":"suc","data":{"success":array (),"failed":[array ("err-msg":"Parameter error","order-id":98549677,"err-$code":"2"),array ("err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-$code":"8")])}
+                        //
+                        if (mb_strpos ($feedback, '订单状态不能取消,订单取消失败') !== false) {
+                            if (mb_strpos ($feedback, 'Parameter error') !== false) {
+                                throw new OrderNotFound ($feedback);
+                            } else {
+                                throw new InvalidOrder ($feedback);
+                            }
+                        } else if (mb_strpos ($feedback, '根据订单号没有查询到订单,订单取消失败') !== false) {
+                            throw new OrderNotFound ($feedback);
+                        }
                     }
                 }
             }

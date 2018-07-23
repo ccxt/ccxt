@@ -798,6 +798,15 @@ class bittrex extends Exchange {
         }
     }
 
+    public function append_timezone_parse8601 ($x) {
+        $length = is_array ($x) ? count ($x) : 0;
+        $lastSymbol = $x[$length - 1];
+        if (($lastSymbol === 'Z') || (mb_strpos ($x, '+') !== false)) {
+            return $this->parse8601 ($x);
+        }
+        return $this->parse8601 ($x . 'Z');
+    }
+
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         // a workaround for APIKEY_INVALID

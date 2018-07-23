@@ -126,8 +126,8 @@ You can also set them programmatically:
 import ccxt
 exchange = ccxt.poloniex({
     'proxies': {
-        'http': 'http://10.10.1.10:3128',
-        'https': 'http://10.10.1.10:1080',
+        'http': 'http://10.10.1.10:3128',  # these proxies won't work for you, they are here for example
+        'https': 'https://10.10.1.10:1080',
     },
 })
 ```
@@ -138,8 +138,8 @@ Or
 import ccxt
 exchange = ccxt.poloniex()
 exchange.proxies = {
-  'http': 'http://10.10.1.10:3128',
-  'https': 'http://10.10.1.10:1080',
+  'http': 'http://10.10.1.10:3128', # these proxies won't work for you, they are here for example
+  'https': 'https://10.10.1.10:1080',
 }
 ```
 

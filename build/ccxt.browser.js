@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.76'
+const version = '1.16.89'
 
 Exchange.ccxtVersion = version
 
@@ -1949,8 +1949,12 @@ module.exports = class Exchange {
 
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
 
+            // fetchImplementation cannot be called on this. in browsers:
+            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+            const fetchImplementation = this.fetchImplementation
+
             let promise =
-                this.fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
                             throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
@@ -13639,6 +13643,15 @@ module.exports = class bittrex extends Exchange {
         }
     }
 
+    appendTimezoneParse8601 (x) {
+        let length = x.length;
+        let lastSymbol = x[length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return this.parse8601 (x);
+        }
+        return this.parse8601 (x + 'Z');
+    }
+
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
         // a workaround for APIKEY_INVALID
@@ -18747,8 +18760,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchOrder': true,
-                'fetchDepositAddress': false,
-                'createDepositAddress': false,
+                'fetchDepositAddress': true,
+                'createDepositAddress': true,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -18828,9 +18841,20 @@ module.exports = class cobinhood extends Exchange {
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals/{withdrawal_id}',
+                        'wallet/withdrawals',
+                        'wallet/deposits/{deposit_id}',
+                        'wallet/deposits',
                     ],
                     'post': [
                         'trading/orders',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -19245,6 +19269,40 @@ module.exports = class cobinhood extends Exchange {
         }
         let response = await this.privateGetTradingTrades (this.extend (request, params));
         return this.parseTrades (response['result']['trades'], market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWalletDepositAddresses ({
+            'currency': currency['id'],
+        });
+        let address = this.safeString (response['result']['deposit_address'], 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetWalletDepositAddresses (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
+        let address = undefined;
+        if (addresses.length > 0) {
+            address = this.safeString (addresses[0], 'address');
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -20542,7 +20600,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'balance',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -20791,7 +20849,27 @@ module.exports = class coinex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance (params);
+        let response = await this.privateGetBalanceInfo (params);
+        //
+        //     {
+        //       "code": 0,
+        //       "data": {
+        //         "BCH": {                     # BCH account
+        //           "available": "13.60109",   # Available BCH
+        //           "frozen": "0.00000"        # Frozen BCH
+        //         },
+        //         "BTC": {                     # BTC account
+        //           "available": "32590.16",   # Available BTC
+        //           "frozen": "7000.00"        # Frozen BTC
+        //         },
+        //         "ETH": {                     # ETH account
+        //           "available": "5.06000",    # Available ETH
+        //           "frozen": "0.00000"        # Frozen ETH
+        //         }
+        //       },
+        //       "message": "Ok"
+        //     }
+        //
         let result = { 'info': response };
         let balances = response['data'];
         let currencies = Object.keys (balances);
@@ -24587,6 +24665,7 @@ module.exports = class cointiger extends huobipro {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': false, // not tested yet
+                'cancelOrders': true,
             },
             'headers': {
                 'Language': 'en_US',
@@ -24620,7 +24699,7 @@ module.exports = class cointiger extends huobipro {
                     ],
                     'post': [
                         'order',
-                        'order/batchcancel',
+                        'order/batch_cancel',
                     ],
                 },
                 'public': {
@@ -25339,6 +25418,23 @@ module.exports = class cointiger extends huobipro {
         };
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let orderIdList = {};
+        orderIdList[marketId] = ids;
+        let request = {
+            'orderIdList': this.json (orderIdList),
+        };
+        let response = await this.v2PostOrderBatchCancel (this.extend (request, params));
+        return {
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -25354,8 +25450,7 @@ module.exports = class cointiger extends huobipro {
             }
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            let isCreateOrderMethod = (path === 'order') && (method === 'POST');
-            let urlParams = isCreateOrderMethod ? {} : query;
+            let urlParams = (method === 'POST') ? {} : query;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
                 'time': timestamp,
@@ -25390,27 +25485,50 @@ module.exports = class cointiger extends huobipro {
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }
                 //
                 let code = this.safeString (response, 'code');
-                if ((typeof code !== 'undefined') && (code !== '0')) {
+                if (typeof code !== 'undefined') {
                     const message = this.safeString (response, 'msg');
                     const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        if (code === 1) {
-                            //    {"code":"1","msg":"系统错误","data":null}
-                            //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
-                            if (message.indexOf ('Balance insufficient') >= 0) {
-                                throw new InsufficientFunds (feedback);
+                    if (code !== '0') {
+                        const exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            if (code === '1') {
+                                //
+                                //    {"code":"1","msg":"系统错误","data":null}
+                                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                //
+                                if (message.indexOf ('Balance insufficient') >= 0) {
+                                    throw new InsufficientFunds (feedback);
+                                }
+                            } else if (code === '2') {
+                                if (message === 'offsetNot Null') {
+                                    throw new ExchangeError (feedback);
+                                } else if (message === 'Parameter error') {
+                                    throw new ExchangeError (feedback);
+                                }
                             }
-                        } else if (code === 2) {
-                            if (message === 'offsetNot Null') {
-                                throw new ExchangeError (feedback);
-                            } else if (message === 'Parameter error') {
-                                throw new ExchangeError (feedback);
-                            }
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                         }
-                        throw new exceptions[code] (feedback);
                     } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                        //
+                        // Google Translate:
+                        // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        //
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        //
+                        if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
+                            if (feedback.indexOf ('Parameter error') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            } else {
+                                throw new InvalidOrder (feedback);
+                            }
+                        } else if (feedback.indexOf ('根据订单号没有查询到订单,订单取消失败') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
                     }
                 }
             }
@@ -37237,13 +37355,14 @@ module.exports = class kraken extends Exchange {
 
     async fetchMinOrderSizes () {
         let html = undefined;
+        let oldParseJsonResponse = this.parseJsonResponse;
         try {
             this.parseJsonResponse = false;
             html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            this.parseJsonResponse = true;
+            this.parseJsonResponse = oldParseJsonResponse;
         } catch (e) {
             // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = true;
+            this.parseJsonResponse = oldParseJsonResponse;
             throw e;
         }
         let parts = html.split ('ul>');
@@ -46444,6 +46563,9 @@ module.exports = class rightbtc extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'XRB': 'NANO',
+            },
             'exceptions': {
                 'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
                 'ERR_ASSET_NOT_EXISTS': ExchangeError,
@@ -50245,6 +50367,7 @@ module.exports = class zb extends Exchange {
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {

@@ -29,8 +29,8 @@ class cobinhood (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
                 'fetchOrder': True,
-                'fetchDepositAddress': False,
-                'createDepositAddress': False,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'withdraw': False,
                 'fetchMyTrades': True,
             },
@@ -110,9 +110,20 @@ class cobinhood (Exchange):
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        # older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals/{withdrawal_id}',
+                        'wallet/withdrawals',
+                        'wallet/deposits/{deposit_id}',
+                        'wallet/deposits',
                     ],
                     'post': [
                         'trading/orders',
+                        # older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -497,6 +508,37 @@ class cobinhood (Exchange):
             request['trading_pair_id'] = market['id']
         response = await self.privateGetTradingTrades(self.extend(request, params))
         return self.parse_trades(response['result']['trades'], market, since, limit)
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privatePostWalletDepositAddresses({
+            'currency': currency['id'],
+        })
+        address = self.safe_string(response['result']['deposit_address'], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privateGetWalletDepositAddresses(self.extend({
+            'currency': currency['id'],
+        }, params))
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
