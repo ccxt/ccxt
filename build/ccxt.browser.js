@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.16.88'
+const version = '1.16.89'
 
 Exchange.ccxtVersion = version
 
@@ -46562,6 +46562,9 @@ module.exports = class rightbtc extends Exchange {
                         'NXS': 0.1,
                     },
                 },
+            },
+            'commonCurrencies': {
+                'XRB': 'NANO',
             },
             'exceptions': {
                 'ERR_USERTOKEN_NOT_FOUND': AuthenticationError,
