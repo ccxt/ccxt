@@ -150,7 +150,7 @@ module.exports = class bcex extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['updated'];
+        let timestamp = trade['updated'] * 1000;
          return {
             'id': trade['id'],
             'info': trade,
@@ -188,7 +188,7 @@ module.exports = class bcex extends Exchange {
         }
         let response = await this.privatePostApiOrderOrderInfo(this.extend(request, params));
         let order = response['data']
-        let timestamp = order['created'];
+        let timestamp = order['created'] * 1000;
         let result = {
             'info': order,
             'id': id,
