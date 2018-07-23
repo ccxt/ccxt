@@ -849,42 +849,41 @@ module.exports = class theocean extends Exchange {
             if (numEvents > 0) {
                 status = this.safeString (timeline[numEvents - 1], 'action');
                 status = this.parseOrderStatus (status);
-            }
-            let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
-            if ('placed' in timelineEventsGroupedByAction) {
-                let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
-                if (typeof amount === 'undefined') {
-                    amountInWei = this.safeFloat (placeEvents[0], 'amount');
-                    amount = this.fromWei (amountInWei);
+                let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
+                if ('placed' in timelineEventsGroupedByAction) {
+                    let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
+                    if (typeof amount === 'undefined') {
+                        amount = this.fromWei (this.safeFloat (placeEvents[0], 'amount'));
+                    }
+                    timestamp = this.safeInteger (placeEvents[0], 'timestamp');
+                    timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                } else {
+                    if ('filled' in timelineEventsGroupedByAction) {
+                        timestamp = this.safeInteger (timelineEventsGroupedByAction['filled'][0], 'timestamp');
+                        timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                    }
+                    type = 'market';
                 }
-                timestamp = this.safeInteger (placeEvents[0], 'timestamp');
-                timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
-            } else {
                 if ('filled' in timelineEventsGroupedByAction) {
-                    timestamp = this.safeInteger (timelineEventsGroupedByAction['filled'][0], 'timestamp');
-                    timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
-                }
-                type = 'market';
-            }
-            if ('filled' in timelineEventsGroupedByAction) {
-                let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
-                let numFillEvents = fillEvents.length;
-                if (typeof timestamp === 'undefined') {
-                    timestamp = this.safeInteger (fillEvents[0], 'timestamp');
-                    timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
-                }
-                lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
-                lastTradeTimestamp = (typeof lastTradeTimestamp !== 'undefined') ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
-                trades = [];
-                for (let i = 0; i < numFillEvents; i++) {
-                    let trade = this.parseTrade (this.extend (fillEvents[i], {
-                        'price': price,
-                    }), market);
-                    trades.push (this.extend (trade, {
-                        'order': id,
-                        'type': type,
-                        'side': side,
-                    }));
+                    let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
+                    let numFillEvents = fillEvents.length;
+                    if (typeof timestamp === 'undefined') {
+                        timestamp = this.safeInteger (fillEvents[0], 'timestamp');
+                        timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                    }
+                    lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
+                    lastTradeTimestamp = (typeof lastTradeTimestamp !== 'undefined') ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
+                    trades = [];
+                    for (let i = 0; i < numFillEvents; i++) {
+                        let trade = this.parseTrade (this.extend (fillEvents[i], {
+                            'price': price,
+                        }), market);
+                        trades.push (this.extend (trade, {
+                            'order': id,
+                            'type': type,
+                            'side': side,
+                        }));
+                    }
                 }
             }
         }
