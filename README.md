@@ -23,7 +23,7 @@ Current feature list:
 
 [![TheOcean](https://user-images.githubusercontent.com/1294454/43154255-65ccf050-8f7c-11e8-9288-46765eea372d.png)](https://theocean.trade)
 
-Learn more about The Ocean in [CCXT v1.17 Release Announcement](https://github.com/ccxt/ccxt/issues/3476).
+Learn more about **[The Ocean](https://theocean.trade)** in [CCXT v1.17 Release Announcement](https://github.com/ccxt/ccxt/issues/3476).
 
 ## Certified Cryptocurrency Exchanges
 
