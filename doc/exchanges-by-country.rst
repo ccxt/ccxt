@@ -18,7 +18,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
 | Austria                  | |virwox|             | virwox             | `VirWoX <https://www.virwox.com>`__                                             |                  | \*  | `API <https://www.virwox.com/developers.php>`__                                                     |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
-| Brazil                   | |bleutrade|          | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                           | |CCXT Certified| | 2   | `API <https://bleutrade.com/help/API>`__                                                            |
+| Brazil                   | |bleutrade|          | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                           |                  | 2   | `API <https://bleutrade.com/help/API>`__                                                            |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
 | Brazil                   | |braziliex|          | braziliex          | `Braziliex <https://braziliex.com/>`__                                          |                  | \*  | `API <https://braziliex.com/exchange/api.php>`__                                                    |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
@@ -34,7 +34,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
 | British Virgin Islands   | |bitfinex2|          | bitfinex2          | `Bitfinex v2 <https://www.bitfinex.com>`__                                      |                  | 2   | `API <https://bitfinex.readme.io/v2/docs>`__                                                        |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
-| British Virgin Islands   | |ethfinex|           | ethfinex           | `Ethfinex <https://www.ethfinex.com>`__                                         | |CCXT Certified| | 1   | `API <https://bitfinex.readme.io/v1/docs>`__                                                        |
+| British Virgin Islands   | |ethfinex|           | ethfinex           | `Ethfinex <https://www.ethfinex.com>`__                                         |                  | 1   | `API <https://bitfinex.readme.io/v1/docs>`__                                                        |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
 | Bulgaria                 | |coingi|             | coingi             | `Coingi <https://coingi.com>`__                                                 |                  | \*  | `API <http://docs.coingi.apiary.io/>`__                                                             |
 +--------------------------+----------------------+--------------------+---------------------------------------------------------------------------------+------------------+-----+-----------------------------------------------------------------------------------------------------+
@@ -352,13 +352,13 @@ The ccxt library currently supports the following cryptocurrency exchange market
 .. |independentreserve| image:: https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg
 .. |virwox| image:: https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg
 .. |bleutrade| image:: https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg
-.. |CCXT Certified| image:: https://img.shields.io/badge/CCXT-certified-green.svg
 .. |braziliex| image:: https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg
 .. |flowbtc| image:: https://user-images.githubusercontent.com/1294454/28162465-cd815d4c-67cf-11e7-8e57-438bea0523a2.jpg
 .. |foxbit| image:: https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg
 .. |mercado| image:: https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg
 .. |negociecoins| image:: https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg
 .. |bitfinex| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
+.. |CCXT Certified| image:: https://img.shields.io/badge/CCXT-certified-green.svg
 .. |bitfinex2| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |ethfinex| image:: https://user-images.githubusercontent.com/1294454/37555526-7018a77c-29f9-11e8-8835-8e415c038a18.jpg
 .. |coingi| image:: https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg

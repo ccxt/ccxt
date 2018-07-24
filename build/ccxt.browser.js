@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.3'
+const version = '1.17.4'
 
 Exchange.ccxtVersion = version
 
@@ -14489,6 +14489,7 @@ module.exports = class bleutrade extends bittrex {
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'certified': false,
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
@@ -27592,6 +27593,7 @@ module.exports = class ethfinex extends bitfinex {
             'version': 'v1',
             'rateLimit': 1500,
             // new metainfo interface
+            'certified': false,
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,

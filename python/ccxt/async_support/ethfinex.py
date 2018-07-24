@@ -16,6 +16,7 @@ class ethfinex (bitfinex):
             'version': 'v1',
             'rateLimit': 1500,
             # new metainfo interface
+            'certified': False,
             'has': {
                 'CORS': False,
                 'createDepositAddress': True,
