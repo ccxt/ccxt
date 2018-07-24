@@ -439,7 +439,7 @@ module.exports = class okcoinusd extends Exchange {
         let ids = this.arrayConcat (freeIds, freezedIds);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let code = id.toUpperCase ();
+            let code = id;
             if (id in this.currencies_by_id) {
                 code = this.currencies_by_id[id]['code'];
             } else {
