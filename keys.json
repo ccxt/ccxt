@@ -53,7 +53,7 @@
     "gateio":        { "skip": true },
     "gemini":        { "skip": true },
     "hitbtc":        { "skip": true },
-    "hitbtc2":       { },
+    "hitbtc2":       { "skip": true },
     "huobi":         { "skip": true },
     "huobicny":      { "skip": true },
     "huobipro":      { },
