@@ -17,6 +17,7 @@ let verbose = false
 
 let wikiPath = 'wiki'
 let gitWikiPath = 'ccxt.wiki'
+let ccxtCertifiedBadge = '![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)'
 
 if (!fs.existsSync (gitWikiPath)) {
 
@@ -144,6 +145,7 @@ let values = Object.values (exchanges).map (exchange => {
         '': '![' + exchange.id + '](' + logo + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
+        'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
@@ -212,6 +214,7 @@ Object.keys (countries).forEach (code => {
                 'logo': ' ![' + exchange.id + '](' + logo + ') ',
                 'id': exchange.id,
                 'name': '[' + exchange.name + '](' + url + ')',
+                'certified': exchange.certified ? ccxtCertifiedBadge : '',
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
             })

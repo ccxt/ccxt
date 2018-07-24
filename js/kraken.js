@@ -15,6 +15,7 @@ module.exports = class kraken extends Exchange {
             'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
+            'certified': true,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,

@@ -15,6 +15,7 @@ module.exports = class anxpro extends Exchange {
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'version': '2',
             'rateLimit': 1500,
+            'certified': true,
             'has': {
                 'CORS': false,
                 'fetchOHLCV': false,
