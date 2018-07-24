@@ -30,8 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-require ('vendor/autoload.php');
-
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
