@@ -235,7 +235,6 @@
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",
         "kornrunner/ethereum-util": "0.0.3",
-        "kornrunner/keccak": "1.0.2",
         "kornrunner/solidity": "0.0.6"
     },
     "archive": {
