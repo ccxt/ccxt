@@ -700,6 +700,7 @@ class Exchange {
         $this->name      = null;
         $this->countries = null;
         $this->version   = null;
+        $this->certified = false;
         $this->urls      = array ();
         $this->api       = array ();
         $this->comment   = null;
