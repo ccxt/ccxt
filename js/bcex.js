@@ -107,6 +107,23 @@ module.exports = class bcex extends Exchange {
         return result;
     }
 
+    parseTrade (trade, market) {
+        let timestamp = trade['date'] * 1000;
+         return {
+            'id': trade['tid'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market.symbol,
+            'type': undefined,
+            'side': trade['type'],
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
+            'order': undefined,
+            'fee': undefined,
+        };
+    }   
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -164,7 +181,7 @@ module.exports = class bcex extends Exchange {
         return orderbook;
     }
 
-    parseTrade (trade, market) {
+    parseMyTrade (trade, market) {
         let timestamp = trade['updated'] * 1000;
          return {
             'id': trade['id'],
@@ -181,6 +198,13 @@ module.exports = class bcex extends Exchange {
         };
     }
 
+     parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
+        result = sortBy (result, 'timestamp')
+        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
         let request = {};
@@ -191,7 +215,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderTrustList(this.extend(request, params));
         let market = this.markets_by_id[marketId];
         let trades = response['data'];
-        let result = this.parseTrades(trades, market);
+        let result = this.parseMyTrades(trades, market);
         return result;
     }
 
