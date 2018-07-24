@@ -171,7 +171,7 @@ let changeInFile = (filename, prefix = '') => {
     let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = prefix + "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
+    let regex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
     let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace(/[\r]/, '').replace (regex, replacement)
