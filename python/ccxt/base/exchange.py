@@ -81,6 +81,7 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     version = None
+    certified = False
 
     # rate limiter settings
     enableRateLimit = False
