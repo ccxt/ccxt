@@ -20,6 +20,7 @@ class bleutrade (bittrex):
             'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'certified': False,
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
