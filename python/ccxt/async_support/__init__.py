@@ -39,6 +39,9 @@ from ccxt.base.errors import InvalidAddress                     # noqa: F401
 from ccxt.base.errors import AddressPending                     # noqa: F401
 from ccxt.base.errors import BadResponse                        # noqa: F401
 from ccxt.base.errors import NullResponse                       # noqa: F401
+from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
+from ccxt.base.errors import OrderNotFillable                   # noqa: F401
+
 
 from ccxt.async_support._1broker import _1broker                          # noqa: F401
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
@@ -153,6 +156,7 @@ from ccxt.async_support.quoinex import quoinex                            # noqa
 from ccxt.async_support.rightbtc import rightbtc                          # noqa: F401
 from ccxt.async_support.southxchange import southxchange                  # noqa: F401
 from ccxt.async_support.surbitcoin import surbitcoin                      # noqa: F401
+from ccxt.async_support.theocean import theocean                          # noqa: F401
 from ccxt.async_support.therock import therock                            # noqa: F401
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
@@ -281,6 +285,7 @@ exchanges = [
     'rightbtc',
     'southxchange',
     'surbitcoin',
+    'theocean',
     'therock',
     'tidebit',
     'tidex',

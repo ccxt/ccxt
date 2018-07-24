@@ -8,8 +8,8 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
     , no_send = process.argv.includes ('--no-send')
-    , loadMarkets = process.argv.includes ('--load-markets')
-    , no_details = process.argv.includes ('--no-details')
+    , no_load_markets = process.argv.includes ('--no-load-markets')
+    , details = process.argv.includes ('--details')
     , no_table = process.argv.includes ('--no-table')
     , iso8601 = process.argv.includes ('--iso8601')
     , no_info = process.argv.includes ('--no-info')
@@ -125,8 +125,8 @@ function printSupportedExchanges () {
     log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
     log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
-    log ('--load-markets    Pre-load markets (for debugging)')
-    log ('--no-details      Do not print detailed fetch responses')
+    log ('--no-load-markets Do not pre-load markets (for debugging)')
+    log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print tabulated fetch responses')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
 }
@@ -139,7 +139,7 @@ const printHumanReadable = (exchange, result) => {
 
         let arrayOfObjects = (typeof result[0] === 'object')
 
-        if (!no_details)
+        if (details)
             result.forEach (object => {
                 if (arrayOfObjects)
                     log ('-------------------------------------------')
@@ -170,6 +170,10 @@ const printHumanReadable = (exchange, result) => {
                     })
                     return element
                 })) : result)
+                log (result.length, 'objects');
+            } else {
+                log (result)
+                log (result.length, 'objects');
             }
 
     } else {
@@ -212,10 +216,11 @@ async function main () {
         if (cfscrape)
             exchange.headers = cfscrapeCookies (www)
 
-        loadMarkets = no_send ? true : loadMarkets
+        no_load_markets = no_send ? true : no_load_markets
 
-        if (loadMarkets)
+        if (!no_load_markets) {
             await exchange.loadMarkets ()
+        }
 
         if (no_send) {
 
