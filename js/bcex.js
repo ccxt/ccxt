@@ -4,6 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { sortBy } = require ('./base/functions/generic');
+
 
 //  ---------------------------------------------------------------------------
 
@@ -51,6 +53,7 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/orderList',
                         'Api_Order/tradeList',
                         'Api_Order/trustList',
+                        'Api_Order/orderList',
                         'Api_Order/depth',
                         'Api_Order/orderInfo'
                     ],
@@ -182,24 +185,24 @@ module.exports = class bcex extends Exchange {
     }
 
     parseMyTrade (trade, market) {
-        let timestamp = trade['updated'] * 1000;
+        let timestamp = trade['created'] * 1000;
          return {
-            'id': trade['id'],
+            'id': trade['order_id'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market.symbol,
             'type': undefined,
-            'side': trade['flag'],
+            'side': trade['side'],
             'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'size'),
-            'order': this.safeString (trade, 'orderId'),
+            'amount': this.safeFloat (trade, 'number'),
+            'order': undefined,
             'fee': undefined,
         };
     }
 
      parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
+        let result = Object.values (trades || []).map (trade => this.parseMyTrade (trade, market))
         result = sortBy (result, 'timestamp')
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -207,12 +210,11 @@ module.exports = class bcex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        let request = {};
         let marketId = this.marketId(symbol);
-        if (typeof symbol !== 'undefined') {
-            request['symbol'] = marketId
+        let request = {
+            'symbol': marketId
         }
-        let response = await this.privatePostApiOrderTrustList(this.extend(request, params));
+        let response = await this.privatePostApiOrderOrderList(this.extend(request, params));
         let market = this.markets_by_id[marketId];
         let trades = response['data'];
         let result = this.parseMyTrades(trades, market);
