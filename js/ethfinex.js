@@ -15,6 +15,7 @@ module.exports = class ethfinex extends bitfinex {
             'version': 'v1',
             'rateLimit': 1500,
             // new metainfo interface
+            'certified': false,
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,
