@@ -34,6 +34,7 @@ class bittrex (Exchange):
             'countries': ['US'],
             'version': 'v1.1',
             'rateLimit': 1500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': True,

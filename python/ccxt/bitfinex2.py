@@ -19,6 +19,7 @@ class bitfinex2 (bitfinex):
             'name': 'Bitfinex v2',
             'countries': ['VG'],
             'version': 'v2',
+            'certified': False,
             # new metainfo interface
             'has': {
                 'CORS': True,

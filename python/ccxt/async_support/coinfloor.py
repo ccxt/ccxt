@@ -180,7 +180,7 @@ class coinfloor (Exchange):
         return await self.privatePostIdCancelOrder({'id': id})
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse_date(order['datetime'])
+        timestamp = self.parse8601(order['datetime'])
         datetime = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')

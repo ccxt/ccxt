@@ -234,7 +234,7 @@ class btcmarkets extends Exchange {
         );
     }
 
-    public function cancel_orders ($ids) {
+    public function cancel_orders ($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         for ($i = 0; $i < count ($ids); $i++) {
             $ids[$i] = intval ($ids[$i]);

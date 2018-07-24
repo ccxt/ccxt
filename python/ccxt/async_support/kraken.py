@@ -35,6 +35,7 @@ class kraken (Exchange):
             'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
+            'certified': True,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,

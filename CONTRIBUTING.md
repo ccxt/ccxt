@@ -15,7 +15,7 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
   - [Authentication](https://github.com/ccxt-dev/ccxt/wiki/Manual#authentication)
   - [API Keys Setup](https://github.com/ccxt-dev/ccxt/wiki/Manual#api-keys-setup)
 - Read the [Troubleshooting](https://github.com/ccxt-dev/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt-dev/ccxt/wiki/Manual) for most frequently asked questions.
+- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
 - Read the [API docs](https://github.com/ccxt-dev/ccxt/wiki/Exchange-Markets) for your exchange.
 - Search for similar issues first to avoid duplicates.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
