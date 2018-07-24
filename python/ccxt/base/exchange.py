@@ -148,7 +148,6 @@ class Exchange(object):
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
     }
 
-
     # API method metainfo
     has = {
         'publicAPI': True,
