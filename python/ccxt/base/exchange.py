@@ -67,12 +67,17 @@ except NameError:
 
 try:
     import urllib.parse as _urlencode    # Python 3
-    # from web3.auto import w3             # web3/0x imports
-    from web3 import Web3, HTTPProvider
 except ImportError:
     import urllib as _urlencode          # Python 2
-    Web3 = HTTPProvider = None           # web3/0x not supported in Python 2
 
+# -----------------------------------------------------------------------------
+# web3/0x imports
+
+try:
+    # from web3.auto import w3
+    from web3 import Web3, HTTPProvider
+except ImportError:
+    Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
 # -----------------------------------------------------------------------------
 
