@@ -20,6 +20,7 @@ class cobinhood (Exchange):
             'name': 'COBINHOOD',
             'countries': ['TW'],
             'rateLimit': 1000 / 10,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -30,7 +31,7 @@ class cobinhood (Exchange):
                 'fetchOrder': True,
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
-                'withdraw': True,
+                'withdraw': False,
                 'fetchMyTrades': True,
             },
             'requiredCredentials': {
@@ -54,10 +55,7 @@ class cobinhood (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
-                'api': {
-                    'web': 'https://api.cobinhood.com/v1',
-                    'ws': 'wss://feed.cobinhood.com',
-                },
+                'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
                 'doc': 'https://cobinhood.github.io/api-public',
             },
@@ -105,8 +103,14 @@ class cobinhood (Exchange):
                         'trading/order_history',
                         'trading/trades',
                         'trading/trades/{trade_id}',
+                        'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/generic_deposits',
+                        'wallet/generic_deposits/{generic_deposit_id}',
+                        'wallet/generic_withdrawals',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        # older endpoints
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals/{withdrawal_id}',
@@ -116,6 +120,7 @@ class cobinhood (Exchange):
                     ],
                     'post': [
                         'trading/orders',
+                        # older endpoints
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
@@ -495,6 +500,15 @@ class cobinhood (Exchange):
         market = None if (symbol is None) else self.market(symbol)
         return self.parse_trades(response['result']['trades'], market)
 
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        if symbol is not None:
+            request['trading_pair_id'] = market['id']
+        response = await self.privateGetTradingTrades(self.extend(request, params))
+        return self.parse_trades(response['result']['trades'], market, since, limit)
+
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -526,30 +540,8 @@ class cobinhood (Exchange):
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, params={}):
-        await self.load_markets()
-        currency = self.currency(code)
-        response = await self.privatePostWalletWithdrawals(self.extend({
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
-        }, params))
-        return {
-            'id': response['result']['withdrawal_id'],
-            'info': response,
-        }
-
-    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {}
-        if symbol is not None:
-            request['trading_pair_id'] = market['id']
-        response = await self.privateGetTradingTrades(self.extend(request, params))
-        return self.parse_trades(response['result']['trades'], market, since, limit)
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api']['web'] + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {}
         if api == 'private':

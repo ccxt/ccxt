@@ -74,6 +74,10 @@ class coinone extends Exchange {
                 'QTUM/KRW' => array ( 'id' => 'qtum', 'symbol' => 'QTUM/KRW', 'base' => 'QTUM', 'quote' => 'KRW', 'baseId' => 'qtum', 'quoteId' => 'krw' ),
                 'XRP/KRW' => array ( 'id' => 'xrp', 'symbol' => 'XRP/KRW', 'base' => 'XRP', 'quote' => 'KRW', 'baseId' => 'xrp', 'quoteId' => 'krw' ),
                 'EOS/KRW' => array ( 'id' => 'eos', 'symbol' => 'EOS/KRW', 'base' => 'EOS', 'quote' => 'KRW', 'baseId' => 'eos', 'quoteId' => 'krw' ),
+                'DATA/KRW' => array ( 'id' => 'data', 'symbol' => 'DATA/KRW', 'base' => 'DATA', 'quote' => 'KRW', 'baseId' => 'data', 'quoteId' => 'krw' ),
+                'ZIL/KRW' => array ( 'id' => 'zil', 'symbol' => 'ZIL/KRW', 'base' => 'ZIL', 'quote' => 'KRW', 'baseId' => 'zil', 'quoteId' => 'krw' ),
+                'KNC/KRW' => array ( 'id' => 'knc', 'symbol' => 'KNC/KRW', 'base' => 'KNC', 'quote' => 'KRW', 'baseId' => 'knc', 'quoteId' => 'krw' ),
+                'ZRX/KRW' => array ( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -422,6 +426,7 @@ class coinone extends Exchange {
             'is_ask' => $side,
             'currency' => $this->market_id($symbol),
         );
+        $this->orders[$id]['status'] = 'canceled';
         return $this->privatePostOrderCancel (array_merge ($request, $params));
     }
 

@@ -18,13 +18,14 @@ class coinfalcon (Exchange):
             'name': 'CoinFalcon',
             'countries': ['GB'],
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com/api/v1',
+                'api': 'https://coinfalcon.com',
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -290,7 +291,8 @@ class coinfalcon (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + request
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
@@ -303,10 +305,7 @@ class coinfalcon (Exchange):
             else:
                 body = self.json(query)
             seconds = str(self.seconds())
-            requestPath = url.split('/')
-            requestPath = requestPath[3:]
-            requestPath = '/' + '/'.join(requestPath)
-            payload = '|'.join([seconds, method, requestPath])
+            payload = '|'.join([seconds, method, request])
             if body:
                 payload += '|' + body
             signature = self.hmac(self.encode(payload), self.encode(self.secret))

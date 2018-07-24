@@ -35,6 +35,9 @@ class okex (okcoinusd):
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
             },
+            'options': {
+                'fetchTickersMethod': 'fetch_tickers_from_api',
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -67,7 +70,7 @@ class okex (okcoinusd):
                 markets[i]['taker'] = 0.0005
         return markets
 
-    async def fetch_tickers(self, symbols=None, params={}):
+    async def fetch_tickers_from_api(self, symbols=None, params={}):
         await self.load_markets()
         request = {}
         response = await self.publicGetTickers(self.extend(request, params))
@@ -85,3 +88,20 @@ class okex (okcoinusd):
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
+
+    async def fetch_tickers_from_web(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {}
+        response = await self.webGetSpotMarketsTickers(self.extend(request, params))
+        tickers = response['data']
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return result
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        method = self.options['fetchTickersMethod']
+        response = await getattr(self, method)(symbols, params)
+        return response

@@ -281,21 +281,7 @@ class bitz (Exchange):
         trades = response['data']['d']
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        volume = ohlcv[5] if self.options['fetchOHLCVVolume'] else None
-        return [
-            ohlcv[0],
-            ohlcv[1],
-            ohlcv[2],
-            ohlcv[3],
-            ohlcv[4],
-            volume,
-        ]
-
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if self.options['fetchOHLCVWarning']:
-            # eslint-disable-next-line quotes
-            raise ExchangeError(self.id + " will return 24h volumes instead of volumes for " + timeframe + " from their API. Set .options['fetchOHLCVWarning'] = False to suppress self warning message. You can set .options['fetchOHLCVVolume'] = False to fetch candles with volume set to None.")
         self.load_markets()
         market = self.market(symbol)
         response = self.publicGetKline(self.extend({

@@ -211,13 +211,14 @@ module.exports = class kraken extends Exchange {
 
     async fetchMinOrderSizes () {
         let html = undefined;
+        let oldParseJsonResponse = this.parseJsonResponse;
         try {
             this.parseJsonResponse = false;
             html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            this.parseJsonResponse = true;
+            this.parseJsonResponse = oldParseJsonResponse;
         } catch (e) {
             // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = true;
+            this.parseJsonResponse = oldParseJsonResponse;
             throw e;
         }
         let parts = html.split ('ul>');
@@ -524,7 +525,7 @@ module.exports = class kraken extends Exchange {
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
-            id = trade['id'];
+            id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];

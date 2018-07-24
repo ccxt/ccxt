@@ -344,8 +344,6 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
-        const fetchImplementation = this.fetchImplementation
-
         if (this.rateLimit === undefined)
             throw new Error (this.id + '.rateLimit property is not configured')
 
@@ -359,7 +357,11 @@ module.exports = class Exchange {
 
         this.throttle = throttle (this.tokenBucket)
 
-        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+        this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
+
+            // fetchImplementation cannot be called on this. in browsers:
+            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+            const fetchImplementation = this.fetchImplementation
 
             let promise =
                 fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))

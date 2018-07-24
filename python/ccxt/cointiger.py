@@ -36,10 +36,12 @@ class cointiger (huobipro):
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
-                'fetchOrder': False,  # not tested yet
+                'fetchOrder': True,
+                'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': False,  # not tested yet
+                'cancelOrders': True,
             },
             'headers': {
                 'Language': 'en_US',
@@ -50,8 +52,8 @@ class cointiger (huobipro):
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -73,7 +75,7 @@ class cointiger (huobipro):
                     ],
                     'post': [
                         'order',
-                        'order/batchcancel',
+                        'order/batch_cancel',
                     ],
                 },
                 'public': {
@@ -105,6 +107,14 @@ class cointiger (huobipro):
                     'delete': [
                         'order',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -521,6 +531,7 @@ class cointiger (huobipro):
 
     def parse_order_status(self, status):
         statuses = {
+            '0': 'open',  # pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -574,7 +585,7 @@ class cointiger (huobipro):
         status = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'created_at')
         timestamp = self.safe_integer(order, 'ctime', timestamp)
-        lastTradeTimestamp = self.safe_integer(order, 'mtime')
+        lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'symbol')
@@ -588,14 +599,14 @@ class cointiger (huobipro):
         price = None
         cost = None
         fee = None
+        average = None
         if side is not None:
             side = side.lower()
             amount = self.safe_float(order['volume'], 'amount')
             remaining = self.safe_float(order['remain_volume'], 'amount') if ('remain_volume' in list(order.keys())) else None
             filled = self.safe_float(order['deal_volume'], 'amount') if ('deal_volume' in list(order.keys())) else None
-            price = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
-            if price is None:
-                price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+            price = self.safe_float(order['price'], 'amount') if ('price' in list(order.keys())) else None
+            average = self.safe_float(order['age_price'], 'amount') if ('age_price' in list(order.keys())) else None
         else:
             if orderType is not None:
                 parts = orderType.split('-')
@@ -603,7 +614,7 @@ class cointiger (huobipro):
                 type = parts[1]
                 cost = self.safe_float(order, 'deal_money')
                 price = self.safe_float(order, 'price')
-                price = self.safe_float(order, 'avg_price', price)
+                average = self.safe_float(order, 'avg_price')
                 amount = self.safe_float_2(order, 'amount', 'volume')
                 filled = self.safe_float(order, 'deal_volume')
                 feeCost = self.safe_float(order, 'fee')
@@ -640,6 +651,7 @@ class cointiger (huobipro):
             'type': type,
             'side': side,
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -726,6 +738,22 @@ class cointiger (huobipro):
             'info': response,
         }
 
+    def cancel_orders(self, ids, symbol=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ExchangeError(self.id + ' cancelOrders requires a symbol argument')
+        market = self.market(symbol)
+        marketId = market['id']
+        orderIdList = {}
+        orderIdList[marketId] = ids
+        request = {
+            'orderIdList': self.json(orderIdList),
+        }
+        response = self.v2PostOrderBatchCancel(self.extend(request, params))
+        return {
+            'info': response,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
@@ -740,8 +768,7 @@ class cointiger (huobipro):
                 auth += keys[i] + str(query[keys[i]])
             auth += self.secret
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
-            isCreateOrderMethod = (path == 'order') and(method == 'POST')
-            urlParams = {} if isCreateOrderMethod else query
+            urlParams = {} if (method == 'POST') else query
             url += '?' + self.urlencode(self.keysort(self.extend({
                 'api_key': self.apiKey,
                 'time': timestamp,
@@ -773,21 +800,41 @@ class cointiger (huobipro):
                 #     {"code": "100005", "msg": "request sign illegal", "data": null}
                 #
                 code = self.safe_string(response, 'code')
-                if (code is not None) and(code != '0'):
+                if code is not None:
                     message = self.safe_string(response, 'msg')
                     feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        if code == 1:
-                            #    {"code":"1","msg":"系统错误","data":null}
-                            #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
-                            if message.find('Balance insufficient') >= 0:
-                                raise InsufficientFunds(feedback)
-                        elif code == 2:
-                            if message == 'offsetNot Null':
-                                raise ExchangeError(feedback)
-                            elif message == 'Parameter error':
-                                raise ExchangeError(feedback)
-                        raise exceptions[code](feedback)
+                    if code != '0':
+                        exceptions = self.exceptions
+                        if code in exceptions:
+                            if code == '1':
+                                #
+                                #    {"code":"1","msg":"系统错误","data":null}
+                                #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                #
+                                if message.find('Balance insufficient') >= 0:
+                                    raise InsufficientFunds(feedback)
+                            elif code == '2':
+                                if message == 'offsetNot Null':
+                                    raise ExchangeError(feedback)
+                                elif message == 'Parameter error':
+                                    raise ExchangeError(feedback)
+                            raise exceptions[code](feedback)
+                        else:
+                            raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
                     else:
-                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+                        #
+                        # Google Translate:
+                        # 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        # 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        #
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        #
+                        if feedback.find('订单状态不能取消,订单取消失败') >= 0:
+                            if feedback.find('Parameter error') >= 0:
+                                raise OrderNotFound(feedback)
+                            else:
+                                raise InvalidOrder(feedback)
+                        elif feedback.find('根据订单号没有查询到订单,订单取消失败') >= 0:
+                            raise OrderNotFound(feedback)

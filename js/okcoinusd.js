@@ -268,7 +268,29 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['timestamp'];
+        //
+        //     {              buy:   "48.777300",
+        //                 change:   "-1.244500",
+        //       changePercentage:   "-2.47%",
+        //                  close:   "49.064000",
+        //            createdDate:    1531704852254,
+        //             currencyId:    527,
+        //                dayHigh:   "51.012500",
+        //                 dayLow:   "48.124200",
+        //                   high:   "51.012500",
+        //                inflows:   "0",
+        //                   last:   "49.064000",
+        //                    low:   "48.124200",
+        //             marketFrom:    627,
+        //                   name: {  },
+        //                   open:   "50.308500",
+        //               outflows:   "0",
+        //              productId:    527,
+        //                   sell:   "49.064000",
+        //                 symbol:   "zec_okb",
+        //                 volume:   "1049.092535"   }
+        //
+        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
@@ -277,9 +299,13 @@ module.exports = class okcoinusd extends Exchange {
                     market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
+        let open = this.safeFloat (ticker, 'open');
+        let change = this.safeFloat (ticker, 'change');
+        let percentage = this.safeFloat (ticker, 'changePercentage');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -291,14 +317,14 @@ module.exports = class okcoinusd extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'baseVolume': this.safeFloat2 (ticker, 'vol', 'volume'),
             'quoteVolume': undefined,
             'info': ticker,
         };

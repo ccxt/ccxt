@@ -75,7 +75,7 @@ class coinex (Exchange):
                 },
                 'private': {
                     'get': [
-                        'balance',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -288,7 +288,7 @@ class coinex (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             float(ohlcv[1]),
             float(ohlcv[3]),
             float(ohlcv[4]),
@@ -307,7 +307,27 @@ class coinex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalance(params)
+        response = await self.privateGetBalanceInfo(params)
+        #
+        #     {
+        #       "code": 0,
+        #       "data": {
+        #         "BCH": {                    # BCH account
+        #           "available": "13.60109",   # Available BCH
+        #           "frozen": "0.00000"        # Frozen BCH
+        #         },
+        #         "BTC": {                    # BTC account
+        #           "available": "32590.16",   # Available BTC
+        #           "frozen": "7000.00"        # Frozen BTC
+        #         },
+        #         "ETH": {                    # ETH account
+        #           "available": "5.06000",    # Available ETH
+        #           "frozen": "0.00000"        # Frozen ETH
+        #         }
+        #       },
+        #       "message": "Ok"
+        #     }
+        #
         result = {'info': response}
         balances = response['data']
         currencies = list(balances.keys())

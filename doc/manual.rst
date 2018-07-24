@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                            | ver | doc                                                                                                 | countries                                |
@@ -74,6 +74,8 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bibox|              | bibox              | `Bibox <https://www.bibox.com>`__                                               | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    | China, US, South Korea                   |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |bigone|             | bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                             | 2   | `API <https://open.big.one/docs/api.html>`__                                                        | UK                                       |
++----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |binance|            | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                             | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__     | Japan                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bit2c|              | bit2c              | `Bit2C <https://www.bit2c.co.il>`__                                             | \*  | `API <https://www.bit2c.co.il/home/api>`__                                                          | Israel                                   |
@@ -90,7 +92,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bithumb|            | bithumb            | `Bithumb <https://www.bithumb.com>`__                                           | \*  | `API <https://www.bithumb.com/u1/US127>`__                                                          | South Korea                              |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |bitkk|              | bitkk              | `bitkk <https://www.bitkk.com>`__                                               | 1   | `API <https://www.bitkk.com/i/developer>`__                                                         | China                                    |
+| |bitkk|              | bitkk              | `bitkk <https://vip.zb.com/user/register?recommendCode=bn070u>`__               | 1   | `API <https://www.bitkk.com/i/developer>`__                                                         | China                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bitlish|            | bitlish            | `Bitlish <https://bitlish.com>`__                                               | 1   | `API <https://bitlish.com/api>`__                                                                   | UK, EU, Russia                           |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -140,11 +142,11 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |cex|                | cex                | `CEX.IO <https://cex.io>`__                                                     | \*  | `API <https://cex.io/cex-api>`__                                                                    | UK, EU, Cyprus, Russia                   |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |chbtc|              | chbtc              | `CHBTC <https://trade.chbtc.com/api>`__                                         | 1   | `API <https://www.chbtc.com/i/developer>`__                                                         | China                                    |
+| |chbtc|              | chbtc              | `CHBTC <https://vip.zb.com/user/register?recommendCode=bn070u>`__               | 1   | `API <https://www.chbtc.com/i/developer>`__                                                         | China                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |chilebit|           | chilebit           | `ChileBit <https://chilebit.net>`__                                             | 1   | `API <https://blinktrade.com/docs>`__                                                               | Chile                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |cobinhood|          | cobinhood          | `COBINHOOD <https://cobinhood.com>`__                                           | \*  | `API <https://cobinhood.github.io/api-public>`__                                                    | Taiwan                                   |
+| |cobinhood|          | cobinhood          | `COBINHOOD <https://cobinhood.com>`__                                           | 1   | `API <https://cobinhood.github.io/api-public>`__                                                    | Taiwan                                   |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinbase|           | coinbase           | `coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__           | 2   | `API <https://developers.coinbase.com/api/v2>`__                                                    | US                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -158,7 +160,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinexchange|       | coinexchange       | `CoinExchange <https://www.coinexchange.io>`__                                  | \*  | `API <https://coinexchangeio.github.io/slate/>`__                                                   | India, Japan, South Korea, Vietnam, US   |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |coinfalcon|         | coinfalcon         | `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__                       | \*  | `API <https://docs.coinfalcon.com>`__                                                               | UK                                       |
+| |coinfalcon|         | coinfalcon         | `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__                       | 1   | `API <https://docs.coinfalcon.com>`__                                                               | UK                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinfloor|          | coinfloor          | `coinfloor <https://www.coinfloor.co.uk>`__                                     | \*  | `API <https://github.com/coinfloor/api>`__                                                          | UK                                       |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -308,7 +310,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |zaif|               | zaif               | `Zaif <https://zaif.jp>`__                                                      | 1   | `API <http://techbureau-api-document.readthedocs.io/ja/latest/index.html>`__                        | Japan                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |zb|                 | zb                 | `ZB <https://www.zb.com>`__                                                     | 1   | `API <https://www.zb.com/i/developer>`__                                                            | China                                    |
+| |zb|                 | zb                 | `ZB <https://vip.zb.com/user/register?recommendCode=bn070u>`__                  | 1   | `API <https://www.zb.com/i/developer>`__                                                            | China                                    |
 +----------------------+--------------------+---------------------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 
 Besides making basic market and limit orders, some exchanges offer margin trading (leverage), various derivatives (like futures contracts and options) and also have `dark pools <https://en.wikipedia.org/wiki/Dark_pool>`__, `OTC <https://en.wikipedia.org/wiki/Over-the-counter_(finance)>`__ (over-the-counter trading), merchant APIs and much more.
@@ -612,6 +614,12 @@ DDoS Protection By Cloudflare / Incapsula
 
 Some exchanges are `DDoS <https://en.wikipedia.org/wiki/Denial-of-service_attack>`__-protected by `Cloudflare <https://www.cloudflare.com>`__ or `Incapsula <https://www.incapsula.com>`__. Your IP can get temporarily blocked during periods of high load. Sometimes they even restrict whole countries and regions. In that case their servers usually return a page that states a HTTP 40x error or runs an AJAX test of your browser / captcha test and delays the reload of the page for several seconds. Then your browser/fingerprint is granted access temporarily and gets added to a whitelist or receives a HTTP cookie for further use.
 
+The most common symptoms for a DDoS protection problem, rate-limiting problem or for a location-based filtering issue:
+- Getting ``RequestTimeout`` exceptions with all types of exchange methods
+- Catching ``ExchangeError`` or ``ExchangeNotAvailable`` with HTTP error codes 400, 403, 404, 429, 500, 501, 503, etc..
+- Having DNS resolving issues, SSL certificate issues and low-level connectivity issues
+- Getting a template HTML page instead of JSON from the exchange
+
 If you encounter DDoS protection errors and cannot reach a particular exchange then:
 
 -  try using a cloudscraper:
@@ -889,7 +897,7 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
 
 -  First, we gather all info available from the exchanges themselves about the currency codes in question. They usually have a description of their coin listings somewhere in their API or their docs, knowledgebases or elsewhere on their websites.
 -  When we identify each particular cryptocurrency standing behind the currency code, we look them up on `CoinMarketCap <https://coinmarketcap.com>`__.
--  The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HMC often stand for either ``Hi Mutual Society`` or ``HarmonyCoin``. In this case ``Hi Mutual Society`` retains the code ``HMC``, and ``HarmonyCoin`` will have its name as its code, literally, ``HarmonyCoin``. So, there may be trading pairs with symbols like ``HMC/USD`` (for ``Hi Mutual Society``) and ``HarmonyCoin/USD`` – those are two different markets.
+-  The currency that has the greatest market capitalization of all wins the currency code and keeps it. For example, HOT often stand for either ``Holo`` or ``Hydro Protocol``. In this case ``Holo`` retains the code ``HOT``, and ``Hydro Protocol`` will have its name as its code, literally, ``Hydro Protocol``. So, there may be trading pairs with symbols like ``HOT/USD`` (for ``Holo``) and ``Hydro Protocol/USD`` – those are two different markets.
 -  If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
 -  When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via ``.commonCurrencies``.
 -  Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *“live mode”*. We are thankful for all reported conflicts and mismatches you may find.
@@ -2698,7 +2706,7 @@ InvalidNonce
 Raised when your nonce is less than the previous nonce used with your keypair, as described in the `Authentication <https://github.com/ccxt/ccxt/wiki/Manual#authentication>`__ section. This type of exception is thrown in these cases (in order of precedence for checking):
 
 -  You are not rate-limiting your requests or sending too many of them too often.
--  Your API keys are not fresh and new (have been used with some different software or script already).
+-  Your API keys are not fresh and new (have been used with some different software or script already, just always create a new keypair when you add this or that exchange).
 -  The same keypair is shared across multiple instances of the exchange class (for example, in a multithreaded environment or in separate processes).
 -  Your system clock is out of synch. System time should be synched with UTC in a non-DST timezone at a rate of once every ten minutes or even more frequently because of the clock drifting. **Enabling time synch in Windows is usually not enough!** You have to set it up with the OS Registry (Google *“time synch frequency”* for your OS).
 
@@ -2751,6 +2759,7 @@ Notes
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
+.. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
 .. |bitbank| image:: https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg

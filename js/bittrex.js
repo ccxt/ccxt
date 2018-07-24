@@ -500,7 +500,9 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.extend (this.parseOrder (response), {
+            'status': 'canceled',
+        });
     }
 
     parseSymbol (id) {
@@ -793,6 +795,15 @@ module.exports = class bittrex extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    appendTimezoneParse8601 (x) {
+        let length = x.length;
+        let lastSymbol = x[length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return this.parse8601 (x);
+        }
+        return this.parse8601 (x + 'Z');
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
