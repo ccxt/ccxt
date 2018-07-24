@@ -190,7 +190,7 @@ class coinfloor extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse_date($order['datetime']);
+        $timestamp = $this->parse8601 ($order['datetime']);
         $datetime = $this->iso8601 ($timestamp);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');

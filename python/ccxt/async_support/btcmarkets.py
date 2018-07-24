@@ -230,7 +230,7 @@ class btcmarkets (Exchange):
             'id': str(response['id']),
         }
 
-    async def cancel_orders(self, ids):
+    async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])

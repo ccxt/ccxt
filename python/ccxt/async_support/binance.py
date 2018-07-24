@@ -24,6 +24,7 @@ class binance (Exchange):
             'name': 'Binance',
             'countries': ['JP'],  # Japan
             'rateLimit': 500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'fetchDepositAddress': True,

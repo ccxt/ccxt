@@ -16,6 +16,7 @@ class bittrex extends Exchange {
             'countries' => array ( 'US' ),
             'version' => 'v1.1',
             'rateLimit' => 1500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
