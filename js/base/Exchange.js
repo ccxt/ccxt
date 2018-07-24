@@ -128,7 +128,8 @@ module.exports = class Exchange {
                 'login':      false,
                 'password':   false,
                 'twofa':      false, // 2-factor authentication (one-time password key)
-                'privateKey': false,
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -265,11 +266,13 @@ module.exports = class Exchange {
         this.userAgent        = undefined
         this.twofa            = false // two-factor authentication (2FA)
 
-        this.apiKey   = undefined
-        this.secret   = undefined
-        this.uid      = undefined
-        this.login    = undefined
-        this.password = undefined
+        this.apiKey        = undefined
+        this.secret        = undefined
+        this.uid           = undefined
+        this.login         = undefined
+        this.password      = undefined
+        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
 
         this.balance    = {}
         this.orderbooks = {}

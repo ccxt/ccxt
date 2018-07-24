@@ -721,6 +721,8 @@ class Exchange {
         $this->secret      = '';
         $this->password    = '';
         $this->uid         = '';
+        $this->privateKey  = '';
+        $this->walletAddress = '';
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
@@ -742,6 +744,8 @@ class Exchange {
             'login' => false,
             'password' => false,
             'twofa' => false, // 2-factor authentication (one-time password key)
+            'privateKey' => false,
+            'walletAddress' => false,
         );
 
         // API methods metainfo

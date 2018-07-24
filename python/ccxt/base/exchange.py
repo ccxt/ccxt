@@ -120,7 +120,8 @@ class Exchange(object):
     secret = ''
     password = ''
     uid = ''
-    privateKey = ''
+    privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
+    walletAddress = ''  # the wallet address "0x"-prefixed hexstring
     twofa = False
     marketsById = None
     markets_by_id = None
@@ -143,8 +144,10 @@ class Exchange(object):
         'login': False,
         'password': False,
         'twofa': False,  # 2-factor authentication (one-time password key)
-        'privateKey': False,
+        'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
+        'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
     }
+
 
     # API method metainfo
     has = {

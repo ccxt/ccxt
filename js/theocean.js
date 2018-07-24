@@ -227,7 +227,7 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'walletAddress': this.uid.toLowerCase (),
+            'walletAddress': this.walletAddress.toLowerCase (),
             'tokenAddress': currency['id'],
         };
         let response = await this.privateGetAvailableBalance (this.extend (request, params));
@@ -479,9 +479,12 @@ module.exports = class theocean extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        if (!(this.walletAddress && this.privateKey)) {
+            throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".')
+        }
         let market = this.market (symbol);
         let reserveRequest = {
-            'walletAddress': this.uid.toLowerCase (), // Your Wallet Address
+            'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
@@ -494,7 +497,7 @@ module.exports = class theocean extends Exchange {
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
         let info = {};
-        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        let reserveResponse = await this[reserveMethod] ();
         //
         // ---- market orders -------------------------------------------------
         //
@@ -593,7 +596,7 @@ module.exports = class theocean extends Exchange {
         info['unsignedMatchingOrder'] = unsignedMatchingOrder;
         info['unsignedTargetOrder'] = unsignedTargetOrder;
         const maker = {
-            'maker': this.uid.toLowerCase (),
+            'maker': this.walletAddress.toLowerCase (),
         };
         let placeRequest = {};
         const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
