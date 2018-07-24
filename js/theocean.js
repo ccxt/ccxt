@@ -12,6 +12,7 @@ module.exports = class theocean extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v0',
+            'certified': true,
             'parseJsonResponse': false,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
@@ -657,29 +658,21 @@ module.exports = class theocean extends Exchange {
             'filled': 0,
             'status': 'open',
         };
-        let result = undefined;
-        if (isUnsignedMatchingOrderDefined !isLimitOrderAndTargetOrderDefined) {
+        const result = {};
+        if (!isLimitOrderAndTargetOrderDefined) {
             result['info'] = {
                 'reserve': reserveResponse,
                 'place': placeResponse,
             };
-            matching = this.extend (matching, matchingOrder);
+            let matching = this.extend (signedMatchingOrder, matchingOrder);
             let takerOrder = this.parseOrder (matching, market);
             result['taker'] = this.extend (takerOrder, {
                 'type': 'market',
                 'remaining': takerOrder['amount'],
             }, orderParams);
-
         }
-
-
-        const result = {
-            'info': info,
-        };
-
-
         if (typeof matchingOrder !== 'undefined') {
-            matching = this.extend (matching, matchingOrder);
+            let matching = this.extend (signedMatchingOrder, matchingOrder);
             let takerOrder = this.parseOrder (matching, market);
             result['taker'] = this.extend (takerOrder, {
                 'type': 'market',
@@ -687,7 +680,7 @@ module.exports = class theocean extends Exchange {
             }, orderParams);
         }
         if (typeof targetOrder !== 'undefined') {
-            target = this.extend (target, targetOrder);
+            let target = this.extend (signedTargetOrder, targetOrder);
             let makerOrder = this.parseOrder (target, market);
             result['maker'] = this.extend (makerOrder, {
                 'type': 'limit',
@@ -817,7 +810,7 @@ module.exports = class theocean extends Exchange {
         //                                     timestamp: "1532261686"                                                          }  ] }
         //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
-        let id = id = this.safeString (order, 'orderHash');
+        let id = this.safeString (order, 'orderHash');
         if ((typeof id === 'undefined') && (typeof zeroExOrder !== 'undefined')) {
             id = this.safeString (zeroExOrder, 'orderHash');
         }
