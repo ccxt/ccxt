@@ -480,7 +480,7 @@ module.exports = class theocean extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (!(this.walletAddress && this.privateKey)) {
-            throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".')
+            throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".');
         }
         let market = this.market (symbol);
         let reserveRequest = {
