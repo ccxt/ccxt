@@ -79,6 +79,7 @@ module.exports = class Exchange {
             'countries': undefined,
             'enableRateLimit': false,
             'rateLimit': 2000, // milliseconds = seconds * 1000
+            'certified': false,
             'has': {
                 'CORS': false,
                 'publicAPI': true,
