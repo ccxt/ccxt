@@ -25,6 +25,7 @@ class gateio extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchClosedOrders' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
             ),
@@ -435,6 +436,9 @@ class gateio extends Exchange {
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrency = $this->safe_string($order, 'feeCurrency');
         $feeRate = $this->safe_float($order, 'feePercentage');
+        if ($feeRate !== null) {
+            $feeRate = $feeRate / 100;
+        }
         if ($feeCurrency !== null) {
             if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id)) {
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
@@ -532,6 +536,19 @@ class gateio extends Exchange {
         }
         $response = $this->privatePostOpenOrders ();
         return $this->parse_orders($response['orders'], $market, $since, $limit);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privatePostTradeHistory (array_merge (array (
+            'currencyPair' => $market['id'],
+            'orderNumber' => $id,
+        ), $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

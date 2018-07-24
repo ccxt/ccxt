@@ -453,14 +453,13 @@ class bitstamp (Exchange):
         cost = None
         if transactions is not None:
             if isinstance(transactions, list):
+                feeCost = 0.0
                 for i in range(0, len(transactions)):
                     trade = self.parse_trade(self.extend({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market)
                     filled += trade['amount']
-                    if feeCost is None:
-                        feeCost = 0.0
                     feeCost += trade['fee']['cost']
                     if cost is None:
                         cost = 0.0

@@ -14,6 +14,7 @@ module.exports = class binance extends Exchange {
             'name': 'Binance',
             'countries': [ 'JP' ], // Japan
             'rateLimit': 500,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
@@ -501,10 +502,12 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined') {
             request['startTime'] = since;
-        if (typeof limit !== 'undefined')
+        }
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit; // default == max == 500
+        }
         let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }

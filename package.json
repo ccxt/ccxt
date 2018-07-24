@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.16.35",
+  "version": "1.17.7",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
@@ -43,11 +43,15 @@
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
+    "bignumber.js": "7.2.1",
     "cloudscraper": "1.4.1",
     "crypto-js": "3.1.9-1",
+    "ethereumjs-abi": "0.6.5",
+    "ethereumjs-util": "5.2.0",
     "fetch-ponyfill": "4.1.0",
     "opencollective": "1.0.3",
-    "qs": "6.5.1"
+    "qs": "6.5.1",
+    "web3": "1.0.0-beta.34"
   },
   "devDependencies": {
     "ansicolor": "^1.1.71",
@@ -62,7 +66,7 @@
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "nyc": "^11.4.1",
-    "ololog": "^1.1.87"
+    "ololog": "^1.1.110"
   },
   "author": {
     "name": "Igor Kroitor",

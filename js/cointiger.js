@@ -19,10 +19,12 @@ module.exports = class cointiger extends huobipro {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
-                'fetchOrder': false, // not tested yet
+                'fetchOrder': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': false, // not tested yet
+                'cancelOrders': true,
             },
             'headers': {
                 'Language': 'en_US',
@@ -33,8 +35,8 @@ module.exports = class cointiger extends huobipro {
                     'public': 'https://api.cointiger.pro/exchange/trading/api/market',
                     'private': 'https://api.cointiger.pro/exchange/trading/api',
                     'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.com/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.com/exchange/trading/api/v2',
+                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -56,7 +58,7 @@ module.exports = class cointiger extends huobipro {
                     ],
                     'post': [
                         'order',
-                        'order/batchcancel',
+                        'order/batch_cancel',
                     ],
                 },
                 'public': {
@@ -88,6 +90,14 @@ module.exports = class cointiger extends huobipro {
                     'delete': [
                         'order',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.001,
+                    'taker': 0.001,
                 },
             },
             'exceptions': {
@@ -537,6 +547,7 @@ module.exports = class cointiger extends huobipro {
 
     parseOrderStatus (status) {
         let statuses = {
+            '0': 'open', // pending
             '1': 'open',
             '2': 'closed',
             '3': 'open',
@@ -591,7 +602,7 @@ module.exports = class cointiger extends huobipro {
         let status = this.safeString (order, 'status');
         let timestamp = this.safeInteger (order, 'created_at');
         timestamp = this.safeInteger (order, 'ctime', timestamp);
-        let lastTradeTimestamp = this.safeInteger (order, 'mtime');
+        let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (order, 'symbol');
@@ -608,14 +619,14 @@ module.exports = class cointiger extends huobipro {
         let price = undefined;
         let cost = undefined;
         let fee = undefined;
+        let average = undefined;
         if (typeof side !== 'undefined') {
             side = side.toLowerCase ();
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
             filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;
-            price = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
-            if (typeof price === 'undefined')
-                price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
+            average = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
         } else {
             if (typeof orderType !== 'undefined') {
                 let parts = orderType.split ('-');
@@ -623,7 +634,7 @@ module.exports = class cointiger extends huobipro {
                 type = parts[1];
                 cost = this.safeFloat (order, 'deal_money');
                 price = this.safeFloat (order, 'price');
-                price = this.safeFloat (order, 'avg_price', price);
+                average = this.safeFloat (order, 'avg_price');
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');
@@ -668,6 +679,7 @@ module.exports = class cointiger extends huobipro {
             'type': type,
             'side': side,
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -765,6 +777,23 @@ module.exports = class cointiger extends huobipro {
         };
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
+        let market = this.market (symbol);
+        let marketId = market['id'];
+        let orderIdList = {};
+        orderIdList[marketId] = ids;
+        let request = {
+            'orderIdList': this.json (orderIdList),
+        };
+        let response = await this.v2PostOrderBatchCancel (this.extend (request, params));
+        return {
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -780,8 +809,7 @@ module.exports = class cointiger extends huobipro {
             }
             auth += this.secret;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
-            let isCreateOrderMethod = (path === 'order') && (method === 'POST');
-            let urlParams = isCreateOrderMethod ? {} : query;
+            let urlParams = (method === 'POST') ? {} : query;
             url += '?' + this.urlencode (this.keysort (this.extend ({
                 'api_key': this.apiKey,
                 'time': timestamp,
@@ -816,27 +844,50 @@ module.exports = class cointiger extends huobipro {
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }
                 //
                 let code = this.safeString (response, 'code');
-                if ((typeof code !== 'undefined') && (code !== '0')) {
+                if (typeof code !== 'undefined') {
                     const message = this.safeString (response, 'msg');
                     const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        if (code === 1) {
-                            //    {"code":"1","msg":"系统错误","data":null}
-                            //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
-                            if (message.indexOf ('Balance insufficient') >= 0) {
-                                throw new InsufficientFunds (feedback);
+                    if (code !== '0') {
+                        const exceptions = this.exceptions;
+                        if (code in exceptions) {
+                            if (code === '1') {
+                                //
+                                //    {"code":"1","msg":"系统错误","data":null}
+                                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                //
+                                if (message.indexOf ('Balance insufficient') >= 0) {
+                                    throw new InsufficientFunds (feedback);
+                                }
+                            } else if (code === '2') {
+                                if (message === 'offsetNot Null') {
+                                    throw new ExchangeError (feedback);
+                                } else if (message === 'Parameter error') {
+                                    throw new ExchangeError (feedback);
+                                }
                             }
-                        } else if (code === 2) {
-                            if (message === 'offsetNot Null') {
-                                throw new ExchangeError (feedback);
-                            } else if (message === 'Parameter error') {
-                                throw new ExchangeError (feedback);
-                            }
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
                         }
-                        throw new exceptions[code] (feedback);
                     } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
+                        //
+                        // Google Translate:
+                        // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        //
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        // {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        //
+                        if (feedback.indexOf ('订单状态不能取消,订单取消失败') >= 0) {
+                            if (feedback.indexOf ('Parameter error') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            } else {
+                                throw new InvalidOrder (feedback);
+                            }
+                        } else if (feedback.indexOf ('根据订单号没有查询到订单,订单取消失败') >= 0) {
+                            throw new OrderNotFound (feedback);
+                        }
                     }
                 }
             }

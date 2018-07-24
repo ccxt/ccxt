@@ -15,6 +15,7 @@ class binance extends Exchange {
             'name' => 'Binance',
             'countries' => array ( 'JP' ), // Japan
             'rateLimit' => 500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'fetchDepositAddress' => true,
@@ -502,10 +503,12 @@ class binance extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->timeframes[$timeframe],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['startTime'] = $since;
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['limit'] = $limit; // default == max == 500
+        }
         $response = $this->publicGetKlines (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }

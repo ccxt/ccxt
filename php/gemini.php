@@ -25,7 +25,7 @@ class gemini extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
-                'fetchOpenOrders' => false,
+                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
                 'withdraw' => true,
             ),
@@ -172,7 +172,7 @@ class gemini extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['type'],
+            'side' => strtolower ($trade['type']),
             'price' => $price,
             'cost' => $price * $amount,
             'amount' => $amount,
@@ -216,15 +216,18 @@ class gemini extends Exchange {
         if ($order['is_live']) {
             $status = 'open';
         }
-        if ($order['is_canceled']) {
+        if ($order['is_cancelled']) {
             $status = 'canceled';
         }
         $price = $this->safe_float($order, 'price');
-        $price = $this->safe_float($order, 'avg_execution_price', $price);
+        $average = $this->safe_float($order, 'avg_execution_price');
+        if ($average !== 0.0) {
+            $price = $average; // prefer filling (execution) $price over the submitted $price
+        }
         $cost = null;
         if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
+            if ($average !== null) {
+                $cost = $filled * $average;
             }
         }
         $type = $this->safe_string($order, 'type');
@@ -255,8 +258,9 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'side' => $order['side'],
+            'side' => strtolower ($order['side']),
             'price' => $price,
+            'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -271,6 +275,17 @@ class gemini extends Exchange {
             'order_id' => $id,
         ), $params));
         return $this->parse_order($response);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostOrders ($params);
+        $orders = $this->parse_orders($response, null, $since, $limit);
+        if ($symbol !== null) {
+            $market = $this->market ($symbol); // throws on non-existent $symbol
+            $orders = $this->filter_by_symbol($orders, $market['symbol']);
+        }
+        return $orders;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

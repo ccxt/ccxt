@@ -69,7 +69,7 @@ class coinex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'balance',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -297,7 +297,7 @@ class coinex extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv[0],
+            $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
             floatval ($ohlcv[4]),
@@ -318,7 +318,27 @@ class coinex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalance ($params);
+        $response = $this->privateGetBalanceInfo ($params);
+        //
+        //     {
+        //       "code" => 0,
+        //       "data" => {
+        //         "BCH" => array (                     # BCH $account
+        //           "available" => "13.60109",   # Available BCH
+        //           "frozen" => "0.00000"        # Frozen BCH
+        //         ),
+        //         "BTC" => array (                     # BTC $account
+        //           "available" => "32590.16",   # Available BTC
+        //           "frozen" => "7000.00"        # Frozen BTC
+        //         ),
+        //         "ETH" => array (                     # ETH $account
+        //           "available" => "5.06000",    # Available ETH
+        //           "frozen" => "0.00000"        # Frozen ETH
+        //         }
+        //       ),
+        //       "message" => "Ok"
+        //     }
+        //
         $result = array ( 'info' => $response );
         $balances = $response['data'];
         $currencies = is_array ($balances) ? array_keys ($balances) : array ();

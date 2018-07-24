@@ -47,6 +47,7 @@ class okcoinusd extends Exchange {
                     'get' => array (
                         'spot/markets/currencies',
                         'spot/markets/products',
+                        'spot/markets/tickers',
                     ),
                 ),
                 'public' => array (
@@ -268,7 +269,29 @@ class okcoinusd extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['timestamp'];
+        //
+        //     {              buy =>   "48.777300",
+        //                 $change =>   "-1.244500",
+        //       changePercentage =>   "-2.47%",
+        //                  close =>   "49.064000",
+        //            createdDate =>    1531704852254,
+        //             currencyId =>    527,
+        //                dayHigh =>   "51.012500",
+        //                 dayLow =>   "48.124200",
+        //                   high =>   "51.012500",
+        //                inflows =>   "0",
+        //                   $last =>   "49.064000",
+        //                    low =>   "48.124200",
+        //             marketFrom =>    627,
+        //                   name => array (  ),
+        //                   $open =>   "50.308500",
+        //               outflows =>   "0",
+        //              productId =>    527,
+        //                   sell =>   "49.064000",
+        //                 $symbol =>   "zec_okb",
+        //                 volume =>   "1049.092535"   }
+        //
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'createdDate');
         $symbol = null;
         if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
@@ -277,9 +300,13 @@ class okcoinusd extends Exchange {
                     $market = $this->markets_by_id[$marketId];
             }
         }
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
+        $open = $this->safe_float($ticker, 'open');
+        $change = $this->safe_float($ticker, 'change');
+        $percentage = $this->safe_float($ticker, 'changePercentage');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -291,14 +318,14 @@ class okcoinusd extends Exchange {
             'ask' => $this->safe_float($ticker, 'sell'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => null,
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
+            'change' => $change,
+            'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_float_2($ticker, 'vol', 'volume'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
@@ -408,10 +435,17 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        $ids = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+        $freeIds = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
+        $freezedIds = is_array ($balances['freezed']) ? array_keys ($balances['freezed']) : array ();
+        $ids = $this->array_concat($freeIds, $freezedIds);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->currencies_by_id[$id]['code'];
+            $code = strtoupper ($id);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$id]['code'];
+            } else {
+                $code = $this->common_currency_code($code);
+            }
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
             $account['used'] = $this->safe_float($balances['freezed'], $id, 0.0);

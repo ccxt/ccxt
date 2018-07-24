@@ -16,6 +16,7 @@ class bittrex extends Exchange {
             'countries' => array ( 'US' ),
             'version' => 'v1.1',
             'rateLimit' => 1500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
@@ -501,7 +502,9 @@ class bittrex extends Exchange {
         $request = array ();
         $request[$orderIdField] = $id;
         $response = $this->marketGetCancel (array_merge ($request, $params));
-        return $this->parse_order($response);
+        return array_merge ($this->parse_order($response), array (
+            'status' => 'canceled',
+        ));
     }
 
     public function parse_symbol ($id) {
@@ -794,6 +797,15 @@ class bittrex extends Exchange {
                 throw new ExchangeError ($feedback);
             }
         }
+    }
+
+    public function append_timezone_parse8601 ($x) {
+        $length = is_array ($x) ? count ($x) : 0;
+        $lastSymbol = $x[$length - 1];
+        if (($lastSymbol === 'Z') || (mb_strpos ($x, '+') !== false)) {
+            return $this->parse8601 ($x);
+        }
+        return $this->parse8601 ($x . 'Z');
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

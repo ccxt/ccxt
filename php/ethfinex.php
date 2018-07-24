@@ -17,6 +17,7 @@ class ethfinex extends bitfinex {
             'version' => 'v1',
             'rateLimit' => 1500,
             // new metainfo interface
+            'certified' => false,
             'has' => array (
                 'CORS' => false,
                 'createDepositAddress' => true,

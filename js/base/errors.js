@@ -28,6 +28,8 @@ module.exports = subclass (
                     'OrderNotFound': {},
                     'OrderNotCached': {},
                     'CancelPending': {},
+                    'OrderImmediatelyFillable': {},
+                    'OrderNotFillable': {},
                 },
                 'NotSupported': {},
             },

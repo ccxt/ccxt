@@ -31,6 +31,7 @@ class bitfinex (Exchange):
             'countries': ['VG'],
             'version': 'v1',
             'rateLimit': 1500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': False,

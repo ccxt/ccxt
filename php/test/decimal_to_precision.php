@@ -74,6 +74,10 @@ assert (decimal_to_precision ('123.0000987654', TRUNCATE, 2, SIGNIFICANT_DIGITS)
 assert (decimal_to_precision ('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS) === '100');
 assert (decimal_to_precision ('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '100');
 
+assert (decimal_to_precision ('1234', TRUNCATE, 5, SIGNIFICANT_DIGITS) === '1234');
+assert (decimal_to_precision ('1234', TRUNCATE, 5, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1234.0');
+assert (decimal_to_precision ('1234', TRUNCATE, 4, SIGNIFICANT_DIGITS) === '1234');
+assert (decimal_to_precision ('1234', TRUNCATE, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1234');
 assert (decimal_to_precision ('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS) === '0');
 assert (decimal_to_precision ('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0');
 

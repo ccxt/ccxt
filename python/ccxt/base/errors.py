@@ -40,6 +40,8 @@ __all__ = [
     'AddressPending',
     'BadResponse',
     'NullResponse',
+    'OrderNotFillable',
+    'OrderImmediatelyFillable',
 ]
 
 # -----------------------------------------------------------------------------
@@ -117,6 +119,16 @@ class OrderNotCached(InvalidOrder):
 
 class CancelPending(InvalidOrder):
     """Raised when an order that is already pending cancel is being canceled again"""
+    pass
+
+
+class OrderNotFillable(InvalidOrder):
+    """Raised when an order placed as a market order or a taker order is not fillable upon request"""
+    pass
+
+
+class OrderImmediatelyFillable(InvalidOrder):
+    """Raised when an order placed as maker order is fillable immediately as a taker upon request"""
     pass
 
 
