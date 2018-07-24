@@ -2043,6 +2043,7 @@ class Exchange {
         // throw new NotSupported ($this->id . ' soliditySha3 () not implemented in PHP yet');
 
         // $unpacked = array (
+        //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
         //     "0x731fc101bbe102221c91c31ed0489f1ddfc439a3", // maker
         //     "0x00ba938cc0df182c25108d7bf2ee3d37bce07513", // taker
         //     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // makerTokenAddress
@@ -2054,7 +2055,6 @@ class Exchange {
         //     "1534809575", // expirationUnixTimestampSec
         //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
         //     "3610846705800197954038657082705100176266402776121341340841167002345284333867", // salt
-        //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
         // );
         //
         // should result in
