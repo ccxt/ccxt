@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
@@ -482,6 +482,7 @@ module.exports = class theocean extends Exchange {
         if (!(this.walletAddress && this.privateKey)) {
             throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".');
         }
+        let timestamp = this.milliseconds ();
         let market = this.market (symbol);
         let reserveRequest = {
             'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
@@ -496,8 +497,7 @@ module.exports = class theocean extends Exchange {
         }
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
-        let info = {};
-        let reserveResponse = await this[reserveMethod] ();
+        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
         //
         // ---- market orders -------------------------------------------------
         //
@@ -593,8 +593,6 @@ module.exports = class theocean extends Exchange {
         // --------------------------------------------------------------------
         let unsignedMatchingOrder = this.safeValue (reserveResponse, 'unsignedMatchingOrder');
         let unsignedTargetOrder = this.safeValue (reserveResponse, 'unsignedTargetOrder');
-        info['unsignedMatchingOrder'] = unsignedMatchingOrder;
-        info['unsignedTargetOrder'] = unsignedTargetOrder;
         const maker = {
             'maker': this.walletAddress.toLowerCase (),
         };
@@ -602,23 +600,18 @@ module.exports = class theocean extends Exchange {
         const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
         const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
         const isLimitOrderAndTargetOrderDefined = (type === 'limit') && isUnsignedTargetOrderDefined;
-        let target = undefined;
-        let matching = undefined;
+        let signedMatchingOrder = undefined;
+        let signedTargetOrder = undefined;
         if (isUnsignedMatchingOrderDefined) {
-            let signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, maker));
-            let matchingOrderRequest = {
+            signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, maker));
+            placeRequest = this.extend (placeRequest, {
                 'signedMatchingOrder': signedMatchingOrder,
                 'matchingOrderID': reserveResponse['matchingOrderID'],
-            };
-            placeRequest = this.extend (placeRequest, matchingOrderRequest);
-            info = this.extend (info, matchingOrderRequest);
-            target = signedMatchingOrder;
+            });
         }
         if (isLimitOrderAndTargetOrderDefined) {
-            let signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, maker));
+            signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, maker));
             placeRequest['signedTargetOrder'] = signedTargetOrder;
-            info['signedTargetOrder'] = signedTargetOrder;
-            matching = signedTargetOrder;
         }
         if (!(isUnsignedMatchingOrderDefined || isLimitOrderAndTargetOrderDefined)) {
             throw new InvalidOrder (this.id + ' cannot place order to ' + side + ' ' + symbol + ' at the moment, make sure the order book is not empty.');
@@ -654,13 +647,8 @@ module.exports = class theocean extends Exchange {
         //         }
         //     }
         //
-        info = this.extend (info, placeResponse);
         let matchingOrder = this.safeValue (placeResponse, 'matchingOrder');
         let targetOrder = this.safeValue (placeResponse, 'targetOrder');
-        const result = {
-            'info': info,
-        };
-        let timestamp = this.milliseconds ();
         const orderParams = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -669,6 +657,27 @@ module.exports = class theocean extends Exchange {
             'filled': 0,
             'status': 'open',
         };
+        let result = undefined;
+        if (isUnsignedMatchingOrderDefined !isLimitOrderAndTargetOrderDefined) {
+            result['info'] = {
+                'reserve': reserveResponse,
+                'place': placeResponse,
+            };
+            matching = this.extend (matching, matchingOrder);
+            let takerOrder = this.parseOrder (matching, market);
+            result['taker'] = this.extend (takerOrder, {
+                'type': 'market',
+                'remaining': takerOrder['amount'],
+            }, orderParams);
+
+        }
+
+
+        const result = {
+            'info': info,
+        };
+
+
         if (typeof matchingOrder !== 'undefined') {
             matching = this.extend (matching, matchingOrder);
             let takerOrder = this.parseOrder (matching, market);
@@ -808,9 +817,9 @@ module.exports = class theocean extends Exchange {
         //                                     timestamp: "1532261686"                                                          }  ] }
         //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
-        let id = this.safeString (zeroExOrder, 'orderHash');
-        if (typeof id === 'undefined') {
-            id = this.safeString (order, 'orderHash');
+        let id = id = this.safeString (order, 'orderHash');
+        if ((typeof id === 'undefined') && (typeof zeroExOrder !== 'undefined')) {
+            id = this.safeString (zeroExOrder, 'orderHash');
         }
         let side = this.safeString (order, 'side');
         let type = 'limit';
@@ -1087,6 +1096,7 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 // {"message":"Order not found","errors":[]}
+                // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 //
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
@@ -1094,6 +1104,9 @@ module.exports = class theocean extends Exchange {
                 if (message in exceptions) {
                     throw new exceptions[message] (feedback);
                 } else {
+                    if (message.indexOf ('Orderbook exhausted for intent') >= 0) {
+                        throw new ExchangeNotAvailable (feedback);
+                    }
                     throw new ExchangeError (feedback);
                 }
             }
