@@ -19,6 +19,12 @@ Current feature list:
 
 [ccxt on GitHub](https://github.com/ccxt/ccxt) | [Install](#install) | [Usage](#usage) | [Manual](https://github.com/ccxt/ccxt/wiki) | [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) | [Examples](https://github.com/ccxt/ccxt/tree/master/examples) | [Changelog](https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md) | [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)
 
+## Sponsored Promotion
+
+[![TheOcean](https://user-images.githubusercontent.com/1294454/43125647-51b8b8fe-8f33-11e8-9b51-1dd7568964cb.png)](https://theocean.trade)
+
+Learn more about The Ocean in [CCXT v1.17 Release Announcement](https://github.com/ccxt/ccxt/).
+
 ## Certified Cryptocurrency Exchanges
 
 
