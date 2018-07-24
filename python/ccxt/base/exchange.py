@@ -67,7 +67,7 @@ except NameError:
 
 try:
     import urllib.parse as _urlencode    # Python 3
-    from web3.auto import w3           # web3/0x imports
+    # from web3.auto import w3             # web3/0x imports
     from web3 import Web3, HTTPProvider
 except ImportError:
     import urllib as _urlencode          # Python 2
@@ -256,7 +256,8 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if Web3 and not self.web3:
-            self.web3 = w3 if w3 else Web3(HTTPProvider())
+            # self.web3 = w3 if w3 else Web3(HTTPProvider())
+            self.web3 = Web3(HTTPProvider())
 
     def __del__(self):
         if self.session:
