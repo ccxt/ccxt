@@ -25,7 +25,7 @@ Sponsored Promotion
 
 `TheOcean <https://theocean.trade>`__
 
-Learn more about The Ocean in `CCXT v1.17 Release Announcement <https://github.com/ccxt/ccxt/issues/3476>`__.
+Learn more about `The Ocean <https://theocean.trade>`__ in `CCXT v1.17 Release Announcement <https://github.com/ccxt/ccxt/issues/3476>`__.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
