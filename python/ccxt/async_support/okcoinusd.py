@@ -421,10 +421,16 @@ class okcoinusd (Exchange):
         response = await self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
-        ids = list(self.currencies_by_id.keys())
+        freeIds = list(balances['free'].keys())
+        freezedIds = list(balances['freezed'].keys())
+        ids = self.array_concat(freeIds, freezedIds)
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.currencies_by_id[id]['code']
+            code = id.upper()
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
+            else:
+                code = self.common_currency_code(code)
             account = self.account()
             account['free'] = self.safe_float(balances['free'], id, 0.0)
             account['used'] = self.safe_float(balances['freezed'], id, 0.0)

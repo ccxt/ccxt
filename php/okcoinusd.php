@@ -435,10 +435,17 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        $ids = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+        $freeIds = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
+        $freezedIds = is_array ($balances['freezed']) ? array_keys ($balances['freezed']) : array ();
+        $ids = $this->array_concat($freeIds, $freezedIds);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->currencies_by_id[$id]['code'];
+            $code = strtoupper ($id);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$id]['code'];
+            } else {
+                $code = $this->common_currency_code($code);
+            }
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
             $account['used'] = $this->safe_float($balances['freezed'], $id, 0.0);

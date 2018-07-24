@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.6'
+const version = '1.17.7'
 
 Exchange.ccxtVersion = version
 
@@ -44139,10 +44139,17 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
-        let ids = Object.keys (this.currencies_by_id);
+        let freeIds = Object.keys (balances['free']);
+        let freezedIds = Object.keys (balances['freezed']);
+        let ids = this.arrayConcat (freeIds, freezedIds);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let code = this.currencies_by_id[id]['code'];
+            let code = id.toUpperCase ();
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = this.account ();
             account['free'] = this.safeFloat (balances['free'], id, 0.0);
             account['used'] = this.safeFloat (balances['freezed'], id, 0.0);
