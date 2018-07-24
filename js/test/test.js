@@ -184,6 +184,7 @@ let testExchange = async exchange => {
         'ETH/BTC',
         'BTC/JPY',
         'LTC/BTC',
+        'ZRX/WETH',
     ]
     for (let s in symbols) {
         if (exchange.symbols.includes (symbols[s])) {

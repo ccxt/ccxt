@@ -30,6 +30,10 @@ SOFTWARE.
 
 namespace ccxt;
 
+use kornrunner\Eth;
+use kornrunner\Secp256k1;
+use kornrunner\Solidity;
+
 $version = '1.16.89';
 
 // rounding mode
@@ -47,6 +51,33 @@ const PAD_WITH_ZERO = 1;
 class Exchange {
 
     const VERSION = '1.16.89';
+
+    public static $eth_units = array (
+        'wei'        => '1',
+        'kwei'       => '1000',
+        'babbage'    => '1000',
+        'femtoether' => '1000',
+        'mwei'       => '1000000',
+        'lovelace'   => '1000000',
+        'picoether'  => '1000000',
+        'gwei'       => '1000000000',
+        'nano'       => '1000000000',
+        'shannon'    => '1000000000',
+        'nanoether'  => '1000000000',
+        'szabo'      => '1000000000000',
+        'micro'      => '1000000000000',
+        'microether' => '1000000000000',
+        'finney'     => '1000000000000000',
+        'milli'      => '1000000000000000',
+        'milliether' => '1000000000000000',
+        'ether'      => '1000000000000000000',
+        'kether'     => '1000000000000000000000',
+        'einstein'   => '1000000000000000000000',
+        'grand'      => '1000000000000000000000',
+        'mether'     => '1000000000000000000000000',
+        'gether'     => '1000000000000000000000000000',
+        'tether'     => '1000000000000000000000000000000',
+    );
 
     public static $exchanges = array (
         '_1broker',
@@ -162,6 +193,7 @@ class Exchange {
         'rightbtc',
         'southxchange',
         'surbitcoin',
+        'theocean',
         'therock',
         'tidebit',
         'tidex',
@@ -689,6 +721,8 @@ class Exchange {
         $this->secret      = '';
         $this->password    = '';
         $this->uid         = '';
+        $this->privateKey  = '';
+        $this->walletAddress = '';
         $this->twofa       = false;
         $this->marketsById = null;
         $this->markets_by_id = null;
@@ -710,6 +744,8 @@ class Exchange {
             'login' => false,
             'password' => false,
             'twofa' => false, // 2-factor authentication (one-time password key)
+            'privateKey' => false,
+            'walletAddress' => false,
         );
 
         // API methods metainfo
@@ -810,6 +846,16 @@ class Exchange {
                     $this->$camelcase  = $partial;
                     $this->$underscore = $partial;
                 }
+    }
+
+    public function underscore ($camelcase) {
+        // todo: write conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
+        throw new NotSupported ($this->id . ' underscore() not implemented yet');
+    }
+
+    public function camelcase ($underscore) {
+        // todo: write conversion foo_bar10_ohlcv2_candles → fooBar10OHLCV2Candles
+        throw new NotSupported ($this->id . ' camelcase() not implemented yet');
     }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
@@ -1718,6 +1764,22 @@ class Exchange {
         return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 
+    public function fromWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
+        return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
+    }
+
+    public function toWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        return (string) (int) (($unit === 'wei') ? $amount : bcmul ($amount, Exchange::$eth_units[$unit]));
+    }
+
+
     public function precision_from_string ($string) {
         $parts = explode ('.', preg_replace ('/0+$/', '', $string));
         return (count ($parts) > 1) ? strlen ($parts[1]) : 0;
@@ -1844,9 +1906,9 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists ($function, $this))
+        if (array_key_exists ($function, $this)) {
             return call_user_func_array ($this->$function, $params);
-        else {
+        } else {
             /* handle errors */
             throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
@@ -1960,6 +2022,140 @@ class Exchange {
         }
 
         return $result;
+    }
+
+    // ------------------------------------------------------------------------
+    // web3 / 0x methods
+
+    // decryptAccountFromJSON (json, password) {
+    //     return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
+    // }
+
+    // decryptAccount (key, password) {
+    //     return this.web3.eth.accounts.decrypt (key, password)
+    // }
+
+    // decryptAccountFromPrivateKey (privateKey) {
+    //     return this.web3.eth.accounts.privateKeyToAccount (privateKey)
+    // }
+
+    public function getZeroExOrderHash ($order) {
+        // throw new NotSupported ($this->id . ' soliditySha3 () not implemented in PHP yet');
+
+        // $unpacked = array (
+        //     "0x731fc101bbe102221c91c31ed0489f1ddfc439a3", // maker
+        //     "0x00ba938cc0df182c25108d7bf2ee3d37bce07513", // taker
+        //     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // makerTokenAddress
+        //     "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570", // takerTokenAddress
+        //     "27100000000000000", // makerTokenAmount
+        //     "874377028175459241", // takerTokenAmount
+        //     "0", // makerFee
+        //     "0", // takerFee
+        //     "1534809575", // expirationUnixTimestampSec
+        //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
+        //     "3610846705800197954038657082705100176266402776121341340841167002345284333867", // salt
+        //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
+        // );
+        //
+        // should result in
+        // 0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5
+        // echo call_user_func_array('\kornrunner\Solidity::sha3', $unpacked) . "\n";
+        // exit ();
+
+        $unpacked = array (
+            $order['exchangeContractAddress'],      // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            $order['maker'],                        // { value: order.maker, type: types_1.SolidityTypes.Address },
+            $order['taker'],                        // { value: order.taker, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAddress'],            // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['takerTokenAddress'],            // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['feeRecipient'],                 // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAmount'],             // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['takerTokenAmount'],             // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['makerFee'],                     // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['takerFee'],                     // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['expirationUnixTimestampSec'],   // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            $order['salt'],                         // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        );
+        // $types = array (
+        //     'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+        //     'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        // );
+        return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
+    }
+
+    public function signZeroExOrder ($order) {
+        $orderHash = $this->getZeroExOrderHash ($order);
+        $signature = $this->signMessage ($orderHash, $this->privateKey);
+        return array_merge ($order, array (
+            'orderHash' => $orderHash,
+            'ecSignature' => $signature, // todo fix v if needed
+        ));
+    }
+
+    public function hashMessage ($message) {
+        return '0x' . Eth::hashPersonalMessage ($message);
+    }
+
+    public function signHash ($hash, $privateKey) {
+        $secp256k1 = new Secp256k1();
+        $signature = $secp256k1->sign ($hash, $privateKey);
+        return array (
+            'v' => $signature->getRecoveryParam () + 27, // integer
+            'r' => "0x" . gmp_strval ($signature->getR (), 16), // '0x'-prefixed hex string
+            's' => "0x" . gmp_strval ($signature->getS (), 16), // '0x'-prefixed hex string
+        );
+    }
+
+    // signMessage (message, privateKey) {
+    //     //
+    //     // The following comment is related to MetaMask, we use the upper type of signature prefix:
+    //     //
+    //     // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+    //     //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+    //     //                              prefixType: 'ETH_SIGN',
+    //     //                              shouldAddPrefixBeforeCallingEthSign: true
+    //     //                          }).then ((e, r) => console.log (e,r))
+    //     //
+    //     //     {                            ↓
+    //     //         v: 28,
+    //     //         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
+    //     //         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
+    //     //     }
+    //     //
+    //     // --------------------------------------------------------------------
+    //     //
+    //     // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+    //     //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+    //     //                              prefixType: 'NONE',
+    //     //                              shouldAddPrefixBeforeCallingEthSign: true
+    //     //                          }).then ((e, r) => console.log (e,r))
+    //     //
+    //     //     {                            ↓
+    //     //         v: 27,
+    //     //         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
+    //     //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
+    //     //     }
+    //     //
+    //     const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
+    //     return {
+    //         v: parseInt (signature.v.slice (2), 16), // integer
+    //         r: signature.r, // '0x'-prefixed hex string
+    //         s: signature.s, // '0x'-prefixed hex string
+    //     }
+    // }
+
+    public function signMessage ($message, $privateKey) {
+        return $this->signHash ($this->hashMessage ($message), $privateKey);
     }
 
 }
