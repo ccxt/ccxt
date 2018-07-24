@@ -1,14 +1,14 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'theocean',
-            'name': 'TheOcean',
+            'name': 'The Ocean',
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v0',
@@ -483,6 +483,16 @@ module.exports = class theocean extends Exchange {
         if (!(this.walletAddress && this.privateKey)) {
             throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".');
         }
+        const makerOrTaker = this.safeString (params, 'makerOrTaker');
+        const isMarket = (type === 'market');
+        const isLimit = (type === 'limit');
+        const isMakerOrTakerUndefined = (typeof makerOrTaker === 'undefined');
+        const isTaker = (makerOrTaker === 'taker');
+        const isMaker = (makerOrTaker === 'maker');
+        if (isMarket && !isMakerOrTakerUndefined && !isTaker) {
+            throw new InvalidOrder (this.id + ' createOrder() ' + type + ' order type cannot be a ' + makerOrTaker + '. The createOrder() method of ' + type + ' type can be used with taker orders only.');
+        }
+        let query = this.omit (params, 'makerOrTaker');
         let timestamp = this.milliseconds ();
         let market = this.market (symbol);
         let reserveRequest = {
@@ -498,7 +508,7 @@ module.exports = class theocean extends Exchange {
         }
         let method = 'privatePost' + this.capitalize (type) + 'Order';
         let reserveMethod = method + 'Reserve';
-        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, params));
+        let reserveResponse = await this[reserveMethod] (this.extend (reserveRequest, query));
         //
         // ---- market orders -------------------------------------------------
         //
@@ -594,31 +604,38 @@ module.exports = class theocean extends Exchange {
         // --------------------------------------------------------------------
         let unsignedMatchingOrder = this.safeValue (reserveResponse, 'unsignedMatchingOrder');
         let unsignedTargetOrder = this.safeValue (reserveResponse, 'unsignedTargetOrder');
-        const maker = {
+        const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
+        const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
+        const makerAddress = {
             'maker': this.walletAddress.toLowerCase (),
         };
         let placeRequest = {};
-        const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
-        const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
-        const isLimitOrderAndTargetOrderDefined = (type === 'limit') && isUnsignedTargetOrderDefined;
         let signedMatchingOrder = undefined;
         let signedTargetOrder = undefined;
-        if (isUnsignedMatchingOrderDefined) {
-            signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, maker));
-            placeRequest = this.extend (placeRequest, {
-                'signedMatchingOrder': signedMatchingOrder,
-                'matchingOrderID': reserveResponse['matchingOrderID'],
-            });
+        if ((isMarket && isMakerOrTakerUndefined) || isTaker) {
+            if (isUnsignedMatchingOrderDefined) {
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress));
+                placeRequest = this.extend (placeRequest, {
+                    'signedMatchingOrder': signedMatchingOrder,
+                    'matchingOrderID': reserveResponse['matchingOrderID'],
+                });
+            } else if (isMarket || isTaker) {
+                throw new OrderNotFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order');
+            }
         }
-        if (isLimitOrderAndTargetOrderDefined) {
-            signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, maker));
-            placeRequest['signedTargetOrder'] = signedTargetOrder;
+        if ((isLimit && isMakerOrTakerUndefined) || isMaker) {
+            if (isUnsignedTargetOrderDefined) {
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress));
+                placeRequest['signedTargetOrder'] = signedTargetOrder;
+            } else if (isMaker) {
+                throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');
+            }
         }
-        if (!(isUnsignedMatchingOrderDefined || isLimitOrderAndTargetOrderDefined)) {
-            throw new InvalidOrder (this.id + ' cannot place order to ' + side + ' ' + symbol + ' at the moment, make sure the order book is not empty.');
+        if (!isUnsignedMatchingOrderDefined && !isUnsignedTargetOrderDefined) {
+            throw new OrderNotFillable (this.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment');
         }
         let placeMethod = method + 'Place';
-        let placeResponse = await this[placeMethod] (this.extend (placeRequest, params));
+        let placeResponse = await this[placeMethod] (this.extend (placeRequest, query));
         //
         // ---- market orders -------------------------------------------------
         //
@@ -658,36 +675,33 @@ module.exports = class theocean extends Exchange {
             'filled': 0,
             'status': 'open',
         };
-        const result = {};
-        if (!isLimitOrderAndTargetOrderDefined) {
-            result['info'] = {
-                'reserve': reserveResponse,
-                'place': placeResponse,
-            };
-            let matching = this.extend (signedMatchingOrder, matchingOrder);
-            let takerOrder = this.parseOrder (matching, market);
-            result['taker'] = this.extend (takerOrder, {
-                'type': 'market',
-                'remaining': takerOrder['amount'],
-            }, orderParams);
-        }
+        let taker = undefined;
+        let maker = undefined;
         if (typeof matchingOrder !== 'undefined') {
-            let matching = this.extend (signedMatchingOrder, matchingOrder);
-            let takerOrder = this.parseOrder (matching, market);
-            result['taker'] = this.extend (takerOrder, {
+            matchingOrder = this.extend (signedMatchingOrder, matchingOrder);
+            taker = this.parseOrder (matchingOrder, market);
+            taker = this.extend (taker, {
                 'type': 'market',
-                'remaining': takerOrder['amount'],
+                'remaining': taker['amount'],
             }, orderParams);
+            if (isTaker)
+                return taker;
         }
         if (typeof targetOrder !== 'undefined') {
-            let target = this.extend (signedTargetOrder, targetOrder);
-            let makerOrder = this.parseOrder (target, market);
-            result['maker'] = this.extend (makerOrder, {
+            targetOrder = this.extend (signedTargetOrder, targetOrder);
+            maker = this.parseOrder (targetOrder, market);
+            maker = this.extend (maker, {
                 'type': 'limit',
-                'remaining': makerOrder['amount'],
+                'remaining': maker['amount'],
             }, orderParams);
+            if (isMaker)
+                return maker;
         }
-        return result;
+        return {
+            'info': this.extend (reserveResponse, placeRequest, placeResponse),
+            'maker': maker,
+            'taker': taker,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1084,21 +1098,21 @@ module.exports = class theocean extends Exchange {
         }
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            if ('errors' in response) {
+            const message = this.safeString (response, 'message');
+            if (typeof message !== 'undefined') {
                 //
                 // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 // {"message":"Order not found","errors":[]}
                 // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 //
-                const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
                 if (message in exceptions) {
                     throw new exceptions[message] (feedback);
                 } else {
                     if (message.indexOf ('Orderbook exhausted for intent') >= 0) {
-                        throw new ExchangeNotAvailable (feedback);
+                        throw new OrderNotFillable (feedback);
                     }
                     throw new ExchangeError (feedback);
                 }
