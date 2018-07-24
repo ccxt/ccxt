@@ -30,8 +30,11 @@ SOFTWARE.
 
 namespace ccxt;
 
+require ('vendor/autoload.php');
+
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
+use kornrunner\Solidity;
 
 $version = '1.16.89';
 
@@ -2034,53 +2037,68 @@ class Exchange {
     //     return this.web3.eth.accounts.privateKeyToAccount (privateKey)
     // }
 
-    // getZeroExOrderHash (order) {
-    //     let unpacked = [
-    //         order['exchangeContractAddress'],                       // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-    //         order['maker'],                                         // { value: order.maker, type: types_1.SolidityTypes.Address },
-    //         order['taker'],                                         // { value: order.taker, type: types_1.SolidityTypes.Address },
-    //         order['makerTokenAddress'],                             // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         order['takerTokenAddress'],                             // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         order['feeRecipient'],                                  // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-    //         new BigNumber (order['makerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         new BigNumber (order['takerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         new BigNumber (order['makerFee']).toFixed (),           // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-    //         new BigNumber (order['takerFee']).toFixed (),           // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-    //         new BigNumber (order['expirationUnixTimestampSec']).toFixed (), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-    //         new BigNumber (order['salt']).toFixed (),               // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-    //     ]
-    //     let types = [
-    //         'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-    //         'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
-    //         'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
-    //         'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-    //         'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-    //         'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-    //         'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-    //         'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-    //         'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-    //         'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-    //     ]
-    //     return '0x' + ethAbi.soliditySHA3 (types, unpacked).toString ('hex')
-    // }
+    public function getZeroExOrderHash ($order) {
+        // throw new NotSupported ($this->id . ' soliditySha3 () not implemented in PHP yet');
 
-    // signZeroExOrder (order) {
-    //     const orderHash = this.getZeroExOrderHash (order);
-    //     const signature = this.signMessage (orderHash, this.privateKey);
-    //     // const signature2 = this.signMessage2 (orderHash, this.privateKey);
-    //     // const log = require ('ololog').unlimited;
-    //     // log ('----------------------------------------------------------')
-    //     // log.green ('messageHash:', messageHash)
-    //     // log.red ('orderHash:', orderHash);
-    //     // log.red ('signature1:', signature1)
-    //     // log.yellow ('signature2:', signature2)
-    //     return this.extend (order, {
-    //         'orderHash': orderHash,
-    //         'ecSignature': signature, // todo fix v if needed
-    //     })
-    // }
+        // $unpacked = array (
+        //     "0x731fc101bbe102221c91c31ed0489f1ddfc439a3", // maker
+        //     "0x00ba938cc0df182c25108d7bf2ee3d37bce07513", // taker
+        //     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // makerTokenAddress
+        //     "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570", // takerTokenAddress
+        //     "27100000000000000", // makerTokenAmount
+        //     "874377028175459241", // takerTokenAmount
+        //     "0", // makerFee
+        //     "0", // takerFee
+        //     "1534809575", // expirationUnixTimestampSec
+        //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
+        //     "3610846705800197954038657082705100176266402776121341340841167002345284333867", // salt
+        //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
+        // );
+        //
+        // should result in
+        // 0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5
+        // echo call_user_func_array('\kornrunner\Solidity::sha3', $unpacked) . "\n";
+        // exit ();
+
+        $unpacked = array (
+            $order['exchangeContractAddress'],      // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            $order['maker'],                        // { value: order.maker, type: types_1.SolidityTypes.Address },
+            $order['taker'],                        // { value: order.taker, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAddress'],            // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['takerTokenAddress'],            // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['feeRecipient'],                 // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAmount'],             // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['takerTokenAmount'],             // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['makerFee'],                     // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['takerFee'],                     // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['expirationUnixTimestampSec'],   // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            $order['salt'],                         // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        );
+        // $types = array (
+        //     'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+        //     'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        // );
+        return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
+    }
+
+    public function signZeroExOrder ($order) {
+        $orderHash = $this->getZeroExOrderHash ($order);
+        $signature = $this->signMessage ($orderHash, $this->privateKey);
+        return array_merge ($order, array (
+            'orderHash' => $orderHash,
+            'ecSignature' => $signature, // todo fix v if needed
+        ));
+    }
 
     public function hashMessage ($message) {
         return '0x' . Eth::hashPersonalMessage ($message);
@@ -2134,9 +2152,8 @@ class Exchange {
     //     }
     // }
 
-    // signMessage2 (message, privateKey) {
-    //     // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
-    //     return this.signHash (this.hashMessage (message), privateKey.slice (-64))
-    // }
+    public function signMessage ($message, $privateKey) {
+        return $this->signHash ($this->hashMessage ($message), $privateKey);
+    }
 
 }
