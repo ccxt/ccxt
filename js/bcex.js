@@ -256,22 +256,17 @@ module.exports = class bcex extends Exchange {
         let timestamp = order['datetime'] * 1000;
         let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
-        let type = order['type'];
-        let side = "TODO";
-        let price = order['price']
-        let average = order['avg_price']
-        let amount = order['amount']
-        let remaining = order['amount_outstanding']
+        let type = undefined;
+        let side = order['type'];
+        let price = order['price'];
+        let average = order['avg_price'];
+        let amount = order['amount'];
+        let remaining = order['amount_outstanding'];
         let filled = amount - remaining;
-        let status = order['status']
+        let status = order['status'];
         let cost = filled * price;
         let fee = undefined;
-        if ('fee' in order) {
-            fee = {
-                'cost': parseFloat (order['fee']),
-                'currency': this.commonCurrencyCode (order['feeCurrency']),
-            };
-        }
+      
         let result = {
             'info': order,
             'id': id,
