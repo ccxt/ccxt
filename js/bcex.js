@@ -38,6 +38,9 @@ module.exports = class bcex extends Exchange {
                     'get': [
                         'Api_Market/getPriceList'
                     ],
+                    'post': [
+                        'Api_Order/marketOrder'
+                    ]
                 },
                 'private': {
                     'post': [
@@ -102,6 +105,18 @@ module.exports = class bcex extends Exchange {
             }
         }
         return result;
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'symbol': this.marketId(symbol)
+        }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let market = this.market (symbol);
+        let response = await this.publicPostApiOrderMarketOrder(this.extend(request, params));
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
