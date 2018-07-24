@@ -21,7 +21,7 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![TheOcean](https://user-images.githubusercontent.com/1294454/43125647-51b8b8fe-8f33-11e8-9b51-1dd7568964cb.png)](https://theocean.trade)
+[![TheOcean](https://user-images.githubusercontent.com/1294454/43153587-5576b1ac-8f7a-11e8-887b-4f6bb1105a8d.png)](https://theocean.trade)
 
 Learn more about The Ocean in [CCXT v1.17 Release Announcement](https://github.com/ccxt/ccxt/issues/3476).
 
