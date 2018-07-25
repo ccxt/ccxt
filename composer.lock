@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "d7513b71d0eb9bf7ae1efe3a50d74693",
+    "content-hash": "fd0e8302c8395cc89b1139ab175468ce",
     "packages": [
         {
             "name": "fgrosse/phpasn1",
@@ -206,27 +206,28 @@
         },
         {
             "name": "kornrunner/solidity",
-            "version": "0.0.6",
+            "version": "0.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kornrunner/php-solidity.git",
-                "reference": "851bc44133f227e17f333f51583cafd8dc1afb89"
+                "reference": "b7ffbb8973d3001bc94aaee195fb4194a554a7ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kornrunner/php-solidity/zipball/851bc44133f227e17f333f51583cafd8dc1afb89",
-                "reference": "851bc44133f227e17f333f51583cafd8dc1afb89",
+                "url": "https://api.github.com/repos/kornrunner/php-solidity/zipball/b7ffbb8973d3001bc94aaee195fb4194a554a7ab",
+                "reference": "b7ffbb8973d3001bc94aaee195fb4194a554a7ab",
                 "shasum": ""
             },
             "require": {
                 "ext-gmp": "^7.1",
+                "ext-mbstring": "*",
                 "kornrunner/keccak": "^1.0",
                 "php": ">=7.1.0",
                 "simplito/bn-php": "^1.0"
             },
             "require-dev": {
-                "phpunit/phpunit": "^6.5",
-                "satooshi/php-coveralls": "~2"
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": "~7"
             },
             "type": "library",
             "autoload": {
@@ -248,7 +249,7 @@
             "keywords": [
                 "solidity"
             ],
-            "time": "2018-02-28T12:45:01+00:00"
+            "time": "2018-07-24T22:49:17+00:00"
         },
         {
             "name": "mdanter/ecc",
