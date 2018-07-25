@@ -2041,7 +2041,6 @@ class Exchange {
     // }
 
     public function getZeroExOrderHash ($order) {
-        // throw new NotSupported ($this->id . ' soliditySha3 () not implemented in PHP yet');
 
         // $unpacked = array (
         //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
@@ -2049,19 +2048,17 @@ class Exchange {
         //     "0x00ba938cc0df182c25108d7bf2ee3d37bce07513", // taker
         //     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // makerTokenAddress
         //     "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570", // takerTokenAddress
+        //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
         //     "27100000000000000", // makerTokenAmount
         //     "874377028175459241", // takerTokenAmount
         //     "0", // makerFee
         //     "0", // takerFee
         //     "1534809575", // expirationUnixTimestampSec
-        //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
         //     "3610846705800197954038657082705100176266402776121341340841167002345284333867", // salt
         // );
-        //
+        // echo "0x" . call_user_func_array('\kornrunner\Solidity::sha3', $unpacked) . "\n";
         // should result in
         // 0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5
-        // echo call_user_func_array('\kornrunner\Solidity::sha3', $unpacked) . "\n";
-        // exit ();
 
         $unpacked = array (
             $order['exchangeContractAddress'],      // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
@@ -2116,44 +2113,6 @@ class Exchange {
             's' => "0x" . gmp_strval ($signature->getS (), 16), // '0x'-prefixed hex string
         );
     }
-
-    // signMessage (message, privateKey) {
-    //     //
-    //     // The following comment is related to MetaMask, we use the upper type of signature prefix:
-    //     //
-    //     // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
-    //     //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
-    //     //                              prefixType: 'ETH_SIGN',
-    //     //                              shouldAddPrefixBeforeCallingEthSign: true
-    //     //                          }).then ((e, r) => console.log (e,r))
-    //     //
-    //     //     {                            ↓
-    //     //         v: 28,
-    //     //         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
-    //     //         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
-    //     //     }
-    //     //
-    //     // --------------------------------------------------------------------
-    //     //
-    //     // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
-    //     //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
-    //     //                              prefixType: 'NONE',
-    //     //                              shouldAddPrefixBeforeCallingEthSign: true
-    //     //                          }).then ((e, r) => console.log (e,r))
-    //     //
-    //     //     {                            ↓
-    //     //         v: 27,
-    //     //         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
-    //     //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
-    //     //     }
-    //     //
-    //     const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
-    //     return {
-    //         v: parseInt (signature.v.slice (2), 16), // integer
-    //         r: signature.r, // '0x'-prefixed hex string
-    //         s: signature.s, // '0x'-prefixed hex string
-    //     }
-    // }
 
     public function signMessage ($message, $privateKey) {
         return $this->signHash ($this->hashMessage ($message), $privateKey);
