@@ -141,11 +141,12 @@ let values = Object.values (exchanges).map (exchange => {
     let matches = version.match (/[^0-9]*([0-9].*)/)
     if (matches)
         version = matches[1];
+    let certified = exchange.certified ? '![' + ccxtCertifiedBadge + '](https://github.com/ccxt/ccxt/wiki/Certification)' : '';
     return {
         '': '![' + exchange.id + '](' + logo + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
-        'certified': exchange.certified ? ccxtCertifiedBadge : '',
+        'certified': certified,
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
@@ -208,13 +209,14 @@ Object.keys (countries).forEach (code => {
             if (code == exchange.countries)
                 shouldInclude = true
         }
+        let certified = exchange.certified ? '![' + ccxtCertifiedBadge + '](https://github.com/ccxt/ccxt/wiki/Certification)' : '';
         if (shouldInclude) {
             result.push ({
                 'country / region': country,
                 'logo': ' ![' + exchange.id + '](' + logo + ') ',
                 'id': exchange.id,
                 'name': '[' + exchange.name + '](' + url + ')',
-                'certified': exchange.certified ? ccxtCertifiedBadge : '',
+                'certified': certified,
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
             })
