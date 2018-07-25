@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
-const { sortBy } = require ('./base/functions/generic');
 
 //  ---------------------------------------------------------------------------
 
@@ -202,8 +201,11 @@ module.exports = class bcex extends Exchange {
     }
 
     parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (trades || []).map (trade => this.parseMyTrade (trade, market));
-        result = sortBy (result, 'timestamp');
+        let result = [];
+        for (let i = 0; i < trades.length; i++) {
+            result.push (this.parseMyTrade (trades[i], market)); // will edit for parseMyTrade → parseTrade
+        }
+        result = this.sortBy (result, 'timestamp');
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
@@ -362,11 +364,12 @@ module.exports = class bcex extends Exchange {
         let url = this.urls['api'] + request;
         if (method === 'POST') {
             let messageParts = [];
-            let paramsKeys = Object.keys (params).sort ();
+            let keys = Object.keys (params);
+            let paramsKeys = keys.sort ();
             for (let i = 0; i < paramsKeys.length; i++) {
                 let paramKey = paramsKeys[i];
                 let param = params[paramKey];
-                messageParts.push (this.encode (paramKey) + '=' + encodeURIComponent (param));
+                messageParts.push (this.encode (paramKey) + '=' + this.encodeURIComponent (param));
             }
             if (api === 'private') {
                 this.checkRequiredCredentials ();
