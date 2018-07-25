@@ -40,6 +40,7 @@ module.exports = class bcex extends Exchange {
                     ],
                     'post': [
                         'Api_Order/marketOrder',
+                        'Api_Market/getCoinTrade',
                     ],
                 },
                 'private': {
@@ -169,6 +170,39 @@ module.exports = class bcex extends Exchange {
         }
         result['info'] = data;
         return this.parseBalance (result);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.markets[symbol];
+        let request = {
+            'part': market.quoteId,
+            'coin': market.baseId,
+        };
+        let response = await this.publicPostApiMarketGetCoinTrade (this.extend (request, params));
+        let timestamp = this.milliseconds ();
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (response, 'max'),
+            'low': this.safeFloat (response, 'min'),
+            'bid': this.safeFloat (response, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (response, 'sale'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeFloat (response, 'price'),
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (response, 'change_24h'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (response, 'volume_24h'),
+            'quoteVolume': undefined,
+            'info': response,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
