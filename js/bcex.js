@@ -257,6 +257,17 @@ module.exports = class bcex extends Exchange {
         return result;
     }
 
+    parseStatus (statusCode) {
+        if (statusCode === 0 || statusCode === 1) {
+            return 'open';
+        } else if (statusCode === 2) {
+            return 'closed';
+        } else if (statusCode === 3) {
+            return 'canceled';
+        }
+        return undefined;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -266,6 +277,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = order['created'] * 1000;
+        let status = this.parseStatus (order['status']);
         let result = {
             'info': order,
             'id': id,
@@ -281,7 +293,7 @@ module.exports = class bcex extends Exchange {
             'amount': order['number'],
             'filled': order['numberdeal'],
             'remaining': order['numberover'],
-            'status': order['status'],
+            'status': status,
             'fee': undefined,
         };
         return result;
@@ -299,7 +311,7 @@ module.exports = class bcex extends Exchange {
         let amount = order['amount'];
         let remaining = order['amount_outstanding'];
         let filled = amount - remaining;
-        let status = order['status'];
+        let status = this.parseStatus (order['status']);
         let cost = filled * price;
         let fee = undefined;
         let result = {
