@@ -194,7 +194,7 @@ module.exports = class bcex extends Exchange {
             'vwap': undefined,
             'open': undefined,
             'close': this.safeFloat (response, 'price'),
-            'last': undefined,
+            'last': this.safeFloat (response, 'price'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': this.safeFloat (response, 'change_24h'),
