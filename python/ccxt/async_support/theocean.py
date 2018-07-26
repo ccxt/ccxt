@@ -978,6 +978,9 @@ class theocean (Exchange):
             market = self.market(symbol)
             request['baseTokenAddress'] = market['baseId']
             request['quoteTokenAddress'] = market['quoteId']
+        if limit is not None:
+            # request['start'] = 0  # offset
+            request['limit'] = limit
         response = await self.privateGetUserHistory(self.extend(request, params))
         #
         #     [
