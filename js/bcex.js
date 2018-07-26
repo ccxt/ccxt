@@ -455,7 +455,7 @@ module.exports = class bcex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body[0] === '{' && url.includes ('private')) {
+        if (body[0] === '{' && (url.indexOf ('private') >= 0)) {
             let response = JSON.parse (body);
             let code = this.safeValue (response, 'code');
             if (code !== 0) {
