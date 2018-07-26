@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.13'
+const version = '1.17.14'
 
 Exchange.ccxtVersion = version
 
@@ -21989,14 +21989,14 @@ module.exports = class coinfalcon extends Exchange {
                 'private': {
                     'get': [
                         'user/accounts',
-                        'user/orders',
+                        'user/orders/{id}',
                         'user/trades',
                     ],
                     'post': [
                         'user/orders',
                     ],
                     'delete': [
-                        'user/orders',
+                        'user/orders/{id}',
                     ],
                 },
             },
@@ -29069,9 +29069,14 @@ module.exports = class fcoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostOrdersOrderIdSubmitCancel (this.extend ({
+        let response = await this.privatePostOrdersOrderIdSubmitCancel (this.extend ({
             'order_id': id,
         }, params));
+        let order = this.parseOrder (response);
+        return this.extend (order, {
+            'id': id,
+            'status': 'canceled',
+        });
     }
 
     parseOrderStatus (status) {
@@ -29090,18 +29095,18 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'];
-        let side = order['side'];
-        let status = this.parseOrderStatus (order['state']);
+        let id = this.safeString (order, 'id');
+        let side = this.safeString (order, 'side');
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            let marketId = order['symbol'];
+            let marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        let orderType = order['type'];
-        let timestamp = parseInt (order['created_at']);
+        let orderType = this.safeString (order, 'type');
+        let timestamp = this.safeInteger (order, 'created_at');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'filled_amount');
         let remaining = undefined;

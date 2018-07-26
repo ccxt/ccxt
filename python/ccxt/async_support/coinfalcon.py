@@ -42,14 +42,14 @@ class coinfalcon (Exchange):
                 'private': {
                     'get': [
                         'user/accounts',
-                        'user/orders',
+                        'user/orders/{id}',
                         'user/trades',
                     ],
                     'post': [
                         'user/orders',
                     ],
                     'delete': [
-                        'user/orders',
+                        'user/orders/{id}',
                     ],
                 },
             },

@@ -336,9 +336,14 @@ class fcoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostOrdersOrderIdSubmitCancel(self.extend({
+        response = await self.privatePostOrdersOrderIdSubmitCancel(self.extend({
             'order_id': id,
         }, params))
+        order = self.parse_order(response)
+        return self.extend(order, {
+            'id': id,
+            'status': 'canceled',
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -354,16 +359,16 @@ class fcoin (Exchange):
         return status
 
     def parse_order(self, order, market=None):
-        id = order['id']
-        side = order['side']
-        status = self.parse_order_status(order['state'])
+        id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'side')
+        status = self.parse_order_status(self.safe_string(order, 'state'))
         symbol = None
         if market is None:
-            marketId = order['symbol']
+            marketId = self.safe_string(order, 'symbol')
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        orderType = order['type']
-        timestamp = int(order['created_at'])
+        orderType = self.safe_string(order, 'type')
+        timestamp = self.safe_integer(order, 'created_at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled_amount')
         remaining = None

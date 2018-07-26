@@ -342,9 +342,14 @@ class fcoin extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrdersOrderIdSubmitCancel (array_merge (array (
+        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge (array (
             'order_id' => $id,
         ), $params));
+        $order = $this->parse_order($response);
+        return array_merge ($order, array (
+            'id' => $id,
+            'status' => 'canceled',
+        ));
     }
 
     public function parse_order_status ($status) {
@@ -363,18 +368,18 @@ class fcoin extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $id = $order['id'];
-        $side = $order['side'];
-        $status = $this->parse_order_status($order['state']);
+        $id = $this->safe_string($order, 'id');
+        $side = $this->safe_string($order, 'side');
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $symbol = null;
         if ($market === null) {
-            $marketId = $order['symbol'];
+            $marketId = $this->safe_string($order, 'symbol');
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $orderType = $order['type'];
-        $timestamp = intval ($order['created_at']);
+        $orderType = $this->safe_string($order, 'type');
+        $timestamp = $this->safe_integer($order, 'created_at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
         $remaining = null;
