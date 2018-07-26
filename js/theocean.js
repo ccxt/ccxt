@@ -1029,7 +1029,7 @@ module.exports = class theocean extends Exchange {
         }
         if (typeof limit !== 'undefined') {
             // request['start'] = 0; // offset
-            reqeust['limit'] = limit;
+            request['limit'] = limit;
         }
         let response = await this.privateGetUserHistory (this.extend (request, params));
         //
