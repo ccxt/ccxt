@@ -132,6 +132,7 @@ class rightbtc extends Exchange {
                 'ERR_ASSET_NOT_AVAILABLE' => '\\ccxt\\ExchangeError',
                 'ERR_BALANCE_NOT_ENOUGH' => '\\ccxt\\InsufficientFunds',
                 'ERR_CREATE_ORDER' => '\\ccxt\\InvalidOrder',
+                'ERR_CANDLESTICK_DATA' => '\\ccxt\\ExchangeError',
             ),
         ));
     }
@@ -747,13 +748,14 @@ class rightbtc extends Exchange {
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
             $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('success', $response)) {
+            $status = $this->safe_value($response, 'status');
+            if ($status !== null) {
                 //
-                //     array ("status":{"$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND")}
+                //     array ("$status":{"$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND")}
                 //
-                $success = $this->safe_string($response, 'success');
+                $success = $this->safe_string($status, 'success');
                 if ($success !== '1') {
-                    $message = $this->safe_string($response, 'message');
+                    $message = $this->safe_string($status, 'message');
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
                     if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
