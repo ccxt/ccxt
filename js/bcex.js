@@ -196,8 +196,8 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let request = {
-            'part': market.quoteId,
-            'coin': market.baseId,
+            'part': market['quoteId'],
+            'coin': market['baseId'],
         };
         let response = await this.publicPostApiMarketGetCoinTrade (this.extend (request, params));
         let timestamp = this.milliseconds ();
