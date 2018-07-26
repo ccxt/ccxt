@@ -72,18 +72,6 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    // {
-    //     "status": "complete",
-    //     "address": "0x4034220946cc76f5f3b54e71d85a59962433226c",
-    //     "withdraw": "0x4d23d99d0dfd640b5d58dbceca0a3a5bea121f49",
-    //     "incomingCoin": 566.38438273,
-    //     "incomingType": "ZRX",
-    //     "outgoingCoin": "1.08378615",
-    //     "outgoingType": "ETH",
-    //     "transaction": "0x1d92ed51f8b2eb881417f2878e8a44a1906108b50743a20fe122149bba5a9416",
-    //     "transactionURL": "https://etherscan.io/tx/0x1d92ed51f8b2eb881417f2878e8a44a1906108b50743a20fe122149bba5a9416"
-    // }
-
     async instantTransactionStatus(transactionId, params = {}) {
         return this.publicGetTxStat({ 'address': transactionId });
     }
