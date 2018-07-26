@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.20'
+const version = '1.17.21'
 
 Exchange.ccxtVersion = version
 
@@ -21999,6 +21999,7 @@ module.exports = class coinfalcon extends Exchange {
                 'private': {
                     'get': [
                         'user/accounts',
+                        'user/orders',
                         'user/orders/{id}',
                         'user/trades',
                     ],
@@ -22247,7 +22248,7 @@ module.exports = class coinfalcon extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteUserOrders (this.extend ({
+        let response = await this.privateDeleteUserOrdersId (this.extend ({
             'id': id,
         }, params));
         let market = this.market (symbol);

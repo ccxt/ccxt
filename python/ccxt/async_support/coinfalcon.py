@@ -42,6 +42,7 @@ class coinfalcon (Exchange):
                 'private': {
                     'get': [
                         'user/accounts',
+                        'user/orders',
                         'user/orders/{id}',
                         'user/trades',
                     ],
@@ -270,7 +271,7 @@ class coinfalcon (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateDeleteUserOrders(self.extend({
+        response = await self.privateDeleteUserOrdersId(self.extend({
             'id': id,
         }, params))
         market = self.market(symbol)
