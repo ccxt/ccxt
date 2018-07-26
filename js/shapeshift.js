@@ -73,7 +73,7 @@ module.exports = class shapeshift extends Exchange {
     }
 
     async instantTransactionStatus(transactionId, params = {}) {
-        return this.publicGetTxStat({ 'address': transactionId });
+        return this.publicGetTxStatAddress({ 'address': transactionId });
     }
 
     async startInstantTransaction(input, output, withdrawalAddress, affiliateAPIKey, params = {}) {
