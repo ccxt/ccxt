@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.21'
+const version = '1.17.22'
 
 Exchange.ccxtVersion = version
 
@@ -22186,9 +22186,14 @@ module.exports = class coinfalcon extends Exchange {
 
     parseOrder (order, market = undefined) {
         if (typeof market === 'undefined') {
-            market = this.marketsById[order['market']];
+            let marketId = this.safeString (order, 'market');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let timestamp = this.parse8601 (order['created_at']);
         let price = parseFloat (order['price']);
         let amount = this.safeFloat (order, 'size');
@@ -22253,6 +22258,14 @@ module.exports = class coinfalcon extends Exchange {
         }, params));
         let market = this.market (symbol);
         return this.parseOrder (response['data'], market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetUserOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
