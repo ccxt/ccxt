@@ -98,7 +98,7 @@ module.exports = class bcex extends Exchange {
                     'amount': undefined, // todo: might need this for proper order placement
                     'price': undefined, // todo: find a way to get these values
                 };
-                let limit = {
+                let limits = {
                     'amount': {
                         'min': undefined, // todo
                         'max': undefined,
