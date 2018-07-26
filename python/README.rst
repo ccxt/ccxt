@@ -6,6 +6,9 @@ CCXT – CryptoCurrency eXchange Trading Library
 
 A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
 
+Install · Usage · `Manual <https://github.com/ccxt/ccxt/wiki>`__ · `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ · `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ · `Changelog <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ · `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 The **CCXT** library is used to connect and trade with cryptocurrency / altcoin exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, webshop integration and related software engineering.
 
 It is intended to be used by **coders, developers, technically-skilled traders, data-scientists and financial analysts** for building trading algorithms on top of it.
@@ -18,8 +21,6 @@ Current feature list:
 -  optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
 -  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
-
-`ccxt on GitHub <https://github.com/ccxt/ccxt>`__ | Install | Usage | `Manual <https://github.com/ccxt/ccxt/wiki>`__ | `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ | `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ | `Changelog <https://github.com/ccxt/ccxt/blob/master/CHANGELOG.md>`__ | `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__
 
 Sponsored Promotion
 -------------------
