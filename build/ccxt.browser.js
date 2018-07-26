@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.15'
+const version = '1.17.16'
 
 Exchange.ccxtVersion = version
 
@@ -2353,12 +2353,22 @@ module.exports = class Exchange {
     }
 
     currencyId (commonCode) {
+
+        if (typeof this.currencies === 'undefined') {
+            throw new ExchangeError (this.id + ' currencies not loaded')
+        }
+
+        if (commonCode in this.currencies) {
+            return this.currencies[commonCode]['id'];
+        }
+
         let currencyIds = {}
         let distinct = Object.keys (this.commonCurrencies)
         for (let i = 0; i < distinct.length; i++) {
             let k = distinct[i]
             currencyIds[this.commonCurrencies[k]] = k
         }
+
         return this.safeString (currencyIds, commonCode, commonCode)
     }
 
