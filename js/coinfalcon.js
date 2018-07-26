@@ -38,6 +38,7 @@ module.exports = class coinfalcon extends Exchange {
                 'private': {
                     'get': [
                         'user/accounts',
+                        'user/orders',
                         'user/orders/{id}',
                         'user/trades',
                     ],
@@ -286,7 +287,7 @@ module.exports = class coinfalcon extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteUserOrders (this.extend ({
+        let response = await this.privateDeleteUserOrdersId (this.extend ({
             'id': id,
         }, params));
         let market = this.market (symbol);
