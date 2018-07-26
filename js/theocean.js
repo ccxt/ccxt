@@ -135,8 +135,8 @@ module.exports = class theocean extends Exchange {
             let symbol = base + '/' + quote;
             let id = baseId + '/' + quoteId;
             let precision = {
-                'amount': this.safeInteger (baseToken, 'decimals'),
-                'price': this.safeInteger (quoteToken, 'decimals'),
+                'amount': this.safeInteger (baseToken, 'precision'),
+                'price': this.safeInteger (quoteToken, 'precision'),
             };
             let amountLimits = {
                 'min': this.fromWei (this.safeString (baseToken, 'minAmount')),
