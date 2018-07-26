@@ -127,6 +127,7 @@ module.exports = class rightbtc extends Exchange {
                 'ERR_ASSET_NOT_AVAILABLE': ExchangeError,
                 'ERR_BALANCE_NOT_ENOUGH': InsufficientFunds,
                 'ERR_CREATE_ORDER': InvalidOrder,
+                'ERR_CANDLESTICK_DATA': ExchangeError,
             },
         });
     }
@@ -742,13 +743,14 @@ module.exports = class rightbtc extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            if ('success' in response) {
+            let status = this.safeValue (response, 'status');
+            if (typeof status !== 'undefined') {
                 //
                 //     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
                 //
-                let success = this.safeString (response, 'success');
+                let success = this.safeString (status, 'success');
                 if (success !== '1') {
-                    const message = this.safeString (response, 'message');
+                    const message = this.safeString (status, 'message');
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;
                     if (message in exceptions) {
