@@ -39,6 +39,7 @@ class coinfalcon extends Exchange {
                 'private' => array (
                     'get' => array (
                         'user/accounts',
+                        'user/orders',
                         'user/orders/{id}',
                         'user/trades',
                     ),
@@ -287,7 +288,7 @@ class coinfalcon extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateDeleteUserOrders (array_merge (array (
+        $response = $this->privateDeleteUserOrdersId (array_merge (array (
             'id' => $id,
         ), $params));
         $market = $this->market ($symbol);
