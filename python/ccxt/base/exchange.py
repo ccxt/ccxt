@@ -887,6 +887,8 @@ class Exchange(object):
         return self.safe_string(self.commonCurrencies, currency, currency)
 
     def currency_id(self, commonCode):
+        if commonCode in self.currencies:
+            return self.currencies[commonCode]['id']
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
 
