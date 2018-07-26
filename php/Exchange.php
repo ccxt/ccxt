@@ -139,7 +139,6 @@ class Exchange {
         'coinone',
         'coinsecure',
         'coinspot',
-        'cointiger',
         'coolcoin',
         'crypton',
         'cryptopia',
@@ -1756,6 +1755,9 @@ class Exchange {
     }
 
     public function currency_id ($commonCode) {
+        if (array_key_exists ($commonCode, $this->currencies_by_id)) {
+            return $this->currencies_by_id[$commonCode]['id'];
+        }
         $currencyIds = array ();
         $distinct = is_array ($this->commonCurrencies) ? array_keys ($this->commonCurrencies) : array ();
         for ($i = 0; $i < count ($distinct); $i++) {
