@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.11'
+const version = '1.17.12'
 
 Exchange.ccxtVersion = version
 
@@ -48791,6 +48791,10 @@ module.exports = class theocean extends Exchange {
             market = this.market (symbol);
             request['baseTokenAddress'] = market['baseId'];
             request['quoteTokenAddress'] = market['quoteId'];
+        }
+        if (typeof limit !== 'undefined') {
+            // request['start'] = 0; // offset
+            request['limit'] = limit;
         }
         let response = await this.privateGetUserHistory (this.extend (request, params));
         //
