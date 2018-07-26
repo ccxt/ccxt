@@ -1027,6 +1027,10 @@ module.exports = class theocean extends Exchange {
             request['baseTokenAddress'] = market['baseId'];
             request['quoteTokenAddress'] = market['quoteId'];
         }
+        if (typeof limit !== 'undefined') {
+            // request['start'] = 0; // offset
+            reqeust['limit'] = limit;
+        }
         let response = await this.privateGetUserHistory (this.extend (request, params));
         //
         //     [
