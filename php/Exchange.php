@@ -1770,6 +1770,7 @@ class Exchange {
             $k = $distinct[$i];
             $currencyIds[$this->commonCurrencies[$k]] = $k;
         }
+
         return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 

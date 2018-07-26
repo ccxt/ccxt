@@ -763,8 +763,9 @@ module.exports = class Exchange {
 
     currencyId (commonCode) {
 
-        if (typeof this.currencies === 'undefined')
+        if (typeof this.currencies === 'undefined') {
             throw new ExchangeError (this.id + ' currencies not loaded')
+        }
 
         if (commonCode in this.currencies) {
             return this.currencies[commonCode]['id'];
