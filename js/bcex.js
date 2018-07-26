@@ -87,13 +87,31 @@ module.exports = class bcex extends Exchange {
             let currentMarkets = response[currentMarketId];
             for (let j = 0; j < currentMarkets.length; j++) {
                 let market = currentMarkets[j];
-                let baseId = market.coin_from;
-                let quoteId = market.coin_to;
+                let baseId = market['coin_from'];
+                let quoteId = market['coin_to'];
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 let id = base + '2' + quote;
                 let symbol = base + '/' + quote;
                 let active = true;
+                let precision = {
+                    'amount': undefined, // todo: might need this for proper order placement
+                    'price': undefined, // todo: find a way to get these values
+                };
+                let limit = {
+                    'amount': {
+                        'min': undefined, // todo
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined, // todo
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined, // todo
+                        'max': undefined,
+                    },
+                };
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -102,6 +120,8 @@ module.exports = class bcex extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': active,
+                    'precision': precision,
+                    'limits': limits,
                     'info': market,
                 });
             }
