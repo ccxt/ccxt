@@ -573,7 +573,7 @@ class gdax (Exchange):
             # eslint-disable-next-line quotes
             raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
         response = self.privatePostCoinbaseAccountsIdAddresses(self.extend({
-            'id': accounts['id'],
+            'id': account['id'],
         }, params))
         address = self.safe_string(response, 'address')
         # todo: figure self out

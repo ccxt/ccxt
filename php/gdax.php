@@ -612,7 +612,7 @@ class gdax extends Exchange {
             throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
         }
         $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge (array (
-            'id' => $accounts['id'],
+            'id' => $account['id'],
         ), $params));
         $address = $this->safe_string($response, 'address');
         // todo => figure this out
