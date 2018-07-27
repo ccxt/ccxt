@@ -716,6 +716,7 @@ class Exchange {
         $this->limits      = array ();
         $this->orders      = array ();
         $this->trades      = array ();
+        $this->allows      = array ();
         $this->exceptions  = array ();
         $this->verbose     = false;
         $this->apiKey      = '';

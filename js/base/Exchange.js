@@ -107,6 +107,7 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchPermissions': false,
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
@@ -280,6 +281,8 @@ module.exports = class Exchange {
         this.tickers    = {}
         this.orders     = {}
         this.trades     = {}
+      
+        this.allows = {}
 
         this.last_http_response = undefined
         this.last_json_response = undefined
