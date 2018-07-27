@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.28'
+const version = '1.17.29'
 
 Exchange.ccxtVersion = version
 
@@ -31928,7 +31928,7 @@ module.exports = class gdax extends Exchange {
             throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
         let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
-            'id': accounts['id'],
+            'id': account['id'],
         }, params));
         let address = this.safeString (response, 'address');
         // todo: figure this out
