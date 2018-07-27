@@ -611,7 +611,7 @@ module.exports = class gdax extends Exchange {
             throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
         let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
-            'id': accounts['id'],
+            'id': account['id'],
         }, params));
         let address = this.safeString (response, 'address');
         // todo: figure this out
