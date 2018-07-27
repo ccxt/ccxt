@@ -1199,7 +1199,17 @@ module.exports = class Exchange {
         return this.web3.eth.accounts.privateKeyToAccount (privateKey)
     }
 
+    soliditySHA3 (values) {
+        const types = values.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
+        return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
+    }
+
     getZeroExOrderHash (order) {
+        let unpacked =
+        Object.keys (order).map (key =>
+            ((!this.web3.utils.isAddress (order[key])) ?
+            order[key] :
+            new BigNumber (order[key]).toFixed ())
         let unpacked = [
             order['exchangeContractAddress'],                       // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
             order['maker'],                                         // { value: order.maker, type: types_1.SolidityTypes.Address },
