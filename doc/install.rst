@@ -32,6 +32,8 @@ JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and
 
    npm install ccxt
 
+Windows users having difficulties installing ``w3``, ``scrypt`` or ``node-gyp`` dependencies for the ccxt library, follow here: https://github.com/nodejs/node-gyp#on-windows
+
 .. code:: javascript
 
    var ccxt = require ('ccxt')
