@@ -1366,6 +1366,8 @@ To get the list of available timeframes for your exchange see the `timeframes` p
 
 Like with most other unified and implicit methods, the `fetchOHLCV` method accepts as its last argument an associative array (a dictionary) of extra `params`, which is used to override default values that are sent in requests to the exchanges. The contents of `params` are exchange-specific, consult the exchanges' API documentation for supported fields and values.
 
+The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
+
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
 
 ### OHLCV Structure
