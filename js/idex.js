@@ -10,7 +10,7 @@ module.exports = class idex extends Exchange {
             'countries': 'US',
             'rateLimit': 1000,
             'urls': {
-                'logo': 'https://idex.market/assets/IDEX_sf-color.svg',
+                'logo': 'https://storage.googleapis.com/fetch-logos/IDEX_sf-color.svg',
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
