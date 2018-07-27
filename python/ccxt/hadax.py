@@ -76,5 +76,6 @@ class hadax (huobipro):
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'GET': 'Themis',
+                'HOT': 'Hydro Protocol',
             },
         })
