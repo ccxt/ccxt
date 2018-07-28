@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.30'
+const version = '1.17.31'
 
 Exchange.ccxtVersion = version
 
@@ -23258,6 +23258,7 @@ module.exports = class coinmate extends Exchange {
                     'http://docs.coinmate.apiary.io',
                     'https://coinmate.io/developers',
                 ],
+                'referral': 'https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0',
             },
             'requiredCredentials': {
                 'apiKey': true,
