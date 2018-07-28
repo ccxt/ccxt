@@ -174,7 +174,7 @@ class bxinth (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['trade_date'])
+        timestamp = self.parse8601(trade['trade_date'] + '+07:00')  # Thailand UTC+7 offset
         return {
             'id': trade['trade_id'],
             'info': trade,
