@@ -184,7 +184,7 @@ class bxinth extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['trade_date']);
+        $timestamp = $this->parse8601 ($trade['trade_date'] . '+07:00'); // Thailand UTC+7 offset
         return array (
             'id' => $trade['trade_id'],
             'info' => $trade,
