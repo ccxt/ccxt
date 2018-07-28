@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.32'
+const version = '1.17.33'
 
 Exchange.ccxtVersion = version
 
@@ -4562,9 +4562,12 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let address = this.safeString (response, 'result');
+        let tag = undefined; // todo: figure this out
         let result = {
-            'info': response,
+            'currency': code,
             'address': address,
+            'tag': tag,
+            'info': response,
         };
         return result;
     }

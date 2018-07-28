@@ -598,9 +598,12 @@ class bibox extends Exchange {
             ), $params),
         ));
         $address = $this->safe_string($response, 'result');
+        $tag = null; // todo => figure this out
         $result = array (
-            'info' => $response,
+            'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
         );
         return $result;
     }
