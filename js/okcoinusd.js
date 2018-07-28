@@ -435,7 +435,7 @@ module.exports = class okcoinusd extends Exchange {
         let balances = response['info']['funds'];
         let result = { 'info': response };
         let ids = Object.keys (balances['free']);
-        let usedField = 'freezed'
+        let usedField = 'freezed';
         // wtf, okex?
         // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
         if (!(usedField in balances))
