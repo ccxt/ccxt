@@ -435,9 +435,14 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        $freeIds = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
-        $freezedIds = is_array ($balances['freezed']) ? array_keys ($balances['freezed']) : array ();
-        $ids = $this->array_concat($freeIds, $freezedIds);
+        $ids = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
+        $usedField = 'freezed';
+        // wtf, okex?
+        // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if (!(is_array ($balances) && array_key_exists ($usedField, $balances)))
+            $usedField = 'holds';
+        $usedKeys = is_array ($balances[$usedField]) ? array_keys ($balances[$usedField]) : array ();
+        $ids = $this->array_concat($ids, $usedKeys);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $code = strtoupper ($id);
@@ -448,7 +453,7 @@ class okcoinusd extends Exchange {
             }
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
-            $account['used'] = $this->safe_float($balances['freezed'], $id, 0.0);
+            $account['used'] = $this->safe_float($balances[$usedField], $id, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }

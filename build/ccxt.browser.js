@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.34'
+const version = '1.17.35'
 
 Exchange.ccxtVersion = version
 
@@ -44223,9 +44223,14 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
-        let freeIds = Object.keys (balances['free']);
-        let freezedIds = Object.keys (balances['freezed']);
-        let ids = this.arrayConcat (freeIds, freezedIds);
+        let ids = Object.keys (balances['free']);
+        let usedField = 'freezed';
+        // wtf, okex?
+        // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if (!(usedField in balances))
+            usedField = 'holds';
+        let usedKeys = Object.keys (balances[usedField]);
+        ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let code = id.toUpperCase ();
@@ -44236,7 +44241,7 @@ module.exports = class okcoinusd extends Exchange {
             }
             let account = this.account ();
             account['free'] = this.safeFloat (balances['free'], id, 0.0);
-            account['used'] = this.safeFloat (balances['freezed'], id, 0.0);
+            account['used'] = this.safeFloat (balances[usedField], id, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
