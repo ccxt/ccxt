@@ -440,7 +440,8 @@ module.exports = class okcoinusd extends Exchange {
         // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
         if (!(usedField in balances))
             usedField = 'holds';
-        ids = this.arrayConcat (ids, Object.keys (balances[usedField]));
+        let usedKeys = Object.keys (balances[usedField]);
+        ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let code = id.toUpperCase ();
