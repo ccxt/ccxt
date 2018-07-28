@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.40'
+const version = '1.17.41'
 
 Exchange.ccxtVersion = version
 
@@ -7796,6 +7796,7 @@ module.exports = class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
+                    'Ratelimit': DDoSProtection,
                     'Nonce is too small.': InvalidNonce,
                     'No summary found.': ExchangeError, // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
@@ -14752,6 +14753,7 @@ module.exports = class braziliex extends Exchange {
             },
             'commonCurrencies': {
                 'EPC': 'Epacoin',
+                'ABC': 'Anti Bureaucracy Coin',
             },
             'fees': {
                 'trading': {
