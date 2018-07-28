@@ -421,9 +421,14 @@ class okcoinusd (Exchange):
         response = self.privatePostUserinfo()
         balances = response['info']['funds']
         result = {'info': response}
-        freeIds = list(balances['free'].keys())
-        freezedIds = list(balances['freezed'].keys())
-        ids = self.array_concat(freeIds, freezedIds)
+        ids = list(balances['free'].keys())
+        usedField = 'freezed'
+        # wtf, okex?
+        # https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if not(usedField in list(balances.keys())):
+            usedField = 'holds'
+        usedKeys = list(balances[usedField].keys())
+        ids = self.array_concat(ids, usedKeys)
         for i in range(0, len(ids)):
             id = ids[i]
             code = id.upper()
@@ -433,7 +438,7 @@ class okcoinusd (Exchange):
                 code = self.common_currency_code(code)
             account = self.account()
             account['free'] = self.safe_float(balances['free'], id, 0.0)
-            account['used'] = self.safe_float(balances['freezed'], id, 0.0)
+            account['used'] = self.safe_float(balances[usedField], id, 0.0)
             account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
