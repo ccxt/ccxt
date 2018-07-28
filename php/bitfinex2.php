@@ -367,13 +367,16 @@ class bitfinex2 extends bitfinex {
     public function fetch_trades ($symbol, $since = null, $limit = 120, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        $sort = '-1';
         $request = array (
             'symbol' => $market['id'],
-            'sort' => '-1',
             'limit' => $limit, // default = max = 120
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['start'] = $since;
+            $sort = '1';
+        }
+        $request['sort'] = $sort;
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
         $trades = $this->sort_by($response, 1);
         return $this->parse_trades($trades, $market, null, $limit);

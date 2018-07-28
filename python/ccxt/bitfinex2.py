@@ -352,13 +352,15 @@ class bitfinex2 (bitfinex):
     def fetch_trades(self, symbol, since=None, limit=120, params={}):
         self.load_markets()
         market = self.market(symbol)
+        sort = '-1'
         request = {
             'symbol': market['id'],
-            'sort': '-1',
             'limit': limit,  # default = max = 120
         }
         if since is not None:
             request['start'] = since
+            sort = '1'
+        request['sort'] = sort
         response = self.publicGetTradesSymbolHist(self.extend(request, params))
         trades = self.sort_by(response, 1)
         return self.parse_trades(trades, market, None, limit)
