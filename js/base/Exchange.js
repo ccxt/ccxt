@@ -1199,7 +1199,8 @@ module.exports = class Exchange {
         return this.web3.eth.accounts.privateKeyToAccount (privateKey)
     }
 
-    soliditySHA3 (values) {
+    soliditySHA3 (array) {
+        const values = array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber ('uint256').toFixed ())))
         const types = values.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
         return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
     }
