@@ -333,6 +333,20 @@ class huobipro (Exchange):
             side = typeParts[0]
             type = typeParts[1]
         amount = self.safe_float_2(trade, 'filled-amount', 'amount')
+        fee = None
+        feeCost = self.safe_float(trade, 'filled-fees')
+        feeCurrency = None
+        if feeCost is not None:
+            feeCurrency = market['base'] if (side == 'buy') else market['quote']
+        else:
+            feeCost = self.safe_float(trade, 'filled-points')
+            if feeCost is not None:
+                feeCurrency = 'HBPOINT'
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         return {
             'info': trade,
             'id': self.safe_string(trade, 'id'),
@@ -344,6 +358,7 @@ class huobipro (Exchange):
             'side': side,
             'price': self.safe_float(trade, 'price'),
             'amount': amount,
+            'fee': fee,
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
