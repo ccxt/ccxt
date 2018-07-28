@@ -337,6 +337,23 @@ module.exports = class huobipro extends Exchange {
             type = typeParts[1];
         }
         let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'filled-fees');
+        let feeCurrency = undefined;
+        if (typeof feeCost !== 'undefined') {
+            feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+        } else {
+            feeCost = this.safeFloat (trade, 'filled-points');
+            if (typeof feeCost !== 'undefined') {
+                feeCurrency = 'HBPOINT';
+            }
+        }
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
             'id': this.safeString (trade, 'id'),
@@ -348,6 +365,7 @@ module.exports = class huobipro extends Exchange {
             'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': amount,
+            'fee': fee,
         };
     }
 
