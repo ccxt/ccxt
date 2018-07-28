@@ -596,9 +596,10 @@ class okcoinusd extends Exchange {
         $status = $this->parse_order_status($order['status']);
         $symbol = null;
         if ($market === null) {
-            if (is_array ($order) && array_key_exists ('symbol', $order))
-                if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id))
-                    $market = $this->markets_by_id[$order['symbol']];
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         if ($market)
             $symbol = $market['symbol'];
@@ -608,7 +609,8 @@ class okcoinusd extends Exchange {
             $timestamp = $order[$createDateField];
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
-        $remaining = $amount - $filled;
+        $amount = max ($amount, $filled);
+        $remaining = max (0, $amount - $filled);
         if ($type === 'market') {
             $remaining = 0;
         }

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.36'
+const version = '1.17.37'
 
 Exchange.ccxtVersion = version
 
@@ -44384,9 +44384,10 @@ module.exports = class okcoinusd extends Exchange {
         let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('symbol' in order)
-                if (order['symbol'] in this.markets_by_id)
-                    market = this.markets_by_id[order['symbol']];
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         if (market)
             symbol = market['symbol'];
@@ -44396,7 +44397,8 @@ module.exports = class okcoinusd extends Exchange {
             timestamp = order[createDateField];
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
-        let remaining = amount - filled;
+        amount = Math.max (amount, filled);
+        let remaining = Math.max (0, amount - filled);
         if (type === 'market') {
             remaining = 0;
         }

@@ -566,9 +566,9 @@ class okcoinusd (Exchange):
         status = self.parse_order_status(order['status'])
         symbol = None
         if market is None:
-            if 'symbol' in order:
-                if order['symbol'] in self.markets_by_id:
-                    market = self.markets_by_id[order['symbol']]
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
         timestamp = None
@@ -577,7 +577,8 @@ class okcoinusd (Exchange):
             timestamp = order[createDateField]
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
-        remaining = amount - filled
+        amount = max(amount, filled)
+        remaining = max(0, amount - filled)
         if type == 'market':
             remaining = 0
         average = self.safe_float(order, 'avg_price')
