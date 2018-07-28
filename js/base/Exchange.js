@@ -1200,58 +1200,39 @@ module.exports = class Exchange {
     }
 
     soliditySHA3 (array) {
-        const values = array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber ('uint256').toFixed ())))
+        return this.solidityHash (array, 'soliditySHA3')
+    }
+
+    soliditySHA256 (array) {
+        return this.solidityHash (array, 'soliditySHA256')
+    }
+
+    solidityHash (array, hash) {
+        const values = array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
         const types = values.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
-        return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
+        return '0x' +  ethAbi[hash] (types, values).toString ('hex')
     }
 
     getZeroExOrderHash (order) {
-        let unpacked =
-        Object.keys (order).map (key =>
-            ((!this.web3.utils.isAddress (order[key])) ?
-            order[key] :
-            new BigNumber (order[key]).toFixed ())
-        let unpacked = [
-            order['exchangeContractAddress'],                       // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            order['maker'],                                         // { value: order.maker, type: types_1.SolidityTypes.Address },
-            order['taker'],                                         // { value: order.taker, type: types_1.SolidityTypes.Address },
-            order['makerTokenAddress'],                             // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['takerTokenAddress'],                             // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            order['feeRecipient'],                                  // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            new BigNumber (order['makerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['takerTokenAmount']).toFixed (),   // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['makerFee']).toFixed (),           // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['takerFee']).toFixed (),           // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['expirationUnixTimestampSec']).toFixed (), // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            new BigNumber (order['salt']).toFixed (),               // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        let types = [
-            'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
-            'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
-            'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
-            'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
-        ]
-        return '0x' + ethAbi.soliditySHA3 (types, unpacked).toString ('hex')
+        return this.soliditySHA3 ([
+            order['exchangeContractAddress'], // address
+            order['maker'], // address
+            order['taker'], // address
+            order['makerTokenAddress'], // address
+            order['takerTokenAddress'], // address
+            order['feeRecipient'], // address
+            order['makerTokenAmount'], // uint256
+            order['takerTokenAmount'], // uint256
+            order['makerFee'], // uint256
+            order['takerFee'], // uint256
+            order['expirationUnixTimestampSec'], // uint256
+            order['salt'], // uint256
+        ]);
     }
 
     signZeroExOrder (order) {
         const orderHash = this.getZeroExOrderHash (order);
         const signature = this.signMessage (orderHash, this.privateKey);
-        // const signature2 = this.signMessage2 (orderHash, this.privateKey);
-        // const log = require ('ololog').unlimited;
-        // log ('----------------------------------------------------------')
-        // log.green ('messageHash:', messageHash)
-        // log.red ('orderHash:', orderHash);
-        // log.red ('signature1:', signature1)
-        // log.yellow ('signature2:', signature2)
         return this.extend (order, {
             'orderHash': orderHash,
             'ecSignature': signature, // todo fix v if needed
