@@ -53,6 +53,7 @@ module.exports = class braziliex extends Exchange {
             },
             'commonCurrencies': {
                 'EPC': 'Epacoin',
+                'ABC': 'Anti Bureaucracy Coin',
             },
             'fees': {
                 'trading': {
