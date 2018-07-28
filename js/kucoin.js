@@ -303,7 +303,7 @@ module.exports = class kucoin extends Exchange {
                             'PURA': 0.1,
                             'QKC': 1,
                             'QLC': 1,
-                            'QSP': 0.1
+                            'QSP': 0.1,
                             'QTUM': 0.1,
                             'R': 1,
                             'RDN': 1,
