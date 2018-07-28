@@ -19,6 +19,7 @@ class zb extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
@@ -242,6 +243,22 @@ class zb extends Exchange {
 
     public function get_market_field_name () {
         return 'market';
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privateGetGetUserAddress (array (
+            'currency' => $currency['id'],
+        ));
+        $address = $response['message']['datas']['key'];
+        $tag = null; // todo => figure this out
+        return array (
+            'currency' => $code,
+            'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
