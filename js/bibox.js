@@ -597,9 +597,12 @@ module.exports = class bibox extends Exchange {
             }, params),
         });
         let address = this.safeString (response, 'result');
+        let tag = undefined; // todo: figure this out
         let result = {
-            'info': response,
+            'currency': code,
             'address': address,
+            'tag': tag,
+            'info': response,
         };
         return result;
     }
