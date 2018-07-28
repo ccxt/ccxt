@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.33'
+const version = '1.17.34'
 
 Exchange.ccxtVersion = version
 
@@ -51723,6 +51723,7 @@ module.exports = class zb extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchDepositAddress': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -51946,6 +51947,22 @@ module.exports = class zb extends Exchange {
 
     getMarketFieldName () {
         return 'market';
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetGetUserAddress ({
+            'currency': currency['id'],
+        });
+        let address = response['message']['datas']['key'];
+        let tag = undefined; // todo: figure this out
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
