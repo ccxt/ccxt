@@ -602,7 +602,7 @@ class theocean (Exchange):
         signedTargetOrder = None
         if (isMarket and isMakerOrTakerUndefined) or isTaker:
             if isUnsignedMatchingOrderDefined:
-                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress))
+                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
                 placeRequest = self.extend(placeRequest, {
                     'signedMatchingOrder': signedMatchingOrder,
                     'matchingOrderID': reserveResponse['matchingOrderID'],
@@ -611,7 +611,7 @@ class theocean (Exchange):
                 raise OrderNotFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order')
         if (isLimit and isMakerOrTakerUndefined) or isMaker:
             if isUnsignedTargetOrderDefined:
-                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress))
+                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
                 placeRequest['signedTargetOrder'] = signedTargetOrder
             elif isMaker:
                 raise OrderImmediatelyFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order')

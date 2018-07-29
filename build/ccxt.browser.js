@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.44'
+const version = '1.17.45'
 
 Exchange.ccxtVersion = version
 
@@ -2746,7 +2746,7 @@ module.exports = class Exchange {
         let d = date.getUTCDate ()
         m = m < 10 ? ('0' + m) : m.toString ()
         d = d < 10 ? ('0' + d) : d.toString ()
-        return m + infix + d + infix + y
+        return m + infix + d + infix + Y
     }
 
     ymd (timestamp, infix = '-') {
@@ -2779,7 +2779,7 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    decryptAccountFromJSON (json, password) {
+    decryptAccountFromJson (json, password) {
         return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
     }
 
@@ -2791,22 +2791,28 @@ module.exports = class Exchange {
         return this.web3.eth.accounts.privateKeyToAccount (privateKey)
     }
 
-    soliditySHA3 (array) {
-        return this.solidityHash (array, 'soliditySHA3')
+    soliditySha3 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
     }
 
-    soliditySHA256 (array) {
-        return this.solidityHash (array, 'soliditySHA256')
+    soliditySha256 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA256 (types, values).toString ('hex')
     }
 
-    solidityHash (array, hash) {
-        const values = array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
-        const types = values.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
-        return '0x' +  ethAbi[hash] (types, values).toString ('hex')
+    solidityTypes (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
+    }
+
+    solidityValues (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
     }
 
     getZeroExOrderHash (order) {
-        return this.soliditySHA3 ([
+        return this.soliditySha3 ([
             order['exchangeContractAddress'], // address
             order['maker'], // address
             order['taker'], // address
@@ -2822,9 +2828,9 @@ module.exports = class Exchange {
         ]);
     }
 
-    signZeroExOrder (order) {
+    signZeroExOrder (order, privateKey) {
         const orderHash = this.getZeroExOrderHash (order);
-        const signature = this.signMessage (orderHash, this.privateKey);
+        const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
             'ecSignature': signature, // todo fix v if needed
@@ -48480,7 +48486,7 @@ module.exports = class theocean extends Exchange {
         let signedTargetOrder = undefined;
         if ((isMarket && isMakerOrTakerUndefined) || isTaker) {
             if (isUnsignedMatchingOrderDefined) {
-                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress));
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
                 placeRequest = this.extend (placeRequest, {
                     'signedMatchingOrder': signedMatchingOrder,
                     'matchingOrderID': reserveResponse['matchingOrderID'],
@@ -48491,7 +48497,7 @@ module.exports = class theocean extends Exchange {
         }
         if ((isLimit && isMakerOrTakerUndefined) || isMaker) {
             if (isUnsignedTargetOrderDefined) {
-                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress));
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
                 placeRequest['signedTargetOrder'] = signedTargetOrder;
             } else if (isMaker) {
                 throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');

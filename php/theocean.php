@@ -618,7 +618,7 @@ class theocean extends Exchange {
         $signedTargetOrder = null;
         if (($isMarket && $isMakerOrTakerUndefined) || $isTaker) {
             if ($isUnsignedMatchingOrderDefined) {
-                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress));
+                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
                 $placeRequest = array_merge ($placeRequest, array (
                     'signedMatchingOrder' => $signedMatchingOrder,
                     'matchingOrderID' => $reserveResponse['matchingOrderID'],
@@ -629,7 +629,7 @@ class theocean extends Exchange {
         }
         if (($isLimit && $isMakerOrTakerUndefined) || $isMaker) {
             if ($isUnsignedTargetOrderDefined) {
-                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress));
+                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
                 $placeRequest['signedTargetOrder'] = $signedTargetOrder;
             } else if ($isMaker) {
                 throw new OrderImmediatelyFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $maker order');
