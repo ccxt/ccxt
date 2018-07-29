@@ -308,7 +308,7 @@ class cobinhood (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
         cost = price * amount
-        side = trade['maker_side'] == 'sell' if 'bid' else 'buy'
+        side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
         return {
             'info': trade,
             'timestamp': timestamp,

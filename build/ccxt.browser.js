@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.41'
+const version = '1.17.43'
 
 Exchange.ccxtVersion = version
 
@@ -19228,7 +19228,7 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         let cost = price * amount;
-        let side = trade['maker_side'] === 'bid' ? 'sell' : 'buy';
+        let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
         return {
             'info': trade,
             'timestamp': timestamp,

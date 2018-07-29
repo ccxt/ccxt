@@ -314,7 +314,7 @@ class cobinhood extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         $cost = $price * $amount;
-        $side = $trade['maker_side'] === 'bid' ? 'sell' : 'buy';
+        $side = ($trade['maker_side'] === 'bid') ? 'sell' : 'buy';
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
