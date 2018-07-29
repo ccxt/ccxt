@@ -280,7 +280,7 @@ module.exports = class Exchange {
         this.tickers     = {}
         this.orders      = {}
         this.trades      = {}
-        this.transations = {}
+        this.transactions = {}
 
         this.last_http_response    = undefined
         this.last_json_response    = undefined
