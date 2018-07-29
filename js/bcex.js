@@ -91,7 +91,7 @@ module.exports = class bcex extends Exchange {
                 let quoteId = market['coin_to'];
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
-                let id = base + '2' + quote;
+                let id = baseId + '2' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = true;
                 let precision = {
@@ -129,14 +129,18 @@ module.exports = class bcex extends Exchange {
         return result;
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let timestamp = trade['date'] * 1000;
         return {
             'id': trade['tid'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market.symbol,
+            'symbol': symbol,
             'type': undefined,
             'side': trade['type'],
             'price': this.safeFloat (trade, 'price'),
