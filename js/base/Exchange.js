@@ -1154,7 +1154,7 @@ module.exports = class Exchange {
         let d = date.getUTCDate ()
         m = m < 10 ? ('0' + m) : m.toString ()
         d = d < 10 ? ('0' + d) : d.toString ()
-        return m + infix + d + infix + y
+        return m + infix + d + infix + Y
     }
 
     ymd (timestamp, infix = '-') {
@@ -1187,7 +1187,7 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    decryptAccountFromJSON (json, password) {
+    decryptAccountFromJson (json, password) {
         return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
     }
 
@@ -1199,22 +1199,28 @@ module.exports = class Exchange {
         return this.web3.eth.accounts.privateKeyToAccount (privateKey)
     }
 
-    soliditySHA3 (array) {
-        return this.solidityHash (array, 'soliditySHA3')
+    soliditySha3 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
     }
 
-    soliditySHA256 (array) {
-        return this.solidityHash (array, 'soliditySHA256')
+    soliditySha256 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA256 (types, values).toString ('hex')
     }
 
-    solidityHash (array, hash) {
-        const values = array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
-        const types = values.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
-        return '0x' +  ethAbi[hash] (types, values).toString ('hex')
+    solidityTypes (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
+    }
+
+    solidityValues (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
     }
 
     getZeroExOrderHash (order) {
-        return this.soliditySHA3 ([
+        return this.soliditySha3 ([
             order['exchangeContractAddress'], // address
             order['maker'], // address
             order['taker'], // address
@@ -1230,9 +1236,9 @@ module.exports = class Exchange {
         ]);
     }
 
-    signZeroExOrder (order) {
+    signZeroExOrder (order, privateKey) {
         const orderHash = this.getZeroExOrderHash (order);
-        const signature = this.signMessage (orderHash, this.privateKey);
+        const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
             'orderHash': orderHash,
             'ecSignature': signature, // todo fix v if needed
