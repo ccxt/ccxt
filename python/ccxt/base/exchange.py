@@ -1010,6 +1010,9 @@ class Exchange(object):
     def fetch_markets(self):
         return self.to_array(self.markets)
 
+    def fetch_currencies(self):
+        return self.to_array(self.currencies)
+
     def fetch_fees(self):
         trading = {}
         funding = {}
