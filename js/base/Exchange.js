@@ -260,12 +260,12 @@ module.exports = class Exchange {
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
 
-        this.timeout          = 10000 // milliseconds
-        this.verbose          = false
-        this.debug            = false
-        this.journal          = 'debug.json'
-        this.userAgent        = undefined
-        this.twofa            = false // two-factor authentication (2FA)
+        this.timeout       = 10000 // milliseconds
+        this.verbose       = false
+        this.debug         = false
+        this.journal       = 'debug.json'
+        this.userAgent     = undefined
+        this.twofa         = false // two-factor authentication (2FA)
 
         this.apiKey        = undefined
         this.secret        = undefined
@@ -275,14 +275,15 @@ module.exports = class Exchange {
         this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
 
-        this.balance    = {}
-        this.orderbooks = {}
-        this.tickers    = {}
-        this.orders     = {}
-        this.trades     = {}
+        this.balance     = {}
+        this.orderbooks  = {}
+        this.tickers     = {}
+        this.orders      = {}
+        this.trades      = {}
+        this.transations = {}
 
-        this.last_http_response = undefined
-        this.last_json_response = undefined
+        this.last_http_response    = undefined
+        this.last_json_response    = undefined
         this.last_response_headers = undefined
 
         this.arrayConcat = (a, b) => a.concat (b)

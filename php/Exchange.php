@@ -687,13 +687,14 @@ class Exchange {
             'defaultCost' => 1.0,
             'maxCapacity' => 1000,
         );
-        $this->timeout     = 10000; // in milliseconds
-        $this->proxy       = '';
-        $this->origin      = '*'; // CORS origin
-        $this->headers     = array ();
-        $this->curlopt_interface = null;
 
-        $this->options     = array (); // exchange-specific options if any
+        $this->curlopt_interface = null;
+        $this->timeout   = 10000; // in milliseconds
+        $this->proxy     = '';
+        $this->origin    = '*'; // CORS origin
+        $this->headers   = array ();
+
+        $this->options   = array (); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
 
@@ -705,27 +706,28 @@ class Exchange {
         $this->api       = array ();
         $this->comment   = null;
 
-        $this->markets     = null;
-        $this->symbols     = null;
-        $this->ids         = null;
-        $this->currencies  = array ();
-        $this->balance     = array ();
-        $this->orderbooks  = array ();
-        $this->fees        = array ('trading' => array (), 'funding' => array ());
-        $this->precision   = array ();
-        $this->limits      = array ();
-        $this->orders      = array ();
-        $this->trades      = array ();
-        $this->exceptions  = array ();
-        $this->verbose     = false;
-        $this->apiKey      = '';
-        $this->secret      = '';
-        $this->password    = '';
-        $this->uid         = '';
-        $this->privateKey  = '';
+        $this->markets       = null;
+        $this->symbols       = null;
+        $this->ids           = null;
+        $this->currencies    = array ();
+        $this->balance       = array ();
+        $this->orderbooks    = array ();
+        $this->fees          = array ('trading' => array (), 'funding' => array ());
+        $this->precision     = array ();
+        $this->limits        = array ();
+        $this->orders        = array ();
+        $this->trades        = array ();
+        $this->transactions  = array ();
+        $this->exceptions    = array ();
+        $this->verbose       = false;
+        $this->apiKey        = '';
+        $this->secret        = '';
+        $this->password      = '';
+        $this->uid           = '';
+        $this->privateKey    = '';
         $this->walletAddress = '';
-        $this->twofa       = false;
-        $this->marketsById = null;
+        $this->twofa         = false;
+        $this->marketsById   = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent   = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;

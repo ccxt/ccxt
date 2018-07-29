@@ -141,6 +141,7 @@ class Exchange(object):
     orderbooks = None
     orders = None
     trades = None
+    transactions = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
 
@@ -213,16 +214,17 @@ class Exchange(object):
 
     def __init__(self, config={}):
 
-        self.precision = {} if self.precision is None else self.precision
-        self.limits = {} if self.limits is None else self.limits
-        self.exceptions = {} if self.exceptions is None else self.exceptions
-        self.headers = {} if self.headers is None else self.headers
-        self.balance = {} if self.balance is None else self.balance
-        self.orderbooks = {} if self.orderbooks is None else self.orderbooks
-        self.orders = {} if self.orders is None else self.orders
-        self.trades = {} if self.trades is None else self.trades
-        self.currencies = {} if self.currencies is None else self.currencies
-        self.options = {} if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+        self.precision = dict() if self.precision is None else self.precision
+        self.limits = dict() if self.limits is None else self.limits
+        self.exceptions = dict() if self.exceptions is None else self.exceptions
+        self.headers = dict() if self.headers is None else self.headers
+        self.balance = dict() if self.balance is None else self.balance
+        self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
+        self.orders = dict() if self.orders is None else self.orders
+        self.trades = dict() if self.trades is None else self.trades
+        self.transactions = dict() if self.transactions is None else self.transactions
+        self.currencies = dict() if self.currencies is None else self.currencies
+        self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
 
         self.decimalToPrecision = self.decimal_to_precision = decimal_to_precision
 
