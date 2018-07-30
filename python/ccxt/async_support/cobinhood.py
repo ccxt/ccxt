@@ -148,6 +148,7 @@ class cobinhood (Exchange):
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
+                'MTN': 'Motion Token',
             },
         })
 

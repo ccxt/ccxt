@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.50'
+const version = '1.17.51'
 
 Exchange.ccxtVersion = version
 
@@ -19057,6 +19057,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
+                'MTN': 'Motion Token',
             },
         });
     }

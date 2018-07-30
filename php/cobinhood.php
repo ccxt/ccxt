@@ -143,6 +143,7 @@ class cobinhood extends Exchange {
             ),
             'commonCurrencies' => array (
                 'SMT' => 'SocialMedia.Market',
+                'MTN' => 'Motion Token',
             ),
         ));
     }
