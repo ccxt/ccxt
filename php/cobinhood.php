@@ -241,11 +241,18 @@ class cobinhood extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
+        $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'trading_pair_id');
-            $market = $this->find_market($marketId);
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list ($baseId, $quoteId) = explode ('-', $marketId);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
         }
-        $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 'timestamp');

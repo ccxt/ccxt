@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.49'
+const version = '1.17.50'
 
 Exchange.ccxtVersion = version
 
@@ -19155,11 +19155,18 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (ticker, 'trading_pair_id');
-            market = this.findMarket (marketId);
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let [ baseId, quoteId ] = marketId.split ('-');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger (ticker, 'timestamp');
