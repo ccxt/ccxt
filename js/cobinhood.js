@@ -240,11 +240,18 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (ticker, 'trading_pair_id');
-            market = this.findMarket (marketId);
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let [ baseId, quoteId ] = marketId.split ('-');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger (ticker, 'timestamp');
