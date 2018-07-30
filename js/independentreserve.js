@@ -265,6 +265,9 @@ module.exports = class independentreserve extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        if (typeof limit === 'undefined') {
+            limit = 50;
+        }
         const request = this.ordered ({
             'pageIndex': pageIndex,
             'pageSize': limit,
@@ -368,15 +371,20 @@ module.exports = class independentreserve extends Exchange {
             let keys = Object.keys (params);
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                auth.push (key + '=' + params[key]);
+                let value = params[key].toString ();
+                auth.push (key + '=' + value);
             }
             let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            body = this.json (this.extend (this.ordered ({
-                'apiKey': this.apiKey,
-                'nonce': nonce,
-                'signature': signature.toUpperCase (),
-            }), params));
+            let query = this.ordered ({});
+            query['apiKey'] = this.apiKey;
+            query['nonce'] = nonce;
+            query['signature'] = signature.toUpperCase ();
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i]
+                query[key] = params[key];
+            }
+            body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
