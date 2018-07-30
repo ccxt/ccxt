@@ -1041,7 +1041,7 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
