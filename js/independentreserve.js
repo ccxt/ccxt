@@ -372,11 +372,11 @@ module.exports = class independentreserve extends Exchange {
             }
             let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            body = this.json ({
+            body = this.json (this.extend (this.ordered ({
                 'apiKey': this.apiKey,
                 'nonce': nonce,
                 'signature': signature.toUpperCase (),
-            });
+            }), params));
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
