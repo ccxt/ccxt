@@ -267,6 +267,9 @@ class independentreserve extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = 50, $params = array ()) {
         $this->load_markets();
         $pageIndex = $this->safe_integer($params, 'pageIndex', 1);
+        if ($limit === null) {
+            $limit = 50;
+        }
         $request = $this->ordered (array (
             'pageIndex' => $pageIndex,
             'pageSize' => $limit,
@@ -370,15 +373,20 @@ class independentreserve extends Exchange {
             $keys = is_array ($params) ? array_keys ($params) : array ();
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
-                $auth[] = $key . '=' . $params[$key];
+                $value = (string) $params[$key];
+                $auth[] = $key . '=' . $value;
             }
             $message = implode (',', $auth);
             $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
-            $body = $this->json (array (
-                'apiKey' => $this->apiKey,
-                'nonce' => $nonce,
-                'signature' => strtoupper ($signature),
-            ));
+            $query = $this->ordered (array ());
+            $query['apiKey'] = $this->apiKey;
+            $query['nonce'] = $nonce;
+            $query['signature'] = strtoupper ($signature);
+            for ($i = 0; $i < count ($keys); $i++) {
+                $key = $keys[$i];
+                $query[$key] = $params[$key];
+            }
+            $body = $this->json ($query);
             $headers = array ( 'Content-Type' => 'application/json' );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
