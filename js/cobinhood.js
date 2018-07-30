@@ -142,6 +142,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
+                'MTN': 'Motion Token', 
             },
         });
     }
