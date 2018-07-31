@@ -582,7 +582,7 @@ module.exports = class kucoin extends Exchange {
         let status = undefined;
         if ('status' in order) {
             status = order['status'];
-         } else {
+        } else {
             if (this.safeValue (order, 'isActive', true)) {
                 status = 'open';
             } else {
