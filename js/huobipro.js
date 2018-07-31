@@ -667,8 +667,9 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (type === 'limit')
-        request['price'] = this.priceToPrecision (symbol, price);
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let method = this.options['createOrderMethod'];
         let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();

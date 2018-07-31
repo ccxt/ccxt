@@ -345,7 +345,7 @@ module.exports = class cex extends Exchange {
         if (type === 'limit') {
             request['price'] = price;
         } else {
-            order['order_type'] = type;
+            request['order_type'] = type;
         }
         let response = await this.privatePostPlaceOrderPair (this.extend (request, params));
         return {
