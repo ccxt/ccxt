@@ -58,6 +58,7 @@ class braziliex (Exchange):
             },
             'commonCurrencies': {
                 'EPC': 'Epacoin',
+                'ABC': 'Anti Bureaucracy Coin',
             },
             'fees': {
                 'trading': {

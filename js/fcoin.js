@@ -93,6 +93,7 @@ module.exports = class fcoin extends Exchange {
                 'amount': { 'min': 0.01, 'max': 100000 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': false,
                 'limits': {
                     'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
                     'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
@@ -320,19 +321,30 @@ module.exports = class fcoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
         let orderType = type;
-        amount = this.amountToPrecision (symbol, amount);
-        let order = {
+        let request = {
             'symbol': this.marketId (symbol),
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
             'side': side,
             'type': orderType,
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        let result = await this.privatePostOrders (this.extend (order, params));
+        let result = await this.privatePostOrders (this.extend (request, params));
         return {
             'info': result,
             'id': result['data'],
@@ -341,9 +353,14 @@ module.exports = class fcoin extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostOrdersOrderIdSubmitCancel (this.extend ({
+        let response = await this.privatePostOrdersOrderIdSubmitCancel (this.extend ({
             'order_id': id,
         }, params));
+        let order = this.parseOrder (response);
+        return this.extend (order, {
+            'id': id,
+            'status': 'canceled',
+        });
     }
 
     parseOrderStatus (status) {
@@ -362,29 +379,33 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'];
-        let side = order['side'];
-        let status = this.parseOrderStatus (order['state']);
+        let id = this.safeString (order, 'id');
+        let side = this.safeString (order, 'side');
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            let marketId = order['symbol'];
+            let marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        let orderType = order['type'];
-        let timestamp = parseInt (order['created_at']);
+        let orderType = this.safeString (order, 'type');
+        let timestamp = this.safeInteger (order, 'created_at');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'filled_amount');
         let remaining = undefined;
         let price = this.safeFloat (order, 'price');
-        let cost = undefined;
+        let cost = this.safeFloat (order, 'executed_value');
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
-                cost = price * filled;
+            if (typeof cost === 'undefined') {
+                if (typeof price !== 'undefined') {
+                    cost = price * filled;
+                }
+            } else if ((cost > 0) && (filled > 0)) {
+                price = cost / filled;
             }
         }
         let feeCurrency = undefined;
@@ -452,7 +473,7 @@ module.exports = class fcoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],

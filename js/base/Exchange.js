@@ -41,6 +41,16 @@ const { DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
+// ----------------------------------------------------------------------------
+// web3 / 0x imports
+
+const Web3      = require ('web3')
+    , ethAbi    = require ('ethereumjs-abi')
+    , ethUtil   = require ('ethereumjs-util')
+    , BigNumber = require ('bignumber.js')
+    // we prefer bignumber.js over BN.js
+    // , BN        = require ('bn.js')
+
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
 /*  ------------------------------------------------------------------------ */
@@ -69,6 +79,7 @@ module.exports = class Exchange {
             'countries': undefined,
             'enableRateLimit': false,
             'rateLimit': 2000, // milliseconds = seconds * 1000
+            'certified': false,
             'has': {
                 'CORS': false,
                 'publicAPI': true,
@@ -112,12 +123,14 @@ module.exports = class Exchange {
             },
             'api': undefined,
             'requiredCredentials': {
-                'apiKey':   true,
-                'secret':   true,
-                'uid':      false,
-                'login':    false,
-                'password': false,
-                'twofa':    false, // 2-factor authentication (one-time password key)
+                'apiKey':     true,
+                'secret':     true,
+                'uid':        false,
+                'login':      false,
+                'password':   false,
+                'twofa':      false, // 2-factor authentication (one-time password key)
+                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
             },
             'markets': undefined, // to be filled manually or by fetchMarkets
             'currencies': {}, // to be filled manually or by fetchMarkets
@@ -247,27 +260,30 @@ module.exports = class Exchange {
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = defaultFetch
 
-        this.timeout          = 10000 // milliseconds
-        this.verbose          = false
-        this.debug            = false
-        this.journal          = 'debug.json'
-        this.userAgent        = undefined
-        this.twofa            = false // two-factor authentication (2FA)
+        this.timeout       = 10000 // milliseconds
+        this.verbose       = false
+        this.debug         = false
+        this.journal       = 'debug.json'
+        this.userAgent     = undefined
+        this.twofa         = false // two-factor authentication (2FA)
 
-        this.apiKey   = undefined
-        this.secret   = undefined
-        this.uid      = undefined
-        this.login    = undefined
-        this.password = undefined
+        this.apiKey        = undefined
+        this.secret        = undefined
+        this.uid           = undefined
+        this.login         = undefined
+        this.password      = undefined
+        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
 
-        this.balance    = {}
-        this.orderbooks = {}
-        this.tickers    = {}
-        this.orders     = {}
-        this.trades     = {}
+        this.balance     = {}
+        this.orderbooks  = {}
+        this.tickers     = {}
+        this.orders      = {}
+        this.trades      = {}
+        this.transactions = {}
 
-        this.last_http_response = undefined
-        this.last_json_response = undefined
+        this.last_http_response    = undefined
+        this.last_json_response    = undefined
         this.last_response_headers = undefined
 
         this.arrayConcat = (a, b) => a.concat (b)
@@ -304,6 +320,10 @@ module.exports = class Exchange {
 
         if (this.debug && journal) {
             journal (() => this.journal, this, Object.keys (this.has))
+        }
+
+        if (!this.web3) {
+            this.web3 = new Web3 (new Web3.providers.HttpProvider ())
         }
     }
 
@@ -344,8 +364,6 @@ module.exports = class Exchange {
 
     initRestRateLimiter () {
 
-        const fetchImplementation = this.fetchImplementation
-
         if (this.rateLimit === undefined)
             throw new Error (this.id + '.rateLimit property is not configured')
 
@@ -359,7 +377,11 @@ module.exports = class Exchange {
 
         this.throttle = throttle (this.tokenBucket)
 
-        this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
+        this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
+
+            // fetchImplementation cannot be called on this. in browsers:
+            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+            const fetchImplementation = this.fetchImplementation
 
             let promise =
                 fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
@@ -741,12 +763,22 @@ module.exports = class Exchange {
     }
 
     currencyId (commonCode) {
+
+        if (typeof this.currencies === 'undefined') {
+            throw new ExchangeError (this.id + ' currencies not loaded')
+        }
+
+        if (commonCode in this.currencies) {
+            return this.currencies[commonCode]['id'];
+        }
+
         let currencyIds = {}
         let distinct = Object.keys (this.commonCurrencies)
         for (let i = 0; i < distinct.length; i++) {
             let k = distinct[i]
             currencyIds[this.commonCurrencies[k]] = k
         }
+
         return this.safeString (currencyIds, commonCode, commonCode)
     }
 
@@ -1070,6 +1102,14 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
+    fromWei (amount, unit = 'ether') {
+        return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+    }
+
+    toWei (amount, unit = 'ether') {
+        return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
+    }
+
     costToPrecision (symbol, cost) {
         return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
     }
@@ -1115,7 +1155,7 @@ module.exports = class Exchange {
         let d = date.getUTCDate ()
         m = m < 10 ? ('0' + m) : m.toString ()
         d = d < 10 ? ('0' + d) : d.toString ()
-        return m + infix + d + infix + y
+        return m + infix + d + infix + Y
     }
 
     ymd (timestamp, infix = '-') {
@@ -1143,5 +1183,123 @@ module.exports = class Exchange {
         M = M < 10 ? ('0' + M) : M
         S = S < 10 ? ('0' + S) : S
         return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
+    }
+
+    // ------------------------------------------------------------------------
+    // web3 / 0x methods
+
+    decryptAccountFromJson (json, password) {
+        return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
+    }
+
+    decryptAccount (key, password) {
+        return this.web3.eth.accounts.decrypt (key, password)
+    }
+
+    decryptAccountFromPrivateKey (privateKey) {
+        return this.web3.eth.accounts.privateKeyToAccount (privateKey)
+    }
+
+    soliditySha3 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
+    }
+
+    soliditySha256 (array) {
+        const values = this.solidityValues (array);
+        const types = this.solidityTypes (values);
+        return '0x' +  ethAbi.soliditySHA256 (types, values).toString ('hex')
+    }
+
+    solidityTypes (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
+    }
+
+    solidityValues (array) {
+        return array.map (value => (this.web3.utils.isAddress (value) ? value : (new BigNumber (value).toFixed ())))
+    }
+
+    getZeroExOrderHash (order) {
+        return this.soliditySha3 ([
+            order['exchangeContractAddress'], // address
+            order['maker'], // address
+            order['taker'], // address
+            order['makerTokenAddress'], // address
+            order['takerTokenAddress'], // address
+            order['feeRecipient'], // address
+            order['makerTokenAmount'], // uint256
+            order['takerTokenAmount'], // uint256
+            order['makerFee'], // uint256
+            order['takerFee'], // uint256
+            order['expirationUnixTimestampSec'], // uint256
+            order['salt'], // uint256
+        ]);
+    }
+
+    signZeroExOrder (order, privateKey) {
+        const orderHash = this.getZeroExOrderHash (order);
+        const signature = this.signMessage (orderHash, privateKey);
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'ecSignature': signature, // todo fix v if needed
+        })
+    }
+
+    hashMessage (message) {
+        return this.web3.eth.accounts.hashMessage (message)
+    }
+
+    // works with Node only
+    signHash (hash, privateKey) {
+        const signature = ethUtil.ecsign (Buffer.from (hash.slice (-64), 'hex'), Buffer.from (privateKey.slice (-64), 'hex'))
+        return {
+            v: signature.v, // integer
+            r: '0x' + signature.r.toString ('hex'), // '0x'-prefixed hex string
+            s: '0x' + signature.s.toString ('hex'), // '0x'-prefixed hex string
+        }
+    }
+
+    signMessage (message, privateKey) {
+        //
+        // The following comment is related to MetaMask, we use the upper type of signature prefix:
+        //
+        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        //                              prefixType: 'ETH_SIGN',
+        //                              shouldAddPrefixBeforeCallingEthSign: true
+        //                          }).then ((e, r) => console.log (e,r))
+        //
+        //     {                            ↓
+        //         v: 28,
+        //         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
+        //         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
+        //     }
+        //
+        // --------------------------------------------------------------------
+        //
+        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
+        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
+        //                              prefixType: 'NONE',
+        //                              shouldAddPrefixBeforeCallingEthSign: true
+        //                          }).then ((e, r) => console.log (e,r))
+        //
+        //     {                            ↓
+        //         v: 27,
+        //         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
+        //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
+        //     }
+        //
+        const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
+        return {
+            v: parseInt (signature.v.slice (2), 16), // integer
+            r: signature.r, // '0x'-prefixed hex string
+            s: signature.s, // '0x'-prefixed hex string
+        }
+    }
+
+    signMessage2 (message, privateKey) {
+        // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
+        return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 }

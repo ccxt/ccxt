@@ -573,9 +573,12 @@ class bibox (Exchange):
             }, params),
         })
         address = self.safe_string(response, 'result')
+        tag = None  # todo: figure self out
         result = {
-            'info': response,
+            'currency': code,
             'address': address,
+            'tag': tag,
+            'info': response,
         }
         return result
 

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.16.43'
+__version__ = '1.17.56'
 
 # ----------------------------------------------------------------------------
 
@@ -57,6 +57,8 @@ from ccxt.base.errors import InvalidAddress                 # noqa: F401
 from ccxt.base.errors import AddressPending                 # noqa: F401
 from ccxt.base.errors import BadResponse                    # noqa: F401
 from ccxt.base.errors import NullResponse                   # noqa: F401
+from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
+from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
 from ccxt._1broker import _1broker                          # noqa: F401
@@ -66,6 +68,7 @@ from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.anybits import anybits                            # noqa: F401
 from ccxt.bibox import bibox                                # noqa: F401
+from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
@@ -171,6 +174,7 @@ from ccxt.quoinex import quoinex                            # noqa: F401
 from ccxt.rightbtc import rightbtc                          # noqa: F401
 from ccxt.southxchange import southxchange                  # noqa: F401
 from ccxt.surbitcoin import surbitcoin                      # noqa: F401
+from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
@@ -193,6 +197,7 @@ exchanges = [
     'anxpro',
     'anybits',
     'bibox',
+    'bigone',
     'binance',
     'bit2c',
     'bitbank',
@@ -298,6 +303,7 @@ exchanges = [
     'rightbtc',
     'southxchange',
     'surbitcoin',
+    'theocean',
     'therock',
     'tidebit',
     'tidex',

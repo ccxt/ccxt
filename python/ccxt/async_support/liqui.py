@@ -133,8 +133,8 @@ class liqui (Exchange):
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets[id]
             base, quote = self.get_base_quote_from_market_id(id)
             symbol = base + '/' + quote
@@ -241,7 +241,7 @@ class liqui (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['updated'] * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -317,7 +317,7 @@ class liqui (Exchange):
             marketId = trade['pair']
             market = self.markets_by_id[marketId]
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         amount = trade['amount']
         type = 'limit'  # all trades are still limit trades
@@ -350,6 +350,10 @@ class liqui (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetTradesPair(self.extend(request, params))
+        if isinstance(response, list):
+            numElements = len(response)
+            if numElements == 0:
+                return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -403,7 +407,6 @@ class liqui (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = None
         request = {}
         idKey = self.get_order_id_key()
         request[idKey] = id
@@ -430,9 +433,9 @@ class liqui (Exchange):
             status = self.parse_order_status(status)
         timestamp = int(order['timestamp_created']) * 1000
         symbol = None
-        if not market:
+        if market is None:
             market = self.markets_by_id[order['pair']]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         remaining = None
         amount = None
@@ -699,4 +702,4 @@ class liqui (Exchange):
                     elif message == 'external service unavailable':
                         raise ExchangeNotAvailable(feedback)
                     else:
-                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+                        raise ExchangeError(feedback)

@@ -94,6 +94,7 @@ class fcoin extends Exchange {
                 'amount' => array ( 'min' => 0.01, 'max' => 100000 ),
             ),
             'options' => array (
+                'createMarketBuyOrderRequiresPrice' => false,
                 'limits' => array (
                     'BTM/USDT' => array ( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
                     'ETC/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
@@ -321,19 +322,30 @@ class fcoin extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type === 'market') {
+            // for market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amount = $amount * $price;
+                    }
+                }
+            }
+        }
         $this->load_markets();
         $orderType = $type;
-        $amount = $this->amount_to_precision($symbol, $amount);
-        $order = array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-            'amount' => $amount,
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'side' => $side,
             'type' => $orderType,
         );
         if ($type === 'limit') {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $result = $this->privatePostOrders (array_merge ($order, $params));
+        $result = $this->privatePostOrders (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result['data'],
@@ -342,9 +354,14 @@ class fcoin extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrdersOrderIdSubmitCancel (array_merge (array (
+        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge (array (
             'order_id' => $id,
         ), $params));
+        $order = $this->parse_order($response);
+        return array_merge ($order, array (
+            'id' => $id,
+            'status' => 'canceled',
+        ));
     }
 
     public function parse_order_status ($status) {
@@ -363,29 +380,33 @@ class fcoin extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $id = $order['id'];
-        $side = $order['side'];
-        $status = $this->parse_order_status($order['state']);
+        $id = $this->safe_string($order, 'id');
+        $side = $this->safe_string($order, 'side');
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $symbol = null;
         if ($market === null) {
-            $marketId = $order['symbol'];
+            $marketId = $this->safe_string($order, 'symbol');
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $orderType = $order['type'];
-        $timestamp = intval ($order['created_at']);
+        $orderType = $this->safe_string($order, 'type');
+        $timestamp = $this->safe_integer($order, 'created_at');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
         $remaining = null;
         $price = $this->safe_float($order, 'price');
-        $cost = null;
+        $cost = $this->safe_float($order, 'executed_value');
         if ($filled !== null) {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
             }
-            if ($price !== null) {
-                $cost = $price * $filled;
+            if ($cost === null) {
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
+            } else if (($cost > 0) && ($filled > 0)) {
+                $price = $cost / $filled;
             }
         }
         $feeCurrency = null;
@@ -453,7 +474,7 @@ class fcoin extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
         return [
-            $ohlcv['seq'],
+            $ohlcv['id'] * 1000,
             $ohlcv['open'],
             $ohlcv['high'],
             $ohlcv['low'],

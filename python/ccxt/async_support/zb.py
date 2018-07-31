@@ -35,6 +35,7 @@ class zb (Exchange):
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchDepositAddress': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
@@ -91,6 +92,7 @@ class zb (Exchange):
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
@@ -252,6 +254,21 @@ class zb (Exchange):
 
     def get_market_field_name(self):
         return 'market'
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privateGetGetUserAddress({
+            'currency': currency['id'],
+        })
+        address = response['message']['datas']['key']
+        tag = None  # todo: figure self out
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

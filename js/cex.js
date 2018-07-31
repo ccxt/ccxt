@@ -116,6 +116,7 @@ module.exports = class cex extends Exchange {
             },
             'options': {
                 'fetchOHLCVWarning': true,
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -134,10 +135,9 @@ module.exports = class cex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'lot': market['minLotSize'],
                 'precision': {
                     'price': this.precisionFromString (market['minPrice']),
-                    'amount': -1 * Math.log10 (market['minLotSize']),
+                    'amount': -Math.log10 (market['minLotSize']),
                 },
                 'limits': {
                     'amount': {
@@ -324,25 +324,30 @@ module.exports = class cex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,
         };
         if (type === 'limit') {
-            order['price'] = price;
+            request['price'] = price;
         } else {
-            // for market buy CEX.io requires the amount of quote currency to spend
-            if (side === 'buy') {
-                if (!price) {
-                    throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
-                }
-                order['amount'] = amount * price;
-            }
-            order['order_type'] = type;
+            request['order_type'] = type;
         }
-        let response = await this.privatePostPlaceOrderPair (this.extend (order, params));
+        let response = await this.privatePostPlaceOrderPair (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],

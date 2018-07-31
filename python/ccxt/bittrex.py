@@ -34,6 +34,7 @@ class bittrex (Exchange):
             'countries': ['US'],
             'version': 'v1.1',
             'rateLimit': 1500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -488,7 +489,9 @@ class bittrex (Exchange):
         request = {}
         request[orderIdField] = id
         response = self.marketGetCancel(self.extend(request, params))
-        return self.parse_order(response)
+        return self.extend(self.parse_order(response), {
+            'status': 'canceled',
+        })
 
     def parse_symbol(self, id):
         quote, base = id.split('-')
@@ -746,6 +749,13 @@ class bittrex (Exchange):
                     if message.find('problem') >= 0:
                         raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 raise ExchangeError(feedback)
+
+    def append_timezone_parse8601(self, x):
+        length = len(x)
+        lastSymbol = x[length - 1]
+        if (lastSymbol == 'Z') or (x.find('+') >= 0):
+            return self.parse8601(x)
+        return self.parse8601(x + 'Z')
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

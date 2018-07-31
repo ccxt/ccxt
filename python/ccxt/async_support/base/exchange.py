@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.16.43'
+__version__ = '1.17.56'
 
 # -----------------------------------------------------------------------------
 
@@ -176,6 +176,9 @@ class Exchange(BaseExchange):
 
     async def fetch_markets(self):
         return self.markets
+
+    async def fetch_currencies(self):
+        return self.currencies
 
     async def fetch_order_status(self, id, market=None):
         order = await self.fetch_order(id)

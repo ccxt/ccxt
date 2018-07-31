@@ -32,6 +32,8 @@ JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and
 
    npm install ccxt
 
+Windows users having difficulties installing ``w3``, ``scrypt`` or ``node-gyp`` dependencies for the ccxt library, follow here: https://github.com/nodejs/node-gyp#on-windows
+
 .. code:: javascript
 
    var ccxt = require ('ccxt')
@@ -135,8 +137,8 @@ You can also set them programmatically:
    import ccxt
    exchange = ccxt.poloniex({
        'proxies': {
-           'http': 'http://10.10.1.10:3128',
-           'https': 'http://10.10.1.10:1080',
+           'http': 'http://10.10.1.10:3128',  # these proxies won't work for you, they are here for example
+           'https': 'https://10.10.1.10:1080',
        },
    })
 
@@ -147,8 +149,8 @@ Or
    import ccxt
    exchange = ccxt.poloniex()
    exchange.proxies = {
-     'http': 'http://10.10.1.10:3128',
-     'https': 'http://10.10.1.10:1080',
+     'http': 'http://10.10.1.10:3128', # these proxies won't work for you, they are here for example
+     'https': 'https://10.10.1.10:1080',
    }
 
 Python 2 and 3 sync proxies

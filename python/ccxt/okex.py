@@ -21,7 +21,7 @@ class okex (okcoinusd):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
                 'api': {
-                    'web': 'https://www.okex.com/v2/spot/markets',
+                    'web': 'https://www.okex.com/v2',
                     'public': 'https://www.okex.com/api',
                     'private': 'https://www.okex.com/api',
                 },
@@ -32,11 +32,12 @@ class okex (okcoinusd):
             'commonCurrencies': {
                 'CAN': 'Content And AD Network',
                 'FAIR': 'FairGame',
+                'HOT': 'Hydro Protocol',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
             },
             'options': {
-                'fetchTickersMethod': 'fetchTickersFromApi',
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         })
 
@@ -92,7 +93,7 @@ class okex (okcoinusd):
     def fetch_tickers_from_web(self, symbols=None, params={}):
         self.load_markets()
         request = {}
-        response = self.webGetTickers(self.extend(request, params))
+        response = self.webGetSpotMarketsTickers(self.extend(request, params))
         tickers = response['data']
         result = {}
         for i in range(0, len(tickers)):
@@ -101,7 +102,7 @@ class okex (okcoinusd):
             result[symbol] = ticker
         return result
 
-    def fetch_tickers(self, symbol=None, params={}):
+    def fetch_tickers(self, symbols=None, params={}):
         method = self.options['fetchTickersMethod']
-        response = getattr(self, method)(symbol, params)
+        response = getattr(self, method)(symbols, params)
         return response

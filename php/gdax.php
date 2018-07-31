@@ -25,6 +25,7 @@ class gdax extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
             ),
             'timeframes' => array (
@@ -593,6 +594,36 @@ class gdax extends Exchange {
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $accounts = $this->safe_value($this->options, 'coinbaseAccounts');
+        if ($accounts === null) {
+            $accounts = $this->privateGetCoinbaseAccounts ();
+            $this->options['coinbaseAccounts'] = $accounts; // cache it
+            $this->options['coinbaseAccountsByCurrencyId'] = $this->index_by($accounts, 'currency');
+        }
+        $currencyId = $currency['id'];
+        $account = $this->safe_value($this->options['coinbaseAccountsByCurrencyId'], $currencyId);
+        if ($account === null) {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress ($this->id . " fetchDepositAddress() could not find $currency $code " . $code . " with id = " . $currencyId . " in $this->options['coinbaseAccountsByCurrencyId']");
+        }
+        $response = $this->privatePostCoinbaseAccountsIdAddresses (array_merge (array (
+            'id' => $account['id'],
+        ), $params));
+        $address = $this->safe_string($response, 'address');
+        // todo => figure this out
+        // $tag = $this->safe_string($response, 'addressTag');
+        $tag = null;
+        return array (
+            'currency' => $code,
+            'address' => $this->check_address($address),
+            'tag' => $tag,
+            'info' => $response,
+        );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {

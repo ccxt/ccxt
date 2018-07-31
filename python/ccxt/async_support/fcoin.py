@@ -112,6 +112,7 @@ class fcoin (Exchange):
                 'amount': {'min': 0.01, 'max': 100000},
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': False,
                 'limits': {
                     'BTM/USDT': {'amount': {'min': 0.1, 'max': 10000000}},
                     'ETC/USDT': {'amount': {'min': 0.001, 'max': 400000}},
@@ -317,18 +318,25 @@ class fcoin (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        amount = amount * price
         await self.load_markets()
         orderType = type
-        amount = self.amount_to_precision(symbol, amount)
-        order = {
+        request = {
             'symbol': self.market_id(symbol),
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
             'side': side,
             'type': orderType,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        result = await self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        result = await self.privatePostOrders(self.extend(request, params))
         return {
             'info': result,
             'id': result['data'],
@@ -336,9 +344,14 @@ class fcoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostOrdersOrderIdSubmitCancel(self.extend({
+        response = await self.privatePostOrdersOrderIdSubmitCancel(self.extend({
             'order_id': id,
         }, params))
+        order = self.parse_order(response)
+        return self.extend(order, {
+            'id': id,
+            'status': 'canceled',
+        })
 
     def parse_order_status(self, status):
         statuses = {
@@ -354,26 +367,29 @@ class fcoin (Exchange):
         return status
 
     def parse_order(self, order, market=None):
-        id = order['id']
-        side = order['side']
-        status = self.parse_order_status(order['state'])
+        id = self.safe_string(order, 'id')
+        side = self.safe_string(order, 'side')
+        status = self.parse_order_status(self.safe_string(order, 'state'))
         symbol = None
         if market is None:
-            marketId = order['symbol']
+            marketId = self.safe_string(order, 'symbol')
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        orderType = order['type']
-        timestamp = int(order['created_at'])
+        orderType = self.safe_string(order, 'type')
+        timestamp = self.safe_integer(order, 'created_at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'filled_amount')
         remaining = None
         price = self.safe_float(order, 'price')
-        cost = None
+        cost = self.safe_float(order, 'executed_value')
         if filled is not None:
             if amount is not None:
                 remaining = amount - filled
-            if price is not None:
-                cost = price * filled
+            if cost is None:
+                if price is not None:
+                    cost = price * filled
+            elif (cost > 0) and(filled > 0):
+                price = cost / filled
         feeCurrency = None
         if market is not None:
             symbol = market['symbol']
@@ -433,7 +449,7 @@ class fcoin (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['seq'],
+            ohlcv['id'] * 1000,
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],

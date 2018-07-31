@@ -44,9 +44,9 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
-                        'currencies',
-                        'products',
-                        'tickers',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
+                        'spot/markets/tickers',
                     ],
                 },
                 'public': {
@@ -115,7 +115,7 @@ module.exports = class okcoinusd extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api': {
-                    'web': 'https://www.okcoin.com/v2/spot/markets',
+                    'web': 'https://www.okcoin.com/v2',
                     'public': 'https://www.okcoin.com/api',
                     'private': 'https://www.okcoin.com/api',
                 },
@@ -176,7 +176,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.webGetProducts ();
+        let response = await this.webGetSpotMarketsProducts ();
         let markets = response['data'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -434,13 +434,25 @@ module.exports = class okcoinusd extends Exchange {
         let response = await this.privatePostUserinfo ();
         let balances = response['info']['funds'];
         let result = { 'info': response };
-        let ids = Object.keys (this.currencies_by_id);
+        let ids = Object.keys (balances['free']);
+        let usedField = 'freezed';
+        // wtf, okex?
+        // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if (!(usedField in balances))
+            usedField = 'holds';
+        let usedKeys = Object.keys (balances[usedField]);
+        ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let code = this.currencies_by_id[id]['code'];
+            let code = id.toUpperCase ();
+            if (id in this.currencies_by_id) {
+                code = this.currencies_by_id[id]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = this.account ();
             account['free'] = this.safeFloat (balances['free'], id, 0.0);
-            account['used'] = this.safeFloat (balances['freezed'], id, 0.0);
+            account['used'] = this.safeFloat (balances[usedField], id, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
@@ -583,9 +595,10 @@ module.exports = class okcoinusd extends Exchange {
         let status = this.parseOrderStatus (order['status']);
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('symbol' in order)
-                if (order['symbol'] in this.markets_by_id)
-                    market = this.markets_by_id[order['symbol']];
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         if (market)
             symbol = market['symbol'];
@@ -595,7 +608,8 @@ module.exports = class okcoinusd extends Exchange {
             timestamp = order[createDateField];
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
-        let remaining = amount - filled;
+        amount = Math.max (amount, filled);
+        let remaining = Math.max (0, amount - filled);
         if (type === 'market') {
             remaining = 0;
         }

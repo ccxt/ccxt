@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, InvalidOrder, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, InvalidOrder, InvalidAddress, AuthenticationError, NotSupported, OrderNotFound } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
                 'fetchMyTrades': true,
             },
             'timeframes': {
@@ -592,6 +593,36 @@ module.exports = class gdax extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let accounts = this.safeValue (this.options, 'coinbaseAccounts');
+        if (typeof accounts === 'undefined') {
+            accounts = await this.privateGetCoinbaseAccounts ();
+            this.options['coinbaseAccounts'] = accounts; // cache it
+            this.options['coinbaseAccountsByCurrencyId'] = this.indexBy (accounts, 'currency');
+        }
+        let currencyId = currency['id'];
+        let account = this.safeValue (this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        if (typeof account === 'undefined') {
+            // eslint-disable-next-line quotes
+            throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
+        }
+        let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
+            'id': account['id'],
+        }, params));
+        let address = this.safeString (response, 'address');
+        // todo: figure this out
+        // let tag = this.safeString (response, 'addressTag');
+        let tag = undefined;
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

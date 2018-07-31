@@ -24,11 +24,12 @@ class huobipro extends Exchange {
                 'CORS' => false,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
+                'fetchOrder' => true,
+                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
                 'fetchTradingLimits' => true,
+                'fetchMyTrades' => true,
                 'withdraw' => true,
                 'fetchCurrencies' => true,
             ),
@@ -117,6 +118,7 @@ class huobipro extends Exchange {
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                 'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
@@ -317,20 +319,67 @@ class huobipro extends Exchange {
         return $this->parse_ticker($response['tick'], $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $trade['ts'];
+    public function parse_trade ($trade, $market = null) {
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_2($trade, 'ts', 'created-at');
+        $order = $this->safe_string($trade, 'order-id');
+        $side = $this->safe_string($trade, 'direction');
+        $type = $this->safe_string($trade, 'type');
+        if ($type !== null) {
+            $typeParts = explode ('-', $type);
+            $side = $typeParts[0];
+            $type = $typeParts[1];
+        }
+        $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'filled-fees');
+        $feeCurrency = null;
+        if ($feeCost !== null) {
+            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
+        } else {
+            $feeCost = $this->safe_float($trade, 'filled-points');
+            if ($feeCost !== null) {
+                $feeCurrency = 'HBPOINT';
+            }
+        }
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
+        }
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
-            'order' => null,
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $trade['direction'],
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $amount,
+            'fee' => $fee,
         );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetOrderMatchresults ($params);
+        $trades = $this->parse_trades($response['data'], null, $since, $limit);
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $trades = $this->filter_by_symbol($trades, $market['symbol']);
+        }
+        return $trades;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = 1000, $params = array ()) {
@@ -501,14 +550,16 @@ class huobipro extends Exchange {
     }
 
     public function fetch_orders_by_states ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
-            throw new ExchangeError ($this->id . ' fetchOrders() requires a $symbol parameter');
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOrderOrders (array_merge (array (
-            'symbol' => $market['id'],
+        $request = array (
             'states' => $states,
-        ), $params));
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $response = $this->privateGetOrderOrders (array_merge ($request, $params));
         return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
@@ -602,7 +653,7 @@ class huobipro extends Exchange {
         $this->load_markets();
         $this->load_accounts ();
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'account-id' => $this->accounts[0]['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
             'symbol' => $market['id'],
@@ -611,16 +662,17 @@ class huobipro extends Exchange {
         if ($this->options['createMarketBuyOrderRequiresPrice']) {
             if (($type === 'market') && ($side === 'buy')) {
                 if ($price === null) {
-                    throw new InvalidOrder ($this->id . " $market buy $order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
+                    throw new InvalidOrder ($this->id . " $market buy order requires $price argument to calculate cost (total $amount of quote currency to spend for buying, $amount * $price). To switch off this warning exception and specify cost in the $amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
-                    $order['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
+                    $request['amount'] = $this->price_to_precision($symbol, floatval ($amount) * floatval ($price));
                 }
             }
         }
-        if ($type === 'limit')
-            $order['price'] = $this->price_to_precision($symbol, $price);
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $method = $this->options['createOrderMethod'];
-        $response = $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         return array (
             'info' => $response,

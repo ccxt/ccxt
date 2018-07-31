@@ -45,9 +45,9 @@ class okcoinusd extends Exchange {
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        'currencies',
-                        'products',
-                        'tickers',
+                        'spot/markets/currencies',
+                        'spot/markets/products',
+                        'spot/markets/tickers',
                     ),
                 ),
                 'public' => array (
@@ -116,7 +116,7 @@ class okcoinusd extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766791-89ffb502-5ee5-11e7-8a5b-c5950b68ac65.jpg',
                 'api' => array (
-                    'web' => 'https://www.okcoin.com/v2/spot/markets',
+                    'web' => 'https://www.okcoin.com/v2',
                     'public' => 'https://www.okcoin.com/api',
                     'private' => 'https://www.okcoin.com/api',
                 ),
@@ -177,7 +177,7 @@ class okcoinusd extends Exchange {
     }
 
     public function fetch_markets () {
-        $response = $this->webGetProducts ();
+        $response = $this->webGetSpotMarketsProducts ();
         $markets = $response['data'];
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -435,13 +435,25 @@ class okcoinusd extends Exchange {
         $response = $this->privatePostUserinfo ();
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
-        $ids = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+        $ids = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
+        $usedField = 'freezed';
+        // wtf, okex?
+        // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
+        if (!(is_array ($balances) && array_key_exists ($usedField, $balances)))
+            $usedField = 'holds';
+        $usedKeys = is_array ($balances[$usedField]) ? array_keys ($balances[$usedField]) : array ();
+        $ids = $this->array_concat($ids, $usedKeys);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->currencies_by_id[$id]['code'];
+            $code = strtoupper ($id);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$id]['code'];
+            } else {
+                $code = $this->common_currency_code($code);
+            }
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
-            $account['used'] = $this->safe_float($balances['freezed'], $id, 0.0);
+            $account['used'] = $this->safe_float($balances[$usedField], $id, 0.0);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }
@@ -584,9 +596,10 @@ class okcoinusd extends Exchange {
         $status = $this->parse_order_status($order['status']);
         $symbol = null;
         if ($market === null) {
-            if (is_array ($order) && array_key_exists ('symbol', $order))
-                if (is_array ($this->markets_by_id) && array_key_exists ($order['symbol'], $this->markets_by_id))
-                    $market = $this->markets_by_id[$order['symbol']];
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         if ($market)
             $symbol = $market['symbol'];
@@ -596,7 +609,8 @@ class okcoinusd extends Exchange {
             $timestamp = $order[$createDateField];
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
-        $remaining = $amount - $filled;
+        $amount = max ($amount, $filled);
+        $remaining = max (0, $amount - $filled);
         if ($type === 'market') {
             $remaining = 0;
         }

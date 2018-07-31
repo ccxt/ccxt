@@ -30,7 +30,11 @@ SOFTWARE.
 
 namespace ccxt;
 
-$version = '1.16.43';
+use kornrunner\Eth;
+use kornrunner\Secp256k1;
+use kornrunner\Solidity;
+
+$version = '1.17.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -46,7 +50,34 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.16.43';
+    const VERSION = '1.17.56';
+
+    public static $eth_units = array (
+        'wei'        => '1',
+        'kwei'       => '1000',
+        'babbage'    => '1000',
+        'femtoether' => '1000',
+        'mwei'       => '1000000',
+        'lovelace'   => '1000000',
+        'picoether'  => '1000000',
+        'gwei'       => '1000000000',
+        'nano'       => '1000000000',
+        'shannon'    => '1000000000',
+        'nanoether'  => '1000000000',
+        'szabo'      => '1000000000000',
+        'micro'      => '1000000000000',
+        'microether' => '1000000000000',
+        'finney'     => '1000000000000000',
+        'milli'      => '1000000000000000',
+        'milliether' => '1000000000000000',
+        'ether'      => '1000000000000000000',
+        'kether'     => '1000000000000000000000',
+        'einstein'   => '1000000000000000000000',
+        'grand'      => '1000000000000000000000',
+        'mether'     => '1000000000000000000000000',
+        'gether'     => '1000000000000000000000000000',
+        'tether'     => '1000000000000000000000000000000',
+    );
 
     public static $exchanges = array (
         '_1broker',
@@ -56,6 +87,7 @@ class Exchange {
         'anxpro',
         'anybits',
         'bibox',
+        'bigone',
         'binance',
         'bit2c',
         'bitbank',
@@ -161,6 +193,7 @@ class Exchange {
         'rightbtc',
         'southxchange',
         'surbitcoin',
+        'theocean',
         'therock',
         'tidebit',
         'tidex',
@@ -654,42 +687,47 @@ class Exchange {
             'defaultCost' => 1.0,
             'maxCapacity' => 1000,
         );
-        $this->timeout     = 10000; // in milliseconds
-        $this->proxy       = '';
-        $this->origin      = '*'; // CORS origin
-        $this->headers     = array ();
-        $this->curlopt_interface = null;
 
-        $this->options     = array (); // exchange-specific options if any
+        $this->curlopt_interface = null;
+        $this->timeout   = 10000; // in milliseconds
+        $this->proxy     = '';
+        $this->origin    = '*'; // CORS origin
+        $this->headers   = array ();
+
+        $this->options   = array (); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
 
         $this->name      = null;
         $this->countries = null;
         $this->version   = null;
+        $this->certified = false;
         $this->urls      = array ();
         $this->api       = array ();
         $this->comment   = null;
 
-        $this->markets     = null;
-        $this->symbols     = null;
-        $this->ids         = null;
-        $this->currencies  = array ();
-        $this->balance     = array ();
-        $this->orderbooks  = array ();
-        $this->fees        = array ('trading' => array (), 'funding' => array ());
-        $this->precision   = array ();
-        $this->limits      = array ();
-        $this->orders      = array ();
-        $this->trades      = array ();
-        $this->exceptions  = array ();
-        $this->verbose     = false;
-        $this->apiKey      = '';
-        $this->secret      = '';
-        $this->password    = '';
-        $this->uid         = '';
-        $this->twofa       = false;
-        $this->marketsById = null;
+        $this->markets       = null;
+        $this->symbols       = null;
+        $this->ids           = null;
+        $this->currencies    = array ();
+        $this->balance       = array ();
+        $this->orderbooks    = array ();
+        $this->fees          = array ('trading' => array (), 'funding' => array ());
+        $this->precision     = array ();
+        $this->limits        = array ();
+        $this->orders        = array ();
+        $this->trades        = array ();
+        $this->transactions  = array ();
+        $this->exceptions    = array ();
+        $this->verbose       = false;
+        $this->apiKey        = '';
+        $this->secret        = '';
+        $this->password      = '';
+        $this->uid           = '';
+        $this->privateKey    = '';
+        $this->walletAddress = '';
+        $this->twofa         = false;
+        $this->marketsById   = null;
         $this->markets_by_id = null;
         $this->currencies_by_id = null;
         $this->userAgent   = null; // 'ccxt/' . $this::VERSION . ' (+https://github.com/ccxt/ccxt) PHP/' . PHP_VERSION;
@@ -709,6 +747,8 @@ class Exchange {
             'login' => false,
             'password' => false,
             'twofa' => false, // 2-factor authentication (one-time password key)
+            'privateKey' => false,
+            'walletAddress' => false,
         );
 
         // API methods metainfo
@@ -809,6 +849,16 @@ class Exchange {
                     $this->$camelcase  = $partial;
                     $this->$underscore = $partial;
                 }
+    }
+
+    public function underscore ($camelcase) {
+        // todo: write conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
+        throw new NotSupported ($this->id . ' underscore() not implemented yet');
+    }
+
+    public function camelcase ($underscore) {
+        // todo: write conversion foo_bar10_ohlcv2_candles → fooBar10OHLCV2Candles
+        throw new NotSupported ($this->id . ' camelcase() not implemented yet');
     }
 
     public function hash ($request, $type = 'md5', $digest = 'hex') {
@@ -1708,14 +1758,40 @@ class Exchange {
     }
 
     public function currency_id ($commonCode) {
+
+        if (!$this->currencies) {
+            throw new ExchangeError ($this->id . ' currencies not loaded');
+        }
+
+        if (array_key_exists ($commonCode, $this->currencies)) {
+            return $this->currencies[$commonCode]['id'];
+        }
+
         $currencyIds = array ();
         $distinct = is_array ($this->commonCurrencies) ? array_keys ($this->commonCurrencies) : array ();
         for ($i = 0; $i < count ($distinct); $i++) {
             $k = $distinct[$i];
             $currencyIds[$this->commonCurrencies[$k]] = $k;
         }
+
         return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
+
+    public function fromWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
+        return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
+    }
+
+    public function toWei ($amount, $unit = 'ether') {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        return (string) (int) (($unit === 'wei') ? $amount : bcmul ($amount, Exchange::$eth_units[$unit]));
+    }
+
 
     public function precision_from_string ($string) {
         $parts = explode ('.', preg_replace ('/0+$/', '', $string));
@@ -1843,9 +1919,9 @@ class Exchange {
     }
 
     public function __call ($function, $params) {
-        if (array_key_exists ($function, $this))
+        if (array_key_exists ($function, $this)) {
             return call_user_func_array ($this->$function, $params);
-        else {
+        } else {
             /* handle errors */
             throw new ExchangeError ($function . ' method not found, try underscore_notation instead of camelCase for the method being called');
         }
@@ -1959,6 +2035,99 @@ class Exchange {
         }
 
         return $result;
+    }
+
+    // ------------------------------------------------------------------------
+    // web3 / 0x methods
+
+    // decryptAccountFromJSON (json, password) {
+    //     return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
+    // }
+
+    // decryptAccount (key, password) {
+    //     return this.web3.eth.accounts.decrypt (key, password)
+    // }
+
+    // decryptAccountFromPrivateKey (privateKey) {
+    //     return this.web3.eth.accounts.privateKeyToAccount (privateKey)
+    // }
+
+    public function getZeroExOrderHash ($order) {
+
+        // $unpacked = array (
+        //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
+        //     "0x731fc101bbe102221c91c31ed0489f1ddfc439a3", // maker
+        //     "0x00ba938cc0df182c25108d7bf2ee3d37bce07513", // taker
+        //     "0xd0a1e359811322d97991e03f863a0c30c2cf029c", // makerTokenAddress
+        //     "0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570", // takerTokenAddress
+        //     "0x88a64b5e882e5ad851bea5e7a3c8ba7c523fecbe", // feeRecipient
+        //     "27100000000000000", // makerTokenAmount
+        //     "874377028175459241", // takerTokenAmount
+        //     "0", // makerFee
+        //     "0", // takerFee
+        //     "1534809575", // expirationUnixTimestampSec
+        //     "3610846705800197954038657082705100176266402776121341340841167002345284333867", // salt
+        // );
+        // echo "0x" . call_user_func_array('\kornrunner\Solidity::sha3', $unpacked) . "\n";
+        // should result in
+        // 0xe815dc92933b68e7fc2b7102b8407ba7afb384e4080ac8d28ed42482933c5cf5
+
+        $unpacked = array (
+            $order['exchangeContractAddress'],      // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+            $order['maker'],                        // { value: order.maker, type: types_1.SolidityTypes.Address },
+            $order['taker'],                        // { value: order.taker, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAddress'],            // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['takerTokenAddress'],            // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+            $order['feeRecipient'],                 // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+            $order['makerTokenAmount'],             // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['takerTokenAmount'],             // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+            $order['makerFee'],                     // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['takerFee'],                     // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+            $order['expirationUnixTimestampSec'],   // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+            $order['salt'],                         // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        );
+        // $types = array (
+        //     'address', // { value: order.exchangeContractAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.maker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.taker, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.makerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.takerTokenAddress, type: types_1.SolidityTypes.Address },
+        //     'address', // { value: order.feeRecipient, type: types_1.SolidityTypes.Address },
+        //     'uint256', // { value: bigNumberToBN(order.makerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerTokenAmount), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.makerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.takerFee), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.expirationUnixTimestampSec), type: types_1.SolidityTypes.Uint256, },
+        //     'uint256', // { value: bigNumberToBN(order.salt), type: types_1.SolidityTypes.Uint256 },
+        // );
+        return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
+    }
+
+    public function signZeroExOrder ($order) {
+        $orderHash = $this->getZeroExOrderHash ($order);
+        $signature = $this->signMessage ($orderHash, $this->privateKey);
+        return array_merge ($order, array (
+            'orderHash' => $orderHash,
+            'ecSignature' => $signature, // todo fix v if needed
+        ));
+    }
+
+    public function hashMessage ($message) {
+        return '0x' . Eth::hashPersonalMessage ($message);
+    }
+
+    public function signHash ($hash, $privateKey) {
+        $secp256k1 = new Secp256k1();
+        $signature = $secp256k1->sign ($hash, $privateKey);
+        return array (
+            'v' => $signature->getRecoveryParam () + 27, // integer
+            'r' => "0x" . gmp_strval ($signature->getR (), 16), // '0x'-prefixed hex string
+            's' => "0x" . gmp_strval ($signature->getS (), 16), // '0x'-prefixed hex string
+        );
+    }
+
+    public function signMessage ($message, $privateKey) {
+        return $this->signHash ($this->hashMessage ($message), $privateKey);
     }
 
 }

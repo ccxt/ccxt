@@ -80,6 +80,10 @@ class coinone (Exchange):
                 'QTUM/KRW': {'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw'},
                 'XRP/KRW': {'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw'},
                 'EOS/KRW': {'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw'},
+                'DATA/KRW': {'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw'},
+                'ZIL/KRW': {'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw'},
+                'KNC/KRW': {'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw'},
+                'ZRX/KRW': {'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -398,6 +402,7 @@ class coinone (Exchange):
             'is_ask': side,
             'currency': self.market_id(symbol),
         }
+        self.orders[id]['status'] = 'canceled'
         return await self.privatePostOrderCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

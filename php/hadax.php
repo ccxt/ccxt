@@ -76,6 +76,7 @@ class hadax extends huobipro {
             'commonCurrencies' => array (
                 'FAIR' => 'FairGame',
                 'GET' => 'Themis',
+                'HOT' => 'Hydro Protocol',
             ),
         ));
     }

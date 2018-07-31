@@ -16,6 +16,7 @@ class bitfinex extends Exchange {
             'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'CORS' => false,
@@ -251,6 +252,7 @@ class bitfinex extends Exchange {
                 'CTX' => 'CTXC',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
                 'MNA' => 'MANA',
@@ -274,6 +276,7 @@ class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'Ratelimit' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',

@@ -23,8 +23,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
                 'fetchOrder': true,
-                'fetchDepositAddress': false,
-                'createDepositAddress': false,
+                'fetchDepositAddress': true,
+                'createDepositAddress': true,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -104,9 +104,20 @@ module.exports = class cobinhood extends Exchange {
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals/{withdrawal_id}',
+                        'wallet/withdrawals',
+                        'wallet/deposits/{deposit_id}',
+                        'wallet/deposits',
                     ],
                     'post': [
                         'trading/orders',
+                        // older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -131,6 +142,7 @@ module.exports = class cobinhood extends Exchange {
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
+                'MTN': 'Motion Token',
             },
         });
     }
@@ -229,11 +241,18 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
         if (typeof market === 'undefined') {
             let marketId = this.safeString (ticker, 'trading_pair_id');
-            market = this.findMarket (marketId);
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let [ baseId, quoteId ] = marketId.split ('-');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger (ticker, 'timestamp');
@@ -302,7 +321,7 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         let cost = price * amount;
-        let side = trade['maker_side'] === 'bid' ? 'sell' : 'buy';
+        let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -521,6 +540,40 @@ module.exports = class cobinhood extends Exchange {
         }
         let response = await this.privateGetTradingTrades (this.extend (request, params));
         return this.parseTrades (response['result']['trades'], market, since, limit);
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWalletDepositAddresses ({
+            'currency': currency['id'],
+        });
+        let address = this.safeString (response['result']['deposit_address'], 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privateGetWalletDepositAddresses (this.extend ({
+            'currency': currency['id'],
+        }, params));
+        let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
+        let address = undefined;
+        if (addresses.length > 0) {
+            address = this.safeString (addresses[0], 'address');
+        }
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

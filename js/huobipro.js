@@ -23,11 +23,12 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
                 'fetchTradingLimits': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
             },
@@ -116,6 +117,7 @@ module.exports = class huobipro extends Exchange {
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder, // limit order price error
+                'order-limitorder-price-max-error': InvalidOrder, // limit order price error
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                 'order-update-error': ExchangeNotAvailable, // undocumented error
@@ -316,20 +318,67 @@ module.exports = class huobipro extends Exchange {
         return this.parseTicker (response['tick'], market);
     }
 
-    parseTrade (trade, market) {
-        let timestamp = trade['ts'];
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
+        let order = this.safeString (trade, 'order-id');
+        let side = this.safeString (trade, 'direction');
+        let type = this.safeString (trade, 'type');
+        if (typeof type !== 'undefined') {
+            let typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
+        }
+        let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'filled-fees');
+        let feeCurrency = undefined;
+        if (typeof feeCost !== 'undefined') {
+            feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+        } else {
+            feeCost = this.safeFloat (trade, 'filled-points');
+            if (typeof feeCost !== 'undefined') {
+                feeCurrency = 'HBPOINT';
+            }
+        }
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': this.safeString (trade, 'id'),
+            'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['direction'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': this.safeFloat (trade, 'price'),
+            'amount': amount,
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderMatchresults (params);
+        let trades = this.parseTrades (response['data'], undefined, since, limit);
+        if (typeof symbol !== 'undefined') {
+            let market = this.market (symbol);
+            trades = this.filterBySymbol (trades, market['symbol']);
+        }
+        return trades;
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
@@ -500,14 +549,16 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderOrders (this.extend ({
-            'symbol': market['id'],
+        let request = {
             'states': states,
-        }, params));
+        };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.privateGetOrderOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -601,7 +652,7 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = this.market (symbol);
-        let order = {
+        let request = {
             'account-id': this.accounts[0]['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
@@ -612,14 +663,15 @@ module.exports = class huobipro extends Exchange {
                 if (typeof price === 'undefined') {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
-                    order['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             }
         }
-        if (type === 'limit')
-            order['price'] = this.priceToPrecision (symbol, price);
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let method = this.options['createOrderMethod'];
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,

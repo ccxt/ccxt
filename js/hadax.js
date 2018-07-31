@@ -75,6 +75,7 @@ module.exports = class hadax extends huobipro {
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'GET': 'Themis',
+                'HOT': 'Hydro Protocol',
             },
         });
     }

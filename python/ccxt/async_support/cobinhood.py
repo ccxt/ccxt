@@ -29,8 +29,8 @@ class cobinhood (Exchange):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
                 'fetchOrder': True,
-                'fetchDepositAddress': False,
-                'createDepositAddress': False,
+                'fetchDepositAddress': True,
+                'createDepositAddress': True,
                 'withdraw': False,
                 'fetchMyTrades': True,
             },
@@ -110,9 +110,20 @@ class cobinhood (Exchange):
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        # older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals/{withdrawal_id}',
+                        'wallet/withdrawals',
+                        'wallet/deposits/{deposit_id}',
+                        'wallet/deposits',
                     ],
                     'post': [
                         'trading/orders',
+                        # older endpoints
+                        'wallet/deposit_addresses',
+                        'wallet/withdrawal_addresses',
+                        'wallet/withdrawals',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -137,6 +148,7 @@ class cobinhood (Exchange):
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
+                'MTN': 'Motion Token',
             },
         })
 
@@ -230,10 +242,16 @@ class cobinhood (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        symbol = None
         if market is None:
             marketId = self.safe_string(ticker, 'trading_pair_id')
-            market = self.find_market(marketId)
-        symbol = None
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 'timestamp')
@@ -297,7 +315,7 @@ class cobinhood (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'size')
         cost = price * amount
-        side = trade['maker_side'] == 'sell' if 'bid' else 'buy'
+        side = 'sell' if (trade['maker_side'] == 'bid') else 'buy'
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -497,6 +515,37 @@ class cobinhood (Exchange):
             request['trading_pair_id'] = market['id']
         response = await self.privateGetTradingTrades(self.extend(request, params))
         return self.parse_trades(response['result']['trades'], market, since, limit)
+
+    async def create_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privatePostWalletDepositAddresses({
+            'currency': currency['id'],
+        })
+        address = self.safe_string(response['result']['deposit_address'], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        }
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privateGetWalletDepositAddresses(self.extend({
+            'currency': currency['id'],
+        }, params))
+        addresses = self.safe_value(response['result'], 'deposit_addresses', [])
+        address = None
+        if len(addresses) > 0:
+            address = self.safe_string(addresses[0], 'address')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
