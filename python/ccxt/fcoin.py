@@ -112,6 +112,7 @@ class fcoin (Exchange):
                 'amount': {'min': 0.01, 'max': 100000},
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': False,
                 'limits': {
                     'BTM/USDT': {'amount': {'min': 0.1, 'max': 10000000}},
                     'ETC/USDT': {'amount': {'min': 0.001, 'max': 400000}},
@@ -317,18 +318,25 @@ class fcoin (Exchange):
         return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        amount = amount * price
         self.load_markets()
         orderType = type
-        amount = self.amount_to_precision(symbol, amount)
-        order = {
+        request = {
             'symbol': self.market_id(symbol),
-            'amount': amount,
+            'amount': self.amount_to_precision(symbol, amount),
             'side': side,
             'type': orderType,
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        result = self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        result = self.privatePostOrders(self.extend(request, params))
         return {
             'info': result,
             'id': result['data'],

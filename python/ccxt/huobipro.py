@@ -615,7 +615,7 @@ class huobipro (Exchange):
         self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
-        order = {
+        request = {
             'account-id': self.accounts[0]['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'symbol': market['id'],
@@ -626,11 +626,11 @@ class huobipro (Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
                 else:
-                    order['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
+                    request['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
-        response = getattr(self, method)(self.extend(order, params))
+        response = getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
         return {
             'info': response,
