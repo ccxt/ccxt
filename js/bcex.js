@@ -81,7 +81,7 @@ module.exports = class bcex extends Exchange {
                 },
                 'exceptions': {
                     '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key?
+                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
                 },
             },
         });
@@ -254,7 +254,7 @@ module.exports = class bcex extends Exchange {
         };
         let response = await this.publicPostApiOrderDepth (this.extend (request, params));
         let data = response['data'];
-        let orderbook = this.parseOrderBook (data, data['date']);
+        let orderbook = this.parseOrderBook (data, data['date'] * 1000);
         return orderbook;
     }
 
@@ -465,11 +465,28 @@ module.exports = class bcex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body[0] === '{' && (url.indexOf ('private') >= 0)) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
+            let feedback = this.id + ' ' + body;
             let code = this.safeValue (response, 'code');
-            if (code !== 0) {
-                throw new ExchangeError (this.id + ' ' + body);
+            if (typeof code !== 'undefined') {
+                if (code !== 0) {
+                    //
+                    // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                    // { code: 1, msg: '公钥不合法' } - wrong public key
+                    //
+                    let message = this.safeString (response, 'msg');
+                    let exceptions = this.exceptions;
+                    if (message in exceptions) {
+                        throw new exceptions[message] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
             }
         }
     }
