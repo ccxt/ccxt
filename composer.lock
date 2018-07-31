@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "7aa283a4c0b5a188c6bb7da30de300f2",
+    "content-hash": "4582ddfa7dc9a25bcfab1cfda9338f39",
     "packages": [
         {
             "name": "fgrosse/phpasn1",
@@ -206,20 +206,19 @@
         },
         {
             "name": "kornrunner/solidity",
-            "version": "0.1.0",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kornrunner/php-solidity.git",
-                "reference": "b7ffbb8973d3001bc94aaee195fb4194a554a7ab"
+                "reference": "12a2af6920d24ab52b683dfbbaaf3892cbf9bd22"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kornrunner/php-solidity/zipball/b7ffbb8973d3001bc94aaee195fb4194a554a7ab",
-                "reference": "b7ffbb8973d3001bc94aaee195fb4194a554a7ab",
+                "url": "https://api.github.com/repos/kornrunner/php-solidity/zipball/12a2af6920d24ab52b683dfbbaaf3892cbf9bd22",
+                "reference": "12a2af6920d24ab52b683dfbbaaf3892cbf9bd22",
                 "shasum": ""
             },
             "require": {
-                "ext-gmp": "^7.1",
                 "ext-mbstring": "*",
                 "kornrunner/keccak": "^1.0",
                 "php": ">=7.1.0",
@@ -237,7 +236,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "GPL-3.0"
+                "MIT"
             ],
             "authors": [
                 {
@@ -247,9 +246,11 @@
             ],
             "description": "Pure PHP implementation of Solidity",
             "keywords": [
+                "eth",
+                "ethereum",
                 "solidity"
             ],
-            "time": "2018-07-24T22:49:17+00:00"
+            "time": "2018-07-30T10:27:16+00:00"
         },
         {
             "name": "mdanter/ecc",
