@@ -363,6 +363,11 @@ module.exports = class liqui extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.publicGetTradesPair (this.extend (request, params));
+        if (Array.isArray (response)) {
+            if (response.length === 0) {
+                return [];
+            }
+        }
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
