@@ -583,11 +583,11 @@ module.exports = class kucoin extends Exchange {
         if ('status' in order) {
             status = order['status'];
          } else {
-             if (this.safeValue (order, 'isActive', true)) {
-                 status = 'open';
-             } else {
-                 status = 'closed';
-             }
+            if (this.safeValue (order, 'isActive', true)) {
+                status = 'open';
+            } else {
+                status = 'closed';
+            }
         }
         let filled = this.safeFloat (order, 'dealAmount');
         let amount = this.safeFloat (order, 'amount');
