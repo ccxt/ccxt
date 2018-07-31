@@ -44,6 +44,7 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/depth',
                         'Api_Market/getCoinTrade', // ticker
                         'Api_Order/tradeList',
+                        'Api_Order/marketOrder', // market order ?
                     ],
                 },
                 'private': {
@@ -51,7 +52,6 @@ module.exports = class bcex extends Exchange {
                         'Api_User/userBalance',
                         'Api_Order/coinTrust', // limit order
                         'Api_Order/cancel',
-                        'Api_Order/marketOrder', // market order ?
                         'Api_Order/orderList',
                         'Api_Order/trustList',
                         'Api_Order/orderList',
@@ -74,6 +74,9 @@ module.exports = class bcex extends Exchange {
                         'other': 0.05 / 100,
                     },
                     'deposit': {},
+                },
+                'exceptions': {
+                    '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" }
                 },
             },
         });
