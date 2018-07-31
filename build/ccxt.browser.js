@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.53'
+const version = '1.17.54'
 
 Exchange.ccxtVersion = version
 
@@ -40925,6 +40925,12 @@ module.exports = class liqui extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.publicGetTradesPair (this.extend (request, params));
+        if (Array.isArray (response)) {
+            let numElements = response.length;
+            if (numElements === 0) {
+                return [];
+            }
+        }
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
