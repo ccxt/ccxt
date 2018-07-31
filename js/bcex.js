@@ -11,8 +11,8 @@ module.exports = class bcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bcex',
-            'name': 'bcex',
-            'countries': [ 'CA' ],
+            'name': 'BCEX',
+            'countries': [ 'CN', 'CA' ],
             'version': '1',
             'has': {
                 'fetchBalance': true,
@@ -28,32 +28,33 @@ module.exports = class bcex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
-                'api': 'https://www.bcex.ca',
-                'www': 'https://www.bcex.ca',
-                'doc': 'https://www.bcex.ca/api_market/market/',
+                'api': 'https://www.bcex.top',
+                'www': 'https://www.bcex.top',
+                'doc': 'https://www.bcex.top/api_market/market/',
                 'fees': 'http://bcex.udesk.cn/hc/articles/57085',
+                'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
             'api': {
                 'public': {
                     'get': [
-                        'Api_Market/getPriceList',
+                        'Api_Market/getPriceList', // tickers
                     ],
                     'post': [
-                        'Api_Order/marketOrder',
-                        'Api_Market/getCoinTrade',
+                        'Api_Order/ticker', // last ohlcv candle (ticker)
+                        'Api_Order/depth',
+                        'Api_Market/getCoinTrade', // ticker
+                        'Api_Order/tradeList',
                     ],
                 },
                 'private': {
                     'post': [
                         'Api_User/userBalance',
-                        'Api_Order/coinTrust',
+                        'Api_Order/coinTrust', // limit order
                         'Api_Order/cancel',
-                        'Api_Order/ticker',
+                        'Api_Order/marketOrder', // market order ?
                         'Api_Order/orderList',
-                        'Api_Order/tradeList',
                         'Api_Order/trustList',
                         'Api_Order/orderList',
-                        'Api_Order/depth',
                         'Api_Order/orderInfo',
                     ],
                 },
