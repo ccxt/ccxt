@@ -129,6 +129,7 @@ class cex (Exchange):
             },
             'options': {
                 'fetchOHLCVWarning': True,
+                'createMarketBuyOrderRequiresPrice': True,
             },
         })
 
@@ -146,10 +147,9 @@ class cex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'lot': market['minLotSize'],
                 'precision': {
                     'price': self.precision_from_string(market['minPrice']),
-                    'amount': -1 * math.log10(market['minLotSize']),
+                    'amount': -math.log10(market['minLotSize']),
                 },
                 'limits': {
                     'amount': {
@@ -316,22 +316,25 @@ class cex (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        amount = amount * price
         self.load_markets()
-        order = {
+        request = {
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
         }
         if type == 'limit':
-            order['price'] = price
+            request['price'] = price
         else:
-            # for market buy CEX.io requires the amount of quote currency to spend
-            if side == 'buy':
-                if not price:
-                    raise InvalidOrder('For market buy orders ' + self.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder(symbol, 'market', 'buy', amount, price)")
-                order['amount'] = amount * price
-            order['order_type'] = type
-        response = self.privatePostPlaceOrderPair(self.extend(order, params))
+            request['order_type'] = type
+        response = self.privatePostPlaceOrderPair(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],

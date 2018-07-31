@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.54'
+const version = '1.17.55'
 
 Exchange.ccxtVersion = version
 
@@ -18382,6 +18382,7 @@ module.exports = class cex extends Exchange {
             },
             'options': {
                 'fetchOHLCVWarning': true,
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -18400,10 +18401,9 @@ module.exports = class cex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'lot': market['minLotSize'],
                 'precision': {
                     'price': this.precisionFromString (market['minPrice']),
-                    'amount': -1 * Math.log10 (market['minLotSize']),
+                    'amount': -Math.log10 (market['minLotSize']),
                 },
                 'limits': {
                     'amount': {
@@ -18590,25 +18590,30 @@ module.exports = class cex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'pair': this.marketId (symbol),
             'type': side,
             'amount': amount,
         };
         if (type === 'limit') {
-            order['price'] = price;
+            request['price'] = price;
         } else {
-            // for market buy CEX.io requires the amount of quote currency to spend
-            if (side === 'buy') {
-                if (!price) {
-                    throw new InvalidOrder ('For market buy orders ' + this.id + " requires the amount of quote currency to spend, to calculate proper costs call createOrder (symbol, 'market', 'buy', amount, price)");
-                }
-                order['amount'] = amount * price;
-            }
-            order['order_type'] = type;
+            request['order_type'] = type;
         }
-        let response = await this.privatePostPlaceOrderPair (this.extend (order, params));
+        let response = await this.privatePostPlaceOrderPair (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -20828,6 +20833,9 @@ module.exports = class coinex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+            },
         });
     }
 
@@ -21120,17 +21128,30 @@ module.exports = class coinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        amount = parseFloat (amount); // this line is deprecated
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        price = parseFloat (price); // this line is deprecated
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
         let method = 'privatePostOrder' + this.capitalize (type);
         let market = this.market (symbol);
-        amount = parseFloat (amount);
         let request = {
             'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
         if (type === 'limit') {
-            price = parseFloat (price);
+            price = parseFloat (price); // this line is deprecated
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let response = await this[method] (this.extend (request, params));
@@ -28862,6 +28883,7 @@ module.exports = class fcoin extends Exchange {
                 'amount': { 'min': 0.01, 'max': 100000 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': false,
                 'limits': {
                     'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
                     'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
@@ -29089,19 +29111,30 @@ module.exports = class fcoin extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
         let orderType = type;
-        amount = this.amountToPrecision (symbol, amount);
-        let order = {
+        let request = {
             'symbol': this.marketId (symbol),
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
             'side': side,
             'type': orderType,
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        let result = await this.privatePostOrders (this.extend (order, params));
+        let result = await this.privatePostOrders (this.extend (request, params));
         return {
             'info': result,
             'id': result['data'],
@@ -35577,7 +35610,7 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = this.market (symbol);
-        let order = {
+        let request = {
             'account-id': this.accounts[0]['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
@@ -35588,14 +35621,15 @@ module.exports = class huobipro extends Exchange {
                 if (typeof price === 'undefined') {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
-                    order['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             }
         }
-        if (type === 'limit')
-            order['price'] = this.priceToPrecision (symbol, price);
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let method = this.options['createOrderMethod'];
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,

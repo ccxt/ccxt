@@ -117,6 +117,7 @@ class cex extends Exchange {
             ),
             'options' => array (
                 'fetchOHLCVWarning' => true,
+                'createMarketBuyOrderRequiresPrice' => true,
             ),
         ));
     }
@@ -135,10 +136,9 @@ class cex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'lot' => $market['minLotSize'],
                 'precision' => array (
                     'price' => $this->precision_from_string($market['minPrice']),
-                    'amount' => -1 * log10 ($market['minLotSize']),
+                    'amount' => -log10 ($market['minLotSize']),
                 ),
                 'limits' => array (
                     'amount' => array (
@@ -325,25 +325,30 @@ class cex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        if ($type === 'market') {
+            // for market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amount = $amount * $price;
+                    }
+                }
+            }
+        }
         $this->load_markets();
-        $order = array (
+        $request = array (
             'pair' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
         );
         if ($type === 'limit') {
-            $order['price'] = $price;
+            $request['price'] = $price;
         } else {
-            // for market buy CEX.io requires the $amount of quote currency to spend
-            if ($side === 'buy') {
-                if (!$price) {
-                    throw new InvalidOrder ('For market buy orders ' . $this->id . " requires the $amount of quote currency to spend, to calculate proper costs call createOrder ($symbol, 'market', 'buy', $amount, $price)");
-                }
-                $order['amount'] = $amount * $price;
-            }
-            $order['order_type'] = $type;
+            $request['order_type'] = $type;
         }
-        $response = $this->privatePostPlaceOrderPair (array_merge ($order, $params));
+        $response = $this->privatePostPlaceOrderPair (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],

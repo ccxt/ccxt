@@ -111,6 +111,9 @@ class coinex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
+            ),
         ));
     }
 
@@ -403,17 +406,30 @@ class coinex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $amount = floatval ($amount); // this line is deprecated
+        if ($type === 'market') {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $price = floatval ($price); // this line is deprecated
+                        $amount = $amount * $price;
+                    }
+                }
+            }
+        }
         $this->load_markets();
         $method = 'privatePostOrder' . $this->capitalize ($type);
         $market = $this->market ($symbol);
-        $amount = floatval ($amount);
         $request = array (
             'market' => $market['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
         );
         if ($type === 'limit') {
-            $price = floatval ($price);
+            $price = floatval ($price); // this line is deprecated
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($request, $params));
