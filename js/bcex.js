@@ -98,7 +98,6 @@ module.exports = class bcex extends Exchange {
                 let market = currentMarkets[j];
                 let baseId = market['coin_from'];
                 let quoteId = market['coin_to'];
-                console.log (currentMarkets);
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
@@ -153,7 +152,7 @@ module.exports = class bcex extends Exchange {
         let id = this.safeString2 (trade, 'tid');
         let orderId = this.safeString (trade, 'order_id');
         let amount = this.safeFloat2 (trade, 'number', 'amount');
-        let price = this.safeFloat (trade, 'price')
+        let price = this.safeFloat (trade, 'price');
         let cost = undefined;
         if (typeof price !== 'undefined') {
             if (typeof amount !== 'undefined') {
