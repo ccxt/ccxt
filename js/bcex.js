@@ -378,20 +378,19 @@ module.exports = class bcex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let marketId = this.marketId (symbol);
-        request['type'] = 'open';
+        let request = {
+            'type': 'open',
+        };
+        let market = undefined;
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = marketId;
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        let orders = [];
         let response = await this.privatePostApiOrderTradeList (this.extend (request, params));
         if ('data' in response) {
-            orders = response['data'];
+            return this.parseOrders (response['data'], market, since, limit);
         }
-        let market = this.markets_by_id[marketId];
-        let results = this.parseOrders (orders, market, since, limit);
-        return results;
+        return [];
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
