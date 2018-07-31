@@ -41,21 +41,20 @@ module.exports = class bcex extends Exchange {
                     ],
                     'post': [
                         'Api_Order/ticker', // last ohlcv candle (ticker)
-                        'Api_Order/depth',
+                        'Api_Order/depth', // orderbook
                         'Api_Market/getCoinTrade', // ticker
-                        'Api_Order/tradeList',
-                        'Api_Order/marketOrder', // market order ?
+                        'Api_Order/marketOrder', // trades...
                     ],
                 },
                 'private': {
                     'post': [
-                        'Api_User/userBalance',
-                        'Api_Order/coinTrust', // limit order
                         'Api_Order/cancel',
-                        'Api_Order/orderList',
-                        'Api_Order/trustList',
-                        'Api_Order/orderList',
+                        'Api_Order/coinTrust', // limit order
+                        'Api_Order/orderList', // my trades
                         'Api_Order/orderInfo',
+                        'Api_Order/tradeList', // open / all orders
+                        'Api_Order/trustList', // ?
+                        'Api_User/userBalance',
                     ],
                 },
             },
@@ -76,7 +75,7 @@ module.exports = class bcex extends Exchange {
                     'deposit': {},
                 },
                 'exceptions': {
-                    '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" }
+                    '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 },
             },
         });
@@ -241,7 +240,7 @@ module.exports = class bcex extends Exchange {
         let request = {
             'symbol': marketId,
         };
-        let response = await this.privatePostApiOrderDepth (this.extend (request, params));
+        let response = await this.publicPostApiOrderDepth (this.extend (request, params));
         let data = response['data'];
         let orderbook = this.parseOrderBook (data, data['date']);
         return orderbook;
