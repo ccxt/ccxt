@@ -175,27 +175,32 @@ module.exports = class bcex extends Exchange {
         let keys = Object.keys (data);
         let result = { };
         for (let i = 0; i < keys.length; i++) {
-            let currentKey = keys[i];
-            let currentAmount = data[currentKey];
-            let split = currentKey.split ('_');
-            let id = split[0];
-            let lockOrOver = split[1];
-            let currency = this.commonCurrencyCode (id);
-            if (!(currency in result)) {
+            let key = keys[i];
+            let amount = this.safeFloat (data, key);
+            let parts = key.split ('_');
+            let currencyId = parts[0];
+            let lockOrOver = parts[1];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
+            if (!(code in result)) {
                 let account = this.account ();
-                result[currency] = account;
+                result[code] = account;
             }
             if (lockOrOver === 'lock') {
-                result[currency]['used'] = parseFloat (currentAmount);
+                result[code]['used'] = parseFloat (amount);
             } else {
-                result[currency]['free'] = parseFloat (currentAmount);
+                result[code]['free'] = parseFloat (amount);
             }
         }
         keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
-            let currentKey = keys[i];
-            let total = this.sum (result[currentKey]['used'], result[currentKey]['total']);
-            result[currentKey]['total'] = total;
+            let key = keys[i];
+            let total = this.sum (result[key]['used'], result[key]['total']);
+            result[key]['total'] = total;
         }
         result['info'] = data;
         return this.parseBalance (result);
