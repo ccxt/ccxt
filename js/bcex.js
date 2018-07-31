@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -38,8 +38,13 @@ module.exports = class bcex extends Exchange {
                 'public': {
                     'get': [
                         'Api_Market/getPriceList', // tickers
+                        'Api_Order/ticker', // last ohlcv candle (ticker)
+                        'Api_Order/depth', // orderbook
+                        'Api_Market/getCoinTrade', // ticker
+                        'Api_Order/marketOrder', // trades...
                     ],
                     'post': [
+                        'Api_Market/getPriceList', // tickers
                         'Api_Order/ticker', // last ohlcv candle (ticker)
                         'Api_Order/depth', // orderbook
                         'Api_Market/getCoinTrade', // ticker
@@ -76,6 +81,7 @@ module.exports = class bcex extends Exchange {
                 },
                 'exceptions': {
                     '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key?
                 },
             },
         });
@@ -92,6 +98,7 @@ module.exports = class bcex extends Exchange {
                 let market = currentMarkets[j];
                 let baseId = market['coin_from'];
                 let quoteId = market['coin_to'];
+                console.log (currentMarkets);
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
@@ -435,35 +442,24 @@ module.exports = class bcex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        if (method === 'GET') {
-            if (Object.keys (query).length)
-                request += '?' + this.urlencode (query);
-        }
-        let url = this.urls['api'] + request;
-        if (method === 'POST') {
-            let messageParts = [];
-            let keys = Object.keys (params);
-            let paramsKeys = keys.sort ();
-            for (let i = 0; i < paramsKeys.length; i++) {
-                let paramKey = paramsKeys[i];
-                let param = params[paramKey];
-                messageParts.push (this.encode (paramKey) + '=' + this.encodeURIComponent (param));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
-            if (api === 'private') {
-                this.checkRequiredCredentials ();
-                messageParts.unshift ('api_key=' + this.encodeURIComponent (this.apiKey));
-                body = messageParts.join ('&');
-                let message = body + '&secret_key=' + this.secret;
-                let signedMessage = this.hash (message);
-                body = body + '&sign=' + signedMessage;
-                params['sign'] = signedMessage;
-            } else {
-                body = messageParts.join ('&');
+        } else {
+            this.checkRequiredCredentials ();
+            let payload = this.urlencode ({ 'api_key': this.apiKey });
+            if (Object.keys (query).length) {
+                payload += this.urlencode (this.keysort (query));
             }
-            headers = {};
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            let auth = payload + '&secret_key=' + this.secret;
+            let signature = this.hash (auth);
+            body = payload + '&sign=' + signature;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
