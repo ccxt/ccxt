@@ -294,7 +294,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderList (this.extend (request, params));
         let market = this.markets_by_id[marketId];
         let trades = response['data'];
-        let result = this.parseMyTrades (trades, market);
+        let result = this.parseMyTrades (trades, market, since, limit);
         return result;
     }
 
