@@ -55,7 +55,7 @@ module.exports = class bcex extends Exchange {
                     'post': [
                         'Api_Order/cancel',
                         'Api_Order/coinTrust', // limit order
-                        'Api_Order/orderList', // my trades
+                        'Api_Order/orderList', // open / all orders (my trades?)
                         'Api_Order/orderInfo',
                         'Api_Order/tradeList', // open / all orders
                         'Api_Order/trustList', // ?
@@ -146,18 +146,33 @@ module.exports = class bcex extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let timestamp = trade['date'] * 1000;
+        let timestamp = this.safeInteger2 (trade, 'date', 'created');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = timestamp * 1000;
+        }
+        let id = this.safeString2 (trade, 'tid');
+        let orderId = this.safeString (trade, 'order_id');
+        let amount = this.safeFloat2 (trade, 'number', 'amount');
+        let price = this.safeFloat (trade, 'price')
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = amount * price;
+            }
+        }
+        let side = this.safeString (trade, 'type');
         return {
-            'id': trade['tid'],
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
-            'order': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'order': orderId,
             'fee': undefined,
         };
     }
@@ -258,33 +273,6 @@ module.exports = class bcex extends Exchange {
         return orderbook;
     }
 
-    parseMyTrade (trade, market) {
-        let timestamp = trade['created'] * 1000;
-        return {
-            'id': trade['order_id'],
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market.symbol,
-            'type': undefined,
-            'side': trade['side'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'number'),
-            'order': undefined,
-            'fee': undefined,
-        };
-    }
-
-    parseMyTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < trades.length; i++) {
-            result.push (this.parseMyTrade (trades[i], market)); // will edit for parseMyTrade → parseTrade
-        }
-        result = this.sortBy (result, 'timestamp');
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -292,7 +280,7 @@ module.exports = class bcex extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privatePostApiOrderOrderList (this.extend (request, params));
-        return this.parseMyTrades (response['data'], market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -340,7 +328,7 @@ module.exports = class bcex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
+        let id = this.safeString (order, 'id');
         let timestamp = order['datetime'] * 1000;
         let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
