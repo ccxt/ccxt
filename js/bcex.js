@@ -295,15 +295,17 @@ module.exports = class bcex extends Exchange {
         return this.parseMyTrades (response['data'], market, since, limit);
     }
 
-    parseOrderStatus (statusCode) {
-        if (statusCode === 0 || statusCode === 1) {
-            return 'open';
-        } else if (statusCode === 2) {
-            return 'closed';
-        } else if (statusCode === 3) {
-            return 'canceled';
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'open', // partially filled
+            '2': 'closed',
+            '3': 'canceled',
+        };
+        if (status in statuses) {
+            return statuses[status];
         }
-        return undefined;
+        return status;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -349,7 +351,8 @@ module.exports = class bcex extends Exchange {
         let amount = order['amount'];
         let remaining = order['amount_outstanding'];
         let filled = amount - remaining;
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.safeString (order, 'status');
+        status = this.parseOrderStatus (status);
         let cost = filled * price;
         let fee = undefined;
         let result = {
