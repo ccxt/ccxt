@@ -120,8 +120,7 @@ module.exports = class shapeshift extends Exchange {
         };
     }
 
-    async calculateFee(symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
-        await this.loadMarkets();
+    calculateFee(symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
         const [base, quote] = symbol.split('/');
         let fee = undefined;
         if (side === 'sell') {
