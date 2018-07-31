@@ -295,7 +295,7 @@ module.exports = class bcex extends Exchange {
         return this.parseMyTrades (response['data'], market, since, limit);
     }
 
-    parseStatus (statusCode) {
+    parseOrderStatus (statusCode) {
         if (statusCode === 0 || statusCode === 1) {
             return 'open';
         } else if (statusCode === 2) {
@@ -349,7 +349,7 @@ module.exports = class bcex extends Exchange {
         let amount = order['amount'];
         let remaining = order['amount_outstanding'];
         let filled = amount - remaining;
-        let status = this.parseStatus (order['status']);
+        let status = this.parseOrderStatus (order['status']);
         let cost = filled * price;
         let fee = undefined;
         let result = {
