@@ -368,6 +368,12 @@ class liqui extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetTradesPair (array_merge ($request, $params));
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+            $numElements = is_array ($response) ? count ($response) : 0;
+            if ($numElements === 0) {
+                return array ();
+            }
+        }
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 

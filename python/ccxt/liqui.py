@@ -350,6 +350,10 @@ class liqui (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetTradesPair(self.extend(request, params))
+        if isinstance(response, list):
+            numElements = len(response)
+            if numElements == 0:
+                return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
