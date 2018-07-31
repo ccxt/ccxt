@@ -572,10 +572,13 @@ class kucoin (Exchange):
         timestamp = self.safe_value(order, 'createdAt')
         remaining = self.safe_float(order, 'pendingAmount')
         status = None
-        if self.safe_value(order, 'isActive', True):
-            status = 'open'
+        if 'status' in order:
+            status = order['status']
         else:
-            status = 'closed'
+            if self.safe_value(order, 'isActive', True):
+                status = 'open'
+            else:
+                status = 'closed'
         filled = self.safe_float(order, 'dealAmount')
         amount = self.safe_float(order, 'amount')
         cost = self.safe_float(order, 'dealValue')
@@ -997,6 +1000,8 @@ class kucoin (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
+        if limit is None:
+            limit = 100  # default to 100 even if it was explicitly set to None by the user
         market = self.market(symbol)
         response = self.publicGetOpenDealOrders(self.extend({
             'symbol': market['id'],

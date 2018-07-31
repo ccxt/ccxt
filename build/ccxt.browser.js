@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.51'
+const version = '1.17.52'
 
 Exchange.ccxtVersion = version
 
@@ -38927,10 +38927,14 @@ module.exports = class kucoin extends Exchange {
         let timestamp = this.safeValue (order, 'createdAt');
         let remaining = this.safeFloat (order, 'pendingAmount');
         let status = undefined;
-        if (this.safeValue (order, 'isActive', true)) {
-            status = 'open';
+        if ('status' in order) {
+            status = order['status'];
         } else {
-            status = 'closed';
+            if (this.safeValue (order, 'isActive', true)) {
+                status = 'open';
+            } else {
+                status = 'closed';
+            }
         }
         let filled = this.safeFloat (order, 'dealAmount');
         let amount = this.safeFloat (order, 'amount');
@@ -39390,6 +39394,9 @@ module.exports = class kucoin extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof limit === 'undefined') {
+            limit = 100; // default to 100 even if it was explicitly set to undefined by the user
+        }
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
             'symbol': market['id'],

@@ -581,10 +581,14 @@ class kucoin extends Exchange {
         $timestamp = $this->safe_value($order, 'createdAt');
         $remaining = $this->safe_float($order, 'pendingAmount');
         $status = null;
-        if ($this->safe_value($order, 'isActive', true)) {
-            $status = 'open';
+        if (is_array ($order) && array_key_exists ('status', $order)) {
+            $status = $order['status'];
         } else {
-            $status = 'closed';
+            if ($this->safe_value($order, 'isActive', true)) {
+                $status = 'open';
+            } else {
+                $status = 'closed';
+            }
         }
         $filled = $this->safe_float($order, 'dealAmount');
         $amount = $this->safe_float($order, 'amount');
@@ -1044,6 +1048,9 @@ class kucoin extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        if ($limit === null) {
+            $limit = 100; // default to 100 even if it was explicitly set to null by the user
+        }
         $market = $this->market ($symbol);
         $response = $this->publicGetOpenDealOrders (array_merge (array (
             'symbol' => $market['id'],
