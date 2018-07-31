@@ -406,6 +406,7 @@ module.exports = class coinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        amount = parseFloat (amount); // this line is deprecated
         if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
@@ -422,7 +423,6 @@ module.exports = class coinex extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePostOrder' + this.capitalize (type);
         let market = this.market (symbol);
-        amount = parseFloat (amount); // this line is deprecated
         let request = {
             'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
