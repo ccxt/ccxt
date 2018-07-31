@@ -118,6 +118,7 @@ class huobipro extends Exchange {
                 'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
                 'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                 'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
                 'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error

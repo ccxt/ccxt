@@ -133,6 +133,7 @@ class huobipro (Exchange):
                 'order-limitorder-amount-min-error': InvalidOrder,  # limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
+                'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
                 'order-orderstate-error': OrderNotFound,  # canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
