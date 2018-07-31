@@ -49,7 +49,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 128 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver | doc                                                                                                 | countries                                |
@@ -65,6 +65,8 @@ The ccxt library currently supports the following 127 cryptocurrency exchange ma
 | anxpro             | `ANXPro <https://anxpro.com>`__                                                         |                                                                      | 2   | `API <http://docs.anxv2.apiary.io>`__                                                               | Japan, Singapore, Hong Kong, New Zealand |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | anybits            | `Anybits <https://anybits.com>`__                                                       |                                                                      | \*  | `API <https://anybits.com/help/api>`__                                                              | Ireland                                  |
++--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| bcex               | `BCEX <https://www.bcex.top/user/reg/type/2/pid/758978>`__                              |                                                                      | 1   | `API <https://www.bcex.top/api_market/market/>`__                                                   | China, Canada                            |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | bibox              | `Bibox <https://www.bibox.com>`__                                                       |                                                                      | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    | China, US, South Korea                   |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -630,6 +632,7 @@ Social
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
+.. |bcex| image:: https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |bit2c| image:: https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg
