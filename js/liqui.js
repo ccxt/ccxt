@@ -364,7 +364,8 @@ module.exports = class liqui extends Exchange {
         }
         let response = await this.publicGetTradesPair (this.extend (request, params));
         if (Array.isArray (response)) {
-            if (response.length === 0) {
+            let numElements = response.length;
+            if (numElements === 0) {
                 return [];
             }
         }
