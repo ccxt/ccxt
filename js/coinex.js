@@ -111,6 +111,9 @@ module.exports = class coinex extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': true,
+            },
         });
     }
 
@@ -403,17 +406,30 @@ module.exports = class coinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        price = parseFloat (price); // this line is deprecated
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
         let method = 'privatePostOrder' + this.capitalize (type);
         let market = this.market (symbol);
-        amount = parseFloat (amount);
+        amount = parseFloat (amount); // this line is deprecated
         let request = {
             'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
         if (type === 'limit') {
-            price = parseFloat (price);
+            price = parseFloat (price); // this line is deprecated
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let response = await this[method] (this.extend (request, params));
