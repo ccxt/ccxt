@@ -50,6 +50,12 @@ module.exports = class shapeshift extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': false,
+                },
+            },
             'requiredCredentials': {
                 'apiKey': false,
                 'secret': false,
