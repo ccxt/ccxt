@@ -68,6 +68,7 @@ module.exports = class shapeshift extends Exchange {
         const url = this.urls['api'] + request;
         if (method === 'POST') {
             headers = { 'Content-Type': 'application/json' };
+            if (this.apiKey) params.apiKey = this.apiKey;
             body = JSON.stringify(params);
         }
         return {
