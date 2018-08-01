@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.60'
+const version = '1.17.61'
 
 Exchange.ccxtVersion = version
 
@@ -42560,6 +42560,7 @@ module.exports = class luno extends Exchange {
                 'public': {
                     'get': [
                         'orderbook',
+                        'orderbook_top',
                         'ticker',
                         'tickers',
                         'trades',
@@ -42658,13 +42659,20 @@ module.exports = class luno extends Exchange {
         let timestamp = order['creation_timestamp'];
         let status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         let side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
+        if (typeof market === 'undefined')
+            market = this.findMarket (order['pair']);
+        let symbol = market['symbol'];
         let price = this.safeFloat (order, 'limit_price');
         let amount = this.safeFloat (order, 'limit_volume');
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
+        let filled = this.safeFloat (order, 'filled');
+        let remaining = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                remaining = Math.max (0, amount - filled);
+            }
+        }
         let fee = { 'currency': undefined };
         if (quoteFee) {
             fee['side'] = 'quote';
@@ -42684,8 +42692,8 @@ module.exports = class luno extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': fee,
             'info': order,

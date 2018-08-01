@@ -35,6 +35,7 @@ class luno extends Exchange {
                 'public' => array (
                     'get' => array (
                         'orderbook',
+                        'orderbook_top',
                         'ticker',
                         'tickers',
                         'trades',
@@ -133,13 +134,20 @@ class luno extends Exchange {
         $timestamp = $order['creation_timestamp'];
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
-        $symbol = null;
-        if ($market)
-            $symbol = $market['symbol'];
+        if ($market === null)
+            $market = $this->find_market($order['pair']);
+        $symbol = $market['symbol'];
         $price = $this->safe_float($order, 'limit_price');
         $amount = $this->safe_float($order, 'limit_volume');
         $quoteFee = $this->safe_float($order, 'fee_counter');
         $baseFee = $this->safe_float($order, 'fee_base');
+        $filled = $this->safe_float($order, 'filled');
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = max (0, $amount - $filled);
+            }
+        }
         $fee = array ( 'currency' => null );
         if ($quoteFee) {
             $fee['side'] = 'quote';
@@ -159,8 +167,8 @@ class luno extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => null,
             'fee' => $fee,
             'info' => $order,
