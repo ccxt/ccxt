@@ -76,9 +76,9 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 ### What You Need To Have
 
-- Node.js 8+
-- Python 3.5.3+ and Python 2.7+
-- PHP 5.3+ with the following extensions installed and enabled:
+- [Node.js](https://nodejs.org/en/download/) 8+
+- [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
+- [PHP](http://php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
   - mbstring
