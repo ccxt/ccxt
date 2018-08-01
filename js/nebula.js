@@ -22,13 +22,14 @@ module.exports = class nebula extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': false,
+                'fetchClosedOrders': true,
                 'fetchOrders': false,
                 'fetchOrder': false,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchOrderBook': false,
-                'fetchL2OrderBook': false,
+                'fetchOrderBook': true,
+                'fetchMyTrades': true,
+                'fetchL2OrderBook': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
@@ -55,12 +56,17 @@ module.exports = class nebula extends Exchange {
                         'coins',
                         'symbols',
                         'exchanges',
-                        'trades',
+                        'tradehistory',
+                        'orderbook',
+                        'orderbookL3',
                     ],
                 },
                 'private': {
                     'get': [
                         'orders',
+                        'orders/closed',
+                        'orders/canceled',
+                        'trades',
                     ],
                     'post': [
                         'orders/new',
@@ -141,8 +147,53 @@ module.exports = class nebula extends Exchange {
             throw new ExchangeError (this.id + ' please provide a symbol');
         market = this.market (symbol);
         request['endpoint'] = market['id'];
+        if (typeof since !== 'undefined') {
+            request['start'] = this.iso8601 (since);
+            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+        }
+        this.paramsToRequest (params, request, ['side', 'type']);
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         let response = await this.privateGetOrders (request);
         return this.parseOrders (response, market);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' please provide a symbol');
+        market = this.market (symbol);
+        request['endpoint'] = market['id'];
+        if (typeof since !== 'undefined') {
+            request['start'] = this.iso8601 (since);
+            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+        }
+        this.paramsToRequest (params, request, ['side', 'type']);
+        let response = await this.privateGetOrdersClosed (request);
+        return this.parseOrders (response, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' please provide a symbol');
+        market = this.market (symbol);
+        request['endpoint'] = market['id'] + '/' + id;
+        let [response] = await this.privateGetOrders (request);
+        return this.parseOrder (response, undefined);
+    }
+
+    paramsToRequest (params, request, paramList) {
+        for (let p = 0; p < paramList.length; p++) {
+            let paramName = paramList[p];
+            let param = params[paramName];
+            if (typeof param !== 'undefined')
+                request[paramName] = param;
+        }
     }
 
     parseOrderStatus (status) {
@@ -159,6 +210,8 @@ module.exports = class nebula extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        if (typeof order === 'undefined')
+            return undefined;
         let status = this.safeValue (order, 'status');
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
@@ -172,7 +225,7 @@ module.exports = class nebula extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.safeValue (order, 'timestamp');
+        let timestamp = this.safeValue (order, 'timestamp') * 1000;
         let iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'quantity');
@@ -237,6 +290,8 @@ module.exports = class nebula extends Exchange {
     }
 
     parseTicker (ticker) {
+        if (typeof ticker === 'undefined')
+            return undefined;
         let symbol = undefined;
         let id = ticker['symbol'];
         if (id in this.markets_by_id) {
@@ -272,19 +327,46 @@ module.exports = class nebula extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' please provide a symbol');
         let market = this.market (symbol);
         let request = {};
         request['endpoint'] = market['id'];
-        let response = await this.publicGetTrades (this.extend (request, params));
+        if (typeof params['fromId'] !== 'undefined') {
+            request['fromId'] = params.fromId;
+        } else if (since) {
+            request['start'] = this.iso8601 (since);
+            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+        }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.publicGetTradehistory (this.extend (request));
         return this.parseTrades (response, market);
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' please provide a symbol');
+        let market = this.market (symbol);
+        let request = {};
+        request['endpoint'] = market['id'];
+        if (since) {
+            request['start'] = this.iso8601 (since);
+            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+        }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        if (typeof params['side'] !== 'undefined')
+            request['side'] = params['side'];
+        let response = await this.privateGetTrades (this.extend (request));
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['timestamp']);
+        let timestamp = this.parse8601 (trade['timestamp']) * 1000;
         let symbol = undefined;
         if (!market) {
             if ('symbol' in trade)
