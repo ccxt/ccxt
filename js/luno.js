@@ -133,7 +133,7 @@ module.exports = class luno extends Exchange {
         let timestamp = order['creation_timestamp'];
         let status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         let side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        if (typeof market == 'undefined')
+        if (typeof market === 'undefined')
             this.findMarket(order['pair'])
         let symbol = market['symbol'];
         let price = this.safeFloat (order, 'limit_price');
