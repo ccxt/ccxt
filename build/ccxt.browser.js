@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.59'
+const version = '1.17.60'
 
 Exchange.ccxtVersion = version
 
@@ -26828,6 +26828,7 @@ module.exports = class cryptopia extends Exchange {
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
+                'PLC': 'Polcoin',
                 'RED': 'RedCoin',
                 'STC': 'StopTrumpCoin',
                 'QBT': 'Cubits',

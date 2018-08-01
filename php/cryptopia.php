@@ -113,6 +113,7 @@ class cryptopia extends Exchange {
                 'LDC' => 'LADACoin',
                 'MARKS' => 'Bitmark',
                 'NET' => 'NetCoin',
+                'PLC' => 'Polcoin',
                 'RED' => 'RedCoin',
                 'STC' => 'StopTrumpCoin',
                 'QBT' => 'Cubits',
