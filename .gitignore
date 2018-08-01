@@ -27,8 +27,3 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
-python/package.json
-python/LICENSE.txt
-python/keys.json
-build/ccxt.browser.js
-build/ccxt.browser.js
