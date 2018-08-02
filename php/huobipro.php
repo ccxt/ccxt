@@ -617,8 +617,9 @@ class huobipro extends Exchange {
                 }
             }
         }
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $timestamp = $order['created-at'];
         $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
@@ -626,8 +627,10 @@ class huobipro extends Exchange {
         $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
-        if ($filled)
+        // if $filled is defined and is not zero
+        if ($filled) {
             $average = floatval ($cost / $filled);
+        }
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],
