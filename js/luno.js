@@ -207,11 +207,7 @@ module.exports = class luno extends Exchange {
             request['pair'] = market['id'];
         }
         let response = await this.privateGetListorders (this.extend (request, params));
-        if (typeof response['orders'] !== 'undefined') {
-            orders = response['orders'];
-        } else {
-            return orders;
-        }
+        let orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -227,11 +223,7 @@ module.exports = class luno extends Exchange {
             request['pair'] = market['id'];
         }
         let response = await this.privateGetListorders (this.extend (request, params));
-        if (typeof response['orders'] !== 'undefined') {
-            orders = response['orders'];
-        } else {
-            return orders;
-        }
+        let orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
