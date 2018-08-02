@@ -20,6 +20,9 @@ class luno extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
+                'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -181,6 +184,34 @@ class luno extends Exchange {
             'id' => $id,
         ), $params));
         return $this->parse_order($response);
+    }
+
+    public function fetch_orders_by_state ($state = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $market = null;
+        if ($state !== null) {
+            $request['state'] = $state;
+        }
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['id'];
+        }
+        $response = $this->privateGetListorders (array_merge ($request, $params));
+        $orders = $this->safe_value($response, 'orders', array ());
+        return $this->parse_orders($orders, $market, $since, $limit);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state (null, $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state ('PENDING', $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_state ('COMPLETE', $symbol, $since, $limit, $params);
     }
 
     public function parse_ticker ($ticker, $market = null) {

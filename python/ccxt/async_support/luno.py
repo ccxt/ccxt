@@ -21,6 +21,9 @@ class luno (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -172,6 +175,28 @@ class luno (Exchange):
             'id': id,
         }, params))
         return self.parse_order(response)
+
+    async def fetch_orders_by_state(self, state=None, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        market = None
+        if state is not None:
+            request['state'] = state
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = await self.privateGetListorders(self.extend(request, params))
+        orders = self.safe_value(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state(None, symbol, since, limit, params)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
