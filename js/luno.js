@@ -176,7 +176,7 @@ module.exports = class luno extends Exchange {
         }, params));
         return this.parseOrder (response);
     }
-    
+
     async fetchOrdersByState (state = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
