@@ -29,7 +29,6 @@ module.exports = class nebula extends Exchange {
                 'fetchTrades': true,
                 'fetchOrderBook': true,
                 'fetchMyTrades': true,
-                'fetchL2OrderBook': true,
                 'createLimitBuyOrder': true,
                 'createLimitSellOrder': true,
                 'createMarketBuyOrder': true,
@@ -131,12 +130,24 @@ module.exports = class nebula extends Exchange {
                         'max': undefined,
                     },
                 },
-                'taker': market['takerFee'],
-                'maker': market['makerFee'],
+                'taker': 0.0,
+                'maker': 0.0,
                 'info': market,
             });
         }
         return result;
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        let request = {};
+        await this.loadMarkets ();
+        request['endpoint'] = this.marketId (symbol);
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let orderbook = await this.publicGetOrderbook (request);
+        if (typeof orderbook === 'undefined')
+            return undefined;
+        return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -149,7 +160,7 @@ module.exports = class nebula extends Exchange {
         request['endpoint'] = market['id'];
         if (typeof since !== 'undefined') {
             request['start'] = this.iso8601 (since);
-            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+            request['end'] = this.safeValue (params, 'end', this.iso8601 (this.nonce ()));
         }
         this.paramsToRequest (params, request, ['side', 'type']);
         if (typeof limit !== 'undefined')
@@ -168,8 +179,10 @@ module.exports = class nebula extends Exchange {
         request['endpoint'] = market['id'];
         if (typeof since !== 'undefined') {
             request['start'] = this.iso8601 (since);
-            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+            request['end'] = this.safeValue (params, 'end', this.iso8601 (this.nonce ()));
         }
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
         this.paramsToRequest (params, request, ['side', 'type']);
         let response = await this.privateGetOrdersClosed (request);
         return this.parseOrders (response, market);
@@ -183,14 +196,14 @@ module.exports = class nebula extends Exchange {
             throw new ExchangeError (this.id + ' please provide a symbol');
         market = this.market (symbol);
         request['endpoint'] = market['id'] + '/' + id;
-        let [response] = await this.privateGetOrders (request);
+        let response = await this.privateGetOrders (request);
         return this.parseOrder (response, undefined);
     }
 
     paramsToRequest (params, request, paramList) {
         for (let p = 0; p < paramList.length; p++) {
             let paramName = paramList[p];
-            let param = params[paramName];
+            let param = this.safeValue (params, paramName);
             if (typeof param !== 'undefined')
                 request[paramName] = param;
         }
@@ -334,11 +347,12 @@ module.exports = class nebula extends Exchange {
         let market = this.market (symbol);
         let request = {};
         request['endpoint'] = market['id'];
-        if (typeof params['fromId'] !== 'undefined') {
-            request['fromId'] = params.fromId;
+        let fromId = this.safeValue (params, 'fromId', undefined);
+        if (fromId) {
+            request['fromId'] = fromId;
         } else if (since) {
             request['start'] = this.iso8601 (since);
-            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+            request['end'] = this.safeValue (params, 'end', this.iso8601 (this.nonce ()));
         }
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -355,12 +369,11 @@ module.exports = class nebula extends Exchange {
         request['endpoint'] = market['id'];
         if (since) {
             request['start'] = this.iso8601 (since);
-            request['end'] = params['end'] || this.iso8601 (this.nonce ());
+            request['end'] = this.safeValue (params, 'end', this.iso8601 (this.nonce ()));
         }
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        if (typeof params['side'] !== 'undefined')
-            request['side'] = params['side'];
+        this.paramsToRequest (params, request, ['side']);
         let response = await this.privateGetTrades (this.extend (request));
         return this.parseTrades (response, market, since, limit);
     }
@@ -479,9 +492,12 @@ module.exports = class nebula extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '';
         let parameters = params;
-        if (Object.keys (params).length && params['endpoint']) {
-            endpoint = '/' + params['endpoint'];
-            parameters = this.omit (params, ['endpoint']);
+        if (Object.keys (params).length) {
+            endpoint = this.safeValue (params, 'endpoint', '');
+            if (endpoint !== '') {
+                endpoint = '/' + endpoint;
+                parameters = this.omit (params, ['endpoint']);
+            }
         }
         let query = '/' + this.version + '/' + path + endpoint;
         if (method === 'GET')
