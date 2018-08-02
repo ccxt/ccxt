@@ -229,7 +229,12 @@ module.exports = class shapeshift extends Exchange {
                 quote,
                 'active': true,
                 'precision': { 'amount': 8 },
-                'limits': { 'amount': market.limit },
+                'limits': {
+                    'amount': {
+                        'min': market.min,
+                        'max': market.limit,
+                    },
+                },
                 'info': market,
             };
         }
