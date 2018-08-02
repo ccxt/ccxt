@@ -176,11 +176,14 @@ module.exports = class luno extends Exchange {
         }, params));
         return this.parseOrder (response);
     }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    
+    async fetchOrdersByState (state = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
+        if (typeof state !== 'undefined') {
+            request['state'] = state;
+        }
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -188,36 +191,18 @@ module.exports = class luno extends Exchange {
         let response = await this.privateGetListorders (this.extend (request, params));
         let orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersByState (undefined, symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {
-            'state': 'PENDING',
-        };
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privateGetListorders (this.extend (request, params));
-        let orders = this.safeValue (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {
-            'state': 'COMPLETE',
-        };
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privateGetListorders (this.extend (request, params));
-        let orders = this.safeValue (response, 'orders', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
 
     parseTicker (ticker, market = undefined) {
