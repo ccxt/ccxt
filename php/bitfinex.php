@@ -246,7 +246,7 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'ATM' => 'Atonomi', // issue #3383
+                'ATM' => 'ATMI', // Bitfinex uses ATM instead of the official ATMI
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
                 'CTX' => 'CTXC',
