@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.62'
+const version = '1.17.63'
 
 Exchange.ccxtVersion = version
 
@@ -42548,6 +42548,7 @@ module.exports = class luno extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchTradingFees': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -42820,6 +42821,16 @@ module.exports = class luno extends Exchange {
             request['since'] = since;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetFeeInfo (params);
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'maker_fee'),
+            'taker': this.safeFloat (response, 'taker_fee'),
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

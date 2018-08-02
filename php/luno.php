@@ -23,6 +23,7 @@ class luno extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchTradingFees' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -295,6 +296,16 @@ class luno extends Exchange {
             $request['since'] = $since;
         $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees ($params = array ()) {
+        $this->load_markets();
+        $response = $this->privateGetFeeInfo ($params);
+        return array (
+            'info' => $response,
+            'maker' => $this->safe_float($response, 'maker_fee'),
+            'taker' => $this->safe_float($response, 'taker_fee'),
+        );
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

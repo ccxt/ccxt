@@ -24,6 +24,7 @@ class luno (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchTradingFees': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -274,6 +275,15 @@ class luno (Exchange):
             request['since'] = since
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
+
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetFeeInfo(params)
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'maker_fee'),
+            'taker': self.safe_float(response, 'taker_fee'),
+        }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
