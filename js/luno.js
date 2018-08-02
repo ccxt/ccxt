@@ -15,7 +15,7 @@ module.exports = class luno extends Exchange {
             'countries': [ 'GB', 'SG', 'ZA' ],
             'rateLimit': 10000,
             'version': '1',
-            'has': {
+            'has': {fetchC
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': true,
@@ -181,7 +181,6 @@ module.exports = class luno extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        let orders = [];
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -197,7 +196,6 @@ module.exports = class luno extends Exchange {
             'state': 'PENDING',
         };
         let market = undefined;
-        let orders = [];
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
@@ -213,7 +211,6 @@ module.exports = class luno extends Exchange {
             'state': 'COMPLETE',
         };
         let market = undefined;
-        let orders = [];
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['pair'] = market['id'];
