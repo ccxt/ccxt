@@ -616,8 +616,9 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let timestamp = order['created-at'];
         let amount = this.safeFloat (order, 'amount');
         let filled = parseFloat (order['field-amount']);
@@ -625,8 +626,10 @@ module.exports = class huobipro extends Exchange {
         let price = this.safeFloat (order, 'price');
         let cost = parseFloat (order['field-cash-amount']);
         let average = 0;
-        if (filled)
+        // if filled is defined and is not zero
+        if (filled) {
             average = parseFloat (cost / filled);
+        }
         let result = {
             'info': order,
             'id': order['id'].toString (),
