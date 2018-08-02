@@ -15,7 +15,7 @@ module.exports = class luno extends Exchange {
             'countries': [ 'GB', 'SG', 'ZA' ],
             'rateLimit': 10000,
             'version': '1',
-            'has': {fetchC
+            'has': {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': true,
