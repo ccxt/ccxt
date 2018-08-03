@@ -474,7 +474,7 @@ module.exports = class lbank extends Exchange {
             'amount': amount,
             'account': address,
         };
-        if (typeof tag !== 'undefined'){
+        if (typeof tag !== 'undefined') {
             request['memo'] = tag;
         }
         let response = this.privatePostWithdraw (this.extend (request, params));
@@ -482,7 +482,7 @@ module.exports = class lbank extends Exchange {
             'id': response['id'],
             'info': response,
         };
-    };
+    }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
