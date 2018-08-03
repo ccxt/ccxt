@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -151,6 +151,15 @@ module.exports = class poloniex extends Exchange {
                         },
                     },
                 },
+            },
+            'exceptions': {
+                'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
+                'Permission denied': PermissionDenied,
+                'Connection timed out. Please try again.': RequestTimeout,
+                'Internal error. Please try again.': ExchangeNotAvailable,
+                'Order not found, or you are not the person who placed it.': OrderNotFound,
+                'Invalid API key/secret pair.': AuthenticationError,
+                'Please do not make more than 8 API calls per second.': DDoSProtection,
             },
         });
     }
@@ -849,21 +858,13 @@ module.exports = class poloniex extends Exchange {
             // syntax error, resort to default error handler
             return;
         }
+        // {"error":"Permission denied."}
         if ('error' in response) {
             const message = response['error'];
             const feedback = this.id + ' ' + this.json (response);
-            if (message === 'Invalid order number, or you are not the person who placed the order.') {
-                throw new OrderNotFound (feedback);
-            } else if (message === 'Connection timed out. Please try again.') {
-                throw new RequestTimeout (feedback);
-            } else if (message === 'Internal error. Please try again.') {
-                throw new ExchangeNotAvailable (feedback);
-            } else if (message === 'Order not found, or you are not the person who placed it.') {
-                throw new OrderNotFound (feedback);
-            } else if (message === 'Invalid API key/secret pair.') {
-                throw new AuthenticationError (feedback);
-            } else if (message === 'Please do not make more than 8 API calls per second.') {
-                throw new DDoSProtection (feedback);
+            let exceptions = this.exceptions;
+            if (message in exceptions) {
+                throw new exceptions[message] (feedback);
             } else if (message.indexOf ('Total must be at least') >= 0) {
                 throw new InvalidOrder (feedback);
             } else if (message.indexOf ('This account is frozen.') >= 0) {
