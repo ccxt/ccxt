@@ -248,9 +248,11 @@ class coinex (Exchange):
 
     def parse_trade(self, trade, market=None):
         # self method parses both public and private trades
-        timestamp = self.safe_integer(trade, 'create_time') * 1000
+        timestamp = self.safe_integer(trade, 'create_time')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'date_ms')
+        else:
+            timestamp = timestamp * 1000
         tradeId = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
