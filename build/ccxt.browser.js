@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.69'
+const version = '1.17.70'
 
 Exchange.ccxtVersion = version
 
@@ -32843,6 +32843,10 @@ module.exports = class gemini extends Exchange {
             'info': response,
             'id': this.safeString (response, 'txHash'),
         };
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
