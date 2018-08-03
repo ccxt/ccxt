@@ -40,11 +40,15 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 Windows users having difficulties installing `w3`, `scrypt` or `node-gyp` dependencies for the ccxt library, try installing `scrypt` first:
 
-`npm install -g web3 --unsafe-perm=true --allow-root`
+```
+npm install -g web3 --unsafe-perm=true --allow-root
+```
 
 or
 
-`sudo npm install -g web3 --unsafe-perm=true --allow-root`.
+```
+sudo npm install -g web3 --unsafe-perm=true --allow-root
+```
 
 Then install ccxt as usual with `npm install ccxt`.
 
