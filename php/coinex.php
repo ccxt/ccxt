@@ -254,9 +254,11 @@ class coinex extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         // this method parses both public and private trades
-        $timestamp = $this->safe_integer($trade, 'create_time') * 1000;
+        $timestamp = $this->safe_integer($trade, 'create_time');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($trade, 'date_ms');
+        } else {
+            $timestamp = $timestamp * 1000;
         }
         $tradeId = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
