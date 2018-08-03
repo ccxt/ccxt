@@ -103,6 +103,8 @@ for arg in argv.args:
     # unpack json objects (mostly for extra params)
     if arg[0] == '{' or arg[0] == '[':
         args.append(exchange.unjson(arg))
+    elif arg == 'None':
+        args.append(None)
     elif re.match(r'^[0-9+-]+$', arg):
         args.append(int(arg))
     elif re.match(r'^[.eE0-9+-]+$', arg):
