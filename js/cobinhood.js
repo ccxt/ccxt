@@ -321,7 +321,7 @@ module.exports = class cobinhood extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         let cost = price * amount;
-        let side = (trade['maker_side'] === 'bid') ? 'sell' : 'buy';
+        let side = (trade['maker_side'] === 'bid') ? 'buy' : 'sell';
         return {
             'info': trade,
             'timestamp': timestamp,
