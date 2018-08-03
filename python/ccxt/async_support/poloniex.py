@@ -9,6 +9,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -166,6 +167,15 @@ class poloniex (Exchange):
                         },
                     },
                 },
+            },
+            'exceptions': {
+                'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
+                'Permission denied': PermissionDenied,
+                'Connection timed out. Please try again.': RequestTimeout,
+                'Internal error. Please try again.': ExchangeNotAvailable,
+                'Order not found, or you are not the person who placed it.': OrderNotFound,
+                'Invalid API key/secret pair.': AuthenticationError,
+                'Please do not make more than 8 API calls per second.': DDoSProtection,
             },
         })
 
@@ -793,21 +803,13 @@ class poloniex (Exchange):
         except Exception as e:
             # syntax error, resort to default error handler
             return
+        # {"error":"Permission denied."}
         if 'error' in response:
             message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            if message == 'Invalid order number, or you are not the person who placed the order.':
-                raise OrderNotFound(feedback)
-            elif message == 'Connection timed out. Please try again.':
-                raise RequestTimeout(feedback)
-            elif message == 'Internal error. Please try again.':
-                raise ExchangeNotAvailable(feedback)
-            elif message == 'Order not found, or you are not the person who placed it.':
-                raise OrderNotFound(feedback)
-            elif message == 'Invalid API key/secret pair.':
-                raise AuthenticationError(feedback)
-            elif message == 'Please do not make more than 8 API calls per second.':
-                raise DDoSProtection(feedback)
+            exceptions = self.exceptions
+            if message in exceptions:
+                raise exceptions[message](feedback)
             elif message.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
             elif message.find('This account is frozen.') >= 0:
