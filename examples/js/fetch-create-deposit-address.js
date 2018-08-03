@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 // setup
 
-const ccxt = require ('../../ccxt')
+const ccxt = require ('../../ccxt.js')
 
     , defaultCurrencyCode = 'BTC' // change me
     , exchangeId = 'poloniex' // change me
@@ -19,9 +19,19 @@ const ccxt = require ('../../ccxt')
 
         'enableRateLimit': true, // ←- required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
 
+        // 'verbose': true, // ←- uncomment this for verbose output
+
         // additional credentials might be required in exchange-specific cases:
         // uid or password for GDAX, etc...
     })
+
+// ----------------------------------------------------------------------------
+
+if (!exchange.has['fetchDepositAddress']) {
+
+    console.log ('The exchange does not support fetchDepositAddress() yet')
+    process.exit ()
+}
 
 // ----------------------------------------------------------------------------
 
@@ -29,12 +39,12 @@ const ccxt = require ('../../ccxt')
 
     try {
 
-        console.log ('Trying to fetch deposit address for ' + currencyCode + ' from ' + exchangeId + '...');
+        console.log ('Trying to fetch deposit address for ' + currencyCode + ' from ' + exchangeId + '...')
 
-        let fetchResult = await exchange.fetchDepositAddress (currencyCode);
+        let fetchResult = await exchange.fetchDepositAddress (currencyCode)
 
-        console.log ('Successfully fetched deposit address for ' + currencyCode);
-        console.log (fetchResult);
+        console.log ('Successfully fetched deposit address for ' + currencyCode)
+        console.log (fetchResult)
 
     } catch (e) {
 
@@ -47,27 +57,27 @@ const ccxt = require ('../../ccxt')
 
             if (exchange.has['createDepositAddress']) {
 
-                console.log ('Attempting to create a deposit address for ' + currencyCode + '...');
+                console.log ('Attempting to create a deposit address for ' + currencyCode + '...')
 
                 try {
 
-                    const createResult = await exchange.createDepositAddress (currencyCode);
+                    const createResult = await exchange.createDepositAddress (currencyCode)
 
                     // console.log (createResult) // for debugging
 
-                    console.log ('Successfully created a deposit address for ' + currencyCode + ', fetching the deposit address now...');
+                    console.log ('Successfully created a deposit address for ' + currencyCode + ', fetching the deposit address now...')
 
                     try {
 
-                        let fetchResult = await exchange.fetchDepositAddress (currencyCode);
+                        let fetchResult = await exchange.fetchDepositAddress (currencyCode)
 
-                        console.log ('Successfully fetched deposit address for ' + currencyCode);
+                        console.log ('Successfully fetched deposit address for ' + currencyCode)
                         console.log (fetchResult);
 
 
                     } catch (e) {
 
-                        console.log ('Failed to fetch deposit address for ' + currencyCode, e.constructor.name, e.message);
+                        console.log ('Failed to fetch deposit address for ' + currencyCode, e.constructor.name, e.message)
                     }
 
                 } catch (e) {
@@ -83,7 +93,7 @@ const ccxt = require ('../../ccxt')
 
         } else {
 
-            console.log ('There was an error while fetching deposit address for ' + currencyCode, e.constructor.name, e.message);
+            console.log ('There was an error while fetching deposit address for ' + currencyCode, e.constructor.name, e.message)
         }
     }
 
