@@ -254,7 +254,7 @@ module.exports = class zb extends Exchange {
         let tag = undefined;
         if (address.indexOf ('_') >= 0) {
             let arr = address.split ('_');
-            address = arr[0];  // WARNING: MAY BE THE OTHER WAY ROUND FOR SOME CURRENCIES!!
+            address = arr[0];  // WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
             tag = arr[1];
         }
         return {
