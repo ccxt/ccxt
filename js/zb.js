@@ -251,7 +251,12 @@ module.exports = class zb extends Exchange {
             'currency': currency['id'],
         });
         let address = response['message']['datas']['key'];
-        let tag = undefined; // todo: figure this out
+        let tag = undefined;
+        if (address.find('_') > -1) {
+            let arr = address.split ('_');
+            address = arr[0];  // WARNING: MAY BE THE OTHER WAY ROUND FOR SOME CURRENCIES!!
+            tag = arr[1];
+        }
         return {
             'currency': code,
             'address': address,
