@@ -39,6 +39,7 @@ class zb (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOHLCV': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -262,7 +263,11 @@ class zb (Exchange):
             'currency': currency['id'],
         })
         address = response['message']['datas']['key']
-        tag = None  # todo: figure self out
+        tag = None
+        if address.find('_') >= 0:
+            arr = address.split('_')
+            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = arr[1]
         return {
             'currency': code,
             'address': address,
@@ -325,7 +330,8 @@ class zb (Exchange):
         if since is not None:
             request['since'] = since
         response = await self.publicGetKline(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000

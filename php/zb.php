@@ -23,6 +23,7 @@ class zb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
+                'fetchOHLCV' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -252,7 +253,12 @@ class zb extends Exchange {
             'currency' => $currency['id'],
         ));
         $address = $response['message']['datas']['key'];
-        $tag = null; // todo => figure this out
+        $tag = null;
+        if (mb_strpos ($address, '_') !== false) {
+            $arr = explode ('_', $address);
+            $address = $arr[0];  // WARNING => MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIES!!
+            $tag = $arr[1];
+        }
         return array (
             'currency' => $code,
             'address' => $address,
@@ -318,7 +324,8 @@ class zb extends Exchange {
         if ($since !== null)
             $request['since'] = $since;
         $response = $this->publicGetKline (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array ());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
