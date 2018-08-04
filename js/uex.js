@@ -22,7 +22,7 @@ module.exports = class bittrex extends Exchange {
                 'createMarketOrder': false,
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
@@ -487,7 +487,7 @@ module.exports = class bittrex extends Exchange {
         let market = this.market (symbol);
         let request = {
             'order_id': id,
-            'symbol': market['id'];
+            'symbol': market['id'],
         };
         let response = await this.pivatePostCancelOrder (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
@@ -690,6 +690,39 @@ module.exports = class bittrex extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            // pageSize optional page size
+            // page optional page number
+            'symbol': market['id'],
+        };
+        if (typeof limit !== 'undefined') {
+            request['pageSize'] = limit;
+        }
+        let response = await this.privateGetAllTrade (this.extend (request, params));
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: {      count:    0,
+        //               resultList: [ {     volume: "1.000",
+        //                                     side: "BUY",
+        //                                  feeCoin: "YLB",
+        //                                    price: "0.10000000",
+        //                                      fee: "0.16431104",
+        //                                    ctime:  1510996571195,
+        //                               deal_price: "0.10000000",
+        //                                       id:  306,
+        //                                     type: "Buy-in"        } ] } }
+        //
+        let trades = this.safeValue (response['data'], 'resultList', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
