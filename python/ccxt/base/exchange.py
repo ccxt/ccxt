@@ -129,6 +129,8 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
+    countryCode = ''
+    phoneNumber = ''
     twofa = False
     marketsById = None
     markets_by_id = None
@@ -154,6 +156,8 @@ class Exchange(object):
         'twofa': False,  # 2-factor authentication (one-time password key)
         'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+        'countryCode': False,  # some exchanges like UEX require a country code and a phone number
+        'phoneNumber': False,
     }
 
     # API method metainfo

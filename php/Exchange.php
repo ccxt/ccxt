@@ -198,6 +198,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'uex',
         'urdubit',
         'vaultoro',
         'vbtc',
@@ -727,6 +728,9 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+        $this->countryCode   = '';  // some exchanges like UEX require a country code and a phone number
+        $this->phoneNumber   = '';
+
         $this->twofa         = false;
         $this->marketsById   = null;
         $this->markets_by_id = null;
@@ -750,6 +754,8 @@ class Exchange {
             'twofa' => false, // 2-factor authentication (one-time password key)
             'privateKey' => false,
             'walletAddress' => false,
+            'countryCode' => false, // some exchanges like UEX require a country code and a phone number
+            'phoneNumber' => false,
         );
 
         // API methods metainfo
