@@ -312,6 +312,7 @@ module.exports = class zb extends Exchange {
         if (market !== 'undefined') {
             symbol = market['symbol'];
         }
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -324,8 +325,8 @@ module.exports = class zb extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
