@@ -252,7 +252,7 @@ module.exports = class zb extends Exchange {
         });
         let address = response['message']['datas']['key'];
         let tag = undefined;
-        if (address.find('_') > -1) {
+        if (address.indexOf ('_') >= 0) {
             let arr = address.split ('_');
             address = arr[0];  // WARNING: MAY BE THE OTHER WAY ROUND FOR SOME CURRENCIES!!
             tag = arr[1];
