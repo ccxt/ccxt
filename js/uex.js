@@ -121,6 +121,13 @@ module.exports = class bittrex extends Exchange {
                 // 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 // 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+                'countryCode': true,
+                'phoneNumber': true,
+            },
         });
     }
 
@@ -194,25 +201,46 @@ module.exports = class bittrex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserAccount (params);
-        let log = require ('ololog').unlimited;
-        log (response);
-        process.exit ();
-        let balances = response['result'];
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: { total_asset:   "0.00000000",
+        //                 coin_list: [ {      normal: "0.00000000",
+        //                                btcValuatin: "0.00000000",
+        //                                     locked: "0.00000000",
+        //                                       coin: "usdt"        },
+        //                              {      normal: "0.00000000",
+        //                                btcValuatin: "0.00000000",
+        //                                     locked: "0.00000000",
+        //                                       coin: "btc"         },
+        //                              {      normal: "0.00000000",
+        //                                btcValuatin: "0.00000000",
+        //                                     locked: "0.00000000",
+        //                                       coin: "eth"         },
+        //                              {      normal: "0.00000000",
+        //                                btcValuatin: "0.00000000",
+        //                                     locked: "0.00000000",
+        //                                       coin: "ren"         },
+        //
+        let balances = response['data']['coin_list'];
         let result = { 'info': balances };
-        let indexed = this.indexBy (balances, 'Currency');
-        let keys = Object.keys (indexed);
-        for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let currency = this.commonCurrencyCode (id);
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currencyId = balance['coin'];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             let account = this.account ();
-            let balance = indexed[id];
-            let free = parseFloat (balance['Available']);
-            let total = parseFloat (balance['Balance']);
-            let used = total - free;
+            let free = parseFloat (balance['normal']);
+            let used = parseFloat (balance['locked']);
+            let total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -646,23 +674,26 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            url += api + '/';
-            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
-                url += method.toLowerCase ();
-            url += path + '?' + this.urlencode (this.extend ({
-                'nonce': nonce,
-                'apikey': this.apiKey,
-            }, params));
+            let timestamp = this.seconds ().toString ();
             let auth = '';
-            let query = this.extend (params, {
-                'country': this.options['country'],
-                'mobile': this.options['mobile'],
-            });
-            let signature = this.hash (this.encode (auth));
+            let query = this.keysort (this.extend (params, {
+                'api_key': this.apiKey,
+                'time': timestamp,
+            }));
+            let keys = Object.keys (query);
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i];
+                auth += key;
+                auth += query[key].toString ();
+            }
+            let signature = this.hash (this.encode (auth + this.secret));
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query) + '&sign=' + signature;
+            } else {
+                url += '?sign=' + signature;
+            }
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'apisign': signature,
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
