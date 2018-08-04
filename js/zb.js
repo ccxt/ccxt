@@ -278,7 +278,8 @@ module.exports = class zb extends Exchange {
         let anotherMarketsById = {};
         let marketIds = Object.keys (this.marketsById);
         for (let i = 0; i < marketIds.length; i++) {
-            anotherMarketsById[marketIds[i].replace ('_', '')] = this.marketsById[marketIds[i]];
+            let tickerId = marketIds[i].replace ('_', '');
+            anotherMarketsById[tickerId] = this.marketsById[marketIds[i]];
         }
         let ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
