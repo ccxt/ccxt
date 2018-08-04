@@ -345,8 +345,18 @@ class poloniex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = null;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                list ($quoteId, $baseId) = explode ('_', $id);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $market = array ( 'symbol' => $symbol );
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
