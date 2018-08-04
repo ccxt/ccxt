@@ -30,11 +30,17 @@ module.exports = class bittrex extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': 'oneMin',
-                '5m': 'fiveMin',
-                '30m': 'thirtyMin',
-                '1h': 'hour',
-                '1d': 'day',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15m',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1440',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
@@ -364,51 +370,79 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
-        let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
-            side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
-            side = 'sell';
+        //
+        //   {      amount:  0.88,
+        //     create_time:  1533414358000,
+        //           price:  0.058019,
+        //              id:  406531,
+        //            type: "sell"          },
+        //
+        let timestamp = this.safeInteger (trade, 'create_time');
+        let side = this.safeString (trade, 'type');
+        let id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof price !== 'undefined') {
+                cost = amount * price;
+            }
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
+            'symbol': symbol,
+            'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarkethistory (this.extend ({
-            'market': market['id'],
+        let response = await this.publicGetGetTrades (this.extend ({
+            'symbol': market['id'],
         }, params));
-        if ('result' in response) {
-            if (typeof response['result'] !== 'undefined')
-                return this.parseTrades (response['result'], market, since, limit);
-        }
-        throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: [ {      amount:  0.88,
+        //                 create_time:  1533414358000,
+        //                       price:  0.058019,
+        //                          id:  406531,
+        //                        type: "sell"          },
+        //               {      amount:  4.88,
+        //                 create_time:  1533414331000,
+        //                       price:  0.058019,
+        //                          id:  406530,
+        //                        type: "buy"           },
+        //               {      amount:  0.5,
+        //                 create_time:  1533414311000,
+        //                       price:  0.058019,
+        //                          id:  406529,
+        //                        type: "sell"          },
+        //
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
         return [
-            timestamp,
-            ohlcv['O'],
-            ohlcv['H'],
-            ohlcv['L'],
-            ohlcv['C'],
-            ohlcv['V'],
+            ohlcv[0] * 1000, // timestamp
+            ohlcv[1], // open
+            ohlcv[2], // high
+            ohlcv[3], // low
+            ohlcv[4], // close
+            ohlcv[5], // volume
         ];
     }
 
@@ -416,15 +450,19 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'tickInterval': this.timeframes[timeframe],
-            'marketName': market['id'],
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe], // in minutes
         };
-        let response = await this.v2GetMarketGetTicks (this.extend (request, params));
-        if ('result' in response) {
-            if (response['result'])
-                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
-        }
-        throw new ExchangeError (this.id + ' returned an empty or unrecognized response: ' + this.json (response));
+        let response = await this.publicGetGetRecords (this.extend (request, params));
+        //
+        //     { code: '0',
+        //        msg: 'suc',
+        //       data:
+        //        [ [ 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ],
+        //          [ 1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88 ],
+        //          [ 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ],
+        //
+        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
