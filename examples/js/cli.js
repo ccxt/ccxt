@@ -12,7 +12,6 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , details = process.argv.includes ('--details')
     , no_table = process.argv.includes ('--no-table')
     , iso8601 = process.argv.includes ('--iso8601')
-    , no_info = process.argv.includes ('--no-info')
 
 //-----------------------------------------------------------------------------
 
@@ -150,9 +149,7 @@ const printHumanReadable = (exchange, result) => {
             if (arrayOfObjects) {
                 log (result.length > 0 ? asTable (result.map (element => {
                     let keys = Object.keys (element)
-                    if (no_info) {
-                        delete element['info']
-                    }
+                    delete element['info']
                     keys.forEach (key => {
                         if (typeof element[key] === 'number') {
                             if (!iso8601)
