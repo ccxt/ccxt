@@ -349,26 +349,58 @@ module.exports = class bittrex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // public fetchTrades
+        //
         //   {      amount:  0.88,
         //     create_time:  1533414358000,
         //           price:  0.058019,
         //              id:  406531,
         //            type: "sell"          },
         //
-        let timestamp = this.safeInteger (trade, 'create_time');
-        let side = this.safeString (trade, 'type');
+        // private fetchMyTrades
+        //
+        //     {     volume: "1.000",
+        //             side: "BUY",
+        //          feeCoin: "YLB",
+        //            price: "0.10000000",
+        //              fee: "0.16431104",
+        //            ctime:  1510996571195,
+        //       deal_price: "0.10000000",
+        //               id:  306,
+        //             type: "Buy-in"        }
+        //
+        let timestamp = this.safeInteger2 (trade, 'create_time', 'ctime');
+        let side = this.safeString2 (trade, 'side', 'type');
+        if (typeof side !== 'undefined') {
+            side = side.toLowerCase ();
+        }
         let id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
+        let price = this.safeFloat2 (trade, 'deal_price', 'price');
+        let amount = this.safeFloat (trade, 'volume', 'amount');
         let cost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof price !== 'undefined') {
                 cost = amount * price;
             }
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            let feeCurrency = this.safeString (trade, 'feeCoin');
+            if (typeof feeCurrency !== 'undefined') {
+                let currencyId = feeCurrency.toLowerCase ();
+                if (currencyId in this.currencies_by_id) {
+                    feeCurrency = this.currencies_by_id[currencyId]['code'];
+                }
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         return {
             'id': id,
@@ -381,7 +413,7 @@ module.exports = class bittrex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
