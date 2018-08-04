@@ -26,7 +26,6 @@ module.exports = class bittrex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
-                'fetchTickers': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -57,7 +56,7 @@ module.exports = class bittrex extends Exchange {
                         'get_records', // ohlcvs
                         'get_ticker',
                         'get_trades',
-                        'market_dept', // dept is not a typo... they mean depth
+                        'market_dept', // dept here is not a typo... they mean depth
                     ],
                 },
                 'private': {
@@ -326,27 +325,6 @@ module.exports = class bittrex extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.publicGetMarketsummaries (params);
-        let tickers = response['result'];
-        let result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let id = ticker['MarketName'];
-            let market = undefined;
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (id);
-            }
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return result;
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -504,26 +482,17 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    getOrderIdField () {
-        return 'uuid';
-    }
-
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderIdField = this.getOrderIdField ();
-        let request = {};
-        request[orderIdField] = id;
-        let response = await this.marketGetCancel (this.extend (request, params));
+        let market = this.market (symbol);
+        let request = {
+            'order_id': id,
+            'symbol': market['id'];
+        };
+        let response = await this.pivatePostCancelOrder (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
-    }
-
-    parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     parseOrder (order, market = undefined) {
