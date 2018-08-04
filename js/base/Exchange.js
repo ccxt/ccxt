@@ -1056,7 +1056,7 @@ module.exports = class Exchange {
                 continue
             result.push (ohlcv)
         }
-        return result
+        return this.sortBy (result, 0)
     }
 
     editLimitBuyOrder (id, symbol, ...args) {

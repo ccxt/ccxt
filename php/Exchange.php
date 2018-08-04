@@ -1265,7 +1265,7 @@ class Exchange {
                 continue;
             $result[] = $ohlcv;
         }
-        return $result;
+        return $this->sort_by ($result, 0);
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {

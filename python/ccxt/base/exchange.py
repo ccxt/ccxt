@@ -1094,7 +1094,7 @@ class Exchange(object):
             if since and (ohlcv[0] < since):
                 continue
             result.append(ohlcv)
-        return result
+        return self.sort_by(result, 0)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]
