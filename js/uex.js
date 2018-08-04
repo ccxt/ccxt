@@ -51,7 +51,7 @@ module.exports = class bittrex extends Exchange {
                         'get_records', // ohlcvs
                         'get_ticker',
                         'get_trades',
-                        'market_dept',
+                        'market_dept', // dept is not a typo... they mean depth
                     ],
                 },
                 'private': {
@@ -247,69 +247,75 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (symbol),
-            'type': 'both',
+        let response = await this.publicGetMarketDept (this.extend ({
+            'symbol': this.marketId (symbol),
+            'type': 'step0', // step1, step2 from most detailed to least detailed
         }, params));
-        let orderbook = response['result'];
-        if ('type' in params) {
-            if (params['type'] === 'buy') {
-                orderbook = {
-                    'buy': response['result'],
-                    'sell': [],
-                };
-            } else if (params['type'] === 'sell') {
-                orderbook = {
-                    'buy': [],
-                    'sell': response['result'],
-                };
-            }
-        }
-        return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: { tick: { asks: [ ["0.05824200", 9.77],
+        //                               ["0.05830000", 7.81],
+        //                               ["0.05832900", 8.59],
+        //                               ["0.10000000", 0.001]  ],
+        //                       bids: [ ["0.05780000", 8.25],
+        //                               ["0.05775000", 8.12],
+        //                               ["0.05773200", 8.57],
+        //                               ["0.00010000", 0.79]   ],
+        //                       time:    1533412622463            } } }
+        //
+        return this.parseOrderBook (response['data']['tick'], response['data']['time']);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeString (ticker, 'TimeStamp');
-        let iso8601 = undefined;
-        if (typeof timestamp === 'string') {
-            if (timestamp.length > 0) {
-                timestamp = this.parse8601 (timestamp);
-                iso8601 = this.iso8601 (timestamp);
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: { symbol: "ETHBTC",
+        //                 high:  0.058426,
+        //                  vol:  19055.875,
+        //                 last:  0.058019,
+        //                  low:  0.055802,
+        //               change:  0.03437271,
+        //                  buy: "0.05780000",
+        //                 sell: "0.05824200",
+        //                 time:  1533413083184 } }
+        //
+        let timestamp = this.safeInteger (ticker, 'time');
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'symbol');
+            marketId = marketId.toLowerCase ();
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             }
         }
-        let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
-        let change = undefined;
-        let percentage = undefined;
-        if (typeof last !== 'undefined')
-            if (typeof previous !== 'undefined') {
-                change = last - previous;
-                if (previous > 0)
-                    percentage = (change / previous) * 100;
-            }
+        }
+        let last = this.safeFloat (ticker, 'last');
+        let change = this.safeFloat (ticker, 'change');
+        let percentage = change * 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
+            'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': previous,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -338,11 +344,23 @@ module.exports = class bittrex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketsummary (this.extend ({
-            'market': market['id'],
+        let response = await this.publicGetGetTicker (this.extend ({
+            'symbol': market['id'],
         }, params));
-        let ticker = response['result'][0];
-        return this.parseTicker (ticker, market);
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: { symbol: "ETHBTC",
+        //                 high:  0.058426,
+        //                  vol:  19055.875,
+        //                 last:  0.058019,
+        //                  low:  0.055802,
+        //               change:  0.03437271,
+        //                  buy: "0.05780000",
+        //                 sell: "0.05824200",
+        //                 time:  1533413083184 } }
+        //
+        return this.parseTicker (response['data'], market);
     }
 
     parseTrade (trade, market = undefined) {
