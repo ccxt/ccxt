@@ -66,6 +66,10 @@ class lbank (Exchange):
                         'cancel_order',
                         'orders_info',
                         'orders_info_history',
+                        'withdraw',
+                        'withdrawCancel',
+                        'withdraws',
+                        'withdrawConfigs',
                     ],
                 },
             },
@@ -435,6 +439,24 @@ class lbank (Exchange):
         cancelled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled
         return closed + cancelled
 
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        # mark and fee are optional params, mark is a note and must be less than 255 characters
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'assetCode': currency['id'],
+            'amount': amount,
+            'account': address,
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = self.privatePostWithdraw(self.extend(request, params))
+        return {
+            'id': response['id'],
+            'info': response,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -481,6 +503,7 @@ class lbank (Exchange):
                 '10018': 'order inquiry can not be more than 50 less than one',
                 '10019': 'withdrawal orders can not be more than 3 less than one',
                 '10020': 'less than the minimum amount of the transaction limit of 0.001',
+                '10022': 'Insufficient key authority',
             }, errorCode, self.json(response))
             ErrorClass = self.safe_value({
                 '10002': AuthenticationError,
@@ -496,6 +519,7 @@ class lbank (Exchange):
                 '10014': InvalidOrder,
                 '10015': InvalidOrder,
                 '10016': InvalidOrder,
+                '10022': AuthenticationError,
             }, errorCode, ExchangeError)
             raise ErrorClass(message)
         return response
