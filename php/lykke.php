@@ -163,7 +163,6 @@ class lykke extends Exchange {
                 'quote' => $quote,
                 'active' => true,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

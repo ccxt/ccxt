@@ -144,7 +144,6 @@ class ice3x (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'lot': None,
                 'info': market,
             })
         return result

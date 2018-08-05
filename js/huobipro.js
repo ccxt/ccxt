@@ -192,7 +192,6 @@ module.exports = class huobipro extends Exchange {
                 'amount': market['amount-precision'],
                 'price': market['price-precision'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             let maker = (base === 'OMG') ? 0 : 0.2 / 100;
             let taker = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
@@ -202,14 +201,13 @@ module.exports = class huobipro extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {

@@ -191,7 +191,6 @@ module.exports = class okcoinusd extends Exchange {
                 'amount': markets[i]['maxSizeDigit'],
                 'price': markets[i]['maxPriceDigit'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             let minAmount = markets[i]['minTradeSize'];
             let minPrice = Math.pow (10, -precision['price']);
             let active = (markets[i]['online'] !== 0);
@@ -210,7 +209,6 @@ module.exports = class okcoinusd extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'future': false,
-                'lot': lot,
                 'active': active,
                 'precision': precision,
                 'limits': {

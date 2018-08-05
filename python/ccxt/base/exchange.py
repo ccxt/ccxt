@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.74'
+__version__ = '1.17.81'
 
 # -----------------------------------------------------------------------------
 
@@ -923,10 +923,6 @@ class Exchange(object):
 
     def amount_to_string(self, symbol, amount):
         return self.truncate_to_string(amount, self.markets[symbol]['precision']['amount'])
-
-    def amount_to_lots(self, symbol, amount):
-        lot = self.markets[symbol]['lot']
-        return self.amount_to_precision(symbol, math.floor(amount / lot) * lot)
 
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))

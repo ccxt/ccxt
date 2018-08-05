@@ -321,8 +321,6 @@ class binance extends Exchange {
                 'price' => $market['quotePrecision'],
             );
             $active = ($market['status'] === 'TRADING');
-            // $lot size is deprecated as of 2018.02.06
-            $lot = -1 * log10 ($precision['amount']);
             $entry = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -331,7 +329,6 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'lot' => $lot, // $lot size is deprecated as of 2018.02.06
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -344,7 +341,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array (
-                        'min' => $lot,
+                        'min' => -1 * log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),
@@ -360,7 +357,6 @@ class binance extends Exchange {
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = $this->safe_float($filter, 'stepSize'); // $lot size is deprecated as of 2018.02.06
                 $entry['limits']['amount'] = array (
                     'min' => $this->safe_float($filter, 'minQty'),
                     'max' => $this->safe_float($filter, 'maxQty'),
@@ -915,7 +911,7 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
-                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
         }

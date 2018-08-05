@@ -1126,11 +1126,6 @@ module.exports = class Exchange {
         return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
     }
 
-    amountToLots (symbol, amount) {
-        const lot = this.markets[symbol].lot
-        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
-    }
-
     feeToPrecision (symbol, fee) {
         return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
     }

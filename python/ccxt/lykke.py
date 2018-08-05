@@ -157,7 +157,6 @@ class lykke (Exchange):
                 'quote': quote,
                 'active': True,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {

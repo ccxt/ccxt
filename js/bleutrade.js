@@ -129,7 +129,6 @@ module.exports = class bleutrade extends bittrex {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {

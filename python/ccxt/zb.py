@@ -100,6 +100,7 @@ class zb (Exchange):
                     'get': [
                         'markets',
                         'ticker',
+                        'allTicker',
                         'depth',
                         'trades',
                         'kline',
@@ -194,7 +195,6 @@ class zb (Exchange):
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -202,12 +202,11 @@ class zb (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
@@ -284,6 +283,21 @@ class zb (Exchange):
         orderbook = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetAllTicker(params)
+        result = {}
+        anotherMarketsById = {}
+        marketIds = list(self.marketsById.keys())
+        for i in range(0, len(marketIds)):
+            tickerId = marketIds[i].replace('_', '')
+            anotherMarketsById[tickerId] = self.marketsById[marketIds[i]]
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            market = anotherMarketsById[ids[i]]
+            result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
+        return result
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -292,7 +306,13 @@ class zb (Exchange):
         request[marketFieldName] = market['id']
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market != 'None':
+            symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

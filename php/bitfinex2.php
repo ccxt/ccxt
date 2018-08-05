@@ -215,7 +215,6 @@ class bitfinex2 extends bitfinex {
                 'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
-                'lot' => pow (10, -$precision['amount']),
                 'info' => $market,
             );
         }

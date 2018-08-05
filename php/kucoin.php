@@ -416,7 +416,6 @@ class kucoin extends Exchange {
                 'taker' => $this->safe_float($market, 'feeRate'),
                 'maker' => $this->safe_float($market, 'feeRate'),
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

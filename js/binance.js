@@ -320,8 +320,6 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
-            // lot size is deprecated as of 2018.02.06
-            let lot = -1 * Math.log10 (precision['amount']);
             let entry = {
                 'id': id,
                 'symbol': symbol,
@@ -330,7 +328,6 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -343,7 +340,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': lot,
+                        'min': -1 * Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
@@ -359,7 +356,6 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = this.safeFloat (filter, 'stepSize'); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
@@ -914,7 +910,7 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
         }

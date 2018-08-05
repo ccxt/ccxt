@@ -214,7 +214,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'active': true,
                 'precision': precision,
                 'limits': limits,
-                'lot': Math.pow (10, -precision['amount']),
                 'info': market,
             });
         }
