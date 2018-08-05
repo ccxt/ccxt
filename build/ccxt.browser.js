@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.80'
+const version = '1.17.81'
 
 Exchange.ccxtVersion = version
 
@@ -42730,15 +42730,15 @@ module.exports = class luno extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByState (undefined, symbol, since, limit, params);
+        return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
+        return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
+        return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
 
     parseTicker (ticker, market = undefined) {

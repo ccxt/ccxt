@@ -191,13 +191,13 @@ class luno (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_state(None, symbol, since, limit, params)
+        return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
+        return await self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
+        return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
