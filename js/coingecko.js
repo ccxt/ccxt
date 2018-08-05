@@ -54,9 +54,15 @@ module.exports = class coingecko extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'coins/',
+                        'ping',
+                        'coins',
                         'coins/list',
                         'coins/markets',
+                        'coins/{id}',
+                        'coins/{id}/history',
+                        'coins/{id}/market_chart',
+                        'exchange_rates',
+                        'global',
                     ],
                 },
             },
