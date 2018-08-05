@@ -4,6 +4,11 @@ import asyncio
 import ccxt
 import ccxt.async_support as ccxta  # noqa: E402
 import time
+import os
+import sys
+
+root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(root + '/python')
 
 
 def sync_client(exchange):
@@ -32,10 +37,10 @@ if __name__ == '__main__':
 
     tic = time.time()
     a = asyncio.get_event_loop().run_until_complete(multi_tickers(exchanges))
-    print("async call spend:", time.time()-tic)
+    print("async call spend:", time.time() - tic)
 
     time.sleep(1)
 
     tic = time.time()
     a = [sync_client(exchange) for exchange in exchanges]
-    print("sync call spend:", time.time()-tic)
+    print("sync call spend:", time.time() - tic)
