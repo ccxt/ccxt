@@ -216,7 +216,7 @@ module.exports = class coingecko extends Exchange {
             'change': parseFloat (market['price_change_24h']),
             'percentage': parseFloat (market['price_change_percentage_24h']),
             'baseVolume': undefined,
-            'quoteVolume': market['total_volume']
+            'quoteVolume': market['total_volume'],
         };
     }
 
