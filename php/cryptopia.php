@@ -172,7 +172,6 @@ class cryptopia extends Exchange {
                 'info' => $market,
                 'maker' => $market['TradeFee'] / 100,
                 'taker' => $market['TradeFee'] / 100,
-                'lot' => $limits['amount']['min'],
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,

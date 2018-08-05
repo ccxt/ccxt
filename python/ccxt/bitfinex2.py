@@ -216,7 +216,6 @@ class bitfinex2 (bitfinex):
                 'active': True,
                 'precision': precision,
                 'limits': limits,
-                'lot': math.pow(10, -precision['amount']),
                 'info': market,
             })
         return result
