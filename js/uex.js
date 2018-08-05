@@ -86,14 +86,14 @@ module.exports = class bittrex extends Exchange {
                 // descriptions from ↓ exchange
                 // '0': 'no error', // succeed
                 '4': InsufficientFunds, // {"code":"4","msg":"余额不足:0E-16","data":null}
-                '5': ExchangeError, // fail to order
-                '6': InvalidOrder, // the quantity value less than the minimum one
-                '7': InvalidOrder, // the quantity value more than the maximum one
-                '8': ExchangeError, // fail to cancel order
+                '5': InvalidOrder, // fail to order {"code":"5","msg":"Price fluctuates more than1000.0%","data":null}
+                '6': InvalidOrder, // the quantity value less than the minimum one {"code":"6","msg":"数量小于最小值:0.001","data":null}
+                '7': InvalidOrder, // the quantity value more than the maximum one {"code":"7","msg":"数量大于最大值:10000","data":null}
+                '8': InvalidOrder, // fail to cancel order
                 '9': ExchangeError, // transaction be frozen
                 '13': ExchangeError, // Sorry, the program made an error, please contact with the manager.
                 '19': InsufficientFunds, // Available balance is insufficient.
-                '22': OrderNotFound, // The order does not exist.
+                '22': OrderNotFound, // The order does not exist. {"code":"22","msg":"not exist order","data":null}
                 '23': InvalidOrder, // Lack of parameters of numbers of transaction
                 '24': InvalidOrder, // Lack of parameters of transaction price
                 '100001': ExchangeError, // System is abnormal
@@ -348,7 +348,7 @@ module.exports = class bittrex extends Exchange {
         //              id:  406531,
         //            type: "sell"          },
         //
-        // private fetchMyTrades
+        // private fetchMyTrades, fetchOpenOrders
         //
         //     {     volume: "1.000",
         //             side: "BUY",
@@ -466,19 +466,6 @@ module.exports = class bittrex extends Exchange {
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.marketGetOpenorders (this.extend (request, params));
-        let orders = this.parseOrders (response['result'], market, since, limit);
-        return this.filterBySymbol (orders, symbol);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
@@ -496,11 +483,12 @@ module.exports = class bittrex extends Exchange {
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? '1' : '2';
         let orderSide = side.toUpperCase ();
+        let amountToPrecision = this.amountToPrecision (symbol, amount);
         let request = {
             'side': orderSide,
             'type': orderType,
             'symbol': market['id'],
-            'volume': this.amountToPrecision (symbol, amount),
+            'volume': amountToPrecision,
             // An excerpt from their docs:
             // side required Trading Direction
             // type required pending order types，1:Limit-price Delegation 2:Market- price Delegation
@@ -515,29 +503,28 @@ module.exports = class bittrex extends Exchange {
             //     this parameter represents whether to use them to pay
             //     fees or not and 0 is no, 1 is yes.
         };
+        let priceToPrecision = undefined;
         if (type === 'limit') {
-            request['price'] = this.priceToPrecision (symbol, price);
+            priceToPrecision = this.priceToPrecision (symbol, price);
+            request['price'] = priceToPrecision;
+            priceToPrecision = parseFloat (priceToPrecision);
         }
-        //
-        // Fields Examples Explanations
-        // code 0
-        // msg "suc" code>0 failed
-        // data {"order_id":34343} succeed to return transaction ID
-        //
         let response = await this.privatePostCreateOrder (this.extend (request, params));
-        const log = require ('ololog');
-        log.unlimited (response);
-        process.exit ();
-        return this.parseOrder (response['data'], market);
-        // let result = {
-        //     'info': response,
-        //     'id': response['result'][orderIdField],
-        //     'symbol': symbol,
-        //     'type': type,
-        //     'side': side,
-        //     'status': 'open',
-        // };
-        // return result;
+        //
+        //     { code: '0',
+        //        msg: 'suc',
+        //       data: { 'order_id' : 34343 } }
+        //
+        let result = this.parseOrder (response['data'], market);
+        return this.extend (result, {
+            'info': response,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'status': 'open',
+            'price': priceToPrecision,
+            'amount': parseFloat (amountToPrecision),
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -575,50 +562,72 @@ module.exports = class bittrex extends Exchange {
         //
         //     {"order_id":34343}
         //
-        let side = this.safeString (order, 'OrderType');
-        if (typeof side === 'undefined')
-            side = this.safeString (order, 'Type');
-        let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
-        let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
-        if (isBuyOrder) {
-            side = 'buy';
-        }
-        if (isSellOrder) {
-            side = 'sell';
-        }
-        // We parse different fields in a very specific order.
-        // Order might well be closed and then canceled.
+        // fetchOpenOrders
+        //
+        //     {          side:   "BUY",
+        //         total_price:   "0.10000000",
+        //          created_at:    1510993841000,
+        //           avg_price:   "0.10000000",
+        //           countCoin:   "btc",
+        //              source:    1,
+        //                type:    1,
+        //            side_msg:   "买入",
+        //              volume:   "1.000",
+        //               price:   "0.10000000",
+        //          source_msg:   "WEB",
+        //          status_msg:   "完全成交",
+        //         deal_volume:   "1.00000000",
+        //                  id:    424,
+        //       remain_volume:   "0.00000000",
+        //            baseCoin:   "eth",
+        //           tradeList: [ {     volume: "1.000",
+        //                             feeCoin: "YLB",
+        //                               price: "0.10000000",
+        //                                 fee: "0.16431104",
+        //                               ctime:  1510996571195,
+        //                          deal_price: "0.10000000",
+        //                                  id:  306,
+        //                                type: "买入"            } ],
+        //              status:    2                                 }
+        //
+        let side = this.safeString (order, 'side');
+        if (typeof side !== 'undefined')
+            side = side.toLowerCase ();
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let baseId = this.safeString (order, 'baseCoin');
+            let quoteId = this.safeString (order, 'countCoin');
+            let marketId = baseId + quoteId;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                let base = baseId.toUpperCase ();
+                let quote = quoteId.toUpperCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                symbol = base + '/' + quote;
+            }
+        }
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let timestamp = undefined;
-        if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
-        if ('Created' in order)
-            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        let timestamp = this.safeInteger (order, 'created_at');
         let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-        if (('Closed' in order) && (typeof order['Closed'] !== 'undefined'))
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-        if (typeof timestamp === 'undefined')
-            timestamp = lastTradeTimestamp;
-        let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
         let fee = undefined;
-        let price = this.safeFloat (order, 'Limit');
-        let cost = this.safeFloat (order, 'Price');
-        let amount = this.safeFloat (order, 'Quantity');
-        let remaining = this.safeFloat (order, 'QuantityRemaining');
-        let filled = undefined;
-        let average = this.safeFloat (order, 'PricePerUnit');
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'volume');
+        let filled = this.safeFloat (order, 'deal_volume');
+        let remaining = this.safeFloat (order, 'remain_volume');
+        let cost = this.safeFloat (order, 'total_price');
+        let average = this.safeFloat (order, 'avg_price');
         let id = this.safeString2 (order, 'id', 'order_id');
+        let trades = undefined;
         let result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
@@ -631,8 +640,83 @@ module.exports = class bittrex extends Exchange {
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': trades,
         };
         return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            // pageSize optional page size
+            // page optional page number
+            'symbol': market['id'],
+        };
+        if (typeof limit !== 'undefined') {
+            request['pageSize'] = limit;
+        }
+        let response = await this.privateGetNewOrder (this.extend (request, params));
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: {      count:    0,
+        //               resultList: [ {          side:   "BUY",
+        //                                 total_price:   "0.10000000",
+        //                                  created_at:    1510993841000,
+        //                                   avg_price:   "0.10000000",
+        //                                   countCoin:   "btc",
+        //                                      source:    1,
+        //                                        type:    1,
+        //                                    side_msg:   "买入",
+        //                                      volume:   "1.000",
+        //                                       price:   "0.10000000",
+        //                                  source_msg:   "WEB",
+        //                                  status_msg:   "完全成交",
+        //                                 deal_volume:   "1.00000000",
+        //                                          id:    424,
+        //                               remain_volume:   "0.00000000",
+        //                                    baseCoin:   "eth",
+        //                                   tradeList: [ {     volume: "1.000",
+        //                                                     feeCoin: "YLB",
+        //                                                       price: "0.10000000",
+        //                                                         fee: "0.16431104",
+        //                                                       ctime:  1510996571195,
+        //                                                  deal_price: "0.10000000",
+        //                                                          id:  306,
+        //                                                        type: "买入"            } ],
+        //                                      status:    2                                 },
+        //                             {          side:   "SELL",
+        //                                 total_price:   "0.09900000",
+        //                                  created_at:    1510993715000,
+        //                                   avg_price:   "0.10000000",
+        //                                   countCoin:   "btc",
+        //                                      source:    1,
+        //                                        type:    1,
+        //                                    side_msg:   "卖出",
+        //                                      volume:   "1.000",
+        //                                       price:   "0.09900000",
+        //                                  source_msg:   "WEB",
+        //                                  status_msg:   "完全成交",
+        //                                 deal_volume:   "1.00000000",
+        //                                          id:    423,
+        //                               remain_volume:   "0.00000000",
+        //                                    baseCoin:   "eth",
+        //                                   tradeList: [ {     volume: "1.000",
+        //                                                     feeCoin: "YLB",
+        //                                                       price: "0.10000000",
+        //                                                         fee: "0.16597075",
+        //                                                       ctime:  1510993723973,
+        //                                                  deal_price: "0.10000000",
+        //                                                          id:  261,
+        //                                                        type: "卖出"            } ],
+        //                                      status:    2                                 }  ] } }
+        //
+        let trades = this.safeValue (response['data'], 'resultList', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
