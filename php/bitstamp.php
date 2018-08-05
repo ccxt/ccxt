@@ -168,7 +168,6 @@ class bitstamp extends Exchange {
             $cost = $parts[0];
             // list ($cost, $currency) = explode (' ', $market['minimum_order']);
             $active = ($market['trading'] === 'Enabled');
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -178,12 +177,11 @@ class bitstamp extends Exchange {
                 'quoteId' => $quoteId,
                 'symbolId' => $symbolId,
                 'info' => $market,
-                'lot' => $lot,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (

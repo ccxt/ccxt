@@ -115,14 +115,12 @@ class bitso extends Exchange {
                 'amount' => $this->precision_from_string($market['minimum_amount']),
                 'price' => $this->precision_from_string($market['minimum_price']),
             );
-            $lot = $limits['amount']['min'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'lot' => $lot,
                 'limits' => $limits,
                 'precision' => $precision,
             );

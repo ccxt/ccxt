@@ -180,7 +180,6 @@ class zb extends Exchange {
                 'amount' => $market['amountScale'],
                 'price' => $market['priceScale'],
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -188,12 +187,11 @@ class zb extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
-                'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (

@@ -125,14 +125,12 @@ class bitso (Exchange):
                 'amount': self.precision_from_string(market['minimum_amount']),
                 'price': self.precision_from_string(market['minimum_price']),
             }
-            lot = limits['amount']['min']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'lot': lot,
                 'limits': limits,
                 'precision': precision,
             })

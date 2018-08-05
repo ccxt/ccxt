@@ -420,7 +420,6 @@ class kucoin (Exchange):
                 'taker': self.safe_float(market, 'feeRate'),
                 'maker': self.safe_float(market, 'feeRate'),
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {

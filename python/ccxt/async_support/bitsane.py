@@ -159,7 +159,6 @@ class bitsane (Exchange):
                 'amount': int(market['precision']),
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -168,7 +167,6 @@ class bitsane (Exchange):
                 'baseId': market['base'],
                 'quoteId': market['quote'],
                 'active': True,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
