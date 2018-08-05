@@ -85,6 +85,7 @@ module.exports = class bittrex extends Exchange {
             'exceptions': {
                 // descriptions from ↓ exchange
                 // '0': 'no error', // succeed
+                '4': InsufficientFunds, // {"code":"4","msg":"余额不足:0E-16","data":null}
                 '5': ExchangeError, // fail to order
                 '6': InvalidOrder, // the quantity value less than the minimum one
                 '7': InvalidOrder, // the quantity value more than the maximum one
@@ -121,7 +122,7 @@ module.exports = class bittrex extends Exchange {
                 'phoneNumber': true,
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': false,
+                'createMarketBuyOrderRequiresPrice': true,
             },
         });
     }
@@ -524,6 +525,9 @@ module.exports = class bittrex extends Exchange {
         // data {"order_id":34343} succeed to return transaction ID
         //
         let response = await this.privatePostCreateOrder (this.extend (request, params));
+        const log = require ('ololog');
+        log.unlimited (response);
+        process.exit ();
         return this.parseOrder (response['data'], market);
         // let result = {
         //     'info': response,
