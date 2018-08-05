@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.74'
+const version = '1.17.77'
 
 Exchange.ccxtVersion = version
 
@@ -23546,7 +23546,7 @@ module.exports = class coinmarketcap extends Exchange {
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
             'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
             'Maggie': 'Maggie',
-            'MIOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
@@ -52443,6 +52443,7 @@ module.exports = class zb extends Exchange {
                     'get': [
                         'markets',
                         'ticker',
+                        'allTicker',
                         'depth',
                         'trades',
                         'kline',
@@ -52636,6 +52637,24 @@ module.exports = class zb extends Exchange {
         return this.parseOrderBook (orderbook);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.publicGetAllTicker (params);
+        let result = {};
+        let anotherMarketsById = {};
+        let marketIds = Object.keys (this.marketsById);
+        for (let i = 0; i < marketIds.length; i++) {
+            let tickerId = marketIds[i].replace ('_', '');
+            anotherMarketsById[tickerId] = this.marketsById[marketIds[i]];
+        }
+        let ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            let market = anotherMarketsById[ids[i]];
+            result[market['symbol']] = this.parseTicker (response[ids[i]], market);
+        }
+        return result;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -52644,7 +52663,15 @@ module.exports = class zb extends Exchange {
         request[marketFieldName] = market['id'];
         let response = await this.publicGetTicker (this.extend (request, params));
         let ticker = response['ticker'];
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
