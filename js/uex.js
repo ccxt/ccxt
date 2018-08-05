@@ -81,50 +81,37 @@ module.exports = class bittrex extends Exchange {
                     'maker': 0.0025,
                     'taker': 0.0025,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.002,
-                        'POT': 0.002,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'VTC': 0,
-                        'PPC': 0,
-                        'FTC': 0,
-                        'RDD': 0,
-                        'NXT': 0,
-                        'DASH': 0,
-                        'POT': 0,
-                    },
-                },
             },
             'exceptions': {
-                // // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
-                // // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
-                // 'APISIGN_NOT_PROVIDED': AuthenticationError,
-                // 'INVALID_SIGNATURE': AuthenticationError,
-                // 'INVALID_CURRENCY': ExchangeError,
-                // 'INVALID_PERMISSION': AuthenticationError,
-                // 'INSUFFICIENT_FUNDS': InsufficientFunds,
-                // 'QUANTITY_NOT_PROVIDED': InvalidOrder,
-                // 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                // 'ORDER_NOT_OPEN': OrderNotFound,
-                // 'INVALID_ORDER': InvalidOrder,
-                // 'UUID_INVALID': OrderNotFound,
-                // 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
-                // 'WHITELIST_VIOLATION_IP': PermissionDenied,
+                // descriptions from ↓ exchange
+                // '0': 'no error', // succeed
+                '5': ExchangeError, // fail to order
+                '6': InvalidOrder, // the quantity value less than the minimum one
+                '7': InvalidOrder, // the quantity value more than the maximum one
+                '8': ExchangeError, // fail to cancel order
+                '9': ExchangeError, // transaction be frozen
+                '13': ExchangeError, // Sorry, the program made an error, please contact with the manager.
+                '19': InsufficientFunds, // Available balance is insufficient.
+                '22': OrderNotFound, // The order does not exist.
+                '23': InvalidOrder, // Lack of parameters of numbers of transaction
+                '24': InvalidOrder, // Lack of parameters of transaction price
+                '100001': ExchangeError, // System is abnormal
+                '100002': ExchangeNotAvailable, // Update System
+                '100004': ExchangeError, // {"code":"100004","msg":"request parameter illegal","data":null}
+                '100005': AuthenticationError, // {"code":"100005","msg":"request sign illegal","data":null}
+                '100007': PermissionDenied, // illegal IP
+                '110002': ExchangeError, // unknown currency code
+                '110003': AuthenticationError, // fund password error
+                '110004': AuthenticationError, // fund password error
+                '110005': InsufficientFunds, // Available balance is insufficient.
+                '110020': AuthenticationError, // Username does not exist.
+                '110023': AuthenticationError, // Phone number is registered.
+                '110024': AuthenticationError, // Email box is registered.
+                '110025': PermissionDenied, // Account is locked by background manager
+                '110032': PermissionDenied, // The user has no authority to do this operation.
+                '110033': ExchangeError, // fail to recharge
+                '110034': ExchangeError, // fail to withdraw
+                '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -132,6 +119,9 @@ module.exports = class bittrex extends Exchange {
                 'password': true,
                 'countryCode': true,
                 'phoneNumber': true,
+            },
+            'options': {
+                'createMarketBuyOrderRequiresPrice': false,
             },
         });
     }
@@ -489,29 +479,61 @@ module.exports = class bittrex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit')
-            throw new ExchangeError (this.id + ' allows limit orders only');
+        if (type === 'market') {
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (typeof price === 'undefined') {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+            }
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'marketGet' + this.capitalize (side) + type;
-        let order = {
-            'market': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
+        let orderType = (type === 'limit') ? '1' : '2';
+        let orderSide = side.toUpperCase ();
+        let request = {
+            'side': orderSide,
+            'type': orderType,
+            'symbol': market['id'],
+            'volume': this.amountToPrecision (symbol, amount),
+            // An excerpt from their docs:
+            // side required Trading Direction
+            // type required pending order types，1:Limit-price Delegation 2:Market- price Delegation
+            // volume required
+            //     Purchase Quantity（polysemy，multiplex field）
+            //     type=1: Quantity of buying and selling
+            //     type=2: Buying represents gross price, and selling represents total number
+            //     Trading restriction user/me-user information
+            // price optional Delegation Price：type=2：this parameter is no use.
+            // fee_is_user_exchange_coin optional
+            //     0，when making transactions with all platform currencies,
+            //     this parameter represents whether to use them to pay
+            //     fees or not and 0 is no, 1 is yes.
         };
-        // if (type == 'limit')
-        //     order['rate'] = this.priceToPrecision (symbol, price);
-        let response = await this[method] (this.extend (order, params));
-        let orderIdField = this.getOrderIdField ();
-        let result = {
-            'info': response,
-            'id': response['result'][orderIdField],
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'status': 'open',
-        };
-        return result;
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        //
+        // Fields Examples Explanations
+        // code 0
+        // msg "suc" code>0 failed
+        // data {"order_id":34343} succeed to return transaction ID
+        //
+        let response = await this.privatePostCreateOrder (this.extend (request, params));
+        return this.parseOrder (response['data'], market);
+        // let result = {
+        //     'info': response,
+        //     'id': response['result'][orderIdField],
+        //     'symbol': symbol,
+        //     'type': type,
+        //     'side': side,
+        //     'status': 'open',
+        // };
+        // return result;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -521,13 +543,34 @@ module.exports = class bittrex extends Exchange {
             'order_id': id,
             'symbol': market['id'],
         };
-        let response = await this.pivatePostCancelOrder (this.extend (request, params));
+        let response = await this.privatePostCancelOrder (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open', // INIT(0,"primary order，untraded and not enter the market"),
+            '1': 'open', // NEW_(1,"new order，untraded and enter the market "),
+            '2': 'closed', // FILLED(2,"complete deal"),
+            '3': 'open', // PART_FILLED(3,"partial deal"),
+            '4': 'canceled', // CANCELED(4,"already withdrawn"),
+            '5': 'canceled', // PENDING_CANCEL(5,"pending withdrawak"),
+            '6': 'canceled', // EXPIRED(6,"abnormal orders");
+        };
+        if (status in statuses) {
+            return statuses[status];
+        }
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {"order_id":34343}
+        //
         let side = this.safeString (order, 'OrderType');
         if (typeof side === 'undefined')
             side = this.safeString (order, 'Type');
@@ -541,28 +584,10 @@ module.exports = class bittrex extends Exchange {
         }
         // We parse different fields in a very specific order.
         // Order might well be closed and then canceled.
-        let status = undefined;
-        if (('Opened' in order) && order['Opened'])
-            status = 'open';
-        if (('Closed' in order) && order['Closed'])
-            status = 'closed';
-        if (('CancelInitiated' in order) && order['CancelInitiated'])
-            status = 'canceled';
-        if (('Status' in order) && this.options['parseOrderStatus'])
-            status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
-        if ('Exchange' in order) {
-            let marketId = order['Exchange'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
-        } else {
-            if (typeof market !== 'undefined') {
-                symbol = market['symbol'];
-            }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
         }
         let timestamp = undefined;
         if ('Opened' in order)
@@ -578,47 +603,13 @@ module.exports = class bittrex extends Exchange {
             timestamp = lastTradeTimestamp;
         let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
         let fee = undefined;
-        let commission = undefined;
-        if ('Commission' in order) {
-            commission = 'Commission';
-        } else if ('CommissionPaid' in order) {
-            commission = 'CommissionPaid';
-        }
-        if (commission) {
-            fee = {
-                'cost': parseFloat (order[commission]),
-            };
-            if (typeof market !== 'undefined') {
-                fee['currency'] = market['quote'];
-            } else if (typeof symbol !== 'undefined') {
-                let currencyIds = symbol.split ('/');
-                let quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id)
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                else
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-            }
-        }
         let price = this.safeFloat (order, 'Limit');
         let cost = this.safeFloat (order, 'Price');
         let amount = this.safeFloat (order, 'Quantity');
         let remaining = this.safeFloat (order, 'QuantityRemaining');
         let filled = undefined;
-        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
-            filled = amount - remaining;
-        }
-        if (!cost) {
-            if (price && filled)
-                cost = price * filled;
-        }
-        if (!price) {
-            if (cost && filled)
-                price = cost / filled;
-        }
         let average = this.safeFloat (order, 'PricePerUnit');
-        let id = this.safeString (order, 'OrderUuid');
-        if (typeof id === 'undefined')
-            id = this.safeString (order, 'OrderId');
+        let id = this.safeString2 (order, 'id', 'order_id');
         let result = {
             'info': order,
             'id': id,
@@ -778,9 +769,11 @@ module.exports = class bittrex extends Exchange {
             }
             let signature = this.hash (this.encode (auth + this.secret));
             if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query) + '&sign=' + signature;
-            } else {
-                url += '?sign=' + signature;
+                if (method === 'GET') {
+                    url += '?' + this.urlencode (query) + '&sign=' + signature;
+                } else {
+                    body = this.urlencode (query) + '&sign=' + signature;
+                }
             }
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
