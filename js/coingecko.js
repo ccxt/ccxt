@@ -124,8 +124,8 @@ module.exports = class coingecko extends Exchange {
             let vsCurrencies = this.options['vsCurrencies'];
             for (let j = 0; j < vsCurrencies.length; j++) {
                 markets.push ({
-                    'id': `${coin['id']}/${vsCurrencies[j].toLowerCase ()}`,
-                    'symbol': `${coin['symbol'].toUpperCase ()}/${vsCurrencies[j]}`,
+                    'id': coin['id'] + '/' + vsCurrencies[j].toLowerCase (),
+                    'symbol': coin['symbol'].toUpperCase () + '/' + vsCurrencies[j],
                     'base': coin['symbol'].toUpperCase (),
                     'quote': vsCurrencies[j],
                     'baseId': coin['id'],
@@ -180,7 +180,7 @@ module.exports = class coingecko extends Exchange {
         const timestamp = this.milliseconds ();
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const symbol = `${market['symbol'].toUpperCase ()}/${currency}`;
+            const symbol = market['symbol'].toUpperCase () + '/' + currency;
             tickers[symbol] = this.parseTicker (market, symbol, timestamp);
         }
         return tickers;
