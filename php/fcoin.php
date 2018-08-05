@@ -94,7 +94,7 @@ class fcoin extends Exchange {
                 'amount' => array ( 'min' => 0.01, 'max' => 100000 ),
             ),
             'options' => array (
-                'createMarketBuyOrderRequiresPrice' => false,
+                'createMarketBuyOrderRequiresPrice' => true,
                 'limits' => array (
                     'BTM/USDT' => array ( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
                     'ETC/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
