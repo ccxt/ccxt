@@ -4,11 +4,6 @@ import asyncio
 import ccxt
 import ccxt.async_support as ccxta  # noqa: E402
 import time
-import os
-import sys
-
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(root + '/python')
 
 
 def sync_client(exchange):
