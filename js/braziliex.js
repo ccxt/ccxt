@@ -149,7 +149,6 @@ module.exports = class braziliex extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol.toUpperCase (),
@@ -158,11 +157,10 @@ module.exports = class braziliex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {

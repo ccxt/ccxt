@@ -179,7 +179,6 @@ module.exports = class zb extends Exchange {
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -187,12 +186,11 @@ module.exports = class zb extends Exchange {
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {

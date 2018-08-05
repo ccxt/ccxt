@@ -174,7 +174,6 @@ module.exports = class coinegg extends Exchange {
                     'amount': 8,
                     'price': 8,
                 };
-                let lot = Math.pow (10, -precision['amount']);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -183,11 +182,10 @@ module.exports = class coinegg extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': true,
-                    'lot': lot,
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': lot,
+                            'min': Math.pow (10, -precision['amount']),
                             'max': Math.pow (10, precision['amount']),
                         },
                         'price': {

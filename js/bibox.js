@@ -128,7 +128,6 @@ module.exports = class bibox extends Exchange {
                 'quoteId': quote,
                 'active': true,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
