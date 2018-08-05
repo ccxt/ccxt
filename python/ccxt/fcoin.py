@@ -112,7 +112,7 @@ class fcoin (Exchange):
                 'amount': {'min': 0.01, 'max': 100000},
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': False,
+                'createMarketBuyOrderRequiresPrice': True,
                 'limits': {
                     'BTM/USDT': {'amount': {'min': 0.1, 'max': 10000000}},
                     'ETC/USDT': {'amount': {'min': 0.001, 'max': 400000}},
