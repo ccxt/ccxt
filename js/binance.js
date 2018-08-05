@@ -340,7 +340,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']);,
+                        'min': -1 * Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
