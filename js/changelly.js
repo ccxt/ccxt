@@ -37,10 +37,12 @@ module.exports = class changelly extends Exchange {
             'api': {
                 'public': {
                     'post': [
+                        'createTransaction',
                         'getCurrencies',
                         'getCurrenciesFull',
                         'getExchangeAmount',
                         'getMinAmount',
+                        'getStatus',
                     ],
                 },
             },
@@ -85,25 +87,40 @@ module.exports = class changelly extends Exchange {
         };
     }
 
-    // async startInstantTransaction (symbol, side, withdrawalAddress, affiliateAPIKey, params = {}) {
-    //     const [base, quote] = symbol.split ('/');
-    //     const pair = side === 'buy' ?
-    //         `${quote.toLowerCase ()}_${base.toLowerCase ()}` :
-    //         `${base.toLowerCase ()}_${quote.toLowerCase ()}`;
-    //     const request = {
-    //         'withdrawal': withdrawalAddress,
-    //         'pair': pair,
-    //         'returnAddress': withdrawalAddress,
-    //         'apiKey': affiliateAPIKey,
-    //     };
-    //     const response = await this.publicPostShift (this.extend (request, params));
-    //     if (response.error) throw new ExchangeError (response.error);
+    // TODO: fee is included
+    // calculateFee(symbol, type = undefined, side, amount = undefined, price = undefined, takerOrMaker = 'taker', params = {}) {
+    //     const quote = symbol.split('/')[1];
     //     return {
-    //         'transactionId': response.deposit,
-    //         'depositAddress': response.deposit,
-    //         'info': response,
+    //         'included': true,
+    //         'type': undefined,
+    //         'currency': quote,
+    //         'rate': 0.5,
+    //         'cost': undefined,
     //     };
     // }
+
+    async instantTransactionStatus(transactionId, params = {}) {
+        const out = await this.publicPostGetStatus({ 'id': transactionId });
+        return out.result;
+    }
+
+    async startInstantTransaction(input, output, amount = undefined, address, affiliateAPIKey, params = {}) {
+        const request = {
+            'from': input.toLowerCase(),
+            'to': output.toLowerCase(),
+            address,
+            amount,
+            'extraId': null,
+        };
+        const response = await this.publicPostCreateTransaction(request);
+        if (response.error) throw new Error(response.error.message);
+        const { result } = response;
+        return {
+            'transactionId': result.id,
+            'depositAddress': result.payinAddress,
+            'info': response,
+        };
+    }
 
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();

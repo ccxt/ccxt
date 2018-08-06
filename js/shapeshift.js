@@ -83,7 +83,7 @@ module.exports = class shapeshift extends Exchange {
         return this.publicGetTxStatAddress({ 'address': transactionId });
     }
 
-    async startInstantTransaction(input, output, withdrawalAddress, affiliateAPIKey, params = {}) {
+    async startInstantTransaction(input, output, amount = undefined, address, affiliateAPIKey, params = {}) {
         await this.loadMarkets();
         const marketFrom = `${input.toUpperCase()}/${output.toUpperCase()}`;
         const marketTo = `${output.toUpperCase()}/${input.toUpperCase()}`;
@@ -91,9 +91,9 @@ module.exports = class shapeshift extends Exchange {
             throw new ExchangeError(`Market ${input} to ${output} does not exist.`);
         const pair = `${input.toLowerCase()}_${output.toLowerCase()}`;
         const request = {
-            'withdrawal': withdrawalAddress,
+            'withdrawal': address,
             'pair': pair,
-            'returnAddress': withdrawalAddress,
+            'returnAddress': address,
             'apiKey': affiliateAPIKey,
         };
         const response = await this.publicPostShift(this.extend(request, params));
