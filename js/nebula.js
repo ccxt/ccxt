@@ -21,6 +21,8 @@ module.exports = class nebula extends Exchange {
                 'fetchOHLCV': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchCurrencies': true,
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrders': false,
@@ -66,6 +68,7 @@ module.exports = class nebula extends Exchange {
                         'orders/closed',
                         'orders/canceled',
                         'trades',
+                        'wallets',
                     ],
                     'post': [
                         'orders/new',
@@ -136,6 +139,79 @@ module.exports = class nebula extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let currencies = await this.publicGetCoins ();
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['code'];
+            let code = this.commonCurrencyCode (id);
+            let precision = 8;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'address': undefined,
+                'info': currency,
+                'type': undefined,
+                'name': currency['desc'],
+                'active': true,
+                'fee': 0.0,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': 0.0,
+                        'max': Math.pow (10, precision),
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = undefined;
+        let code = this.safeValue (params, 'code');
+        let request = {};
+        if (typeof code !== 'undefined')
+            request['endpoint'] = code;
+        let hideZero = this.safeValue (params, 'hideZero');
+        if (typeof hideZero !== 'undefined')
+            request['hideZero'] = hideZero;
+        response = await this.privateGetWallets (request);
+        if (typeof response === 'undefined')
+            throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
+        let result = { 'info': response };
+        let balances = response;
+        if (!Array.isArray (response))
+            balances = [response];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currency = balance['currency'];
+            if (currency in this.currencies_by_id)
+                currency = this.currencies_by_id[currency]['code'];
+            let account = {
+                'free': parseFloat (balance['availableAmount']),
+                'used': parseFloat (balance['used']),
+                'total': parseFloat (balance['amount']),
+            };
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
