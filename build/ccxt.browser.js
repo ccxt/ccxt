@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.82'
+const version = '1.17.83'
 
 Exchange.ccxtVersion = version
 
@@ -6079,6 +6079,7 @@ module.exports = class binance extends Exchange {
                 '-1021': InvalidNonce, // 'your time is ahead of server'
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -6373,7 +6374,16 @@ module.exports = class binance extends Exchange {
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = maximum = 500
+        // 'limit': 500,     // default = 500, maximum = 1000
+        //
+        // Caveats:
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
         let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
