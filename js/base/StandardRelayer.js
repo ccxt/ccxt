@@ -35,6 +35,7 @@ class StandardRelayer extends Exchange {
                 'fetchTrades': false,
                 'privateAPI': false,
                 'needsEthereumNodeEndpoint': true,
+                'is0xProtocol': true
             },
             'requiredCredentials': {
                 'ethereumNodeAddress': true,

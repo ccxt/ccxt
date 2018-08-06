@@ -3,8 +3,8 @@
 const StandardRelayer = require('../base/StandardRelayer');
 
 /**
- * This does not work as advertised. It uses the same routes as the Standard Relayer spec
- * but has renamed some of the field keys, rendering it useless.
+ * The API is currently in staging/qa mode. There is also an exchange specific api added in the ccxt repo.
+ *
  */
 
 module.exports = class theocean extends StandardRelayer {
