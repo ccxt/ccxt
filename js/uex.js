@@ -18,20 +18,17 @@ module.exports = class bittrex extends Exchange {
             'certified': true,
             // new metainfo interface
             'has': {
-                'CORS': true,
-                'createMarketOrder': false,
-                'fetchDepositAddress': true,
+                'CORS': false,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
-                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
                 '5m': '5',
-                '15m': '15m',
+                '15m': '15',
                 '30m': '30',
                 '1h': '60',
                 '2h': '120',
@@ -754,53 +751,6 @@ module.exports = class bittrex extends Exchange {
         if (typeof symbol !== 'undefined')
             return this.filterBySymbol (orders, symbol);
         return orders;
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.accountGetDepositaddress (this.extend ({
-            'currency': currency['id'],
-        }, params));
-        let address = this.safeString (response['result'], 'Address');
-        let message = this.safeString (response, 'message');
-        if (!address || message === 'ADDRESS_GENERATING')
-            throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        let tag = undefined;
-        if ((code === 'XRP') || (code === 'XLM')) {
-            tag = address;
-            address = currency['address'];
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
-    }
-
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
-            'currency': currency['id'],
-            'quantity': amount,
-            'address': address,
-        };
-        if (tag)
-            request['paymentid'] = tag;
-        let response = await this.accountGetWithdraw (this.extend (request, params));
-        let id = undefined;
-        if ('result' in response) {
-            if ('uuid' in response['result'])
-                id = response['result']['uuid'];
-        }
-        return {
-            'info': response,
-            'id': id,
-        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
