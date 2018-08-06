@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.81'
+const version = '1.17.82'
 
 Exchange.ccxtVersion = version
 
@@ -42671,7 +42671,7 @@ module.exports = class luno extends Exchange {
         let amount = this.safeFloat (order, 'limit_volume');
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
-        let filled = this.safeFloat (order, 'filled');
+        let filled = this.safeFloat (order, 'base');
         let remaining = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {

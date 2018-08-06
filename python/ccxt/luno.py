@@ -140,7 +140,7 @@ class luno (Exchange):
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
         baseFee = self.safe_float(order, 'fee_base')
-        filled = self.safe_float(order, 'filled')
+        filled = self.safe_float(order, 'base')
         remaining = None
         if amount is not None:
             if filled is not None:
