@@ -107,17 +107,18 @@ class luno extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalance ();
-        $balances = $response['balance'];
+        $wallets = $response['balance'];
         $result = array ( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $this->common_currency_code($balance['asset']);
-            $reserved = floatval ($balance['reserved']);
-            $unconfirmed = floatval ($balance['unconfirmed']);
+        for ($b = 0; $b < count ($wallets); $b++) {
+            $wallet = $wallets[$b];
+            $currency = $this->common_currency_code($wallet['asset']);
+            $reserved = floatval ($wallet['reserved']);
+            $unconfirmed = floatval ($wallet['unconfirmed']);
+            $balance = floatval ($wallet['balance']);
             $account = array (
                 'free' => 0.0,
                 'used' => $this->sum ($reserved, $unconfirmed),
-                'total' => floatval ($balance['balance']),
+                'total' => $this->sum ($balance, $unconfirmed),
             );
             $account['free'] = $account['total'] - $account['used'];
             $result[$currency] = $account;
