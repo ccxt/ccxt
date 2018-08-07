@@ -111,6 +111,7 @@ module.exports = class changelly extends Exchange {
             address,
             amount,
             'extraId': null,
+            'refundAddress': address,
         };
         const response = await this.publicPostCreateTransaction(request);
         if (response.error) throw new Error(response.error.message);
