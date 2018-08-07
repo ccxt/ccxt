@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ module.exports = class bittrex extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/43788872-4251c80c-9a77-11e8-8ab4-dca9723cd7be.jpg',
                 'api': 'https://open-api.uex.com/open/api',
                 'www': 'https://www.uex.com',
                 'doc': 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
@@ -343,26 +343,20 @@ module.exports = class bittrex extends Exchange {
         //              id:  406531,
         //            type: "sell"          },
         //
-        // private fetchMyTrades, fetchOpenOrders, fetchClosedOrders
+        // private fetchMyTrades, fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
-        //     {     volume: "1.000",
-        //             side: "BUY",
-        //          feeCoin: "YLB",
-        //            price: "0.10000000",
-        //              fee: "0.16431104",
-        //            ctime:  1510996571195,
-        //       deal_price: "0.10000000",
-        //               id:  306,
-        //             type: "Buy-in"        }
-        //
-        // private fetchOrder
-        //
-        //     {         id:  343,
-        //       created_at: "09-22 12:22",
-        //            price:  222.33,
-        //           volume:  222.33,
-        //       deal_price:  222.33,
-        //         deal_fee:  222.33        }
+        //   {     volume: "0.010",
+        //           side: "SELL",
+        //        feeCoin: "BTC",
+        //          price: "0.05816200",
+        //            fee: "0.00000029",
+        //          ctime:  1533616674000,
+        //     deal_price: "0.00058162",
+        //             id:  415779,
+        //           type: "卖出",
+        //         bid_id:  3669539, // only in fetchMyTrades
+        //         ask_id:  3669583, // only in fetchMyTrades
+        //   }
         //
         let timestamp = this.safeInteger2 (trade, 'create_time', 'ctime');
         if (typeof timestamp === 'undefined') {
@@ -381,7 +375,7 @@ module.exports = class bittrex extends Exchange {
             symbol = market['symbol'];
         }
         let price = this.safeFloat2 (trade, 'deal_price', 'price');
-        let amount = this.safeFloat (trade, 'volume', 'amount');
+        let amount = this.safeFloat2 (trade, 'volume', 'amount');
         let cost = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof price !== 'undefined') {
@@ -403,12 +397,15 @@ module.exports = class bittrex extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        let orderIdField = (side === 'sell') ? 'ask_id' : 'bid_id';
+        let orderId = this.safeString (trade, orderIdField);
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'price': price,
@@ -572,7 +569,7 @@ module.exports = class bittrex extends Exchange {
         //
         //     {"order_id":34343}
         //
-        // fetchOpenOrders, fetchClosedOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {          side:   "BUY",
         //         total_price:   "0.10000000",
@@ -602,38 +599,48 @@ module.exports = class bittrex extends Exchange {
         //
         // fetchOrder
         //
-        //     { order_info: {          id:  343,
-        //                            side: "sell",
-        //                        side_msg: "Sell-out",
-        //                      created_at: "09-22 12:22",
-        //                           price:  222.33,
-        //                          volume:  222.33,
-        //                     deal_volume:  222.33,
-        //                     total_price:  222.33,
-        //                             fee:  222.33,
-        //                       age_price:  222.33        },
-        //       trade_list: [ {         id:  343,
-        //                       created_at: "09-22 12:22",
-        //                            price:  222.33,
-        //                           volume:  222.33,
-        //                       deal_price:  222.33,
-        //                         deal_fee:  222.33        },
-        //                     {         id:  345,
-        //                       created_at: "09-22 12:22",
-        //                            price:  222.33,
-        //                           volume:  222.33,
-        //                       deal_price:  222.33,
-        //                         deal_fee:  222.33        }  ] }
+        //      { trade_list: [ {     volume: "0.010",
+        //                           feeCoin: "BTC",
+        //                             price: "0.05816200",
+        //                               fee: "0.00000029",
+        //                             ctime:  1533616674000,
+        //                        deal_price: "0.00058162",
+        //                                id:  415779,
+        //                              type: "卖出"            } ],
+        //        order_info: {          side:   "SELL",
+        //                        total_price:   "0.010",
+        //                         created_at:    1533616673000,
+        //                          avg_price:   "0.05816200",
+        //                          countCoin:   "btc",
+        //                             source:    3,
+        //                               type:    2,
+        //                           side_msg:   "卖出",
+        //                             volume:   "0.010",
+        //                              price:   "0.00000000",
+        //                         source_msg:   "API",
+        //                         status_msg:   "完全成交",
+        //                        deal_volume:   "0.01000000",
+        //                                 id:    3669583,
+        //                      remain_volume:   "0.00000000",
+        //                           baseCoin:   "eth",
+        //                          tradeList: [ {     volume: "0.010",
+        //                                            feeCoin: "BTC",
+        //                                              price: "0.05816200",
+        //                                                fee: "0.00000029",
+        //                                              ctime:  1533616674000,
+        //                                         deal_price: "0.00058162",
+        //                                                 id:  415779,
+        //                                               type: "卖出"            } ],
+        //                             status:    2                                 } }
         //
-        let orderInfo = this.safeValue (order, 'order_info', order);
-        let side = this.safeString (orderInfo, 'side');
+        let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
-        let status = this.parseOrderStatus (this.safeString (orderInfo, 'status'));
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            let baseId = this.safeString (orderInfo, 'baseCoin');
-            let quoteId = this.safeString (orderInfo, 'countCoin');
+            let baseId = this.safeString (order, 'baseCoin');
+            let quoteId = this.safeString (order, 'countCoin');
             let marketId = baseId + quoteId;
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -648,24 +655,27 @@ module.exports = class bittrex extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (orderInfo, 'created_at');
+        let timestamp = this.safeInteger (order, 'created_at');
         if (typeof timestamp === 'undefined') {
-            let timestring = this.safeString (orderInfo, 'created_at');
+            let timestring = this.safeString (order, 'created_at');
             if (typeof timestring !== 'undefined') {
                 timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
             }
         }
         let lastTradeTimestamp = undefined;
         let fee = undefined;
-        let price = this.safeFloat (orderInfo, 'price');
-        let amount = this.safeFloat (orderInfo, 'volume');
-        let filled = this.safeFloat (orderInfo, 'deal_volume');
-        let remaining = this.safeFloat (orderInfo, 'remain_volume');
-        let cost = this.safeFloat (orderInfo, 'total_price');
-        let average = this.safeFloat (orderInfo, 'avg_price');
-        let id = this.safeString2 (orderInfo, 'id', 'order_id');
+        let average = this.safeFloat (order, 'avg_price');
+        let price = this.safeFloat (order, 'price');
+        if (price === 0) {
+            price = average;
+        }
+        let amount = this.safeFloat (order, 'volume');
+        let filled = this.safeFloat (order, 'deal_volume');
+        let remaining = this.safeFloat (order, 'remain_volume');
+        let cost = this.safeFloat (order, 'total_price');
+        let id = this.safeString2 (order, 'id', 'order_id');
         let trades = undefined;
-        let tradeList = this.safeValue2 (order, 'tradeList', 'trade_list', []);
+        let tradeList = this.safeValue (order, 'tradeList', []);
         let feeCurrencies = {};
         let feeCost = undefined;
         for (let i = 0; i < tradeList.length; i++) {
@@ -680,7 +690,9 @@ module.exports = class bittrex extends Exchange {
                 trades = [];
             }
             lastTradeTimestamp = trade['timestamp'];
-            trades.push (trade);
+            trades.push (this.extend (trade, {
+                'order': id,
+            }));
         }
         if (typeof feeCost !== 'undefined') {
             let feeCurrency = undefined;
@@ -734,57 +746,32 @@ module.exports = class bittrex extends Exchange {
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: {      count:    0,
-        //               resultList: [ {          side:   "BUY",
-        //                                 total_price:   "0.10000000",
-        //                                  created_at:    1510993841000,
-        //                                   avg_price:   "0.10000000",
-        //                                   countCoin:   "btc",
-        //                                      source:    1,
-        //                                        type:    1,
-        //                                    side_msg:   "买入",
-        //                                      volume:   "1.000",
-        //                                       price:   "0.10000000",
-        //                                  source_msg:   "WEB",
-        //                                  status_msg:   "完全成交",
-        //                                 deal_volume:   "1.00000000",
-        //                                          id:    424,
-        //                               remain_volume:   "0.00000000",
-        //                                    baseCoin:   "eth",
-        //                                   tradeList: [ {     volume: "1.000",
-        //                                                     feeCoin: "YLB",
-        //                                                       price: "0.10000000",
-        //                                                         fee: "0.16431104",
-        //                                                       ctime:  1510996571195,
-        //                                                  deal_price: "0.10000000",
-        //                                                          id:  306,
-        //                                                        type: "买入"            } ],
-        //                                      status:    2                                 },
-        //                             {          side:   "SELL",
-        //                                 total_price:   "0.09900000",
-        //                                  created_at:    1510993715000,
-        //                                   avg_price:   "0.10000000",
-        //                                   countCoin:   "btc",
-        //                                      source:    1,
-        //                                        type:    1,
-        //                                    side_msg:   "卖出",
-        //                                      volume:   "1.000",
-        //                                       price:   "0.09900000",
-        //                                  source_msg:   "WEB",
-        //                                  status_msg:   "完全成交",
-        //                                 deal_volume:   "1.00000000",
-        //                                          id:    423,
-        //                               remain_volume:   "0.00000000",
-        //                                    baseCoin:   "eth",
-        //                                   tradeList: [ {     volume: "1.000",
-        //                                                     feeCoin: "YLB",
-        //                                                       price: "0.10000000",
-        //                                                         fee: "0.16597075",
-        //                                                       ctime:  1510993723973,
-        //                                                  deal_price: "0.10000000",
-        //                                                          id:  261,
-        //                                                        type: "卖出"            } ],
-        //                                      status:    2                                 }  ] } }
+        //       data: {     count:    1,
+        //               orderList: [ {          side:   "SELL",
+        //                                total_price:   "0.010",
+        //                                 created_at:    1533616673000,
+        //                                  avg_price:   "0.05816200",
+        //                                  countCoin:   "btc",
+        //                                     source:    3,
+        //                                       type:    2,
+        //                                   side_msg:   "卖出",
+        //                                     volume:   "0.010",
+        //                                      price:   "0.00000000",
+        //                                 source_msg:   "API",
+        //                                 status_msg:   "完全成交",
+        //                                deal_volume:   "0.01000000",
+        //                                         id:    3669583,
+        //                              remain_volume:   "0.00000000",
+        //                                   baseCoin:   "eth",
+        //                                  tradeList: [ {     volume: "0.010",
+        //                                                    feeCoin: "BTC",
+        //                                                      price: "0.05816200",
+        //                                                        fee: "0.00000029",
+        //                                                      ctime:  1533616674000,
+        //                                                 deal_price: "0.00058162",
+        //                                                         id:  415779,
+        //                                                       type: "卖出"            } ],
+        //                                     status:    2                                 } ] } }
         //
         // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
         let orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
@@ -808,65 +795,43 @@ module.exports = class bittrex extends Exchange {
         };
         let response = await this.privateGetOrderInfo (this.extend (request, params));
         //
-        //       { trade_list: [ {     volume: "0.010",
-        //                            feeCoin: "BTC",
-        //                              price: "0.05816200",
-        //                                fee: "0.00000029",
-        //                              ctime:  1533616674000,
-        //                         deal_price: "0.00058162",
-        //                                 id:  415779,
-        //                               type: "卖出"            } ],
-        //         order_info: {          side:   "SELL",
-        //                         total_price:   "0.010",
-        //                          created_at:    1533616673000,
-        //                           avg_price:   "0.05816200",
-        //                           countCoin:   "btc",
-        //                              source:    3,
-        //                                type:    2,
-        //                            side_msg:   "卖出",
-        //                              volume:   "0.010",
-        //                               price:   "0.00000000",
-        //                          source_msg:   "API",
-        //                          status_msg:   "完全成交",
-        //                         deal_volume:   "0.01000000",
-        //                                  id:    3669583,
-        //                       remain_volume:   "0.00000000",
-        //                            baseCoin:   "eth",
-        //                           tradeList: [ {     volume: "0.010",
-        //                                             feeCoin: "BTC",
-        //                                               price: "0.05816200",
-        //                                                 fee: "0.00000029",
-        //                                               ctime:  1533616674000,
-        //                                          deal_price: "0.00058162",
-        //                                                  id:  415779,
-        //                                                type: "卖出"            } ],
-        //                              status:    2                                 }
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: { order_info: {          id:  343,
-        //                                    side: "sell",
-        //                                side_msg: "Sell-out",
-        //                              created_at: "09-22 12:22",
-        //                                   price:  222.33,
-        //                                  volume:  222.33,
-        //                             deal_volume:  222.33,
-        //                             total_price:  222.33,
-        //                                     fee:  222.33,
-        //                               age_price:  222.33        },
-        //               trade_list: [ {         id:  343,
-        //                               created_at: "09-22 12:22",
-        //                                    price:  222.33,
-        //                                   volume:  222.33,
-        //                               deal_price:  222.33,
-        //                                 deal_fee:  222.33        },
-        //                             {         id:  345,
-        //                               created_at: "09-22 12:22",
-        //                                    price:  222.33,
-        //                                   volume:  222.33,
-        //                               deal_price:  222.33,
-        //                                 deal_fee:  222.33        }  ] } }
+        //       data: { trade_list: [ {     volume: "0.010",
+        //                                  feeCoin: "BTC",
+        //                                    price: "0.05816200",
+        //                                      fee: "0.00000029",
+        //                                    ctime:  1533616674000,
+        //                               deal_price: "0.00058162",
+        //                                       id:  415779,
+        //                                     type: "卖出"            } ],
+        //               order_info: {          side:   "SELL",
+        //                               total_price:   "0.010",
+        //                                created_at:    1533616673000,
+        //                                 avg_price:   "0.05816200",
+        //                                 countCoin:   "btc",
+        //                                    source:    3,
+        //                                      type:    2,
+        //                                  side_msg:   "卖出",
+        //                                    volume:   "0.010",
+        //                                     price:   "0.00000000",
+        //                                source_msg:   "API",
+        //                                status_msg:   "完全成交",
+        //                               deal_volume:   "0.01000000",
+        //                                        id:    3669583,
+        //                             remain_volume:   "0.00000000",
+        //                                  baseCoin:   "eth",
+        //                                 tradeList: [ {     volume: "0.010",
+        //                                                   feeCoin: "BTC",
+        //                                                     price: "0.05816200",
+        //                                                       fee: "0.00000029",
+        //                                                     ctime:  1533616674000,
+        //                                                deal_price: "0.00058162",
+        //                                                        id:  415779,
+        //                                                      type: "卖出"            } ],
+        //                                    status:    2                                 } } }
         //
-        return this.parseOrder (response['data'], market);
+        return this.parseOrder (response['data']['order_info'], market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -887,16 +852,18 @@ module.exports = class bittrex extends Exchange {
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: {      count:    0,
-        //               resultList: [ {     volume: "1.000",
-        //                                     side: "BUY",
-        //                                  feeCoin: "YLB",
-        //                                    price: "0.10000000",
-        //                                      fee: "0.16431104",
-        //                                    ctime:  1510996571195,
-        //                               deal_price: "0.10000000",
-        //                                       id:  306,
-        //                                     type: "Buy-in"        } ] } }
+        //       data: {      count:    1,
+        //               resultList: [ {     volume: "0.010",
+        //                                     side: "SELL",
+        //                                  feeCoin: "BTC",
+        //                                    price: "0.05816200",
+        //                                      fee: "0.00000029",
+        //                                    ctime:  1533616674000,
+        //                               deal_price: "0.00058162",
+        //                                       id:  415779,
+        //                                     type: "卖出",
+        //                                   bid_id:  3669539,
+        //                                   ask_id:  3669583        } ] } }
         //
         let trades = this.safeValue (response['data'], 'resultList', []);
         return this.parseTrades (trades, market, since, limit);
