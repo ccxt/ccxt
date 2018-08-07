@@ -149,7 +149,7 @@ module.exports = class bcex extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp = timestamp * 1000;
         }
-        let id = this.safeString2 (trade, 'tid');
+        let id = this.safeString (trade, 'tid');
         let orderId = this.safeString (trade, 'order_id');
         let amount = this.safeFloat2 (trade, 'number', 'amount');
         let price = this.safeFloat (trade, 'price');
