@@ -667,9 +667,9 @@ module.exports = class bittrex extends Exchange {
         return result;
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -681,64 +681,74 @@ module.exports = class bittrex extends Exchange {
         if (typeof limit !== 'undefined') {
             request['pageSize'] = limit;
         }
-        let response = await this.privateGetNewOrder (this.extend (request, params));
+        // let response = await this[method] (this.extend (request, params));
+        let response =
         //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: {      count:    0,
-        //               resultList: [ {          side:   "BUY",
-        //                                 total_price:   "0.10000000",
-        //                                  created_at:    1510993841000,
-        //                                   avg_price:   "0.10000000",
-        //                                   countCoin:   "btc",
-        //                                      source:    1,
-        //                                        type:    1,
-        //                                    side_msg:   "买入",
-        //                                      volume:   "1.000",
-        //                                       price:   "0.10000000",
-        //                                  source_msg:   "WEB",
-        //                                  status_msg:   "完全成交",
-        //                                 deal_volume:   "1.00000000",
-        //                                          id:    424,
-        //                               remain_volume:   "0.00000000",
-        //                                    baseCoin:   "eth",
-        //                                   tradeList: [ {     volume: "1.000",
-        //                                                     feeCoin: "YLB",
-        //                                                       price: "0.10000000",
-        //                                                         fee: "0.16431104",
-        //                                                       ctime:  1510996571195,
-        //                                                  deal_price: "0.10000000",
-        //                                                          id:  306,
-        //                                                        type: "买入"            } ],
-        //                                      status:    2                                 },
-        //                             {          side:   "SELL",
-        //                                 total_price:   "0.09900000",
-        //                                  created_at:    1510993715000,
-        //                                   avg_price:   "0.10000000",
-        //                                   countCoin:   "btc",
-        //                                      source:    1,
-        //                                        type:    1,
-        //                                    side_msg:   "卖出",
-        //                                      volume:   "1.000",
-        //                                       price:   "0.09900000",
-        //                                  source_msg:   "WEB",
-        //                                  status_msg:   "完全成交",
-        //                                 deal_volume:   "1.00000000",
-        //                                          id:    423,
-        //                               remain_volume:   "0.00000000",
-        //                                    baseCoin:   "eth",
-        //                                   tradeList: [ {     volume: "1.000",
-        //                                                     feeCoin: "YLB",
-        //                                                       price: "0.10000000",
-        //                                                         fee: "0.16597075",
-        //                                                       ctime:  1510993723973,
-        //                                                  deal_price: "0.10000000",
-        //                                                          id:  261,
-        //                                                        type: "卖出"            } ],
-        //                                      status:    2                                 }  ] } }
+            { code:   "0",
+               msg:   "suc",
+              data: {      count:    0,
+                      resultList: [ {          side:   "BUY",
+                                        total_price:   "0.10000000",
+                                         created_at:    1510993841000,
+                                          avg_price:   "0.10000000",
+                                          countCoin:   "btc",
+                                             source:    1,
+                                               type:    1,
+                                           side_msg:   "买入",
+                                             volume:   "1.000",
+                                              price:   "0.10000000",
+                                         source_msg:   "WEB",
+                                         status_msg:   "完全成交",
+                                        deal_volume:   "1.00000000",
+                                                 id:    424,
+                                      remain_volume:   "0.00000000",
+                                           baseCoin:   "eth",
+                                          tradeList: [ {     volume: "1.000",
+                                                            feeCoin: "YLB",
+                                                              price: "0.10000000",
+                                                                fee: "0.16431104",
+                                                              ctime:  1510996571195,
+                                                         deal_price: "0.10000000",
+                                                                 id:  306,
+                                                               type: "买入"            } ],
+                                             status:    2                                 },
+                                    {          side:   "SELL",
+                                        total_price:   "0.09900000",
+                                         created_at:    1510993715000,
+                                          avg_price:   "0.10000000",
+                                          countCoin:   "btc",
+                                             source:    1,
+                                               type:    1,
+                                           side_msg:   "卖出",
+                                             volume:   "1.000",
+                                              price:   "0.09900000",
+                                         source_msg:   "WEB",
+                                         status_msg:   "完全成交",
+                                        deal_volume:   "1.00000000",
+                                                 id:    423,
+                                      remain_volume:   "0.00000000",
+                                           baseCoin:   "eth",
+                                          tradeList: [ {     volume: "1.000",
+                                                            feeCoin: "YLB",
+                                                              price: "0.10000000",
+                                                                fee: "0.16597075",
+                                                              ctime:  1510993723973,
+                                                         deal_price: "0.10000000",
+                                                                 id:  261,
+                                                               type: "卖出"            } ],
+                                             status:    2                                 }  ] } }
         //
-        let orders = this.safeValue (response['data'], 'resultList', []);
+        // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
+        let orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('privateGetNewOrder', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('privateGetAllOrder', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -776,74 +786,6 @@ module.exports = class bittrex extends Exchange {
         //                                 deal_fee:  222.33        }  ] } }
         //
         return this.parseOrder (response['result'], market);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        let response = await this.accountGetAllOrder (this.extend (request, params));
-        //
-        //     { code:   "0",
-        //        msg:   "suc",
-        //       data: {     count:    10,
-        //               orderList: [ {          side:   "BUY",
-        //                                total_price:   "0.10000000",
-        //                                 created_at:    1510993841000,
-        //                                  avg_price:   "0.10000000",
-        //                                  countCoin:   "btc",
-        //                                     source:    1,
-        //                                       type:    1,
-        //                                   side_msg:   "买入",
-        //                                     volume:   "1.000",
-        //                                      price:   "0.10000000",
-        //                                 source_msg:   "WEB",
-        //                                 status_msg:   "完全成交",
-        //                                deal_volume:   "1.00000000",
-        //                                         id:    424,
-        //                              remain_volume:   "0.00000000",
-        //                                   baseCoin:   "eth",
-        //                                  tradeList: [ {     volume: "1.000",
-        //                                                    feeCoin: "YLB",
-        //                                                      price: "0.10000000",
-        //                                                        fee: "0.16431104",
-        //                                                      ctime:  1510996571195,
-        //                                                 deal_price: "0.10000000",
-        //                                                         id:  306,
-        //                                                       type: "买入"            } ],
-        //                                     status:    2                                 },
-        //                            {          side:   "SELL",
-        //                                total_price:   "0.09900000",
-        //                                 created_at:    1510993715000,
-        //                                  avg_price:   "0.10000000",
-        //                                  countCoin:   "btc",
-        //                                     source:    1,
-        //                                       type:    1,
-        //                                   side_msg:   "卖出",
-        //                                     volume:   "1.000",
-        //                                      price:   "0.09900000",
-        //                                 source_msg:   "WEB",
-        //                                 status_msg:   "完全成交",
-        //                                deal_volume:   "1.00000000",
-        //                                         id:    423,
-        //                              remain_volume:   "0.00000000",
-        //                                   baseCoin:   "eth",
-        //                                  tradeList: [ {     volume: "1.000",
-        //                                                    feeCoin: "YLB",
-        //                                                      price: "0.10000000",
-        //                                                        fee: "0.16597075",
-        //                                                      ctime:  1510993723973,
-        //                                                 deal_price: "0.10000000",
-        //                                                         id:  261,
-        //                                                       type: "卖出"            } ],
-        //                                     status:    2                                 }  ] } }
-        //
-        let orders = this.safeValue (response['data'], 'orderList', []);
-        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
