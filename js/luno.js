@@ -112,10 +112,11 @@ module.exports = class luno extends Exchange {
             let currency = this.commonCurrencyCode (balance['asset']);
             let reserved = parseFloat (balance['reserved']);
             let unconfirmed = parseFloat (balance['unconfirmed']);
+            let balance = parseFloat (balance['balance']);
             let account = {
                 'free': 0.0,
                 'used': this.sum (reserved, unconfirmed),
-                'total': parseFloat (balance['balance']),
+                'total': this.sum (balance, unconfirmed),
             };
             account['free'] = account['total'] - account['used'];
             result[currency] = account;
