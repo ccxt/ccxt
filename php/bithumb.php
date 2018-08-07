@@ -88,7 +88,6 @@ class bithumb extends Exchange {
                     'base' => $base,
                     'quote' => $quote,
                     'info' => $market,
-                    'lot' => null,
                     'active' => true,
                     'precision' => array (
                         'amount' => null,

@@ -97,7 +97,6 @@ class bithumb (Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'lot': None,
                     'active': True,
                     'precision': {
                         'amount': None,

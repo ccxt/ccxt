@@ -149,7 +149,6 @@ module.exports = class bitsane extends Exchange {
                 'amount': parseInt (market['precision']),
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -158,7 +157,6 @@ module.exports = class bitsane extends Exchange {
                 'baseId': market['base'],
                 'quoteId': market['quote'],
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {

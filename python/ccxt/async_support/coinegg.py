@@ -190,7 +190,6 @@ class coinegg (Exchange):
                     'amount': 8,
                     'price': 8,
                 }
-                lot = math.pow(10, -precision['amount'])
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -199,11 +198,10 @@ class coinegg (Exchange):
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': True,
-                    'lot': lot,
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': lot,
+                            'min': math.pow(10, -precision['amount']),
                             'max': math.pow(10, precision['amount']),
                         },
                         'price': {

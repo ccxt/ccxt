@@ -153,6 +153,15 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
+                'Permission denied' => '\\ccxt\\PermissionDenied',
+                'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
+                'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
+                'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
+                'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
+                'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+            ),
         ));
     }
 
@@ -336,8 +345,18 @@ class poloniex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = null;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                list ($quoteId, $baseId) = explode ('_', $id);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $market = array ( 'symbol' => $symbol );
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -850,21 +869,13 @@ class poloniex extends Exchange {
             // syntax error, resort to default error handler
             return;
         }
+        // array ("error":"Permission denied.")
         if (is_array ($response) && array_key_exists ('error', $response)) {
             $message = $response['error'];
             $feedback = $this->id . ' ' . $this->json ($response);
-            if ($message === 'Invalid order number, or you are not the person who placed the order.') {
-                throw new OrderNotFound ($feedback);
-            } else if ($message === 'Connection timed out. Please try again.') {
-                throw new RequestTimeout ($feedback);
-            } else if ($message === 'Internal error. Please try again.') {
-                throw new ExchangeNotAvailable ($feedback);
-            } else if ($message === 'Order not found, or you are not the person who placed it.') {
-                throw new OrderNotFound ($feedback);
-            } else if ($message === 'Invalid API key/secret pair.') {
-                throw new AuthenticationError ($feedback);
-            } else if ($message === 'Please do not make more than 8 API calls per second.') {
-                throw new DDoSProtection ($feedback);
+            $exceptions = $this->exceptions;
+            if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                throw new $exceptions[$message] ($feedback);
             } else if (mb_strpos ($message, 'Total must be at least') !== false) {
                 throw new InvalidOrder ($feedback);
             } else if (mb_strpos ($message, 'This account is frozen.') !== false) {

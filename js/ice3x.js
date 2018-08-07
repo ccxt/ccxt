@@ -144,7 +144,6 @@ module.exports = class ice3x extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'lot': undefined,
                 'info': market,
             });
         }

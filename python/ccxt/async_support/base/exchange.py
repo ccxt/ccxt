@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.56'
+__version__ = '1.17.84'
 
 # -----------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ class Exchange(BaseExchange):
 
     def __del__(self):
         if self.session is not None:
-            self.logger.warning(self.id + ' requires to release all resources with an explicit call to the .close() coroutine.')
+            self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are creating the exchange instance from within your async coroutine, add exchange.close() to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
 
     async def close(self):
         if self.session is not None:

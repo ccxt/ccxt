@@ -285,6 +285,7 @@ class binance (Exchange):
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1128': ExchangeError,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound,  # fetchOrder(1, 'BTC/USDT') -> 'Order does not exist'
@@ -327,8 +328,6 @@ class binance (Exchange):
                 'price': market['quotePrecision'],
             }
             active = (market['status'] == 'TRADING')
-            # lot size is deprecated as of 2018.02.06
-            lot = -1 * math.log10(precision['amount'])
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -337,7 +336,6 @@ class binance (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot,  # lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -350,7 +348,7 @@ class binance (Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': lot,
+                        'min': -1 * math.log10(precision['amount']),
                         'max': None,
                     },
                 },
@@ -365,7 +363,6 @@ class binance (Exchange):
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
                 entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
-                entry['lot'] = self.safe_float(filter, 'stepSize')  # lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
@@ -556,7 +553,16 @@ class binance (Exchange):
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
         # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
         # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
-        # 'limit': 500,     # default = maximum = 500
+        # 'limit': 500,     # default = 500, maximum = 1000
+        #
+        # Caveats:
+        # - default limit(500) applies only if no other parameters set, trades up
+        #   to the maximum limit may be returned to satisfy other parameters
+        # - if both limit and time window is set and time window contains more
+        #   trades than the limit then the last trades from the window are returned
+        # - 'tradeId' accepted and returned by self method is "aggregate" trade id
+        #   which is different from actual trade id
+        # - setting both fromId and time window results in error
         response = self.publicGetAggTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -862,7 +868,7 @@ class binance (Exchange):
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
             if body.find('LOT_SIZE') >= 0:
-                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size, use self.amount_to_lots(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
                 raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:

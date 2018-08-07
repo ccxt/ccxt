@@ -192,7 +192,6 @@ module.exports = class huobipro extends Exchange {
                 'amount': market['amount-precision'],
                 'price': market['price-precision'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             let maker = (base === 'OMG') ? 0 : 0.2 / 100;
             let taker = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
@@ -202,14 +201,13 @@ module.exports = class huobipro extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
@@ -616,8 +614,9 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
+        }
         let timestamp = order['created-at'];
         let amount = this.safeFloat (order, 'amount');
         let filled = parseFloat (order['field-amount']);
@@ -625,8 +624,10 @@ module.exports = class huobipro extends Exchange {
         let price = this.safeFloat (order, 'price');
         let cost = parseFloat (order['field-cash-amount']);
         let average = 0;
-        if (filled)
+        // if filled is defined and is not zero
+        if (filled) {
             average = parseFloat (cost / filled);
+        }
         let result = {
             'info': order,
             'id': order['id'].toString (),

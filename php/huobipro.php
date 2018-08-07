@@ -193,7 +193,6 @@ class huobipro extends Exchange {
                 'amount' => $market['amount-precision'],
                 'price' => $market['price-precision'],
             );
-            $lot = pow (10, -$precision['amount']);
             $maker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $result[] = array (
@@ -203,14 +202,13 @@ class huobipro extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'lot' => $lot,
                 'active' => true,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -617,8 +615,9 @@ class huobipro extends Exchange {
                 }
             }
         }
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $timestamp = $order['created-at'];
         $amount = $this->safe_float($order, 'amount');
         $filled = floatval ($order['field-amount']);
@@ -626,8 +625,10 @@ class huobipro extends Exchange {
         $price = $this->safe_float($order, 'price');
         $cost = floatval ($order['field-cash-amount']);
         $average = 0;
-        if ($filled)
+        // if $filled is defined and is not zero
+        if ($filled) {
             $average = floatval ($cost / $filled);
+        }
         $result = array (
             'info' => $order,
             'id' => (string) $order['id'],

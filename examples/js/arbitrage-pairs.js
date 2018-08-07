@@ -1,10 +1,15 @@
 "use strict";
 
 const ccxt      = require ('../../ccxt.js')
-const asTable   = require ('as-table')
-const log       = require ('ololog').configure ({ locate: false })
-
-require ('ansicolor').nice;
+    , asTable   = require ('as-table')
+    , log       = require ('ololog').configure ({ locate: false })
+    , fs        = require ('fs')
+    , {}        = require ('ansicolor').nice
+    , verbose   = process.argv.includes ('--verbose')
+    , keysGlobal = 'keys.json'
+    , keysLocal = 'keys.local.json'
+    , keysFile = fs.existsSync (keysLocal) ? keysLocal : (fs.existsSync (keysGlobal) ? keysGlobal : false)
+    , config = keysFile ? require ('../../' + keysFile) : {}
 
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
@@ -44,8 +49,13 @@ let proxies = [
         // load all markets from all exchanges
         for (let id of ids) {
 
+            let settings = config[id] || {}
+
             // instantiate the exchange by id
-            let exchange = new ccxt[id] ()
+            let exchange = new ccxt[id] (ccxt.extend ({
+                // verbose,
+                // 'proxy': 'https://cors-anywhere.herokuapp.com/',
+            }, settings))
 
             // save it in a dictionary under its id for future use
             exchanges[id] = exchange

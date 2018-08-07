@@ -203,7 +203,6 @@ class huobipro (Exchange):
                 'amount': market['amount-precision'],
                 'price': market['price-precision'],
             }
-            lot = math.pow(10, -precision['amount'])
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
             result.append({
@@ -213,14 +212,13 @@ class huobipro (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {
@@ -580,7 +578,7 @@ class huobipro (Exchange):
                 if order['symbol'] in self.markets_by_id:
                     marketId = order['symbol']
                     market = self.markets_by_id[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = order['created-at']
         amount = self.safe_float(order, 'amount')
@@ -589,6 +587,7 @@ class huobipro (Exchange):
         price = self.safe_float(order, 'price')
         cost = float(order['field-cash-amount'])
         average = 0
+        # if filled is defined and is not zero
         if filled:
             average = float(cost / filled)
         result = {

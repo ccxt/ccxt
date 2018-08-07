@@ -145,7 +145,6 @@ class ice3x extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => null,
                 'info' => $market,
             );
         }

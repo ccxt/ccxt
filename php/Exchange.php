@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.56';
+$version = '1.17.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.56';
+    const VERSION = '1.17.84';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -86,6 +86,7 @@ class Exchange {
         'allcoin',
         'anxpro',
         'anybits',
+        'bcex',
         'bibox',
         'bigone',
         'binance',
@@ -1264,7 +1265,7 @@ class Exchange {
                 continue;
             $result[] = $ohlcv;
         }
-        return $result;
+        return $this->sort_by ($result, 0);
     }
 
     public function parseOHLCVs ($ohlcvs, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -1822,21 +1823,12 @@ class Exchange {
         return $this->truncate_to_string (floatval ($amount), $this->markets[$symbol]['precision']['amount']);
     }
 
-    public function amount_to_lots ($symbol, $amount) {
-        $lot = $this->markets[$symbol]['lot'];
-        return $this->amount_to_precision ($symbol, floor (floatval ($amount) / $lot) * $lot);
-    }
-
     public function amountToPrecision ($symbol, $amount) {
         return $this->amount_to_precision ($symbol, $amount);
     }
 
     public function amountToString ($symbol, $amount) {
         return $this->amount_to_string ($symbol, $amount);
-    }
-
-    public function amountToLots ($symbol, $amount) {
-        return $this->amount_to_lots ($symbol, $amount);
     }
 
     public function fee_to_precision ($symbol, $fee) {

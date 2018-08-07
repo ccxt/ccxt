@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.56'
+__version__ = '1.17.84'
 
 # -----------------------------------------------------------------------------
 
@@ -924,10 +924,6 @@ class Exchange(object):
     def amount_to_string(self, symbol, amount):
         return self.truncate_to_string(amount, self.markets[symbol]['precision']['amount'])
 
-    def amount_to_lots(self, symbol, amount):
-        lot = self.markets[symbol]['lot']
-        return self.amount_to_precision(symbol, math.floor(amount / lot) * lot)
-
     def fee_to_precision(self, symbol, fee):
         return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
 
@@ -1094,7 +1090,7 @@ class Exchange(object):
             if since and (ohlcv[0] < since):
                 continue
             result.append(ohlcv)
-        return result
+        return self.sort_by(result, 0)
 
     def parse_bid_ask(self, bidask, price_key=0, amount_key=0):
         return [float(bidask[price_key]), float(bidask[amount_key])]

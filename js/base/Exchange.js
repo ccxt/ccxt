@@ -1056,7 +1056,7 @@ module.exports = class Exchange {
                 continue
             result.push (ohlcv)
         }
-        return result
+        return this.sortBy (result, 0)
     }
 
     editLimitBuyOrder (id, symbol, ...args) {
@@ -1124,11 +1124,6 @@ module.exports = class Exchange {
 
     amountToString (symbol, amount) {
         return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
-    }
-
-    amountToLots (symbol, amount) {
-        const lot = this.markets[symbol].lot
-        return this.amountToPrecision (symbol, Math.floor (amount / lot) * lot)
     }
 
     feeToPrecision (symbol, fee) {

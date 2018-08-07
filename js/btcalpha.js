@@ -118,14 +118,12 @@ module.exports = class btcalpha extends Exchange {
                 'amount': 8,
                 'price': parseInt (market['price_precision']),
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': true,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {

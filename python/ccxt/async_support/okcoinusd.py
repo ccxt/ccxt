@@ -198,7 +198,6 @@ class okcoinusd (Exchange):
                 'amount': markets[i]['maxSizeDigit'],
                 'price': markets[i]['maxPriceDigit'],
             }
-            lot = math.pow(10, -precision['amount'])
             minAmount = markets[i]['minTradeSize']
             minPrice = math.pow(10, -precision['price'])
             active = (markets[i]['online'] != 0)
@@ -217,7 +216,6 @@ class okcoinusd (Exchange):
                 'type': 'spot',
                 'spot': True,
                 'future': False,
-                'lot': lot,
                 'active': active,
                 'precision': precision,
                 'limits': {

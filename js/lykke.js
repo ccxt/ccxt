@@ -161,7 +161,6 @@ module.exports = class lykke extends Exchange {
                 'quote': quote,
                 'active': true,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {

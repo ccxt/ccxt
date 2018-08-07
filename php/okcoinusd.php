@@ -192,7 +192,6 @@ class okcoinusd extends Exchange {
                 'amount' => $markets[$i]['maxSizeDigit'],
                 'price' => $markets[$i]['maxPriceDigit'],
             );
-            $lot = pow (10, -$precision['amount']);
             $minAmount = $markets[$i]['minTradeSize'];
             $minPrice = pow (10, -$precision['price']);
             $active = ($markets[$i]['online'] !== 0);
@@ -211,7 +210,6 @@ class okcoinusd extends Exchange {
                 'type' => 'spot',
                 'spot' => true,
                 'future' => false,
-                'lot' => $lot,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (

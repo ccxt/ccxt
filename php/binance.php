@@ -276,6 +276,7 @@ class binance extends Exchange {
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                 '-1022' => '\\ccxt\\AuthenticationError', // array ("code":-1022,"msg":"Signature for this request is not valid.")
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1128' => '\\ccxt\\ExchangeError', // array ("code":-1128,"msg":"Combination of optional parameters invalid.")
                 '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array ("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013' => '\\ccxt\\OrderNotFound', // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -321,8 +322,6 @@ class binance extends Exchange {
                 'price' => $market['quotePrecision'],
             );
             $active = ($market['status'] === 'TRADING');
-            // $lot size is deprecated as of 2018.02.06
-            $lot = -1 * log10 ($precision['amount']);
             $entry = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -331,7 +330,6 @@ class binance extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'info' => $market,
-                'lot' => $lot, // $lot size is deprecated as of 2018.02.06
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -344,7 +342,7 @@ class binance extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array (
-                        'min' => $lot,
+                        'min' => -1 * log10 ($precision['amount']),
                         'max' => null,
                     ),
                 ),
@@ -360,7 +358,6 @@ class binance extends Exchange {
             if (is_array ($filters) && array_key_exists ('LOT_SIZE', $filters)) {
                 $filter = $filters['LOT_SIZE'];
                 $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
-                $entry['lot'] = $this->safe_float($filter, 'stepSize'); // $lot size is deprecated as of 2018.02.06
                 $entry['limits']['amount'] = array (
                     'min' => $this->safe_float($filter, 'minQty'),
                     'max' => $this->safe_float($filter, 'maxQty'),
@@ -574,7 +571,16 @@ class binance extends Exchange {
         // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
         // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit' => 500,     // default = maximum = 500
+        // 'limit' => 500,     // default = 500, maximum = 1000
+        //
+        // Caveats:
+        // - default $limit (500) applies only if no other parameters set, trades up
+        //   to the maximum $limit may be returned to satisfy other parameters
+        // - if both $limit and time window is set and time window contains more
+        //   trades than the $limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
         $response = $this->publicGetAggTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -915,7 +921,7 @@ class binance extends Exchange {
             if (mb_strpos ($body, 'Price * QTY is zero or less') !== false)
                 throw new InvalidOrder ($this->id . ' order cost = amount * price is zero or less ' . $body);
             if (mb_strpos ($body, 'LOT_SIZE') !== false)
-                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size, use $this->amount_to_lots(symbol, amount) ' . $body);
+                throw new InvalidOrder ($this->id . ' order amount should be evenly divisible by lot size ' . $body);
             if (mb_strpos ($body, 'PRICE_FILTER') !== false)
                 throw new InvalidOrder ($this->id . ' order price exceeds allowed price precision or invalid, use $this->price_to_precision(symbol, amount) ' . $body);
         }

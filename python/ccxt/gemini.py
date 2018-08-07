@@ -318,6 +318,9 @@ class gemini (Exchange):
             'id': self.safe_string(response, 'txHash'),
         }
 
+    def nonce(self):
+        return self.milliseconds()
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))

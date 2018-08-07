@@ -19,6 +19,10 @@ module.exports = class luno extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchTradingFees': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -34,6 +38,7 @@ module.exports = class luno extends Exchange {
                 'public': {
                     'get': [
                         'orderbook',
+                        'orderbook_top',
                         'ticker',
                         'tickers',
                         'trades',
@@ -132,13 +137,20 @@ module.exports = class luno extends Exchange {
         let timestamp = order['creation_timestamp'];
         let status = (order['state'] === 'PENDING') ? 'open' : 'closed';
         let side = (order['type'] === 'ASK') ? 'sell' : 'buy';
-        let symbol = undefined;
-        if (market)
-            symbol = market['symbol'];
+        if (typeof market === 'undefined')
+            market = this.findMarket (order['pair']);
+        let symbol = market['symbol'];
         let price = this.safeFloat (order, 'limit_price');
         let amount = this.safeFloat (order, 'limit_volume');
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
+        let filled = this.safeFloat (order, 'base');
+        let remaining = undefined;
+        if (typeof amount !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                remaining = Math.max (0, amount - filled);
+            }
+        }
         let fee = { 'currency': undefined };
         if (quoteFee) {
             fee['side'] = 'quote';
@@ -158,8 +170,8 @@ module.exports = class luno extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': undefined,
             'fee': fee,
             'info': order,
@@ -172,6 +184,34 @@ module.exports = class luno extends Exchange {
             'id': id,
         }, params));
         return this.parseOrder (response);
+    }
+
+    async fetchOrdersByState (state = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (typeof state !== 'undefined') {
+            request['state'] = state;
+        }
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privateGetListorders (this.extend (request, params));
+        let orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -255,6 +295,16 @@ module.exports = class luno extends Exchange {
             request['since'] = since;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetFeeInfo (params);
+        return {
+            'info': response,
+            'maker': this.safeFloat (response, 'maker_fee'),
+            'taker': this.safeFloat (response, 'taker_fee'),
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

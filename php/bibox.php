@@ -129,7 +129,6 @@ class bibox extends Exchange {
                 'quoteId' => $quote,
                 'active' => true,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

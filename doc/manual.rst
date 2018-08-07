@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 128 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                                    | certified                                                            | ver | doc                                                                                                 | countries                                |
@@ -71,6 +71,8 @@ The ccxt library currently supports the following 127 cryptocurrency exchange ma
 | |anxpro|             | anxpro             | `ANXPro <https://anxpro.com>`__                                                         |                                                                      | 2   | `API <http://docs.anxv2.apiary.io>`__                                                               | Japan, Singapore, Hong Kong, New Zealand |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |anybits|            | anybits            | `Anybits <https://anybits.com>`__                                                       |                                                                      | \*  | `API <https://anybits.com/help/api>`__                                                              | Ireland                                  |
++----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |bcex|               | bcex               | `BCEX <https://www.bcex.top/user/reg/type/2/pid/758978>`__                              |                                                                      | 1   | `API <https://www.bcex.top/api_market/market/>`__                                                   | China, Canada                            |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bibox|              | bibox              | `Bibox <https://www.bibox.com>`__                                                       |                                                                      | 1   | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                    | China, US, South Korea                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-----+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -891,6 +893,7 @@ Historically various symbolic names have been used to designate same trading pai
 -  ``DRK → DASH``: ``DASH`` was Darkcoin then became Dash (`read more <https://minergate.com/blog/dashcoin-and-dash/>`__).
 -  ``DSH → DASH``: Try not to confuse symbols and currencies. The ``DSH`` (Dashcoin) is not the same as ``DASH`` (Dash). Some exchanges have ``DASH`` labelled inconsistently as ``DSH``, the ccxt library does a correction for that as well (``DSH → DASH``), but only on certain exchanges that have these two currencies confused, whereas most exchanges have them both correct. Just remember that ``DASH/BTC`` is not the same as ``DSH/BTC``.
 -  ``XRB`` → ``NANO``: ``NANO`` is the newer code for RaiBlocks, thus, CCXT unified API uses will replace the older ``XRB`` with ``NANO`` where needed. https://hackernoon.com/nano-rebrand-announcement-9101528a7b76
+-  ``USD`` → ``USDT``: Some exchanges, like Bitfinex, HitBTC and a few other name the currency as ``USD`` in their listings, but those markets are actually trading ``USDT``. The confusion can come from a 3-letter limitation on symbol names or may be due to other reasons. In cases where the traded currency is actually ``USDT`` and is not ``USD`` – the CCXT library will perform ``USD`` → \ ``USDT`` conversion. Note, however, that some exchanges have both ``USD`` and ``USDT`` symbols, for example, Kraken has a ``USDT/USD`` trading pair.
 
 Notes On Naming Consistency
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -2762,6 +2765,7 @@ Notes
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
 .. |anxpro| image:: https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg
 .. |anybits| image:: https://user-images.githubusercontent.com/1294454/41388454-ae227544-6f94-11e8-82a4-127d51d34903.jpg
+.. |bcex| image:: https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg
 .. |bibox| image:: https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg
 .. |bigone| image:: https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg
 .. |binance| image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
