@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.83'
+const version = '1.17.85'
 
 Exchange.ccxtVersion = version
 
@@ -4109,7 +4109,7 @@ module.exports = class bcex extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp = timestamp * 1000;
         }
-        let id = this.safeString2 (trade, 'tid');
+        let id = this.safeString (trade, 'tid');
         let orderId = this.safeString (trade, 'order_id');
         let amount = this.safeFloat2 (trade, 'number', 'amount');
         let price = this.safeFloat (trade, 'price');
@@ -42643,17 +42643,18 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
-        let balances = response['balance'];
+        let wallets = response['balance'];
         let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = this.commonCurrencyCode (balance['asset']);
-            let reserved = parseFloat (balance['reserved']);
-            let unconfirmed = parseFloat (balance['unconfirmed']);
+        for (let b = 0; b < wallets.length; b++) {
+            let wallet = wallets[b];
+            let currency = this.commonCurrencyCode (wallet['asset']);
+            let reserved = parseFloat (wallet['reserved']);
+            let unconfirmed = parseFloat (wallet['unconfirmed']);
+            let balance = parseFloat (wallet['balance']);
             let account = {
                 'free': 0.0,
                 'used': this.sum (reserved, unconfirmed),
-                'total': parseFloat (balance['balance']),
+                'total': this.sum (balance, unconfirmed),
             };
             account['free'] = account['total'] - account['used'];
             result[currency] = account;

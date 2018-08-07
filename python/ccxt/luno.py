@@ -105,17 +105,18 @@ class luno (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalance()
-        balances = response['balance']
+        wallets = response['balance']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = self.common_currency_code(balance['asset'])
-            reserved = float(balance['reserved'])
-            unconfirmed = float(balance['unconfirmed'])
+        for b in range(0, len(wallets)):
+            wallet = wallets[b]
+            currency = self.common_currency_code(wallet['asset'])
+            reserved = float(wallet['reserved'])
+            unconfirmed = float(wallet['unconfirmed'])
+            balance = float(wallet['balance'])
             account = {
                 'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': float(balance['balance']),
+                'total': self.sum(balance, unconfirmed),
             }
             account['free'] = account['total'] - account['used']
             result[currency] = account
