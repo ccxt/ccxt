@@ -85,8 +85,8 @@ module.exports = class bxinth extends Exchange {
             let baseId = market['secondary_currency'];
             let quoteId = market['primary_currency'];
             let active = market['active'];
-            base = this.commonCurrencyCode (baseId);
-            quote = this.commonCurrencyCode (quoteId);
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
