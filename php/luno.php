@@ -145,7 +145,7 @@ class luno extends Exchange {
         $amount = $this->safe_float($order, 'limit_volume');
         $quoteFee = $this->safe_float($order, 'fee_counter');
         $baseFee = $this->safe_float($order, 'fee_base');
-        $filled = $this->safe_float($order, 'filled');
+        $filled = $this->safe_float($order, 'base');
         $remaining = null;
         if ($amount !== null) {
             if ($filled !== null) {
