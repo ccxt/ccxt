@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.85'
+const version = '1.17.86'
 
 Exchange.ccxtVersion = version
 
@@ -18158,16 +18158,20 @@ module.exports = class bxinth extends Exchange {
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
             let id = market['pairing_id'].toString ();
-            let base = market['secondary_currency'];
-            let quote = market['primary_currency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['secondary_currency'];
+            let quoteId = market['primary_currency'];
+            let active = market['active'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
                 'info': market,
             });
         }
@@ -20789,6 +20793,9 @@ module.exports = class coinegg extends Exchange {
             },
             'options': {
                 'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
+            },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
             },
         });
     }

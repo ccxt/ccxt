@@ -144,6 +144,9 @@ module.exports = class coinegg extends Exchange {
             'options': {
                 'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
             },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
+            },
         });
     }
 
