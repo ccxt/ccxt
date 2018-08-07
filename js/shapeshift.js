@@ -68,7 +68,7 @@ module.exports = class shapeshift extends Exchange {
         const url = this.urls['api'] + request;
         if (method === 'POST') {
             headers = { 'Content-Type': 'application/json' };
-            if (this.apiKey) params.apiKey = this.apiKey;
+            params.apiKey = this.apiKey;
             body = JSON.stringify(params);
         }
         return {
@@ -83,7 +83,7 @@ module.exports = class shapeshift extends Exchange {
         return this.publicGetTxStatAddress({ 'address': transactionId });
     }
 
-    async startInstantTransaction(input, output, amount = undefined, address, affiliateAPIKey, params = {}) {
+    async startInstantTransaction(input, output, amount = undefined, address, params = {}) {
         await this.loadMarkets();
         const marketFrom = `${input.toUpperCase()}/${output.toUpperCase()}`;
         const marketTo = `${output.toUpperCase()}/${input.toUpperCase()}`;
@@ -94,7 +94,6 @@ module.exports = class shapeshift extends Exchange {
             'withdrawal': address,
             'pair': pair,
             'returnAddress': address,
-            'apiKey': affiliateAPIKey,
         };
         const response = await this.publicPostShift(this.extend(request, params));
         if (response.error) throw new ExchangeError(response.error);
