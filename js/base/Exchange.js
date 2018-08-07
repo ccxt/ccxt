@@ -353,9 +353,7 @@ module.exports = class Exchange {
     }
 
     initRestRateLimiter() {
-
         const fetchImplementation = this.fetchImplementation;
-
         if (this.rateLimit === undefined)
             throw new Error(this.id + '.rateLimit property is not configured');
 
@@ -368,23 +366,20 @@ module.exports = class Exchange {
         }, this.tokenBucket);
 
         this.throttle = throttle(this.tokenBucket);
-
         this.executeRestRequest = function (url, method = 'GET', headers = undefined, body = undefined) {
-
-            let promise =
-                fetchImplementation(url, this.extend({
-                    method,
-                    headers,
-                    body,
-                    'agent': this.agent || null,
-                    timeout: this.timeout
-                }, this.fetchOptions))
-                    .catch((e) => {
-                        if (isNode)
-                            throw new ExchangeNotAvailable([this.id, method, url, e.type, e.message].join(' '));
-                        throw e // rethrow all unknown errors
-                    })
-                    .then(response => this.handleRestResponse(response, url, method, headers, body));
+            let promise = fetchImplementation(url, this.extend({
+                method,
+                headers,
+                body,
+                'agent': this.agent || null,
+                timeout: this.timeout
+            }, this.fetchOptions))
+                .catch((e) => {
+                    if (isNode)
+                        throw new ExchangeNotAvailable([this.id, method, url, e.type, e.message].join(' '));
+                    throw e // rethrow all unknown errors
+                })
+                .then(response => this.handleRestResponse(response, url, method, headers, body));
 
             return timeout(this.timeout, promise).catch((e) => {
                 if (e instanceof TimedOut)
@@ -395,7 +390,6 @@ module.exports = class Exchange {
     }
 
     defineRestApi(api, methodName, options = {}) {
-
         for (const type of Object.keys(api)) {
             for (const httpMethod of Object.keys(api[type])) {
 
@@ -435,7 +429,6 @@ module.exports = class Exchange {
     }
 
     fetch(url, method = 'GET', headers = undefined, body = undefined) {
-
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string')
                 headers = extend({ 'User-Agent': this.userAgent }, headers);
@@ -444,11 +437,9 @@ module.exports = class Exchange {
         }
 
         if (typeof this.proxy === 'function') {
-
             url = this.proxy(url);
             if (isNode)
                 headers = extend({ 'Origin': this.origin }, headers)
-
         } else if (typeof this.proxy === 'string') {
 
             if (this.proxy.length)
@@ -467,11 +458,10 @@ module.exports = class Exchange {
     }
 
     async fetch2(path, type = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-
         if (this.enableRateLimit)
             await this.throttle();
 
-        let request = this.sign(path, type, method, params, headers, body);
+        const request = this.sign(path, type, method, params, headers, body);
         return this.fetch(request.url, request.method, request.headers, request.body)
     }
 
@@ -481,11 +471,8 @@ module.exports = class Exchange {
 
     parseJson(response, responseBody, url, method) {
         try {
-
             return (responseBody.length > 0) ? JSON.parse(responseBody) : {} // empty object for empty body
-
         } catch (e) {
-
             if (this.verbose)
                 console.log('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n");
 
@@ -494,11 +481,10 @@ module.exports = class Exchange {
             if (match)
                 title = match[1].trim();
 
-            let maintenance = responseBody.match(/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            let ddosProtection = responseBody.match(/cloudflare|incapsula|overload|ddos/i);
+            const maintenance = responseBody.match(/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            const ddosProtection = responseBody.match(/cloudflare|incapsula|overload|ddos/i);
 
             if (e instanceof SyntaxError) {
-
                 let ExceptionClass = ExchangeNotAvailable;
                 let details = 'not accessible from this location at the moment';
                 if (maintenance)
@@ -507,7 +493,6 @@ module.exports = class Exchange {
                     ExceptionClass = DDoSProtection;
                 throw new ExceptionClass([this.id, method, url, response.status, title, details].join(' '))
             }
-
             throw e
         }
     }
