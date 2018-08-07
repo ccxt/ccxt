@@ -161,6 +161,9 @@ class coinegg (Exchange):
             'options': {
                 'quoteIds': ['btc', 'eth', 'usc', 'usdt'],
             },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
+            },
         })
 
     def fetch_markets(self):
