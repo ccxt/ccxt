@@ -66,7 +66,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
-                        'tickers',
+                        'tickers', // todo: add fetchTickers
                         'trades',
                     ],
                 },
