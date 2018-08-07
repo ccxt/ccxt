@@ -32,7 +32,7 @@ module.exports = class changelly extends Exchange {
                 'fetchTicker': false,
                 'fetchTrades': false,
                 'privateAPI': false,
-                'startInstantTransaction': false,
+                'startInstantTransaction': true,
             },
             'api': {
                 'public': {
