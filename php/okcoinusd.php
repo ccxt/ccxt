@@ -45,6 +45,8 @@ class okcoinusd extends Exchange {
             'api' => array (
                 'web' => array (
                     'get' => array (
+                        'futures/pc/market/marketOverview', // todo => merge in fetchMarkets
+                        'spot/markets/index-tickers', // todo => add fetchTickers
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
@@ -65,7 +67,7 @@ class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
-                        'tickers',
+                        'tickers', // todo => add fetchTickers
                         'trades',
                     ),
                 ),
