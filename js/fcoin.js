@@ -123,6 +123,7 @@ module.exports = class fcoin extends Exchange {
             },
             'commonCurrencies': {
                 'DAG': 'DAGX',
+                'PAI': 'PCHAIN',
             },
         });
     }
