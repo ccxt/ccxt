@@ -114,6 +114,9 @@ module.exports = class cointiger extends huobipro {
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
             },
+            'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
+            },
         });
     }
 
