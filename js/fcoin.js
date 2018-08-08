@@ -121,6 +121,9 @@ module.exports = class fcoin extends Exchange {
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
             },
+            'commonCurrencies': {
+                'DAG': 'DAGX',
+            },
         });
     }
 
