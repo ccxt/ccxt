@@ -50,7 +50,7 @@ class Exchange(BaseExchange):
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.own_session = 'session' not in config
         if self.own_session:
-            # Create out SSL context object with our CA cert file
+            # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
