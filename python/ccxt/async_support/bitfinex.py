@@ -274,6 +274,7 @@ class bitfinex (Exchange):
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',

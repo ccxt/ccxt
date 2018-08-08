@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.87'
+const version = '1.17.88'
 
 Exchange.ccxtVersion = version
 
@@ -8250,6 +8250,7 @@ module.exports = class bitfinex extends Exchange {
                 'ORS': 'ORS Group', // conflict with Origin Sport #3230
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
