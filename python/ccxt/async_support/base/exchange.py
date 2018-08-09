@@ -15,6 +15,7 @@ import random
 import certifi
 import aiohttp
 import ssl
+import sys
 import yarl
 
 # -----------------------------------------------------------------------------
@@ -66,6 +67,13 @@ class Exchange(BaseExchange):
     def __del__(self):
         if self.session is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are creating the exchange instance from within your async coroutine, add exchange.close() to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
+
+    if sys.version_info >= (3, 5):
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            await self.close()
 
     async def close(self):
         if self.session is not None:
