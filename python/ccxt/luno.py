@@ -142,6 +142,7 @@ class luno (Exchange):
         quoteFee = self.safe_float(order, 'fee_counter')
         baseFee = self.safe_float(order, 'fee_base')
         filled = self.safe_float(order, 'base')
+        cost = self.safe_float(order, 'counter')
         remaining = None
         if amount is not None:
             if filled is not None:
@@ -165,6 +166,7 @@ class luno (Exchange):
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': None,
             'fee': fee,
