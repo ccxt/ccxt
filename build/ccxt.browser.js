@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.91'
+const version = '1.17.92'
 
 Exchange.ccxtVersion = version
 
@@ -25444,6 +25444,7 @@ module.exports = class cointiger extends huobipro {
                 '100005': AuthenticationError,
             },
             'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
                 'TCT': 'The Tycoon Chain Token',
             },
         });

@@ -132,6 +132,7 @@ class cointiger (huobipro):
                 '100005': AuthenticationError,
             },
             'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
                 'TCT': 'The Tycoon Chain Token',
             },
         })

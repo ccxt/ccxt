@@ -115,6 +115,7 @@ class cointiger extends huobipro {
                 '100005' => '\\ccxt\\AuthenticationError',
             ),
             'commonCurrencies' => array (
+                'FGC' => 'FoundGameCoin',
                 'TCT' => 'The Tycoon Chain Token',
             ),
         ));
