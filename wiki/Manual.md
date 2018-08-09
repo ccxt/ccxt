@@ -222,6 +222,16 @@ let kraken1 = new ccxt.kraken ({ id: 'kraken1' })
 let kraken2 = new ccxt.kraken ({ id: 'kraken2' })
 let id = 'gdax'
 let gdax = new ccxt[id] ();
+
+// from variable id
+const exchangeId = 'binance'
+    , exchangeClass = ccxt[exchangeId]
+    , exchange = new exchangeClass ({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_SECRET',
+        'timeout': 30000,
+        'enableRateLimit': true,
+    })
 ```
 
 ```Python
@@ -233,6 +243,16 @@ okcoin2 = ccxt.okcoinusd ({ 'id': 'okcoin2' })
 id = 'btcchina'
 btcchina = eval ('ccxt.%s ()' % id)
 gdax = getattr (ccxt, 'gdax') ()
+
+# from variable id
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'timeout': 30000,
+    'enableRateLimit': True,
+})
 ```
 
 The ccxt library in PHP uses builtin UTC/GMT time functions, therefore you are required to set date.timezone in your php.ini or call [date_default_timezone_set ()](http://php.net/manual/en/function.date-default-timezone-set.php) function before using the PHP version of the library. The recommended timezone setting is `"UTC"`.
@@ -247,6 +267,16 @@ $bitfinex2 = new \ccxt\bitfinex (array ('id' => 'bitfinex2'));
 $id = 'kraken';
 $exchange = '\\ccxt\\' . $id
 $kraken = new $exchange ();
+
+// from variable id
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    'timeout' => 30000,
+    'enableRateLimit' => true,
+));
 ```
 
 ## Exchange Structure
@@ -1521,6 +1551,16 @@ let okcoinusd = new ccxt.okcoinusd ({
     apiKey: 'YOUR_OKCOIN_API_KEY',
     secret: 'YOUR_OKCOIN_SECRET_KEY',
 })
+
+// from variable id
+const exchangeId = 'binance'
+    , exchangeClass = ccxt[exchangeId]
+    , exchange = new exchangeClass ({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_SECRET',
+        'timeout': 30000,
+        'enableRateLimit': true,
+    })
 ```
 
 ```Python
@@ -1537,6 +1577,16 @@ bitfinex.secret = 'YOUR_BFX_SECRET'
 hitbtc = ccxt.hitbtc ({
     'apiKey': 'YOUR_HITBTC_API_KEY',
     'secret': 'YOUR_HITBTC_SECRET_KEY',
+})
+
+# from variable id
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'timeout': 30000,
+    'enableRateLimit': True,
 })
 ```
 
@@ -1556,6 +1606,15 @@ $zaif = new \ccxt\zaif (array (
     'secret' => 'YOUR_ZAIF_SECRET_KEY'
 ));
 
+// from variable id
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    'timeout' => 30000,
+    'enableRateLimit' => true,
+));
 ```
 
 Note that your private requests will fail with an exception or error if you don't set up your API credentials before you start trading. To avoid character escaping **always write your credentials in single quotes**, not double quotes (`'VERY_GOOD'`, `"VERY_BAD"`).
