@@ -105,7 +105,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame': 'FairGame', 
+            'FairGame': 'FairGame',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
