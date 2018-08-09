@@ -105,7 +105,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame': 'FairGame',
+            'FairGame': 'FairGame', 
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
@@ -119,6 +119,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Maggie': 'Maggie',
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
+            'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
