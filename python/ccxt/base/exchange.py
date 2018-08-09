@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.88'
+__version__ = '1.17.91'
 
 # -----------------------------------------------------------------------------
 
@@ -1167,6 +1167,9 @@ class Exchange(object):
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
 
     def convert_trading_view_to_ohlcv(self, ohlcvs):
         result = []

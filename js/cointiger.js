@@ -116,6 +116,7 @@ module.exports = class cointiger extends huobipro {
             },
             'commonCurrencies': {
                 'FGC': 'FoundGameCoin',
+                'TCT': 'The Tycoon Chain Token',
             },
         });
     }

@@ -4,6 +4,10 @@ import asyncio
 import os
 import sys
 
+if not sys.version >= '3.6':
+    print('This script requires Python 3.6+')
+    sys.exit()
+
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
 

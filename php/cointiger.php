@@ -114,6 +114,9 @@ class cointiger extends huobipro {
                 '100003' => '\\ccxt\\ExchangeError',
                 '100005' => '\\ccxt\\AuthenticationError',
             ),
+            'commonCurrencies' => array (
+                'TCT' => 'The Tycoon Chain Token',
+            ),
         ));
     }
 
