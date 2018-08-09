@@ -15,15 +15,16 @@ async def test():
     exchange = ccxt.bitstamp({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'enableRateLimit': True,
+        'enableRateLimit': True,  # this is required, as documented in the Manual!
     })
 
     response = None
 
     try:
 
-        await exchange.load_markets()
-        exchange.verbose = True  # for debugging
+        await exchange.load_markets()  # force-preload markets first
+
+        exchange.verbose = True  # this is for debugging
 
         symbol = 'BTC/USD'  # change for your symbol
         amount = 1.0        # change the amount
