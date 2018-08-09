@@ -413,7 +413,7 @@ module.exports = class deribit extends Exchange {
                 auth += '&' + this.urlencode (params);
             }
             let hash = this.hash (this.encode (auth), 'sha256', 'base64');
-            let signature = this.apiKey + '.' + nonce + '.' + hash;
+            let signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,
