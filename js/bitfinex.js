@@ -254,7 +254,7 @@ module.exports = class bitfinex extends Exchange {
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
-                'DSH': 'DASH', 
+                'DSH': 'DASH',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
