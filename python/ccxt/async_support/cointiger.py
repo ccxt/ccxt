@@ -131,6 +131,9 @@ class cointiger (huobipro):
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
             },
+            'commonCurrencies': {
+                'TCT': 'The Tycoon Chain Token',
+            },
         })
 
     async def fetch_markets(self):
