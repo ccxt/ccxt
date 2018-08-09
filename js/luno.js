@@ -146,6 +146,7 @@ module.exports = class luno extends Exchange {
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
         let filled = this.safeFloat (order, 'base');
+        let cost = this.safeFloat (order, 'counter');
         let remaining = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
@@ -172,6 +173,7 @@ module.exports = class luno extends Exchange {
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
