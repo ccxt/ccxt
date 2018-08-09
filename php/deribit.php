@@ -414,7 +414,7 @@ class deribit extends Exchange {
                 $auth .= '&' . $this->urlencode ($params);
             }
             $hash = $this->hash ($this->encode ($auth), 'sha256', 'base64');
-            $signature = $this->apiKey . '.' . $nonce . '.' . $hash;
+            $signature = $this->apiKey . '.' . $nonce . '.' . $this->decode ($hash);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'x-deribit-sig' => $signature,
