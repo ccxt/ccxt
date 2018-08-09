@@ -82,7 +82,7 @@ module.exports = class exx extends Exchange {
             },
             'commonCurrencies': {
                 'CAN': 'Content and AD Network',
-                'TV': 'TIV',
+                'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
                 '103': AuthenticationError,
