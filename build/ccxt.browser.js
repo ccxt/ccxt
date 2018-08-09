@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.94'
+const version = '1.17.95'
 
 Exchange.ccxtVersion = version
 
@@ -12010,11 +12010,13 @@ module.exports = class bitsane extends Exchange {
             body = this.extend ({
                 'nonce': this.nonce (),
             }, params);
-            body = this.stringToBase64 (this.json (body));
+            let payload = this.json (body);
+            let payload64 = this.stringToBase64 (this.encode (payload));
+            body = this.decode (payload64);
             headers = {
                 'X-BS-APIKEY': this.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': this.hmac (this.encode (body), this.encode (this.secret), 'sha384'),
+                'X-BS-SIGNATURE': this.hmac (payload64, this.encode (this.secret), 'sha384'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -42701,6 +42703,7 @@ module.exports = class luno extends Exchange {
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
         let filled = this.safeFloat (order, 'base');
+        let cost = this.safeFloat (order, 'counter');
         let remaining = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
@@ -42727,6 +42730,7 @@ module.exports = class luno extends Exchange {
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
