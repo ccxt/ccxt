@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.92'
+const version = '1.17.93'
 
 Exchange.ccxtVersion = version
 
@@ -4528,6 +4528,7 @@ module.exports = class bibox extends Exchange {
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'PAI': 'PCHAIN',
             },
         });
     }
@@ -23539,6 +23540,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Maggie': 'Maggie',
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
+            'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
@@ -29377,6 +29379,10 @@ module.exports = class fcoin extends Exchange {
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
+            },
+            'commonCurrencies': {
+                'DAG': 'DAGX',
+                'PAI': 'PCHAIN',
             },
         });
     }
