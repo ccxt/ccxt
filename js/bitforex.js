@@ -61,7 +61,53 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchMarkets () {
-       return -1;
+        let response = await this.publicGetMarketSymbols ();
+        let data = response['data'];
+        let result = [];
+        for (let i = 0; i < data.length; i++) {
+            let market = data[i];
+            let id = market['symbol'];
+            let symbolParts = id.split ('-');
+            let baseId = symbolParts[2];
+            let quoteId = symbolParts[1];
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            let symbol = base + '/' + quote;
+            let active = true;
+            let precision = {
+                'amount':market['amountPrecision'],   //TODO: This is 4. Do we need to convert to decimal places? (eg. 0.0001?)
+                'price':  market['pricePrecision'],
+            };
+            let limits = {
+                'amount': {
+                    'min': market['minOrderAmount'], 
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined, 
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined, 
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -109,10 +155,21 @@ module.exports = class bitforex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        return -1;
-    }
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+
+            //TODO
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };    }
 
     handleErrors (code, reason, url, method, headers, body) {
-        return -1;
+        //TODO
+        return;
     }
 };
