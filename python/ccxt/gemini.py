@@ -29,6 +29,7 @@ class gemini (Exchange):
                 'fetchOrders': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
+                'createMarketOrder': False,
                 'withdraw': True,
             },
             'urls': {

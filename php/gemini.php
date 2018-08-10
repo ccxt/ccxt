@@ -27,6 +27,7 @@ class gemini extends Exchange {
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
+                'createMarketOrder' => false,
                 'withdraw' => true,
             ),
             'urls' => array (

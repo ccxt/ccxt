@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.101'
+const version = '1.17.102'
 
 Exchange.ccxtVersion = version
 
@@ -32536,6 +32536,7 @@ module.exports = class gemini extends Exchange {
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': false,
+                'createMarketOrder': false,
                 'withdraw': true,
             },
             'urls': {
