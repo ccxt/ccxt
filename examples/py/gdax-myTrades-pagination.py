@@ -2,17 +2,17 @@
 
 import os
 import sys
-
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(root + '/python')
+
+import ccxt
+
 '''
 Example snippet to traverse GDAX / CoinBase Pro pagination.
 Useful for reaching back more than 100 myTrades, the same works
 for fetchClosedOrders
-
 '''
 
-import ccxt
 
 exchange = ccxt.gdax({
     "apiKey": "123456",
@@ -21,12 +21,9 @@ exchange = ccxt.gdax({
     "enableRateLimit": True
 })
 
-#use sandbox url
-exchange.urls['api'] = exchange.urls['test']
-
-param_key=''
-param_value=''
-allMyTrades: list = []
+param_key = ''
+param_value = ''
+allMyTrades = []
 
 while True:
     myTrades = exchange.fetchMyTrades(symbol='BTC/USD', params={param_key: param_value})
