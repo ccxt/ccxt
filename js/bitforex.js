@@ -28,7 +28,7 @@ module.exports = class bitforex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1249087/43923293-57f06258-9bef-11e8-8630-53bd65111998.png',
-                'api': 'https://api.bitforex.com/api/v1',  
+                'api': 'https://api.bitforex.com',  
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
@@ -37,21 +37,21 @@ module.exports = class bitforex extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'market/symbols',
-                        'market/ticker',
-                        'market/depth',
-                        'market/trades',
-                        'market/kline',
+                        'api/v1/market/symbols',
+                        'api/v1/market/ticker',
+                        'api/v1/market/depth',
+                        'api/v1/market/trades',
+                        'api/v1/market/kline',
                     ],
                 },
                 'private': {
                     'post': [
-                        'fund/mainAccount',
-                        'fund/allAccount',
-                        'fund/placeOrder',
-                        'fund/cancelOrder',
-                        'fund/orderInfo',
-                        'fund/orderInfos',
+                        'api/v1/fund/mainAccount',
+                        'api/v1/fund/allAccount',
+                        'api/v1/fund/placeOrder',
+                        'api/v1/fund/cancelOrder',
+                        'api/v1/fund/orderInfo',
+                        'api/v1/trade/orderInfos',
                     ],
                 },
             },
@@ -61,7 +61,7 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetMarketSymbols ();
+        let response = await this.publicGetApiV1MarketSymbols ();
         let data = response['data'];
         let result = [];
         for (let i = 0; i < data.length; i++) {
@@ -156,7 +156,7 @@ module.exports = class bitforex extends Exchange {
             request['size'] = limit
         }
         let market = this.market(symbol);
-        let response = await this.publicGetMarketTrades (this.extend (request, params));
+        let response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -170,7 +170,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol':market.id,
         };
-        let response = await this.publicGetMarketTicker (this.extend (request, params));
+        let response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
         let data = response['data'];
         return {
             'symbol': symbol,
@@ -205,7 +205,7 @@ module.exports = class bitforex extends Exchange {
         if (typeof limit !== 'undefined') {
             request['size'] = limit
         }
-        let response = await this.publicGetMarketDepth (this.extend (request, params));
+        let response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
         let data = response['data'];
         let timestamp = response['time'];
         let bidsKey = 'bids';
@@ -217,7 +217,7 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return -1;
+        return -1
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -253,10 +253,20 @@ module.exports = class bitforex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-
-            //TODO
+            let payload = this.urlencode ({ 'accessKey': this.apiKey });
+            query['nonce'] = this.milliseconds();
+            if (Object.keys (query).length) {
+                payload += '&' + this.urlencode (this.keysort (query));
+            }
+            let message = '/' + path + '?' + payload;
+            let signature = this.hmac (message, this.secret);
+            body = payload + '&signData=' + signature;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };    }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
 
     handleErrors (code, reason, url, method, headers, body) {
         //TODO
