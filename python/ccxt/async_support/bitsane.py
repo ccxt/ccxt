@@ -411,11 +411,13 @@ class bitsane (Exchange):
             body = self.extend({
                 'nonce': self.nonce(),
             }, params)
-            body = base64.b64encode(self.json(body))
+            payload = self.json(body)
+            payload64 = base64.b64encode(self.encode(payload))
+            body = self.decode(payload64)
             headers = {
                 'X-BS-APIKEY': self.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha384),
+                'X-BS-SIGNATURE': self.hmac(payload64, self.encode(self.secret), hashlib.sha384),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

@@ -44,6 +44,8 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
+                        'futures/pc/market/marketOverview', // todo: merge in fetchMarkets
+                        'spot/markets/index-tickers', // todo: add fetchTickers
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
@@ -64,7 +66,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
-                        'tickers',
+                        'tickers', // todo: add fetchTickers
                         'trades',
                     ],
                 },

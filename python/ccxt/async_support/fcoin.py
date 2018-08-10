@@ -140,6 +140,10 @@ class fcoin (Exchange):
                 '6004': InvalidNonce,
                 '6005': AuthenticationError,  # Illegal API Signature
             },
+            'commonCurrencies': {
+                'DAG': 'DAGX',
+                'PAI': 'PCHAIN',
+            },
         })
 
     async def fetch_markets(self):

@@ -115,6 +115,7 @@ class bibox (Exchange):
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'PAI': 'PCHAIN',
             },
         })
 

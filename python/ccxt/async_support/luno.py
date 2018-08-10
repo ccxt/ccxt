@@ -105,17 +105,18 @@ class luno (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetBalance()
-        balances = response['balance']
+        wallets = response['balance']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = self.common_currency_code(balance['asset'])
-            reserved = float(balance['reserved'])
-            unconfirmed = float(balance['unconfirmed'])
+        for b in range(0, len(wallets)):
+            wallet = wallets[b]
+            currency = self.common_currency_code(wallet['asset'])
+            reserved = float(wallet['reserved'])
+            unconfirmed = float(wallet['unconfirmed'])
+            balance = float(wallet['balance'])
             account = {
                 'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': float(balance['balance']),
+                'total': self.sum(balance, unconfirmed),
             }
             account['free'] = account['total'] - account['used']
             result[currency] = account
@@ -140,7 +141,8 @@ class luno (Exchange):
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
         baseFee = self.safe_float(order, 'fee_base')
-        filled = self.safe_float(order, 'filled')
+        filled = self.safe_float(order, 'base')
+        cost = self.safe_float(order, 'counter')
         remaining = None
         if amount is not None:
             if filled is not None:
@@ -164,6 +166,7 @@ class luno (Exchange):
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': None,
             'fee': fee,

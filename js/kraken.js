@@ -198,6 +198,7 @@ module.exports = class kraken extends Exchange {
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
                 'EGeneral:Internal error': ExchangeNotAvailable,
+                'EGeneral:Temporary lockout': DDoSProtection,
             },
         });
     }

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.81'
+const version = '1.17.101'
 
 Exchange.ccxtVersion = version
 
@@ -4109,7 +4109,7 @@ module.exports = class bcex extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp = timestamp * 1000;
         }
-        let id = this.safeString2 (trade, 'tid');
+        let id = this.safeString (trade, 'tid');
         let orderId = this.safeString (trade, 'order_id');
         let amount = this.safeFloat2 (trade, 'number', 'amount');
         let price = this.safeFloat (trade, 'price');
@@ -4528,6 +4528,7 @@ module.exports = class bibox extends Exchange {
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'PAI': 'PCHAIN',
             },
         });
     }
@@ -6079,6 +6080,7 @@ module.exports = class binance extends Exchange {
                 '-1021': InvalidNonce, // 'your time is ahead of server'
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -6373,7 +6375,16 @@ module.exports = class binance extends Exchange {
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = maximum = 500
+        // 'limit': 500,     // default = 500, maximum = 1000
+        //
+        // Caveats:
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
         let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -8227,19 +8238,27 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ATM': 'ATMI', // Bitfinex uses ATM instead of the official ATMI
+                'ABS': 'ABYSS',
+                'AIO': 'AION',
+                'ATM': 'ATMI',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
                 'CTX': 'CTXC',
+                'DAD': 'DADI',
                 'DAT': 'DATA',
-                'DSH': 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'DSH': 'DASH',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
+                'IQX': 'IQ',
+                'MIT': 'MITH',
                 'MNA': 'MANA',
+                'NCA': 'NCASH',
                 'ORS': 'ORS Group', // conflict with Origin Sport #3230
+                'POY': 'POLY',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
@@ -11998,11 +12017,13 @@ module.exports = class bitsane extends Exchange {
             body = this.extend ({
                 'nonce': this.nonce (),
             }, params);
-            body = this.stringToBase64 (this.json (body));
+            let payload = this.json (body);
+            let payload64 = this.stringToBase64 (this.encode (payload));
+            body = this.decode (payload64);
             headers = {
                 'X-BS-APIKEY': this.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': this.hmac (this.encode (body), this.encode (this.secret), 'sha384'),
+                'X-BS-SIGNATURE': this.hmac (payload64, this.encode (this.secret), 'sha384'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -18148,16 +18169,20 @@ module.exports = class bxinth extends Exchange {
         for (let p = 0; p < keys.length; p++) {
             let market = markets[keys[p]];
             let id = market['pairing_id'].toString ();
-            let base = market['secondary_currency'];
-            let quote = market['primary_currency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['secondary_currency'];
+            let quoteId = market['primary_currency'];
+            let active = market['active'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
                 'info': market,
             });
         }
@@ -20779,6 +20804,9 @@ module.exports = class coinegg extends Exchange {
             },
             'options': {
                 'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
+            },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
             },
         });
     }
@@ -23521,6 +23549,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Maggie': 'Maggie',
             'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
+            'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
@@ -25424,6 +25453,10 @@ module.exports = class cointiger extends huobipro {
                 '100002': ExchangeNotAvailable,
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
+            },
+            'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
+                'TCT': 'The Tycoon Chain Token',
             },
         });
     }
@@ -27917,7 +27950,7 @@ module.exports = class deribit extends Exchange {
                 auth += '&' + this.urlencode (params);
             }
             let hash = this.hash (this.encode (auth), 'sha256', 'base64');
-            let signature = this.apiKey + '.' + nonce + '.' + hash;
+            let signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,
@@ -28908,6 +28941,7 @@ module.exports = class exx extends Exchange {
             },
             'commonCurrencies': {
                 'CAN': 'Content and AD Network',
+                'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
                 '103': AuthenticationError,
@@ -29355,6 +29389,10 @@ module.exports = class fcoin extends Exchange {
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
+            },
+            'commonCurrencies': {
+                'DAG': 'DAGX',
+                'PAI': 'PCHAIN',
             },
         });
     }
@@ -38091,6 +38129,7 @@ module.exports = class kraken extends Exchange {
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
                 'EGeneral:Internal error': ExchangeNotAvailable,
+                'EGeneral:Temporary lockout': DDoSProtection,
             },
         });
     }
@@ -42633,17 +42672,18 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
-        let balances = response['balance'];
+        let wallets = response['balance'];
         let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = this.commonCurrencyCode (balance['asset']);
-            let reserved = parseFloat (balance['reserved']);
-            let unconfirmed = parseFloat (balance['unconfirmed']);
+        for (let b = 0; b < wallets.length; b++) {
+            let wallet = wallets[b];
+            let currency = this.commonCurrencyCode (wallet['asset']);
+            let reserved = parseFloat (wallet['reserved']);
+            let unconfirmed = parseFloat (wallet['unconfirmed']);
+            let balance = parseFloat (wallet['balance']);
             let account = {
                 'free': 0.0,
                 'used': this.sum (reserved, unconfirmed),
-                'total': parseFloat (balance['balance']),
+                'total': this.sum (balance, unconfirmed),
             };
             account['free'] = account['total'] - account['used'];
             result[currency] = account;
@@ -42671,7 +42711,8 @@ module.exports = class luno extends Exchange {
         let amount = this.safeFloat (order, 'limit_volume');
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
-        let filled = this.safeFloat (order, 'filled');
+        let filled = this.safeFloat (order, 'base');
+        let cost = this.safeFloat (order, 'counter');
         let remaining = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
@@ -42698,6 +42739,7 @@ module.exports = class luno extends Exchange {
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,
@@ -44435,6 +44477,8 @@ module.exports = class okcoinusd extends Exchange {
             'api': {
                 'web': {
                     'get': [
+                        'futures/pc/market/marketOverview', // todo: merge in fetchMarkets
+                        'spot/markets/index-tickers', // todo: add fetchTickers
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
@@ -44455,7 +44499,7 @@ module.exports = class okcoinusd extends Exchange {
                         'kline',
                         'otcs',
                         'ticker',
-                        'tickers',
+                        'tickers', // todo: add fetchTickers
                         'trades',
                     ],
                 },
@@ -48500,7 +48544,7 @@ module.exports = class theocean extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
-                'api': 'https://api.staging.theocean.trade/api',
+                'api': 'https://api.theocean.trade/api',
                 'www': 'https://theocean.trade',
                 'doc': 'https://docs.theocean.trade',
                 'fees': 'https://theocean.trade/fees',

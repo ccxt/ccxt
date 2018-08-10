@@ -153,7 +153,7 @@ class bcex (Exchange):
         timestamp = self.safe_integer_2(trade, 'date', 'created')
         if timestamp is not None:
             timestamp = timestamp * 1000
-        id = self.safe_string_2(trade, 'tid')
+        id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         amount = self.safe_float_2(trade, 'number', 'amount')
         price = self.safe_float(trade, 'price')

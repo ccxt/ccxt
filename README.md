@@ -324,6 +324,15 @@ const ccxt = require ('ccxt');
         secret: 'YOUR_SECRET_PRIVATE_KEY',
     })
 
+    const exchangeId = 'binance'
+        , exchangeClass = ccxt[exchangeId]
+        , exchange = new exchangeClass ({
+            'apiKey': 'YOUR_API_KEY',
+            'secret': 'YOUR_SECRET',
+            'timeout': 30000,
+            'enableRateLimit': true,
+        })
+
     console.log (kraken.id,    await kraken.loadMarkets ())
     console.log (bitfinex.id,  await bitfinex.loadMarkets  ())
     console.log (huobi.id,     await huobi.loadMarkets ())
@@ -343,6 +352,7 @@ const ccxt = require ('ccxt');
     // pass/redefine custom exchange-specific order params: type, amount, price or whatever
     // use a custom order type
     bitfinex.createLimitSellOrder ('BTC/USD', 1, 10, { 'type': 'trailing-stop' })
+
 }) ();
 ```
 
@@ -363,6 +373,15 @@ exmo   = ccxt.exmo({
 kraken = ccxt.kraken({
     'apiKey': 'YOUR_PUBLIC_API_KEY',
     'secret': 'YOUR_SECRET_PRIVATE_KEY',
+})
+
+exchange_id = 'binance'
+exchange_class = getattr(ccxt, exchange_id)
+exchange = exchange_class({
+    'apiKey': 'YOUR_API_KEY',
+    'secret': 'YOUR_SECRET',
+    'timeout': 30000,
+    'enableRateLimit': True,
 })
 
 hitbtc_markets = hitbtc.load_markets()
@@ -402,6 +421,15 @@ $zaif     = new \ccxt\zaif     (array (
 $hitbtc   = new \ccxt\hitbtc   (array (
     'apiKey' => 'YOUR_PUBLIC_API_KEY',
     'secret' => 'YOUR_SECRET_PRIVATE_KEY',
+));
+
+$exchange_id = 'binance';
+$exchange_class = "\\ccxt\\$exchange_id";
+$exchange = new $exchange_class (array (
+    'apiKey' => 'YOUR_API_KEY',
+    'secret' => 'YOUR_SECRET',
+    'timeout' => 30000,
+    'enableRateLimit' => true,
 ));
 
 $poloniex_markets = $poloniex->load_markets ();

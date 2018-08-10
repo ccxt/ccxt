@@ -385,7 +385,7 @@ class deribit (Exchange):
                 params = self.keysort(params)
                 auth += '&' + self.urlencode(params)
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
-            signature = self.apiKey + '.' + nonce + '.' + hash
+            signature = self.apiKey + '.' + nonce + '.' + self.decode(hash)
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,

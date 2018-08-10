@@ -106,17 +106,18 @@ module.exports = class luno extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
-        let balances = response['balance'];
+        let wallets = response['balance'];
         let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = this.commonCurrencyCode (balance['asset']);
-            let reserved = parseFloat (balance['reserved']);
-            let unconfirmed = parseFloat (balance['unconfirmed']);
+        for (let b = 0; b < wallets.length; b++) {
+            let wallet = wallets[b];
+            let currency = this.commonCurrencyCode (wallet['asset']);
+            let reserved = parseFloat (wallet['reserved']);
+            let unconfirmed = parseFloat (wallet['unconfirmed']);
+            let balance = parseFloat (wallet['balance']);
             let account = {
                 'free': 0.0,
                 'used': this.sum (reserved, unconfirmed),
-                'total': parseFloat (balance['balance']),
+                'total': this.sum (balance, unconfirmed),
             };
             account['free'] = account['total'] - account['used'];
             result[currency] = account;
@@ -144,7 +145,8 @@ module.exports = class luno extends Exchange {
         let amount = this.safeFloat (order, 'limit_volume');
         let quoteFee = this.safeFloat (order, 'fee_counter');
         let baseFee = this.safeFloat (order, 'fee_base');
-        let filled = this.safeFloat (order, 'filled');
+        let filled = this.safeFloat (order, 'base');
+        let cost = this.safeFloat (order, 'counter');
         let remaining = undefined;
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
@@ -171,6 +173,7 @@ module.exports = class luno extends Exchange {
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': undefined,
             'fee': fee,

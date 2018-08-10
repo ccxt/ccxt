@@ -423,11 +423,13 @@ module.exports = class bitsane extends Exchange {
             body = this.extend ({
                 'nonce': this.nonce (),
             }, params);
-            body = this.stringToBase64 (this.json (body));
+            let payload = this.json (body);
+            let payload64 = this.stringToBase64 (this.encode (payload));
+            body = this.decode (payload64);
             headers = {
                 'X-BS-APIKEY': this.apiKey,
                 'X-BS-PAYLOAD': body,
-                'X-BS-SIGNATURE': this.hmac (this.encode (body), this.encode (this.secret), 'sha384'),
+                'X-BS-SIGNATURE': this.hmac (payload64, this.encode (this.secret), 'sha384'),
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.81'
+__version__ = '1.17.101'
 
 # -----------------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ class Exchange(BaseExchange):
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.own_session = 'session' not in config
         if self.own_session:
-            # Create out SSL context object with our CA cert file
+            # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
@@ -211,9 +211,11 @@ class Exchange(BaseExchange):
         trades = await self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
 
+    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+
     async def fetch_full_tickers(self, symbols=None, params={}):
-        tickers = await self.fetch_tickers(symbols, params)
-        return tickers
+        return await self.fetch_tickers(symbols, params)
 
     async def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:

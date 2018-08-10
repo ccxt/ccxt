@@ -150,7 +150,7 @@ class bcex extends Exchange {
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
         }
-        $id = $this->safe_string_2($trade, 'tid');
+        $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $amount = $this->safe_float_2($trade, 'number', 'amount');
         $price = $this->safe_float($trade, 'price');
