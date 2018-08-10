@@ -110,8 +110,54 @@ module.exports = class bitforex extends Exchange {
         return result;
     }
 
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let timestamp = this.safeInteger (trade, 'time');
+        let id = this.safeString (trade, 'tid');
+        let orderId = undefined
+        let amount = this.safeFloat (trade, 'amount');
+        let price = this.safeFloat (trade, 'price');
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = amount * price;
+            }
+        }
+        let side = "buy";
+        let sideId = this.safeString (trade, 'direction');
+        if (sideId == 2) {
+            side = "sell";
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'order': orderId,
+            'fee': undefined,
+        };
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let request = {
+            'symbol': this.marketId(symbol)
+        }
+        if (typeof limit !== 'undefined') {
+            request['size'] = limit
+        }
+        let market = this.market(symbol);
+        let response = await this.publicGetMarketTrades (this.extend (request, params));
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
