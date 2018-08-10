@@ -126,11 +126,8 @@ module.exports = class bitforex extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = "buy";
         let sideId = this.safeString (trade, 'direction');
-        if (sideId == 2) {
-            side = "sell";
-        }
+        let side = this.parseSide(sideId);
         return {
             'info': trade,
             'id': id,
@@ -220,6 +217,66 @@ module.exports = class bitforex extends Exchange {
         return -1
     }
 
+    parseOrderStatus (orderStatusId) {
+        if (orderStatusId === 0 || orderStatusId === 1) {
+            return 'open';
+        } else if (orderStatusId === 2) {
+            return 'closed';
+        } else if (orderStatusId === 3 || orderStatusId == 4) {
+            return 'canceled';
+        } else {
+            return undefined;
+        }
+    }
+
+    parseSide (sideId) {
+        if (sideId === 1) {
+            return 'buy';
+        } else if (sideId === 2) {
+            return 'sell';
+        } else {
+            return undefined;
+        }
+    }
+
+    parseOrder (order, market = undefined) {
+        let id =  this.safeString (order, 'orderId');
+        let timestamp = this.safeFloat2 (order, 'lastTime', 'createTime');
+        let iso8601 = this.iso8601 (timestamp);
+        let symbol = market['symbol'];
+        let sideId = this.safeInteger (order, 'tradeType');
+        let side = this.parseSide (sideId);
+        let type = undefined;
+        let price = this.safeFloat (order, 'orderPrice');
+        let average = this.safeFloat (order, 'avgPrice');
+        let amount = this.safeFloat (order, 'orderAmount')
+        let filled = this.safeFloat (order, 'dealAmount')
+        let remaining = amount - filled;
+        let statusId = this.safeInteger (order, 'orderState');
+        let status = this.parseOrderStatus (statusId);
+        let cost = filled * price;
+        let fee = this.safeFloat (order, 'tradeFee');
+        let result = {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         return -1;
     }
@@ -229,7 +286,14 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId(symbol),
+            'state': 0,
+        };
+        let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
