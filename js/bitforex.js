@@ -48,9 +48,9 @@ module.exports = class bitforex extends Exchange {
                     'post': [
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
-                        'api/v1/fund/placeOrder',
-                        'api/v1/fund/cancelOrder',
-                        'api/v1/fund/orderInfo',
+                        'api/v1/trade/placeOrder',
+                        'api/v1/trade/cancelOrder',
+                        'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
                     ],
                 },
@@ -305,7 +305,18 @@ module.exports = class bitforex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let request = {
+            'orderId': id,
+        };
+        if (typeof symbol !== 'undefined') {
+            request['symbol'] = this.marketId(symbol);
+        }
+        let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
+        let data = results['data']; //True
+        let sucess = results['success']; //True
+        let time = results['time']; 
+        return success;             //What's correct return val?
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
