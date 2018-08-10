@@ -197,7 +197,23 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let marketId = this.marketId (symbol);
+        let request = {
+            'symbol': marketId,
+        };
+        if (typeof limit !== 'undefined') {
+            request['size'] = limit
+        }
+        let response = await this.publicGetMarketDepth (this.extend (request, params));
+        let data = response['data'];
+        let timestamp = response['time'];
+        let bidsKey = 'bids';
+        let asksKey = 'asks';
+        let priceKey = 'price';
+        let amountKey = 'amount';
+        let orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
+        return orderbook;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
