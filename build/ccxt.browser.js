@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.99'
+const version = '1.17.100'
 
 Exchange.ccxtVersion = version
 
@@ -28934,6 +28934,7 @@ module.exports = class exx extends Exchange {
             },
             'commonCurrencies': {
                 'CAN': 'Content and AD Network',
+                'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
                 '103': AuthenticationError,
