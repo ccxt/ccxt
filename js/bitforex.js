@@ -165,7 +165,35 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let market = this.markets[symbol];
+        let request = {
+            'symbol':market.id,
+        };
+        let response = await this.publicGetMarketTicker (this.extend (request, params));
+        let data = response['data'];
+        return {
+            'symbol': symbol,
+            'timestamp': this.safeInteger(data, 'date'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (data, 'high'),
+            'low': this.safeFloat (data, 'low'),
+            'bid': this.safeFloat (data, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (data, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeFloat (data, 'last'),
+            'last': this.safeFloat (data, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeFloat (data, 'vol'),
+            'quoteVolume': undefined,
+            'info': response,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
