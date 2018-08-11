@@ -18,16 +18,27 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 const ccxt         = require ('../../ccxt.js')
     , fs           = require ('fs')
     , path         = require ('path')
-    , asTable      = require ('as-table')
+    , ansi         = require ('ansicolor').nice
+    , asTable      = require ('as-table').configure ({
+
+        delimiter: ' | '.lightGray.dim,
+        right: true,
+        title: x => String (x).lightGray,
+        dash: '-'.lightGray.dim,
+        print: x => {
+            if ((typeof x === 'string') && x.startsWith ('2018-')) {
+                return new Date (x).toLocaleString ()
+            } else if (typeof x === 'object') {
+                const j = JSON.stringify (x).trim ()
+                if (j.length < 100) return j
+            }
+            return String (x)
+        }
+    })
     , util         = require ('util')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
     , { ExchangeError, NetworkError } = ccxt
-
-
-//-----------------------------------------------------------------------------
-
-require ('ansicolor').nice
 
 //-----------------------------------------------------------------------------
 
