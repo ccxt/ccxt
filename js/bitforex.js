@@ -158,7 +158,26 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let response = await this.privatePostApiV1FundAllAccount (params);
+        let data = response['data'];
+        let result = { 'info': response };
+        for (let i = 0; i < data.length; i++) {
+            let current = data[i];
+            let currencyId = current['currency'];
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
+            let account = this.account ();
+            result[code] = account;
+            result[code]['used'] = this.safeFloat(current, 'frozen');
+            result[code]['free'] = this.safeFloat(current, 'active');
+            result[code]['total'] = this.safeFloat(current, 'fix');
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
