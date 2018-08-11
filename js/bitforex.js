@@ -233,7 +233,25 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return -1
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let requestClosed = {
+            'symbol': this.marketId (symbol),
+            'state': 1,
+        };
+        let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
+        let closedData = []
+        if ('data' in responseClosed) {
+            closedData = responseClosed['data'];
+        }
+        let completedOrders = [];
+        for (let i = 0; i < closedData.length; i++) {
+            let current = closedData[i];
+            if (current['orderState'] == 2) {
+                completedOrders.push(current);
+            }
+        }
+        return this.parseOrders (completedOrders, market, since, limit);    
     }
 
     parseOrderStatus (orderStatusId) {
@@ -260,8 +278,9 @@ module.exports = class bitforex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id =  this.safeString (order, 'orderId');
-        let timestamp = this.safeFloat2 (order, 'lastTime', 'createTime');
+        let timestamp = this.safeFloat2 (order, 'createTime');
         let iso8601 = this.iso8601 (timestamp);
+        let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
         let symbol = market['symbol'];
         let sideId = this.safeInteger (order, 'tradeType');
         let side = this.parseSide (sideId);
@@ -280,7 +299,7 @@ module.exports = class bitforex extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': iso8601,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
