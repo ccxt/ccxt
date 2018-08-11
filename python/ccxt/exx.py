@@ -95,7 +95,6 @@ class exx (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
                 'TV': 'TIV',  # Ti-Value
             },
             'exceptions': {
