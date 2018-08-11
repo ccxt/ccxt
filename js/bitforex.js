@@ -328,7 +328,25 @@ module.exports = class bitforex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let sideId = undefined;
+        if (side === 'buy') {
+            sideId = 1;
+        } else if (side === 'sell') {
+            sideId = 2;
+        }
+        let request = {
+            'symbol': this.marketId(symbol),
+            'price': price,
+            'amount': amount,
+            'tradeType': sideId,
+        };
+        let response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
+        let data = response['data'];    //TODO: What if order fails?
+        return {
+            'info': response,
+            'id': this.safeString (data, 'orderId')
+        }
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
