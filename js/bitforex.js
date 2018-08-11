@@ -308,10 +308,6 @@ module.exports = class bitforex extends Exchange {
         return order;
     }
 
-    async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return -1;
-    }
-
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -324,7 +320,34 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let requestOpen = {
+            'symbol': this.marketId (symbol),
+            'state': 0,
+        };
+        let responseOpen = await this.privatePostApiV1TradeOrderInfos (this.extend (requestOpen, params));
+        let openData = []
+        if ('data' in responseOpen) {
+            openData = responseOpen['data'];
+        }
+        let requestClosed = {
+            'symbol': this.marketId (symbol),
+            'state': 1,
+        };
+        let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
+        let closedData = []
+        if ('data' in responseClosed) {
+            closedData = responseClosed['data'];
+        }
+        let allData = []
+        for (let i = 0; i < openData.length; i++) {
+            allData.push (openData[i]);
+        }
+        for (let i = 0; i < closedData.length; i++) {
+            allData.push (closedData[i]);
+        }
+        return this.parseOrders (allData, market, since, limit);    
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
