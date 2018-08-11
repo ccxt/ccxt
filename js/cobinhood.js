@@ -576,27 +576,27 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
-    async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof currency === 'undefined') {
             throw new ExchangeError (this.id + ' needs currency for deposit history');
         }
-        let curr = this.currency (currency);
+        let currency = this.currency (code);
         let request = {
-            'currency': curr['id'],
+            'currency': currency['id'],
         };
         let response = await this.privateGetWalletDeposits (this.extend (request, params));
         return this.parseTransactions (response['result']['deposits'], 'deposit', undefined, limit);
     }
 
-    async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof currency === 'undefined') {
             throw new ExchangeError (this.id + ' needs currency for deposit history');
         }
-        let curr = this.currency (currency);
+        let currency = this.currency (code);
         let request = {
-            'currency': curr['id'],
+            'currency': currency['id'],
         };
         let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
         return this.parseTransactions (response['result']['withdrawals'], 'withdraw', undefined, limit);
