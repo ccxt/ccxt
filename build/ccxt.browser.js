@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.104'
+const version = '1.17.105'
 
 Exchange.ccxtVersion = version
 
@@ -28889,6 +28889,7 @@ module.exports = class exx extends Exchange {
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {

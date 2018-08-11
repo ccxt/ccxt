@@ -41,6 +41,7 @@ class exx (Exchange):
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
