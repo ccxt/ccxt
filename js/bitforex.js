@@ -297,7 +297,15 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        return -1;
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId(symbol),
+            'orderId': id,
+        };
+        let response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
+        let order = this.parseOrder(response['data'], market);
+        return order;
     }
 
     async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
