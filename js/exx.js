@@ -14,6 +14,7 @@ module.exports = class exx extends Exchange {
             'name': 'EXX',
             'countries': [ 'CN' ],
             'rateLimit': 1000 / 10,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchOrder': true,
                 'fetchTickers': true,
@@ -366,6 +367,9 @@ module.exports = class exx extends Exchange {
             }, params)));
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
             url += '?' + query + '&signature=' + signature;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
