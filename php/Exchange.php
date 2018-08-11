@@ -674,6 +674,20 @@ class Exchange {
 
     public function __construct ($options = array ()) {
 
+        $method_names = get_class_methods ($this);
+        for ($method_names as $method_name) {
+            if ($method_name) {
+                // // print_r ();
+                // // exit ();
+                // # format camel case
+                // for attr in dir(self):
+                //     if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
+                //         conv = attr.split('_')
+                //         camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
+                //         setattr(self, camel_case, getattr(self, attr))
+            }
+        }
+
         $this->curl         = curl_init ();
         $this->curl_options = array (); // overrideable by user, empty by default
 
@@ -1416,14 +1430,14 @@ class Exchange {
         return $this->parse_trades ($trades, $market, $since, $limit);
     }
 
-    public function parse_transactions ($transactions, $side = null, $market = null, $since = null, $limit = null) {
+    public function parse_transactions ($transactions, $currency = null, $since = null, $limit = null) {
         $array = is_array ($transactions) ? array_values ($transactions) : array ();
         $result = array ();
         foreach ($array as $transaction)
-            $result[] = $this->parse_transaction ($transaction, $side);
+            $result[] = $this->parse_transaction ($transaction, $currency);
         $result = $this->sort_by ($result, 'timestamp');
-        $symbol = isset ($market) ? $market['symbol'] : null;
-        return $this->filter_by_symbol_since_limit ($result, $symbol, $since, $limit);
+        $code = isset ($currency) ? $currency['code'] : null;
+        return $this->filter_by_currency_since_limit ($result, $code, $since, $limit);
     }
 
     public function parseTransactions ($transactions, $side, $market = null, $since = null, $limit = null) {
@@ -1458,15 +1472,23 @@ class Exchange {
         return $this->filter_by_symbol ($orders, $symbol);
     }
 
-    public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+    public function filter_by_value_since_limit ($array, $field, $value = null, $since = null, $limit = null) {
         $array = array_values ($array);
-        $symbolIsSet = isset ($symbol);
+        $valueIsSet = isset ($value);
         $sinceIsSet = isset ($since);
-        $array = array_filter ($array, function ($element) use ($symbolIsSet, $symbol, $sinceIsSet, $since) {
-            return (($symbolIsSet ? ($element['symbol'] === $symbol)  : true) &&
-                    ($sinceIsSet  ? ($element['timestamp'] >= $since) : true));
+        $array = array_filter ($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since) {
+            return (($valueIsSet ? ($element[$field] === $value)     : true) &&
+                    ($sinceIsSet ? ($element['timestamp'] >= $since) : true));
         });
         return array_slice ($array, 0, isset ($limit) ? $limit : count ($array));
+    }
+
+    public function filter_by_symbol_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        return $this->filter_by_value_since_limit ($array, 'symbol', $symbol, $since, $limit);
+    }
+
+    public function filter_by_currency_since_limit ($array, $symbol = null, $since = null, $limit = null) {
+        return $this->filter_by_currency_since_limit ($array, 'currency', $symbol, $since, $limit);
     }
 
     public function filterBySymbolSinceLimit ($array, $symbol = null, $since = null, $limit = null) {
