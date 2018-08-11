@@ -583,11 +583,10 @@ module.exports = class cobinhood extends Exchange {
         }
         let curr = this.currency (currency);
         let request = {
-            'limit': limit,
             'currency': curr['id'],
         };
         let response = await this.privateGetWalletDeposits (this.extend (request, params));
-        return this.parseTransactions (response['result']['deposits'], 'deposit');
+        return this.parseTransactions (response['result']['deposits'], 'deposit', undefined, limit);
     }
 
     async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
@@ -597,11 +596,10 @@ module.exports = class cobinhood extends Exchange {
         }
         let curr = this.currency (currency);
         let request = {
-            'limit': limit,
             'currency': curr['id'],
         };
         let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
-        return this.parseTransactions (response['result']['withdrawals'], 'withdraw');
+        return this.parseTransactions (response['result']['withdrawals'], 'withdraw', undefined, limit);
     }
 
     parseTransactionStatus (status) {
@@ -640,7 +638,6 @@ module.exports = class cobinhood extends Exchange {
             'currency': currency,
             'status': this.parseTransactionStatus (transaction['status']),
             'side': side, // direction of the transaction, ('deposit' | 'withdraw')
-            'price': undefined,
             'amount': this.safeFloat (transaction, 'amount'),
             'fee': {
                 'cost': this.safeFloat (transaction, 'fee'),
