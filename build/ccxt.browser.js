@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.106'
+const version = '1.17.107'
 
 Exchange.ccxtVersion = version
 
@@ -23529,7 +23529,7 @@ module.exports = class coinmarketcap extends Exchange {
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'Content and AD Network': 'Content and AD Network', // conflict with CAN (Content and AD Network)
+            'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
@@ -26824,7 +26824,7 @@ module.exports = class cryptopia extends Exchange {
                 'BEAN': 'BITB', // rebranding, see issue #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
@@ -28943,7 +28943,6 @@ module.exports = class exx extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
                 'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
@@ -39075,7 +39074,7 @@ module.exports = class kucoin extends Exchange {
                             'BTG': 0.001,
                             'BTM': 1,
                             'CAG': 1,
-                            'CanYa': 1,
+                            'CanYaCoin': 1,
                             'CAPP': 1,
                             'CAT': 1,
                             'CBC': 1,
@@ -39222,7 +39221,7 @@ module.exports = class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'XRB': 'NANO',
             },
         });
@@ -45293,7 +45292,6 @@ module.exports = class okex extends okcoinusd {
                 'fees': 'https://www.okex.com/fees.html',
             },
             'commonCurrencies': {
-                'CAN': 'Content And AD Network',
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'MAG': 'Maggie',

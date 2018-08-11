@@ -211,7 +211,7 @@ class kucoin (Exchange):
                             'BTG': 0.001,
                             'BTM': 1,
                             'CAG': 1,
-                            'CanYa': 1,
+                            'CanYaCoin': 1,
                             'CAPP': 1,
                             'CAT': 1,
                             'CBC': 1,
@@ -358,7 +358,7 @@ class kucoin (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'XRB': 'NANO',
             },
         })
