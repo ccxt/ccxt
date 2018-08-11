@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.103'
+const version = '1.17.104'
 
 Exchange.ccxtVersion = version
 
@@ -23536,6 +23536,7 @@ module.exports = class coinmarketcap extends Exchange {
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
             'FairGame': 'FairGame',
+            'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
@@ -26829,6 +26830,7 @@ module.exports = class cryptopia extends Exchange {
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
+                'FT': 'Fabric Token',
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'KARM': 'KARMA',

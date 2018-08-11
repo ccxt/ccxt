@@ -106,6 +106,7 @@ class coinmarketcap (Exchange):
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
             'FairGame': 'FairGame',
+            'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)

@@ -106,6 +106,7 @@ class cryptopia extends Exchange {
                 'CMT' => 'Comet',
                 'EPC' => 'ExperienceCoin',
                 'FCN' => 'Facilecoin',
+                'FT' => 'Fabric Token',
                 'FUEL' => 'FC2', // FuelCoin != FUEL
                 'HAV' => 'Havecoin',
                 'KARM' => 'KARMA',
