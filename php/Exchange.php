@@ -786,6 +786,7 @@ class Exchange {
             'fetchClosedOrders' => false,
             'fetchCurrencies' => false,
             'fetchDepositAddress' => false,
+            'fetchDeposits' => false,
             'fetchFundingFees' => false,
             'fetchL2OrderBook' => true,
             'fetchMarkets' => true,
@@ -801,6 +802,8 @@ class Exchange {
             'fetchTrades' => true,
             'fetchTradingFees' => false,
             'fetchTradingLimits' => false,
+            'fetchTransactions' => false,
+            'fetchWithdrawals' => false,
             'withdraw' => false,
         );
 
