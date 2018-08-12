@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.108'
+const version = '1.17.109'
 
 Exchange.ccxtVersion = version
 
@@ -11111,14 +11111,14 @@ module.exports = class bitmex extends Exchange {
             let market = markets[p];
             let active = (market['state'] !== 'Unlisted');
             let id = market['symbol'];
-            let base = market['underlying'];
-            let quote = market['quoteCurrency'];
+            let baseId = market['underlying'];
+            let quoteId = market['quoteCurrency'];
             let type = undefined;
             let future = false;
             let prediction = false;
-            let basequote = base + quote;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let basequote = baseId + quoteId;
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let swap = (id === basequote);
             let symbol = id;
             if (swap) {
@@ -11144,6 +11144,8 @@ module.exports = class bitmex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
                 'limits': {
