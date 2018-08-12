@@ -25,6 +25,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -572,6 +574,20 @@ module.exports = class cobinhood extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWalletWithdrawals (this.extend ({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'id': response['result']['withdrawal_id'],
             'info': response,
         };
     }
