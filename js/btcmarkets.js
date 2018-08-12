@@ -86,20 +86,20 @@ module.exports = class btcmarkets extends Exchange {
             let market = markets[i];
             let base = market['instrument'];
             let quote = market['currency'];
-            let fee = quote == 'AUD' ? 0.0085 : 0.0022;
+            let fee = quote === 'AUD' ? 0.0085 : 0.0022;
             let precision = undefined;
-            if (quote == 'AUD') {
-                precision = { 'price' : base == 'XRP' || base == 'OMG' ? 4 : 2 }
+            if (quote === 'AUD') {
+                precision = { 'price': base === 'XRP' || base === 'OMG' ? 4 : 2 }
             }
             result.push ({
                 'id': base + '/' + quote,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
-                'maker': fee, 
-                'taker': fee, 
+                'maker': fee,
+                'taker': fee,
                 'limits': { 'amount': { 'min': 0.001, 'max': undefined }},
-                'precision': precision,            
+                'precision': precision,
             });
         }
         return result;
