@@ -2152,7 +2152,7 @@ Notice that the order `b` has disappeared, the selling order also isn't there. A
 
 ```JavaScript
 // JavaScript
-exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+// fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
 
 if (exchange.has['fetchMyTrades']) {
     const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
@@ -2161,7 +2161,7 @@ if (exchange.has['fetchMyTrades']) {
 
 ```Python
 # Python
-exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+# fetch_my_trades (symbol = None, since = None, limit = None, params = {})
 
 if exchange.has['fetchMyTrades']:
     exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
@@ -2169,9 +2169,9 @@ if exchange.has['fetchMyTrades']:
 
 ```PHP
 // PHP
-$exchange->fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+// fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
 
-if ($exchange.has['fetchMyTrades']) {
+if ($exchange->has['fetchMyTrades']) {
     $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
 }
 ```
@@ -2299,22 +2299,90 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 
 #### Deposits
 
+```JavaScript
+// JavaScript
+// fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchDeposits']) {
+    const deposits = await exchange.fetchDeposits (code, since, limit, params)
+}
 ```
-fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+
+```Python
+# Python
+# fetch_deposits(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchDeposits']) {
+    deposits = exchange.fetch_deposits(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_deposits ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchDeposits']) {
+    $deposits = $exchange->fetch_deposits ($code, $since, $limit, $params);
+}
 ```
 
 #### Withdrawals
 
+```JavaScript
+// JavaScript
+// fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchWithdrawals']) {
+    const deposits = await exchange.fetchWithdrawals (code, since, limit, params)
+}
 ```
-fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+
+```Python
+# Python
+# fetch_withdrawals(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchWithdrawals']) {
+    deposits = exchange.fetch_withdrawals(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchWithdrawals']) {
+    $deposits = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+}
 ```
 
 #### All transactions
 
-```
-fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
+```JavaScript
+// JavaScript
+// fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchTransactions']) {
+    const transactions = await exchange.fetchTransactions (code, since, limit, params)
+}
 ```
 
+```Python
+# Python
+# fetch_transactions(code = None, since = None, limit = None, params = {})
+
+if (exchange.has['fetchTransactions']) {
+    transactions = exchange.fetch_transactions(code, since, limit, params)
+}
+```
+
+```PHP
+// PHP
+// fetch_transactions ($code = null, $since = null, $limit = null, $params = {})
+
+if ($exchange->has['fetchTransactions']) {
+    $transactions = $exchange->fetch_transactions ($code, $since, $limit, $params);
+}
+```
 ## Fees
 
 **This section of the Unified CCXT API is under development.**
