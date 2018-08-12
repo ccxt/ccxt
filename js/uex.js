@@ -4,10 +4,11 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class bittrex extends Exchange {
+module.exports = class uex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'uex',
@@ -196,7 +197,7 @@ module.exports = class bittrex extends Exchange {
         //                       count_coin: "btc",
         //                 amount_precision:  3,
         //                        base_coin: "eth",
-        //                  price_precision:  6        },
+        //                  price_precision:  6        }]}
         //
         let result = [];
         let markets = response['data'];
@@ -268,7 +269,7 @@ module.exports = class bittrex extends Exchange {
         //                              {      normal: "0.00000000",
         //                                btcValuatin: "0.00000000",
         //                                     locked: "0.00000000",
-        //                                       coin: "ren"         },
+        //                                       coin: "ren"         }]}}
         //
         let balances = response['data']['coin_list'];
         let result = { 'info': balances };
@@ -495,7 +496,7 @@ module.exports = class bittrex extends Exchange {
         //                 create_time:  1533414311000,
         //                       price:  0.058019,
         //                          id:  406529,
-        //                        type: "sell"          },
+        //                        type: "sell"          } ] }
         //
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -525,7 +526,7 @@ module.exports = class bittrex extends Exchange {
         //       data:
         //        [ [ 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ],
         //          [ 1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88 ],
-        //          [ 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ],
+        //          [ 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ] ] }
         //
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
@@ -609,13 +610,13 @@ module.exports = class bittrex extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            '0': 'open', // INIT(0,"primary order，untraded and not enter the market"),
-            '1': 'open', // NEW_(1,"new order，untraded and enter the market "),
-            '2': 'closed', // FILLED(2,"complete deal"),
-            '3': 'open', // PART_FILLED(3,"partial deal"),
-            '4': 'canceled', // CANCELED(4,"already withdrawn"),
-            '5': 'canceled', // PENDING_CANCEL(5,"pending withdrawak"),
-            '6': 'canceled', // EXPIRED(6,"abnormal orders");
+            '0': 'open', // INIT(0,"primary order，untraded and not enter the market")
+            '1': 'open', // NEW_(1,"new order，untraded and enter the market ")
+            '2': 'closed', // FILLED(2,"complete deal")
+            '3': 'open', // PART_FILLED(3,"partial deal")
+            '4': 'canceled', // CANCELED(4,"already withdrawn")
+            '5': 'canceled', // PENDING_CANCEL(5,"pending withdrawak")
+            '6': 'canceled', // EXPIRED(6,"abnormal orders")
         };
         if (status in statuses) {
             return statuses[status];
@@ -973,7 +974,7 @@ module.exports = class bittrex extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             //
-            // {"code":"0","msg":"suc","data":[{"
+            // {"code":"0","msg":"suc","data":{}}
             //
             const code = this.safeString (response, 'code');
             // const message = this.safeString (response, 'msg');
