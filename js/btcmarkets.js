@@ -96,7 +96,7 @@ module.exports = class btcmarkets extends Exchange {
             if (quote === 'AUD') {
                 let pricePrecision = 2;
                 if ((base === 'XRP') || (base === 'OMG')) {
-                   pricePrecision = 4;
+                    pricePrecision = 4;
                 }
                 precision = {
                     'amount': -Math.log10 (minAmount),
@@ -115,7 +115,7 @@ module.exports = class btcmarkets extends Exchange {
                 'cost': {
                     'min': undefined,
                     'max': undefined,
-                },               
+                },
             };
             result.push ({
                 'info': market,
