@@ -257,7 +257,7 @@ module.exports = class coinone extends Exchange {
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId')
+        let id = this.safeString (response, 'orderId');
         if (typeof id !== 'undefined') {
             id = id.toUpperCase ();
         }
