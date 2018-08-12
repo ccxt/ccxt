@@ -482,10 +482,11 @@ class gdax (Exchange):
         response = await self.privateGetPaymentMethods()
         return response
 
-    async def deposit(self, currency, amount, address, params={}):
+    async def deposit(self, code, amount, address, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         }
         method = 'privatePostDeposits'
@@ -508,11 +509,12 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        currency = self.currency(code)
         await self.load_markets()
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         }
         method = 'privatePostWithdrawals'
@@ -529,6 +531,69 @@ class gdax (Exchange):
         return {
             'info': response,
             'id': response['id'],
+        }
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+        currency = self.currency(code)
+        accountId = None
+        accounts = await self.privateGetAccounts()
+        for i in range(0, len(accounts)):
+            account = accounts[i]
+            # todo: use unified common currencies below
+            if account['currency'] == currency['id']:
+                accountId = account['id']
+                break
+        if accountId is None:
+            raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+        request = {
+            'limit': limit,
+            'id': accountId,
+        }
+        response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
+        for i in range(0, len(response)):
+            response[i]['currency'] = code
+        return self.parseTransactions(response)
+
+    def parse_transaction_status(self, transaction):
+        if transaction['canceled_at']:
+            return 'canceled'
+        elif transaction['completed_at']:
+            return 'ok'
+        elif transaction['procesed_at']:
+            return 'pending'
+        else:
+            return 'failed'
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_integer(transaction, 'created_at')
+        datetime = None
+        if timestamp is not None:
+            datetime = self.iso8601(timestamp)
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        if currency is not None:
+            code = currency['code']
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction['details'], 'crypto_transaction_hash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': None,  # or is it defined?
+            'type': self.safe_string(transaction, 'type'),  # direction of the transaction,('deposit' | 'withdraw')
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': self.parse_transaction_status(transaction),
+            'updated': None,
+            'fee': {
+                'cost': None,
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
