@@ -602,7 +602,7 @@ module.exports = class cobinhood extends Exchange {
             'currency': currency['id'],
         };
         let response = await this.privateGetWalletDeposits (this.extend (request, params));
-        return this.parseTransactions (response['result']['deposits'], 'deposit', undefined, limit);
+        return this.parseTransactions (response['result']['deposits'], currency);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -615,7 +615,7 @@ module.exports = class cobinhood extends Exchange {
             'currency': currency['id'],
         };
         let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
-        return this.parseTransactions (response['result']['withdrawals'], 'withdraw', undefined, limit);
+        return this.parseTransactions (response['result']['withdrawals'], currency);
     }
 
     parseTransactionStatus (status) {
@@ -644,14 +644,21 @@ module.exports = class cobinhood extends Exchange {
         }
         let code = undefined;
         if (typeof currency === 'undefined') {
-            let currencyId = transaction['currency'];
-            if (currencyId in this.currencies_by_id)
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
         }
         if (typeof currency !== 'undefined') {
             code = currency['code'];
         }
-        let type = undefined;
+        let type = this.safeString (transaction, 'type');
+        if (typeof type !== 'undefined') {
+            let typeParts = type.split ('_');
+            type = typeParts[0];
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'withdrawal_id'),
