@@ -12,7 +12,7 @@ module.exports = class huobi extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'huobi',
             'name': 'Huobi',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 2000,
             'version': 'v3',
             'has': {

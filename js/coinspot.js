@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class coinspot extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU', // Australia
+            'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
@@ -85,10 +85,7 @@ module.exports = class coinspot extends Exchange {
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
         }, params));
-        let result = this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -97,19 +94,22 @@ module.exports = class coinspot extends Exchange {
         id = id.toLowerCase ();
         let ticker = response['prices'][id];
         let timestamp = this.milliseconds ();
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -125,12 +125,12 @@ module.exports = class coinspot extends Exchange {
         }, params));
     }
 
-    createOrder (market, type, side, amount, price = undefined, params = {}) {
+    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
-            'cointype': this.marketId (market),
+            'cointype': this.marketId (symbol),
             'amount': amount,
             'rate': price,
         };
@@ -138,7 +138,7 @@ module.exports = class coinspot extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError (this.id + ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
         // let method = 'privatePostMyBuy';
         // return await this[method] ({ 'id': id });
     }

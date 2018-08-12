@@ -15,6 +15,12 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class zb (Exchange):
@@ -23,14 +29,17 @@ class zb (Exchange):
         return self.deep_extend(super(zb, self).describe(), {
             'id': 'zb',
             'name': 'ZB',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
                 'CORS': False,
-                'fetchOHLCV': True,
-                'fetchTickers': False,
+                'createMarketOrder': False,
+                'fetchDepositAddress': True,
                 'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchOHLCV': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -48,28 +57,58 @@ class zb (Exchange):
                 '3d': '3day',
                 '1w': '1week',
             },
+            'exceptions': {
+                # '1000': 'Successful operation',
+                '1001': ExchangeError,  # 'General error message',
+                '1002': ExchangeError,  # 'Internal error',
+                '1003': AuthenticationError,  # 'Verification does not pass',
+                '1004': AuthenticationError,  # 'Funding security password lock',
+                '1005': AuthenticationError,  # 'Funds security password is incorrect, please confirm and re-enter.',
+                '1006': AuthenticationError,  # 'Real-name certification pending approval or audit does not pass',
+                '1009': ExchangeNotAvailable,  # 'This interface is under maintenance',
+                '2001': InsufficientFunds,  # 'Insufficient CNY Balance',
+                '2002': InsufficientFunds,  # 'Insufficient BTC Balance',
+                '2003': InsufficientFunds,  # 'Insufficient LTC Balance',
+                '2005': InsufficientFunds,  # 'Insufficient ETH Balance',
+                '2006': InsufficientFunds,  # 'Insufficient ETC Balance',
+                '2007': InsufficientFunds,  # 'Insufficient BTS Balance',
+                '2009': InsufficientFunds,  # 'Account balance is not enough',
+                '3001': OrderNotFound,  # 'Pending orders not found',
+                '3002': InvalidOrder,  # 'Invalid price',
+                '3003': InvalidOrder,  # 'Invalid amount',
+                '3004': AuthenticationError,  # 'User does not exist',
+                '3005': ExchangeError,  # 'Invalid parameter',
+                '3006': AuthenticationError,  # 'Invalid IP or inconsistent with the bound IP',
+                '3007': AuthenticationError,  # 'The request time has expired',
+                '3008': OrderNotFound,  # 'Transaction records not found',
+                '4001': ExchangeNotAvailable,  # 'API interface is locked or not enabled',
+                '4002': DDoSProtection,  # 'Request too often',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
                     'public': 'http://api.zb.com/data',  # no https for public API
                     'private': 'https://trade.zb.com/api',
                 },
-                'www': 'https://trade.zb.com/api',
+                'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
                     'get': [
                         'markets',
                         'ticker',
+                        'allTicker',
                         'depth',
                         'trades',
                         'kline',
                     ],
                 },
                 'private': {
-                    'post': [
+                    'get': [
+                        # spot API
                         'order',
                         'cancelOrder',
                         'getOrder',
@@ -85,6 +124,18 @@ class zb (Exchange):
                         'getCnyWithdrawRecord',
                         'getCnyChargeRecord',
                         'withdraw',
+                        # leverage API
+                        'getLeverAssetsInfo',
+                        'getLeverBills',
+                        'transferInLever',
+                        'transferOutLever',
+                        'loan',
+                        'cancelLoan',
+                        'getLoans',
+                        'getLoanRecords',
+                        'borrow',
+                        'repay',
+                        'getRepayments',
                     ],
                 },
             },
@@ -124,6 +175,9 @@ class zb (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'ENT': 'ENTCash',
+            },
         })
 
     def fetch_markets(self):
@@ -141,7 +195,6 @@ class zb (Exchange):
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -149,12 +202,11 @@ class zb (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
@@ -172,15 +224,28 @@ class zb (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetAccountInfo()
+        response = self.privateGetGetAccountInfo(params)
+        # todo: use self somehow
+        # permissions = response['result']['base']
         balances = response['result']['coins']
-        result = {'info': balances}
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['key']
-            if currency in self.currencies:
-                currency = self.currencies[currency]['code']
+            #     {       enName: "BTC",
+            #               freez: "0.00000000",
+            #         unitDecimal:  8,  # always 8
+            #              cnName: "BTC",
+            #       isCanRecharge:  True,  # TODO: should use self
+            #             unitTag: "฿",
+            #       isCanWithdraw:  True,  # TODO: should use self
+            #           available: "0.00000000",
+            #                 key: "btc"         }
             account = self.account()
+            currency = balance['key']
+            if currency in self.currencies_by_id:
+                currency = self.currencies_by_id[currency]['code']
+            else:
+                currency = self.common_currency_code(balance['enName'])
             account['free'] = float(balance['available'])
             account['used'] = float(balance['freez'])
             account['total'] = self.sum(account['free'], account['used'])
@@ -190,6 +255,25 @@ class zb (Exchange):
     def get_market_field_name(self):
         return 'market'
 
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privateGetGetUserAddress({
+            'currency': currency['id'],
+        })
+        address = response['message']['datas']['key']
+        tag = None
+        if address.find('_') >= 0:
+            arr = address.split('_')
+            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = arr[1]
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -197,23 +281,21 @@ class zb (Exchange):
         request = {}
         request[marketFieldName] = market['id']
         orderbook = self.publicGetDepth(self.extend(request, params))
-        timestamp = self.milliseconds()
-        bids = None
-        asks = None
-        if 'bids' in orderbook:
-            bids = orderbook['bids']
-        if 'asks' in orderbook:
-            asks = orderbook['asks']
-        result = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
-        if result['bids']:
-            result['bids'] = self.sort_by(result['bids'], 0, True)
-        if result['asks']:
-            result['asks'] = self.sort_by(result['asks'], 0)
+        return self.parse_order_book(orderbook)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetAllTicker(params)
+        result = {}
+        anotherMarketsById = {}
+        marketIds = list(self.marketsById.keys())
+        for i in range(0, len(marketIds)):
+            tickerId = marketIds[i].replace('_', '')
+            anotherMarketsById[tickerId] = self.marketsById[marketIds[i]]
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            market = anotherMarketsById[ids[i]]
+            result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -224,24 +306,33 @@ class zb (Exchange):
         request[marketFieldName] = market['id']
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market != 'None':
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -259,7 +350,8 @@ class zb (Exchange):
         if since is not None:
             request['since'] = since
         response = self.publicGetKline(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
@@ -272,8 +364,8 @@ class zb (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -286,13 +378,16 @@ class zb (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        if type != 'limit':
+            raise InvalidOrder(self.id + ' allows limit orders only')
         self.load_markets()
-        paramString = '&price=' + str(price)
-        paramString += '&amount=' + str(amount)
-        tradeType = '1' if (side == 'buy') else '0'
-        paramString += '&tradeType=' + tradeType
-        paramString += '&currency=' + self.market_id(symbol)
-        response = self.privatePostOrder(paramString)
+        order = {
+            'price': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_string(symbol, amount),
+            'tradeType': '1' if (side == 'buy') else '0',
+            'currency': self.market_id(symbol),
+        }
+        response = self.privateGetOrder(self.extend(order, params))
         return {
             'info': response,
             'id': response['id'],
@@ -300,17 +395,126 @@ class zb (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        paramString = '&id=' + str(id)
-        if 'currency' in params:
-            paramString += '&currency=' + params['currency']
-        return self.privatePostCancelOrder(paramString)
+        order = {
+            'id': str(id),
+            'currency': self.market_id(symbol),
+        }
+        order = self.extend(order, params)
+        return self.privateGetCancelOrder(order)
 
     def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
-        paramString = '&id=' + str(id)
-        if 'currency' in params:
-            paramString += '&currency=' + params['currency']
-        return self.privatePostGetOrder(paramString)
+        order = {
+            'id': str(id),
+            'currency': self.market_id(symbol),
+        }
+        order = self.extend(order, params)
+        response = self.privateGetGetOrder(order)
+        return self.parse_order(response, None)
+
+    def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
+            'pageIndex': 1,  # default pageIndex is 1
+            'pageSize': limit,  # default pageSize is 50
+        }
+        method = 'privateGetGetOrdersIgnoreTradeType'
+        # tradeType 交易类型1/0[buy/sell]
+        if 'tradeType' in params:
+            method = 'privateGetGetOrdersNew'
+        response = None
+        try:
+            response = getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
+            raise e
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'currency': market['id'],
+            'pageIndex': 1,  # default pageIndex is 1
+            'pageSize': limit,  # default pageSize is 10
+        }
+        method = 'privateGetGetUnfinishedOrdersIgnoreTradeType'
+        # tradeType 交易类型1/0[buy/sell]
+        if 'tradeType' in params:
+            method = 'privateGetGetOrdersNew'
+        response = None
+        try:
+            response = getattr(self, method)(self.extend(request, params))
+        except Exception as e:
+            if isinstance(e, OrderNotFound):
+                return []
+            raise e
+        return self.parse_orders(response, market, since, limit)
+
+    def parse_order(self, order, market=None):
+        side = 'buy' if (order['type'] == 1) else 'sell'
+        type = 'limit'  # market order is not availalbe in ZB
+        timestamp = None
+        createDateField = self.get_create_date_field()
+        if createDateField in order:
+            timestamp = order[createDateField]
+        symbol = None
+        if 'currency' in order:
+            # get symbol from currency
+            market = self.marketsById[order['currency']]
+        if market:
+            symbol = market['symbol']
+        price = order['price']
+        average = None
+        filled = order['trade_amount']
+        amount = order['total_amount']
+        remaining = amount - filled
+        cost = order['trade_money']
+        status = self.safe_string(order, 'status')
+        if status is not None:
+            status = self.parse_order_status(status)
+        result = {
+            'info': order,
+            'id': order['id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'average': average,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': None,
+        }
+        return result
+
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'canceled',
+            '2': 'closed',
+            '3': 'open',  # partial
+        }
+        if status in statuses:
+            return statuses[status]
+        return status
+
+    def get_create_date_field(self):
+        return 'trade_date'
 
     def nonce(self):
         return self.milliseconds()
@@ -322,10 +526,13 @@ class zb (Exchange):
             if params:
                 url += '?' + self.urlencode(params)
         else:
-            self.check_required_credentials()
+            query = self.keysort(self.extend({
+                'method': path,
+                'accesskey': self.apiKey,
+            }, params))
             nonce = self.nonce()
-            auth = 'accesskey=' + self.apiKey
-            auth += '&' + 'method=' + path
+            query = self.keysort(query)
+            auth = self.rawencode(query)
             secret = self.hash(self.encode(self.secret), 'sha1')
             signature = self.hmac(self.encode(auth), self.encode(secret), hashlib.md5)
             suffix = 'sign=' + signature + '&reqTime=' + str(nonce)
@@ -337,22 +544,22 @@ class zb (Exchange):
             return  # fallback to default error handler
         if len(body) < 2:
             return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
+        if body[0] == '{':
             response = json.loads(body)
-            # {"result":false,"message":}
-            if 'result' in response:
-                success = self.safe_value(response, 'result', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if api == 'private':
+            feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+                code = self.safe_string(response, 'code')
+                if code in self.exceptions:
+                    ExceptionClass = self.exceptions[code]
+                    raise ExceptionClass(feedback)
+                elif code != '1000':
+                    raise ExchangeError(feedback)
+            # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    message = self.safe_string(response, 'message')
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

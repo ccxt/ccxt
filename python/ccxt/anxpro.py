@@ -20,6 +20,7 @@ class anxpro (Exchange):
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'withdraw': True,
             },
@@ -113,6 +114,7 @@ class anxpro (Exchange):
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = float(ticker['vol']['value'])
+        last = float(ticker['last']['value'])
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -120,12 +122,14 @@ class anxpro (Exchange):
             'high': float(ticker['high']['value']),
             'low': float(ticker['low']['value']),
             'bid': bid,
+            'bidVolume': None,
             'ask': ask,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': float(ticker['avg']['value']),
@@ -169,6 +173,7 @@ class anxpro (Exchange):
         return 100
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         multiplier = self.get_amount_multiplier(currency)
         response = self.privatePostMoneyCurrencySendSimple(self.extend({
@@ -196,7 +201,8 @@ class anxpro (Exchange):
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, query))
             secret = base64.b64decode(self.secret)
-            auth = request + '\0' + body
+            # eslint-disable-next-line quotes
+            auth = request + "\0" + body
             signature = self.hmac(self.encode(auth), secret, hashlib.sha512, 'base64')
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -207,7 +213,8 @@ class anxpro (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result'] == 'success':
-                return response
+        if response is not None:
+            if 'result' in response:
+                if response['result'] == 'success':
+                    return response
         raise ExchangeError(self.id + ' ' + self.json(response))

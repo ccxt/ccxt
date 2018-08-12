@@ -121,19 +121,17 @@ class coingi (Exchange):
                 'amount': 8,
                 'price': 8,
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': id,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {
@@ -172,17 +170,15 @@ class coingi (Exchange):
             result[currency] = account
         return self.parse_balance(result)
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
+    def fetch_order_book(self, symbol, limit=512, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
             'pair': market['id'],
             'depth': 32,  # maximum number of depth range steps 1-32
-        }
-        if limit is not None:
-            request['askCount'] = limit  # maximum returned number of asks 1-512
-            request['bidCount'] = limit  # maximum returned number of bids 1-512
-        orderbook = self.currentGetOrderBookPairAskCountBidCountDepth(self.extend(request, params))
+            'askCount': limit,  # maximum returned number of asks 1-512
+            'bidCount': limit,  # maximum returned number of bids 1-512
+        }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
 
     def parse_ticker(self, ticker, market=None):
@@ -197,12 +193,14 @@ class coingi (Exchange):
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['highestBid'],
+            'bidVolume': None,
             'ask': ticker['lowestAsk'],
+            'askVolume': None,
             'vwap': None,
             'open': None,
             'close': None,
-            'first': None,
             'last': None,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,

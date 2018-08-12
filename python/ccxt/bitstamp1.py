@@ -14,7 +14,7 @@ class bitstamp1 (Exchange):
         return self.deep_extend(super(bitstamp1, self).describe(), {
             'id': 'bitstamp1',
             'name': 'Bitstamp v1',
-            'countries': 'GB',
+            'countries': ['GB'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -88,22 +88,25 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
         ticker = self.publicGetTicker(params)
         timestamp = int(ticker['timestamp']) * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'open': self.safe_float(ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -135,8 +138,8 @@ class bitstamp1 (Exchange):
             'order': order,
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -199,7 +202,7 @@ class bitstamp1 (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = self.extend({'id': pair}, params)

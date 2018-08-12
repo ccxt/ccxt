@@ -12,7 +12,7 @@ module.exports = class therock extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'therock',
             'name': 'TheRockTrading',
-            'countries': 'MT',
+            'countries': [ 'MT' ],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -68,7 +68,7 @@ module.exports = class therock extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.02 / 100,
+                    'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -152,24 +152,27 @@ module.exports = class therock extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'open': this.safeFloat (ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (ticker, 'close'), // previous day close, if any
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['volume_traded']),
-            'quoteVolume': parseFloat (ticker['volume']),
+            'baseVolume': this.safeFloat (ticker, 'volume_traded'),
+            'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
     }

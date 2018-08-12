@@ -157,31 +157,33 @@ module.exports = class virwox extends Exchange {
             'startDate': this.ymdhms (start),
             'HLOC': 1,
         }, params));
-        let marketPrice = await this.fetchMarketPrice (symbol, params);
         let tickers = response['result']['priceVolumeList'];
         let keys = Object.keys (tickers);
         let length = keys.length;
         let lastKey = keys[length - 1];
         let ticker = tickers[lastKey];
         let timestamp = this.milliseconds ();
+        let close = this.safeFloat (ticker, 'close');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': marketPrice['bid'],
-            'ask': marketPrice['ask'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
             'vwap': undefined,
-            'open': parseFloat (ticker['open']),
-            'close': parseFloat (ticker['close']),
-            'first': undefined,
-            'last': undefined,
+            'open': this.safeFloat (ticker, 'open'),
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['longVolume']),
-            'quoteVolume': parseFloat (ticker['shortVolume']),
+            'baseVolume': this.safeFloat (ticker, 'longVolume'),
+            'quoteVolume': this.safeFloat (ticker, 'shortVolume'),
             'info': ticker,
         };
     }
@@ -206,19 +208,21 @@ module.exports = class virwox extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let response = await this.publicGetGetRawTradeData (this.extend ({
             'instrument': symbol,
             'timespan': 3600,
         }, params));
         let result = response['result'];
         let trades = result['data'];
-        return this.parseTrades (trades, symbol);
+        return this.parseTrades (trades, market);
     }
 
-    async createOrder (market, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let order = {
-            'instrument': this.symbol (market),
+            'instrument': market['symbol'],
             'orderType': side.toUpperCase (),
             'amount': amount,
         };
@@ -227,7 +231,7 @@ module.exports = class virwox extends Exchange {
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
             'info': response,
-            'id': response['orderID'].toString (),
+            'id': response['result']['orderID'].toString (),
         };
     }
 

@@ -17,6 +17,7 @@ module.exports = class anxpro extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
+                'fetchOHLCV': false,
                 'fetchTrades': false,
                 'withdraw': true,
             },
@@ -115,6 +116,7 @@ module.exports = class anxpro extends Exchange {
         let bid = this.safeFloat (ticker['buy'], 'value');
         let ask = this.safeFloat (ticker['sell'], 'value');
         let baseVolume = parseFloat (ticker['vol']['value']);
+        let last = parseFloat (ticker['last']['value']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -122,12 +124,14 @@ module.exports = class anxpro extends Exchange {
             'high': parseFloat (ticker['high']['value']),
             'low': parseFloat (ticker['low']['value']),
             'bid': bid,
+            'bidVolume': undefined,
             'ask': ask,
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']['value']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': parseFloat (ticker['avg']['value']),
@@ -178,6 +182,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let multiplier = this.getAmountMultiplier (currency);
         let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
@@ -207,7 +212,8 @@ module.exports = class anxpro extends Exchange {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
-            let auth = request + '\0' + body;
+            // eslint-disable-next-line quotes
+            let auth = request + "\0" + body;
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -220,9 +226,10 @@ module.exports = class anxpro extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response)
-            if (response['result'] === 'success')
-                return response;
+        if (typeof response !== 'undefined')
+            if ('result' in response)
+                if (response['result'] === 'success')
+                    return response;
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

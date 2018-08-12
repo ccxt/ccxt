@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -7,12 +7,11 @@ const btcturk = require ('./btcturk.js');
 // ---------------------------------------------------------------------------
 
 module.exports = class btcexchange extends btcturk {
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'btcexchange',
             'name': 'BTCExchange',
-            'countries': 'PH', // Philippines
+            'countries': [ 'PH' ], // Philippines
             'rateLimit': 1500,
             'has': {
                 'CORS': false,
@@ -28,4 +27,4 @@ module.exports = class btcexchange extends btcturk {
             },
         });
     }
-}
+};

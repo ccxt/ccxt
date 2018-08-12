@@ -12,7 +12,7 @@ module.exports = class bithumb extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': 'KR', // South Korea
+            'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
             'has': {
                 'CORS': true,
@@ -35,8 +35,8 @@ module.exports = class bithumb extends Exchange {
                         'ticker/all',
                         'orderbook/{currency}',
                         'orderbook/all',
-                        'recent_transactions/{currency}',
-                        'recent_transactions/all',
+                        'transaction_history/{currency}',
+                        'transaction_history/all',
                     ],
                 },
                 'private': {
@@ -64,6 +64,9 @@ module.exports = class bithumb extends Exchange {
                     'taker': 0.15 / 100,
                 },
             },
+            'exceptions': {
+                '5100': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            },
         });
     }
 
@@ -78,13 +81,12 @@ module.exports = class bithumb extends Exchange {
                 let base = id;
                 let quote = 'KRW';
                 let symbol = id + '/' + quote;
-                result.push (this.extend (this.fees['trading'], {
+                result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'lot': undefined,
                     'active': true,
                     'precision': {
                         'amount': undefined,
@@ -104,7 +106,7 @@ module.exports = class bithumb extends Exchange {
                             'max': undefined,
                         },
                     },
-                }));
+                });
             }
         }
         return result;
@@ -149,6 +151,11 @@ module.exports = class bithumb extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let open = this.safeFloat (ticker, 'opening_price');
+        let close = this.safeFloat (ticker, 'closing_price');
+        let change = close - open;
+        let vwap = this.safeFloat (ticker, 'average_price');
+        let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -156,17 +163,19 @@ module.exports = class bithumb extends Exchange {
             'high': this.safeFloat (ticker, 'max_price'),
             'low': this.safeFloat (ticker, 'min_price'),
             'bid': this.safeFloat (ticker, 'buy_price'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell_price'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'opening_price'),
-            'close': this.safeFloat (ticker, 'closing_price'),
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last_trade'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average_price'),
-            'baseVolume': this.safeFloat (ticker, 'volume_1day'),
-            'quoteVolume': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': change,
+            'percentage': change / open * 100,
+            'average': this.sum (open, close) / 2,
+            'baseVolume': baseVolume,
+            'quoteVolume': baseVolume * vwap,
             'info': ticker,
         };
     }
@@ -219,15 +228,15 @@ module.exports = class bithumb extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['units_traded']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'units_traded'),
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetRecentTransactionsCurrency (this.extend ({
+        let response = await this.publicGetTransactionHistoryCurrency (this.extend ({
             'currency': market['base'],
             'count': 100, // max = 100
         }, params));
@@ -268,21 +277,22 @@ module.exports = class bithumb extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let side = ('side' in params);
-        if (!side)
+        let side_in_params = ('side' in params);
+        if (!side_in_params)
             throw new ExchangeError (this.id + ' cancelOrder requires a side parameter (sell or buy) and a currency parameter');
-        side = (side === 'buy') ? 'purchase' : 'sales';
         let currency = ('currency' in params);
         if (!currency)
             throw new ExchangeError (this.id + ' cancelOrder requires a currency parameter');
+        let side = (params['side'] === 'buy') ? 'bid' : 'ask';
         return await this.privatePostTradeCancel ({
             'order_id': id,
-            'type': params['side'],
+            'type': side,
             'currency': params['currency'],
         });
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         let request = {
             'units': amount,
             'address': address,
@@ -329,6 +339,33 @@ module.exports = class bithumb extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            if ('status' in response) {
+                //
+                //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                //
+                let status = this.safeString (response, 'status');
+                if (typeof status !== 'undefined') {
+                    if (status === '0000')
+                        return; // no error
+                    const feedback = this.id + ' ' + this.json (response);
+                    const exceptions = this.exceptions;
+                    if (status in exceptions) {
+                        throw new exceptions[status] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

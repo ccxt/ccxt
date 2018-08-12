@@ -16,14 +16,18 @@ class coinmarketcap (Exchange):
             'name': 'CoinMarketCap',
             'rateLimit': 10000,
             'version': 'v1',
-            'countries': 'US',
+            'countries': ['US'],
             'has': {
                 'CORS': True,
                 'privateAPI': False,
                 'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
                 'cancelOrder': False,
+                'editOrder': False,
                 'fetchBalance': False,
                 'fetchOrderBook': False,
+                'fetchOHLCV': False,
                 'fetchTrades': False,
                 'fetchTickers': True,
                 'fetchCurrencies': True,
@@ -77,6 +81,9 @@ class coinmarketcap (Exchange):
                 'MXN',
                 'RUB',
                 'USD',
+                'BTC',
+                'ETH',
+                'LTC',
             ],
         })
 
@@ -85,12 +92,38 @@ class coinmarketcap (Exchange):
 
     def currency_code(self, base, name):
         currencies = {
+            'ACChain': 'ACChain',
+            'AdCoin': 'AdCoin',
             'BatCoin': 'BatCoin',
             'Bitgem': 'Bitgem',
+            'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
+            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
+            'Comet': 'Comet',  # conflict with CMT(CyberMiles)
+            'CPChain': 'CPChain',
+            'Cubits': 'Cubits',  # conflict with QBT(Qbao)
+            'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
+            'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
+            'FairGame': 'FairGame',
+            'Fabric Token': 'Fabric Token',
+            'GET Protocol': 'GET Protocol',
+            'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
+            'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
+            'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Hydro Protocol': 'Hydro Protocol',  # conflict with HOT(Holo)
+            'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',
+            'Infinity Economics': 'Infinity Economics',  # conflict with XIN(Mixin)
+            'KingN Coin': 'KingN Coin',  # conflict with KNC(Kyber Network)
+            'LiteBitcoin': 'LiteBitcoin',  # conflict with LBTC(LightningBitcoin)
+            'Maggie': 'Maggie',
+            'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
+            'PCHAIN': 'PCHAIN',  # conflict with PAI(Project Pai)
+            'Polcoin': 'Polcoin',
+            'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
+            'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)
         }
         if name in currencies:
             return currencies[name]
@@ -110,7 +143,7 @@ class coinmarketcap (Exchange):
                 baseId = market['id']
                 base = self.currency_code(market['symbol'], market['name'])
                 symbol = base + '/' + quote
-                id = baseId + '/' + quote
+                id = baseId + '/' + quoteId
                 result.append({
                     'id': id,
                     'symbol': symbol,
@@ -141,7 +174,7 @@ class coinmarketcap (Exchange):
         last = None
         symbol = None
         volume = None
-        if market:
+        if market is not None:
             priceKey = 'price_' + market['quoteId']
             if priceKey in ticker:
                 if ticker[priceKey]:
@@ -158,12 +191,14 @@ class coinmarketcap (Exchange):
             'high': None,
             'low': None,
             'bid': None,
+            'bidVolume': None,
             'ask': None,
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': change,
             'percentage': None,
             'average': None,
@@ -183,7 +218,8 @@ class coinmarketcap (Exchange):
         tickers = {}
         for t in range(0, len(response)):
             ticker = response[t]
-            id = ticker['id'] + '/' + currency
+            currencyId = currency.lower()
+            id = ticker['id'] + '/' + currencyId
             symbol = id
             market = None
             if id in self.markets_by_id:
@@ -223,7 +259,6 @@ class coinmarketcap (Exchange):
                 'info': currency,
                 'name': name,
                 'active': True,
-                'status': 'ok',
                 'fee': None,  # todo: redesign
                 'precision': precision,
                 'limits': {

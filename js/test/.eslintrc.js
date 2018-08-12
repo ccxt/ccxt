@@ -3,18 +3,20 @@
 module.exports = {
   "env": {
     "node": true,
+    "mocha": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
     "sourceType": "script",
   },
+  "extends": ["eslint:recommended"],
   "rules": {
       "semi": ["error", "never"],
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],
       "one-var": "off",
-      "indent": "error",
+      "indent": ["error", 4],
       "comma-style": "off",
       "no-multi-spaces": "off",
       "comma-dangle": "off",
@@ -32,9 +34,10 @@ module.exports = {
       "key-spacing": "off",
       "brace-style": "off",
       "padding-line-between-statements": ["off",
-        {"blankLine": "always", "prev":"function", "next": "*" },
-        {"blankLine": "always", "prev":"directive", "next": "*" },
-        {"blankLine": "always", "prev":"*", "next": "cjs-export" },
+        { "blankLine": "always", "prev":"function", "next": "*" },
+        { "blankLine": "always", "prev":"directive", "next": "*" },
+        { "blankLine": "always", "prev":"*", "next": "cjs-export" },
       ],
-  },
+      "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
+    },
 }

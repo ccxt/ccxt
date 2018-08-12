@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -12,21 +12,24 @@ module.exports = class hitbtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
-            'countries': 'UK',
+            'countries': [ 'HK' ],
             'rateLimit': 1500,
             'version': '1',
             'has': {
                 'CORS': false,
                 'fetchTrades': true,
+                'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
                 'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'api': 'http://api.hitbtc.com',
                 'www': 'https://hitbtc.com',
+                'referral': 'https://hitbtc.com/?ref_id=5a5d39a65d466',
                 'doc': 'https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md',
                 'fees': [
                     'https://hitbtc.com/fees-and-limits',
@@ -75,6 +78,7 @@ module.exports = class hitbtc extends Exchange {
                     ],
                 },
             },
+            // hardcoded fees are deprecated and should only be used when there's no other way to get fee info
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -113,7 +117,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 1.9,
                         'BAS': 113,
                         'BCN': 0.1,
-                        'BET': 124,
+                        'DAO.Casino': 124, // id = 'BET'
                         'BKB': 46,
                         'BMC': 32,
                         'BMT': 100,
@@ -308,7 +312,7 @@ module.exports = class hitbtc extends Exchange {
                         'AVT': 0,
                         'BAS': 0,
                         'BCN': 0,
-                        'BET': 0,
+                        'DAO.Casino': 0, // id = 'BET'
                         'BKB': 0,
                         'BMC': 0,
                         'BMT': 0,
@@ -479,20 +483,22 @@ module.exports = class hitbtc extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'BCC': 'BCC',
+                'BET': 'DAO.Casino',
+                'CAT': 'BitClave',
+                'DRK': 'DASH',
+                'EMGO': 'MGO',
+                'GET': 'Themis',
+                'LNC': 'LinkerCoin',
+                'UNC': 'Unigame',
+                'USD': 'USDT',
+                'XBT': 'BTC',
+            },
+            'options': {
+                'defaultTimeInForce': 'FOK',
+            },
         });
-    }
-
-    commonCurrencyCode (currency) {
-        let currencies = {
-            'XBT': 'BTC',
-            'DRK': 'DASH',
-            'CAT': 'BitClave',
-            'USD': 'USDT',
-            'EMGO': 'MGO',
-        };
-        if (currency in currencies)
-            return currencies[currency];
-        return currency;
     }
 
     async fetchMarkets () {
@@ -503,12 +509,13 @@ module.exports = class hitbtc extends Exchange {
             let id = market['symbol'];
             let baseId = market['commodity'];
             let quoteId = market['currency'];
-            let lot = parseFloat (market['lot']);
-            let step = parseFloat (market['step']);
+            let lot = this.safeFloat (market, 'lot');
+            let step = this.safeFloat (market, 'step');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
+                'info': market,
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -517,7 +524,9 @@ module.exports = class hitbtc extends Exchange {
                 'quoteId': quoteId,
                 'lot': lot,
                 'step': step,
-                'info': market,
+                'active': true,
+                'maker': this.safeFloat (market, 'provideLiquidityRate'),
+                'taker': this.safeFloat (market, 'takeLiquidityRate'),
                 'precision': {
                     'amount': this.precisionFromString (market['lot']),
                     'price': this.precisionFromString (market['step']),
@@ -579,6 +588,7 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -586,12 +596,14 @@ module.exports = class hitbtc extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeFloat (ticker, 'open'),
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -654,13 +666,13 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (market)
             symbol = market['symbol'];
-        let amount = parseFloat (trade['execQuantity']);
+        let amount = this.safeFloat (trade, 'execQuantity');
         if (market)
             amount *= market['lot'];
-        let price = parseFloat (trade['execPrice']);
+        let price = this.safeFloat (trade, 'execPrice');
         let cost = price * amount;
         let fee = {
-            'cost': parseFloat (trade['fee']),
+            'cost': this.safeFloat (trade, 'fee'),
             'currency': undefined,
             'rate': undefined,
         };
@@ -714,7 +726,7 @@ module.exports = class hitbtc extends Exchange {
         if (Math.abs (difference) > market['step'])
             throw new ExchangeError (this.id + ' order amount should be evenly divisible by lot unit size of ' + market['lot'].toString ());
         let clientOrderId = this.milliseconds ();
-        let order = {
+        let request = {
             'clientOrderId': clientOrderId.toString (),
             'symbol': market['id'],
             'side': side,
@@ -722,12 +734,15 @@ module.exports = class hitbtc extends Exchange {
             'type': type,
         };
         if (type === 'limit') {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         } else {
-            order['timeInForce'] = 'FOK';
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         }
-        let response = await this.tradingPostNewOrder (this.extend (order, params));
-        return this.parseOrder (response['ExecutionReport'], market);
+        let response = await this.tradingPostNewOrder (this.extend (request, params));
+        let order = this.parseOrder (response['ExecutionReport'], market);
+        if (order['status'] === 'rejected')
+            throw new InvalidOrder (this.id + ' order was rejected by the exchange ' + this.json (order));
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -759,38 +774,51 @@ module.exports = class hitbtc extends Exchange {
         let status = this.safeString (order, 'orderStatus');
         if (status)
             status = this.parseOrderStatus (status);
-        let averagePrice = this.safeFloat (order, 'avgPrice', 0.0);
         let price = this.safeFloat (order, 'orderPrice');
-        if (typeof price === 'undefined')
-            price = this.safeFloat (order, 'price');
+        price = this.safeFloat (order, 'price', price);
+        price = this.safeFloat (order, 'avgPrice', price);
         let amount = this.safeFloat (order, 'orderQuantity');
-        if (typeof amount === 'undefined')
-            amount = this.safeFloat (order, 'quantity');
+        amount = this.safeFloat (order, 'quantity', amount);
         let remaining = this.safeFloat (order, 'quantityLeaves');
-        if (typeof remaining === 'undefined')
-            remaining = this.safeFloat (order, 'leavesQuantity');
+        remaining = this.safeFloat (order, 'leavesQuantity', remaining);
         let filled = undefined;
         let cost = undefined;
         let amountDefined = (typeof amount !== 'undefined');
         let remainingDefined = (typeof remaining !== 'undefined');
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if (amountDefined)
                 amount *= market['lot'];
             if (remainingDefined)
                 remaining *= market['lot'];
+        } else {
+            let marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = averagePrice * filled;
+                cost = price * filled;
             }
         }
+        let feeCost = this.safeFloat (order, 'fee');
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
+        }
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': undefined,
+        };
         return {
             'id': order['clientOrderId'].toString (),
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': order['type'],
@@ -800,7 +828,7 @@ module.exports = class hitbtc extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -823,7 +851,7 @@ module.exports = class hitbtc extends Exchange {
             'sort': 'desc',
             'statuses': statuses.join (','),
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }
@@ -840,7 +868,7 @@ module.exports = class hitbtc extends Exchange {
             'statuses': statuses.join (','),
             'max_results': 1000,
         };
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['symbols'] = market['id'];
         }
@@ -860,6 +888,7 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {

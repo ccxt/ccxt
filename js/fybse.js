@@ -12,7 +12,7 @@ module.exports = class fybse extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'fybse',
             'name': 'FYB-SE',
-            'countries': 'SE', // Sweden
+            'countries': [ 'SE' ], // Sweden
             'has': {
                 'CORS': false,
             },
@@ -83,22 +83,24 @@ module.exports = class fybse extends Exchange {
         let last = undefined;
         let volume = undefined;
         if ('last' in ticker)
-            last = parseFloat (ticker['last']);
+            last = this.safeFloat (ticker, 'last');
         if ('vol' in ticker)
-            volume = parseFloat (ticker['vol']);
+            volume = this.safeFloat (ticker, 'vol');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
+            'close': last,
             'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -119,8 +121,8 @@ module.exports = class fybse extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
-            'price': parseFloat (trade['price']),
-            'amount': parseFloat (trade['amount']),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 

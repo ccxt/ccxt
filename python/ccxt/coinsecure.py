@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NotSupported
 
 
 class coinsecure (Exchange):
@@ -14,7 +15,7 @@ class coinsecure (Exchange):
         return self.deep_extend(super(coinsecure, self).describe(), {
             'id': 'coinsecure',
             'name': 'Coinsecure',
-            'countries': 'IN',  # India
+            'countries': ['IN'],  # India
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -173,6 +174,7 @@ class coinsecure (Exchange):
         })
 
     def fetch_balance(self, params={}):
+        self.load_markets()
         response = self.privateGetUserExchangeBankSummary()
         balance = response['message']
         coin = {
@@ -193,6 +195,7 @@ class coinsecure (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         bids = self.publicGetExchangeBidOrders(params)
         asks = self.publicGetExchangeAskOrders(params)
         orderbook = {
@@ -202,28 +205,32 @@ class coinsecure (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'rate', 'vol')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         response = self.publicGetExchangeTicker(params)
         ticker = response['message']
         timestamp = ticker['timestamp']
-        baseVolume = float(ticker['coinvolume'])
+        baseVolume = self.safe_float(ticker, 'coinvolume')
         if symbol == 'BTC/INR':
             satoshi = 0.00000001
             baseVolume = baseVolume * satoshi
-        quoteVolume = float(ticker['fiatvolume']) / 100
+        quoteVolume = self.safe_float(ticker, 'fiatvolume') / 100
         vwap = quoteVolume / baseVolume
+        last = self.safe_float(ticker, 'lastPrice') / 100
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']) / 100,
-            'low': float(ticker['low']) / 100,
-            'bid': float(ticker['bid']) / 100,
-            'ask': float(ticker['ask']) / 100,
+            'high': self.safe_float(ticker, 'high') / 100,
+            'low': self.safe_float(ticker, 'low') / 100,
+            'bid': self.safe_float(ticker, 'bid') / 100,
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask') / 100,
+            'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['open']) / 100,
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']) / 100,
+            'open': self.safe_float(ticker, 'open') / 100,
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -250,12 +257,15 @@ class coinsecure (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
         result = self.publicGetExchangeTrades(params)
         if 'message' in result:
             trades = result['message']
-            return self.parse_trades(trades, symbol)
+            return self.parse_trades(trades, market)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePutUserExchange'
         order = {}
         if type == 'market':
@@ -276,9 +286,10 @@ class coinsecure (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         # method = 'privateDeleteUserExchangeAskCancelOrderId'  # TODO fixme, have to specify order side here
         # return getattr(self, method)({'orderID': id})
-        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
+        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -14,7 +14,7 @@ class therock (Exchange):
         return self.deep_extend(super(therock, self).describe(), {
             'id': 'therock',
             'name': 'TheRockTrading',
-            'countries': 'MT',
+            'countries': ['MT'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
@@ -70,7 +70,7 @@ class therock (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.02 / 100,
+                    'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
@@ -148,24 +148,27 @@ class therock (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
-            'open': float(ticker['open']),
-            'close': float(ticker['close']),
-            'first': None,
-            'last': float(ticker['last']),
+            'open': self.safe_float(ticker, 'open'),
+            'close': last,
+            'last': last,
+            'previousClose': self.safe_float(ticker, 'close'),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume_traded']),
-            'quoteVolume': float(ticker['volume']),
+            'baseVolume': self.safe_float(ticker, 'volume_traded'),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 

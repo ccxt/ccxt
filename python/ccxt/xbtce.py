@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class xbtce (Exchange):
@@ -16,14 +16,12 @@ class xbtce (Exchange):
         return self.deep_extend(super(xbtce, self).describe(), {
             'id': 'xbtce',
             'name': 'xBTCe',
-            'countries': 'RU',
+            'countries': ['RU'],
             'rateLimit': 2000,  # responses are cached every 2 seconds
             'version': 'v1',
             'has': {
-                'publicAPI': False,
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
                 'createMarketOrder': False,
             },
             'urls': {
@@ -182,12 +180,14 @@ class xbtce (Exchange):
             'high': ticker['DailyBestBuyPrice'],
             'low': ticker['DailyBestSellPrice'],
             'bid': ticker['BestBid'],
+            'bidVolume': None,
             'ask': ticker['BestAsk'],
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
+            'close': last,
             'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -254,9 +254,9 @@ class xbtce (Exchange):
         #     periodicity = str(minutes)
         #     self.load_markets()
         #     market = self.market(symbol)
-        #     if not since:
+        #     if since is None:
         #         since = self.seconds() - 86400 * 7  # last day by defulat
-        #     if not limit:
+        #     if limit is None:
         #         limit = 1000  # default
         #     response = self.privateGetQuotehistorySymbolPeriodicityBarsBid(self.extend({
         #         'symbol': market['id'],
@@ -271,7 +271,7 @@ class xbtce (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        response = self.tapiPostTrade(self.extend({
+        response = self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,

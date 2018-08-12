@@ -4,11 +4,10 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.bittrex import bittrex
-import math
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
-from ccxt.base.errors import DDoSProtection
 
 
 class bleutrade (bittrex):
@@ -17,13 +16,15 @@ class bleutrade (bittrex):
         return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'certified': False,
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -88,6 +89,17 @@ class bleutrade (bittrex):
                     },
                 },
             },
+            'commonCurrencies': {
+                'EPC': 'Epacoin',
+            },
+            'exceptions': {
+                'Insufficient fundsnot ': InsufficientFunds,
+                'Invalid Order ID': InvalidOrder,
+                'Invalid apikey or apisecret': AuthenticationError,
+            },
+            'options': {
+                'parseOrderStatus': True,
+            },
         })
 
     def fetch_markets(self):
@@ -96,24 +108,29 @@ class bleutrade (bittrex):
         for p in range(0, len(markets['result'])):
             market = markets['result'][p]
             id = market['MarketName']
-            base = market['MarketCurrency']
-            quote = market['BaseCurrency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['MarketCurrency']
+            quoteId = market['BaseCurrency']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
                 'price': 8,
             }
-            active = market['IsActive']
-            result.append(self.extend(self.fees['trading'], {
+            active = self.safe_string(market, 'IsActive')
+            if active == 'true':
+                active = True
+            elif active == 'false':
+                active = False
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -129,8 +146,38 @@ class bleutrade (bittrex):
                         'max': None,
                     },
                 },
-            }))
+            })
         return result
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OK': 'closed',
+            'OPEN': 'open',
+            'CANCELED': 'canceled',
+        }
+        if status in statuses:
+            return statuses[status]
+        else:
+            return status
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        # Possible params
+        # orderstatus(ALL, OK, OPEN, CANCELED)
+        # ordertype(ALL, BUY, SELL)
+        # depth(optional, default is 500, max is 20000)
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            self.load_markets()
+            market = self.market(symbol)
+        else:
+            market = None
+        response = self.accountGetOrders(self.extend({'market': 'ALL', 'orderstatus': 'ALL'}, params))
+        return self.parse_orders(response['result'], market, since, limit)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        response = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(response, 'status', 'closed')
 
     def get_order_id_field(self):
         return 'orderid'
@@ -144,19 +191,7 @@ class bleutrade (bittrex):
         if limit is not None:
             request['depth'] = limit  # 50
         response = self.publicGetOrderbook(self.extend(request, params))
-        orderbook = response['result']
+        orderbook = self.safe_value(response, 'result')
+        if not orderbook:
+            raise ExchangeError(self.id + ' publicGetOrderbook() returneded no result ' + self.json(response))
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
-
-    def throw_exception_on_error(self, response):
-        if 'message' in response:
-            if response['message'] == 'Insufficient fundsnot ':
-                raise InsufficientFunds(self.id + ' ' + self.json(response))
-            if response['message'] == 'MIN_TRADE_REQUIREMENT_NOT_MET':
-                raise InvalidOrder(self.id + ' ' + self.json(response))
-            if response['message'] == 'APIKEY_INVALID':
-                if self.hasAlreadyAuthenticatedSuccessfully:
-                    raise DDoSProtection(self.id + ' ' + self.json(response))
-                else:
-                    raise AuthenticationError(self.id + ' ' + self.json(response))
-            if response['message'] == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-                raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))

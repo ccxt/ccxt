@@ -25,6 +25,7 @@ module.exports = class coinmate extends Exchange {
                     'http://docs.coinmate.apiary.io',
                     'https://coinmate.io/developers',
                 ],
+                'referral': 'https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -106,23 +107,26 @@ module.exports = class coinmate extends Exchange {
         }, params));
         let ticker = response['data'];
         let timestamp = ticker['timestamp'] * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
             'vwap': undefined,
+            'askVolume': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['amount']),
+            'baseVolume': this.safeFloat (ticker, 'amount'),
             'quoteVolume': undefined,
             'info': ticker,
         };

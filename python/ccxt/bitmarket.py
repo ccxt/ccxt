@@ -200,35 +200,32 @@ class bitmarket (Exchange):
         orderbook = self.publicGetJsonMarketOrderbook(self.extend({
             'market': self.market_id(symbol),
         }, params))
-        timestamp = self.milliseconds()
-        return {
-            'bids': orderbook['bids'],
-            'asks': orderbook['asks'],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         ticker = self.publicGetJsonMarketTicker(self.extend({
             'market': self.market_id(symbol),
         }, params))
         timestamp = self.milliseconds()
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -304,6 +301,7 @@ class bitmarket (Exchange):
         return False
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
         method = None
         request = {

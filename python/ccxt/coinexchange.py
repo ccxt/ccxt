@@ -19,7 +19,13 @@ class coinexchange (Exchange):
             # new metainfo interface
             'has': {
                 'privateAPI': False,
+                'createOrder': False,
+                'createMarketOrder': False,
+                'createLimitOrder': False,
+                'cancelOrder': False,
+                'editOrder': False,
                 'fetchTrades': False,
+                'fetchOHLCV': False,
                 'fetchCurrencies': True,
                 'fetchTickers': True,
             },
@@ -249,7 +255,7 @@ class coinexchange (Exchange):
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -533,18 +539,30 @@ class coinexchange (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'ANC': 'AnyChain',
+                'BON': 'BonPeKaO',
+                'BONPAY': 'BON',
+                'eNAU': 'ENAU',
+                'ETN': 'Ethernex',
+                'FRC': 'FireRoosterCoin',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GOLD': 'GoldenCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
+                'HNC': 'Huncoin',
+                'IBC': 'RCoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
+                'PUT': 'PutinCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+                'VULCANO': 'VULC',
+            },
         })
-
-    def common_currency_code(self, currency):
-        substitutions = {
-            'BON': 'BonPeKaO',
-            'ETN': 'Ethernex',
-            'HNC': 'Huncoin',
-            'MARS': 'MarsBux',
-        }
-        if currency in substitutions:
-            return substitutions[currency]
-        return currency
 
     def fetch_currencies(self, params={}):
         response = self.publicGetGetcurrencies(params)
@@ -556,15 +574,11 @@ class coinexchange (Exchange):
             id = currency['CurrencyID']
             code = self.common_currency_code(currency['TickerCode'])
             active = currency['WalletStatus'] == 'online'
-            status = 'ok'
-            if not active:
-                status = 'disabled'
             result[code] = {
                 'id': id,
                 'code': code,
                 'name': currency['Name'],
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -595,33 +609,36 @@ class coinexchange (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['MarketID']
-            base = self.common_currency_code(market['MarketAssetCode'])
-            quote = self.common_currency_code(market['BaseCurrencyCode'])
-            symbol = base + '/' + quote
-            result.append({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': None,
-                'info': market,
-            })
+            baseId = self.safe_string(market, 'MarketAssetCode')
+            quoteId = self.safe_string(market, 'BaseCurrencyCode')
+            if baseId is not None and quoteId is not None:
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+                result.append({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                })
         return result
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
-        if not market:
+        if market is None:
             marketId = ticker['MarketID']
             if marketId in self.markets_by_id:
-                market = self.marketsById[marketId]
+                market = self.markets_by_id[marketId]
             else:
                 symbol = marketId
         if market:
             symbol = market['symbol']
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -629,12 +646,14 @@ class coinexchange (Exchange):
             'high': self.safe_float(ticker, 'HighPrice'),
             'low': self.safe_float(ticker, 'LowPrice'),
             'bid': self.safe_float(ticker, 'BidPrice'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'AskPrice'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'LastPrice'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': self.safe_float(ticker, 'Change'),
             'percentage': None,
             'average': None,
@@ -672,9 +691,8 @@ class coinexchange (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path
         if api == 'public':
-            params = self.urlencode(params)
-            if len(params):
-                url += '?' + params
+            if params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

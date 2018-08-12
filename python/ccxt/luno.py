@@ -21,6 +21,10 @@ class luno (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchOrder': True,
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchTradingFees': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
@@ -36,6 +40,7 @@ class luno (Exchange):
                 'public': {
                     'get': [
                         'orderbook',
+                        'orderbook_top',
                         'ticker',
                         'tickers',
                         'trades',
@@ -100,17 +105,18 @@ class luno (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalance()
-        balances = response['balance']
+        wallets = response['balance']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = self.common_currency_code(balance['asset'])
-            reserved = float(balance['reserved'])
-            unconfirmed = float(balance['unconfirmed'])
+        for b in range(0, len(wallets)):
+            wallet = wallets[b]
+            currency = self.common_currency_code(wallet['asset'])
+            reserved = float(wallet['reserved'])
+            unconfirmed = float(wallet['unconfirmed'])
+            balance = float(wallet['balance'])
             account = {
                 'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': float(balance['balance']),
+                'total': self.sum(balance, unconfirmed),
             }
             account['free'] = account['total'] - account['used']
             result[currency] = account
@@ -128,13 +134,19 @@ class luno (Exchange):
         timestamp = order['creation_timestamp']
         status = 'open' if (order['state'] == 'PENDING') else 'closed'
         side = 'sell' if (order['type'] == 'ASK') else 'buy'
-        symbol = None
-        if market:
-            symbol = market['symbol']
+        if market is None:
+            market = self.find_market(order['pair'])
+        symbol = market['symbol']
         price = self.safe_float(order, 'limit_price')
         amount = self.safe_float(order, 'limit_volume')
         quoteFee = self.safe_float(order, 'fee_counter')
         baseFee = self.safe_float(order, 'fee_base')
+        filled = self.safe_float(order, 'base')
+        cost = self.safe_float(order, 'counter')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = max(0, amount - filled)
         fee = {'currency': None}
         if quoteFee:
             fee['side'] = 'quote'
@@ -146,14 +158,16 @@ class luno (Exchange):
             'id': order['order_id'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': None,
             'side': side,
             'price': price,
             'amount': amount,
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'cost': cost,
+            'remaining': remaining,
             'trades': None,
             'fee': fee,
             'info': order,
@@ -166,28 +180,53 @@ class luno (Exchange):
         }, params))
         return self.parse_order(response)
 
+    def fetch_orders_by_state(self, state=None, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if state is not None:
+            request['state'] = state
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pair'] = market['id']
+        response = self.privateGetListorders(self.extend(request, params))
+        orders = self.safe_value(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state(None, symbol, since, limit, params)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
+
     def parse_ticker(self, ticker, market=None):
         timestamp = ticker['timestamp']
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_trade')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_trade']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['rolling_24_hour_volume']),
+            'baseVolume': self.safe_float(ticker, 'rolling_24_hour_volume'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -225,8 +264,8 @@ class luno (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': float(trade['price']),
-            'amount': float(trade['volume']),
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'volume'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -240,10 +279,19 @@ class luno (Exchange):
         response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def fetch_trading_fees(self, params={}):
+        self.load_markets()
+        response = self.privateGetFeeInfo(params)
+        return {
+            'info': response,
+            'maker': self.safe_float(response, 'maker_fee'),
+            'taker': self.safe_float(response, 'taker_fee'),
+        }
+
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privatePost'
-        order = {'pair': self.market_id(market)}
+        order = {'pair': self.market_id(symbol)}
         if type == 'market':
             method += 'Marketorder'
             order['type'] = side.upper()
@@ -252,7 +300,7 @@ class luno (Exchange):
             else:
                 order['base_volume'] = amount
         else:
-            method += 'Order'
+            method += 'Postorder'
             order['volume'] = amount
             order['price'] = price
             if side == 'buy':

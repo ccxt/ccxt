@@ -114,19 +114,17 @@ module.exports = class coingi extends Exchange {
                 'amount': 8,
                 'price': 8,
             };
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': id,
-                'lot': lot,
                 'active': true,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
@@ -170,18 +168,15 @@ module.exports = class coingi extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchOrderBook (symbol, limit = 512, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = {
+        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
             'pair': market['id'],
             'depth': 32, // maximum number of depth range steps 1-32
-        };
-        if (typeof limit !== 'undefined') {
-            request['askCount'] = limit; // maximum returned number of asks 1-512
-            request['bidCount'] = limit; // maximum returned number of bids 1-512
-        }
-        let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend (request, params));
+            'askCount': limit, // maximum returned number of asks 1-512
+            'bidCount': limit, // maximum returned number of bids 1-512
+        }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
     }
 
@@ -197,12 +192,14 @@ module.exports = class coingi extends Exchange {
             'high': ticker['high'],
             'low': ticker['low'],
             'bid': ticker['highestBid'],
+            'bidVolume': undefined,
             'ask': ticker['lowestAsk'],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': undefined,
-            'first': undefined,
             'last': undefined,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,

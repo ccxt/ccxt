@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.5"
+  - "3.6"
 cache:
   directories:
     # - $HOME/.cache/pip
@@ -14,8 +14,8 @@ before_install:
 - nvm install stable
 - nvm use stable
 - npm install
-- sudo wget --quiet https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb
-- sudo dpkg -i pandoc-1.19.2.1-1-amd64.deb
+- sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
+- sudo dpkg -i pandoc-2.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
 - python3 --version
 - python2 --version
@@ -33,7 +33,7 @@ script:
 - cd ..
 - npm run test-base
 - set +e # (we deactivate set -e here, to prevent sudden log truncation in Travis, as it was suggested by the support team)
-- node run-tests --js --python2; export TESTS_FAILED=$?
+- node run-tests --js --python2 10; export TESTS_FAILED=$?
 - set -e # activate it again!
 - if [ "$TESTS_FAILED" -ne 0 ]; then exit 1; fi
 # - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
@@ -47,7 +47,7 @@ deploy:
   - provider: npm
     email: igor.kroitor@gmail.com
     api_key:
-      secure: m/gePgfQynfFTphRlEnE/GtheF/vano6uIR7fIV9tXEiX6M6/x0PFytRvJTkkr/21Gy1rj8c4u6uO3gHZwyV8c6Hb+mrrUOKxMj1UWL9HtJdCoIpcdew3rfs7eD0PbTxsp2QOZXlxDrfq+sxJ1y4X6J4NatIkQFhVMUHrPfXJTG9jmaHrbM/pNlkqVx7WMoEig7Mt/kKedqC1yHXOl3WhDy9J1WSiD/1QfHVLCNr6+LptjecqdJiUhpClSEr/YihDqpA+HHwbAUzHQ3sUu1TiYBNJbRTWFtgK/UW/cmVWWtU+jvoGnlHvRzVjlavAvabeiLrRT/IWiOpNbP1DlXy5dMPW/yxXgTrbA7u0/aHOUGFnjnRQufAx+HIdfHODin/lyzpryhfeXD0ykbj5Y1o45BIsjyUwGyqFNUSGAuNf3UXGZplcNKN4bzfv610m9HaU5uyE8fmUGnjAplZ8K8FAwJ9NpJksuW6E9uKk0PhQxCwKFWg6UTssvoAEFpDkzhmvRdEJW3aFQy7Q6qD4w7BX9k27deSG4S1o0nGqFgK9o4iePyh2ch15xnNKLYonyp292ukJ0QxWVBu5oZppYsi6v415Zw2PN9F7K4vLPY5isautZNL0W+PHnevYWc1JPoGFdiyYAVNDFVfJVrRBW6OSOCPZ961VQVXmuQ4Ntr0NaI=
+      secure: N76dtlNP0Q9sKDw8brbckPU2evN2anVb3G8aLM0u9PzY7WOLahSdghQUeU+xVZ7Qw0zqaThPPYpR0dacj4POUjd9UsjBl8ROTsUSjjSbM4C/Im+6sSqyO5Bl+9ZDy7xNvx92KnsQaGnvdd1NHHcL+ruyiFPzBpjYY3c4gp5jEe+vPKj9uSlT0UsLbtARCDi4MmYHCSSI+KAw2E0qo/RVQM07SEAUPLHvE17jjDr3IMomeFEP9uC36I1T7xM+nlfw08lAUb12nfS5PYMNBlLboC2v8/t20+ulKvNCPvRFyBmzw2sRzBMcE6XLfk0+1ajREjwU+n6lx6+63YIJYo5YAlG5hCBF2mmaLRSXfDTSg0khv7MID3OZwBmJ+bozrQwhXb9dYK1gpELuxDOaUu5xSn1lJGjx4JtH2wdIkxYoAgX/Gqx9xrjA5KnKdx/YhJwgLPYBFgN6pgqufA5Vu6JDQ0yd9qsU8qnXRH9jLNhsCy15fKCxcdSHK+eib+inRg/ayAqFYaRpugndiww5D3skNKyBFBXxuU1F7EXloiTy+dz2RR6vF08OSflxW4CGgSBtaugQIEG7XO3UjSL9sSj96dpBnTIRSRXtC4PvEPRtEWP6xDarYx7yl+mpuSryHyx+j6E23XpNHEM+KA7Ps1xv6F46yE0D9eNRNrp82XPFt6A=
 env:
   global:
     secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=

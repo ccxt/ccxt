@@ -12,12 +12,13 @@ module.exports = class mercado extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
-            'countries': 'BR', // Brazil
+            'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
             'version': 'v3',
             'has': {
                 'CORS': true,
                 'createMarketOrder': false,
+                'fetchOrder': true,
                 'withdraw': true,
             },
             'urls': {
@@ -87,23 +88,26 @@ module.exports = class mercado extends Exchange {
         }, params));
         let ticker = response['ticker'];
         let timestamp = parseInt (ticker['date']) * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['buy']),
-            'ask': parseFloat (ticker['sell']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker['vol']),
+            'baseVolume': this.safeFloat (ticker, 'vol'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -127,9 +131,18 @@ module.exports = class mercado extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetCoinTrades (this.extend ({
+        let method = 'publicGetCoinTrades';
+        let request = {
             'coin': market['base'],
-        }, params));
+        };
+        if (typeof since !== 'undefined') {
+            method += 'From';
+            request['from'] = parseInt (since / 1000);
+        }
+        let to = this.safeInteger (params, 'to');
+        if (typeof to !== 'undefined')
+            method += 'To';
+        let response = await this[method] (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -169,7 +182,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -185,7 +198,7 @@ module.exports = class mercado extends Exchange {
             side = (order['order_type'] === 1) ? 'buy' : 'sell';
         let status = order['status'];
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('coin_pair' in order)
                 if (order['coin_pair'] in this.markets_by_id)
                     market = this.markets_by_id[order['coin_pair']];
@@ -198,7 +211,7 @@ module.exports = class mercado extends Exchange {
         if ('updated_timestamp' in order)
             timestamp = parseInt (order['updated_timestamp']) * 1000;
         let fee = {
-            'cost': parseFloat (order['fee']),
+            'cost': this.safeFloat (order, 'fee'),
             'currency': market['quote'],
         };
         let price = this.safeFloat (order, 'limit_price');
@@ -213,6 +226,7 @@ module.exports = class mercado extends Exchange {
             'id': order['order_id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -229,7 +243,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -242,6 +256,7 @@ module.exports = class mercado extends Exchange {
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
         let request = {
             'coin': currency,
@@ -266,8 +281,11 @@ module.exports = class mercado extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             url += this.implodeParams (path, params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             url += this.version + '/';

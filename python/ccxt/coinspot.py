@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class coinspot (Exchange):
@@ -15,7 +16,7 @@ class coinspot (Exchange):
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
@@ -84,10 +85,7 @@ class coinspot (Exchange):
         orderbook = self.privatePostOrders(self.extend({
             'cointype': market['id'],
         }, params))
-        result = self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         response = self.publicGetLatest(params)
@@ -95,19 +93,22 @@ class coinspot (Exchange):
         id = id.lower()
         ticker = response['prices'][id]
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -121,19 +122,19 @@ class coinspot (Exchange):
             'cointype': self.market_id(symbol),
         }, params))
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         order = {
-            'cointype': self.market_id(market),
+            'cointype': self.market_id(symbol),
             'amount': amount,
             'rate': price,
         }
         return getattr(self, method)(self.extend(order, params))
 
     def cancel_order(self, id, symbol=None, params={}):
-        raise ExchangeError(self.id + ' cancelOrder() is not fully implemented yet')
+        raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')
         # method = 'privatePostMyBuy'
         # return getattr(self, method)({'id': id})
 

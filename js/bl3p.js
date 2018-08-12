@@ -94,8 +94,8 @@ module.exports = class bl3p extends Exchange {
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
         return [
-            bidask['price_int'] / 100000.0,
-            bidask['amount_int'] / 100000000.0,
+            bidask[priceKey] / 100000.0,
+            bidask[amountKey] / 100000000.0,
         ];
     }
 
@@ -105,7 +105,7 @@ module.exports = class bl3p extends Exchange {
             'market': market['id'],
         }, params));
         let orderbook = response['data'];
-        return this.parseOrderBook (orderbook);
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -113,19 +113,22 @@ module.exports = class bl3p extends Exchange {
             'market': this.marketId (symbol),
         }, params));
         let timestamp = ticker['timestamp'] * 1000;
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']),
-            'low': parseFloat (ticker['low']),
-            'bid': parseFloat (ticker['bid']),
-            'ask': parseFloat (ticker['ask']),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
@@ -191,6 +194,7 @@ module.exports = class bl3p extends Exchange {
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
             let secret = this.base64ToBinary (this.secret);
+            // eslint-disable-next-line quotes
             let auth = request + "\0" + body;
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {

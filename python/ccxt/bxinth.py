@@ -13,11 +13,12 @@ class bxinth (Exchange):
         return self.deep_extend(super(bxinth, self).describe(), {
             'id': 'bxinth',
             'name': 'BX.in.th',
-            'countries': 'TH',  # Thailand
+            'countries': ['TH'],  # Thailand
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
@@ -68,6 +69,10 @@ class bxinth (Exchange):
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+            },
         })
 
     def fetch_markets(self):
@@ -77,27 +82,23 @@ class bxinth (Exchange):
         for p in range(0, len(keys)):
             market = markets[keys[p]]
             id = str(market['pairing_id'])
-            base = market['secondary_currency']
-            quote = market['primary_currency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseId = market['secondary_currency']
+            quoteId = market['primary_currency']
+            active = market['active']
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
                 'info': market,
             })
         return result
-
-    def common_currency_code(self, currency):
-        # why would they use three letters instead of four for currency codes
-        if currency == 'DAS':
-            return 'DASH'
-        if currency == 'DOG':
-            return 'DOGE'
-        return currency
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -129,6 +130,7 @@ class bxinth (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -136,16 +138,18 @@ class bxinth (Exchange):
             'high': None,
             'low': None,
             'bid': float(ticker['orderbook']['bids']['highbid']),
+            'bidVolume': None,
             'ask': float(ticker['orderbook']['asks']['highbid']),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
-            'change': float(ticker['change']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume_24hours']),
+            'baseVolume': self.safe_float(ticker, 'volume_24hours'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -174,7 +178,7 @@ class bxinth (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['trade_date'])
+        timestamp = self.parse8601(trade['trade_date'] + '+07:00')  # Thailand UTC+7 offset
         return {
             'id': trade['trade_id'],
             'info': trade,
@@ -184,8 +188,8 @@ class bxinth (Exchange):
             'symbol': market['symbol'],
             'type': None,
             'side': trade['trade_type'],
-            'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'price': self.safe_float(trade, 'rate'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -216,6 +220,42 @@ class bxinth (Exchange):
             'order_id': id,
             'pairing': pairing,
         })
+
+    def parse_order(self, order, market=None):
+        side = self.safe_string(order, 'order_type')
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(order, 'pairing_id')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(order['date'])
+        price = self.safe_float(order, 'rate')
+        amount = self.safe_float(order, 'amount')
+        return {
+            'info': order,
+            'id': order['order_id'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+        }
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['pairing'] = market['id']
+        response = self.privatePostGetorders(self.extend(request, params))
+        orders = self.parse_orders(response['orders'], market, since, limit)
+        return self.filter_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

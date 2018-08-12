@@ -13,7 +13,7 @@ class foxbit (Exchange):
         return self.deep_extend(super(foxbit, self).describe(), {
             'id': 'foxbit',
             'name': 'FoxBit',
-            'countries': 'BR',
+            'countries': ['BR'],
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -61,13 +61,32 @@ class foxbit (Exchange):
                 'BTC/PKR': {'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit'},
                 'BTC/CLP': {'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit'},
             },
+            'options': {
+                'brokerId': '4',  # https://blinktrade.com/docs/#brokers
+            },
         })
 
     def fetch_balance(self, params={}):
-        # todo parse balance
-        return self.privatePostU2({
+        response = self.privatePostU2({
             'BalanceReqID': self.nonce(),
         })
+        balances = self.safe_value(response['Responses'], self.options['brokerId'])
+        result = {'info': response}
+        if balances is not None:
+            currencyIds = list(self.currencies_by_id.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                currency = self.currencies_by_id[currencyId]
+                code = currency['code']
+                # we only set the balance for the currency if that currency is present in response
+                # otherwise we will lose the info if the currency balance has been funded or traded or not
+                if currencyId in balances:
+                    account = self.account()
+                    account['used'] = float(balances[currencyId + '_locked']) * 1e-8
+                    account['total'] = float(balances[currencyId]) * 1e-8
+                    account['free'] = account['total'] - account['used']
+                    result[code] = account
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
@@ -86,23 +105,26 @@ class foxbit (Exchange):
         timestamp = self.milliseconds()
         lowercaseQuote = market['quote'].lower()
         quoteVolume = 'vol_' + lowercaseQuote
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['vol']),
+            'baseVolume': self.safe_float(ticker, 'vol'),
             'quoteVolume': float(ticker[quoteVolume]),
             'info': ticker,
         }

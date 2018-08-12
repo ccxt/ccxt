@@ -30,18 +30,21 @@ Welcome to the ccxt wiki!
     - [Public/Private API](https://github.com/ccxt/ccxt/wiki/Manual#publicprivate-api)
     - [Synchronous vs Asynchronous Calls](https://github.com/ccxt/ccxt/wiki/Manual#synchronous-vs-asynchronous-calls)
     - [Unified API](https://github.com/ccxt/ccxt/wiki/Manual#unified-api)
+      - [Overriding Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
+      - [Pagination](https://github.com/ccxt/ccxt/wiki/Manual#pagination)
   - [Market Data](https://github.com/ccxt/ccxt/wiki/Manual#market-data)
     - [Order Book](https://github.com/ccxt/ccxt/wiki/Manual#order-book)
       - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)
     - [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
     - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
-    - [Public Trades And Closed Orders](https://github.com/ccxt/ccxt/wiki/Manual#trades-orders-executions-transactions)
+    - [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions)
   - [Trading](https://github.com/ccxt/ccxt/wiki/Manual#trading)
     - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
     - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
     - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance)
     - [Orders](https://github.com/ccxt/ccxt/wiki/Manual#orders)
       - [Querying Orders](https://github.com/ccxt/ccxt/wiki/Manual#querying-orders)
+        - [`.orders` Cache](https://github.com/ccxt-dev/ccxt/wiki/Manual#orders-cache)
         - [By Order Id](https://github.com/ccxt-dev/ccxt/wiki/Manual#by-order-id)
         - [All Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#all-orders)
         - [Open Orders](https://github.com/ccxt-dev/ccxt/wiki/Manual#open-orders)
@@ -51,21 +54,26 @@ Welcome to the ccxt wiki!
         - [Market Orders](https://github.com/ccxt/ccxt/wiki/Manual#market-orders)
         - [Limit Orders](https://github.com/ccxt/ccxt/wiki/Manual#limit-orders)
         - [Custom Params](https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params)
-      - [Cancelling Orders](https://github.com/ccxt/ccxt/wiki/Manual#cancelling-orders)
-    - [Trades / Transactions / Fills / Executions](https://github.com/ccxt-dev/ccxt/wiki/Manual#trades--transactions--fills--executions)
+      - [Canceling Orders](https://github.com/ccxt/ccxt/wiki/Manual#canceling-orders)
+    - [Personal Trades](https://github.com/ccxt-dev/ccxt/wiki/Manual#personal-trades)
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account)
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
-      - Transaction History (Ledger)
-    - Fees *(wip)*
-      - Maker / Taker Order Fees
-      - Deposit / Withdraw
+      - [Transactions](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
+        - [Deposits](https://github.com/ccxt/ccxt/wiki/Manual#deposits)
+        - [Withdrawals](https://github.com/ccxt/ccxt/wiki/Manual#withdrawals)
+        - [All Transactions](https://github.com/ccxt/ccxt/wiki/Manual#all-transactions)
+    - [Fees](https://github.com/ccxt/ccxt/wiki/Manual#fees)
+      - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
+      - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
 
 ## Troubleshooting
 
+- [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
+- [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
 
 ## Examples
 

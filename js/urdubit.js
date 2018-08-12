@@ -11,7 +11,7 @@ module.exports = class urdubit extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'urdubit',
             'name': 'UrduBit',
-            'countries': 'PK',
+            'countries': [ 'PK' ],
             'has': {
                 'CORS': false,
             },
@@ -23,6 +23,9 @@ module.exports = class urdubit extends foxbit {
                 },
                 'www': 'https://urdubit.com',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '8', // https://blinktrade.com/docs/#brokers
             },
         });
     }
