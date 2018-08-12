@@ -53,8 +53,9 @@ class coinfalcon extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0025,
-                    'taker' => 0.0025,
+                    'tierBased' => true,
+                    'maker' => 0.0,
+                    'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
             ),
             'precision' => array (

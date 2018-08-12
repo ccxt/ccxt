@@ -148,14 +148,14 @@ class bitmex extends Exchange {
             $market = $markets[$p];
             $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
-            $base = $market['underlying'];
-            $quote = $market['quoteCurrency'];
+            $baseId = $market['underlying'];
+            $quoteId = $market['quoteCurrency'];
             $type = null;
             $future = false;
             $prediction = false;
-            $basequote = $base . $quote;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $basequote = $baseId . $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $swap = ($id === $basequote);
             $symbol = $id;
             if ($swap) {
@@ -181,6 +181,8 @@ class bitmex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (

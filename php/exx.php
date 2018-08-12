@@ -15,6 +15,7 @@ class exx extends Exchange {
             'name' => 'EXX',
             'countries' => array ( 'CN' ),
             'rateLimit' => 1000 / 10,
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchOrder' => true,
                 'fetchTickers' => true,
@@ -83,7 +84,6 @@ class exx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'CAN' => 'Content and AD Network',
                 'TV' => 'TIV', // Ti-Value
             ),
             'exceptions' => array (
@@ -368,6 +368,9 @@ class exx extends Exchange {
             ), $params)));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
             $url .= '?' . $query . '&$signature=' . $signature;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

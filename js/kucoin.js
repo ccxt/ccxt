@@ -201,7 +201,7 @@ module.exports = class kucoin extends Exchange {
                             'BTG': 0.001,
                             'BTM': 1,
                             'CAG': 1,
-                            'CanYa': 1,
+                            'CanYaCoin': 1,
                             'CAPP': 1,
                             'CAT': 1,
                             'CBC': 1,
@@ -348,7 +348,7 @@ module.exports = class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'XRB': 'NANO',
             },
         });

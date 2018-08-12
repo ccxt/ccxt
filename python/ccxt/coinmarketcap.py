@@ -99,7 +99,7 @@ class coinmarketcap (Exchange):
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'Content and AD Network': 'Content and AD Network',  # conflict with CAN(Content and AD Network)
+            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.106';
+$version = '1.17.113';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.106';
+    const VERSION = '1.17.113';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -198,6 +198,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'uex',
         'urdubit',
         'vaultoro',
         'vbtc',
@@ -741,6 +742,7 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+
         $this->twofa         = false;
         $this->marketsById   = null;
         $this->markets_by_id = null;
