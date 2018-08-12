@@ -173,6 +173,7 @@ class Exchange(object):
         'fetchClosedOrders': False,
         'fetchCurrencies': False,
         'fetchDepositAddress': False,
+        'fetchDeposits': False,
         'fetchFundingFees': False,
         'fetchL2OrderBook': True,
         'fetchMarkets': True,
@@ -188,6 +189,8 @@ class Exchange(object):
         'fetchTrades': True,
         'fetchTradingFees': False,
         'fetchTradingLimits': False,
+        'fetchTransactions': False,
+        'fetchWithdrawals': False,
         'withdraw': False,
     }
 
@@ -249,12 +252,12 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        # format camel case
-        for attr in dir(self):
-            if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
-                conv = attr.split('_')
-                camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
-                setattr(self, camel_case, getattr(self, attr))
+        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+        for name in dir(self):
+            if name[0] != '_'and name[-1] != '_' and '_' in name:
+                parts = name.split('_')
+                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
+                setattr(self, camelcase, getattr(self, name))
 
         self.tokenBucket = self.extend({
             'refillRate': 1.0 / self.rateLimit,
@@ -1256,6 +1259,13 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
+    def parse_transactions(self, transactions, currency=None, since=None, limit=None):
+        array = self.to_array(transactions)
+        array = [self.parse_transaction(transaction, currency) for transaction in array]
+        array = self.sort_by(array, 'timestamp')
+        code = currency['code'] if currency else None
+        return self.filter_by_currency_since_limit(array, code, since, limit)
+
     def parse_orders(self, orders, market=None, since=None, limit=None):
         array = self.to_array(orders)
         array = [self.parse_order(order, market) for order in array]
@@ -1263,15 +1273,21 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
+    def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None):
         array = self.to_array(array)
-        if symbol:
-            array = [entry for entry in array if entry['symbol'] == symbol]
+        if value:
+            array = [entry for entry in array if entry[field] == value]
         if since:
             array = [entry for entry in array if entry['timestamp'] >= since]
         if limit:
             array = array[0:limit]
         return array
+
+    def filter_by_symbol_since_limit(self, array, symbol=None, since=None, limit=None):
+        return self.filter_by_value_since_limit(array, 'symbol', symbol, since, limit)
+
+    def filter_by_currency_since_limit(self, array, code=None, since=None, limit=None):
+        return self.filter_by_value_since_limit(array, 'currency', code, since, limit)
 
     def filter_by_since_limit(self, array, since=None, limit=None):
         array = self.to_array(array)

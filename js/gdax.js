@@ -509,10 +509,11 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
-    async deposit (currency, amount, address, params = {}) {
+    async deposit (code, amount, address, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostDeposits';
@@ -537,11 +538,12 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        let currency = this.currency (code);
         await this.loadMarkets ();
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostWithdrawals';
@@ -559,6 +561,81 @@ module.exports = class gdax extends Exchange {
         return {
             'info': response,
             'id': response['id'],
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
+        }
+        let currency = this.currency (code);
+        let accountId = undefined;
+        let accounts = await this.privateGetAccounts ();
+        for (let i = 0; i < accounts.length; i++) {
+            let account = accounts[i];
+            // todo: use unified common currencies below
+            if (account['currency'] === currency['id']) {
+                accountId = account['id'];
+                break;
+            }
+        }
+        if (typeof accountId === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+        }
+        let request = {
+            'limit': limit,
+            'id': accountId,
+        };
+        let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['currency'] = code;
+        }
+        return this.parseTransactions (response);
+    }
+
+    parseTransactionStatus (transaction) {
+        if (transaction['canceled_at']) {
+            return 'canceled';
+        } else if (transaction['completed_at']) {
+            return 'ok';
+        } else if (transaction['procesed_at']) {
+            return 'pending';
+        } else {
+            return 'failed';
+        }
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': undefined, // or is it defined?
+            'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (transaction),
+            'updated': undefined,
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 
