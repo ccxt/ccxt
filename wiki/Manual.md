@@ -1062,6 +1062,217 @@ $params = array (
 $result = $exchange->fetch_order_book ($symbol, $length, $params);
 ```
 
+### Pagination
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades, orders, transactions and so on). However, very few exchanges (if any at all) will return all orders, or all trades or all transactions at once. Most often their APIs `limit` output to a certain number of most recent objects. To fetch historical orders or trades, the user will need to traverse the data in portions or "pages" or objects. Pagination often implies *"fetching portions of data"* in a loop.
+
+With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
+
+#### Date-based pagination
+
+The user supplies a `since` timestamp **in milliseconds** (!) and a number to `limit` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let since = exchange.milliseconds () - 86400000 // -1 day from now
+    let allTrades = []
+    while (since < exchange.milliseconds ()) {
+        const symbol = undefined // change for your symbol
+        const limit = 20 // change for your limit
+        const trades = await exchange.fetchTrades (symbol, since, limit)
+        if (trades.length) {
+            since = trades[trades.length - 1]
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    since = exchange.milliseconds () - 86400000  # -1 day from now
+    all_orders = []
+    while since < exchange.milliseconds ():
+        symbol = None  # change for your symbol
+        limit = 20  # change for your limit
+        orders = await exchange.fetch_orders(symbol, since, limit)
+        if len(orders):
+            since = orders[len(orders) - 1]
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $since = exchange->milliseconds () - 86400000; // -1 day from now
+    $all_trades = array ();
+    while (since < exchange->milliseconds ()) {
+        $symbol = null; // change for your symbol
+        $limit = 20; // change for your limit
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit);
+        if (count($trades)) {
+            $since = $trades[count($trades) - 1];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
+```
+
+#### id-based pagination
+
+The user supplies a `from_id` of the object, from where the query should continue returning results, and a number to `limit` results. This is the default with some exchanges, however, this type is not unified (yet). To paginate objects based on their ids, the user would run the following:
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let from_id = 'abc123' // all ids are strings
+    let allTrades = []
+    while (true) {
+        const symbol = undefined // change for your symbol
+        const since = undefined
+        const limit = 20 // change for your limit
+        const params = {
+            'from_id': from_id, // exchange-specific non-unified parameter name
+        }
+        const trades = await exchange.fetchTrades (symbol, since, limit, params)
+        if (trades.length) {
+            from_id = trades[trades.length - 1]['id']
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    from_id = 'abc123'  # all ids are strings
+    all_orders = []
+    while True:
+        symbol = None  # change for your symbol
+        since = None
+        limit = 20  # change for your limit
+        params = {
+            'from_id': from_id,  # exchange-specific non-unified parameter name
+        }
+        orders = await exchange.fetch_orders(symbol, since, limit, params)
+        if len(orders):
+            from_id = orders[len(orders) - 1]['id']
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $from_id = 'abc123' // all ids are strings
+    $all_trades = array ();
+    while (true) {
+        $symbol = null; // change for your symbol
+        $since = null;
+        $limit = 20; // change for your limit
+        $params = array (
+            'from_id' => $from_id, // exchange-specific non-unified parameter name
+        );
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
+        if (count($trades)) {
+            $from_id = $trades[count($trades) - 1]['id'];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
+```
+
+#### Pagenumber-based (cursor) pagination
+
+The user supplies a page number or an *initial "cursor"* value. The exchange returns a page of results and the *next "cursor"* value, to proceed from. Most of exchanges that implement this type of pagination will either return the next cursor within the response itself or will return the next cursor values within HTTP response headers.
+
+See an example implementation here: https://github.com/ccxt/ccxt/blob/master/examples/py/gdax-fetch-my-trades-pagination.py
+
+Upon each iteration of the loop the user has to take the next cursor and put it into the overrided params for the next query (on the following iteration):
+
+```JavaScript
+// JavaScript
+if (exchange.has['fetchTrades']) {
+    let page = 0  // exchange-specific type and value
+    let allTrades = []
+    while (true) {
+        const symbol = undefined // change for your symbol
+        const since = undefined
+        const limit = 20 // change for your limit
+        const params = {
+            'page': page, // exchange-specific non-unified parameter name
+        }
+        const trades = await exchange.fetchTrades (symbol, since, limit, params)
+        if (trades.length) {
+            // not thread-safu and exchange-specific !
+            page = exchange.last_json_response['cursor']
+            allTrades.push (trades)
+        } else {
+            break
+        }
+    }
+}
+```
+
+```Python
+# Python
+if exchange.has['fetchOrders']:
+    cursor = 0  # exchange-specific type and value
+    all_orders = []
+    while True:
+        symbol = None  # change for your symbol
+        since = None
+        limit = 20  # change for your limit
+        params = {
+            'cursor': cursor,  # exchange-specific non-unified parameter name
+        }
+        orders = await exchange.fetch_orders(symbol, since, limit, params)
+        if len(orders):
+            # not thread-safu and exchange-specific !
+            cursor = exchange.last_http_headers['CB-AFTER']
+            all_orders += orders
+        else:
+            break
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchMyTrades']) {
+    $start = '0' // exchange-specific type and value
+    $all_trades = array ();
+    while (true) {
+        $symbol = null; // change for your symbol
+        $since = null;
+        $limit = 20; // change for your limit
+        $params = array (
+            'start' => $start, // exchange-specific non-unified parameter name
+        );
+        $trades = $exchange->fetchMyTrades ($symbol, $since, $limit, $params);
+        if (count($trades)) {
+            // not thread-safu and exchange-specific !
+            $start = $exchange->last_json_response['next'];
+            $all_trades = array_merge ($all_trades, $trades);
+        } else {
+            break;
+        }
+    }
+}
+```
+
 # Market Data
 
 - [Order Book / Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#order-book--market-depth)
@@ -1274,28 +1485,31 @@ To get the individual ticker data from an exchange for each particular trading p
 
 ```JavaScript
 // JavaScript
-(async () => {
+if (exchange.has['fetchTicker']) {
     console.log (await (exchange.fetchTicker ('BTC/USD'))) // ticker for BTC/USD
     let symbols = Object.keys (exchange.markets)
     let random = Math.floor (Math.random () * (symbols.length - 1))
     console.log (exchange.fetchTicker (symbols[random])) // ticker for a random symbol
-}) ()
+}
 ```
 
 ```Python
 # Python
 import random
-print(exchange.fetch_ticker('LTC/ZEC')) # ticker for LTC/ZEC
-symbols = list(exchange.markets.keys())
-print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
+if (exchange.has['fetchTicker']):
+    print(exchange.fetch_ticker('LTC/ZEC')) # ticker for LTC/ZEC
+    symbols = list(exchange.markets.keys())
+    print(exchange.fetch_ticker(random.choice(symbols))) # ticker for a random symbol
 ```
 
 ```PHP
 // PHP (don't forget to set your timezone properly!)
-var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
-$symbols = array_keys ($exchange->markets);
-$random = rand () % count ($symbols);
-var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
+if ($exchange->has['fetchTicker']) {
+    var_dump ($exchange->fetch_ticker ('ETH/CNY')); // ticker for ETH/CNY
+    $symbols = array_keys ($exchange->markets);
+    $random = rand () % count ($symbols);
+    var_dump ($exchange->fetch_ticker ($symbols[$random])); // ticker for a random symbol
+}
 ```
 
 ### All At Once
@@ -1304,19 +1518,22 @@ Some exchanges (not all of them) also support fetching all tickers at once. See 
 
 ```JavaScript
 // JavaScript
-(async () => {
+if (exchange.has['fetchTickers']) {
     console.log (await (exchange.fetchTickers ())) // all tickers indexed by their symbols
-}) ()
+}
 ```
 
 ```Python
 # Python
-print(exchange.fetch_tickers()) # all tickers indexed by their symbols
+if (exchange.has['fetchTickers']):
+    print(exchange.fetch_tickers()) # all tickers indexed by their symbols
 ```
 
 ```PHP
 // PHP
-var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+if ($exchange->has['fetchTickers']) {
+    var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
+}
 ```
 
 Fetching all tickers requires more traffic than fetching a single ticker. If you only need one ticker, fetching by a particular symbol is faster in general. You probably want to fetch all tickers only if you really need all of them.
@@ -1364,12 +1581,10 @@ You can call the unified `fetchOHLCV` / `fetch_ohlcv` method to get the list of 
 // JavaScript
 let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
 if (exchange.has.fetchOHLCV) {
-    (async () => {
-        for (symbol in exchange.markets) {
-            await sleep (exchange.rateLimit) // milliseconds
-            console.log (await exchange.fetchOHLCV (symbol, '1m')) // one minute
-        }
-    }) ()
+    for (symbol in exchange.markets) {
+        await sleep (exchange.rateLimit) // milliseconds
+        console.log (await exchange.fetchOHLCV (symbol, '1m')) // one minute
+    }
 }
 ```
 
@@ -1384,11 +1599,12 @@ if exchange.has['fetchOHLCV']:
 
 ```PHP
 // PHP
-if ($exchange->has['fetchOHLCV'])
+if ($exchange->has['fetchOHLCV']) {
     foreach ($exchange->markets as $symbol => $market) {
         usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
         var_dump ($exchange->fetch_ohlcv ($symbol, '1M')); // one month
     }
+}
 ```
 
 To get the list of available timeframes for your exchange see the `timeframes` property. Note that it is only populated when `has['fetchOHLCV']` is true as well.
@@ -1445,28 +1661,31 @@ For example, if you want to print recent trades for all symbols one by one seque
 
 ```JavaScript
 // JavaScript
-let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
-(async () => {
+if (exchange.has['fetchTrades']) {
+    let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms));
     for (symbol in exchange.markets) {
         await sleep (exchange.rateLimit) // milliseconds
         console.log (await exchange.fetchTrades (symbol))
     }
-}) ()
+}
 ```
 
 ```Python
 # Python
 import time
-for symbol in exchange.markets:                    # ensure you have called loadMarkets() or load_markets() method.
-    time.sleep (exchange.rateLimit / 1000)         # time.sleep wants seconds
-    print (symbol, exchange.fetch_trades (symbol))
+if exchange.has['fetchTrades']:
+    for symbol in exchange.markets:  # ensure you have called loadMarkets() or load_markets() method.
+        time.sleep (exchange.rateLimit / 1000)  # time.sleep wants seconds
+        print (symbol, exchange.fetch_trades (symbol))
 ```
 
 ```PHP
 // PHP
-foreach ($exchange->markets as $symbol => $market) {
-    usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
-    var_dump ($exchange->fetch_trades ($symbol));
+if ($exchange->has['fetchTrades']) {
+    foreach ($exchange->markets as $symbol => $market) {
+        usleep ($exchange->rateLimit * 1000); // usleep wants microseconds
+        var_dump ($exchange->fetch_trades ($symbol));
+    }
 }
 ```
 
@@ -2196,7 +2415,7 @@ Returns ordered array `[]` of trades (most recent trade last).
     'cost':         0.10376526,                 // total cost (including fees), `price * amount`
     'fee':          {                           // provided by exchange or calculated by ccxt
         'cost':  0.0015,                        // float
-        'currency': "ETH",                      // usually base currency for buys, quote currency for sells
+        'currency': 'ETH',                      // usually base currency for buys, quote currency for sells
         'rate': 0.002,                          // the fee rate (if available)
     },
 }
@@ -2273,7 +2492,7 @@ Some exchanges require a manual approval of each withdrawal by means of 2FA (2-f
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
-### Funding History
+### Transactions
 
 #### Transaction Structure
 
@@ -2355,7 +2574,7 @@ if ($exchange->has['fetchWithdrawals']) {
 }
 ```
 
-#### All transactions
+#### All Transactions
 
 ```JavaScript
 // JavaScript
