@@ -595,7 +595,7 @@ module.exports = class cobinhood extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof code === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchDeposits() requires currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
         }
         let currency = this.currency (code);
         let request = {
@@ -608,7 +608,7 @@ module.exports = class cobinhood extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof code === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchWithdrawals() requires currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
         }
         let currency = this.currency (code);
         let request = {
