@@ -313,7 +313,8 @@ class uex extends Exchange {
         //                               ["0.00010000", 0.79]   ],
         //                       time =>    1533412622463            } } }
         //
-        return $this->parse_order_book($response['data']['tick'], $response['data']['time']);
+        $timestamp = $this->safe_integer($response['data']['tick'], 'time');
+        return $this->parse_order_book($response['data']['tick'], $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {

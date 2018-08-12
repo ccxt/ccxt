@@ -313,7 +313,8 @@ module.exports = class uex extends Exchange {
         //                               ["0.00010000", 0.79]   ],
         //                       time:    1533412622463            } } }
         //
-        return this.parseOrderBook (response['data']['tick'], response['data']['time']);
+        let timestamp = this.safeInteger (response['data']['tick'], 'time');
+        return this.parseOrderBook (response['data']['tick'], timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
