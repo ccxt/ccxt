@@ -509,10 +509,11 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
-    async deposit (currency, amount, address, params = {}) {
+    async deposit (code, amount, address, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostDeposits';
@@ -537,11 +538,12 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        let currency = this.currency (code);
         await this.loadMarkets ();
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostWithdrawals';
@@ -564,22 +566,22 @@ module.exports = class gdax extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof currency === 'undefined') {
-            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
         }
+        let currency = this.currency (code);
         let accountId = undefined;
         let accounts = await this.privateGetAccounts ();
-        for (let a = 0; a < accounts.length; a++) {
-            let account = accounts[a];
+        for (let i = 0; i < accounts.length; i++) {
+            let account = accounts[i];
             // todo: use unified common currencies below !
-            let curr = account['currency'];
-            if (curr === code) {
+            if (account['currency'] === currency['id']) {
                 accountId = account['id'];
                 break;
             }
         }
         if (typeof accountId === 'undefined') {
-            throw new ExchangeError (this.id + ' could not find account id for ' + currency);
+            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
         }
         let request = {
             'limit': limit,
