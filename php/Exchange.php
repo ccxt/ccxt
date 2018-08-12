@@ -1483,7 +1483,7 @@ class Exchange {
         $array = array_values ($array);
         $valueIsSet = isset ($value);
         $sinceIsSet = isset ($since);
-        $array = array_filter ($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since) {
+        $array = array_filter ($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
             return (($valueIsSet ? ($element[$field] === $value)     : true) &&
                     ($sinceIsSet ? ($element['timestamp'] >= $since) : true));
         });
