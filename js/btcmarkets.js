@@ -93,6 +93,7 @@ module.exports = class btcmarkets extends Exchange {
             let fee = (quote === 'AUD') ? 0.0085 : 0.0022;
             let precision = undefined;
             let minAmount = 0.001; // where does it come from?
+            let minPrice = undefined;
             if (quote === 'AUD') {
                 let pricePrecision = 2;
                 if ((base === 'XRP') || (base === 'OMG')) {
@@ -102,6 +103,7 @@ module.exports = class btcmarkets extends Exchange {
                     'amount': -Math.log10 (minAmount),
                     'price': pricePrecision,
                 };
+                minPrice = Math.pow (10, -precision['price']);
             }
             let limits = {
                 'amount': {
@@ -109,7 +111,7 @@ module.exports = class btcmarkets extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': minPrice,
                     'max': undefined,
                 },
                 'cost': {
