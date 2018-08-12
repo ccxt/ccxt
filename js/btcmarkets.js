@@ -84,21 +84,50 @@ module.exports = class btcmarkets extends Exchange {
         let markets = response['markets'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let base = market['instrument'];
-            let quote = market['currency'];
+            let baseId = market['instrument'];
+            let quoteId = market['currency'];
+            let id = baseId + '/' + quoteId;
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let fee = quote === 'AUD' ? 0.0085 : 0.0022;
             let precision = undefined;
+            let minAmount = 0.001; // where does it come from?
             if (quote === 'AUD') {
-                precision = { 'price': base === 'XRP' || base === 'OMG' ? 4 : 2 }
+                let pricePrecision = 2;
+                if ((base === 'XRP') || (base === 'OMG')) {
+                   pricePrecision = 4;
+                }
+                precision = {
+                    'amount': -Math.log10 (minAmount),
+                    'price': pricePrecision,
+                };
             }
+            let limits = {
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                }                
+            };
             result.push ({
-                'id': base + '/' + quote,
-                'symbol': base + '/' + quote,
+                'info': market,
+                'id': id,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'maker': fee,
                 'taker': fee,
-                'limits': { 'amount': { 'min': 0.001, 'max': undefined }},
+                'limits': limits,
                 'precision': precision,
             });
         }
