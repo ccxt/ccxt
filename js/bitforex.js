@@ -550,7 +550,7 @@ module.exports = class bitforex extends Exchange {
             let feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
             if (typeof success !== 'undefined') {
-                if (success === false) {
+                if (!success) {
                     let message = this.safeString (response, 'message');
                     let exceptions = this.exceptions;
                     if (message in exceptions) {
