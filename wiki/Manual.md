@@ -2288,7 +2288,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'type': 'deposit',     // or 'withdrawal', string
     'amount': 1.2345,      // float
     'currency': 'ETH',     // a common unified currency code, string
-    'status': 'pending',   // 'ok', 'failed', string
+    'status': 'pending',   // 'ok', 'failed', 'canceled', string
     'updated': undefined,  // timestamp in milliseconds
     'fee': {               // the entire fee structure may be undefined
         'cost': 0.1234,    // float
