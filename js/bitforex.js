@@ -28,7 +28,7 @@ module.exports = class bitforex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1249087/43923293-57f06258-9bef-11e8-8630-53bd65111998.png',
-                'api': 'https://api.bitforex.com',  
+                'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
@@ -65,142 +65,142 @@ module.exports = class bitforex extends Exchange {
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
-                    'deposit': {}, 
+                    'deposit': {},
                     'withdraw': {
-                        'BTC':0.0005,
-                        'ETH':0.01,
-                        'BCH':0.0001,
-                        'LTC':0.001,
-                        'ETC':0.005,
-                        'USDT':5,
-                        'CMCT':30,
-                        'AION':3,
-                        'LVT':0,
-                        'DATA':40,
-                        'RHP':50,
-                        'NEO':0,
-                        'AIDOC':10,
-                        'BQT':2,
-                        'R':2,
-                        'DPY':0.8,
-                        'GTC':40,
-                        'AGI':30,
-                        'DENT':100,
-                        'SAN':1,
-                        'SPANK':8,
-                        'AID':5,
-                        'OMG':0.1,
-                        'BFT':5,
-                        'SHOW':150,
-                        'TRX':20,
-                        'ABYSS':10,
-                        'THM':25,
-                        'ZIL':20,
-                        'PPT':0.2,
-                        'WTC':0.4,
-                        'LRC':7,
-                        'BNT':1,
-                        'CTXC':1,
-                        'MITH':20,
-                        'TRUE':4,
-                        'LYM':10,
-                        'VEE':100,
-                        'AUTO':200,
-                        'REN':50,
-                        'TIO':2.5,
-                        'NGC':1.5,
-                        'PST':10,
-                        'CRE':200,
-                        'IPC':5,
-                        'PTT':1000,
-                        'XMCT':20,
-                        'ATMI':40,
-                        'TERN':40,
-                        'XLM':0.01,
-                        'ODE':15,
-                        'FTM':100,
-                        'RTE':100,
-                        'DCC':100,
-                        'IMT':500,
-                        'GOT':3,
-                        'EGT':500,
-                        'DACC':1000,
-                        'UBEX':500,
-                        'ABL':100,
-                        'OLT':100,
-                        'DAV':40,
-                        'THRT':10,
-                        'RMESH':3,
-                        'UPP':20,
-                        'SDT':0,
-                        'SHR':10,
-                        'MTV':3,
-                        'ESS':100,
-                        'MET':3,
-                        'TTC':20,
-                        'LXT':10,
-                        'XCLP':100,
-                        'LUK':100,
-                        'UBC':100,
-                        'DTX':10,
-                        'BEAT':20,
-                        'DEED':2,
-                        'BGX':3000,
-                        'PRL':20,
-                        'ELY':50,
-                        'CARD':300,
-                        'SQR':15,
-                        'VRA':400,
-                        'BWX':3500,
-                        'MAS':75,
-                        'FLP':0.6,
-                        'UNC':300,
-                        'CRNC':15,
-                        'MFG':70,
-                        'ZXC':70,
-                        'TRT':30,
-                        'ZIX':35,
-                        'XRA':10,
-                        'AMO':1600,
-                        'IPG':3,
-                        'uDoo':50,
-                        'URB':30,
-                        'ARCONA':3,
-                        'CRAD':5,
-                        'NOBS':1000,
-                        'ADF':2,
-                        'ELF':5,
-                        'LX':20,
-                        'PATH':15,
-                        'SILK':120,
-                        'SKYFT':50,
-                        'EDN':50,
-                        'ADE':50,
-                        'EDR':10,
-                        'TIME':0.25,
-                        'SPRK':20,
-                        'QTUM':0.01,
-                        'BF':5,
-                        'ZPR':100,
-                        'HYB':10,
-                        'CAN':30,
-                        'CEL':10,
-                        'ATS':50,
-                        'KCASH':1,
-                        'ACT':0.01,
-                        'MT':300,
-                        'DXT':30,
-                        'WAB':4000,
-                        'HYDRO':400,
-                        'LQD':5,
-                        'OPTC':200,
-                        'EQUAD':80,
-                        'LATX':50,
-                        'LEDU':100,
-                        'RIT':70,
-                        'ACDC':500,
-                        'FSN':2,
-                    }, 
+                        'BTC': 0.0005,
+                        'ETH': 0.01,
+                        'BCH': 0.0001,
+                        'LTC': 0.001,
+                        'ETC': 0.005,
+                        'USDT': 5,
+                        'CMCT': 30,
+                        'AION': 3,
+                        'LVT': 0,
+                        'DATA': 40,
+                        'RHP': 50,
+                        'NEO': 0,
+                        'AIDOC': 10,
+                        'BQT': 2,
+                        'R': 2,
+                        'DPY': 0.8,
+                        'GTC': 40,
+                        'AGI': 30,
+                        'DENT': 100,
+                        'SAN': 1,
+                        'SPANK': 8,
+                        'AID': 5,
+                        'OMG': 0.1,
+                        'BFT': 5,
+                        'SHOW': 150,
+                        'TRX': 20,
+                        'ABYSS': 10,
+                        'THM': 25,
+                        'ZIL': 20,
+                        'PPT': 0.2,
+                        'WTC': 0.4,
+                        'LRC': 7,
+                        'BNT': 1,
+                        'CTXC': 1,
+                        'MITH': 20,
+                        'TRUE': 4,
+                        'LYM': 10,
+                        'VEE': 100,
+                        'AUTO': 200,
+                        'REN': 50,
+                        'TIO': 2.5,
+                        'NGC': 1.5,
+                        'PST': 10,
+                        'CRE': 200,
+                        'IPC': 5,
+                        'PTT': 1000,
+                        'XMCT': 20,
+                        'ATMI': 40,
+                        'TERN': 40,
+                        'XLM': 0.01,
+                        'ODE': 15,
+                        'FTM': 100,
+                        'RTE': 100,
+                        'DCC': 100,
+                        'IMT': 500,
+                        'GOT': 3,
+                        'EGT': 500,
+                        'DACC': 1000,
+                        'UBEX': 500,
+                        'ABL': 100,
+                        'OLT': 100,
+                        'DAV': 40,
+                        'THRT': 10,
+                        'RMESH': 3,
+                        'UPP': 20,
+                        'SDT': 0,
+                        'SHR': 10,
+                        'MTV': 3,
+                        'ESS': 100,
+                        'MET': 3,
+                        'TTC': 20,
+                        'LXT': 10,
+                        'XCLP': 100,
+                        'LUK': 100,
+                        'UBC': 100,
+                        'DTX': 10,
+                        'BEAT': 20,
+                        'DEED': 2,
+                        'BGX': 3000,
+                        'PRL': 20,
+                        'ELY': 50,
+                        'CARD': 300,
+                        'SQR': 15,
+                        'VRA': 400,
+                        'BWX': 3500,
+                        'MAS': 75,
+                        'FLP': 0.6,
+                        'UNC': 300,
+                        'CRNC': 15,
+                        'MFG': 70,
+                        'ZXC': 70,
+                        'TRT': 30,
+                        'ZIX': 35,
+                        'XRA': 10,
+                        'AMO': 1600,
+                        'IPG': 3,
+                        'uDoo': 50,
+                        'URB': 30,
+                        'ARCONA': 3,
+                        'CRAD': 5,
+                        'NOBS': 1000,
+                        'ADF': 2,
+                        'ELF': 5,
+                        'LX': 20,
+                        'PATH': 15,
+                        'SILK': 120,
+                        'SKYFT': 50,
+                        'EDN': 50,
+                        'ADE': 50,
+                        'EDR': 10,
+                        'TIME': 0.25,
+                        'SPRK': 20,
+                        'QTUM': 0.01,
+                        'BF': 5,
+                        'ZPR': 100,
+                        'HYB': 10,
+                        'CAN': 30,
+                        'CEL': 10,
+                        'ATS': 50,
+                        'KCASH': 1,
+                        'ACT': 0.01,
+                        'MT': 300,
+                        'DXT': 30,
+                        'WAB': 4000,
+                        'HYDRO': 400,
+                        'LQD': 5,
+                        'OPTC': 200,
+                        'EQUAD': 80,
+                        'LATX': 50,
+                        'LEDU': 100,
+                        'RIT': 70,
+                        'ACDC': 500,
+                        'FSN': 2,
+                    },
                 },
             },
             'exceptions': {
@@ -208,7 +208,7 @@ module.exports = class bitforex extends Exchange {
                 'accessKey not exist': AuthenticationError,
                 'SignData Invalid': AuthenticationError,
                 'asset is not enough': InsufficientFunds,
-            }
+            },
         });
     }
 
@@ -229,20 +229,20 @@ module.exports = class bitforex extends Exchange {
             let symbol = base + '/' + quote;
             let active = true;
             let precision = {
-                'amount':market['amountPrecision'],   //TODO: This is 4. Do we need to convert to decimal places? (eg. 0.0001?)
-                'price':  market['pricePrecision'],
+                'amount': market['amountPrecision'], // TODO: This is 4. Do we need to convert to decimal places? (eg. 0.0001?)
+                'price': market['pricePrecision'],
             };
             let limits = {
                 'amount': {
-                    'min': market['minOrderAmount'], 
+                    'min': market['minOrderAmount'],
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined, 
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined, 
+                    'min': undefined,
                     'max': undefined,
                 },
             };
@@ -269,7 +269,7 @@ module.exports = class bitforex extends Exchange {
         }
         let timestamp = this.safeInteger (trade, 'time');
         let id = this.safeString (trade, 'tid');
-        let orderId = undefined
+        let orderId = undefined;
         let amount = this.safeFloat (trade, 'amount');
         let price = this.safeFloat (trade, 'price');
         let cost = undefined;
@@ -279,7 +279,7 @@ module.exports = class bitforex extends Exchange {
             }
         }
         let sideId = this.safeString (trade, 'direction');
-        let side = this.parseSide(sideId);
+        let side = this.parseSide (sideId);
         return {
             'info': trade,
             'id': id,
@@ -299,12 +299,12 @@ module.exports = class bitforex extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'symbol': this.marketId(symbol)
-        }
+            'symbol': this.marketId (symbol),
+        };
         if (typeof limit !== 'undefined') {
-            request['size'] = limit
+            request['size'] = limit;
         }
-        let market = this.market(symbol);
+        let market = this.market (symbol);
         let response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -325,9 +325,9 @@ module.exports = class bitforex extends Exchange {
             }
             let account = this.account ();
             result[code] = account;
-            result[code]['used'] = this.safeFloat(current, 'frozen');
-            result[code]['free'] = this.safeFloat(current, 'active');
-            result[code]['total'] = this.safeFloat(current, 'fix');
+            result[code]['used'] = this.safeFloat (current, 'frozen');
+            result[code]['free'] = this.safeFloat (current, 'active');
+            result[code]['total'] = this.safeFloat (current, 'fix');
         }
         return result;
     }
@@ -336,13 +336,14 @@ module.exports = class bitforex extends Exchange {
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let request = {
-            'symbol':market.id,
+            'symbol': market.id,
         };
         let response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
         let data = response['data'];
+        let timestamp = this.safeInteger (data, 'date');
         return {
             'symbol': symbol,
-            'timestamp': this.safeInteger(data, 'date'),
+            'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (data, 'high'),
             'low': this.safeFloat (data, 'low'),
@@ -371,7 +372,7 @@ module.exports = class bitforex extends Exchange {
             'symbol': marketId,
         };
         if (typeof limit !== 'undefined') {
-            request['size'] = limit
+            request['size'] = limit;
         }
         let response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
         let data = response['data'];
@@ -392,18 +393,18 @@ module.exports = class bitforex extends Exchange {
             'state': 1,
         };
         let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
-        let closedData = []
+        let closedData = [];
         if ('data' in responseClosed) {
             closedData = responseClosed['data'];
         }
         let completedOrders = [];
         for (let i = 0; i < closedData.length; i++) {
             let current = closedData[i];
-            if (current['orderState'] == 2) {
-                completedOrders.push(current);
+            if (current['orderState'] === 2) {
+                completedOrders.push (current);
             }
         }
-        return this.parseOrders (completedOrders, market, since, limit);    
+        return this.parseOrders (completedOrders, market, since, limit);
     }
 
     parseOrderStatus (orderStatusId) {
@@ -411,7 +412,7 @@ module.exports = class bitforex extends Exchange {
             return 'open';
         } else if (orderStatusId === 2) {
             return 'closed';
-        } else if (orderStatusId === 3 || orderStatusId == 4) {
+        } else if (orderStatusId === 3 || orderStatusId === 4) {
             return 'canceled';
         } else {
             return undefined;
@@ -429,7 +430,7 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id =  this.safeString (order, 'orderId');
+        let id = this.safeString (order, 'orderId');
         let timestamp = this.safeFloat2 (order, 'createTime');
         let iso8601 = this.iso8601 (timestamp);
         let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
@@ -439,8 +440,8 @@ module.exports = class bitforex extends Exchange {
         let type = undefined;
         let price = this.safeFloat (order, 'orderPrice');
         let average = this.safeFloat (order, 'avgPrice');
-        let amount = this.safeFloat (order, 'orderAmount')
-        let filled = this.safeFloat (order, 'dealAmount')
+        let amount = this.safeFloat (order, 'orderAmount');
+        let filled = this.safeFloat (order, 'dealAmount');
         let remaining = amount - filled;
         let statusId = this.safeInteger (order, 'orderState');
         let status = this.parseOrderStatus (statusId);
@@ -471,11 +472,11 @@ module.exports = class bitforex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': this.marketId(symbol),
+            'symbol': this.marketId (symbol),
             'orderId': id,
         };
         let response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
-        let order = this.parseOrder(response['data'], market);
+        let order = this.parseOrder (response['data'], market);
         return order;
     }
 
@@ -483,7 +484,7 @@ module.exports = class bitforex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': this.marketId(symbol),
+            'symbol': this.marketId (symbol),
             'state': 0,
         };
         let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
@@ -498,7 +499,7 @@ module.exports = class bitforex extends Exchange {
             'state': 0,
         };
         let responseOpen = await this.privatePostApiV1TradeOrderInfos (this.extend (requestOpen, params));
-        let openData = []
+        let openData = [];
         if ('data' in responseOpen) {
             openData = responseOpen['data'];
         }
@@ -507,18 +508,18 @@ module.exports = class bitforex extends Exchange {
             'state': 1,
         };
         let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
-        let closedData = []
+        let closedData = [];
         if ('data' in responseClosed) {
             closedData = responseClosed['data'];
         }
-        let allData = []
+        let allData = [];
         for (let i = 0; i < openData.length; i++) {
             allData.push (openData[i]);
         }
         for (let i = 0; i < closedData.length; i++) {
             allData.push (closedData[i]);
         }
-        return this.parseOrders (allData, market, since, limit);    
+        return this.parseOrders (allData, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -530,17 +531,17 @@ module.exports = class bitforex extends Exchange {
             sideId = 2;
         }
         let request = {
-            'symbol': this.marketId(symbol),
+            'symbol': this.marketId (symbol),
             'price': price,
             'amount': amount,
             'tradeType': sideId,
         };
         let response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
-        let data = response['data'];    //TODO: What if order fails?
+        let data = response['data']; // TODO: What if order fails?
         return {
             'info': response,
-            'id': this.safeString (data, 'orderId')
-        }
+            'id': this.safeString (data, 'orderId'),
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -549,13 +550,13 @@ module.exports = class bitforex extends Exchange {
             'orderId': id,
         };
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = this.marketId(symbol);
+            request['symbol'] = this.marketId (symbol);
         }
         let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
-        let data = results['data']; //True
-        let sucess = results['success']; //True
-        let time = results['time']; 
-        return success;             //What's correct return val?
+        let data = results['data']; // True
+        let success = results['success']; // True
+        let time = results['time'];
+        return success; // What's correct return val?
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -568,7 +569,7 @@ module.exports = class bitforex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let payload = this.urlencode ({ 'accessKey': this.apiKey });
-            query['nonce'] = this.milliseconds();
+            query['nonce'] = this.milliseconds ();
             if (Object.keys (query).length) {
                 payload += '&' + this.urlencode (this.keysort (query));
             }
@@ -584,7 +585,7 @@ module.exports = class bitforex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (typeof body !== 'string') {
-                return; // fallback to default error handler
+            return; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
