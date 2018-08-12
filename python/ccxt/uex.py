@@ -31,7 +31,7 @@ class uex (Exchange):
             'name': 'UEX',
             'countries': ['SG', 'US'],
             'version': 'v1.0.3',
-            'rateLimit': 1500,
+            'rateLimit': 1000,
             'certified': False,
             # new metainfo interface
             'has': {

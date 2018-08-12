@@ -15,7 +15,7 @@ class uex extends Exchange {
             'name' => 'UEX',
             'countries' => array ( 'SG', 'US' ),
             'version' => 'v1.0.3',
-            'rateLimit' => 1500,
+            'rateLimit' => 1000,
             'certified' => false,
             // new metainfo interface
             'has' => array (
