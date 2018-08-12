@@ -571,7 +571,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetWalletDeposits(self.extend(request, params))
-        return self.parseTransactions(response['result']['deposits'], 'deposit', None, limit)
+        return self.parseTransactions(response['result']['deposits'], currency)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -582,7 +582,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = self.privateGetWalletWithdrawals(self.extend(request, params))
-        return self.parseTransactions(response['result']['withdrawals'], 'withdraw', None, limit)
+        return self.parseTransactions(response['result']['withdrawals'], currency)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -608,12 +608,17 @@ class cobinhood (Exchange):
             datetime = self.iso8601(timestamp)
         code = None
         if currency is None:
-            currencyId = transaction['currency']
+            currencyId = self.safe_string(transaction, 'currency')
             if currencyId in self.currencies_by_id:
                 currency = self.currencies_by_id[currencyId]
+            else:
+                code = self.common_currency_code(currencyId)
         if currency is not None:
             code = currency['code']
-        type = None
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            typeParts = type.split('_')
+            type = typeParts[0]
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'withdrawal_id'),

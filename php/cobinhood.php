@@ -603,7 +603,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateGetWalletDeposits (array_merge ($request, $params));
-        return $this->parseTransactions ($response['result']['deposits'], 'deposit', null, $limit);
+        return $this->parseTransactions ($response['result']['deposits'], $currency);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -616,7 +616,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateGetWalletWithdrawals (array_merge ($request, $params));
-        return $this->parseTransactions ($response['result']['withdrawals'], 'withdraw', null, $limit);
+        return $this->parseTransactions ($response['result']['withdrawals'], $currency);
     }
 
     public function parse_transaction_status ($status) {
@@ -645,14 +645,21 @@ class cobinhood extends Exchange {
         }
         $code = null;
         if ($currency === null) {
-            $currencyId = $transaction['currency'];
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
                 $currency = $this->currencies_by_id[$currencyId];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
         }
         if ($currency !== null) {
             $code = $currency['code'];
         }
-        $type = null;
+        $type = $this->safe_string($transaction, 'type');
+        if ($type !== null) {
+            $typeParts = explode ('_', $type);
+            $type = $typeParts[0];
+        }
         return array (
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'withdrawal_id'),
