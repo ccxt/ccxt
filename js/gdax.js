@@ -574,7 +574,7 @@ module.exports = class gdax extends Exchange {
         let accounts = await this.privateGetAccounts ();
         for (let i = 0; i < accounts.length; i++) {
             let account = accounts[i];
-            // todo: use unified common currencies below !
+            // todo: use unified common currencies below
             if (account['currency'] === currency['id']) {
                 accountId = account['id'];
                 break;
