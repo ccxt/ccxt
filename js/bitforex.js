@@ -337,7 +337,7 @@ module.exports = class bitforex extends Exchange {
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let request = {
-            'symbol': market.id,
+            'symbol': market['id'],
         };
         let response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
         let data = response['data'];
