@@ -229,7 +229,7 @@ module.exports = class bitforex extends Exchange {
             let symbol = base + '/' + quote;
             let active = true;
             let precision = {
-                'amount': market['amountPrecision'], // TODO: This is 4. Do we need to convert to decimal places? (eg. 0.0001?)
+                'amount': market['amountPrecision'],
                 'price': market['pricePrecision'],
             };
             let limits = {
@@ -537,7 +537,7 @@ module.exports = class bitforex extends Exchange {
             'tradeType': sideId,
         };
         let response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
-        let data = response['data']; // TODO: What if order fails?
+        let data = response['data'];
         return {
             'info': response,
             'id': this.safeString (data, 'orderId'),
@@ -553,10 +553,9 @@ module.exports = class bitforex extends Exchange {
             request['symbol'] = this.marketId (symbol);
         }
         let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
-        let data = results['data']; // True
-        let success = results['success']; // True
-        let time = results['time'];
-        return success; // What's correct return val?
+        let success = results['success'];
+        let returnVal = { 'info': results, 'success': success };
+        return returnVal;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
