@@ -26,6 +26,7 @@ module.exports = class bitforex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1249087/43923293-57f06258-9bef-11e8-8630-53bd65111998.png',
@@ -464,6 +465,17 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol': this.marketId (symbol),
             'state': 0,
+        };
+        let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': this.marketId (symbol),
+            'state': 1,
         };
         let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
