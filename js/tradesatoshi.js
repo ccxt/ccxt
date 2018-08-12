@@ -75,6 +75,32 @@ module.exports = class tradesatoshi extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetGetmarketsummaries ();
+        //
+        //     { success:    true,
+        //       message:    null,
+        //        result: [ {         market: "PAK_BTC",
+        //                              high:  0,
+        //                               low:  0,
+        //                            volume:  0,
+        //                        baseVolume:  0,
+        //                              last:  4.1e-7,
+        //                               bid:  2.6e-7,
+        //                               ask:  4.1e-7,
+        //                     openBuyOrders:  6,
+        //                    openSellOrders:  73,
+        //                            change:  0         },
+        //                  {         market: "BOLI_BTC",
+        //                              high:  0.00000144,
+        //                               low:  0.00000141,
+        //                            volume:  1283.595,
+        //                        baseVolume:  0.00182637,
+        //                              last:  0.00000144,
+        //                               bid:  0.00000141,
+        //                               ask:  0.00000144,
+        //                     openBuyOrders:  52,
+        //                    openSellOrders:  164,
+        //                            change:  0.7         } ] }
+        //
         const log = require ('ololog').unlimited;
         log (response);
         process.exit ();
