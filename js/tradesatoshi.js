@@ -12,27 +12,17 @@ module.exports = class tradesatoshi extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'tradesatoshi',
             'name': 'TradeSatoshi',
-            'countries': 'US',
+            'countries': [ 'UK' ], // ?
             'version': '*',
             'rateLimit': 1500,
             'hasCORS': false,
-            // obsolete metainfo interface
-            'hasFetchTickers': true,
-            'hasFetchOHLCV': true,
-            'hasFetchOrder': true,
-            'hasFetchOrders': true,
-            'hasFetchClosedOrders': true,
-            'hasFetchOpenOrders': true,
-            'hasFetchMyTrades': false,
-            'hasFetchCurrencies': true,
-            'hasWithdraw': true,
             // new metainfo interface
             'has': {
+                'privateAPI': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': false,
                 'fetchCurrencies': true,
@@ -46,112 +36,48 @@ module.exports = class tradesatoshi extends Exchange {
                 '1d': 'day',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
-                },
-                'www': 'https://bittrex.com',
-                'doc': [
-                    'https://bittrex.com/Home/Api',
-                    'https://www.npmjs.org/package/node.bittrex.api',
-                ],
-                'fees': [
-                    'https://bittrex.com/Fees',
-                    'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
-                ],
+                'logo': 'https://user-images.githubusercontent.com/1294454/44006686-f96c02ce-9e90-11e8-871c-c67d21e9d165.jpg',
+                'api': 'https://tradesatoshi.com/api',
+                'www': 'https://tradesatoshi.com/',
+                'doc': 'https://tradesatoshi.com/Home/Api',
+                'fees': 'https://tradesatoshi.com/FeesStructure',
             },
             'api': {
-                'v2': {
-                    'get': [
-                        'currencies/GetBTCPrice',
-                        'market/GetTicks',
-                        'market/GetLatestTick',
-                        'Markets/GetMarketSummaries',
-                        'market/GetLatestTick',
-                    ],
-                },
                 'public': {
                     'get': [
-                        'currencies',
-                        'markethistory',
-                        'markets',
-                        'marketsummaries',
-                        'marketsummary',
-                        'orderbook',
-                        'ticker',
+                        'getcurrencies',
+                        'getticker',
+                        'getmarkethistory',
+                        'getmarketsummary',
+                        'getmarketsummaries',
+                        'getorderbook',
                     ],
                 },
-                'account': {
-                    'get': [
-                        'balance',
-                        'balances',
-                        'depositaddress',
-                        'deposithistory',
-                        'order',
-                        'orderhistory',
-                        'withdrawalhistory',
-                        'withdraw',
+                'private': {
+                    'post': [
+                        'getbalance',
+                        'getbalances',
+                        'getorder',
+                        'getorders',
+                        'submitorder',
+                        'cancelorder',
+                        'gettradehistory',
+                        'generateaddress',
+                        'submitwithdraw',
+                        'getdeposits',
+                        'getwithdrawals',
+                        'submittransfer',
                     ],
-                },
-                'market': {
-                    'get': [
-                        'buylimit',
-                        'buymarket',
-                        'cancel',
-                        'openorders',
-                        'selllimit',
-                        'sellmarket',
-                    ],
-                },
-            },
-            'fees': {
-                'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
-                },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.002,
-                        'POT': 0.002,
-                    },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'VTC': 0,
-                        'PPC': 0,
-                        'FTC': 0,
-                        'RDD': 0,
-                        'NXT': 0,
-                        'DASH': 0,
-                        'POT': 0,
-                    },
                 },
             },
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol].precision.price);
-    }
-
-    feeToPrecision (symbol, fee) {
-        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['price']);
-    }
-
     async fetchMarkets () {
-        let response = await this.v2GetMarketsGetMarketSummaries ();
+        let response = await this.publicGetGetmarketsummaries ();
+        const log = require ('ololog').unlimited;
+        log (response);
+        process.exit ();
         let result = [];
         for (let i = 0; i < response['result'].length; i++) {
             let market = response['result'][i]['Market'];
@@ -589,17 +515,11 @@ module.exports = class tradesatoshi extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
-        if (api !== 'v2')
-            url += this.version + '/';
+        let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            url += api + '/' + method.toLowerCase () + path;
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else if (api === 'v2') {
-            url += path;
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -633,20 +553,5 @@ module.exports = class tradesatoshi extends Exchange {
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('success' in response) {
-            if (response['success'])
-                return response;
-        }
-        if ('message' in response) {
-            if (response['message'] === 'ADDRESS_GENERATING')
-                return response;
-            if (response['message'] === 'INSUFFICIENT_FUNDS')
-                throw new InsufficientFunds (this.id + ' ' + this.json (response));
-        }
-        throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
