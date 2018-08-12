@@ -562,7 +562,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof currency === 'undefined') {
             throw new ExchangeError (this.id + ' needs currency for deposit history');
@@ -571,8 +571,9 @@ module.exports = class gdax extends Exchange {
         let accounts = await this.privateGetAccounts ();
         for (let a = 0; a < accounts.length; a++) {
             let account = accounts[a];
+            // todo: use unified common currencies below !
             let curr = account['currency'];
-            if (curr === currency) {
+            if (curr === code) {
                 accountId = account['id'];
                 break;
             }
@@ -586,7 +587,7 @@ module.exports = class gdax extends Exchange {
         };
         let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = currency;
+            response[i]['currency'] = code;
         }
         return this.parseTransactions (response);
     }
@@ -599,15 +600,23 @@ module.exports = class gdax extends Exchange {
         } else if (transaction['procesed_at']) {
             return 'pending';
         } else {
-            return 'error';
+            return 'failed';
         }
     }
 
-    parseTransaction (transaction, side = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
         let datetime = undefined;
         if (typeof timestamp !== 'undefined') {
             datetime = this.iso8601 (timestamp);
+        }
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
         }
         return {
             'info': transaction,
@@ -615,11 +624,12 @@ module.exports = class gdax extends Exchange {
             'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'currency': transaction['currency'],
-            'status': this.parseTransactionStatus (transaction),
-            'side': this.safeString (transaction, 'type', side),
-            'price': undefined,
+            'address': undefined, // or is it defined?
+            'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (transaction),
+            'updated': undefined,
             'fee': {
                 'cost': undefined,
                 'rate': undefined,
