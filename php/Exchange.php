@@ -198,6 +198,7 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
+        'uex',
         'urdubit',
         'vaultoro',
         'vbtc',
@@ -727,6 +728,7 @@ class Exchange {
         $this->uid           = '';
         $this->privateKey    = '';
         $this->walletAddress = '';
+
         $this->twofa         = false;
         $this->marketsById   = null;
         $this->markets_by_id = null;
