@@ -578,8 +578,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof currency === 'undefined') {
-            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchDeposits() requires currency code arguemnt');
         }
         let currency = this.currency (code);
         let request = {
@@ -591,8 +591,8 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof currency === 'undefined') {
-            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires currency code arguemnt');
         }
         let currency = this.currency (code);
         let request = {
@@ -620,25 +620,34 @@ module.exports = class cobinhood extends Exchange {
         return (status in statuses) ? statuses[status] : status.toLowerCase ();
     }
 
-    parseTransaction (transaction, side = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
         let datetime = undefined;
         if (typeof timestamp !== 'undefined') {
             datetime = this.iso8601 (timestamp);
         }
-        let currency = transaction['currency'];
-        if (currency in this.currencies_by_id)
-            currency = this.currencies_by_id[currency]['code'];
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = transaction['currency'];
+            if (currencyId in this.currencies_by_id)
+                currency = this.currencies_by_id[currencyId];
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = undefined;
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txhash'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'currency': currency,
-            'status': this.parseTransactionStatus (transaction['status']),
-            'side': side, // direction of the transaction, ('deposit' | 'withdraw')
+            'address': undefined, // or is it defined?
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (transaction['status']),
+            'updated': undefined,
             'fee': {
                 'cost': this.safeFloat (transaction, 'fee'),
                 'rate': undefined,
