@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -203,6 +203,12 @@ module.exports = class bitforex extends Exchange {
                     }, 
                 },
             },
+            'exceptions': {
+                'order not exist or not yours': OrderNotFound,
+                'accessKey not exist': AuthenticationError,
+                'SignData Invalid': AuthenticationError,
+                'asset is not enough': InsufficientFunds,
+            }
         });
     }
 
@@ -577,7 +583,24 @@ module.exports = class bitforex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        //TODO
-        return;
+        if (typeof body !== 'string') {
+                return; // fallback to default error handler
+        }
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let feedback = this.id + ' ' + body;
+            let success = this.safeValue (response, 'success');
+            if (typeof success !== 'undefined') {
+                if (success !== true) {
+                    let message = this.safeString (response, 'message');
+                    let exceptions = this.exceptions;
+                    if (message in exceptions) {
+                        throw new exceptions[message] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
     }
 };
