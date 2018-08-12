@@ -25,6 +25,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -573,6 +575,93 @@ module.exports = class cobinhood extends Exchange {
             'currency': code,
             'address': address,
             'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWalletWithdrawals (this.extend ({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'id': response['result']['withdrawal_id'],
+            'info': response,
+        };
+    }
+
+    async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof currency === 'undefined') {
+            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        }
+        let curr = this.currency (currency);
+        let request = {
+            'limit': limit,
+            'currency': curr['id'],
+        };
+        let response = await this.privateGetWalletDeposits (this.extend (request, params));
+        return this.parseTransactions (response['result']['deposits'], 'deposit');
+    }
+
+    async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof currency === 'undefined') {
+            throw new ExchangeError (this.id + ' needs currency for deposit history');
+        }
+        let curr = this.currency (currency);
+        let request = {
+            'limit': limit,
+            'currency': curr['id'],
+        };
+        let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        return this.parseTransactions (response['result']['withdrawals'], 'withdraw');
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'tx_pending_two_factor_auth': 'pending',
+            'tx_pending_email_auth': 'pending',
+            'tx_pending_approval': 'pending',
+            'tx_approved': 'pending',
+            'tx_processing': 'pending',
+            'tx_pending': 'pending',
+            'tx_sent': 'pending',
+            'tx_cancelled': 'canceled',
+            'tx_timeout': 'error',
+            'tx_invalid': 'error',
+            'tx_rejected': 'error',
+            'tx_confirmed': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+    }
+
+    parseTransaction (transaction, side = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let currency = transaction['currency'];
+        if (currency in this.currencies_by_id)
+            currency = this.currencies_by_id[currency]['code'];
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'withdrawal_id'),
+            'txid': this.safeString (transaction, 'txhash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'currency': currency,
+            'status': this.parseTransactionStatus (transaction['status']),
+            'side': side, // direction of the transaction, ('deposit' | 'withdraw')
+            'price': undefined,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'fee': {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'rate': undefined,
+            },
         };
     }
 
