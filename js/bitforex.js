@@ -32,7 +32,6 @@ module.exports = class bitforex extends Exchange {
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
-                'referral': '',
             },
             'api': {
                 'public': {
