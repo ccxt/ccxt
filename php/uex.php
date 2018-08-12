@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception as Exception; // a common import
 
-class bittrex extends Exchange {
+class uex extends Exchange {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
@@ -16,7 +16,7 @@ class bittrex extends Exchange {
             'countries' => array ( 'SG', 'US' ),
             'version' => 'v1.0.3',
             'rateLimit' => 1500,
-            'certified' => true,
+            'certified' => false,
             // new metainfo interface
             'has' => array (
                 'CORS' => false,
@@ -40,7 +40,7 @@ class bittrex extends Exchange {
                 '1d' => '1440',
             ),
             'urls' => array (
-                'logo' => 'https://user-images.githubusercontent.com/1294454/43788872-4251c80c-9a77-11e8-8ab4-dca9723cd7be.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg',
                 'api' => 'https://open-api.uex.com/open/api',
                 'www' => 'https://www.uex.com',
                 'doc' => 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
@@ -76,8 +76,8 @@ class bittrex extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.0025,
-                    'taker' => 0.0025,
+                    'maker' => 0.0001,
+                    'taker' => 0.0005,
                 ),
             ),
             'exceptions' => array (
@@ -115,12 +115,67 @@ class bittrex extends Exchange {
             'requiredCredentials' => array (
                 'apiKey' => true,
                 'secret' => true,
-                'password' => true,
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
+                'limits' => array (
+                    'BTC/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
+                    'ETH/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
+                    'BCH/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
+                    'ETH/BTC' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.000001 )),
+                    'BCH/BTC' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.000001 )),
+                    'LEEK/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'CTXC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'COSM/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'MANA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'LBA/BTC' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'OLT/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'DTA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'KNT/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'REN/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'LBA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'EXC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'ZIL/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'RATING/ETH' => array ( 'amount' => array ( 'min' => 100 ), 'price' => array ( 'min' => 100 )),
+                    'CENNZ/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'TTC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                ),
             ),
         ));
+    }
+
+    public function cost_to_precision ($symbol, $cost) {
+        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function price_to_precision ($symbol, $price) {
+        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
+    }
+
+    public function fee_to_precision ($currency, $fee) {
+        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $key = 'quote';
+        $rate = $market[$takerOrMaker];
+        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        if ($side === 'sell') {
+            $cost *= $price;
+        } else {
+            $key = 'base';
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $market[$key],
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
+        );
     }
 
     public function fetch_markets () {
@@ -142,7 +197,7 @@ class bittrex extends Exchange {
         //                       count_coin => "btc",
         //                 amount_precision =>  3,
         //                        base_coin => "eth",
-        //                  price_precision =>  6        ),
+        //                  price_precision =>  6        )]}
         //
         $result = array ();
         $markets = $response['data'];
@@ -161,6 +216,21 @@ class bittrex extends Exchange {
                 'price' => $market['price_precision'],
             );
             $active = true;
+            $defaultLimits = $this->safe_value($this->options['limits'], $symbol, array ());
+            $limits = array_replace_recursive (array (
+                'amount' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+            ), $defaultLimits);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -171,20 +241,7 @@ class bittrex extends Exchange {
                 'active' => $active,
                 'info' => $market,
                 'precision' => $precision,
-                'limits' => array (
-                    'amount' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array (
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
+                'limits' => $limits,
             );
         }
         return $result;
@@ -196,7 +253,7 @@ class bittrex extends Exchange {
         //
         //     { $code =>   "0",
         //        msg =>   "suc",
-        //       data => { total_asset =>   "0.00000000",
+        //       data => array ( total_asset =>   "0.00000000",
         //                 coin_list => [ array (      normal => "0.00000000",
         //                                btcValuatin => "0.00000000",
         //                                     locked => "0.00000000",
@@ -212,7 +269,7 @@ class bittrex extends Exchange {
         //                              array (      normal => "0.00000000",
         //                                btcValuatin => "0.00000000",
         //                                     locked => "0.00000000",
-        //                                       coin => "ren"         ),
+        //                                       coin => "ren"         )])}
         //
         $balances = $response['data']['coin_list'];
         $result = array ( 'info' => $balances );
@@ -425,7 +482,7 @@ class bittrex extends Exchange {
         //
         //     { code =>   "0",
         //        msg =>   "suc",
-        //       data => [ array (      amount =>  0.88,
+        //       data => array ( array (      amount =>  0.88,
         //                 create_time =>  1533414358000,
         //                       price =>  0.058019,
         //                          id =>  406531,
@@ -435,11 +492,11 @@ class bittrex extends Exchange {
         //                       price =>  0.058019,
         //                          id =>  406530,
         //                        type => "buy"           ),
-        //               array (      amount =>  0.5,
+        //               {      amount =>  0.5,
         //                 create_time =>  1533414311000,
         //                       price =>  0.058019,
         //                          id =>  406529,
-        //                        type => "sell"          ),
+        //                        type => "sell"          } ) }
         //
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
@@ -467,9 +524,9 @@ class bittrex extends Exchange {
         //     { code => '0',
         //        msg => 'suc',
         //       data:
-        //        array ( [ 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ),
+        //        array ( array ( 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ),
         //          array ( 1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88 ),
-        //          array ( 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ),
+        //          array ( 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ) ) }
         //
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
@@ -543,21 +600,24 @@ class bittrex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privatePostCancelOrder (array_merge ($request, $params));
-        return array_merge ($this->parse_order($response), array (
+        $order = $this->safe_value($response, 'data', array ());
+        return array_merge ($this->parse_order($order), array (
+            'id' => $id,
+            'symbol' => $symbol,
             'status' => 'canceled',
         ));
     }
 
     public function parse_order_status ($status) {
-        $statuses = {
-            '0' => 'open', // INIT(0,"primary order，untraded and not enter the market"),
-            '1' => 'open', // NEW_(1,"new order，untraded and enter the market "),
-            '2' => 'closed', // FILLED(2,"complete deal"),
-            '3' => 'open', // PART_FILLED(3,"partial deal"),
-            '4' => 'canceled', // CANCELED(4,"already withdrawn"),
-            '5' => 'canceled', // PENDING_CANCEL(5,"pending withdrawak"),
-            '6' => 'canceled', // EXPIRED(6,"abnormal orders");
-        };
+        $statuses = array (
+            '0' => 'open', // INIT(0,"primary order，untraded and not enter the market")
+            '1' => 'open', // NEW_(1,"new order，untraded and enter the market ")
+            '2' => 'closed', // FILLED(2,"complete deal")
+            '3' => 'open', // PART_FILLED(3,"partial deal")
+            '4' => 'canceled', // CANCELED(4,"already withdrawn")
+            '5' => 'canceled', // PENDING_CANCEL(5,"pending withdrawak")
+            '6' => 'canceled', // EXPIRED(6,"abnormal orders")
+        );
         if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
             return $statuses[$status];
         }
@@ -646,11 +706,13 @@ class bittrex extends Exchange {
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
-                $base = strtoupper ($baseId);
-                $quote = strtoupper ($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
-                $symbol = $base . '/' . $quote;
+                if (($baseId !== null) && ($quoteId !== null)) {
+                    $base = strtoupper ($baseId);
+                    $quote = strtoupper ($quoteId);
+                    $base = $this->common_currency_code($base);
+                    $quote = $this->common_currency_code($quote);
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         if ($market !== null) {
@@ -912,7 +974,7 @@ class bittrex extends Exchange {
         if (($body[0] === '{') || ($body[0] === '[')) {
             $response = json_decode ($body, $as_associative_array = true);
             //
-            // {"$code":"0","msg":"suc","data":[{"
+            // array ("$code":"0","msg":"suc","data":array ())
             //
             $code = $this->safe_string($response, 'code');
             // $message = $this->safe_string($response, 'msg');

@@ -19,18 +19,20 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import TRUNCATE
 
 
-class bittrex (Exchange):
+class uex (Exchange):
 
     def describe(self):
-        return self.deep_extend(super(bittrex, self).describe(), {
+        return self.deep_extend(super(uex, self).describe(), {
             'id': 'uex',
             'name': 'UEX',
             'countries': ['SG', 'US'],
             'version': 'v1.0.3',
             'rateLimit': 1500,
-            'certified': True,
+            'certified': False,
             # new metainfo interface
             'has': {
                 'CORS': False,
@@ -54,7 +56,7 @@ class bittrex (Exchange):
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43788872-4251c80c-9a77-11e8-8ab4-dca9723cd7be.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg',
                 'api': 'https://open-api.uex.com/open/api',
                 'www': 'https://www.uex.com',
                 'doc': 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
@@ -90,8 +92,8 @@ class bittrex (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': 0.0001,
+                    'taker': 0.0005,
                 },
             },
             'exceptions': {
@@ -129,12 +131,61 @@ class bittrex (Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
-                'password': True,
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
+                'limits': {
+                    'BTC/USDT': {'amount': {'min': 0.001}, 'price': {'min': 0.01}},
+                    'ETH/USDT': {'amount': {'min': 0.001}, 'price': {'min': 0.01}},
+                    'BCH/USDT': {'amount': {'min': 0.001}, 'price': {'min': 0.01}},
+                    'ETH/BTC': {'amount': {'min': 0.001}, 'price': {'min': 0.000001}},
+                    'BCH/BTC': {'amount': {'min': 0.001}, 'price': {'min': 0.000001}},
+                    'LEEK/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'CTXC/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'COSM/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'MANA/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'LBA/BTC': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'OLT/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'DTA/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'KNT/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'REN/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'LBA/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'EXC/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'ZIL/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'RATING/ETH': {'amount': {'min': 100}, 'price': {'min': 100}},
+                    'CENNZ/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                    'TTC/ETH': {'amount': {'min': 10}, 'price': {'min': 10}},
+                },
             },
         })
+
+    def cost_to_precision(self, symbol, cost):
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
+
+    def price_to_precision(self, symbol, price):
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
+
+    def amount_to_precision(self, symbol, amount):
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
+
+    def fee_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
+
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        key = 'quote'
+        rate = market[takerOrMaker]
+        cost = float(self.cost_to_precision(symbol, amount * rate))
+        if side == 'sell':
+            cost *= price
+        else:
+            key = 'base'
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': float(self.fee_to_precision(market[key], cost)),
+        }
 
     def fetch_markets(self):
         response = self.publicGetCommonSymbols()
@@ -155,7 +206,7 @@ class bittrex (Exchange):
         #                       count_coin: "btc",
         #                 amount_precision:  3,
         #                        base_coin: "eth",
-        #                  price_precision:  6        },
+        #                  price_precision:  6        }]}
         #
         result = []
         markets = response['data']
@@ -174,6 +225,21 @@ class bittrex (Exchange):
                 'price': market['price_precision'],
             }
             active = True
+            defaultLimits = self.safe_value(self.options['limits'], symbol, {})
+            limits = self.deep_extend({
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }, defaultLimits)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -184,20 +250,7 @@ class bittrex (Exchange):
                 'active': active,
                 'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
+                'limits': limits,
             })
         return result
 
@@ -223,7 +276,7 @@ class bittrex (Exchange):
         #                              {     normal: "0.00000000",
         #                                btcValuatin: "0.00000000",
         #                                     locked: "0.00000000",
-        #                                       coin: "ren"         },
+        #                                       coin: "ren"         }]}}
         #
         balances = response['data']['coin_list']
         result = {'info': balances}
@@ -431,7 +484,7 @@ class bittrex (Exchange):
         #                 create_time:  1533414311000,
         #                       price:  0.058019,
         #                          id:  406529,
-        #                        type: "sell"          },
+        #                        type: "sell"          }]}
         #
         return self.parse_trades(response['data'], market, since, limit)
 
@@ -459,7 +512,7 @@ class bittrex (Exchange):
         #       data:
         #        [[1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1],
         #          [1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88],
-        #          [1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06],
+        #          [1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06] ]}
         #
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
@@ -526,18 +579,21 @@ class bittrex (Exchange):
             'symbol': market['id'],
         }
         response = self.privatePostCancelOrder(self.extend(request, params))
-        return self.extend(self.parse_order(response), {
+        order = self.safe_value(response, 'data', {})
+        return self.extend(self.parse_order(order), {
+            'id': id,
+            'symbol': symbol,
             'status': 'canceled',
         })
 
     def parse_order_status(self, status):
         statuses = {
-            '0': 'open',  # INIT(0,"primary order，untraded and not enter the market"),
-            '1': 'open',  # NEW_(1,"new order，untraded and enter the market "),
-            '2': 'closed',  # FILLED(2,"complete deal"),
-            '3': 'open',  # PART_FILLED(3,"partial deal"),
-            '4': 'canceled',  # CANCELED(4,"already withdrawn"),
-            '5': 'canceled',  # PENDING_CANCEL(5,"pending withdrawak"),
+            '0': 'open',  # INIT(0,"primary order，untraded and not enter the market")
+            '1': 'open',  # NEW_(1,"new order，untraded and enter the market ")
+            '2': 'closed',  # FILLED(2,"complete deal")
+            '3': 'open',  # PART_FILLED(3,"partial deal")
+            '4': 'canceled',  # CANCELED(4,"already withdrawn")
+            '5': 'canceled',  # PENDING_CANCEL(5,"pending withdrawak")
             '6': 'canceled',  # EXPIRED(6,"abnormal orders")
         }
         if status in statuses:
@@ -626,11 +682,12 @@ class bittrex (Exchange):
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
             else:
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
-                symbol = base + '/' + quote
+                if (baseId is not None) and(quoteId is not None):
+                    base = baseId.upper()
+                    quote = quoteId.upper()
+                    base = self.common_currency_code(base)
+                    quote = self.common_currency_code(quote)
+                    symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created_at')
@@ -866,7 +923,7 @@ class bittrex (Exchange):
         if (body[0] == '{') or (body[0] == '['):
             response = json.loads(body)
             #
-            # {"code":"0","msg":"suc","data":[{"
+            # {"code":"0","msg":"suc","data":{}}
             #
             code = self.safe_string(response, 'code')
             # message = self.safe_string(response, 'msg')
