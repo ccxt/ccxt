@@ -675,19 +675,21 @@ class Exchange {
 
     public function __construct ($options = array ()) {
 
-        $method_names = get_class_methods ($this);
-        for ($method_names as $method_name) {
-            if ($method_name) {
-                // // print_r ();
-                // // exit ();
-                // # format camel case
-                // for attr in dir(self):
-                //     if attr[0] != '_'and attr[-1] != '_' and '_' in attr:
-                //         conv = attr.split('_')
-                //         camel_case = conv[0] + ''.join(i[0].upper() + i[1:] for i in conv[1:])
-                //         setattr(self, camel_case, getattr(self, attr))
-            }
-        }
+        // todo auto-camelcasing for methods in PHP
+        // $method_names = get_class_methods ($this);
+        // foreach ($method_names as $method_name) {
+        //     if ($method_name) {
+        //         if (($method_name[0] != '_') && ($method_name[-1] != '_') && (mb_strpos ($method_name, '_') !== false)) {
+        //             $parts = explode ('_', $method_name);
+        //             $camelcase = $parts[0];
+        //             for ($i = 1; $i < count ($parts); $i++) {
+        //                 $camelcase .= static::capitalize ($parts[$i]);
+        //             }
+        //             // $this->$camelcase = $this->$method_name;
+        //             // echo $method_name . " " . method_exists ($this, $method_name) . " " . $camelcase . " " . method_exists ($this, $camelcase) . "\n";
+        //         }
+        //     }
+        // }
 
         $this->curl         = curl_init ();
         $this->curl_options = array (); // overrideable by user, empty by default
