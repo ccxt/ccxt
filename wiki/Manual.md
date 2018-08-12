@@ -2151,7 +2151,29 @@ Notice that the order `b` has disappeared, the selling order also isn't there. A
 ### Recent Trades
 
 ```JavaScript
+// JavaScript
 exchange.fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {})
+
+if (exchange.has['fetchMyTrades']) {
+    const trades = await exchange.fetchMyTrades (symbol, since, limit, params)
+}
+```
+
+```Python
+# Python
+exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+
+if exchange.has['fetchMyTrades']:
+    exchange.fetch_my_trades (symbol = None, since = None, limit = None, params = {})
+```
+
+```PHP
+// PHP
+$exchange->fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ())
+
+if ($exchange.has['fetchMyTrades']) {
+    $trades = $exchange->fetch_my_trades ($symbol, $since, $limit, $params);
+}
 ```
 
 Returns ordered array `[]` of trades (most recent trade last).
@@ -2250,6 +2272,48 @@ The withdraw method returns a dictionary containing the withdrawal id, which is 
 Some exchanges require a manual approval of each withdrawal by means of 2FA (2-factor authentication). In order to approve your withdrawal you usually have to either click their secret link in your email inbox or enter a Google Authenticator code or an Authy code on their website to verify that withdrawal transaction was requested intentionally.
 
 In some cases you can also use the withdrawal id to check withdrawal status later (whether it succeeded or not) and to submit 2FA confirmation codes, where this is supported by the exchange. See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+
+### Funding History
+
+#### Transaction Structure
+
+```JavaScript
+{
+    'info': { ... }, // the json response from the exchange, as is
+    'id': '123456',  // exchange-specific transaction id, string
+    'txid': '0x68bfb29821c50ca35ef3762f887fd3211e4405aba1a94e448a4f218b850358f0',
+    'timestamp': 1534081184515,             // timestamp in milliseconds
+    'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
+    'address': '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
+    'type': 'deposit',     // or 'withdrawal', string
+    'amount': 1.2345,      // float
+    'currency': 'ETH',     // a common unified currency code, string
+    'status': 'pending',   // 'ok', 'failed', string
+    'updated': undefined,  // timestamp in milliseconds
+    'fee': {               // the entire fee structure may be undefined
+        'cost': 0.1234,    // float
+        'rate': undefined, // approximately, fee['cost'] / amount, float
+    },
+}
+```
+
+#### Deposits
+
+```
+fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+#### Withdrawals
+
+```
+fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
+```
+
+#### All transactions
+
+```
+fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {})
+```
 
 ## Fees
 
