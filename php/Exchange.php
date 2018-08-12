@@ -1491,12 +1491,16 @@ class Exchange {
         return $this->filter_by_value_since_limit ($array, 'symbol', $symbol, $since, $limit);
     }
 
-    public function filter_by_currency_since_limit ($array, $symbol = null, $since = null, $limit = null) {
-        return $this->filter_by_currency_since_limit ($array, 'currency', $symbol, $since, $limit);
-    }
-
     public function filterBySymbolSinceLimit ($array, $symbol = null, $since = null, $limit = null) {
         return $this->filter_by_symbol_since_limit ($array, $symbol, $since, $limit);
+    }
+
+    public function filter_by_currency_since_limit ($array, $code = null, $since = null, $limit = null) {
+        return $this->filter_by_currency_since_limit ($array, 'currency', $code, $since, $limit);
+    }
+
+    public function filterByCurrencySinceLimit ($array, $code = null, $since = null, $limit = null) {
+        return $this->filter_by_currency_since_limit ($array, $code, $since, $limit);
     }
 
     public function filter_by_array ($objects, $key, $values = null, $indexed = true) {
