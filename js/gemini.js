@@ -359,18 +359,25 @@ module.exports = class gemini extends Exchange {
         return this.parseTransactions (response);
     }
 
-    parseTransaction (transaction, side = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'timestampms');
         let datetime = undefined;
         if (typeof timestamp !== 'undefined')
             datetime = this.iso8601 (timestamp);
-        let currency = transaction['currency'];
-        if (currency in this.currencies_by_id)
-            currency = this.currencies_by_id[currency]['code'];
-        if (transaction['type'] === 'Withdrawal')
-            side = 'withdraw';
-        else if (transaction['type'] === 'Deposit')
-            side = 'deposit';
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type');
+        if (typeof type !== 'undefined') {
+            type = type.toLowerCase ();
+        }
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if (transaction['status'])
@@ -381,10 +388,12 @@ module.exports = class gemini extends Exchange {
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'currency': currency,
-            'status': status,
-            'side': side, // direction of the transaction, ('deposit' | 'withdraw')
+            'address': undefined, // or is it defined?
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': undefined,
             'fee': {
                 'cost': undefined,
                 'rate': undefined,
