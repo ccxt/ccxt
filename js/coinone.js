@@ -257,7 +257,7 @@ module.exports = class coinone extends Exchange {
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'orderId');
+        let id = (this.safeString (response, 'orderId')).toUpperCase ();
         let timestamp = this.milliseconds ();
         let cost = price * amount;
         let order = {
@@ -330,7 +330,7 @@ module.exports = class coinone extends Exchange {
 
     parseOrder (order, market = undefined) {
         let info = this.safeValue (order, 'info');
-        let id = this.safeString (info, 'orderId');
+        let id = this.safeString (info, 'orderId').toUpperCase ();
         let timestamp = parseInt (info['timestamp']) * 1000;
         let status = this.safeString (order, 'status');
         status = this.parseOrderStatus (status);
