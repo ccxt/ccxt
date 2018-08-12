@@ -14,6 +14,7 @@ module.exports = class coinexchange extends Exchange {
             'name': 'CoinExchange',
             'countries': [ 'IN', 'JP', 'KR', 'VN', 'US' ],
             'rateLimit': 1000,
+            'version': 'v1',
             // new metainfo interface
             'has': {
                 'privateAPI': false,
@@ -23,7 +24,7 @@ module.exports = class coinexchange extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
-                'api': 'https://www.coinexchange.io/api/v1',
+                'api': 'https://www.coinexchange.io/api',
                 'www': 'https://www.coinexchange.io',
                 'doc': 'https://coinexchangeio.github.io/slate/',
                 'fees': 'https://www.coinexchange.io/fees',
@@ -680,7 +681,7 @@ module.exports = class coinexchange extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             params = this.urlencode (params);
             if (params.length)
