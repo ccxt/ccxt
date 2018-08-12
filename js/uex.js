@@ -15,7 +15,7 @@ module.exports = class bittrex extends Exchange {
             'countries': [ 'SG', 'US' ],
             'version': 'v1.0.3',
             'rateLimit': 1500,
-            'certified': true,
+            'certified': false,
             // new metainfo interface
             'has': {
                 'CORS': false,
@@ -39,7 +39,7 @@ module.exports = class bittrex extends Exchange {
                 '1d': '1440',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43788872-4251c80c-9a77-11e8-8ab4-dca9723cd7be.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg',
                 'api': 'https://open-api.uex.com/open/api',
                 'www': 'https://www.uex.com',
                 'doc': 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
@@ -75,8 +75,8 @@ module.exports = class bittrex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'maker': 0.0001,
+                    'taker': 0.0005,
                 },
             },
             'exceptions': {
@@ -114,12 +114,67 @@ module.exports = class bittrex extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'password': true,
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'limits': {
+                    'BTC/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
+                    'ETH/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
+                    'BCH/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
+                    'ETH/BTC': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.000001 }},
+                    'BCH/BTC': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.000001 }},
+                    'LEEK/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'CTXC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'COSM/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'MANA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'LBA/BTC': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'OLT/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'DTA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'KNT/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'REN/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'LBA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'EXC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'ZIL/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'RATING/ETH': { 'amount': { 'min': 100 }, 'price': { 'min': 100 }},
+                    'CENNZ/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                    'TTC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+                },
             },
         });
+    }
+
+    costToPrecision (symbol, cost) {
+        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    priceToPrecision (symbol, price) {
+        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
+    }
+
+    amountToPrecision (symbol, amount) {
+        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
+    }
+
+    feeToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+        };
     }
 
     async fetchMarkets () {
@@ -160,6 +215,21 @@ module.exports = class bittrex extends Exchange {
                 'price': market['price_precision'],
             };
             let active = true;
+            let defaultLimits = this.safeValue (this.options['limits'], symbol, {});
+            let limits = this.deepExtend ({
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            }, defaultLimits);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -170,20 +240,7 @@ module.exports = class bittrex extends Exchange {
                 'active': active,
                 'info': market,
                 'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
+                'limits': limits,
             });
         }
         return result;
@@ -542,7 +599,10 @@ module.exports = class bittrex extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privatePostCancelOrder (this.extend (request, params));
-        return this.extend (this.parseOrder (response), {
+        let order = this.safeValue (response, 'data', {});
+        return this.extend (this.parseOrder (order), {
+            'id': id,
+            'symbol': symbol,
             'status': 'canceled',
         });
     }
@@ -645,11 +705,13 @@ module.exports = class bittrex extends Exchange {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                let base = baseId.toUpperCase ();
-                let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
-                symbol = base + '/' + quote;
+                if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined')) {
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (base);
+                    quote = this.commonCurrencyCode (quote);
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if (typeof market !== 'undefined') {
