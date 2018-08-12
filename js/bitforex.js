@@ -21,9 +21,10 @@ module.exports = class bitforex extends Exchange {
                 'cancelOrder': true,
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchMyTrades': false,
                 'fetchTrades': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
             },
             'urls': {
@@ -384,28 +385,6 @@ module.exports = class bitforex extends Exchange {
         return orderbook;
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let requestClosed = {
-            'symbol': this.marketId (symbol),
-            'state': 1,
-        };
-        let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
-        let closedData = [];
-        if ('data' in responseClosed) {
-            closedData = responseClosed['data'];
-        }
-        let completedOrders = [];
-        for (let i = 0; i < closedData.length; i++) {
-            let current = closedData[i];
-            if (current['orderState'] === 2) {
-                completedOrders.push (current);
-            }
-        }
-        return this.parseOrders (completedOrders, market, since, limit);
-    }
-
     parseOrderStatus (orderStatusId) {
         if (orderStatusId === 0 || orderStatusId === 1) {
             return 'open';
@@ -488,37 +467,6 @@ module.exports = class bitforex extends Exchange {
         };
         let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let requestOpen = {
-            'symbol': this.marketId (symbol),
-            'state': 0,
-        };
-        let responseOpen = await this.privatePostApiV1TradeOrderInfos (this.extend (requestOpen, params));
-        let openData = [];
-        if ('data' in responseOpen) {
-            openData = responseOpen['data'];
-        }
-        let requestClosed = {
-            'symbol': this.marketId (symbol),
-            'state': 1,
-        };
-        let responseClosed = await this.privatePostApiV1TradeOrderInfos (this.extend (requestClosed, params));
-        let closedData = [];
-        if ('data' in responseClosed) {
-            closedData = responseClosed['data'];
-        }
-        let allData = [];
-        for (let i = 0; i < openData.length; i++) {
-            allData.push (openData[i]);
-        }
-        for (let i = 0; i < closedData.length; i++) {
-            allData.push (closedData[i]);
-        }
-        return this.parseOrders (allData, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
