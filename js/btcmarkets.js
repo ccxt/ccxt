@@ -90,7 +90,7 @@ module.exports = class btcmarkets extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
-            let fee = quote === 'AUD' ? 0.0085 : 0.0022;
+            let fee = (quote === 'AUD') ? 0.0085 : 0.0022;
             let precision = undefined;
             let minAmount = 0.001; // where does it come from?
             if (quote === 'AUD') {
@@ -115,7 +115,7 @@ module.exports = class btcmarkets extends Exchange {
                 'cost': {
                     'min': undefined,
                     'max': undefined,
-                }                
+                },               
             };
             result.push ({
                 'info': market,
