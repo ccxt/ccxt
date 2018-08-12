@@ -26,6 +26,8 @@ class cobinhood extends Exchange {
                 'fetchOrder' => true,
                 'fetchDepositAddress' => true,
                 'createDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => false,
                 'fetchMyTrades' => true,
             ),
@@ -574,6 +576,99 @@ class cobinhood extends Exchange {
             'currency' => $code,
             'address' => $address,
             'info' => $response,
+        );
+    }
+
+    public function withdraw ($code, $amount, $address, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $response = $this->privatePostWalletWithdrawals (array_merge (array (
+            'currency' => $currency['id'],
+            'amount' => $amount,
+            'address' => $address,
+        ), $params));
+        return array (
+            'id' => $response['result']['withdrawal_id'],
+            'info' => $response,
+        );
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code arguemnt');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetWalletDeposits (array_merge ($request, $params));
+        return $this->parseTransactions ($response['result']['deposits'], 'deposit', null, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code arguemnt');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetWalletWithdrawals (array_merge ($request, $params));
+        return $this->parseTransactions ($response['result']['withdrawals'], 'withdraw', null, $limit);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'tx_pending_two_factor_auth' => 'pending',
+            'tx_pending_email_auth' => 'pending',
+            'tx_pending_approval' => 'pending',
+            'tx_approved' => 'pending',
+            'tx_processing' => 'pending',
+            'tx_pending' => 'pending',
+            'tx_sent' => 'pending',
+            'tx_cancelled' => 'canceled',
+            'tx_timeout' => 'error',
+            'tx_invalid' => 'error',
+            'tx_rejected' => 'error',
+            'tx_confirmed' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : strtolower ($status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_integer($transaction, 'created_at');
+        $datetime = null;
+        if ($timestamp !== null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $transaction['currency'];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+                $currency = $this->currencies_by_id[$currencyId];
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = null;
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'withdrawal_id'),
+            'txid' => $this->safe_string($transaction, 'txhash'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'address' => null, // or is it defined?
+            'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $this->parse_transaction_status ($transaction['status']),
+            'updated' => null,
+            'fee' => array (
+                'cost' => $this->safe_float($transaction, 'fee'),
+                'rate' => null,
+            ),
         );
     }
 

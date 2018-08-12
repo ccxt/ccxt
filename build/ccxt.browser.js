@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.113'
+const version = '1.17.114'
 
 Exchange.ccxtVersion = version
 
@@ -1691,6 +1691,7 @@ module.exports = class Exchange {
                 'fetchClosedOrders': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
+                'fetchDeposits': false,
                 'fetchFundingFees': false,
                 'fetchL2OrderBook': true,
                 'fetchMarkets': true,
@@ -1706,6 +1707,8 @@ module.exports = class Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
+                'fetchTransactions': false,
+                'fetchWithdrawals': false,
                 'withdraw': false,
             },
             'urls': {
@@ -2583,21 +2586,29 @@ module.exports = class Exchange {
         return array
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
+    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined) {
 
-        const symbolIsDefined = typeof symbol !== 'undefined' && symbol !== null
+        const valueIsDefined = typeof value !== 'undefined' && value !== null
         const sinceIsDefined = typeof since !== 'undefined' && since !== null
 
         // single-pass filter for both symbol and since
-        if (symbolIsDefined || sinceIsDefined)
+        if (valueIsDefined || sinceIsDefined)
             array = Object.values (array).filter (entry =>
-                ((symbolIsDefined ? (entry.symbol === symbol)  : true) &&
-                 (sinceIsDefined  ? (entry.timestamp >= since) : true)))
+                ((valueIsDefined ? (entry[field] === value)   : true) &&
+                 (sinceIsDefined ? (entry.timestamp >= since) : true)))
 
         if (typeof limit !== 'undefined' && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
+    }
+
+    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit)
+    }
+
+    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined) {
+        return this.filterByValueSinceLimit (array, 'currency', code, since, limit)
     }
 
     filterByArray (objects, key, values = undefined, indexed = true) {
@@ -2622,6 +2633,13 @@ module.exports = class Exchange {
         result = sortBy (result, 'timestamp')
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
+    }
+
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
+        result = this.sortBy (result, 'timestamp');
+        let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
@@ -19422,6 +19440,8 @@ module.exports = class cobinhood extends Exchange {
                 'fetchOrder': true,
                 'fetchDepositAddress': true,
                 'createDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
                 'withdraw': false,
                 'fetchMyTrades': true,
             },
@@ -19970,6 +19990,99 @@ module.exports = class cobinhood extends Exchange {
             'currency': code,
             'address': address,
             'info': response,
+        };
+    }
+
+    async withdraw (code, amount, address, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWalletWithdrawals (this.extend ({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params));
+        return {
+            'id': response['result']['withdrawal_id'],
+            'info': response,
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+        }
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privateGetWalletDeposits (this.extend (request, params));
+        return this.parseTransactions (response['result']['deposits'], 'deposit', undefined, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+        }
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privateGetWalletWithdrawals (this.extend (request, params));
+        return this.parseTransactions (response['result']['withdrawals'], 'withdraw', undefined, limit);
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'tx_pending_two_factor_auth': 'pending',
+            'tx_pending_email_auth': 'pending',
+            'tx_pending_approval': 'pending',
+            'tx_approved': 'pending',
+            'tx_processing': 'pending',
+            'tx_pending': 'pending',
+            'tx_sent': 'pending',
+            'tx_cancelled': 'canceled',
+            'tx_timeout': 'error',
+            'tx_invalid': 'error',
+            'tx_rejected': 'error',
+            'tx_confirmed': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = transaction['currency'];
+            if (currencyId in this.currencies_by_id)
+                currency = this.currencies_by_id[currencyId];
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = undefined;
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'withdrawal_id'),
+            'txid': this.safeString (transaction, 'txhash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': undefined, // or is it defined?
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (transaction['status']),
+            'updated': undefined,
+            'fee': {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'rate': undefined,
+            },
         };
     }
 
@@ -32369,10 +32482,11 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
-    async deposit (currency, amount, address, params = {}) {
+    async deposit (code, amount, address, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostDeposits';
@@ -32397,11 +32511,12 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        let currency = this.currency (code);
         await this.loadMarkets ();
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         };
         let method = 'privatePostWithdrawals';
@@ -32419,6 +32534,81 @@ module.exports = class gdax extends Exchange {
         return {
             'info': response,
             'id': response['id'],
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
+        }
+        let currency = this.currency (code);
+        let accountId = undefined;
+        let accounts = await this.privateGetAccounts ();
+        for (let i = 0; i < accounts.length; i++) {
+            let account = accounts[i];
+            // todo: use unified common currencies below
+            if (account['currency'] === currency['id']) {
+                accountId = account['id'];
+                break;
+            }
+        }
+        if (typeof accountId === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+        }
+        let request = {
+            'limit': limit,
+            'id': accountId,
+        };
+        let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['currency'] = code;
+        }
+        return this.parseTransactions (response);
+    }
+
+    parseTransactionStatus (transaction) {
+        if (transaction['canceled_at']) {
+            return 'canceled';
+        } else if (transaction['completed_at']) {
+            return 'ok';
+        } else if (transaction['procesed_at']) {
+            return 'pending';
+        } else {
+            return 'failed';
+        }
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger (transaction, 'created_at');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': undefined, // or is it defined?
+            'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus (transaction),
+            'updated': undefined,
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 
@@ -32548,6 +32738,9 @@ module.exports = class gemini extends Exchange {
                 'fetchClosedOrders': false,
                 'createMarketOrder': false,
                 'withdraw': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': false,
+                'fetchDeposits': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -32584,6 +32777,7 @@ module.exports = class gemini extends Exchange {
                         'orders',
                         'mytrades',
                         'tradevolume',
+                        'transfers',
                         'balances',
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
@@ -32866,6 +33060,55 @@ module.exports = class gemini extends Exchange {
 
     nonce () {
         return this.milliseconds ();
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        let response = await this.privatePostTransfers (this.extend (request, params));
+        return this.parseTransactions (response);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger (transaction, 'timestampms');
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined')
+            datetime = this.iso8601 (timestamp);
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type');
+        if (typeof type !== 'undefined') {
+            type = type.toLowerCase ();
+        }
+        let status = 'pending';
+        // When deposits show as Advanced or Complete they are available for trading.
+        if (transaction['status'])
+            status = 'ok';
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'eid'),
+            'txid': this.safeString (transaction, 'txHash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': undefined, // or is it defined?
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -44598,6 +44841,154 @@ module.exports = class okcoinusd extends Exchange {
                 '10009': OrderNotFound, // for spot markets, "Order does not exist"
                 '20015': OrderNotFound, // for future markets
                 '10008': ExchangeError, // Illegal URL parameter
+                // todo: sort out below
+                // 10000 Required parameter is empty
+                // 10001 Request frequency too high to exceed the limit allowed
+                // 10002 Authentication failure
+                // 10002 System error
+                // 10003 This connection has requested other user data
+                // 10004 Request failed
+                // 10005 api_key or sign is invalid, 'SecretKey' does not exist
+                // 10006 'Api_key' does not exist
+                // 10007 Signature does not match
+                // 10008 Illegal parameter, Parameter erorr
+                // 10009 Order does not exist
+                // 10010 Insufficient funds
+                // 10011 Amount too low
+                // 10012 Only btc_usd ltc_usd supported
+                // 10013 Only support https request
+                // 10014 Order price must be between 0 and 1,000,000
+                // 10015 Order price differs from current market price too much / Channel subscription temporally not available
+                // 10016 Insufficient coins balance
+                // 10017 API authorization error / WebSocket authorization error
+                // 10018 borrow amount less than lower limit [usd:100,btc:0.1,ltc:1]
+                // 10019 loan agreement not checked
+                // 1002 The transaction amount exceed the balance
+                // 10020 rate cannot exceed 1%
+                // 10021 rate cannot less than 0.01%
+                // 10023 fail to get latest ticker
+                // 10024 balance not sufficient
+                // 10025 quota is full, cannot borrow temporarily
+                // 10026 Loan (including reserved loan) and margin cannot be withdrawn
+                // 10027 Cannot withdraw within 24 hrs of authentication information modification
+                // 10028 Withdrawal amount exceeds daily limit
+                // 10029 Account has unpaid loan, please cancel/pay off the loan before withdraw
+                // 1003 The transaction amount is less than the minimum requirement
+                // 10031 Deposits can only be withdrawn after 6 confirmations
+                // 10032 Please enabled phone/google authenticator
+                // 10033 Fee higher than maximum network transaction fee
+                // 10034 Fee lower than minimum network transaction fee
+                // 10035 Insufficient BTC/LTC
+                // 10036 Withdrawal amount too low
+                // 10037 Trade password not set
+                // 1004 The transaction amount is less than 0
+                // 10040 Withdrawal cancellation fails
+                // 10041 Withdrawal address not exsit or approved
+                // 10042 Admin password error
+                // 10043 Account equity error, withdrawal failure
+                // 10044 fail to cancel borrowing order
+                // 10047 this function is disabled for sub-account
+                // 10048 withdrawal information does not exist
+                // 10049 User can not have more than 50 unfilled small orders (amount<0.15BTC)
+                // 10050 can't cancel more than once
+                // 10051 order completed transaction
+                // 10052 not allowed to withdraw
+                // 10064 after a USD deposit, that portion of assets will not be withdrawable for the next 48 hours
+                // 1007 No trading market information
+                // 1008 No latest market information
+                // 1009 No order
+                // 1010 Different user of the cancelled order and the original order
+                // 10100 User account frozen
+                // 10101 order type is wrong
+                // 10102 incorrect ID
+                // 10103 the private otc order's key incorrect
+                // 10106 API key domain not matched
+                // 1011 No documented user
+                // 1013 No order type
+                // 1014 No login
+                // 1015 No market depth information
+                // 1017 Date error
+                // 1018 Order failed
+                // 1019 Undo order failed
+                // 10216 Non-available API / non-public API
+                // 1024 Currency does not exist
+                // 1025 No chart type
+                // 1026 No base currency quantity
+                // 1027 Incorrect parameter may exceeded limits
+                // 1028 Reserved decimal failed
+                // 1029 Preparing
+                // 1030 Account has margin and futures, transactions can not be processed
+                // 1031 Insufficient Transferring Balance
+                // 1032 Transferring Not Allowed
+                // 1035 Password incorrect
+                // 1036 Google Verification code Invalid
+                // 1037 Google Verification code incorrect
+                // 1038 Google Verification replicated
+                // 1039 Message Verification Input exceed the limit
+                // 1040 Message Verification invalid
+                // 1041 Message Verification incorrect
+                // 1042 Wrong Google Verification Input exceed the limit
+                // 1043 Login password cannot be same as the trading password
+                // 1044 Old password incorrect
+                // 1045 2nd Verification Needed
+                // 1046 Please input old password
+                // 1048 Account Blocked
+                // 1050 Orders have been withdrawn or withdrawn
+                // 1051 Order completed
+                // 1201 Account Deleted at 00: 00
+                // 1202 Account Not Exist
+                // 1203 Insufficient Balance
+                // 1204 Invalid currency
+                // 1205 Invalid Account
+                // 1206 Cash Withdrawal Blocked
+                // 1207 Transfer Not Support
+                // 1208 No designated account
+                // 1209 Invalid api
+                // 1216 Market order temporarily suspended. Please send limit order
+                // 1217 Order was sent at ±5% of the current market price. Please resend
+                // 1218 Place order failed. Please try again later
+                // 20001 User does not exist
+                // 20002 Account frozen
+                // 20003 Account frozen due to forced liquidation
+                // 20004 Contract account frozen
+                // 20005 User contract account does not exist
+                // 20006 Required field missing
+                // 20007 Illegal parameter
+                // 20008 Contract account balance is too low
+                // 20009 Contract status error
+                // 20010 Risk rate ratio does not exist
+                // 20011 Risk rate lower than 90%/80% before opening BTC position with 10x/20x leverage. or risk rate lower than 80%/60% before opening LTC position with 10x/20x leverage
+                // 20012 Risk rate lower than 90%/80% after opening BTC position with 10x/20x leverage. or risk rate lower than 80%/60% after opening LTC position with 10x/20x leverage
+                // 20013 Temporally no counter party price
+                // 20014 System error
+                // 20015 Order does not exist
+                // 20016 Close amount bigger than your open positions, liquidation quantity bigger than holding
+                // 20017 Not authorized/illegal operation/illegal order ID
+                // 20018 Order price cannot be more than 103-105% or less than 95-97% of the previous minute price
+                // 20019 IP restricted from accessing the resource
+                // 20020 Secret key does not exist
+                // 20021 Index information does not exist
+                // 20022 Wrong API interface (Cross margin mode shall call cross margin API, fixed margin mode shall call fixed margin API)
+                // 20023 Account in fixed-margin mode
+                // 20024 Signature does not match
+                // 20025 Leverage rate error
+                // 20026 API Permission Error
+                // 20027 no transaction record
+                // 20028 no such contract
+                // 20029 Amount is large than available funds
+                // 20030 Account still has debts
+                // 20038 Due to regulation, this function is not availavle in the country/region your currently reside in.
+                // 20049 Request frequency too high
+                // 20100 request time out
+                // 20101 the format of data is error
+                // 20102 invalid login
+                // 20103 event type error
+                // 20104 subscription type error
+                // 20107 JSON format error
+                // 20115 The quote is not match
+                // 20116 Param not match
+                // 21020 Contracts are being delivered, orders cannot be placed
+                // 21021 Contracts are being settled, contracts cannot be placed
             },
             'options': {
                 'marketBuyPrice': false,
