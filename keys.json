@@ -21,7 +21,7 @@
     "btcchina":      { "skip": true },
     "btce":          { "apiKey": "9CVM7IPZ-300HPKQD-ME5Y21HS-6LLQUPN5-NCX0GXHF", "secret": "77c7395cbf788ee5eafbe79133deac3da5c62b72f72b7184eba3f49c5bb1d654" },
     "btcexchange":   { "skip": true },
-    "btcmarkets":    { },
+    "btcmarkets":    { "skip": true },
     "btctradeim":    { "skip": true },
     "btctradeua":    { "skip": true, "apiKey": "dd5de6b608f21776665da9098232bfb47445cc42485a7258350a2d426a14367c", "secret": "e7aa669524e3d28b922ebe6f273c277a649da10c85e9d12092a1feebe40491db" },
     "btcturk":       { "skip": true },
