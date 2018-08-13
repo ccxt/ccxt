@@ -1042,7 +1042,7 @@ module.exports = class huobipro extends Exchange {
     _websocketUnsubscribe(contextId, event, symbol, nonce, params = {}) {
         if (event !== 'ob') {
             throw new NotSupported(
-                'subscribe ' +
+                'unsubscribe ' +
                     event +
                     '(' +
                     symbol +
