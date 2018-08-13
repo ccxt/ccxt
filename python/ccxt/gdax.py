@@ -284,6 +284,8 @@ class gdax (Exchange):
         # GDAX returns inverted side to fetchMyTrades vs fetchTrades
         if orderId is not None:
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         return {
             'id': id,
             'order': orderId,
@@ -293,9 +295,10 @@ class gdax (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'size'),
+            'price': price,
+            'amount': amount,
             'fee': fee,
+            'cost': price * amount,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

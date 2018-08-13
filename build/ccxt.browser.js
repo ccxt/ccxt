@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.119'
+const version = '1.17.120'
 
 Exchange.ccxtVersion = version
 
@@ -32315,6 +32315,8 @@ module.exports = class gdax extends Exchange {
         // GDAX returns inverted side to fetchMyTrades vs fetchTrades
         if (typeof orderId !== 'undefined')
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'size');
         return {
             'id': id,
             'order': orderId,
@@ -32324,9 +32326,10 @@ module.exports = class gdax extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'size'),
+            'price': price,
+            'amount': amount,
             'fee': fee,
+            'cost': price * amount,
         };
     }
 

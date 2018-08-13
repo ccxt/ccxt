@@ -288,6 +288,8 @@ class gdax extends Exchange {
         // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
         if ($orderId !== null)
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -297,9 +299,10 @@ class gdax extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'size'),
+            'price' => $price,
+            'amount' => $amount,
             'fee' => $fee,
+            'cost' => $price * $amount,
         );
     }
 
