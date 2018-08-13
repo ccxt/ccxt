@@ -48,6 +48,7 @@
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
     "opencollective": "1.0.3",
+    "pako": "^1.0.6",
     "qs": "6.5.1",
     "ws": "^5.1.1"
   },
