@@ -31,7 +31,7 @@ module.exports = class btcmarkets extends Exchange {
                     'private': 'https://api.btcmarkets.net',
                     'web': 'https://btcmarkets.net/data',
                 },
-                'www': 'https://btcmarkets.net/',
+                'www': 'https://btcmarkets.net',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
             'api': {
@@ -91,20 +91,21 @@ module.exports = class btcmarkets extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let fee = (quote === 'AUD') ? 0.0085 : 0.0022;
-            let precision = undefined;
+            let pricePrecision = 2;
+            let amountPrecision = 4;
             let minAmount = 0.001; // where does it come from?
             let minPrice = undefined;
             if (quote === 'AUD') {
-                let pricePrecision = 2;
                 if ((base === 'XRP') || (base === 'OMG')) {
                     pricePrecision = 4;
                 }
-                precision = {
-                    'amount': -Math.log10 (minAmount),
-                    'price': pricePrecision,
-                };
-                minPrice = Math.pow (10, -precision['price']);
+                amountPrecision = -Math.log10 (minAmount);
+                minPrice = Math.pow (10, -pricePrecision);
             }
+            let precision = {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            };
             let limits = {
                 'amount': {
                     'min': minAmount,
@@ -479,10 +480,5 @@ module.exports = class btcmarkets extends Exchange {
                 }
             }
         }
-    }
-
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        return response;
     }
 };
