@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -205,10 +205,11 @@ module.exports = class bitforex extends Exchange {
                 },
             },
             'exceptions': {
-                'order not exist or not yours': OrderNotFound,
-                'accessKey not exist': AuthenticationError,
-                'SignData Invalid': AuthenticationError,
-                'asset is not enough': InsufficientFunds,
+                '4004': OrderNotFound,
+                '1013': AuthenticationError,
+                '1016': AuthenticationError,
+                '3002': InsufficientFunds,
+                '10204': DDoSProtection,
             },
         });
     }
@@ -337,7 +338,6 @@ module.exports = class bitforex extends Exchange {
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let request = {
-            'symbol': market.id,
         };
         let response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
         let data = response['data'];
@@ -551,10 +551,9 @@ module.exports = class bitforex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (typeof success !== 'undefined') {
                 if (!success) {
-                    let message = this.safeString (response, 'message');
-                    let exceptions = this.exceptions;
-                    if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
+                    let code = this.safeString (response, 'code');
+                    if (code in this.exceptions) {
+                        throw new this.exceptions[message] (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
