@@ -70,14 +70,17 @@ async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
 
 (async function main() {
   try {
+    // const id = 'hitbtc2';
     const id = 'huobipro';
+    const depth = 5;
     const apiKey = null;
     const secret = null;
     const limit = 200;
     const symbols = ['BTC/USDT'];
     const ob = await fetchOrderBook(id, apiKey, secret, limit, symbols, {
       // contract_type: 'next_week',
-      limit: limit
+      limit: limit,
+      depth
     });
   } catch (ex) {
     log('Error:'.red, ex);

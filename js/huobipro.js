@@ -984,7 +984,7 @@ module.exports = class huobipro extends Exchange {
         switch (channel) {
             case 'depth':
                 //:ob emit
-                console.log('ob', data.tick);
+                // console.log('ob', data.tick);
                 // orderbook[symbol] = data.tick;
                 const timestamp = this.safeValue (data, 'ts');
                 const obdata = this.safeValue (data, 'tick');
@@ -996,10 +996,11 @@ module.exports = class huobipro extends Exchange {
                 );
                 symbolData['ob'] = ob;
                 this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+                //note, huobipro limit != depth
                 this.emit (
                     'ob',
                     symbol,
-                    this._cloneOrderBook (symbolData['ob'], symbolData['depth'])
+                    this._cloneOrderBook (symbolData['ob'], symbolData['limit'])
                 );
 
                 break;
@@ -1027,7 +1028,7 @@ module.exports = class huobipro extends Exchange {
         //see https://github.com/huobiapi/API_Docs/wiki/WS_api_reference#%E8%AE%A2%E9%98%85-market-depth-%E6%95%B0%E6%8D%AE-marketsymboldepthtype
         data['depth'] = params['depth'];
         //it is not limit
-        // data['limit'] = params['depth'];
+        data['limit'] = params['limit'] || 100;
         this._contextSetSymbolData(contextId, event, symbol, data);
         const rawsymbol = this.marketId(symbol);
         const sendJson = {

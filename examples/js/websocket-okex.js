@@ -1,3 +1,6 @@
+/**
+ * @author imhazige@gmail.com
+ */
 var url = require('url');
 var WebSocket = require('ws');
 // var HttpsProxyAgent = require('https-proxy-agent');
