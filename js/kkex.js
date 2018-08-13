@@ -11,7 +11,7 @@ module.exports = class kkex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'kkex',
-            'name': 'Kkex',
+            'name': 'KKEX',
             'countries': [ 'CN', 'US', 'JA' ],
             'version': 'v1',
             'has': {
@@ -42,9 +42,7 @@ module.exports = class kkex extends Exchange {
                     'private': 'https://kkex.com/api/v2',
                 },
                 'www': 'https://kkex.com',
-                'doc': [
-                    'https://kkex.com/api_wiki/cn/',
-                ],
+                'doc': 'https://kkex.com/api_wiki/cn/',
                 'fees': 'https://intercom.help/kkex/fee',
             },
             'api': {
@@ -58,11 +56,8 @@ module.exports = class kkex extends Exchange {
                         'trades',
                         'kline',
                     ],
-                    'post': [
-                    ],
                 },
                 'private': {
-                    'get': [],
                     'post': [
                         'trade',
                         'cancel_order',
@@ -88,10 +83,6 @@ module.exports = class kkex extends Exchange {
             },
             'options': {
                 'lastNonceTimestamp': 0,
-            },
-            'exceptions': {
-            },
-            'commonCurrencies': {
             },
         });
     }
@@ -241,7 +232,7 @@ module.exports = class kkex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['date_ms']) / 1000;
+        let timestamp = this.safeInteger (trade, 'date_ms');
         let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
