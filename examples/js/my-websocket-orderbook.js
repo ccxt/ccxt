@@ -70,7 +70,7 @@ async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
 
 (async function main() {
   try {
-    const id = 'okex';
+    const id = 'huobipro';
     const apiKey = null;
     const secret = null;
     const limit = 200;

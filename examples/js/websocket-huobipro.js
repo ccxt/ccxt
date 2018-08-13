@@ -13,7 +13,8 @@ function handle(data) {
   let channel = data.ch.split('.')[2];
   switch (channel) {
     case 'depth':
-      orderbook[symbol] = data.tick;
+      console.log('ob', data.tick);
+      // orderbook[symbol] = data.tick;
       break;
     case 'kline':
       console.log('kline', data.tick);
@@ -28,7 +29,7 @@ function subscribe(ws) {
   for (let symbol of symbols) {
     ws.send(
       JSON.stringify({
-        sub: `market.${symbol}.depth.step0`,
+        sub: `market.${symbol}.depth.step2`,
         id: `${symbol}`
       })
     );
