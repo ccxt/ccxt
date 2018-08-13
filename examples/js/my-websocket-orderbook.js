@@ -29,7 +29,7 @@ async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
     apiKey: apiKey,
     secret: secret,
     enableRateLimit: true,
-    verbose: true
+    verbose: false
     // agent: agent
   });
   exchange.on('err', (err, conxid) => {
@@ -70,12 +70,13 @@ async function fetchOrderBook(id, apiKey, secret, limit, symbols, params) {
 
 (async function main() {
   try {
-    // const id = 'hitbtc2';
-    const id = 'huobipro';
-    const depth = 5;
+    const id = 'hitbtc2';
+    const depth = undefined;
+    // const id = 'huobipro';
+    // const depth = 5;
     const apiKey = null;
     const secret = null;
-    const limit = 200;
+    const limit = 10;
     const symbols = ['BTC/USDT'];
     const ob = await fetchOrderBook(id, apiKey, secret, limit, symbols, {
       // contract_type: 'next_week',
