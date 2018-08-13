@@ -403,6 +403,7 @@ It requires common PHP modules:
 -  mbstring (using UTF-8 is highly recommended)
 -  PCRE
 -  iconv
+-  gmp (this is a built-in extension as of PHP 7.2+)
 
 .. code:: php
 
