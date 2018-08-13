@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import base64
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidOrder
@@ -39,7 +40,7 @@ class btcmarkets (Exchange):
                     'private': 'https://api.btcmarkets.net',
                     'web': 'https://btcmarkets.net/data',
                 },
-                'www': 'https://btcmarkets.net/',
+                'www': 'https://btcmarkets.net',
                 'doc': 'https://github.com/BTCMarkets/API',
             },
             'api': {
@@ -48,6 +49,7 @@ class btcmarkets (Exchange):
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/active',
                     ],
                 },
                 'private': {
@@ -73,19 +75,6 @@ class btcmarkets (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/AUD': {'id': 'BTC/AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'LTC/AUD': {'id': 'LTC/AUD', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'ETH/AUD': {'id': 'ETH/AUD', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'ETC/AUD': {'id': 'ETC/AUD', 'symbol': 'ETC/AUD', 'base': 'ETC', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'XRP/AUD': {'id': 'XRP/AUD', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'BCH/AUD': {'id': 'BCH/AUD', 'symbol': 'BCH/AUD', 'base': 'BCH', 'quote': 'AUD', 'maker': 0.0085, 'taker': 0.0085, 'limits': {'amount': {'min': 0.001, 'max': None}}, 'precision': {'price': 2}},
-                'LTC/BTC': {'id': 'LTC/BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'ETH/BTC': {'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'ETC/BTC': {'id': 'ETC/BTC', 'symbol': 'ETC/BTC', 'base': 'ETC', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'XRP/BTC': {'id': 'XRP/BTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-                'BCH/BTC': {'id': 'BCH/BTC', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.0022, 'taker': 0.0022, 'limits': {'amount': {'min': 0.001, 'max': None}}},
-            },
             'timeframes': {
                 '1m': 'minute',
                 '1h': 'hour',
@@ -96,6 +85,61 @@ class btcmarkets (Exchange):
                 '6': DDoSProtection,
             },
         })
+
+    def fetch_markets(self):
+        response = self.publicGetV2MarketActive()
+        result = []
+        markets = response['markets']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = market['instrument']
+            quoteId = market['currency']
+            id = baseId + '/' + quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            fee = 0.0085 if (quote == 'AUD') else 0.0022
+            pricePrecision = 2
+            amountPrecision = 4
+            minAmount = 0.001  # where does it come from?
+            minPrice = None
+            if quote == 'AUD':
+                if (base == 'XRP') or (base == 'OMG'):
+                    pricePrecision = 4
+                amountPrecision = -math.log10(minAmount)
+                minPrice = math.pow(10, -pricePrecision)
+            precision = {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            }
+            limits = {
+                'amount': {
+                    'min': minAmount,
+                    'max': None,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            }
+            result.append({
+                'info': market,
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'maker': fee,
+                'taker': fee,
+                'limits': limits,
+                'precision': precision,
+            })
+        return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
@@ -407,7 +451,3 @@ class btcmarkets (Exchange):
                         raise ExceptionClass(message)
                     else:
                         raise ExchangeError(message)
-
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        return response
