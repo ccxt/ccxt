@@ -63,7 +63,7 @@ func NewExchangeREST(exchange string, id string, key, secret string, cli *http.C
 }
 
 func (x *ExchangeREST) Init(key, secret string) error {
-	params := map[string]string{
+	params := map[string]interface{}{
 		"id":     x.ID,
 		"apiKey": key,
 		"secret": secret,
@@ -289,6 +289,15 @@ func (x *ExchangeREST) Do(method, endpoint string, dest interface{}, params inte
 	if *debug {
 		s := fmt.Sprintf("%s %s", method, u.String())
 		if params != nil {
+			// do not display api credentials, just in case
+			if p, ok := params.(map[string]interface{}); ok {
+				if apiKey, ok := p["apiKey"]; ok && apiKey != "" {
+					p["apiKey"] = "*"
+				}
+				if secret, ok := p["secret"]; ok && secret != "" {
+					p["secret"] = "*"
+				}
+			}
 			pparams, _ := json.MarshalIndent(params, "", "  ")
 			s += "\n" + string(pparams)
 		}
@@ -309,9 +318,23 @@ func (x *ExchangeREST) Do(method, endpoint string, dest interface{}, params inte
 	if *debug {
 		s := fmt.Sprint(resp.StatusCode)
 		if len(respBody) > 0 {
-			prettyBody := bytes.NewBuffer(nil)
-			_ = json.Indent(prettyBody, respBody, "", "  ")
-			s += "\n" + string(prettyBody.Bytes())
+			var jsonMapResp map[string]interface{}
+			err := json.Unmarshal(respBody, &jsonMapResp)
+			if err == nil {
+				// do not display api credentials, just in case
+				if apiKey, ok := jsonMapResp["apiKey"]; ok && apiKey != "" {
+					jsonMapResp["apiKey"] = "*"
+				}
+				if secret, ok := jsonMapResp["secret"]; ok && secret != "" {
+					jsonMapResp["secret"] = "*"
+				}
+				b, _ := json.MarshalIndent(jsonMapResp, "", "  ")
+				s += "\n" + string(b)
+			} else {
+				prettyBody := bytes.NewBuffer(nil)
+				_ = json.Indent(prettyBody, respBody, "", "  ")
+				s += "\n" + string(prettyBody.Bytes())
+			}
 		} else {
 			s += " - empty body"
 		}
