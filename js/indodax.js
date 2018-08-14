@@ -10,41 +10,41 @@ const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, Authentic
 module.exports = class indodax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'indodax',
-            'name': 'INDODAX',
-            'countries': [ 'ID' ], // Indonesia
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': false,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': false,
-                'fetchCurrencies': false,
-                'withdraw': true,
+            id: 'indodax',
+            name: 'INDODAX',
+            countries: ['ID'], // Indonesia
+            has: {
+                CORS: false,
+                createMarketOrder: false,
+                fetchTickers: false,
+                fetchOrder: true,
+                fetchOrders: false,
+                fetchClosedOrders: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: false,
+                fetchCurrencies: false,
+                withdraw: true,
             },
-            'version': '1.8', // as of 9 April 2018
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
-                'api': {
-                    'public': 'https://indodax.com/api',
-                    'private': 'https://indodax.com/tapi',
+            version: '1.8', // as of 9 April 2018
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/37443283-2fddd0e4-281c-11e8-9741-b4f1419001b5.jpg',
+                api: {
+                    public: 'https://indodax.com/api',
+                    private: 'https://indodax.com/tapi',
                 },
-                'www': 'https://www.indodax.com',
-                'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                www: 'https://www.indodax.com',
+                doc: 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         '{pair}/ticker',
                         '{pair}/trades',
                         '{pair}/depth',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'getInfo',
                         'transHistory',
                         'trade',
@@ -54,45 +54,45 @@ module.exports = class indodax extends Exchange {
                         'cancelOrder',
                         'orderHistory',
                         'withdrawCoin',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }}},
-                'ACT/IDR': { 'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
-                'ADA/IDR': { 'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
-                'BCD/IDR': { 'id': 'bcd_idr', 'symbol': 'BCD/IDR', 'base': 'BCD', 'quote': 'IDR', 'baseId': 'bcd', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
-                'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
-                'BTG/IDR': { 'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
-                'IGNIS/IDR': { 'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
-                'LTC/IDR': { 'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'STQ/IDR': { 'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
-                'NXT/IDR': { 'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 5, 'max': undefined }}},
-                'TEN/IDR': { 'id': 'ten_idr', 'symbol': 'TEN/IDR', 'base': 'TEN', 'quote': 'IDR', 'baseId': 'ten', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 5, 'max': undefined }}},
-                'TRX/IDR': { 'id': 'trx_idr', 'symbol': 'TRX/IDR', 'base': 'TRX', 'quote': 'IDR', 'baseId': 'trx', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
-                'WAVES/IDR': { 'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
-                'XLM/IDR': { 'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 20, 'max': undefined }}},
-                'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 10, 'max': undefined }}},
-                'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
-                'BTS/BTC': { 'id': 'bts_btc', 'symbol': 'BTS/BTC', 'base': 'BTS', 'quote': 'BTC', 'baseId': 'bts', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'DASH/BTC': { 'id': 'drk_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'drk', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 6 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'DOGE/BTC': { 'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 5 }, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 6 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'NXT/BTC': { 'id': 'nxt_btc', 'symbol': 'NXT/BTC', 'base': 'NXT', 'quote': 'BTC', 'baseId': 'nxt', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'TEN/BTC': { 'id': 'ten_btc', 'symbol': 'TEN/BTC', 'base': 'TEN', 'quote': 'BTC', 'baseId': 'ten', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'XEM/BTC': { 'id': 'nem_btc', 'symbol': 'XEM/BTC', 'base': 'XEM', 'quote': 'BTC', 'baseId': 'nem', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
-                'XLM/BTC': { 'id': 'str_btc', 'symbol': 'XLM/BTC', 'base': 'XLM', 'quote': 'BTC', 'baseId': 'str', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'XRP/BTC': { 'id': 'xrp_btc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'precision': { 'amount': 8, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+            markets: {
+                'BTC/IDR': { id: 'btc_idr', symbol: 'BTC/IDR', base: 'BTC', quote: 'IDR', baseId: 'btc', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.0001, max: undefined }}},
+                'ACT/IDR': { id: 'act_idr', symbol: 'ACT/IDR', base: 'ACT', quote: 'IDR', baseId: 'act', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: undefined, max: undefined }}},
+                'ADA/IDR': { id: 'ada_idr', symbol: 'ADA/IDR', base: 'ADA', quote: 'IDR', baseId: 'ada', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: undefined, max: undefined }}},
+                'BCD/IDR': { id: 'bcd_idr', symbol: 'BCD/IDR', base: 'BCD', quote: 'IDR', baseId: 'bcd', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: undefined, max: undefined }}},
+                'BCH/IDR': { id: 'bch_idr', symbol: 'BCH/IDR', base: 'BCH', quote: 'IDR', baseId: 'bch', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.001, max: undefined }}},
+                'BTG/IDR': { id: 'btg_idr', symbol: 'BTG/IDR', base: 'BTG', quote: 'IDR', baseId: 'btg', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'ETH/IDR': { id: 'eth_idr', symbol: 'ETH/IDR', base: 'ETH', quote: 'IDR', baseId: 'eth', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'ETC/IDR': { id: 'etc_idr', symbol: 'ETC/IDR', base: 'ETC', quote: 'IDR', baseId: 'etc', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.1, max: undefined }}},
+                'IGNIS/IDR': { id: 'ignis_idr', symbol: 'IGNIS/IDR', base: 'IGNIS', quote: 'IDR', baseId: 'ignis', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 1, max: undefined }}},
+                'LTC/IDR': { id: 'ltc_idr', symbol: 'LTC/IDR', base: 'LTC', quote: 'IDR', baseId: 'ltc', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'STQ/IDR': { id: 'stq_idr', symbol: 'STQ/IDR', base: 'STQ', quote: 'IDR', baseId: 'stq', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: undefined, max: undefined }}},
+                'NXT/IDR': { id: 'nxt_idr', symbol: 'NXT/IDR', base: 'NXT', quote: 'IDR', baseId: 'nxt', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 5, max: undefined }}},
+                'TEN/IDR': { id: 'ten_idr', symbol: 'TEN/IDR', base: 'TEN', quote: 'IDR', baseId: 'ten', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 5, max: undefined }}},
+                'TRX/IDR': { id: 'trx_idr', symbol: 'TRX/IDR', base: 'TRX', quote: 'IDR', baseId: 'trx', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: undefined, max: undefined }}},
+                'WAVES/IDR': { id: 'waves_idr', symbol: 'WAVES/IDR', base: 'WAVES', quote: 'IDR', baseId: 'waves', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.1, max: undefined }}},
+                'XLM/IDR': { id: 'str_idr', symbol: 'XLM/IDR', base: 'XLM', quote: 'IDR', baseId: 'str', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 20, max: undefined }}},
+                'XRP/IDR': { id: 'xrp_idr', symbol: 'XRP/IDR', base: 'XRP', quote: 'IDR', baseId: 'xrp', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 10, max: undefined }}},
+                'XZC/IDR': { id: 'xzc_idr', symbol: 'XZC/IDR', base: 'XZC', quote: 'IDR', baseId: 'xzc', quoteId: 'idr', precision: { amount: 8, price: 0 }, limits: { amount: { min: 0.1, max: undefined }}},
+                'BTS/BTC': { id: 'bts_btc', symbol: 'BTS/BTC', base: 'BTS', quote: 'BTC', baseId: 'bts', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'DASH/BTC': { id: 'drk_btc', symbol: 'DASH/BTC', base: 'DASH', quote: 'BTC', baseId: 'drk', quoteId: 'btc', precision: { amount: 8, price: 6 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'DOGE/BTC': { id: 'doge_btc', symbol: 'DOGE/BTC', base: 'DOGE', quote: 'BTC', baseId: 'doge', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 1, max: undefined }}},
+                'ETH/BTC': { id: 'eth_btc', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC', baseId: 'eth', quoteId: 'btc', precision: { amount: 8, price: 5 }, limits: { amount: { min: 0.001, max: undefined }}},
+                'LTC/BTC': { id: 'ltc_btc', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC', baseId: 'ltc', quoteId: 'btc', precision: { amount: 8, price: 6 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'NXT/BTC': { id: 'nxt_btc', symbol: 'NXT/BTC', base: 'NXT', quote: 'BTC', baseId: 'nxt', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'TEN/BTC': { id: 'ten_btc', symbol: 'TEN/BTC', base: 'TEN', quote: 'BTC', baseId: 'ten', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'XEM/BTC': { id: 'nem_btc', symbol: 'XEM/BTC', base: 'XEM', quote: 'BTC', baseId: 'nem', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 1, max: undefined }}},
+                'XLM/BTC': { id: 'str_btc', symbol: 'XLM/BTC', base: 'XLM', quote: 'BTC', baseId: 'str', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 0.01, max: undefined }}},
+                'XRP/BTC': { id: 'xrp_btc', symbol: 'XRP/BTC', base: 'XRP', quote: 'BTC', baseId: 'xrp', quoteId: 'btc', precision: { amount: 8, price: 8 }, limits: { amount: { min: 0.01, max: undefined }}},
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0,
-                    'taker': 0.003,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0,
+                    taker: 0.003,
                 },
             },
         });
@@ -102,7 +102,7 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balance = response['return'];
-        let result = { 'info': balance };
+        let result = { info: balance };
         let codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
@@ -120,7 +120,7 @@ module.exports = class indodax extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetPairDepth (this.extend ({
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell');
     }
@@ -129,7 +129,7 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTicker (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         let ticker = response['ticker'];
         let timestamp = this.safeFloat (ticker, 'server_time') * 1000;
@@ -137,41 +137,41 @@ module.exports = class indodax extends Exchange {
         let quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker[baseVolume]),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: parseFloat (ticker[baseVolume]),
+            quoteVolume: parseFloat (ticker[quoteVolume]),
+            info: ticker,
         };
     }
 
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
         return {
-            'id': trade['tid'],
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            id: trade['tid'],
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['type'],
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -179,7 +179,7 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTrades (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -229,22 +229,22 @@ module.exports = class indodax extends Exchange {
         let timestamp = parseInt (order['submit_time']);
         let fee = undefined;
         let result = {
-            'info': order,
-            'id': order['order_id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id: order['order_id'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            cost,
+            average,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
         };
         return result;
     }
@@ -255,12 +255,12 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostGetOrder (this.extend ({
-            'pair': market['id'],
-            'order_id': id,
+            pair: market['id'],
+            order_id,
         }, params));
         let orders = response['return'];
-        let order = this.parseOrder (this.extend ({ 'id': id }, orders['order']), market);
-        return this.extend ({ 'info': response }, order);
+        let order = this.parseOrder (this.extend ({ id: id }, orders['order']), market);
+        return this.extend ({ info: response }, order);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -276,10 +276,10 @@ module.exports = class indodax extends Exchange {
         // { success: 1, return: { orders: null }} if no orders
         if (!rawOrders)
             return [];
-        // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
+        // { success: 1, return: { orders: [... objects] }} for orders fetched by symbol
         if (typeof symbol !== 'undefined')
             return this.parseOrders (rawOrders, market, since, limit);
-        // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
+        // { success: 1, return: { orders: { marketid: [... objects] }}} if all orders are fetched
         let marketIds = Object.keys (rawOrders);
         let exchangeOrders = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -316,9 +316,9 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'pair': market['id'],
-            'type': side,
-            'price': price,
+            pair: market['id'],
+            type: side,
+            price,
         };
         let currency = market['baseId'];
         if (side === 'buy') {
@@ -329,8 +329,8 @@ module.exports = class indodax extends Exchange {
         order[currency] = amount;
         let result = await this.privatePostTrade (this.extend (order, params));
         return {
-            'info': result,
-            'id': result['return']['order_id'].toString (),
+            info: result,
+            id: result['return']['order_id'].toString (),
         };
     }
 
@@ -343,9 +343,9 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         return await this.privatePostCancelOrder (this.extend ({
-            'order_id': id,
-            'pair': market['id'],
-            'type': params['side'],
+            order_id,
+            pair: market['id'],
+            type: params['side'],
         }, params));
     }
 
@@ -361,10 +361,10 @@ module.exports = class indodax extends Exchange {
         // Alternatively:
         // let requestId = this.uuid ();
         let request = {
-            'currency': currency['id'],
-            'withdraw_amount': amount,
-            'withdraw_address': address,
-            'request_id': requestId.toString (),
+            currency: currency['id'],
+            withdraw_amount,
+            withdraw_address,
+            request_id: requestId.toString (),
         };
         if (tag)
             request['withdraw_memo'] = tag;
@@ -388,8 +388,8 @@ module.exports = class indodax extends Exchange {
         if (('txid' in response) && (response['txid'].length > 0))
             id = response['txid'];
         return {
-            'info': response,
-            'id': id,
+            info: response,
+            id,
         };
     }
 
@@ -400,16 +400,16 @@ module.exports = class indodax extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
-                'method': path,
-                'nonce': this.nonce (),
+                method: path,
+                nonce: this.nonce (),
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                Key: this.apiKey,
+                Sign: this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
@@ -417,7 +417,7 @@ module.exports = class indodax extends Exchange {
             return;
         // { success: 0, error: "invalid order." }
         // or
-        // [{ data, ... }, { ... }, ... ]
+        // [{ data, ... }, { ... }, ...]
         if (typeof response === 'undefined')
             if (body[0] === '{' || body[0] === '[')
                 response = JSON.parse (body);

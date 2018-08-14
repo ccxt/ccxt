@@ -38,6 +38,6 @@ module.exports = {
         {"blankLine": "never", "prev":"*", "next": "*" },
         {"blankLine": "always", "prev":"directive", "next": "*" },
         {"blankLine": "always", "prev":"*", "next": "cjs-export" },
-      ],
+     ],
   },
 }

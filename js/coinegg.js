@@ -10,106 +10,106 @@ const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidNonce, 
 module.exports = class coinegg extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinegg',
-            'name': 'CoinEgg',
-            'countries': [ 'CN', 'UK' ],
-            'has': {
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': 'emulated',
-                'fetchMyTrades': true,
-                'fetchTickers': true,
+            id: 'coinegg',
+            name: 'CoinEgg',
+            countries: ['CN', 'UK'],
+            has: {
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: 'emulated',
+                fetchMyTrades: true,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
-                'api': {
-                    'web': 'https://www.coinegg.com/coin',
-                    'rest': 'https://api.coinegg.com/api/v1',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
+                api: {
+                    web: 'https://www.coinegg.com/coin',
+                    rest: 'https://api.coinegg.com/api/v1',
                 },
-                'www': 'https://www.coinegg.com',
-                'doc': 'https://www.coinegg.com/explain.api.html',
-                'fees': 'https://www.coinegg.com/fee.html',
+                www: 'https://www.coinegg.com',
+                doc: 'https://www.coinegg.com/explain.api.html',
+                fees: 'https://www.coinegg.com/fee.html',
             },
-            'api': {
-                'web': {
-                    'get': [
+            api: {
+                web: {
+                    get: [
                         '{quote}/allcoin',
                         '{quote}/trends',
                         '{quote}/{base}/order',
                         '{quote}/{base}/trades',
                         '{quote}/{base}/depth.js',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'ticker/region/{quote}',
                         'depth/region/{quote}',
                         'orders/region/{quote}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balance',
                         'trade_add/region/{quote}',
                         'trade_cancel/region/{quote}',
                         'trade_view/region/{quote}',
                         'trade_list/region/{quote}',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+            fees: {
+                trading: {
+                    maker: 0.1 / 100,
+                    taker: 0.1 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.008,
-                        'BCH': 0.002,
-                        'LTC': 0.001,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'NEO': 0,
-                        'QTUM': '1%',
-                        'XRP': '1%',
-                        'DOGE': '1%',
-                        'LSK': '1%',
-                        'XAS': '1%',
-                        'BTS': '1%',
-                        'GAME': '1%',
-                        'GOOC': '1%',
-                        'NXT': '1%',
-                        'IFC': '1%',
-                        'DNC': '1%',
-                        'BLK': '1%',
-                        'VRC': '1%',
-                        'XPM': '1%',
-                        'VTC': '1%',
-                        'TFC': '1%',
-                        'PLC': '1%',
-                        'EAC': '1%',
-                        'PPC': '1%',
-                        'FZ': '1%',
-                        'ZET': '1%',
-                        'RSS': '1%',
-                        'PGC': '1%',
-                        'SKT': '1%',
-                        'JBC': '1%',
-                        'RIO': '1%',
-                        'LKC': '1%',
-                        'ZCC': '1%',
-                        'MCC': '1%',
-                        'QEC': '1%',
-                        'MET': '1%',
-                        'YTC': '1%',
-                        'HLB': '1%',
-                        'MRYC': '1%',
-                        'MTC': '1%',
-                        'KTC': 0,
+                funding: {
+                    withdraw: {
+                        BTC: 0.008,
+                        BCH: 0.002,
+                        LTC: 0.001,
+                        ETH: 0.01,
+                        ETC: 0.01,
+                        NEO: 0,
+                        QTUM: '1%',
+                        XRP: '1%',
+                        DOGE: '1%',
+                        LSK: '1%',
+                        XAS: '1%',
+                        BTS: '1%',
+                        GAME: '1%',
+                        GOOC: '1%',
+                        NXT: '1%',
+                        IFC: '1%',
+                        DNC: '1%',
+                        BLK: '1%',
+                        VRC: '1%',
+                        XPM: '1%',
+                        VTC: '1%',
+                        TFC: '1%',
+                        PLC: '1%',
+                        EAC: '1%',
+                        PPC: '1%',
+                        FZ: '1%',
+                        ZET: '1%',
+                        RSS: '1%',
+                        PGC: '1%',
+                        SKT: '1%',
+                        JBC: '1%',
+                        RIO: '1%',
+                        LKC: '1%',
+                        ZCC: '1%',
+                        MCC: '1%',
+                        QEC: '1%',
+                        MET: '1%',
+                        YTC: '1%',
+                        HLB: '1%',
+                        MRYC: '1%',
+                        MTC: '1%',
+                        KTC: 0,
                     },
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '103': AuthenticationError,
                 '104': AuthenticationError,
                 '105': AuthenticationError,
@@ -120,7 +120,7 @@ module.exports = class coinegg extends Exchange {
                 '203': OrderNotFound,
                 '402': DDoSProtection,
             },
-            'errorMessages': {
+            errorMessages: {
                 '100': 'Required parameters can not be empty',
                 '101': 'Illegal parameter',
                 '102': 'coin does not exist',
@@ -141,11 +141,11 @@ module.exports = class coinegg extends Exchange {
                 '404': 'IP restriction does not request the resource',
                 '405': 'Currency transactions are temporarily closed',
             },
-            'options': {
-                'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
+            options: {
+                quoteIds: ['btc', 'eth', 'usc', 'usdt'],
             },
-            'commonCurrencies': {
-                'JBC': 'JubaoCoin',
+            commonCurrencies: {
+                JBC: 'JubaoCoin',
             },
         });
     }
@@ -156,7 +156,7 @@ module.exports = class coinegg extends Exchange {
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
             let bases = await this.webGetQuoteAllcoin ({
-                'quote': quoteId,
+                quote: quoteId,
             });
             if (typeof bases === 'undefined')
                 throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (bases) + '"');
@@ -174,33 +174,33 @@ module.exports = class coinegg extends Exchange {
                 let id = baseId + quoteId;
                 let symbol = base + '/' + quote;
                 let precision = {
-                    'amount': 8,
-                    'price': 8,
+                    amount: 8,
+                    price: 8,
                 };
                 result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': true,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': Math.pow (10, -precision['amount']),
-                            'max': Math.pow (10, precision['amount']),
+                    id,
+                    symbol,
+                    base,
+                    quote,
+                    baseId,
+                    quoteId,
+                    active: true,
+                    precision,
+                    limits: {
+                        amount: {
+                            min: Math.pow (10, -precision['amount']),
+                            max: Math.pow (10, precision['amount']),
                         },
-                        'price': {
-                            'min': Math.pow (10, -precision['price']),
-                            'max': Math.pow (10, precision['price']),
+                        price: {
+                            min: Math.pow (10, -precision['price']),
+                            max: Math.pow (10, precision['price']),
                         },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
+                        cost: {
+                            min: undefined,
+                            max: undefined,
                         },
                     },
-                    'info': market,
+                    info: market,
                 });
             }
         }
@@ -222,26 +222,26 @@ module.exports = class coinegg extends Exchange {
             average = this.sum (last, open) / 2;
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVol'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage,
+            average,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: this.safeFloat (ticker, 'quoteVol'),
+            info: ticker,
         };
     }
 
@@ -249,8 +249,8 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetTickerRegionQuote (this.extend ({
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            coin: market['baseId'],
+            quote: market['quoteId'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -262,7 +262,7 @@ module.exports = class coinegg extends Exchange {
         for (let b = 0; b < quoteIds.length; b++) {
             let quoteId = quoteIds[b];
             let tickers = await this.webGetQuoteAllcoin ({
-                'quote': quoteId,
+                quote: quoteId,
             });
             let baseIds = Object.keys (tickers);
             if (!baseIds.length) {
@@ -276,14 +276,14 @@ module.exports = class coinegg extends Exchange {
                     let market = this.marketsById[id];
                     let symbol = market['symbol'];
                     result[symbol] = this.parseTicker ({
-                        'high': ticker[4],
-                        'low': ticker[5],
-                        'buy': ticker[2],
-                        'sell': ticker[3],
-                        'last': ticker[1],
-                        'change': ticker[8],
-                        'vol': ticker[6],
-                        'quoteVol': ticker[7],
+                        high: ticker[4],
+                        low: ticker[5],
+                        buy: ticker[2],
+                        sell: ticker[3],
+                        last: ticker[1],
+                        change: ticker[8],
+                        vol: ticker[6],
+                        quoteVol: ticker[7],
                     }, market);
                 }
             }
@@ -295,8 +295,8 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetDepthRegionQuote (this.extend ({
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            coin: market['baseId'],
+            quote: market['quoteId'],
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -308,18 +308,18 @@ module.exports = class coinegg extends Exchange {
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tid'),
+            order: undefined,
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost,
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -327,8 +327,8 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetOrdersRegionQuote (this.extend ({
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            coin: market['baseId'],
+            quote: market['quoteId'],
         }, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -341,16 +341,16 @@ module.exports = class coinegg extends Exchange {
         let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
-            let [ currencyId, accountType ] = key.split ('_');
+            let [currencyId, accountType] = key.split ('_');
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
             if (!(code in result)) {
                 result[code] = {
-                    'free': undefined,
-                    'used': undefined,
-                    'total': undefined,
+                    free: undefined,
+                    used: undefined,
+                    total: undefined,
                 };
             }
             accountType = (accountType === 'lock') ? 'used' : 'free';
@@ -361,7 +361,7 @@ module.exports = class coinegg extends Exchange {
             let currency = currencies[i];
             result[currency]['total'] = this.sum (result[currency]['free'], result[currency]['used']);
         }
-        return this.parseBalance (this.extend ({ 'info': response }, result));
+        return this.parseBalance (this.extend ({ info: response }, result));
     }
 
     parseOrder (order, market = undefined) {
@@ -379,22 +379,22 @@ module.exports = class coinegg extends Exchange {
         }
         let info = this.safeValue (order, 'info', order);
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': info,
+            id: this.safeString (order, 'id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info,
         };
     }
 
@@ -402,21 +402,21 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeAddRegionQuote (this.extend ({
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
-            'type': side,
-            'amount': amount,
-            'price': price,
+            coin: market['baseId'],
+            quote: market['quoteId'],
+            type: side,
+            amount,
+            price,
         }, params));
         let id = response['id'].toString ();
         let order = this.parseOrder ({
-            'id': id,
-            'datetime': this.ymdhms (this.milliseconds ()),
-            'amount_original': amount,
-            'amount_outstanding': amount,
-            'price': price,
-            'type': side,
-            'info': response,
+            id,
+            datetime: this.ymdhms (this.milliseconds ()),
+            amount_original: amount,
+            amount_outstanding: amount,
+            price,
+            type: side,
+            info: response,
         }, market);
         this.orders[id] = order;
         return order;
@@ -426,9 +426,9 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeCancelRegionQuote (this.extend ({
-            'id': id,
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            id,
+            coin: market['baseId'],
+            quote: market['quoteId'],
         }, params));
         return response;
     }
@@ -437,9 +437,9 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeViewRegionQuote (this.extend ({
-            'id': id,
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            id,
+            coin: market['baseId'],
+            quote: market['quoteId'],
         }, params));
         return this.parseOrder (response['data'], market);
     }
@@ -448,8 +448,8 @@ module.exports = class coinegg extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'coin': market['baseId'],
-            'quote': market['quoteId'],
+            coin: market['baseId'],
+            quote: market['quoteId'],
         };
         if (typeof since !== 'undefined')
             request['since'] = since / 1000;
@@ -459,7 +459,7 @@ module.exports = class coinegg extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let result = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'type': 'open',
+            type: 'open',
         }, params));
         return result;
     }
@@ -483,8 +483,8 @@ module.exports = class coinegg extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             query = this.urlencode (this.extend ({
-                'key': this.apiKey,
-                'nonce': this.nonce (),
+                key: this.apiKey,
+                nonce: this.nonce (),
             }, query));
             let secret = this.hash (this.encode (this.secret));
             let signature = this.hmac (this.encode (query), this.encode (secret));
@@ -498,7 +498,7 @@ module.exports = class coinegg extends Exchange {
                 body = query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

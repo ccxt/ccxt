@@ -10,16 +10,16 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class huobi extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'huobi',
-            'name': 'Huobi',
-            'countries': [ 'CN' ],
-            'rateLimit': 2000,
-            'version': 'v3',
-            'has': {
-                'CORS': false,
-                'fetchOHLCV': true,
+            id: 'huobi',
+            name: 'Huobi',
+            countries: ['CN'],
+            rateLimit: 2000,
+            version: 'v3',
+            has: {
+                CORS: false,
+                fetchOHLCV: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '001',
                 '5m': '005',
                 '15m': '015',
@@ -30,33 +30,33 @@ module.exports = class huobi extends Exchange {
                 '1M': '300',
                 '1y': '400',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'http://api.huobi.com',
-                'www': 'https://www.huobi.com',
-                'doc': 'https://github.com/huobiapi/API_Docs_en/wiki',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
+                api: 'http://api.huobi.com',
+                www: 'https://www.huobi.com',
+                doc: 'https://github.com/huobiapi/API_Docs_en/wiki',
             },
-            'api': {
-                'staticmarket': {
-                    'get': [
+            api: {
+                staticmarket: {
+                    get: [
                         '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
                         'depth_{id}_{length}',
                         'detail_{id}',
-                    ],
+                   ],
                 },
-                'usdmarket': {
-                    'get': [
+                usdmarket: {
+                    get: [
                         '{id}_kline_{period}',
                         'ticker_{id}',
                         'depth_{id}',
                         'depth_{id}_{length}',
                         'detail_{id}',
-                    ],
+                   ],
                 },
-                'trade': {
-                    'post': [
+                trade: {
+                    post: [
                         'get_account_info',
                         'get_orders',
                         'order_info',
@@ -75,20 +75,20 @@ module.exports = class huobi extends Exchange {
                         'repayment',
                         'get_loan_available',
                         'get_loans',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/CNY': { 'id': 'btc', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 1 },
-                'LTC/CNY': { 'id': 'ltc', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'type': 'staticmarket', 'coinType': 2 },
-                // 'BTC/USD': { 'id': 'btc', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'type': 'usdmarket',    'coinType': 1 },
+            markets: {
+                'BTC/CNY': { id: 'btc', symbol: 'BTC/CNY', base: 'BTC', quote: 'CNY', type: 'staticmarket', coinType: 1 },
+                'LTC/CNY': { id: 'ltc', symbol: 'LTC/CNY', base: 'LTC', quote: 'CNY', type: 'staticmarket', coinType: 2 },
+                // 'BTC/USD': { id: 'btc', symbol: 'BTC/USD', base: 'BTC', quote: 'USD', type: 'usdmarket',    coinType: 1 },
             },
         });
     }
 
     async fetchBalance (params = {}) {
         let balances = await this.tradePostGetAccountInfo ();
-        let result = { 'info': balances };
+        let result = { info: balances };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -112,7 +112,7 @@ module.exports = class huobi extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDepthId';
-        let orderbook = await this[method] (this.extend ({ 'id': market['id'] }, params));
+        let orderbook = await this[method] (this.extend ({ id: market['id'] }, params));
         return this.parseOrderBook (orderbook);
     }
 
@@ -120,45 +120,45 @@ module.exports = class huobi extends Exchange {
         let market = this.market (symbol);
         let method = market['type'] + 'GetTickerId';
         let response = await this[method] (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         let ticker = response['ticker'];
         let timestamp = parseInt (response['time']) * 1000;
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'ask': this.safeFloat (ticker, 'sell'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            ask: this.safeFloat (ticker, 'sell'),
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'open'),
+            close: undefined,
+            first: undefined,
+            last: this.safeFloat (ticker, 'last'),
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: undefined,
+            quoteVolume: this.safeFloat (ticker, 'vol'),
+            info: ticker,
         };
     }
 
     parseTrade (trade, market) {
         let timestamp = trade['ts'];
         return {
-            'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['direction'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            info: trade,
+            id: trade['id'].toString (),
+            order: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['direction'],
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
@@ -166,7 +166,7 @@ module.exports = class huobi extends Exchange {
         let market = this.market (symbol);
         let method = market['type'] + 'GetDetailId';
         let response = await this[method] (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
@@ -180,15 +180,15 @@ module.exports = class huobi extends Exchange {
             ohlcv[3],
             ohlcv[4],
             ohlcv[6],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let method = market['type'] + 'GetIdKlinePeriod';
         let ohlcvs = await this[method] (this.extend ({
-            'id': market['id'],
-            'period': this.timeframes[timeframe],
+            id: market['id'],
+            period: this.timeframes[timeframe],
         }, params));
         return ohlcvs;
         // return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
@@ -198,9 +198,9 @@ module.exports = class huobi extends Exchange {
         let market = this.market (symbol);
         let method = 'tradePost' + this.capitalize (side);
         let order = {
-            'coin_type': market['coinType'],
-            'amount': amount,
-            'market': market['quote'].toLowerCase (),
+            coin_type: market['coinType'],
+            amount,
+            market: market['quote'].toLowerCase (),
         };
         if (type === 'limit')
             order['price'] = price;
@@ -208,13 +208,13 @@ module.exports = class huobi extends Exchange {
             method += this.capitalize (type);
         let response = this[method] (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.tradePostCancelOrder ({ 'id': id });
+        return await this.tradePostCancelOrder ({ id: id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -223,9 +223,9 @@ module.exports = class huobi extends Exchange {
             this.checkRequiredCredentials ();
             url += '/api' + this.version;
             let query = this.keysort (this.extend ({
-                'method': path,
-                'access_key': this.apiKey,
-                'created': this.nonce (),
+                method: path,
+                access_key: this.apiKey,
+                created: this.nonce (),
             }, params));
             let queryString = this.urlencode (this.omit (query, 'market'));
             // secret key must be appended to the query before signing
@@ -241,7 +241,7 @@ module.exports = class huobi extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'trade', method = 'GET', params = {}, headers = undefined, body = undefined) {

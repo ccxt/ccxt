@@ -30,7 +30,7 @@ it ('deepExtend() works', () => {
             b: { first: 'one', second: 'two' },
             c: { test2: 222 }},
         e: { one: 1, two: 2 },
-        f: [{ 'foo': 'bar' }],
+        f: [{ foo: 'bar' }],
         g: (void 0),
         h: /abc/g,
         i: null,
@@ -46,7 +46,7 @@ it ('deepExtend() works', () => {
             b: { first: 'one', second: 'two' },
             c: { test1: 123, test2: 222 }
         },
-        f: [{ 'foo': 'bar' }],
+        f: [{ foo: 'bar' }],
         g: undefined,
         c: 5,
         e: { one: 1, two: 2 },
@@ -55,7 +55,7 @@ it ('deepExtend() works', () => {
         j: [3, 4]
     }, extended)
 
-    deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
+    deepEqual (deepExtend (undefined, undefined, {foo: 'bar' }), { foo: 'bar' })
 })
 
 /*  ------------------------------------------------------------------------ */
@@ -63,18 +63,18 @@ it ('deepExtend() works', () => {
 it ('groupBy() works', () => {
 
     const array = [
-        { 'foo': 'a' },
-        { 'foo': 'b' },
-        { 'foo': 'c' },
-        { 'foo': 'b' },
-        { 'foo': 'c' },
-        { 'foo': 'c' },
-    ]
+        { foo: 'a' },
+        { foo: 'b' },
+        { foo: 'c' },
+        { foo: 'b' },
+        { foo: 'c' },
+        { foo: 'c' },
+   ]
 
     deepEqual (groupBy (array, 'foo'), {
-        'a': [ { 'foo': 'a' } ],
-        'b': [ { 'foo': 'b' }, { 'foo': 'b' } ],
-        'c': [ { 'foo': 'c' }, { 'foo': 'c' }, { 'foo': 'c' } ],
+        a: [{ foo: 'a' }],
+        b: [{ foo: 'b' }, { foo: 'b' }],
+        c: [{ foo: 'c' }, { foo: 'c' }, { foo: 'c' }],
     })
 })
 
@@ -83,22 +83,22 @@ it ('groupBy() works', () => {
 it ('filterBy() works', () => {
 
     const array = [
-        { 'foo': 'a' },
-        { 'foo': undefined },
-        { 'foo': 'b' },
+        { foo: 'a' },
+        { foo: undefined },
+        { foo: 'b' },
         { },
-        { 'foo': 'a', 'bar': 'b' },
-        { 'foo': 'c' },
-        { 'foo': 'd' },
-        { 'foo': 'b' },
-        { 'foo': 'c' },
-        { 'foo': 'c' },
-    ]
+        { foo: 'a', bar: 'b' },
+        { foo: 'c' },
+        { foo: 'd' },
+        { foo: 'b' },
+        { foo: 'c' },
+        { foo: 'c' },
+   ]
 
     deepEqual (filterBy (array, 'foo', 'a'), [
-        { 'foo': 'a' },
-        { 'foo': 'a', 'bar': 'b' },
-    ])
+        { foo: 'a' },
+        { foo: 'a', bar: 'b' },
+   ])
 })
 
 /*  ------------------------------------------------------------------------ */
@@ -132,22 +132,22 @@ it ('sortBy works', () => {
 
     const arr = [{ x: 5 }, { x: 2 }, { x: 4 }, { x: 0 },{ x: 1 },{ x: 3 }]
     sortBy (arr, 'x')
-    
+
     deepEqual (arr
-        [ { x: 0 },
+        [{ x: 0 },
         { x: 1 },
         { x: 2 },
         { x: 3 },
         { x: 4 },
-        { x: 5 }  ])
+        { x: 5 } ])
 
     deepEqual (sortBy (arr, 'x', true),
-        [ { x: 5 },
+        [{ x: 5 },
         { x: 4 },
         { x: 3 },
         { x: 2 },
         { x: 1 },
-        { x: 0 }  ])
+        { x: 0 } ])
 
     deepEqual (sortBy ([], 'x'), [])
 })

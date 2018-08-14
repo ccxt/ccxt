@@ -10,27 +10,27 @@ const { ExchangeError, AuthenticationError, DDoSProtection, ExchangeNotAvailable
 module.exports = class bibox extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bibox',
-            'name': 'Bibox',
-            'countries': [ 'CN', 'US', 'KR' ],
-            'version': 'v1',
-            'has': {
-                'CORS': false,
-                'publicAPI': false,
-                'fetchBalance': true,
-                'fetchCurrencies': true,
-                'fetchDepositAddress': true,
-                'fetchFundingFees': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'createMarketOrder': false, // or they will return https://github.com/ccxt/ccxt/issues/2338
-                'withdraw': true,
+            id: 'bibox',
+            name: 'Bibox',
+            countries: ['CN', 'US', 'KR'],
+            version: 'v1',
+            has: {
+                CORS: false,
+                publicAPI: false,
+                fetchBalance: true,
+                fetchCurrencies: true,
+                fetchDepositAddress: true,
+                fetchFundingFees: true,
+                fetchTickers: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchMyTrades: true,
+                fetchOHLCV: true,
+                createMarketOrder: false, // or they will return https://github.com/ccxt/ccxt/issues/2338
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1min',
                 '5m': '5min',
                 '15m': '15min',
@@ -40,49 +40,49 @@ module.exports = class bibox extends Exchange {
                 '1d': 'day',
                 '1w': 'week',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
-                'api': 'https://api.bibox.com',
-                'www': 'https://www.bibox.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/34902611-2be8bf1a-f830-11e7-91a2-11b2f292e750.jpg',
+                api: 'https://api.bibox.com',
+                www: 'https://www.bibox.com',
+                doc: [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
-                ],
-                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+               ],
+                fees: 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
             },
-            'api': {
-                'public': {
-                    'post': [
+            api: {
+                public: {
+                    post: [
                         // TODO: rework for full endpoint/cmd paths here
                         'mdata',
-                    ],
-                    'get': [
+                   ],
+                    get: [
                         'mdata',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'user',
                         'orderpending',
                         'transfer',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.0,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    taker: 0.001,
+                    maker: 0.0,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {},
-                    'deposit': {},
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {},
+                    deposit: {},
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '2021': InsufficientFunds, // Insufficient balance available for withdrawal
                 '2015': AuthenticationError, // Google authenticator is wrong
                 '2027': InsufficientFunds, // Insufficient balance available (for trade)
@@ -95,16 +95,16 @@ module.exports = class bibox extends Exchange {
                 '4000': ExchangeNotAvailable, // current network is unstable
                 '4003': DDoSProtection, // server busy please try again later
             },
-            'commonCurrencies': {
-                'KEY': 'Bihu',
-                'PAI': 'PCHAIN',
+            commonCurrencies: {
+                KEY: 'Bihu',
+                PAI: 'PCHAIN',
             },
         });
     }
 
     async fetchMarkets (params = {}) {
         let response = await this.publicGetMdata (this.extend ({
-            'cmd': 'marketAll',
+            cmd: 'marketAll',
         }, params));
         let markets = response['result'];
         let result = [];
@@ -117,27 +117,27 @@ module.exports = class bibox extends Exchange {
             let symbol = base + '/' + quote;
             let id = base + '_' + quote;
             let precision = {
-                'amount': 4,
-                'price': 8,
+                amount: 4,
+                price: 8,
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
-                'active': true,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId: base,
+                quoteId: quote,
+                active: true,
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
+                    price: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
             });
@@ -171,26 +171,26 @@ module.exports = class bibox extends Exchange {
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': this.safeString (ticker, 'percent'),
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': this.safeFloat (ticker, 'amount'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: iso8601,
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage: this.safeString (ticker, 'percent'),
+            average: undefined,
+            baseVolume,
+            quoteVolume: this.safeFloat (ticker, 'amount'),
+            info: ticker,
         };
     }
 
@@ -198,8 +198,8 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMdata (this.extend ({
-            'cmd': 'ticker',
-            'pair': market['id'],
+            cmd: 'ticker',
+            pair: market['id'],
         }, params));
         return this.parseTicker (response['result'], market);
     }
@@ -214,7 +214,7 @@ module.exports = class bibox extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         let response = await this.publicGetMdata (this.extend ({
-            'cmd': 'marketAll',
+            cmd: 'marketAll',
         }, params));
         return this.parseTickers (response['result'], symbols);
     }
@@ -256,25 +256,25 @@ module.exports = class bibox extends Exchange {
         let cost = price * amount;
         if (typeof feeCost !== 'undefined') {
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+                cost: feeCost,
+                currency: feeCurrency,
+                rate: feeRate,
             };
         }
         return {
-            'info': trade,
-            'id': this.safeString (trade, 'id'),
-            'order': undefined, // Bibox does not have it (documented) yet
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': 'limit',
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            info: trade,
+            id: this.safeString (trade, 'id'),
+            order: undefined, // Bibox does not have it (documented) yet
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: 'limit',
+            takerOrMaker: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -283,9 +283,9 @@ module.exports = class bibox extends Exchange {
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
         let response = await this.publicGetMdata (this.extend ({
-            'cmd': 'deals',
-            'pair': market['id'],
-            'size': size,
+            cmd: 'deals',
+            pair: market['id'],
+            size,
         }, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
@@ -294,8 +294,8 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'cmd': 'depth',
-            'pair': market['id'],
+            cmd: 'depth',
+            pair: market['id'],
         };
         request['size'] = limit; // default = 200 ?
         let response = await this.publicGetMdata (this.extend (request, params));
@@ -310,25 +310,25 @@ module.exports = class bibox extends Exchange {
             ohlcv['low'],
             ohlcv['close'],
             ohlcv['vol'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMdata (this.extend ({
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': this.timeframes[timeframe],
-            'size': limit,
+            cmd: 'kline',
+            pair: market['id'],
+            period: this.timeframes[timeframe],
+            size: limit,
         }, params));
         return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/coinList',
-            'body': {},
+            cmd: 'transfer/coinList',
+            body: {},
         });
         let currencies = response['result'];
         let result = {};
@@ -341,29 +341,29 @@ module.exports = class bibox extends Exchange {
             let withdraw = currency['enable_withdraw'];
             let active = (deposit && withdraw) ? true : false;
             result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': currency['name'],
-                'active': active,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                info: currency,
+                name: currency['name'],
+                active,
+                fee: undefined,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': Math.pow (10, precision),
+                    withdraw: {
+                        min: undefined,
+                        max: Math.pow (10, precision),
                     },
                 },
             };
@@ -374,13 +374,13 @@ module.exports = class bibox extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/assets',
-            'body': this.extend ({
-                'select': 1,
+            cmd: 'transfer/assets',
+            body: this.extend ({
+                select: 1,
             }, params),
         });
         let balances = response['result'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let indexed = undefined;
         if ('assets_list' in balances) {
             indexed = this.indexBy (balances['assets_list'], 'coin_symbol');
@@ -420,28 +420,28 @@ module.exports = class bibox extends Exchange {
         let orderType = (type === 'limit') ? 2 : 1;
         let orderSide = (side === 'buy') ? 1 : 2;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/trade',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0,
-                'order_type': orderType,
-                'order_side': orderSide,
-                'pay_bix': 0,
-                'amount': amount,
-                'price': price,
+            cmd: 'orderpending/trade',
+            body: this.extend ({
+                pair: market['id'],
+                account_type: 0,
+                order_type: orderType,
+                order_side: orderSide,
+                pay_bix: 0,
+                amount,
+                price,
             }, params),
         });
         return {
-            'info': response,
-            'id': this.safeString (response, 'result'),
+            info: response,
+            id: this.safeString (response, 'result'),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/cancelTrade',
-            'body': this.extend ({
-                'orders_id': id,
+            cmd: 'orderpending/cancelTrade',
+            body: this.extend ({
+                orders_id,
             }, params),
         });
         return response;
@@ -450,9 +450,9 @@ module.exports = class bibox extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/order',
-            'body': this.extend ({
-                'id': id,
+            cmd: 'orderpending/order',
+            body: this.extend ({
+                id,
             }, params),
         });
         let order = this.safeValue (response, 'result');
@@ -496,21 +496,21 @@ module.exports = class bibox extends Exchange {
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
         let result = {
-            'info': order,
-            'id': this.safeString (order, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost ? cost : parseFloat (price) * filled,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': this.safeFloat (order, 'fee'),
+            info: order,
+            id: this.safeString (order, 'id'),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type,
+            side,
+            price,
+            amount,
+            cost: cost ? cost : parseFloat (price) * filled,
+            filled,
+            remaining,
+            status,
+            fee: this.safeFloat (order, 'fee'),
         };
         return result;
     }
@@ -518,12 +518,12 @@ module.exports = class bibox extends Exchange {
     parseOrderStatus (status) {
         let statuses = {
             // original comments from bibox:
-            '1': 'open', // pending
-            '2': 'open', // part completed
-            '3': 'closed', // completed
-            '4': 'canceled', // part canceled
-            '5': 'canceled', // canceled
-            '6': 'canceled', // canceling
+            1: 'open', // pending
+            2: 'open', // part completed
+            3: 'closed', // completed
+            4: 'canceled', // part canceled
+            5: 'canceled', // canceled
+            6: 'canceled', // canceling
         };
         return this.safeString (statuses, status, status.toLowerCase ());
     }
@@ -538,12 +538,12 @@ module.exports = class bibox extends Exchange {
         }
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/orderPendingList',
-            'body': this.extend ({
-                'pair': pair,
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
+            cmd: 'orderpending/orderPendingList',
+            body: this.extend ({
+                pair,
+                account_type: 0, // 0 - regular, 1 - margin
+                page: 1,
+                size,
             }, params),
         });
         let orders = this.safeValue (response['result'], 'items', []);
@@ -556,12 +556,12 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/pendingHistoryList',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': limit,
+            cmd: 'orderpending/pendingHistoryList',
+            body: this.extend ({
+                pair: market['id'],
+                account_type: 0, // 0 - regular, 1 - margin
+                page: 1,
+                size: limit,
             }, params),
         });
         let orders = this.safeValue (response['result'], 'items', []);
@@ -575,12 +575,12 @@ module.exports = class bibox extends Exchange {
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
         let response = await this.privatePostOrderpending ({
-            'cmd': 'orderpending/orderHistoryList',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
+            cmd: 'orderpending/orderHistoryList',
+            body: this.extend ({
+                pair: market['id'],
+                account_type: 0, // 0 - regular, 1 - margin
+                page: 1,
+                size,
             }, params),
         });
         let trades = this.safeValue (response['result'], 'items', []);
@@ -591,18 +591,18 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/transferIn',
-            'body': this.extend ({
-                'coin_symbol': currency['id'],
+            cmd: 'transfer/transferIn',
+            body: this.extend ({
+                coin_symbol: currency['id'],
             }, params),
         });
         let address = this.safeString (response, 'result');
         let tag = undefined; // todo: figure this out
         let result = {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
         return result;
     }
@@ -617,26 +617,26 @@ module.exports = class bibox extends Exchange {
         if (!('totp_code' in params))
             throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
         let body = {
-            'trade_pwd': this.password,
-            'coin_symbol': currency['id'],
-            'amount': amount,
-            'addr': address,
+            trade_pwd: this.password,
+            coin_symbol: currency['id'],
+            amount,
+            addr: address,
         };
         if (typeof tag !== 'undefined')
             body['address_remark'] = tag;
         let response = await this.privatePostTransfer ({
-            'cmd': 'transfer/transferOut',
-            'body': this.extend (body, params),
+            cmd: 'transfer/transferOut',
+            body: this.extend (body, params),
         });
         return {
-            'info': response,
-            'id': undefined,
+            info: response,
+            id: undefined,
         };
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        //  however if you define codes = ['ETH', 'BTC'] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -646,41 +646,41 @@ module.exports = class bibox extends Exchange {
             let code = codes[i];
             let currency = this.currency (code);
             let response = await this.privatePostTransfer ({
-                'cmd': 'transfer/transferOutInfo',
-                'body': this.extend ({
-                    'coin_symbol': currency['id'],
+                cmd: 'transfer/transferOutInfo',
+                body: this.extend ({
+                    coin_symbol: currency['id'],
                 }, params),
             });
             info[code] = response;
             withdrawFees[code] = response['result']['withdraw_fee'];
         }
         return {
-            'info': info,
-            'withdraw': withdrawFees,
-            'deposit': {},
+            info,
+            withdraw: withdrawFees,
+            deposit: {},
         };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
-        let cmds = this.json ([ params ]);
+        let cmds = this.json ([params]);
         if (api === 'public') {
             if (method !== 'GET')
-                body = { 'cmds': cmds };
+                body = { cmds: cmds };
             else if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
             body = {
-                'cmds': cmds,
-                'apikey': this.apiKey,
-                'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
+                cmds,
+                apikey: this.apiKey,
+                sign: this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
             };
         }
         if (typeof body !== 'undefined')
-            body = this.json (body, { 'convertArraysToObjects': true });
+            body = this.json (body, { convertArraysToObjects: true });
         headers = { 'Content-Type': 'application/json' };
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

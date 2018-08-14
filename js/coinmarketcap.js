@@ -10,60 +10,60 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class coinmarketcap extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinmarketcap',
-            'name': 'CoinMarketCap',
-            'rateLimit': 10000,
-            'version': 'v1',
-            'countries': [ 'US' ],
-            'has': {
-                'CORS': true,
-                'privateAPI': false,
-                'createOrder': false,
-                'createMarketOrder': false,
-                'createLimitOrder': false,
-                'cancelOrder': false,
-                'editOrder': false,
-                'fetchBalance': false,
-                'fetchOrderBook': false,
-                'fetchOHLCV': false,
-                'fetchTrades': false,
-                'fetchTickers': true,
-                'fetchCurrencies': true,
+            id: 'coinmarketcap',
+            name: 'CoinMarketCap',
+            rateLimit: 10000,
+            version: 'v1',
+            countries: ['US'],
+            has: {
+                CORS: true,
+                privateAPI: false,
+                createOrder: false,
+                createMarketOrder: false,
+                createLimitOrder: false,
+                cancelOrder: false,
+                editOrder: false,
+                fetchBalance: false,
+                fetchOrderBook: false,
+                fetchOHLCV: false,
+                fetchTrades: false,
+                fetchTickers: true,
+                fetchCurrencies: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
-                'api': {
-                    'public': 'https://api.coinmarketcap.com',
-                    'files': 'https://files.coinmarketcap.com',
-                    'charts': 'https://graph.coinmarketcap.com',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28244244-9be6312a-69ed-11e7-99c1-7c1797275265.jpg',
+                api: {
+                    public: 'https://api.coinmarketcap.com',
+                    files: 'https://files.coinmarketcap.com',
+                    charts: 'https://graph.coinmarketcap.com',
                 },
-                'www': 'https://coinmarketcap.com',
-                'doc': 'https://coinmarketcap.com/api',
+                www: 'https://coinmarketcap.com',
+                doc: 'https://coinmarketcap.com/api',
             },
-            'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
+            requiredCredentials: {
+                apiKey: false,
+                secret: false,
             },
-            'api': {
-                'files': {
-                    'get': [
+            api: {
+                files: {
+                    get: [
                         'generated/stats/global.json',
-                    ],
+                   ],
                 },
-                'graphs': {
-                    'get': [
+                graphs: {
+                    get: [
                         'currencies/{name}/',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'ticker/',
                         'ticker/{id}/',
                         'global/',
-                    ],
+                   ],
                 },
             },
-            'currencyCodes': [
+            currencyCodes: [
                 'AUD',
                 'BRL',
                 'CAD',
@@ -82,7 +82,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'BTC',
                 'ETH',
                 'LTC',
-            ],
+           ],
         });
     }
 
@@ -92,38 +92,38 @@ module.exports = class coinmarketcap extends Exchange {
 
     currencyCode (base, name) {
         const currencies = {
-            'ACChain': 'ACChain',
-            'AdCoin': 'AdCoin',
-            'BatCoin': 'BatCoin',
-            'Bitgem': 'Bitgem',
-            'BlazeCoin': 'BlazeCoin',
-            'BlockCAT': 'BlockCAT',
-            'Catcoin': 'Catcoin',
-            'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
-            'Comet': 'Comet', // conflict with CMT (CyberMiles)
-            'CPChain': 'CPChain',
-            'Cubits': 'Cubits', // conflict with QBT (Qbao)
+            ACChain: 'ACChain',
+            AdCoin: 'AdCoin',
+            BatCoin: 'BatCoin',
+            Bitgem: 'Bitgem',
+            BlazeCoin: 'BlazeCoin',
+            BlockCAT: 'BlockCAT',
+            Catcoin: 'Catcoin',
+            CanYaCoin: 'CanYaCoin', // conflict with CAN (Content and AD Network)
+            Comet: 'Comet', // conflict with CMT (CyberMiles)
+            CPChain: 'CPChain',
+            Cubits: 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
-            'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame': 'FairGame',
+            ENTCash: 'ENTCash', // conflict with ENT (Eternity)
+            FairGame: 'FairGame',
             'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
-            'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
-            'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            GuccioneCoin: 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
+            HarmonyCoin: 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
             'Hydro Protocol': 'Hydro Protocol', // conflict with HOT (Holo)
-            'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
-            'iCoin': 'iCoin',
+            Huncoin: 'Huncoin', // conflict with HNC (Helleniccoin)
+            iCoin: 'iCoin',
             'Infinity Economics': 'Infinity Economics', // conflict with XIN (Mixin)
             'KingN Coin': 'KingN Coin', // conflict with KNC (Kyber Network)
-            'LiteBitcoin': 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
-            'Maggie': 'Maggie',
-            'IOTA': 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
-            'NetCoin': 'NetCoin',
-            'PCHAIN': 'PCHAIN', // conflict with PAI (Project Pai)
-            'Polcoin': 'Polcoin',
-            'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
-            'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
+            LiteBitcoin: 'LiteBitcoin', // conflict with LBTC (LightningBitcoin)
+            Maggie: 'Maggie',
+            IOTA: 'IOTA', // a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
+            NetCoin: 'NetCoin',
+            PCHAIN: 'PCHAIN', // conflict with PAI (Project Pai)
+            Polcoin: 'Polcoin',
+            PutinCoin: 'PutinCoin', // conflict with PUT (Profile Utility Token)
+            Rcoin: 'Rcoin', // conflict with RCN (Ripio Credit Network)
         };
         if (name in currencies)
             return currencies[name];
@@ -132,7 +132,7 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetTicker ({
-            'limit': 0,
+            limit: 0,
         });
         let result = [];
         for (let p = 0; p < markets.length; p++) {
@@ -146,13 +146,13 @@ module.exports = class coinmarketcap extends Exchange {
                 let symbol = base + '/' + quote;
                 let id = baseId + '/' + quoteId;
                 result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'info': market,
+                    id,
+                    symbol,
+                    base,
+                    quote,
+                    baseId,
+                    quoteId,
+                    info: market,
                 });
             }
         }
@@ -191,33 +191,33 @@ module.exports = class coinmarketcap extends Exchange {
                     volume = this.safeFloat (ticker, volumeKey);
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': volume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: undefined,
+            bidVolume: undefined,
+            ask: undefined,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: undefined,
+            quoteVolume: volume,
+            info: ticker,
         };
     }
 
     async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
         let request = {
-            'limit': 10000,
+            limit: 10000,
         };
         if (currency)
             request['convert'] = currency;
@@ -242,8 +242,8 @@ module.exports = class coinmarketcap extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = this.extend ({
-            'convert': market['quote'],
-            'id': market['baseId'],
+            convert: market['quote'],
+            id: market['baseId'],
         }, params);
         let response = await this.publicGetTickerId (request);
         let ticker = response[0];
@@ -252,7 +252,7 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let currencies = await this.publicGetTicker (this.extend ({
-            'limit': 0,
+            limit: 0,
         }, params));
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -265,29 +265,29 @@ module.exports = class coinmarketcap extends Exchange {
             let precision = 8; // default precision, todo: fix "magic constants"
             let code = this.currencyCode (id, name);
             result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': true,
-                'fee': undefined, // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                info: currency,
+                name,
+                active: true,
+                fee: undefined, // todo: redesign
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+                    withdraw: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
             };
@@ -300,7 +300,7 @@ module.exports = class coinmarketcap extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length)
             url += '?' + this.urlencode (query);
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

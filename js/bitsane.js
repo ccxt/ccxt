@@ -10,35 +10,35 @@ const { ExchangeError, AuthenticationError, InvalidNonce } = require ('./base/er
 module.exports = class bitsane extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitsane',
-            'name': 'Bitsane',
-            'countries': [ 'IE' ], // Ireland
-            'has': {
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
+            id: 'bitsane',
+            name: 'Bitsane',
+            countries: ['IE'], // Ireland
+            has: {
+                fetchCurrencies: true,
+                fetchTickers: true,
+                fetchOpenOrders: true,
+                fetchDepositAddress: true,
+                withdraw: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
-                'api': 'https://bitsane.com/api',
-                'www': 'https://bitsane.com',
-                'doc': 'https://bitsane.com/info-api',
-                'fees': 'https://bitsane.com/fees',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/41387105-d86bf4c6-6f8d-11e8-95ea-2fa943872955.jpg',
+                api: 'https://bitsane.com/api',
+                www: 'https://bitsane.com',
+                doc: 'https://bitsane.com/info-api',
+                fees: 'https://bitsane.com/fees',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'assets/currencies',
                         'assets/pairs',
                         'ticker',
                         'orderbook',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balances',
                         'order/cancel',
                         'order/new',
@@ -52,28 +52,28 @@ module.exports = class bitsane extends Exchange {
                         'vouchers',
                         'vouchers/create',
                         'vouchers/redeem',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.25 / 100,
+            fees: {
+                trading: {
+                    maker: 0.15 / 100,
+                    taker: 0.25 / 100,
                 },
             },
-            'exceptions': {
-                '3': AuthenticationError,
-                '4': AuthenticationError,
-                '5': AuthenticationError,
-                '6': InvalidNonce,
-                '7': AuthenticationError,
-                '8': InvalidNonce,
-                '9': AuthenticationError,
+            exceptions: {
+                3: AuthenticationError,
+                4: AuthenticationError,
+                5: AuthenticationError,
+                6: InvalidNonce,
+                7: AuthenticationError,
+                8: InvalidNonce,
+                9: AuthenticationError,
                 '10': AuthenticationError,
                 '11': AuthenticationError,
             },
-            'options': {
-                'defaultCurrencyPrecision': 2,
+            options: {
+                defaultCurrencyPrecision: 2,
             },
         });
     }
@@ -93,36 +93,36 @@ module.exports = class bitsane extends Exchange {
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
-                'id': id,
-                'code': code,
-                'name': this.safeString (currency, 'full_name', code),
-                'active': active,
-                'precision': precision,
-                'funding': {
-                    'withdraw': {
-                        'active': canWithdraw,
-                        'fee': this.safeValue (currency, 'withdrawal_fee'),
+                id,
+                code,
+                name: this.safeString (currency, 'full_name', code),
+                active,
+                precision,
+                funding: {
+                    withdraw: {
+                        active: canWithdraw,
+                        fee: this.safeValue (currency, 'withdrawal_fee'),
                     },
-                    'deposit': {
-                        'active': canDeposit,
-                        'fee': this.safeValue (currency, 'deposit_fee'),
-                    },
-                },
-                'limits': {
-                    'amount': {
-                        'min': this.safeFloat (currency, 'minAmountTrade'),
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    deposit: {
+                        active: canDeposit,
+                        fee: this.safeValue (currency, 'deposit_fee'),
                     },
                 },
-                'info': currency,
+                limits: {
+                    amount: {
+                        min: this.safeFloat (currency, 'minAmountTrade'),
+                        max: Math.pow (10, precision),
+                    },
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
+                    },
+                    cost: {
+                        min: undefined,
+                        max: undefined,
+                    },
+                },
+                info: currency,
             };
         }
         return result;
@@ -146,33 +146,33 @@ module.exports = class bitsane extends Exchange {
                 maxLimit = this.safeFloat (limits, 'maximum');
             }
             let precision = {
-                'amount': parseInt (market['precision']),
-                'price': 8,
+                amount: parseInt (market['precision']),
+                price: 8,
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['base'],
-                'quoteId': market['quote'],
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minLimit,
-                        'max': maxLimit,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId: market['base'],
+                quoteId: market['quote'],
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: minLimit,
+                        max: maxLimit,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': id,
+                info: id,
             });
         }
         return result;
@@ -183,26 +183,26 @@ module.exports = class bitsane extends Exchange {
         let timestamp = this.milliseconds ();
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChange'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high24hr'),
+            low: this.safeFloat (ticker, 'low24hr'),
+            bid: this.safeFloat (ticker, 'highestBid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'lowestAsk'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'percentChange'),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'baseVolume'),
+            quoteVolume: this.safeFloat (ticker, 'quoteVolume'),
+            info: ticker,
         };
     }
 
@@ -237,7 +237,7 @@ module.exports = class bitsane extends Exchange {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['result'], undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -249,18 +249,18 @@ module.exports = class bitsane extends Exchange {
         let amount = parseFloat (trade['amount']);
         let cost = this.costToPrecision (symbol, price * amount);
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': parseFloat (cost),
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tid'),
+            order: undefined,
+            type: undefined,
+            side: undefined,
+            price,
+            amount,
+            cost: parseFloat (cost),
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -268,7 +268,7 @@ module.exports = class bitsane extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            pair: market['id'],
         };
         if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
@@ -281,7 +281,7 @@ module.exports = class bitsane extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalances (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['result'];
         let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
@@ -294,9 +294,9 @@ module.exports = class bitsane extends Exchange {
                 code = this.commonCurrencyCode (code);
             }
             let account = {
-                'free': parseFloat (balance['amount']),
-                'used': parseFloat (balance['locked']),
-                'total': parseFloat (balance['total']),
+                free: parseFloat (balance['amount']),
+                used: parseFloat (balance['locked']),
+                total: parseFloat (balance['total']),
             };
             result[code] = account;
         }
@@ -321,21 +321,21 @@ module.exports = class bitsane extends Exchange {
             status = 'open';
         }
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': this.safeString (order, 'type'),
-            'side': this.safeString (order, 'side'),
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': this.safeValue (order, 'info', order),
+            id: this.safeString (order, 'id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            status,
+            symbol,
+            type: this.safeString (order, 'type'),
+            side: this.safeString (order, 'side'),
+            price,
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info: this.safeValue (order, 'info', order),
         };
     }
 
@@ -343,10 +343,10 @@ module.exports = class bitsane extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'pair': market['id'],
-            'amount': amount,
-            'type': type,
-            'side': side,
+            pair: market['id'],
+            amount,
+            type,
+            side,
         };
         if (type !== 'market')
             order['price'] = price;
@@ -363,7 +363,7 @@ module.exports = class bitsane extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let response = await this.privatePostOrderCancel (this.extend ({
-            'order_id': id,
+            order_id,
         }, params));
         return this.parseOrder (response['result']);
     }
@@ -371,7 +371,7 @@ module.exports = class bitsane extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus (this.extend ({
-            'order_id': id,
+            order_id,
         }, params));
         return this.parseOrder (response['result']);
     }
@@ -386,13 +386,13 @@ module.exports = class bitsane extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostDepositAddress (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let address = this.safeString (response['result'], 'address');
         return {
-            'currency': code,
-            'address': address,
-            'info': response,
+            currency: code,
+            address,
+            info: response,
         };
     }
 
@@ -400,16 +400,16 @@ module.exports = class bitsane extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
+            currency: currency['id'],
+            amount,
+            address,
         };
         if (tag)
             request['additional'] = tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
-            'id': response['result']['withdrawal_id'],
-            'info': response,
+            id: response['result']['withdrawal_id'],
+            info: response,
         };
     }
 
@@ -421,7 +421,7 @@ module.exports = class bitsane extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             body = this.extend ({
-                'nonce': this.nonce (),
+                nonce: this.nonce (),
             }, params);
             let payload = this.json (body);
             let payload64 = this.stringToBase64 (this.encode (payload));
@@ -432,7 +432,7 @@ module.exports = class bitsane extends Exchange {
                 'X-BS-SIGNATURE': this.hmac (payload64, this.encode (this.secret), 'sha384'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

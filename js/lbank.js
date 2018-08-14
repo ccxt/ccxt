@@ -10,19 +10,19 @@ const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = req
 module.exports = class lbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'lbank',
-            'name': 'LBank',
-            'countries': [ 'CN' ],
-            'version': 'v1',
-            'has': {
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': false, // status 0 API doesn't work
-                'fetchClosedOrders': true,
+            id: 'lbank',
+            name: 'LBank',
+            countries: ['CN'],
+            version: 'v1',
+            has: {
+                fetchTickers: true,
+                fetchOHLCV: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: false, // status 0 API doesn't work
+                fetchClosedOrders: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 'minute1',
                 '5m': 'minute5',
                 '15m': 'minute15',
@@ -36,26 +36,26 @@ module.exports = class lbank extends Exchange {
                 '1d': 'day1',
                 '1w': 'week1',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
-                'api': 'https://api.lbank.info',
-                'www': 'https://www.lbank.info',
-                'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
-                'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
+                api: 'https://api.lbank.info',
+                www: 'https://www.lbank.info',
+                doc: 'https://github.com/LBank-exchange/lbank-official-api-docs',
+                fees: 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currencyPairs',
                         'ticker',
                         'depth',
                         'trades',
                         'kline',
                         'accuracy',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'user_info',
                         'create_order',
                         'cancel_order',
@@ -65,43 +65,43 @@ module.exports = class lbank extends Exchange {
                         'withdrawCancel',
                         'withdraws',
                         'withdrawConfigs',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+            fees: {
+                trading: {
+                    maker: 0.1 / 100,
+                    taker: 0.1 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': undefined,
-                        'ZEC': 0.01,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        // 'QTUM': amount => Math.max (0.01, amount * (0.1 / 100)),
-                        'VEN': 10.0,
-                        'BCH': 0.0002,
-                        'SC': 50.0,
-                        'BTM': 20.0,
-                        'NAS': 1.0,
-                        'EOS': 1.0,
-                        'XWC': 5.0,
-                        'BTS': 1.0,
-                        'INK': 10.0,
-                        'BOT': 3.0,
-                        'YOYOW': 15.0,
-                        'TGC': 10.0,
-                        'NEO': 0.0,
-                        'CMT': 20.0,
-                        'SEER': 2000.0,
-                        'FIL': undefined,
-                        'BTG': undefined,
+                funding: {
+                    withdraw: {
+                        BTC: undefined,
+                        ZEC: 0.01,
+                        ETH: 0.01,
+                        ETC: 0.01,
+                        // QTUM: amount => Math.max (0.01, amount * (0.1 / 100)),
+                        VEN: 10.0,
+                        BCH: 0.0002,
+                        SC: 50.0,
+                        BTM: 20.0,
+                        NAS: 1.0,
+                        EOS: 1.0,
+                        XWC: 5.0,
+                        BTS: 1.0,
+                        INK: 10.0,
+                        BOT: 3.0,
+                        YOYOW: 15.0,
+                        TGC: 10.0,
+                        NEO: 0.0,
+                        CMT: 20.0,
+                        SEER: 2000.0,
+                        FIL: undefined,
+                        BTG: undefined,
                     },
                 },
             },
-            'commonCurrencies': {
-                'VET_ERC20': 'VEN',
+            commonCurrencies: {
+                VET_ERC'20': 'VEN',
             },
         });
     }
@@ -128,33 +128,33 @@ module.exports = class lbank extends Exchange {
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': this.safeInteger (market, 'quantityAccuracy'),
-                'price': this.safeInteger (market, 'priceAccuracy'),
+                amount: this.safeInteger (market, 'quantityAccuracy'),
+                price: this.safeInteger (market, 'priceAccuracy'),
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': id,
+                info: id,
             });
         }
         return result;
@@ -197,26 +197,26 @@ module.exports = class lbank extends Exchange {
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'turnover'),
-            'info': info,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: undefined,
+            bidVolume: undefined,
+            ask: undefined,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage,
+            average,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: this.safeFloat (ticker, 'turnover'),
+            info,
         };
     }
 
@@ -224,7 +224,7 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTicker (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTicker (response, market);
     }
@@ -232,7 +232,7 @@ module.exports = class lbank extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.publicGetTicker (this.extend ({
-            'symbol': 'all',
+            symbol: 'all',
         }, params));
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -246,8 +246,8 @@ module.exports = class lbank extends Exchange {
     async fetchOrderBook (symbol, limit = 60, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetDepth (this.extend ({
-            'symbol': this.marketId (symbol),
-            'size': Math.min (limit, 60),
+            symbol: this.marketId (symbol),
+            size: Math.min (limit, 60),
         }, params));
         return this.parseOrderBook (response);
     }
@@ -259,18 +259,18 @@ module.exports = class lbank extends Exchange {
         let amount = this.safeFloat (trade, 'amount');
         let cost = this.costToPrecision (symbol, price * amount);
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
-            'type': undefined,
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': parseFloat (cost),
-            'fee': undefined,
-            'info': this.safeValue (trade, 'info', trade),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tid'),
+            order: undefined,
+            type: undefined,
+            side: trade['type'],
+            price,
+            amount,
+            cost: parseFloat (cost),
+            fee: undefined,
+            info: this.safeValue (trade, 'info', trade),
         };
     }
 
@@ -278,8 +278,8 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'size': 100,
+            symbol: market['id'],
+            size: 100,
         };
         if (typeof since !== 'undefined')
             request['time'] = parseInt (since / 1000);
@@ -297,7 +297,7 @@ module.exports = class lbank extends Exchange {
             ohlcv[3],
             ohlcv[4],
             ohlcv[5],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
@@ -308,10 +308,10 @@ module.exports = class lbank extends Exchange {
         if (typeof limit === 'undefined')
             throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         let request = {
-            'symbol': market['id'],
-            'type': this.timeframes[timeframe],
-            'size': limit,
-            'time': parseInt (since / 1000),
+            symbol: market['id'],
+            type: this.timeframes[timeframe],
+            size: limit,
+            time: parseInt (since / 1000),
         };
         let response = await this.publicGetKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -320,7 +320,7 @@ module.exports = class lbank extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostUserInfo (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let ids = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -330,9 +330,9 @@ module.exports = class lbank extends Exchange {
             let free = this.safeFloat (response['info']['free'], id, 0.0);
             let used = this.safeFloat (response['info']['freeze'], id, 0.0);
             let account = {
-                'free': free,
-                'used': used,
-                'total': 0.0,
+                free,
+                used,
+                total: 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
@@ -343,10 +343,10 @@ module.exports = class lbank extends Exchange {
     parseOrderStatus (status) {
         let statuses = {
             '-1': 'cancelled', // cancelled
-            '0': 'open', // not traded
-            '1': 'open', // partial deal
-            '2': 'closed', // complete deal
-            '4': 'closed', // disposal processing
+            0: 'open', // not traded
+            1: 'open', // partial deal
+            2: 'closed', // complete deal
+            4: 'closed', // disposal processing
         };
         return this.safeString (statuses, status);
     }
@@ -372,22 +372,22 @@ module.exports = class lbank extends Exchange {
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
-            'id': this.safeString (order, 'order_id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': this.safeString (order, 'order_type'),
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': amount - filled,
-            'trades': undefined,
-            'fee': undefined,
-            'info': this.safeValue (order, 'info', order),
+            id: this.safeString (order, 'order_id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: this.safeString (order, 'order_type'),
+            side: order['type'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining: amount - filled,
+            trades: undefined,
+            fee: undefined,
+            info: this.safeValue (order, 'info', order),
         };
     }
 
@@ -395,9 +395,9 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'symbol': market['id'],
-            'type': side,
-            'amount': amount,
+            symbol: market['id'],
+            type: side,
+            amount,
         };
         if (type === 'market') {
             order['type'] += '_market';
@@ -421,8 +421,8 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostCancelOrder (this.extend ({
-            'symbol': market['id'],
-            'order_id': id,
+            symbol: market['id'],
+            order_id,
         }, params));
         return response;
     }
@@ -432,8 +432,8 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfo (this.extend ({
-            'symbol': market['id'],
-            'order_id': id,
+            symbol: market['id'],
+            order_id,
         }, params));
         let orders = this.parseOrders (response['orders'], market);
         if (orders.length === 1) {
@@ -450,9 +450,9 @@ module.exports = class lbank extends Exchange {
         }
         let market = this.market (symbol);
         let response = await this.privatePostOrdersInfoHistory (this.extend ({
-            'symbol': market['id'],
-            'current_page': 1,
-            'page_length': limit,
+            symbol: market['id'],
+            current_page: 1,
+            page_length: limit,
         }, params));
         return this.parseOrders (response['orders'], undefined, since, limit);
     }
@@ -470,17 +470,17 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'assetCode': currency['id'],
-            'amount': amount,
-            'account': address,
+            assetCode: currency['id'],
+            amount,
+            account: address,
         };
         if (typeof tag !== 'undefined') {
             request['memo'] = tag;
         }
         let response = this.privatePostWithdraw (this.extend (request, params));
         return {
-            'id': response['id'],
-            'info': response,
+            id: response['id'],
+            info: response,
         };
     }
 
@@ -495,14 +495,14 @@ module.exports = class lbank extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let query = this.keysort (this.extend ({
-                'api_key': this.apiKey,
+                api_key: this.apiKey,
             }, params));
             let queryString = this.rawencode (query) + '&secret_key=' + this.secret;
             query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -10,29 +10,29 @@ const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError
 module.exports = class poloniex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'poloniex',
-            'name': 'Poloniex',
-            'countries': [ 'US' ],
-            'rateLimit': 1000, // up to 6 calls per second
-            'has': {
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'CORS': false,
-                'editOrder': true,
-                'createMarketOrder': false,
-                'fetchOHLCV': true,
-                'fetchOrderTrades': true,
-                'fetchMyTrades': true,
-                'fetchOrder': 'emulated',
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchTickers': true,
-                'fetchTradingFees': true,
-                'fetchCurrencies': true,
-                'withdraw': true,
+            id: 'poloniex',
+            name: 'Poloniex',
+            countries: ['US'],
+            rateLimit: 1000, // up to 6 calls per second
+            has: {
+                createDepositAddress: true,
+                fetchDepositAddress: true,
+                CORS: false,
+                editOrder: true,
+                createMarketOrder: false,
+                fetchOHLCV: true,
+                fetchOrderTrades: true,
+                fetchMyTrades: true,
+                fetchOrder: 'emulated',
+                fetchOrders: 'emulated',
+                fetchOpenOrders: true,
+                fetchClosedOrders: 'emulated',
+                fetchTickers: true,
+                fetchTradingFees: true,
+                fetchCurrencies: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '5m': 300,
                 '15m': 900,
                 '30m': 1800,
@@ -40,22 +40,22 @@ module.exports = class poloniex extends Exchange {
                 '4h': 14400,
                 '1d': 86400,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
-                'api': {
-                    'public': 'https://poloniex.com/public',
-                    'private': 'https://poloniex.com/tradingApi',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
+                api: {
+                    public: 'https://poloniex.com/public',
+                    private: 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
-                'doc': [
+                www: 'https://poloniex.com',
+                doc: [
                     'https://poloniex.com/support/api/',
                     'http://pastebin.com/dMX7mZE0',
-                ],
-                'fees': 'https://poloniex.com/fees',
+               ],
+                fees: 'https://poloniex.com/fees',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'return24hVolume',
                         'returnChartData',
                         'returnCurrencies',
@@ -63,10 +63,10 @@ module.exports = class poloniex extends Exchange {
                         'returnOrderBook',
                         'returnTicker',
                         'returnTradeHistory',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
@@ -95,64 +95,64 @@ module.exports = class poloniex extends Exchange {
                         'toggleAutoRenew',
                         'transferBalance',
                         'withdraw',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0025,
+            fees: {
+                trading: {
+                    maker: 0.0015,
+                    taker: 0.0025,
                 },
-                'funding': {},
+                funding: {},
             },
-            'limits': {
-                'amount': {
-                    'min': 0.00000001,
-                    'max': 1000000000,
+            limits: {
+                amount: {
+                    min: 0.00000001,
+                    max: 1000000000,
                 },
-                'price': {
-                    'min': 0.00000001,
-                    'max': 1000000000,
+                price: {
+                    min: 0.00000001,
+                    max: 1000000000,
                 },
-                'cost': {
-                    'min': 0.00000000,
-                    'max': 1000000000,
+                cost: {
+                    min: 0.00000000,
+                    max: 1000000000,
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
+            precision: {
+                amount: 8,
+                price: 8,
             },
-            'commonCurrencies': {
-                'AIR': 'AirCoin',
-                'APH': 'AphroditeCoin',
-                'BCC': 'BTCtalkcoin',
-                'BDG': 'Badgercoin',
-                'BTM': 'Bitmark',
-                'CON': 'Coino',
-                'GOLD': 'GoldEagles',
-                'GPUC': 'GPU',
-                'HOT': 'Hotcoin',
-                'ITC': 'Information Coin',
-                'PLX': 'ParallaxCoin',
-                'KEY': 'KEYCoin',
-                'STR': 'XLM',
-                'SOC': 'SOCC',
-                'XAP': 'API Coin',
+            commonCurrencies: {
+                AIR: 'AirCoin',
+                APH: 'AphroditeCoin',
+                BCC: 'BTCtalkcoin',
+                BDG: 'Badgercoin',
+                BTM: 'Bitmark',
+                CON: 'Coino',
+                GOLD: 'GoldEagles',
+                GPUC: 'GPU',
+                HOT: 'Hotcoin',
+                ITC: 'Information Coin',
+                PLX: 'ParallaxCoin',
+                KEY: 'KEYCoin',
+                STR: 'XLM',
+                SOC: 'SOCC',
+                XAP: 'API Coin',
             },
-            'options': {
-                'limits': {
-                    'cost': {
-                        'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.0001,
-                            'XMR': 0.0001,
-                            'USDT': 1.0,
+            options: {
+                limits: {
+                    cost: {
+                        min: {
+                            BTC: 0.0001,
+                            ETH: 0.0001,
+                            XMR: 0.0001,
+                            USDT: 1.0,
                         },
                     },
                 },
             },
-            'exceptions': {
+            exceptions: {
                 'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
                 'Permission denied': PermissionDenied,
                 'Connection timed out. Please try again.': RequestTimeout,
@@ -175,10 +175,10 @@ module.exports = class poloniex extends Exchange {
             key = 'base';
         }
         return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            type: takerOrMaker,
+            currency: market[key],
+            rate,
+            cost: parseFloat (this.feeToPrecision (symbol, cost)),
         };
     }
 
@@ -190,7 +190,7 @@ module.exports = class poloniex extends Exchange {
             ohlcv['low'],
             ohlcv['close'],
             ohlcv['quoteVolume'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
@@ -199,9 +199,9 @@ module.exports = class poloniex extends Exchange {
         if (typeof since === 'undefined')
             since = 0;
         let request = {
-            'currencyPair': market['id'],
-            'period': this.timeframes[timeframe],
-            'start': parseInt (since / 1000),
+            currencyPair: market['id'],
+            period: this.timeframes[timeframe],
+            start: parseInt (since / 1000),
         };
         if (typeof limit !== 'undefined')
             request['end'] = this.sum (request['start'], limit * this.timeframes[timeframe]);
@@ -216,36 +216,36 @@ module.exports = class poloniex extends Exchange {
         for (let p = 0; p < keys.length; p++) {
             let id = keys[p];
             let market = markets[id];
-            let [ quote, base ] = id.split ('_');
+            let [quote, base] = id.split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
             result.push (this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'active': true,
-                'precision': {
-                    'amount': 8,
-                    'price': 8,
+                id,
+                symbol,
+                base,
+                quote,
+                active: true,
+                precision: {
+                    amount: 8,
+                    price: 8,
                 },
-                'limits': {
-                    'amount': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                limits: {
+                    amount: {
+                        min: 0.00000001,
+                        max: 1000000000,
                     },
-                    'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                    price: {
+                        min: 0.00000001,
+                        max: 1000000000,
                     },
-                    'cost': {
-                        'min': minCost,
-                        'max': 1000000000,
+                    cost: {
+                        min: minCost,
+                        max: 1000000000,
                     },
                 },
-                'info': market,
+                info: market,
             }));
         }
         return result;
@@ -254,18 +254,18 @@ module.exports = class poloniex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostReturnCompleteBalances (this.extend ({
-            'account': 'all',
+            account: 'all',
         }, params));
-        let result = { 'info': balances };
+        let result = { info: balances };
         let currencies = Object.keys (balances);
         for (let c = 0; c < currencies.length; c++) {
             let id = currencies[c];
             let balance = balances[id];
             let currency = this.commonCurrencyCode (id);
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['onOrders']),
-                'total': 0.0,
+                free: parseFloat (balance['available']),
+                used: parseFloat (balance['onOrders']),
+                total: 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -277,18 +277,18 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let fees = await this.privatePostReturnFeeInfo ();
         return {
-            'info': fees,
-            'maker': this.safeFloat (fees, 'makerFee'),
-            'taker': this.safeFloat (fees, 'takerFee'),
-            'withdraw': {},
-            'deposit': {},
+            info: fees,
+            maker: this.safeFloat (fees, 'makerFee'),
+            taker: this.safeFloat (fees, 'takerFee'),
+            withdraw: {},
+            deposit: {},
         };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'currencyPair': this.marketId (symbol),
+            currencyPair: this.marketId (symbol),
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
@@ -314,26 +314,26 @@ module.exports = class poloniex extends Exchange {
             average = this.sum (last, open) / 2;
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': relativeChange * 100,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high24hr'),
+            low: this.safeFloat (ticker, 'low24hr'),
+            bid: this.safeFloat (ticker, 'highestBid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'lowestAsk'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage: relativeChange * 100,
+            average,
+            baseVolume: this.safeFloat (ticker, 'quoteVolume'),
+            quoteVolume: this.safeFloat (ticker, 'baseVolume'),
+            info: ticker,
         };
     }
 
@@ -350,11 +350,11 @@ module.exports = class poloniex extends Exchange {
                 let market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let [ quoteId, baseId ] = id.split ('_');
+                let [quoteId, baseId] = id.split ('_');
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
-                market = { 'symbol': symbol };
+                market = { symbol: symbol };
             }
             let ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
@@ -376,29 +376,29 @@ module.exports = class poloniex extends Exchange {
             let code = this.commonCurrencyCode (id);
             let active = (currency['delisted'] === 0) && !currency['disabled'];
             result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': currency['name'],
-                'active': active,
-                'fee': this.safeFloat (currency, 'txFee'), // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                info: currency,
+                name: currency['name'],
+                active,
+                fee: this.safeFloat (currency, 'txFee'), // todo: redesign
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': currency['txFee'],
-                        'max': Math.pow (10, precision),
+                    withdraw: {
+                        min: currency['txFee'],
+                        max: Math.pow (10, precision),
                     },
                 },
             };
@@ -452,25 +452,25 @@ module.exports = class poloniex extends Exchange {
                     feeCost = cost * rate;
             }
             fee = {
-                'type': undefined,
-                'rate': rate,
-                'cost': feeCost,
-                'currency': currency,
+                type: undefined,
+                rate,
+                cost: feeCost,
+                currency,
             };
         }
         return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tradeID'),
-            'order': this.safeString (trade, 'orderNumber'),
-            'type': 'limit',
-            'side': side,
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tradeID'),
+            order: this.safeString (trade, 'orderNumber'),
+            type: 'limit',
+            side,
+            price: this.safeFloat (trade, 'rate'),
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -478,7 +478,7 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'currencyPair': market['id'],
+            currencyPair: market['id'],
         };
         if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
@@ -494,7 +494,7 @@ module.exports = class poloniex extends Exchange {
         if (typeof symbol !== 'undefined')
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let request = { 'currencyPair': pair };
+        let request = { currencyPair: pair };
         if (typeof since !== 'undefined') {
             request['start'] = parseInt (since / 1000);
             request['end'] = this.seconds () + 1; // adding 1 is a fix for #3411
@@ -560,22 +560,22 @@ module.exports = class poloniex extends Exchange {
             }
         }
         return {
-            'info': order,
-            'id': order['orderNumber'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': order['status'],
-            'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
-            'fee': undefined,
+            info: order,
+            id: order['orderNumber'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            status: order['status'],
+            symbol,
+            type: order['type'],
+            side: order['side'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades,
+            fee: undefined,
         };
     }
 
@@ -583,10 +583,10 @@ module.exports = class poloniex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
             let extended = this.extend (order, {
-                'status': 'open',
-                'type': 'limit',
-                'side': order['type'],
-                'price': order['rate'],
+                status: 'open',
+                type: 'limit',
+                side: order['type'],
+                price: order['rate'],
             });
             result.push (this.parseOrder (extended, market));
         }
@@ -600,7 +600,7 @@ module.exports = class poloniex extends Exchange {
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let response = await this.privatePostReturnOpenOrders (this.extend ({
-            'currencyPair': pair,
+            currencyPair: pair,
         }));
         let openOrders = [];
         if (typeof market !== 'undefined') {
@@ -628,10 +628,10 @@ module.exports = class poloniex extends Exchange {
                 let order = this.orders[id];
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
-                        'status': 'closed',
-                        'cost': undefined,
-                        'filled': order['amount'],
-                        'remaining': 0.0,
+                        status: 'closed',
+                        cost: undefined,
+                        filled: order['amount'],
+                        remaining: 0.0,
                     });
                     if (typeof order['cost'] === 'undefined') {
                         if (typeof order['filled'] !== 'undefined')
@@ -654,7 +654,7 @@ module.exports = class poloniex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         let since = this.safeValue (params, 'since');
         let limit = this.safeValue (params, 'limit');
-        let request = this.omit (params, [ 'since', 'limit' ]);
+        let request = this.omit (params, ['since', 'limit']);
         let orders = await this.fetchOrders (symbol, since, limit, request);
         for (let i = 0; i < orders.length; i++) {
             if (orders[i]['id'] === id)
@@ -691,30 +691,30 @@ module.exports = class poloniex extends Exchange {
         price = parseFloat (price);
         amount = parseFloat (amount);
         let response = await this[method] (this.extend ({
-            'currencyPair': market['id'],
-            'rate': this.priceToPrecision (symbol, price),
-            'amount': this.amountToPrecision (symbol, amount),
+            currencyPair: market['id'],
+            rate: this.priceToPrecision (symbol, price),
+            amount: this.amountToPrecision (symbol, amount),
         }, params));
         let timestamp = this.milliseconds ();
         let order = this.parseOrder (this.extend ({
-            'timestamp': timestamp,
-            'status': 'open',
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
+            timestamp,
+            status: 'open',
+            type,
+            side,
+            price,
+            amount,
         }, response), market);
         let id = order['id'];
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.extend ({ info: response }, order);
     }
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         price = parseFloat (price);
         let request = {
-            'orderNumber': id,
-            'rate': this.priceToPrecision (symbol, price),
+            orderNumber: id,
+            rate: this.priceToPrecision (symbol, price),
         };
         if (typeof amount !== 'undefined') {
             amount = parseFloat (amount);
@@ -726,13 +726,13 @@ module.exports = class poloniex extends Exchange {
             this.orders[id]['status'] = 'canceled';
             let newid = response['orderNumber'];
             this.orders[newid] = this.extend (this.orders[id], {
-                'id': newid,
-                'price': price,
-                'status': 'open',
+                id: newid,
+                price,
+                status: 'open',
             });
             if (typeof amount !== 'undefined')
                 this.orders[newid]['amount'] = amount;
-            result = this.extend (this.orders[newid], { 'info': response });
+            result = this.extend (this.orders[newid], { info: response });
         } else {
             let market = undefined;
             if (typeof symbol !== 'undefined')
@@ -748,7 +748,7 @@ module.exports = class poloniex extends Exchange {
         let response = undefined;
         try {
             response = await this.privatePostCancelOrder (this.extend ({
-                'orderNumber': id,
+                orderNumber: id,
             }, params));
         } catch (e) {
             if (e instanceof CancelPending) {
@@ -782,7 +782,7 @@ module.exports = class poloniex extends Exchange {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let trades = await this.privatePostReturnOrderTrades (this.extend ({
-            'orderNumber': id,
+            orderNumber: id,
         }, params));
         return this.parseTrades (trades);
     }
@@ -791,17 +791,17 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGenerateNewAddress ({
-            'currency': currency['id'],
+            currency: currency['id'],
         });
         let address = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'info': response,
+            currency: code,
+            address,
+            tag: undefined,
+            info: response,
         };
     }
 
@@ -813,10 +813,10 @@ module.exports = class poloniex extends Exchange {
         let address = this.safeString (response, currencyId);
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'info': response,
+            currency: code,
+            address,
+            tag: undefined,
+            info: response,
         };
     }
 
@@ -825,16 +825,16 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'currency': currency['id'],
-            'amount': amount,
-            'address': address,
+            currency: currency['id'],
+            amount,
+            address,
         };
         if (tag)
             request['paymentId'] = tag;
         let result = await this.privatePostWithdraw (this.extend (request, params));
         return {
-            'info': result,
-            'id': result['response'],
+            info: result,
+            id: result['response'],
         };
     }
 
@@ -844,7 +844,7 @@ module.exports = class poloniex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        let query = this.extend ({ 'command': path }, params);
+        let query = this.extend ({ command: path }, params);
         if (api === 'public') {
             url += '?' + this.urlencode (query);
         } else {
@@ -853,11 +853,11 @@ module.exports = class poloniex extends Exchange {
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                Key: this.apiKey,
+                Sign: this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

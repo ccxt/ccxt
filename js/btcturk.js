@@ -10,49 +10,49 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class btcturk extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'btcturk',
-            'name': 'BTCTurk',
-            'countries': [ 'TR' ], // Turkey
-            'rateLimit': 1000,
-            'has': {
-                'CORS': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
+            id: 'btcturk',
+            name: 'BTCTurk',
+            countries: ['TR'], // Turkey
+            rateLimit: 1000,
+            has: {
+                CORS: true,
+                fetchTickers: true,
+                fetchOHLCV: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1d': '1d',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
-                'api': 'https://www.btcturk.com/api',
-                'www': 'https://www.btcturk.com',
-                'doc': 'https://github.com/BTCTrader/broker-api-docs',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg',
+                api: 'https://www.btcturk.com/api',
+                www: 'https://www.btcturk.com',
+                doc: 'https://github.com/BTCTrader/broker-api-docs',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'ohlcdata', // ?last=COUNT
                         'orderbook',
                         'ticker',
                         'trades',   // ?last=COUNT (max 50)
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'balance',
                         'openOrders',
                         'userTransactions', // ?offset=0&limit=25&sort=asc
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'exchange',
                         'cancelOrder',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.002 * 1.18,
-                    'taker': 0.0035 * 1.18,
+            fees: {
+                trading: {
+                    maker: 0.002 * 1.18,
+                    taker: 0.0035 * 1.18,
                 },
             },
         });
@@ -72,32 +72,32 @@ module.exports = class btcturk extends Exchange {
             quoteId = quoteId.toLowerCase ();
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                amount: 8,
+                price: 8,
             };
             let active = true;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
             });
@@ -107,7 +107,7 @@ module.exports = class btcturk extends Exchange {
 
     async fetchBalance (params = {}) {
         let response = await this.privateGetBalance ();
-        let result = { 'info': response };
+        let result = { info: response };
         let codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
@@ -129,7 +129,7 @@ module.exports = class btcturk extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetOrderbook (this.extend ({
-            'pairSymbol': market['id'],
+            pairSymbol: market['id'],
         }, params));
         let timestamp = parseInt (orderbook['timestamp'] * 1000);
         return this.parseOrderBook (orderbook, timestamp);
@@ -142,26 +142,26 @@ module.exports = class btcturk extends Exchange {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'average'),
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'open'),
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: this.safeFloat (ticker, 'average'),
+            baseVolume: this.safeFloat (ticker, 'volume'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -194,15 +194,15 @@ module.exports = class btcturk extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['tid'],
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            id: trade['tid'],
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined,
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
@@ -210,7 +210,7 @@ module.exports = class btcturk extends Exchange {
         let market = this.market (symbol);
         // let maxCount = 50;
         let response = await this.publicGetTrades (this.extend ({
-            'pairSymbol': market['id'],
+            pairSymbol: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -224,7 +224,7 @@ module.exports = class btcturk extends Exchange {
             ohlcv['Low'],
             ohlcv['Close'],
             ohlcv['Volume'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
@@ -240,9 +240,9 @@ module.exports = class btcturk extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'PairSymbol': this.marketId (symbol),
-            'OrderType': (side === 'buy') ? 0 : 1,
-            'OrderMethod': (type === 'market') ? 1 : 0,
+            PairSymbol: this.marketId (symbol),
+            OrderType: (side === 'buy') ? 0 : 1,
+            OrderMethod: (type === 'market') ? 1 : 0,
         };
         if (type === 'market') {
             if (!('Total' in params))
@@ -253,13 +253,13 @@ module.exports = class btcturk extends Exchange {
         }
         let response = await this.privatePostExchange (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder ({ 'id': id });
+        return await this.privatePostCancelOrder ({ id: id });
     }
 
     nonce () {
@@ -286,6 +286,6 @@ module.exports = class btcturk extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

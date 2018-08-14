@@ -9,20 +9,20 @@ const btcbox = require ('./btcbox.js');
 module.exports = class jubi extends btcbox {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'jubi',
-            'name': 'jubi.com',
-            'countries': [ 'CN' ],
-            'rateLimit': 1500,
-            'version': 'v1',
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
+            id: 'jubi',
+            name: 'jubi.com',
+            countries: ['CN'],
+            rateLimit: 1500,
+            version: 'v1',
+            has: {
+                CORS: false,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
-                'api': 'https://www.jubi.com/api',
-                'www': 'https://www.jubi.com',
-                'doc': 'https://www.jubi.com/help/api.html',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766581-9d397d9a-5edd-11e7-8fb9-5d8236c0e692.jpg',
+                api: 'https://www.jubi.com/api',
+                www: 'https://www.jubi.com',
+                doc: 'https://www.jubi.com/help/api.html',
             },
         });
     }
@@ -39,11 +39,11 @@ module.exports = class jubi extends btcbox {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': id,
+                id,
+                symbol,
+                base,
+                quote,
+                info: id,
             });
         }
         return result;

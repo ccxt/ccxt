@@ -10,36 +10,36 @@ const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/er
 module.exports = class braziliex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'braziliex',
-            'name': 'Braziliex',
-            'countries': [ 'BR' ],
-            'rateLimit': 1000,
-            'has': {
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
+            id: 'braziliex',
+            name: 'Braziliex',
+            countries: ['BR'],
+            rateLimit: 1000,
+            has: {
+                fetchCurrencies: true,
+                fetchTickers: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
+                fetchDepositAddress: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
-                'api': 'https://braziliex.com/api/v1',
-                'www': 'https://braziliex.com/',
-                'doc': 'https://braziliex.com/exchange/api.php',
-                'fees': 'https://braziliex.com/exchange/fees.php',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
+                api: 'https://braziliex.com/api/v1',
+                www: 'https://braziliex.com/',
+                doc: 'https://braziliex.com/exchange/api.php',
+                fees: 'https://braziliex.com/exchange/fees.php',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currencies',
                         'ticker',
                         'ticker/{market}',
                         'orderbook/{market}',
                         'tradehistory/{market}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balance',
                         'complete_balance',
                         'open_orders',
@@ -48,22 +48,22 @@ module.exports = class braziliex extends Exchange {
                         'sell',
                         'buy',
                         'cancel_order',
-                    ],
+                   ],
                 },
             },
-            'commonCurrencies': {
-                'EPC': 'Epacoin',
-                'ABC': 'Anti Bureaucracy Coin',
+            commonCurrencies: {
+                EPC: 'Epacoin',
+                ABC: 'Anti Bureaucracy Coin',
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+            fees: {
+                trading: {
+                    maker: 0.005,
+                    taker: 0.005,
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
+            precision: {
+                amount: 8,
+                price: 8,
             },
         });
     }
@@ -88,44 +88,44 @@ module.exports = class braziliex extends Exchange {
             if (!canWithdraw || !canDeposit)
                 active = false;
             result[code] = {
-                'id': id,
-                'code': code,
-                'name': currency['name'],
-                'active': active,
-                'precision': precision,
-                'funding': {
-                    'withdraw': {
-                        'active': canWithdraw,
-                        'fee': currency['txWithdrawalFee'],
+                id,
+                code,
+                name: currency['name'],
+                active,
+                precision,
+                funding: {
+                    withdraw: {
+                        active: canWithdraw,
+                        fee: currency['txWithdrawalFee'],
                     },
-                    'deposit': {
-                        'active': canDeposit,
-                        'fee': currency['txDepositFee'],
-                    },
-                },
-                'limits': {
-                    'amount': {
-                        'min': currency['minAmountTrade'],
-                        'max': Math.pow (10, precision),
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': currency['MinWithdrawal'],
-                        'max': Math.pow (10, precision),
-                    },
-                    'deposit': {
-                        'min': currency['minDeposit'],
-                        'max': undefined,
+                    deposit: {
+                        active: canDeposit,
+                        fee: currency['txDepositFee'],
                     },
                 },
-                'info': currency,
+                limits: {
+                    amount: {
+                        min: currency['minAmountTrade'],
+                        max: Math.pow (10, precision),
+                    },
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
+                    },
+                    cost: {
+                        min: undefined,
+                        max: undefined,
+                    },
+                    withdraw: {
+                        min: currency['MinWithdrawal'],
+                        max: Math.pow (10, precision),
+                    },
+                    deposit: {
+                        min: currency['minDeposit'],
+                        max: undefined,
+                    },
+                },
+                info: currency,
             };
         }
         return result;
@@ -138,7 +138,7 @@ module.exports = class braziliex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            let [baseId, quoteId] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -146,33 +146,33 @@ module.exports = class braziliex extends Exchange {
             let symbol = base + '/' + quote;
             let active = this.safeInteger (market, 'active') === 1;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                amount: 8,
+                price: 8,
             };
             result.push ({
-                'id': id,
-                'symbol': symbol.toUpperCase (),
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                id,
+                symbol: symbol.toUpperCase (),
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: Math.pow (10, precision['amount']),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             });
         }
         return result;
@@ -184,26 +184,26 @@ module.exports = class braziliex extends Exchange {
         ticker = ticker['ticker'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highestBid24'),
-            'low': this.safeFloat (ticker, 'lowestAsk24'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChange'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'baseVolume24'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'highestBid24'),
+            low: this.safeFloat (ticker, 'lowestAsk24'),
+            bid: this.safeFloat (ticker, 'highestBid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'lowestAsk'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'percentChange'),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'baseVolume24'),
+            quoteVolume: this.safeFloat (ticker, 'quoteVolume24'),
+            info: ticker,
         };
     }
 
@@ -211,11 +211,11 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetTickerMarket (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         ticker = {
-            'date': this.milliseconds (),
-            'ticker': ticker,
+            date: this.milliseconds (),
+            ticker,
         };
         return this.parseTicker (ticker, market);
     }
@@ -231,8 +231,8 @@ module.exports = class braziliex extends Exchange {
             let market = this.markets_by_id[id];
             let symbol = market['symbol'];
             let ticker = {
-                'date': timestamp,
-                'ticker': tickers[id],
+                date: timestamp,
+                ticker: tickers[id],
             };
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -242,7 +242,7 @@ module.exports = class braziliex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbookMarket (this.extend ({
-            'market': this.marketId (symbol),
+            market: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -260,18 +260,18 @@ module.exports = class braziliex extends Exchange {
         let cost = this.safeFloat (trade, 'total');
         let orderId = this.safeString (trade, 'order_number');
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, '_id'),
-            'order': orderId,
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, '_id'),
+            order: orderId,
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost,
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -279,7 +279,7 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetTradehistoryMarket (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -287,16 +287,16 @@ module.exports = class braziliex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privatePostCompleteBalance (params);
-        let result = { 'info': balances };
+        let result = { info: balances };
         let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
             let id = currencies[i];
             let balance = balances[id];
             let currency = this.commonCurrencyCode (id);
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': 0.0,
-                'total': parseFloat (balance['total']),
+                free: parseFloat (balance['available']),
+                used: 0.0,
+                total: parseFloat (balance['total']),
             };
             account['used'] = account['total'] - account['free'];
             result[currency] = account;
@@ -327,22 +327,22 @@ module.exports = class braziliex extends Exchange {
         if ('info' in info)
             info = order['info'];
         return {
-            'id': order['order_number'],
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': 'open',
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': this.safeValue (order, 'fee'),
-            'info': info,
+            id: order['order_number'],
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status: 'open',
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: this.safeValue (order, 'fee'),
+            info,
         };
     }
 
@@ -351,11 +351,11 @@ module.exports = class braziliex extends Exchange {
         let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend ({
-            'market': market['id'],
-            // 'price': this.priceToPrecision (symbol, price),
-            // 'amount': this.amountToPrecision (symbol, amount),
-            'price': price,
-            'amount': amount,
+            market: market['id'],
+            // price: this.priceToPrecision (symbol, price),
+            // amount: this.amountToPrecision (symbol, amount),
+            price,
+            amount,
         }, params));
         let success = this.safeInteger (response, 'success');
         if (success !== 1)
@@ -364,19 +364,19 @@ module.exports = class braziliex extends Exchange {
         parts = parts.slice (1);
         let feeParts = parts[5].split (' ');
         let order = this.parseOrder ({
-            'timestamp': this.milliseconds (),
-            'order_number': response['order_number'],
-            'type': parts[0].toLowerCase (),
-            'market': parts[0].toLowerCase (),
-            'amount': parts[2].split (' ')[1],
-            'price': parts[3].split (' ')[1],
-            'total': parts[4].split (' ')[1],
-            'fee': {
-                'cost': parseFloat (feeParts[1]),
-                'currency': feeParts[2],
+            timestamp: this.milliseconds (),
+            order_number: response['order_number'],
+            type: parts[0].toLowerCase (),
+            market: parts[0].toLowerCase (),
+            amount: parts[2].split (' ')[1],
+            price: parts[3].split (' ')[1],
+            total: parts[4].split (' ')[1],
+            fee: {
+                cost: parseFloat (feeParts[1]),
+                currency: feeParts[2],
             },
-            'progress': '0.0',
-            'info': response,
+            progress: '0.0',
+            info: response,
         }, market);
         let id = order['id'];
         this.orders[id] = order;
@@ -387,8 +387,8 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let result = await this.privatePostCancelOrder (this.extend ({
-            'order_number': id,
-            'market': market['id'],
+            order_number: id,
+            market: market['id'],
         }, params));
         return result;
     }
@@ -397,7 +397,7 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orders = await this.privatePostOpenOrders (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseOrders (orders['order_open'], market, since, limit);
     }
@@ -406,7 +406,7 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.privatePostTradeHistory (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseTrades (trades['trade_history'], market, since, limit);
     }
@@ -415,16 +415,16 @@ module.exports = class braziliex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostDepositAddress (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let address = this.safeString (response, 'deposit_address');
         this.checkAddress (address);
         let tag = this.safeString (response, 'payment_id');
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -438,18 +438,18 @@ module.exports = class braziliex extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             query = this.extend ({
-                'command': path,
-                'nonce': this.nonce (),
+                command: path,
+                nonce: this.nonce (),
             }, query);
             body = this.urlencode (query);
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
                 'Content-type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.decode (signature),
+                Key: this.apiKey,
+                Sign: this.decode (signature),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -10,31 +10,31 @@ const { ExchangeError, AuthenticationError, NotSupported } = require ('./base/er
 module.exports = class coinspot extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinspot',
-            'name': 'CoinSpot',
-            'countries': [ 'AU' ], // Australia
-            'rateLimit': 1000,
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
+            id: 'coinspot',
+            name: 'CoinSpot',
+            countries: ['AU'], // Australia
+            rateLimit: 1000,
+            has: {
+                CORS: false,
+                createMarketOrder: false,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
-                'api': {
-                    'public': 'https://www.coinspot.com.au/pubapi',
-                    'private': 'https://www.coinspot.com.au/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
+                api: {
+                    public: 'https://www.coinspot.com.au/pubapi',
+                    private: 'https://www.coinspot.com.au/api',
                 },
-                'www': 'https://www.coinspot.com.au',
-                'doc': 'https://www.coinspot.com.au/api',
+                www: 'https://www.coinspot.com.au',
+                doc: 'https://www.coinspot.com.au/api',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'latest',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'orders',
                         'orders/history',
                         'my/coin/deposit',
@@ -47,20 +47,20 @@ module.exports = class coinspot extends Exchange {
                         'my/sell',
                         'my/buy/cancel',
                         'my/sell/cancel',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
-                'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
-                'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
+            markets: {
+                'BTC/AUD': { id: 'BTC', symbol: 'BTC/AUD', base: 'BTC', quote: 'AUD' },
+                'LTC/AUD': { id: 'LTC', symbol: 'LTC/AUD', base: 'LTC', quote: 'AUD' },
+                'DOGE/AUD': { id: 'DOGE', symbol: 'DOGE/AUD', base: 'DOGE', quote: 'AUD' },
             },
         });
     }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostMyBalances ();
-        let result = { 'info': response };
+        let result = { info: response };
         if ('balance' in response) {
             let balances = response['balance'];
             let currencies = Object.keys (balances);
@@ -68,9 +68,9 @@ module.exports = class coinspot extends Exchange {
                 let currency = currencies[c];
                 let uppercase = currency.toUpperCase ();
                 let account = {
-                    'free': balances[currency],
-                    'used': 0.0,
-                    'total': balances[currency],
+                    free: balances[currency],
+                    used: 0.0,
+                    total: balances[currency],
                 };
                 if (uppercase === 'DRK')
                     uppercase = 'DASH';
@@ -83,7 +83,7 @@ module.exports = class coinspot extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.privatePostOrders (this.extend ({
-            'cointype': market['id'],
+            cointype: market['id'],
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
@@ -96,32 +96,32 @@ module.exports = class coinspot extends Exchange {
         let timestamp = this.milliseconds ();
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: undefined,
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
     fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         return this.privatePostOrdersHistory (this.extend ({
-            'cointype': this.marketId (symbol),
+            cointype: this.marketId (symbol),
         }, params));
     }
 
@@ -130,9 +130,9 @@ module.exports = class coinspot extends Exchange {
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let order = {
-            'cointype': this.marketId (symbol),
-            'amount': amount,
-            'rate': price,
+            cointype: this.marketId (symbol),
+            amount,
+            rate: price,
         };
         return this[method] (this.extend (order, params));
     }
@@ -140,7 +140,7 @@ module.exports = class coinspot extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
         // let method = 'privatePostMyBuy';
-        // return await this[method] ({ 'id': id });
+        // return await this[method] ({ id: id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -150,13 +150,13 @@ module.exports = class coinspot extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            body = this.json (this.extend ({ 'nonce': nonce }, params));
+            body = this.json (this.extend ({ nonce: nonce }, params));
             headers = {
                 'Content-Type': 'application/json',
-                'key': this.apiKey,
-                'sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                key: this.apiKey,
+                sign: this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

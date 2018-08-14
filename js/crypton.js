@@ -10,60 +10,60 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class crypton extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'crypton',
-            'name': 'Crypton',
-            'countries': [ 'EU' ],
-            'rateLimit': 500,
-            'version': '1',
-            'has': {
-                'fetchDepositAddress': true,
-                'fetchMyTrades': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchTicker': false,
-                'fetchTickers': true,
+            id: 'crypton',
+            name: 'Crypton',
+            countries: ['EU'],
+            rateLimit: 500,
+            version: '1',
+            has: {
+                fetchDepositAddress: true,
+                fetchMyTrades: true,
+                fetchOpenOrders: true,
+                fetchOrder: true,
+                fetchTicker: false,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg',
-                'api': 'https://api.cryptonbtc.com',
-                'www': 'https://cryptonbtc.com',
-                'doc': 'https://cryptonbtc.docs.apiary.io/',
-                'fees': 'https://help.cryptonbtc.com/hc/en-us/articles/360004089872-Fees',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg',
+                api: 'https://api.cryptonbtc.com',
+                www: 'https://cryptonbtc.com',
+                doc: 'https://cryptonbtc.docs.apiary.io/',
+                fees: 'https://help.cryptonbtc.com/hc/en-us/articles/360004089872-Fees',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currencies',
                         'markets',
                         'markets/{id}',
                         'markets/{id}/orderbook',
                         'markets/{id}/trades',
                         'tickers',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'balances',
                         'orders',
                         'orders/{id}',
                         'fills',
                         'deposit_address/{currency}',
                         'deposits',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'orders',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'orders/{id}',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.0020,
-                    'taker': 0.0020,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.0020,
+                    taker: 0.0020,
                 },
             },
         });
@@ -83,32 +83,32 @@ module.exports = class crypton extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': this.precisionFromString (this.safeString (market, 'priceStep')),
+                amount: 8,
+                price: this.precisionFromString (this.safeString (market, 'priceStep')),
             };
             let active = market['enabled'];
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': this.safeFloat (market, 'minSize'),
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: this.safeFloat (market, 'minSize'),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': this.safeFloat (market, 'priceStep'),
-                        'max': undefined,
+                    price: {
+                        min: this.safeFloat (market, 'priceStep'),
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
             });
@@ -119,7 +119,7 @@ module.exports = class crypton extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetBalances (params);
-        let result = { 'info': balances };
+        let result = { info: balances };
         let keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
@@ -140,7 +140,7 @@ module.exports = class crypton extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetMarketsIdOrderbook (this.extend ({
-            'id': this.marketId (symbol),
+            id: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -152,26 +152,26 @@ module.exports = class crypton extends Exchange {
         let last = this.safeFloat (ticker, 'last');
         let relativeChange = this.safeFloat (ticker, 'change24h', 0.0);
         return {
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': relativeChange * 100,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp: undefined,
+            datetime: undefined,
+            high: undefined,
+            low: undefined,
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: relativeChange * 100,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume24h'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -213,22 +213,22 @@ module.exports = class crypton extends Exchange {
         let fee = undefined;
         if ('fee' in trade) {
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': this.commonCurrencyCode (trade['feeCurrency']),
+                cost: this.safeFloat (trade, 'fee'),
+                currency: this.commonCurrencyCode (trade['feeCurrency']),
             };
         }
         return {
-            'id': trade['id'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'side': trade['side'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'size'),
-            'order': this.safeString (trade, 'orderId'),
-            'fee': fee,
+            id: trade['id'].toString (),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: undefined,
+            side: trade['side'],
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'size'),
+            order: this.safeString (trade, 'orderId'),
+            fee,
         };
     }
 
@@ -236,7 +236,7 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'id': market['id'],
+            id: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -273,8 +273,8 @@ module.exports = class crypton extends Exchange {
         let fee = undefined;
         if ('fee' in order) {
             fee = {
-                'cost': parseFloat (order['fee']),
-                'currency': this.commonCurrencyCode (order['feeCurrency']),
+                cost: parseFloat (order['fee']),
+                currency: this.commonCurrencyCode (order['feeCurrency']),
             };
         }
         let price = this.safeFloat (order, 'price');
@@ -283,22 +283,22 @@ module.exports = class crypton extends Exchange {
         let remaining = amount - filled;
         let cost = filled * price;
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id,
+            timestamp,
+            datetime: iso8601,
+            lastTradeTimestamp: undefined,
+            symbol,
+            type,
+            side,
+            price,
+            cost,
+            average: undefined,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
         };
         return result;
     }
@@ -306,7 +306,7 @@ module.exports = class crypton extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'id': id,
+            id,
         };
         let response = await this.privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response['result']);
@@ -326,11 +326,11 @@ module.exports = class crypton extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'market': this.marketId (symbol),
-            'side': side,
-            'type': type,
-            'size': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            market: this.marketId (symbol),
+            side,
+            type,
+            size: this.amountToPrecision (symbol, amount),
+            price: this.priceToPrecision (symbol, price),
         };
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response['result']);
@@ -339,14 +339,14 @@ module.exports = class crypton extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'id': id,
+            id,
         };
         let response = await this.privateDeleteOrdersId (this.extend (request, params));
         return this.parseOrder (response['result']);
     }
 
     parseSymbol (id) {
-        let [ base, quote ] = id.split ('-');
+        let [base, quote] = id.split ('-');
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
@@ -356,17 +356,17 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privateGetDepositAddressCurrency (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let result = response['result'];
         let address = this.safeString (result, 'address');
         let tag = this.safeString (result, 'tag');
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -397,7 +397,7 @@ module.exports = class crypton extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

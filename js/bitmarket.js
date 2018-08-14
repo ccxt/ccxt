@@ -10,16 +10,16 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class bitmarket extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitmarket',
-            'name': 'BitMarket',
-            'countries': [ 'PL', 'EU' ],
-            'rateLimit': 1500,
-            'has': {
-                'CORS': false,
-                'fetchOHLCV': true,
-                'withdraw': true,
+            id: 'bitmarket',
+            name: 'BitMarket',
+            countries: ['PL', 'EU'],
+            rateLimit: 1500,
+            has: {
+                CORS: false,
+                fetchOHLCV: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '90m': '90m',
                 '6h': '6h',
                 '1d': '1d',
@@ -29,25 +29,25 @@ module.exports = class bitmarket extends Exchange {
                 '6M': '6m',
                 '1y': '1y',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
-                'api': {
-                    'public': 'https://www.bitmarket.net',
-                    'private': 'https://www.bitmarket.pl/api2/', // last slash is critical
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27767256-a8555200-5ef9-11e7-96fd-469a65e2b0bd.jpg',
+                api: {
+                    public: 'https://www.bitmarket.net',
+                    private: 'https://www.bitmarket.pl/api2/', // last slash is critical
                 },
-                'www': [
+                www: [
                     'https://www.bitmarket.pl',
                     'https://www.bitmarket.net',
-                ],
-                'doc': [
+               ],
+                doc: [
                     'https://www.bitmarket.net/docs.php?file=api_public.html',
                     'https://www.bitmarket.net/docs.php?file=api_private.html',
                     'https://github.com/bitmarket-net/api',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'json/{market}/ticker',
                         'json/{market}/orderbook',
                         'json/{market}/trades',
@@ -60,10 +60,10 @@ module.exports = class bitmarket extends Exchange {
                         'graphs/{market}/3m',
                         'graphs/{market}/6m',
                         'graphs/{market}/1y',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'info',
                         'trade',
                         'cancel',
@@ -94,26 +94,26 @@ module.exports = class bitmarket extends Exchange {
                         'swapList',
                         'swapOpen',
                         'swapClose',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BCH/PLN': { 'id': 'BCCPLN', 'symbol': 'BCH/PLN', 'base': 'BCH', 'quote': 'PLN' },
-                'BTG/PLN': { 'id': 'BTGPLN', 'symbol': 'BTG/PLN', 'base': 'BTG', 'quote': 'PLN' },
-                'BTC/PLN': { 'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN' },
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR' },
-                'LTC/PLN': { 'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN' },
-                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC' },
-                'LiteMineX/BTC': { 'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC' },
+            markets: {
+                'BCH/PLN': { id: 'BCCPLN', symbol: 'BCH/PLN', base: 'BCH', quote: 'PLN' },
+                'BTG/PLN': { id: 'BTGPLN', symbol: 'BTG/PLN', base: 'BTG', quote: 'PLN' },
+                'BTC/PLN': { id: 'BTCPLN', symbol: 'BTC/PLN', base: 'BTC', quote: 'PLN' },
+                'BTC/EUR': { id: 'BTCEUR', symbol: 'BTC/EUR', base: 'BTC', quote: 'EUR' },
+                'LTC/PLN': { id: 'LTCPLN', symbol: 'LTC/PLN', base: 'LTC', quote: 'PLN' },
+                'LTC/BTC': { id: 'LTCBTC', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC' },
+                'LiteMineX/BTC': { id: 'LiteMineXBTC', symbol: 'LiteMineX/BTC', base: 'LiteMineX', quote: 'BTC' },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'taker': 0.45 / 100,
-                    'maker': 0.15 / 100,
-                    'tiers': {
-                        'taker': [
+            fees: {
+                trading: {
+                    tierBased: true,
+                    percentage: true,
+                    taker: 0.45 / 100,
+                    maker: 0.15 / 100,
+                    tiers: {
+                        taker: [
                             [0, 0.45 / 100],
                             [99.99, 0.44 / 100],
                             [299.99, 0.43 / 100],
@@ -130,8 +130,8 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.32 / 100],
                             [299999.99, 0.31 / 100],
                             [499999.99, 0.0 / 100],
-                        ],
-                        'maker': [
+                       ],
+                        maker: [
                             [0, 0.15 / 100],
                             [99.99, 0.14 / 100],
                             [299.99, 0.13 / 100],
@@ -148,29 +148,29 @@ module.exports = class bitmarket extends Exchange {
                             [199999.99, 0.2 / 100],
                             [299999.99, 0.1 / 100],
                             [499999.99, 0.0 / 100],
-                        ],
+                       ],
                     },
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.0008,
-                        'LTC': 0.005,
-                        'BCH': 0.0008,
-                        'BTG': 0.0008,
-                        'DOGE': 1,
-                        'EUR': 2,
-                        'PLN': 2,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        BTC: 0.0008,
+                        LTC: 0.005,
+                        BCH: 0.0008,
+                        BTG: 0.0008,
+                        DOGE: 1,
+                        EUR: 2,
+                        PLN: 2,
                     },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'BCH': 0,
-                        'BTG': 0,
-                        'DOGE': 25,
-                        'EUR': 2, // SEPA. Transfer INT (SHA): 5 EUR
-                        'PLN': 0,
+                    deposit: {
+                        BTC: 0,
+                        LTC: 0,
+                        BCH: 0,
+                        BTG: 0,
+                        DOGE: 25,
+                        EUR: 2, // SEPA. Transfer INT (SHA): 5 EUR
+                        PLN: 0,
                     },
                 },
             },
@@ -182,7 +182,7 @@ module.exports = class bitmarket extends Exchange {
         let response = await this.privatePostInfo ();
         let data = response['data'];
         let balance = data['balances'];
-        let result = { 'info': data };
+        let result = { info: data };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -199,14 +199,14 @@ module.exports = class bitmarket extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetJsonMarketOrderbook (this.extend ({
-            'market': this.marketId (symbol),
+            market: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetJsonMarketTicker (this.extend ({
-            'market': this.marketId (symbol),
+            market: this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let vwap = this.safeFloat (ticker, 'vwap');
@@ -214,26 +214,26 @@ module.exports = class bitmarket extends Exchange {
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': vwap,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -241,23 +241,23 @@ module.exports = class bitmarket extends Exchange {
         let side = (trade['type'] === 'bid') ? 'buy' : 'sell';
         let timestamp = trade['date'] * 1000;
         return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': undefined,
-            'type': undefined,
-            'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            id: trade['tid'].toString (),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            order: undefined,
+            type: undefined,
+            side,
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetJsonMarketTrades (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -270,7 +270,7 @@ module.exports = class bitmarket extends Exchange {
             parseFloat (ohlcv['low']),
             parseFloat (ohlcv['close']),
             parseFloat (ohlcv['vol']),
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '90m', since = undefined, limit = undefined, params = {}) {
@@ -278,20 +278,20 @@ module.exports = class bitmarket extends Exchange {
         let method = 'publicGetGraphsMarket' + this.timeframes[timeframe];
         let market = this.market (symbol);
         let response = await this[method] (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let response = await this.privatePostTrade (this.extend ({
-            'market': this.marketId (symbol),
-            'type': side,
-            'amount': amount,
-            'rate': price,
+            market: this.marketId (symbol),
+            type: side,
+            amount,
+            rate: price,
         }, params));
         let result = {
-            'info': response,
+            info: response,
         };
         if ('id' in response['order'])
             result['id'] = response['id'];
@@ -299,7 +299,7 @@ module.exports = class bitmarket extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancel ({ 'id': id });
+        return await this.privatePostCancel ({ id: id });
     }
 
     isFiat (currency) {
@@ -315,8 +315,8 @@ module.exports = class bitmarket extends Exchange {
         await this.loadMarkets ();
         let method = undefined;
         let request = {
-            'currency': currency,
-            'quantity': amount,
+            currency,
+            quantity: amount,
         };
         if (this.isFiat (currency)) {
             method = 'privatePostWithdrawFiat';
@@ -343,8 +343,8 @@ module.exports = class bitmarket extends Exchange {
         }
         let response = await this[method] (this.extend (request, params));
         return {
-            'info': response,
-            'id': response,
+            info: response,
+            id: response,
         };
     }
 
@@ -356,8 +356,8 @@ module.exports = class bitmarket extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let query = this.extend ({
-                'tonce': nonce,
-                'method': path,
+                tonce: nonce,
+                method: path,
             }, params);
             body = this.urlencode (query);
             headers = {
@@ -365,6 +365,6 @@ module.exports = class bitmarket extends Exchange {
                 'API-Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

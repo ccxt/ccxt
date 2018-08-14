@@ -10,30 +10,30 @@ const { ExchangeError, NotSupported } = require ('./base/errors');
 module.exports = class coinsecure extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinsecure',
-            'name': 'Coinsecure',
-            'countries': [ 'IN' ], // India
-            'rateLimit': 1000,
-            'version': 'v1',
-            'has': {
-                'CORS': true,
+            id: 'coinsecure',
+            name: 'Coinsecure',
+            countries: ['IN'], // India
+            rateLimit: 1000,
+            version: 'v1',
+            has: {
+                CORS: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
-                'api': 'https://api.coinsecure.in',
-                'www': 'https://coinsecure.in',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg',
+                api: 'https://api.coinsecure.in',
+                www: 'https://coinsecure.in',
+                doc: [
                     'https://api.coinsecure.in',
                     'https://github.com/coinsecure/plugins',
-                ],
+               ],
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': false,
+            requiredCredentials: {
+                apiKey: true,
+                secret: false,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'bitcoin/search/confirmation/{txid}',
                         'exchange/ask/low',
                         'exchange/ask/orders',
@@ -44,10 +44,10 @@ module.exports = class coinsecure extends Exchange {
                         'exchange/min24Hr',
                         'exchange/ticker',
                         'exchange/trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'mfa/authy/call',
                         'mfa/authy/sms',
                         'netki/search/{netkiName}',
@@ -104,8 +104,8 @@ module.exports = class coinsecure extends Exchange {
                         'wallet/coin/withdraw/completed',
                         'wallet/coin/withdraw/unverified',
                         'wallet/coin/withdraw/verified',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'login',
                         'login/initiate',
                         'login/password/forgot',
@@ -122,8 +122,8 @@ module.exports = class coinsecure extends Exchange {
                         'user/password/reset',
                         'user/wallet/coin/withdraw/initiate',
                         'wallet/coin/withdraw/newVerifycode',
-                    ],
-                    'put': [
+                   ],
+                    put: [
                         'signup/verify/{token}',
                         'user/exchange/kyc',
                         'user/exchange/bank/fiat/deposit/new',
@@ -142,8 +142,8 @@ module.exports = class coinsecure extends Exchange {
                         'user/wallet/coin/new',
                         'user/wallet/coin/withdraw/sendToExchange',
                         'user/wallet/coin/withdraw/verify',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'user/gcm/{code}',
                         'user/logout',
                         'user/exchange/bank/coin/withdraw/unverified/cancel/{withdrawID}',
@@ -156,16 +156,16 @@ module.exports = class coinsecure extends Exchange {
                         'user/profile/phone/delete',
                         'user/profile/image/delete/{netkiName}',
                         'user/wallet/coin/withdraw/unverified/cancel/{withdrawID}',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/INR': { 'id': 'BTC/INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR' },
+            markets: {
+                'BTC/INR': { id: 'BTC/INR', symbol: 'BTC/INR', base: 'BTC', quote: 'INR' },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.4 / 100,
-                    'taker': 0.4 / 100,
+            fees: {
+                trading: {
+                    maker: 0.4 / 100,
+                    taker: 0.4 / 100,
                 },
             },
         });
@@ -176,19 +176,19 @@ module.exports = class coinsecure extends Exchange {
         let response = await this.privateGetUserExchangeBankSummary ();
         let balance = response['message'];
         let coin = {
-            'free': balance['availableCoinBalance'],
-            'used': balance['pendingCoinBalance'],
-            'total': balance['totalCoinBalance'],
+            free: balance['availableCoinBalance'],
+            used: balance['pendingCoinBalance'],
+            total: balance['totalCoinBalance'],
         };
         let fiat = {
-            'free': balance['availableFiatBalance'],
-            'used': balance['pendingFiatBalance'],
-            'total': balance['totalFiatBalance'],
+            free: balance['availableFiatBalance'],
+            used: balance['pendingFiatBalance'],
+            total: balance['totalFiatBalance'],
         };
         let result = {
-            'info': balance,
-            'BTC': coin,
-            'INR': fiat,
+            info: balance,
+            BTC: coin,
+            INR: fiat,
         };
         return this.parseBalance (result);
     }
@@ -198,8 +198,8 @@ module.exports = class coinsecure extends Exchange {
         let bids = await this.publicGetExchangeBidOrders (params);
         let asks = await this.publicGetExchangeAskOrders (params);
         let orderbook = {
-            'bids': bids['message'],
-            'asks': asks['message'],
+            bids: bids['message'],
+            asks: asks['message'],
         };
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'rate', 'vol');
     }
@@ -218,26 +218,26 @@ module.exports = class coinsecure extends Exchange {
         let vwap = quoteVolume / baseVolume;
         let last = this.safeFloat (ticker, 'lastPrice') / 100;
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high') / 100,
-            'low': this.safeFloat (ticker, 'low') / 100,
-            'bid': this.safeFloat (ticker, 'bid') / 100,
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask') / 100,
-            'askVolume': undefined,
-            'vwap': vwap,
-            'open': this.safeFloat (ticker, 'open') / 100,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high') / 100,
+            low: this.safeFloat (ticker, 'low') / 100,
+            bid: this.safeFloat (ticker, 'bid') / 100,
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask') / 100,
+            askVolume: undefined,
+            vwap,
+            open: this.safeFloat (ticker, 'open') / 100,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -245,17 +245,17 @@ module.exports = class coinsecure extends Exchange {
         let timestamp = trade['time'];
         let side = (trade['ordType'] === 'bid') ? 'buy' : 'sell';
         return {
-            'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'order': undefined,
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': this.safeFloat (trade, 'rate') / 100,
-            'amount': this.safeFloat (trade, 'vol') / 100000000,
-            'fee': undefined,
-            'info': trade,
+            id: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            order: undefined,
+            symbol,
+            type: undefined,
+            side,
+            price: this.safeFloat (trade, 'rate') / 100,
+            amount: this.safeFloat (trade, 'vol') / 100000000,
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -287,15 +287,15 @@ module.exports = class coinsecure extends Exchange {
         }
         let response = await this[method] (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['message']['orderID'],
+            info: response,
+            id: response['message']['orderID'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         // let method = 'privateDeleteUserExchangeAskCancelOrderId'; // TODO fixme, have to specify order side here
-        // return await this[method] ({ 'orderID': id });
+        // return await this[method] ({ orderID: id });
         throw new NotSupported (this.id + ' cancelOrder () is not fully implemented yet');
     }
 
@@ -304,13 +304,13 @@ module.exports = class coinsecure extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            headers = { 'Authorization': this.apiKey };
+            headers = { Authorization: this.apiKey };
             if (Object.keys (query).length) {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

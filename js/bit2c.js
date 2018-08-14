@@ -10,35 +10,35 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class bit2c extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bit2c',
-            'name': 'Bit2C',
-            'countries': [ 'IL' ], // Israel
-            'rateLimit': 3000,
-            'has': {
-                'CORS': false,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
+            id: 'bit2c',
+            name: 'Bit2C',
+            countries: ['IL'], // Israel
+            rateLimit: 3000,
+            has: {
+                CORS: false,
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
-                'api': 'https://bit2c.co.il',
-                'www': 'https://www.bit2c.co.il',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg',
+                api: 'https://bit2c.co.il',
+                www: 'https://www.bit2c.co.il',
+                doc: [
                     'https://www.bit2c.co.il/home/api',
                     'https://github.com/OferE/bit2c',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'Exchanges/{pair}/Ticker',
                         'Exchanges/{pair}/orderbook',
                         'Exchanges/{pair}/trades',
                         'Exchanges/{pair}/lasttrades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'Merchant/CreateCheckout',
                         'Order/AddCoinFundsRequest',
                         'Order/AddFund',
@@ -51,27 +51,27 @@ module.exports = class bit2c extends Exchange {
                         'Payment/GetMyId',
                         'Payment/Send',
                         'Payment/Pay',
-                    ],
-                    'get': [
+                   ],
+                    get: [
                         'Account/Balance',
                         'Account/Balance/v2',
                         'Order/MyOrders',
                         'Order/GetById',
                         'Order/AccountHistory',
                         'Order/OrderHistory',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
-                'BCH/NIS': { 'id': 'BchNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
-                'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
-                'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
+            markets: {
+                'BTC/NIS': { id: 'BtcNis', symbol: 'BTC/NIS', base: 'BTC', quote: 'NIS' },
+                'BCH/NIS': { id: 'BchNis', symbol: 'BCH/NIS', base: 'BCH', quote: 'NIS' },
+                'LTC/NIS': { id: 'LtcNis', symbol: 'LTC/NIS', base: 'LTC', quote: 'NIS' },
+                'BTG/NIS': { id: 'BtgNis', symbol: 'BTG/NIS', base: 'BTG', quote: 'NIS' },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.5 / 100,
-                    'taker': 0.5 / 100,
+            fees: {
+                trading: {
+                    maker: 0.5 / 100,
+                    taker: 0.5 / 100,
                 },
             },
         });
@@ -79,7 +79,7 @@ module.exports = class bit2c extends Exchange {
 
     async fetchBalance (params = {}) {
         let balance = await this.privateGetAccountBalanceV2 ();
-        let result = { 'info': balance };
+        let result = { info: balance };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -97,14 +97,14 @@ module.exports = class bit2c extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.publicGetExchangesPairOrderbook (this.extend ({
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetExchangesPairTicker (this.extend ({
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         }, params));
         let timestamp = this.milliseconds ();
         let averagePrice = this.safeFloat (ticker, 'av');
@@ -112,33 +112,33 @@ module.exports = class bit2c extends Exchange {
         let quoteVolume = baseVolume * averagePrice;
         let last = this.safeFloat (ticker, 'll');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (ticker, 'h'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'l'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': averagePrice,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: this.safeFloat (ticker, 'h'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'l'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: averagePrice,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetExchangesPairTrades (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -146,8 +146,8 @@ module.exports = class bit2c extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let method = 'privatePostOrderAddOrder';
         let order = {
-            'Amount': amount,
-            'Pair': this.marketId (symbol),
+            Amount: amount,
+            Pair: this.marketId (symbol),
         };
         if (type === 'market') {
             method += 'MarketPrice' + this.capitalize (side);
@@ -158,13 +158,13 @@ module.exports = class bit2c extends Exchange {
         }
         let result = await this[method] (this.extend (order, params));
         return {
-            'info': result,
-            'id': result['NewOrder']['id'],
+            info: result,
+            id: result['NewOrder']['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancelOrder ({ 'id': id });
+        return await this.privatePostOrderCancelOrder ({ id: id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -174,16 +174,16 @@ module.exports = class bit2c extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            let query = this.extend ({ 'nonce': nonce }, params);
+            let query = this.extend ({ nonce: nonce }, params);
             body = this.urlencode (query);
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'key': this.apiKey,
-                'sign': this.decode (signature),
+                key: this.apiKey,
+                sign: this.decode (signature),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -192,7 +192,7 @@ module.exports = class bit2c extends Exchange {
             throw new ExchangeError (this.id + ' fetchOpenOrders() requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateGetOrderMyOrders (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         let orders = this.safeValue (response, market['id'], {});
         let asks = this.safeValue (orders, 'ask');
@@ -217,22 +217,22 @@ module.exports = class bit2c extends Exchange {
         let id = this.safeString (order, 'id');
         let status = this.safeString (order, 'status');
         return {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'cost': cost,
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: undefined,
+            side,
+            price,
+            amount,
+            filled: undefined,
+            remaining: undefined,
+            cost,
+            trades: undefined,
+            fee: undefined,
+            info: order,
         };
     }
 
@@ -297,22 +297,22 @@ module.exports = class bit2c extends Exchange {
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': price * amount,
-            'fee': {
-                'cost': feeCost,
-                'currency': 'NIS',
-                'rate': undefined,
+            info: trade,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            order: orderId,
+            type: undefined,
+            side,
+            takerOrMaker: undefined,
+            price,
+            amount,
+            cost: price * amount,
+            fee: {
+                cost: feeCost,
+                currency: 'NIS',
+                rate: undefined,
             },
         };
     }

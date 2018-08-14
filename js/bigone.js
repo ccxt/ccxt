@@ -10,32 +10,32 @@ const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('.
 module.exports = class bigone extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bigone',
-            'name': 'BigONE',
-            'countries': 'GB',
-            'version': 'v2',
-            'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
-                'fetchOHLCV': false,
+            id: 'bigone',
+            name: 'BigONE',
+            countries: 'GB',
+            version: 'v2',
+            has: {
+                fetchTickers: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
+                fetchDepositAddress: true,
+                withdraw: true,
+                fetchOHLCV: false,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
-                'api': {
-                    'public': 'https://big.one/api/v2',
-                    'private': 'https://big.one/api/v2/viewer',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
+                api: {
+                    public: 'https://big.one/api/v2',
+                    private: 'https://big.one/api/v2/viewer',
                 },
-                'www': 'https://big.one',
-                'doc': 'https://open.big.one/docs/api.html',
-                'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
-                'referral': 'https://b1.run/users/new?code=D3LLBVFT',
+                www: 'https://big.one',
+                doc: 'https://open.big.one/docs/api.html',
+                fees: 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                referral: 'https://b1.run/users/new?code=D3LLBVFT',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'ping', // timestamp in nanoseconds
                         'markets',
                         'markets/{symbol}/depth',
@@ -45,50 +45,50 @@ module.exports = class bigone extends Exchange {
                         'orders/{id}',
                         'tickers',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'accounts',
                         'orders',
                         'orders/{order_id}',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'orders',
                         'orders/{order_id}/cancel',
                         'orders/cancel_all',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+            fees: {
+                trading: {
+                    maker: 0.1 / 100,
+                    taker: 0.1 / 100,
                 },
-                'funding': {
+                funding: {
                     // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
-                    'withdraw': {
-                        'BTC': 0.002,
-                        'ETH': 0.01,
-                        'EOS': 0.01,
-                        'ZEC': 0.002,
-                        'LTC': 0.01,
-                        'QTUM': 0.01,
-                        // 'INK': 0.01 QTUM,
-                        // 'BOT': 0.01 QTUM,
-                        'ETC': 0.01,
-                        'GAS': 0.0,
-                        'BTS': 1.0,
-                        'GXS': 0.1,
-                        'BITCNY': 1.0,
+                    withdraw: {
+                        BTC: 0.002,
+                        ETH: 0.01,
+                        EOS: 0.01,
+                        ZEC: 0.002,
+                        LTC: 0.01,
+                        QTUM: 0.01,
+                        // INK: 0.01 QTUM,
+                        // BOT: 0.01 QTUM,
+                        ETC: 0.01,
+                        GAS: 0.0,
+                        BTS: 1.0,
+                        GXS: 0.1,
+                        BITCNY: 1.0,
                     },
                 },
             },
-            'exceptions': {
-                'codes': {
+            exceptions: {
+                codes: {
                     '401': AuthenticationError,
                 },
-                'detail': {
+                detail: {
                     'Internal server error': ExchangeNotAvailable,
                 },
             },
@@ -122,33 +122,33 @@ module.exports = class bigone extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['baseScale'],
-                'price': market['quoteScale'],
+                amount: market['baseScale'],
+                price: market['quoteScale'],
             };
             const entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: Math.pow (10, precision['amount']),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             };
             this.options['marketsByUuid'][uuid] = entry;
             result.push (entry);
@@ -178,7 +178,7 @@ module.exports = class bigone extends Exchange {
         //                 "amount": "1.1741000000000000"
         //             }
         //         }
-        //     ]
+        //    ]
         //
         if (typeof market === 'undefined') {
             let marketId = this.safeString (ticker, 'market_id');
@@ -193,26 +193,26 @@ module.exports = class bigone extends Exchange {
         let timestamp = this.milliseconds ();
         let close = this.safeFloat (ticker, 'close');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker['bid'], 'price'),
-            'bidVolume': this.safeFloat (ticker['bid'], 'amount'),
-            'ask': this.safeFloat (ticker['ask'], 'price'),
-            'askVolume': this.safeFloat (ticker['ask'], 'amount'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': close,
-            'last': close,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'daily_change'),
-            'percentage': this.safeFloat (ticker, 'daily_change_perc'),
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker['bid'], 'price'),
+            bidVolume: this.safeFloat (ticker['bid'], 'amount'),
+            ask: this.safeFloat (ticker['ask'], 'price'),
+            askVolume: this.safeFloat (ticker['ask'], 'amount'),
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'open'),
+            close,
+            last: close,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'daily_change'),
+            percentage: this.safeFloat (ticker, 'daily_change_perc'),
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -220,7 +220,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarketsSymbolTicker (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTicker (response['data'], market);
     }
@@ -241,7 +241,7 @@ module.exports = class bigone extends Exchange {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketsSymbolDepth (this.extend ({
-            'symbol': this.marketId (symbol),
+            symbol: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -252,7 +252,7 @@ module.exports = class bigone extends Exchange {
         //                       price: "0.0694071600000000",
         //                 market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
         //                   market_id: "ETH-BTC",
-        //                 inserted_at: "2018-07-14T09:22:06Z",
+        //                 inserted_at: "2018-07-'14T09':'22':06Z",
         //                          id: "19913306",
         //                      amount: "0.8800000000000000"                    },
         //       cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              }
@@ -274,18 +274,18 @@ module.exports = class bigone extends Exchange {
         let cost = this.costToPrecision (symbol, price * amount);
         let side = node['taker_side'] === 'ASK' ? 'sell' : 'buy';
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (node, 'id'),
-            'order': undefined,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': parseFloat (cost),
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (node, 'id'),
+            order: undefined,
+            type: 'limit',
+            side,
+            price,
+            amount,
+            cost: parseFloat (cost),
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -293,7 +293,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['first'] = limit;
@@ -304,11 +304,11 @@ module.exports = class bigone extends Exchange {
         //                            has_previous_page:  true,
         //                                has_next_page:  false,
         //                                   end_cursor: "Y3Vyc29yOnYxOjIwMDU0NzIw"  },
-        //                   edges: [ {   node: {  taker_side: "ASK",
+        //                   edges: [{   node: {  taker_side: "ASK",
         //                                              price: "0.0694071600000000",
         //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
         //                                          market_id: "ETH-BTC",
-        //                                        inserted_at: "2018-07-14T09:22:06Z",
+        //                                        inserted_at: "2018-07-'14T09':'22':06Z",
         //                                                 id: "19913306",
         //                                             amount: "0.8800000000000000"                    },
         //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              },
@@ -316,7 +316,7 @@ module.exports = class bigone extends Exchange {
         //                                              price: "0.0694071600000000",
         //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
         //                                          market_id: "ETH-BTC",
-        //                                        inserted_at: "2018-07-14T09:22:07Z",
+        //                                        inserted_at: "2018-07-'14T09':'22':07Z",
         //                                                 id: "19913307",
         //                                             amount: "0.3759000000000000"                    },
         //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA3"                              },
@@ -324,7 +324,7 @@ module.exports = class bigone extends Exchange {
         //                                              price: "0.0694071600000000",
         //                                        market_uuid: "38dd30bf-76c2-4777-ae2a-a3222433eef3",
         //                                          market_id: "ETH-BTC",
-        //                                        inserted_at: "2018-07-14T09:22:08Z",
+        //                                        inserted_at: "2018-07-'14T09':'22':08Z",
         //                                                 id: "19913321",
         //                                             amount: "0.2197000000000000"                    },
         //                              cursor:   "Y3Vyc29yOnYxOjE5OTEzMzIx"                              },
@@ -336,7 +336,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetAccounts (params);
         //
-        //     { data: [ { locked_balance: "0",
+        //     { data: [{ locked_balance: "0",
         //                        balance: "0",
         //                     asset_uuid: "04479958-d7bb-40e4-b153-48bd63f2f77f",
         //                       asset_id: "NKC"                                   },
@@ -349,7 +349,7 @@ module.exports = class bigone extends Exchange {
         //                     asset_uuid: "05bc0d34-4809-4a39-a3c8-3a1851c8d224",
         //                       asset_id: "READ"                                  },
         //
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -365,9 +365,9 @@ module.exports = class bigone extends Exchange {
                 free = total - used;
             }
             let account = {
-                'free': free,
-                'used': used,
-                'total': total,
+                free,
+                used,
+                total,
             };
             result[code] = account;
         }
@@ -418,21 +418,21 @@ module.exports = class bigone extends Exchange {
             side = 'sell';
         }
         return {
-            'id': id,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
+            id,
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            status,
+            symbol,
+            type: undefined,
+            side,
+            price,
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info: order,
         };
     }
 
@@ -457,17 +457,17 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrders (this.extend ({
-            'order_market': market['id'],
-            'order_side': (side === 'buy' ? 'BID' : 'ASK'),
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            order_market: market['id'],
+            order_side: (side === 'buy' ? 'BID' : 'ASK'),
+            amount: this.amountToPrecision (symbol, amount),
+            price: this.priceToPrecision (symbol, price),
         }, params));
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
+        let request = { order_id: id };
         let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
         //
         //     {
@@ -502,14 +502,14 @@ module.exports = class bigone extends Exchange {
         //         {
         //             ...
         //         },
-        //     ]
+        //    ]
         //
         return this.parseOrders (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'order_id': id };
+        let request = { order_id: id };
         let response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
@@ -541,7 +541,7 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market_id': market['id'],
+            market_id: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['first'] = limit;
@@ -563,7 +563,7 @@ module.exports = class bigone extends Exchange {
         //           },
         //           "cursor": "dGVzdGN1cmVzZQo="
         //         }
-        //       ],
+        //      ],
         //       "page_info": {
         //         "end_cursor": "dGVzdGN1cmVzZQo=",
         //         "start_cursor": "dGVzdGN1cmVzZQo=",
@@ -582,13 +582,13 @@ module.exports = class bigone extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrders (symbol, since, limit, this.extend ({
-            'state': 'PENDING',
+            state: 'PENDING',
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrders (symbol, since, limit, this.extend ({
-            'state': 'FILLED',
+            state: 'FILLED',
         }, params));
     }
 
@@ -602,13 +602,13 @@ module.exports = class bigone extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce () * 1000000000;
             let request = {
-                'type': 'OpenAPI',
-                'sub': this.apiKey,
-                'nonce': nonce,
+                type: 'OpenAPI',
+                sub: this.apiKey,
+                nonce,
             };
             let jwt = this.jwt (request, this.secret);
             headers = {
-                'Authorization': 'Bearer ' + jwt,
+                Authorization: 'Bearer ' + jwt,
             };
             if (method === 'GET') {
                 if (Object.keys (query).length)
@@ -618,7 +618,7 @@ module.exports = class bigone extends Exchange {
                 body = this.json (query);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

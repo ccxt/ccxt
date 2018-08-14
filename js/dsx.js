@@ -9,38 +9,38 @@ const liqui = require ('./liqui.js');
 module.exports = class dsx extends liqui {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'dsx',
-            'name': 'DSX',
-            'countries': [ 'UK' ],
-            'rateLimit': 1500,
-            'has': {
-                'CORS': false,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchTickers': true,
-                'fetchMyTrades': true,
+            id: 'dsx',
+            name: 'DSX',
+            countries: ['UK'],
+            rateLimit: 1500,
+            has: {
+                CORS: false,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchTickers: true,
+                fetchMyTrades: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
-                'api': {
-                    'public': 'https://dsx.uk/mapi', // market data
-                    'private': 'https://dsx.uk/tapi', // trading
-                    'dwapi': 'https://dsx.uk/dwapi', // deposit/withdraw
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
+                api: {
+                    public: 'https://dsx.uk/mapi', // market data
+                    private: 'https://dsx.uk/tapi', // trading
+                    dwapi: 'https://dsx.uk/dwapi', // deposit/withdraw
                 },
-                'www': 'https://dsx.uk',
-                'doc': [
+                www: 'https://dsx.uk',
+                doc: [
                     'https://api.dsx.uk',
                     'https://dsx.uk/api_docs/public',
                     'https://dsx.uk/api_docs/private',
                     '',
-                ],
+               ],
             },
-            'api': {
+            api: {
                 // market data (public)
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'barsFromMoment/{id}/{period}/{start}', // empty reply :\
                         'depth/{pair}',
                         'info',
@@ -48,11 +48,11 @@ module.exports = class dsx extends liqui {
                         'periodBars/{id}/{period}/{start}/{end}',
                         'ticker/{pair}',
                         'trades/{pair}',
-                    ],
+                   ],
                 },
                 // trading (private)
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'getInfo',
                         'TransHistory',
                         'TradeHistory',
@@ -60,17 +60,17 @@ module.exports = class dsx extends liqui {
                         'ActiveOrders',
                         'Trade',
                         'CancelOrder',
-                    ],
+                   ],
                 },
                 // deposit / withdraw (private)
-                'dwapi': {
-                    'post': [
+                dwapi: {
+                    post: [
                         'getCryptoDepositAddress',
                         'cryptoWithdraw',
                         'fiatWithdraw',
                         'getTransactionStatus',
                         'getTransactions',
-                    ],
+                   ],
                 },
             },
         });
@@ -82,14 +82,14 @@ module.exports = class dsx extends liqui {
         let quote = uppercase.slice (3, 6);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
+        return [base, quote];
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balances = response['return'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let funds = balances['funds'];
         let currencies = Object.keys (funds);
         for (let c = 0; c < currencies.length; c++) {
@@ -97,9 +97,9 @@ module.exports = class dsx extends liqui {
             let uppercase = currency.toUpperCase ();
             uppercase = this.commonCurrencyCode (uppercase);
             let account = {
-                'free': funds[currency],
-                'used': 0.0,
-                'total': balances['total'][currency],
+                free: funds[currency],
+                used: 0.0,
+                total: balances['total'][currency],
             };
             account['used'] = account['total'] - account['free'];
             result[uppercase] = account;
@@ -118,26 +118,26 @@ module.exports = class dsx extends liqui {
                 average = 1 / average;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: this.safeFloat (ticker, 'vol_cur'),
+            info: ticker,
         };
     }
 

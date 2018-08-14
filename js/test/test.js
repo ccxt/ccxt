@@ -155,7 +155,7 @@ let loadExchange = async exchange => {
         'BTC/RUB',
         'BTC/UAH',
         'LTC/BTC',
-    ]
+   ]
 
     let result = exchange.symbols.filter (symbol => symbols.indexOf (symbol) >= 0)
 
@@ -185,7 +185,7 @@ let testExchange = async exchange => {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
-    ]
+   ]
     for (let s in symbols) {
         if (exchange.symbols.includes (symbols[s])) {
             symbol = symbols[s]
@@ -283,9 +283,9 @@ let printExchangesTable = function () {
             exchange.urls.doc
 
         return {
-            'id':        exchange.id,
-            'name':      exchange.name,
-            'countries': countries,
+            id:        exchange.id,
+            name:      exchange.name,
+            countries,
         }
 
     })))

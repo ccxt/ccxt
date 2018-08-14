@@ -10,24 +10,24 @@ const { InsufficientFunds, ExchangeError, InvalidOrder, InvalidAddress, Authenti
 module.exports = class gdax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'gdax',
-            'name': 'GDAX',
-            'countries': [ 'US' ],
-            'rateLimit': 1000,
-            'userAgent': this.userAgents['chrome'],
-            'has': {
-                'CORS': true,
-                'fetchOHLCV': true,
-                'deposit': true,
-                'withdraw': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchDepositAddress': true,
-                'fetchMyTrades': true,
+            id: 'gdax',
+            name: 'GDAX',
+            countries: ['US'],
+            rateLimit: 1000,
+            userAgent: this.userAgents['chrome'],
+            has: {
+                CORS: true,
+                fetchOHLCV: true,
+                deposit: true,
+                withdraw: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchDepositAddress: true,
+                fetchMyTrades: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 60,
                 '5m': 300,
                 '15m': 900,
@@ -35,25 +35,25 @@ module.exports = class gdax extends Exchange {
                 '6h': 21600,
                 '1d': 86400,
             },
-            'urls': {
-                'test': 'https://api-public.sandbox.gdax.com',
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
-                'api': 'https://api.gdax.com',
-                'www': 'https://www.gdax.com',
-                'doc': 'https://docs.gdax.com',
-                'fees': [
+            urls: {
+                test: 'https://api-public.sandbox.gdax.com',
+                logo: 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
+                api: 'https://api.gdax.com',
+                www: 'https://www.gdax.com',
+                doc: 'https://docs.gdax.com',
+                fees: [
                     'https://www.gdax.com/fees',
                     'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
-                ],
+               ],
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'password': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
+                password: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currencies',
                         'products',
                         'products/{id}/book',
@@ -62,10 +62,10 @@ module.exports = class gdax extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'accounts',
                         'accounts/{id}',
                         'accounts/{id}/holds',
@@ -80,8 +80,8 @@ module.exports = class gdax extends Exchange {
                         'position',
                         'reports/{id}',
                         'users/self/trailing-volume',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'deposits/coinbase-account',
                         'deposits/payment-method',
                         'coinbase-accounts/{id}/addresses',
@@ -93,38 +93,38 @@ module.exports = class gdax extends Exchange {
                         'withdrawals/coinbase',
                         'withdrawals/crypto',
                         'withdrawals/payment-method',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'orders',
                         'orders/{id}',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': true, // complicated tier system per coin
-                    'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.3 / 100, // tiered fee starts at 0.3%
+            fees: {
+                trading: {
+                    tierBased: true, // complicated tier system per coin
+                    percentage: true,
+                    maker: 0.0,
+                    taker: 0.3 / 100, // tiered fee starts at 0.3%
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BCH': 0,
-                        'BTC': 0,
-                        'LTC': 0,
-                        'ETH': 0,
-                        'EUR': 0.15,
-                        'USD': 25,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        BCH: 0,
+                        BTC: 0,
+                        LTC: 0,
+                        ETH: 0,
+                        EUR: 0.15,
+                        USD: 25,
                     },
-                    'deposit': {
-                        'BCH': 0,
-                        'BTC': 0,
-                        'LTC': 0,
-                        'ETH': 0,
-                        'EUR': 0.15,
-                        'USD': 10,
+                    deposit: {
+                        BCH: 0,
+                        BTC: 0,
+                        LTC: 0,
+                        ETH: 0,
+                        EUR: 0.15,
+                        USD: 10,
                     },
                 },
             },
@@ -141,12 +141,12 @@ module.exports = class gdax extends Exchange {
             let quote = market['quote_currency'];
             let symbol = base + '/' + quote;
             let priceLimits = {
-                'min': this.safeFloat (market, 'quote_increment'),
-                'max': undefined,
+                min: this.safeFloat (market, 'quote_increment'),
+                max: undefined,
             };
             let precision = {
-                'amount': 8,
-                'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
+                amount: 8,
+                price: this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
             let taker = this.fees['trading']['taker'];  // does not seem right
             if ((base === 'ETH') || (base === 'LTC')) {
@@ -154,25 +154,25 @@ module.exports = class gdax extends Exchange {
             }
             let active = market['status'] === 'online';
             result.push (this.extend (this.fees['trading'], {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': this.safeFloat (market, 'base_min_size'),
-                        'max': this.safeFloat (market, 'base_max_size'),
+                id,
+                symbol,
+                base,
+                quote,
+                precision,
+                limits: {
+                    amount: {
+                        min: this.safeFloat (market, 'base_min_size'),
+                        max: this.safeFloat (market, 'base_max_size'),
                     },
-                    'price': priceLimits,
-                    'cost': {
-                        'min': this.safeFloat (market, 'min_market_funds'),
-                        'max': this.safeFloat (market, 'max_market_funds'),
+                    price: priceLimits,
+                    cost: {
+                        min: this.safeFloat (market, 'min_market_funds'),
+                        max: this.safeFloat (market, 'max_market_funds'),
                     },
                 },
-                'taker': taker,
-                'active': active,
-                'info': market,
+                taker,
+                active,
+                info: market,
             }));
         }
         return result;
@@ -181,14 +181,14 @@ module.exports = class gdax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccounts ();
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'hold'),
-                'total': this.safeFloat (balance, 'balance'),
+                free: this.safeFloat (balance, 'available'),
+                used: this.safeFloat (balance, 'hold'),
+                total: this.safeFloat (balance, 'balance'),
             };
             result[currency] = account;
         }
@@ -198,8 +198,8 @@ module.exports = class gdax extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdBook (this.extend ({
-            'id': this.marketId (symbol),
-            'level': 2, // 1 best bidask, 2 aggregated, 3 full
+            id: this.marketId (symbol),
+            level: 2, // 1 best bidask, 2 aggregated, 3 full
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -208,7 +208,7 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params);
         let ticker = await this.publicGetProductsIdTicker (request);
         let timestamp = this.parse8601 (ticker['time']);
@@ -220,26 +220,26 @@ module.exports = class gdax extends Exchange {
             ask = this.safeFloat (ticker, 'ask');
         let last = this.safeFloat (ticker, 'price');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': bid,
-            'bidVolume': undefined,
-            'ask': ask,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid,
+            bidVolume: undefined,
+            ask,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -276,9 +276,9 @@ module.exports = class gdax extends Exchange {
         if (typeof feeCost === 'undefined')
             feeCost = this.safeFloat (trade, 'fee');
         let fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-            'rate': feeRate,
+            cost: feeCost,
+            currency: feeCurrency,
+            rate: feeRate,
         };
         let type = undefined;
         let id = this.safeString (trade, 'trade_id');
@@ -290,18 +290,18 @@ module.exports = class gdax extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
         return {
-            'id': id,
-            'order': orderId,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'fee': fee,
-            'cost': price * amount,
+            id,
+            order: orderId,
+            info: trade,
+            timestamp,
+            datetime: iso8601,
+            symbol,
+            type,
+            side,
+            price,
+            amount,
+            fee,
+            cost: price * amount,
         };
     }
 
@@ -323,7 +323,7 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetProductsIdTrades (this.extend ({
-            'id': market['id'], // fixes issue #2
+            id: market['id'], // fixes issue #2
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -336,7 +336,7 @@ module.exports = class gdax extends Exchange {
             ohlcv[1],
             ohlcv[4],
             ohlcv[5],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -344,8 +344,8 @@ module.exports = class gdax extends Exchange {
         let market = this.market (symbol);
         let granularity = this.timeframes[timeframe];
         let request = {
-            'id': market['id'],
-            'granularity': granularity,
+            id: market['id'],
+            granularity,
         };
         if (typeof since !== 'undefined') {
             request['start'] = this.ymdhms (since);
@@ -366,11 +366,11 @@ module.exports = class gdax extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            'pending': 'open',
-            'active': 'open',
-            'open': 'open',
-            'done': 'closed',
-            'canceled': 'canceled',
+            pending: 'open',
+            active: 'open',
+            open: 'open',
+            done: 'closed',
+            canceled: 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -396,35 +396,35 @@ module.exports = class gdax extends Exchange {
                 remaining = amount - filled;
         let cost = this.safeFloat (order, 'executed_value');
         let fee = {
-            'cost': this.safeFloat (order, 'fill_fees'),
-            'currency': undefined,
-            'rate': undefined,
+            cost: this.safeFloat (order, 'fill_fees'),
+            currency: undefined,
+            rate: undefined,
         };
         if (market)
             symbol = market['symbol'];
         return {
-            'id': order['id'],
-            'info': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'fee': fee,
+            id: order['id'],
+            info: order,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: order['type'],
+            side: order['side'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            fee,
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrdersId (this.extend ({
-            'id': id,
+            id,
         }, params));
         return this.parseOrder (response);
     }
@@ -432,7 +432,7 @@ module.exports = class gdax extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'status': 'all',
+            status: 'all',
         };
         let market = undefined;
         if (typeof symbol !== 'undefined') {
@@ -458,7 +458,7 @@ module.exports = class gdax extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'status': 'done',
+            status: 'done',
         };
         let market = undefined;
         if (typeof symbol !== 'undefined') {
@@ -473,10 +473,10 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         // let oid = this.nonce ().toString ();
         let order = {
-            'product_id': this.marketId (symbol),
-            'side': side,
-            'size': amount,
-            'type': type,
+            product_id: this.marketId (symbol),
+            side,
+            size: amount,
+            type,
         };
         if (type === 'limit')
             order['price'] = price;
@@ -486,7 +486,7 @@ module.exports = class gdax extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersId ({ 'id': id });
+        return await this.privateDeleteOrdersId ({ id: id });
     }
 
     feeToPrecision (currency, fee) {
@@ -500,10 +500,10 @@ module.exports = class gdax extends Exchange {
         let cost = amount * price;
         let currency = market['quote'];
         return {
-            'type': takerOrMaker,
-            'currency': currency,
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (currency, rate * cost)),
+            type: takerOrMaker,
+            currency,
+            rate,
+            cost: parseFloat (this.feeToPrecision (currency, rate * cost)),
         };
     }
 
@@ -516,8 +516,8 @@ module.exports = class gdax extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'currency': currency['id'],
-            'amount': amount,
+            currency: currency['id'],
+            amount,
         };
         let method = 'privatePostDeposits';
         if ('payment_method_id' in params) {
@@ -536,8 +536,8 @@ module.exports = class gdax extends Exchange {
         if (!response)
             throw new ExchangeError (this.id + ' deposit() error: ' + this.json (response));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
@@ -546,8 +546,8 @@ module.exports = class gdax extends Exchange {
         let currency = this.currency (code);
         await this.loadMarkets ();
         let request = {
-            'currency': currency['id'],
-            'amount': amount,
+            currency: currency['id'],
+            amount,
         };
         let method = 'privatePostWithdrawals';
         if ('payment_method_id' in params) {
@@ -562,8 +562,8 @@ module.exports = class gdax extends Exchange {
         if (!response)
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
@@ -587,8 +587,8 @@ module.exports = class gdax extends Exchange {
             throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
         }
         let request = {
-            'limit': limit,
-            'id': accountId,
+            limit,
+            id: accountId,
         };
         let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
@@ -624,20 +624,20 @@ module.exports = class gdax extends Exchange {
             code = currency['code'];
         }
         return {
-            'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'address': undefined, // or is it defined?
-            'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeFloat (transaction, 'amount'),
-            'currency': code,
-            'status': this.parseTransactionStatus (transaction),
-            'updated': undefined,
-            'fee': {
-                'cost': undefined,
-                'rate': undefined,
+            info: transaction,
+            id: this.safeString (transaction, 'id'),
+            txid: this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            timestamp,
+            datetime,
+            address: undefined, // or is it defined?
+            type: this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
+            amount: this.safeFloat (transaction, 'amount'),
+            currency: code,
+            status: this.parseTransactionStatus (transaction),
+            updated: undefined,
+            fee: {
+                cost: undefined,
+                rate: undefined,
             },
         };
     }
@@ -672,7 +672,7 @@ module.exports = class gdax extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -691,17 +691,17 @@ module.exports = class gdax extends Exchange {
             throw new InvalidAddress (this.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
         }
         let response = await this.privatePostCoinbaseAccountsIdAddresses (this.extend ({
-            'id': account['id'],
+            id: account['id'],
         }, params));
         let address = this.safeString (response, 'address');
         // todo: figure this out
         // let tag = this.safeString (response, 'addressTag');
         let tag = undefined;
         return {
-            'currency': code,
-            'address': this.checkAddress (address),
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address: this.checkAddress (address),
+            tag,
+            info: response,
         };
     }
 

@@ -10,33 +10,33 @@ const { ExchangeError, NotSupported, AuthenticationError } = require ('./base/er
 module.exports = class xbtce extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'xbtce',
-            'name': 'xBTCe',
-            'countries': [ 'RU' ],
-            'rateLimit': 2000, // responses are cached every 2 seconds
-            'version': 'v1',
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
-                'createMarketOrder': false,
+            id: 'xbtce',
+            name: 'xBTCe',
+            countries: ['RU'],
+            rateLimit: 2000, // responses are cached every 2 seconds
+            version: 'v1',
+            has: {
+                CORS: false,
+                fetchTickers: true,
+                createMarketOrder: false,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
-                'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
-                'www': 'https://www.xbtce.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
+                api: 'https://cryptottlivewebapi.xbtce.net:8443/api',
+                www: 'https://www.xbtce.com',
+                doc: [
                     'https://www.xbtce.com/tradeapi',
                     'https://support.xbtce.info/Knowledgebase/Article/View/52/25/xbtce-exchange-api',
-                ],
+               ],
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
+                uid: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currency',
                         'currency/{filter}',
                         'level2',
@@ -52,10 +52,10 @@ module.exports = class xbtce extends Exchange {
                         'ticker',
                         'ticker/{filter}',
                         'tradesession',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'tradeserverinfo',
                         'tradesession',
                         'currency',
@@ -88,17 +88,17 @@ module.exports = class xbtce extends Exchange {
                         'quotehistory/cache/{symbol}/ticks',
                         'quotehistory/symbols',
                         'quotehistory/version',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'trade',
                         'tradehistory',
-                    ],
-                    'put': [
+                   ],
+                    put: [
                         'trade',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'trade',
-                    ],
+                   ],
                 },
             },
         });
@@ -117,11 +117,11 @@ module.exports = class xbtce extends Exchange {
             let symbol = base + '/' + quote;
             symbol = market['IsTradeAllowed'] ? symbol : id;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
             });
         }
         return result;
@@ -130,7 +130,7 @@ module.exports = class xbtce extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAsset ();
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['Currency'];
@@ -139,9 +139,9 @@ module.exports = class xbtce extends Exchange {
             if (uppercase === 'DSH')
                 uppercase = 'DASH';
             let account = {
-                'free': balance['FreeAmount'],
-                'used': balance['LockedAmount'],
-                'total': balance['Amount'],
+                free: balance['FreeAmount'],
+                used: balance['LockedAmount'],
+                total: balance['Amount'],
             };
             result[uppercase] = account;
         }
@@ -152,7 +152,7 @@ module.exports = class xbtce extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.privateGetLevel2Filter (this.extend ({
-            'filter': market['id'],
+            filter: market['id'],
         }, params));
         orderbook = orderbook[0];
         let timestamp = orderbook['Timestamp'];
@@ -178,26 +178,26 @@ module.exports = class xbtce extends Exchange {
         if (market)
             symbol = market['symbol'];
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': ticker['DailyBestBuyPrice'],
-            'low': ticker['DailyBestSellPrice'],
-            'bid': ticker['BestBid'],
-            'bidVolume': undefined,
-            'ask': ticker['BestAsk'],
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': ticker['DailyTradedTotalVolume'],
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: ticker['DailyBestBuyPrice'],
+            low: ticker['DailyBestSellPrice'],
+            bid: ticker['BestBid'],
+            bidVolume: undefined,
+            ask: ticker['BestAsk'],
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: ticker['DailyTradedTotalVolume'],
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -233,7 +233,7 @@ module.exports = class xbtce extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let tickers = await this.publicGetTickerFilter (this.extend ({
-            'filter': market['id'],
+            filter: market['id'],
         }, params));
         let length = tickers.length;
         if (length < 1)
@@ -257,7 +257,7 @@ module.exports = class xbtce extends Exchange {
             ohlcv['Low'],
             ohlcv['Close'],
             ohlcv['Volume'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -270,10 +270,10 @@ module.exports = class xbtce extends Exchange {
         //     if (typeof limit === 'undefined')
         //         limit = 1000; // default
         //     let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
-        //         'symbol': market['id'],
-        //         'periodicity': periodicity,
-        //         'timestamp': since,
-        //         'count': limit,
+        //         symbol: market['id'],
+        //         periodicity,
+        //         timestamp: since,
+        //         count: limit,
         //     }, params));
         //     return this.parseOHLCVs (response['Bars'], market, timeframe, since, limit);
         throw new NotSupported (this.id + ' fetchOHLCV is disabled by the exchange');
@@ -284,21 +284,21 @@ module.exports = class xbtce extends Exchange {
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
         let response = await this.privatePostTrade (this.extend ({
-            'pair': this.marketId (symbol),
-            'type': side,
-            'amount': amount,
-            'rate': price,
+            pair: this.marketId (symbol),
+            type: side,
+            amount,
+            rate: price,
         }, params));
         return {
-            'info': response,
-            'id': response['Id'].toString (),
+            info: response,
+            id: response['Id'].toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privateDeleteTrade (this.extend ({
-            'Type': 'Cancel',
-            'Id': id,
+            Type: 'Cancel',
+            Id: id,
         }, params));
     }
 
@@ -338,6 +338,6 @@ module.exports = class xbtce extends Exchange {
             let credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.binaryToString (signature);
             headers['Authorization'] = 'HMAC ' + credentials;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

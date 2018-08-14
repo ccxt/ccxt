@@ -29,12 +29,12 @@ const printOrderBookOneLiner = (orderbook, method, symbol) => {
 module.exports = (exchange, orderbook, method, symbol) => {
 
     const format = {
-        'bids': [],
-        'asks': [],
-        'timestamp': 1234567890,
-        'datetime': '2017-09-01T00:00:00',
-        'nonce': 134234234,
-        // 'info': {},
+        bids: [],
+        asks: [],
+        timestamp: 1234567890,
+        datetime: '2017-09-'01T00':'00':00',
+        nonce: 134234234,
+        // info: {},
     }
 
     expect (orderbook).to.have.all.keys (format)
@@ -61,7 +61,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'xbtce',
         'coinsecure',
 
-    ].includes (exchange.id)) {
+   ].includes (exchange.id)) {
 
         if (bids.length && asks.length)
             assert (bids[0][0] <= asks[0][0],

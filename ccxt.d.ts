@@ -1,292 +1,416 @@
 declare module 'ccxt' {
-
     // error.js -----------------------------------------
 
     export class BaseError extends Error {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class ExchangeError extends BaseError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class NotSupported extends ExchangeError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class AuthenticationError extends ExchangeError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class InvalidNonce extends ExchangeError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class InsufficientFunds extends ExchangeError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class InvalidOrder extends ExchangeError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class OrderNotFound extends InvalidOrder {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class OrderNotCached extends InvalidOrder {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class CancelPending extends InvalidOrder {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class NetworkError extends BaseError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class DDoSProtection extends NetworkError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class RequestTimeout extends NetworkError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     export class ExchangeNotAvailable extends NetworkError {
-        constructor(message: string);
+        constructor(message: string)
     }
 
     // -----------------------------------------------
 
-    export const version: string;
-    export const exchanges: string[];
+    export const version: string
+    export const exchanges: string[]
 
     export interface MinMax {
-        max: number;
-        min: number;
+        max: number
+        min: number
     }
 
     export interface Market {
         [key: string]: any
-        base: string;
-        id: string;
-        info: any;
-        limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        lot: number;
-        precision: { amount: number, price: number };
-        quote: string;
-        symbol: string;
+        base: string
+        id: string
+        info: any
+        limits: { amount: MinMax; price: MinMax; cost?: MinMax }
+        lot: number
+        precision: { amount: number; price: number }
+        quote: string
+        symbol: string
     }
 
     export interface Order {
-        id: string,
-        info: {},
-        timestamp: number,
-        datetime: string,
-        status: 'open' | 'closed' | 'canceled',
-        symbol: string,
-        type: 'market' | 'limit',
-        side: 'buy' | 'sell',
-        price: number,
-        cost: number,
-        amount: number,
-        filled: number,
-        remaining: number,
+        id: string
+        info: {}
+        timestamp: number
+        datetime: string
+        status: 'open' | 'closed' | 'canceled'
+        symbol: string
+        type: 'market' | 'limit'
+        side: 'buy' | 'sell'
+        price: number
+        cost: number
+        amount: number
+        filled: number
+        remaining: number
         fee: number
     }
 
     export interface OrderBook {
-        asks: [number, number][];
-        bids: [number, number][];
-        datetime: string;
-        timestamp: number;
-        nonce: number;
+        asks: [number, number][]
+        bids: [number, number][]
+        datetime: string
+        timestamp: number
+        nonce: number
     }
 
     export interface Trade {
-        amount: number;            // amount of base currency
-        datetime: string;          // ISO8601 datetime with milliseconds;
-        id: string;                // string trade id
-        info: {};                  // the original decoded JSON as is
-        order?: string;            // string order id or undefined/None/null
-        price: number;             // float price in quote currency
-        timestamp: number;         // Unix timestamp in milliseconds
-        type?: 'market' | 'limit'; // order type, 'market', 'limit' or undefined/None/null
-        side: 'buy' | 'sell';
-        symbol: string;            // symbol in CCXT format
+        amount: number // amount of base currency
+        datetime: string // ISO8601 datetime with milliseconds;
+        id: string // string trade id
+        info: {} // the original decoded JSON as is
+        order?: string // string order id or undefined/None/null
+        price: number // float price in quote currency
+        timestamp: number // Unix timestamp in milliseconds
+        type?: 'market' | 'limit' // order type, 'market', 'limit' or undefined/None/null
+        side: 'buy' | 'sell'
+        symbol: string // symbol in CCXT format
     }
 
     export interface Ticker {
-        ask: number;
-        average?: number;
-        baseVolume?: number;
-        bid: number;
-        change?: number;
-        close?: number;
-        datetime: string;
-        first?: number;
-        high: number;
-        info: object;
-        last?: number;
-        low: number;
-        open?: number;
-        percentage?: number;
-        quoteVolume?: number;
-        symbol: string,
-        timestamp: number;
-        vwap?: number;
+        ask: number
+        average?: number
+        baseVolume?: number
+        bid: number
+        change?: number
+        close?: number
+        datetime: string
+        first?: number
+        high: number
+        info: object
+        last?: number
+        low: number
+        open?: number
+        percentage?: number
+        quoteVolume?: number
+        symbol: string
+        timestamp: number
+        vwap?: number
     }
 
     export interface Tickers {
-        info: any;
-        [symbol: string]: Ticker;
+        info: any
+        [symbol: string]: Ticker
     }
 
     export interface Currency {
-        id: string;
-        code: string;
+        id: string
+        code: string
     }
 
     export interface Balance {
-        free: number,
-        used: number,
+        free: number
+        used: number
         total: number
     }
 
     export interface PartialBalances {
-        [currency: string]: number;
+        [currency: string]: number
     }
 
     export interface Balances {
-        info: any;
-        [key: string]: Balance;
+        info: any
+        [key: string]: Balance
     }
 
     export interface DepositAddress {
-        currency: string,
-        address: string,
-        status: string,
-        info: any,
+        currency: string
+        address: string
+        status: string
+        info: any
     }
 
     // timestamp, open, high, low, close, volume
-    export type OHLCV = [number, number, number, number, number, number];
+    export type OHLCV = [number, number, number, number, number, number]
 
     export class Exchange {
-        constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
+        constructor(config?: { [key in keyof Exchange]?: Exchange[key] })
         // allow dynamic keys
-        [key: string]: any;
+        [key: string]: any
         // properties
-        hash: any;
-        hmac: any;
-        jwt: any;
-        binaryConcat: any;
-        stringToBinary: any;
-        stringToBase64: any;
-        base64ToBinary: any;
-        base64ToString: any;
-        binaryToString: any;
-        utf16ToBase64: any;
-        urlencode: any;
-        pluck: any;
-        unique: any;
-        extend: any;
-        deepExtend: any;
-        flatten: any;
-        groupBy: any;
-        indexBy: any;
-        sortBy: any;
-        keysort: any;
-        decimal: any;
-        safeFloat: any;
-        safeString: any;
-        safeInteger: any;
-        safeValue: any;
-        capitalize: any;
-        json: JSON["stringify"]
-        sum: any;
-        ordered: any;
-        aggregate: any;
-        truncate: any;
-        name: string;
+        hash: any
+        hmac: any
+        jwt: any
+        binaryConcat: any
+        stringToBinary: any
+        stringToBase64: any
+        base64ToBinary: any
+        base64ToString: any
+        binaryToString: any
+        utf16ToBase64: any
+        urlencode: any
+        pluck: any
+        unique: any
+        extend: any
+        deepExtend: any
+        flatten: any
+        groupBy: any
+        indexBy: any
+        sortBy: any
+        keysort: any
+        decimal: any
+        safeFloat: any
+        safeString: any
+        safeInteger: any
+        safeValue: any
+        capitalize: any
+        json: JSON['stringify']
+        sum: any
+        ordered: any
+        aggregate: any
+        truncate: any
+        name: string
         // nodeVersion: string;
-        fees: object;
-        enableRateLimit: boolean;
-        countries: string;
+        fees: object
+        enableRateLimit: boolean
+        countries: string
         // set by loadMarkets
-        markets: { [symbol: string]: Market };
-        marketsById: { [id: string]: Market };
-        currencies: { [symbol: string]: Currency };
-        ids: string[];
-        symbols: string[];
-        id: string;
-        proxy: string;
+        markets: { [symbol: string]: Market }
+        marketsById: { [id: string]: Market }
+        currencies: { [symbol: string]: Currency }
+        ids: string[]
+        symbols: string[]
+        id: string
+        proxy: string
         parse8601: typeof Date.parse
-        milliseconds: typeof Date.now;
-        rateLimit: number;  // milliseconds = seconds * 1000
-        timeout: number; // milliseconds
-        verbose: boolean;
-        twofa: boolean;// two-factor authentication
-        substituteCommonCurrencyCodes: boolean;
-        timeframes: any;
-        has: { [what: string]: any }; // https://github.com/ccxt/ccxt/pull/1984
-        balance: object;
-        orderbooks: object;
-        orders: object;
-        trades: object;
-        userAgent: { 'User-Agent': string } | false;
+        milliseconds: typeof Date.now
+        rateLimit: number // milliseconds = seconds * 1000
+        timeout: number // milliseconds
+        verbose: boolean
+        twofa: boolean // two-factor authentication
+        substituteCommonCurrencyCodes: boolean
+        timeframes: any
+        has: { [what: string]: any } // https://github.com/ccxt/ccxt/pull/1984
+        balance: object
+        orderbooks: object
+        orders: object
+        trades: object
+        userAgent: { 'User-Agent': string } | false
 
-        // methods
-        getMarket (symbol: string): Market;
-        describe (): any;
-        defaults (): any;
-        nonce (): number;
-        encodeURIComponent (...args: any[]): string;
-        checkRequiredCredentials (): void;
-        initRestRateLimiter (): void;
-        handleResponse (url: string, method: string, headers?: any, body?: any): any;
-        defineRestApi (api: any, methodName: any, options?: { [x: string]: any }): void;
-        fetch (url: string, method?: string, headers?: any, body?: any): Promise<any>;
-        fetch2 (path: any, api?: string, method?: string, params?: { [x: string]: any }, headers?: any, body?: any): Promise<any>;
-        setMarkets (markets: Market[], currencies?: Currency[]): { [symbol: string]: Market };
-        loadMarkets (reload?: boolean): Promise<{ [symbol: string]: Market }>;
-        fetchTicker (symbol: string, params?: { [x: string]: any }): Promise<Ticker>;
-        fetchTickers (symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: Ticker }>;
-        fetchMarkets (): Promise<Market[]>;
-        fetchOrderStatus (id: string, market: string): Promise<string>;
-        encode (str: string): string;
-        decode (str: string): string;
-        account (): Balance;
-        commonCurrencyCode (currency: string): string;
-        market (symbol: string): Market;
-        marketId (symbol: string): string;
-        marketIds (symbols: string[]): string[];
-        symbol (symbol: string): string;
-        extractParams (str: string): string[];
-        createOrder (symbol: string, type: string, side: string, amount: number, price?: number, params?: {}): Promise<any>;
-        fetchBalance (params?: any): Promise<Balances>;
-        fetchTotalBalance (params?: any): Promise<PartialBalances>;
-        fetchUsedBalance (params?: any): Promise<PartialBalances>;
-        fetchFreeBalance (params?: any): Promise<PartialBalances>;
-        fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
-        fetchTicker (symbol: string): Promise<Ticker>;
-        fetchTickers (symbols?: string[]): Promise<Tickers>;
-        fetchTrades (symbol: string, since?: number, limit?: number, params?: {}): Promise<Trade[]>;
-        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: {}): Promise<OHLCV[]>;
-        fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
-        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
-        fetchCurrencies (params?: any): Promise<any>;
-        cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
-        createDepositAddress (currency: string, params?: {}): Promise<any>;
-        fetchDepositAddress (currency: string, params?: {}): Promise<any>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<any>;
-        request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
-        YmdHMS (timestamp: string, infix: string) : string;
-        iso8601 (timestamp: string): string;
-        seconds (): number;
-        microseconds (): number;
+        /**
+         * Methods
+         */
+
+        getMarket(symbol: string): Market
+
+        describe(): any
+
+        defaults(): any
+
+        nonce(): number
+
+        encodeURIComponent(...args: any[]): string
+
+        checkRequiredCredentials(): void
+
+        initRestRateLimiter(): void
+
+        handleResponse(
+            url: string,
+            method: string,
+            headers?: any,
+            body?: any
+        ): any
+
+        defineRestApi(
+            api: any,
+            methodName: any,
+            options?: { [x: string]: any }
+        ): void
+
+        fetch(
+            url: string,
+            method?: string,
+            headers?: any,
+            body?: any
+        ): Promise<any>
+
+        fetch2(
+            path: any,
+            api?: string,
+            method?: string,
+            params?: { [x: string]: any },
+            headers?: any,
+            body?: any
+        ): Promise<any>
+
+        setMarkets(
+            markets: Market[],
+            currencies?: Currency[]
+        ): { [symbol: string]: Market }
+
+        loadMarkets(reload?: boolean): Promise<{ [symbol: string]: Market }>
+
+        fetchTicker(
+            symbol: string,
+            params?: { [x: string]: any }
+        ): Promise<Ticker>
+
+        fetchTickers(
+            symbols?: string[],
+            params?: { [x: string]: any }
+        ): Promise<{ [x: string]: Ticker }>
+
+        fetchMarkets(): Promise<Market[]>
+
+        fetchOrderStatus(id: string, market: string): Promise<string>
+
+        encode(str: string): string
+
+        decode(str: string): string
+
+        account(): Balance
+
+        commonCurrencyCode(currency: string): string
+
+        market(symbol: string): Market
+
+        marketId(symbol: string): string
+
+        marketIds(symbols: string[]): string[]
+
+        symbol(symbol: string): string
+
+        extractParams(str: string): string[]
+
+        createOrder(
+            symbol: string,
+            type: string,
+            side: string,
+            amount: number,
+            price?: number,
+            params?: {}
+        ): Promise<any>
+
+        fetchBalance(params?: any): Promise<Balances>
+
+        fetchTotalBalance(params?: any): Promise<PartialBalances>
+
+        fetchUsedBalance(params?: any): Promise<PartialBalances>
+
+        fetchFreeBalance(params?: any): Promise<PartialBalances>
+
+        fetchOrderBook(
+            symbol: string,
+            limit?: number,
+            params?: any
+        ): Promise<OrderBook>
+
+        fetchTicker(symbol: string): Promise<Ticker>
+
+        fetchTickers(symbols?: string[]): Promise<Tickers>
+
+        fetchTrades(
+            symbol: string,
+            since?: number,
+            limit?: number,
+            params?: {}
+        ): Promise<Trade[]>
+
+        fetchOHLCV?(
+            symbol: string,
+            timeframe?: string,
+            since?: number,
+            limit?: number,
+            params?: {}
+        ): Promise<OHLCV[]>
+
+        fetchOrders(
+            symbol?: string,
+            since?: number,
+            limit?: number,
+            params?: {}
+        ): Promise<Order[]>
+
+        fetchOpenOrders(
+            symbol?: string,
+            since?: number,
+            limit?: number,
+            params?: {}
+        ): Promise<Order[]>
+
+        fetchCurrencies(params?: any): Promise<any>
+
+        cancelOrder(id: string, symbol?: string, params?: {}): Promise<any>
+
+        createDepositAddress(currency: string, params?: {}): Promise<any>
+
+        fetchDepositAddress(currency: string, params?: {}): Promise<any>
+
+        withdraw(
+            currency: string,
+            amount: number,
+            address: string,
+            tag?: string,
+            params?: {}
+        ): Promise<any>
+
+        request(
+            path: string,
+            api?: string,
+            method?: string,
+            params?: any,
+            headers?: any,
+            body?: any
+        ): Promise<any>
+
+        YmdHMS(timestamp: string, infix: string): string
+
+        iso8601(timestamp: string): string
+
+        seconds(): number
+
+        microseconds(): number
     }
 
     /* tslint:disable */
@@ -422,5 +546,4 @@ declare module 'ccxt' {
     export class zb extends Exchange {}
 
     /* tslint:enable */
-
 }

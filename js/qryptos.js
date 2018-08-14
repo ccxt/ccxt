@@ -10,42 +10,42 @@ const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, Authentica
 module.exports = class qryptos extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'qryptos',
-            'name': 'QRYPTOS',
-            'countries': [ 'CN', 'TW' ],
-            'version': '2',
-            'rateLimit': 1000,
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
+            id: 'qryptos',
+            name: 'QRYPTOS',
+            countries: ['CN', 'TW'],
+            version: '2',
+            rateLimit: 1000,
+            has: {
+                CORS: false,
+                fetchTickers: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchMyTrades: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
-                'api': 'https://api.qryptos.com',
-                'www': 'https://www.qryptos.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
+                api: 'https://api.qryptos.com',
+                www: 'https://www.qryptos.com',
+                doc: [
                     'https://developers.quoine.com',
                     'https://developers.quoine.com/v2',
-                ],
-                'fees': 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
+               ],
+                fees: 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'accounts/balance',
                         'accounts/main_asset',
                         'crypto_accounts',
@@ -61,13 +61,13 @@ module.exports = class qryptos extends Exchange {
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'fiat_accounts',
                         'loan_bids',
                         'orders',
-                    ],
-                    'put': [
+                   ],
+                    put: [
                         'loan_bids/{id}/close',
                         'loans/{id}',
                         'orders/{id}',
@@ -76,28 +76,28 @@ module.exports = class qryptos extends Exchange {
                         'trades/{id}/close',
                         'trades/close_all',
                         'trading_accounts/{id}',
-                    ],
+                   ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
-            'exceptions': {
-                'messages': {
+            skipJsonOnStatusCodes: [401],
+            exceptions: {
+                messages: {
                     'API Authentication failed': AuthenticationError,
                     'Nonce is too small': InvalidNonce,
                     'Order not found': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
+                    user: {
+                        not_enough_free_balance: InsufficientFunds,
                     },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
+                    price: {
+                        must_be_positive: InvalidOrder,
                     },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
+                    quantity: {
+                        less_than_order_size: InvalidOrder,
                     },
                 },
             },
-            'commonCurrencies': {
-                'WIN': 'WCOIN',
+            commonCurrencies: {
+                WIN: 'WCOIN',
             },
         });
     }
@@ -129,34 +129,34 @@ module.exports = class qryptos extends Exchange {
                 minPrice = 0.00001;
             }
             let limits = {
-                'amount': { 'min': minAmount },
-                'price': { 'min': minPrice },
-                'cost': { 'min': undefined },
+                amount: { min: minAmount },
+                price: { min: minPrice },
+                cost: { min: undefined },
             };
             if (typeof minPrice !== 'undefined')
                 if (typeof minAmount !== 'undefined')
                     limits['cost']['min'] = minPrice * minAmount;
             let precision = {
-                'amount': undefined,
-                'price': undefined,
+                amount: undefined,
+                price: undefined,
             };
             if (typeof minAmount !== 'undefined')
                 precision['amount'] = -Math.log10 (minAmount);
             if (typeof minPrice !== 'undefined')
                 precision['price'] = -Math.log10 (minPrice);
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'maker': maker,
-                'taker': taker,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                maker,
+                taker,
+                limits,
+                precision,
+                active,
+                info: market,
             });
         }
         return result;
@@ -165,7 +165,7 @@ module.exports = class qryptos extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccountsBalance (params);
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currencyId = balance['currency'];
@@ -175,9 +175,9 @@ module.exports = class qryptos extends Exchange {
             }
             let total = parseFloat (balance['balance']);
             let account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
+                free: total,
+                used: 0.0,
+                total,
             };
             result[code] = account;
         }
@@ -187,7 +187,7 @@ module.exports = class qryptos extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
-            'id': this.marketId (symbol),
+            id: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'buy_price_levels', 'sell_price_levels');
     }
@@ -233,26 +233,26 @@ module.exports = class qryptos extends Exchange {
             }
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high_market_ask'),
-            'low': this.safeFloat (ticker, 'low_market_bid'),
-            'bid': this.safeFloat (ticker, 'market_bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'market_ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume_24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high_market_ask'),
+            low: this.safeFloat (ticker, 'low_market_bid'),
+            bid: this.safeFloat (ticker, 'market_bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'market_ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage,
+            average,
+            baseVolume: this.safeFloat (ticker, 'volume_24h'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -275,7 +275,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetProductsId (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -297,17 +297,17 @@ module.exports = class qryptos extends Exchange {
         if (typeof mySide !== 'undefined')
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
-            'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            info: trade,
+            id: trade['id'].toString (),
+            order: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side,
+            takerOrMaker,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'quantity'),
         };
     }
 
@@ -315,7 +315,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'product_id': market['id'],
+            product_id: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -332,7 +332,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'product_id': market['id'],
+            product_id: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -343,10 +343,10 @@ module.exports = class qryptos extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'order_type': type,
-            'product_id': this.marketId (symbol),
-            'side': side,
-            'quantity': amount,
+            order_type,
+            product_id: this.marketId (symbol),
+            side,
+            quantity: amount,
         };
         if (type === 'limit')
             order['price'] = price;
@@ -357,7 +357,7 @@ module.exports = class qryptos extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let result = await this.privatePutOrdersIdCancel (this.extend ({
-            'id': id,
+            id,
         }, params));
         let order = this.parseOrder (result);
         if (order['status'] === 'closed')
@@ -390,31 +390,31 @@ module.exports = class qryptos extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'id': order['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'type': order['order_type'],
-            'status': status,
-            'symbol': symbol,
-            'side': order['side'],
-            'price': price,
-            'amount': amount,
-            'filled': filled,
-            'remaining': amount - filled,
-            'trades': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': this.safeFloat (order, 'order_fee'),
+            id: order['id'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            type: order['order_type'],
+            status,
+            symbol,
+            side: order['side'],
+            price,
+            amount,
+            filled,
+            remaining: amount - filled,
+            trades: undefined,
+            fee: {
+                currency: undefined,
+                cost: this.safeFloat (order, 'order_fee'),
             },
-            'info': order,
+            info: order,
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = await this.privateGetOrdersId (this.extend ({
-            'id': id,
+            id,
         }, params));
         return this.parseOrder (order);
     }
@@ -446,11 +446,11 @@ module.exports = class qryptos extends Exchange {
     }
 
     fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'open' }, params));
+        return this.fetchOrders (symbol, since, limit, this.extend ({ status: 'open' }, params));
     }
 
     fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({ 'status': 'closed' }, params));
+        return this.fetchOrders (symbol, since, limit, this.extend ({ status: 'closed' }, params));
     }
 
     nonce () {
@@ -477,15 +477,15 @@ module.exports = class qryptos extends Exchange {
             }
             let nonce = this.nonce ();
             let request = {
-                'path': url,
-                'nonce': nonce,
-                'token_id': this.apiKey,
-                'iat': Math.floor (nonce / 1000), // issued at
+                path: url,
+                nonce,
+                token_id: this.apiKey,
+                iat: Math.floor (nonce / 1000), // issued at
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         }
         url = this.urls['api'] + url;
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {

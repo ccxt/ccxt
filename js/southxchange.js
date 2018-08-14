@@ -10,35 +10,35 @@ let { ExchangeError } = require ('./base/errors');
 module.exports = class southxchange extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'southxchange',
-            'name': 'SouthXchange',
-            'countries': [ 'AR' ], // Argentina
-            'rateLimit': 1000,
-            'has': {
-                'CORS': true,
-                'createDepositAddress': true,
-                'fetchOpenOrders': true,
-                'fetchTickers': true,
-                'withdraw': true,
+            id: 'southxchange',
+            name: 'SouthXchange',
+            countries: ['AR'], // Argentina
+            rateLimit: 1000,
+            has: {
+                CORS: true,
+                createDepositAddress: true,
+                fetchOpenOrders: true,
+                fetchTickers: true,
+                withdraw: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
-                'api': 'https://www.southxchange.com/api',
-                'www': 'https://www.southxchange.com',
-                'doc': 'https://www.southxchange.com/Home/Api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg',
+                api: 'https://www.southxchange.com/api',
+                www: 'https://www.southxchange.com',
+                doc: 'https://www.southxchange.com/Home/Api',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'markets',
                         'price/{symbol}',
                         'prices',
                         'book/{symbol}',
                         'trades/{symbol}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'cancelMarketOrders',
                         'cancelOrder',
                         'generatenewaddress',
@@ -46,20 +46,20 @@ module.exports = class southxchange extends Exchange {
                         'listBalances',
                         'placeOrder',
                         'withdraw',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.2 / 100,
+                    taker: 0.2 / 100,
                 },
             },
-            'commonCurrencies': {
-                'SMT': 'SmartNode',
-                'MTC': 'Marinecoin',
+            commonCurrencies: {
+                SMT: 'SmartNode',
+                MTC: 'Marinecoin',
             },
         });
     }
@@ -76,13 +76,13 @@ module.exports = class southxchange extends Exchange {
             let symbol = base + '/' + quote;
             let id = symbol;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                info: market,
             });
         }
         return result;
@@ -93,7 +93,7 @@ module.exports = class southxchange extends Exchange {
         let balances = await this.privatePostListBalances ();
         if (!balances)
             throw new ExchangeError (this.id + ' fetchBalance got an unrecognized response');
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currencyId = balance['Currency'];
@@ -106,9 +106,9 @@ module.exports = class southxchange extends Exchange {
             let total = this.sum (deposited, unconfirmed);
             let used = total - free;
             let account = {
-                'free': free,
-                'used': used,
-                'total': total,
+                free,
+                used,
+                total,
             };
             result[code] = account;
         }
@@ -118,7 +118,7 @@ module.exports = class southxchange extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBookSymbol (this.extend ({
-            'symbol': this.marketId (symbol),
+            symbol: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
@@ -130,26 +130,26 @@ module.exports = class southxchange extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'Last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (ticker, 'Bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'Variation24Hr'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume24Hr'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: this.safeFloat (ticker, 'Bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'Ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'Variation24Hr'),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'Volume24Hr'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -177,7 +177,7 @@ module.exports = class southxchange extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetPriceSymbol (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -185,16 +185,16 @@ module.exports = class southxchange extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['At'] * 1000;
         return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': undefined,
-            'order': undefined,
-            'type': undefined,
-            'side': trade['Type'],
-            'price': trade['Price'],
-            'amount': trade['Amount'],
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            id: undefined,
+            order: undefined,
+            type: undefined,
+            side: trade['Type'],
+            price: trade['Price'],
+            amount: trade['Amount'],
         };
     }
 
@@ -202,7 +202,7 @@ module.exports = class southxchange extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradesSymbol (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -223,21 +223,21 @@ module.exports = class southxchange extends Exchange {
         }
         let orderType = order['Type'].toLowerCase ();
         let result = {
-            'info': order,
-            'id': order['Code'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': orderType,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
+            info: order,
+            id: order['Code'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: 'limit',
+            side: orderType,
+            price,
+            amount,
+            cost,
+            filled,
+            remaining,
+            status,
+            fee: undefined,
         };
         return result;
     }
@@ -255,24 +255,24 @@ module.exports = class southxchange extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'listingCurrency': market['base'],
-            'referenceCurrency': market['quote'],
-            'type': side,
-            'amount': amount,
+            listingCurrency: market['base'],
+            referenceCurrency: market['quote'],
+            type: side,
+            amount,
         };
         if (type === 'limit')
             order['limitPrice'] = price;
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
-            'info': response,
-            'id': response.toString (),
+            info: response,
+            id: response.toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder (this.extend ({
-            'orderCode': id,
+            orderCode: id,
         }, params));
     }
 
@@ -280,7 +280,7 @@ module.exports = class southxchange extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostGeneratenewaddress (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let parts = response.split ('|');
         let numParts = parts.length;
@@ -290,26 +290,26 @@ module.exports = class southxchange extends Exchange {
         if (numParts > 1)
             tag = parts[1];
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         let request = {
-            'currency': currency,
-            'address': address,
-            'amount': amount,
+            currency,
+            address,
+            amount,
         };
         if (typeof tag !== 'undefined')
             request['address'] = address + '|' + tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
-            'info': response,
-            'id': undefined,
+            info: response,
+            id: undefined,
         };
     }
 
@@ -320,15 +320,15 @@ module.exports = class southxchange extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             query = this.extend ({
-                'key': this.apiKey,
-                'nonce': nonce,
+                key: this.apiKey,
+                nonce,
             }, query);
             body = this.json (query);
             headers = {
                 'Content-Type': 'application/json',
-                'Hash': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                Hash: this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

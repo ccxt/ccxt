@@ -10,91 +10,91 @@ const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = 
 module.exports = class bleutrade extends bittrex {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bleutrade',
-            'name': 'Bleutrade',
-            'countries': [ 'BR' ], // Brazil
-            'rateLimit': 1000,
-            'version': 'v2',
-            'certified': false,
-            'has': {
-                'CORS': true,
-                'fetchTickers': true,
-                'fetchOrders': true,
-                'fetchClosedOrders': true,
+            id: 'bleutrade',
+            name: 'Bleutrade',
+            countries: ['BR'], // Brazil
+            rateLimit: 1000,
+            version: 'v2',
+            certified: false,
+            has: {
+                CORS: true,
+                fetchTickers: true,
+                fetchOrders: true,
+                fetchClosedOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
-                'api': {
-                    'public': 'https://bleutrade.com/api',
-                    'account': 'https://bleutrade.com/api',
-                    'market': 'https://bleutrade.com/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
+                api: {
+                    public: 'https://bleutrade.com/api',
+                    account: 'https://bleutrade.com/api',
+                    market: 'https://bleutrade.com/api',
                 },
-                'www': 'https://bleutrade.com',
-                'doc': 'https://bleutrade.com/help/API',
-                'fees': 'https://bleutrade.com/help/fees_and_deadlines',
+                www: 'https://bleutrade.com',
+                doc: 'https://bleutrade.com/help/API',
+                fees: 'https://bleutrade.com/help/fees_and_deadlines',
             },
-            'fees': {
-                'funding': {
-                    'withdraw': {
-                        'ADC': 0.1,
-                        'BTA': 0.1,
-                        'BITB': 0.1,
-                        'BTC': 0.001,
-                        'BCC': 0.001,
-                        'BTCD': 0.001,
-                        'BTG': 0.001,
-                        'BLK': 0.1,
-                        'CDN': 0.1,
-                        'CLAM': 0.01,
-                        'DASH': 0.001,
-                        'DCR': 0.05,
-                        'DGC': 0.1,
-                        'DP': 0.1,
-                        'DPC': 0.1,
-                        'DOGE': 10.0,
-                        'EFL': 0.1,
-                        'ETH': 0.01,
-                        'EXP': 0.1,
-                        'FJC': 0.1,
-                        'BSTY': 0.001,
-                        'GB': 0.1,
-                        'NLG': 0.1,
-                        'HTML': 1.0,
-                        'LTC': 0.001,
-                        'MONA': 0.01,
-                        'MOON': 1.0,
-                        'NMC': 0.015,
-                        'NEOS': 0.1,
-                        'NVC': 0.05,
-                        'OK': 0.1,
-                        'PPC': 0.1,
-                        'POT': 0.1,
-                        'XPM': 0.001,
-                        'QTUM': 0.1,
-                        'RDD': 0.1,
-                        'SLR': 0.1,
-                        'START': 0.1,
-                        'SLG': 0.1,
-                        'TROLL': 0.1,
-                        'UNO': 0.01,
-                        'VRC': 0.1,
-                        'VTC': 0.1,
-                        'XVP': 0.1,
-                        'WDC': 0.001,
-                        'ZET': 0.1,
+            fees: {
+                funding: {
+                    withdraw: {
+                        ADC: 0.1,
+                        BTA: 0.1,
+                        BITB: 0.1,
+                        BTC: 0.001,
+                        BCC: 0.001,
+                        BTCD: 0.001,
+                        BTG: 0.001,
+                        BLK: 0.1,
+                        CDN: 0.1,
+                        CLAM: 0.01,
+                        DASH: 0.001,
+                        DCR: 0.05,
+                        DGC: 0.1,
+                        DP: 0.1,
+                        DPC: 0.1,
+                        DOGE: 10.0,
+                        EFL: 0.1,
+                        ETH: 0.01,
+                        EXP: 0.1,
+                        FJC: 0.1,
+                        BSTY: 0.001,
+                        GB: 0.1,
+                        NLG: 0.1,
+                        HTML: 1.0,
+                        LTC: 0.001,
+                        MONA: 0.01,
+                        MOON: 1.0,
+                        NMC: 0.015,
+                        NEOS: 0.1,
+                        NVC: 0.05,
+                        OK: 0.1,
+                        PPC: 0.1,
+                        POT: 0.1,
+                        XPM: 0.001,
+                        QTUM: 0.1,
+                        RDD: 0.1,
+                        SLR: 0.1,
+                        START: 0.1,
+                        SLG: 0.1,
+                        TROLL: 0.1,
+                        UNO: 0.01,
+                        VRC: 0.1,
+                        VTC: 0.1,
+                        XVP: 0.1,
+                        WDC: 0.001,
+                        ZET: 0.1,
                     },
                 },
             },
-            'commonCurrencies': {
-                'EPC': 'Epacoin',
+            commonCurrencies: {
+                EPC: 'Epacoin',
             },
-            'exceptions': {
+            exceptions: {
                 'Insufficient funds!': InsufficientFunds,
                 'Invalid Order ID': InvalidOrder,
                 'Invalid apikey or apisecret': AuthenticationError,
             },
-            'options': {
-                'parseOrderStatus': true,
+            options: {
+                parseOrderStatus: true,
             },
         });
     }
@@ -111,8 +111,8 @@ module.exports = class bleutrade extends bittrex {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                amount: 8,
+                price: 8,
             };
             let active = this.safeString (market, 'IsActive');
             if (active === 'true') {
@@ -121,27 +121,27 @@ module.exports = class bleutrade extends bittrex {
                 active = false;
             }
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: market['MinTradeSize'],
+                        max: undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
+                    price: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
+                    cost: {
+                        min: 0,
+                        max: undefined,
                     },
                 },
             });
@@ -151,9 +151,9 @@ module.exports = class bleutrade extends bittrex {
 
     parseOrderStatus (status) {
         let statuses = {
-            'OK': 'closed',
-            'OPEN': 'open',
-            'CANCELED': 'canceled',
+            OK: 'closed',
+            OPEN: 'open',
+            CANCELED: 'canceled',
         };
         if (status in statuses) {
             return statuses[status];
@@ -175,7 +175,7 @@ module.exports = class bleutrade extends bittrex {
         } else {
             market = undefined;
         }
-        let response = await this.accountGetOrders (this.extend ({ 'market': 'ALL', 'orderstatus': 'ALL' }, params));
+        let response = await this.accountGetOrders (this.extend ({ market: 'ALL', orderstatus: 'ALL' }, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
@@ -191,8 +191,8 @@ module.exports = class bleutrade extends bittrex {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'market': this.marketId (symbol),
-            'type': 'ALL',
+            market: this.marketId (symbol),
+            type: 'ALL',
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 50

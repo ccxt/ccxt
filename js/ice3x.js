@@ -10,36 +10,36 @@ const { ExchangeError, AuthenticationError } = require ('./base/errors');
 module.exports = class ice3x extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'ice3x',
-            'name': 'ICE3X',
-            'countries': [ 'ZA' ], // South Africa
-            'rateLimit': 1000,
-            'has': {
-                'fetchCurrencies': true,
-                'fetchTickers': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
+            id: 'ice3x',
+            name: 'ICE3X',
+            countries: ['ZA'], // South Africa
+            rateLimit: 1000,
+            has: {
+                fetchCurrencies: true,
+                fetchTickers: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
+                fetchDepositAddress: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api': 'https://ice3x.com/api/v1',
-                'www': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
+                api: 'https://ice3x.com/api/v1',
+                www: [
                     'https://ice3x.com',
                     'https://ice3x.co.za',
-                ],
-                'doc': 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
-                'fees': [
+               ],
+                doc: 'https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017',
+                fees: [
                     'https://help.ice3.com/support/solutions/articles/11000033293-trading-fees',
                     'https://help.ice3.com/support/solutions/articles/11000033288-fees-explained',
                     'https://help.ice3.com/support/solutions/articles/11000008131-what-are-your-fiat-deposit-and-withdrawal-fees-',
                     'https://help.ice3.com/support/solutions/articles/11000033289-deposit-fees',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currency/list',
                         'currency/info',
                         'pair/list',
@@ -50,10 +50,10 @@ module.exports = class ice3x extends Exchange {
                         'orderbook/info',
                         'trade/list',
                         'trade/info',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balance/list',
                         'balance/info',
                         'order/new',
@@ -67,18 +67,18 @@ module.exports = class ice3x extends Exchange {
                         'invoice/list',
                         'invoice/info',
                         'invoice/pdf',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.01,
-                    'taker': 0.01,
+            fees: {
+                trading: {
+                    maker: 0.01,
+                    taker: 0.01,
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
+            precision: {
+                amount: 8,
+                price: 8,
             },
         });
     }
@@ -93,26 +93,26 @@ module.exports = class ice3x extends Exchange {
             let id = currency['currency_id'];
             let code = this.commonCurrencyCode (currency['iso'].toUpperCase ());
             result[code] = {
-                'id': id,
-                'code': code,
-                'name': currency['name'],
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                name: currency['name'],
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: undefined,
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': currency,
+                info: currency,
             };
         }
         return result;
@@ -137,14 +137,14 @@ module.exports = class ice3x extends Exchange {
             let quote = this.commonCurrencyCode (quoteCurrency['code']);
             let symbol = base + '/' + quote;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                info: market,
             });
         }
         return result;
@@ -155,26 +155,26 @@ module.exports = class ice3x extends Exchange {
         let symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last_price');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'max'),
-            'low': this.safeFloat (ticker, 'min'),
-            'bid': this.safeFloat (ticker, 'max_bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'min_ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'max'),
+            low: this.safeFloat (ticker, 'min'),
+            bid: this.safeFloat (ticker, 'max_bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'min_ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: this.safeFloat (ticker, 'avg'),
+            baseVolume: undefined,
+            quoteVolume: this.safeFloat (ticker, 'vol'),
+            info: ticker,
         };
     }
 
@@ -182,7 +182,7 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetStatsMarketdepthfull (this.extend ({
-            'pair_id': market['id'],
+            pair_id: market['id'],
         }, params));
         return this.parseTicker (response['response']['entity'], market);
     }
@@ -204,7 +204,7 @@ module.exports = class ice3x extends Exchange {
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbookInfo (this.extend ({
-            'pair_id': this.marketId (symbol),
+            pair_id: this.marketId (symbol),
         }, params));
         let orderbook = response['response']['entities'];
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
@@ -219,23 +219,23 @@ module.exports = class ice3x extends Exchange {
         let fee = this.safeFloat (trade, 'fee');
         if (fee) {
             fee = {
-                'cost': fee,
-                'currency': market['quote'],
+                cost: fee,
+                currency: market['quote'],
             };
         }
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'trade_id'),
-            'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'trade_id'),
+            order: undefined,
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost,
+            fee,
+            info: trade,
         };
     }
 
@@ -243,7 +243,7 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradeList (this.extend ({
-            'pair_id': market['id'],
+            pair_id: market['id'],
         }, params));
         let trades = response['response']['entities'];
         return this.parseTrades (trades, market, since, limit);
@@ -252,7 +252,7 @@ module.exports = class ice3x extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalanceList (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['response']['entities'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -261,9 +261,9 @@ module.exports = class ice3x extends Exchange {
                 let currency = this.currencies_by_id[id];
                 let code = currency['code'];
                 result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': parseFloat (balance['balance']),
+                    free: 0.0,
+                    used: 0.0,
+                    total: parseFloat (balance['balance']),
                 };
             }
         }
@@ -292,27 +292,27 @@ module.exports = class ice3x extends Exchange {
         }
         let fee = this.safeFloat (order, 'fee');
         if (fee) {
-            fee = { 'cost': fee };
+            fee = { cost: fee };
             if (market)
                 fee['currency'] = market['quote'];
         }
         return {
-            'id': this.safeString (order, 'order_id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': fee,
-            'info': order,
+            id: this.safeString (order, 'order_id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee,
+            info: order,
         };
     }
 
@@ -320,20 +320,20 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrderNew (this.extend ({
-            'pair_id': market['id'],
-            'type': side,
-            'amount': amount,
-            'price': price,
+            pair_id: market['id'],
+            type: side,
+            amount,
+            price,
         }, params));
         let order = this.parseOrder ({
-            'order_id': response['response']['entity']['order_id'],
-            'created': this.seconds (),
-            'active': 1,
-            'type': side,
-            'price': price,
-            'volume': amount,
-            'remaining': amount,
-            'info': response,
+            order_id: response['response']['entity']['order_id'],
+            created: this.seconds (),
+            active: 1,
+            type: side,
+            price,
+            volume: amount,
+            remaining: amount,
+            info: response,
         }, market);
         let id = order['id'];
         this.orders[id] = order;
@@ -342,7 +342,7 @@ module.exports = class ice3x extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let response = await this.privatePostOrderCancel (this.extend ({
-            'order_id': id,
+            order_id,
         }, params));
         return response;
     }
@@ -366,7 +366,7 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair_id': market['id'],
+            pair_id: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['items_per_page'] = limit;
@@ -381,17 +381,17 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostBalanceInfo (this.extend ({
-            'currency_id': currency['id'],
+            currency_id: currency['id'],
         }, params));
         let balance = response['response']['entity'];
         let address = this.safeString (balance, 'address');
         let status = address ? 'ok' : 'none';
         return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'status': status,
-            'info': response,
+            currency: code,
+            address,
+            tag: undefined,
+            status,
+            info: response,
         };
     }
 
@@ -403,15 +403,15 @@ module.exports = class ice3x extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
-                'nonce': this.nonce (),
+                nonce: this.nonce (),
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
+                Key: this.apiKey,
+                Sign: this.hmac (this.encode (body), this.encode (this.secret), 'sha512'),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -419,7 +419,7 @@ module.exports = class ice3x extends Exchange {
         let errors = this.safeValue (response, 'errors');
         let data = this.safeValue (response, 'response');
         if (errors || !data) {
-            let authErrorKeys = [ 'Key', 'user_id', 'Sign' ];
+            let authErrorKeys = ['Key', 'user_id', 'Sign'];
             for (let i = 0; i < authErrorKeys.length; i++) {
                 let errorKey = authErrorKeys[i];
                 let errorMessage = this.safeString (errors, errorKey);

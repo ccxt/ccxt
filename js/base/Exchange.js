@@ -74,98 +74,98 @@ module.exports = class Exchange {
 
     describe () {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': false,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
-            'certified': false,
-            'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
-                'cancelOrder': true,
-                'cancelOrders': false,
-                'createDepositAddress': false,
-                'createOrder': true,
-                'createMarketOrder': true,
-                'createLimitOrder': true,
-                'deposit': false,
-                'editOrder': 'emulated',
-                'fetchBalance': true,
-                'fetchBidsAsks': false,
-                'fetchClosedOrders': false,
-                'fetchCurrencies': false,
-                'fetchDepositAddress': false,
-                'fetchDeposits': false,
-                'fetchFundingFees': false,
-                'fetchL2OrderBook': true,
-                'fetchMarkets': true,
-                'fetchMyTrades': false,
-                'fetchOHLCV': 'emulated',
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': false,
-                'fetchOrders': false,
-                'fetchTicker': true,
-                'fetchTickers': false,
-                'fetchTrades': true,
-                'fetchTradingFees': false,
-                'fetchTradingLimits': false,
-                'fetchTransactions': false,
-                'fetchWithdrawals': false,
-                'withdraw': false,
+            id: undefined,
+            name: undefined,
+            countries: undefined,
+            enableRateLimit: false,
+            rateLimit: 2000, // milliseconds = seconds * 1000
+            certified: false,
+            has: {
+                CORS: false,
+                publicAPI: true,
+                privateAPI: true,
+                cancelOrder: true,
+                cancelOrders: false,
+                createDepositAddress: false,
+                createOrder: true,
+                createMarketOrder: true,
+                createLimitOrder: true,
+                deposit: false,
+                editOrder: 'emulated',
+                fetchBalance: true,
+                fetchBidsAsks: false,
+                fetchClosedOrders: false,
+                fetchCurrencies: false,
+                fetchDepositAddress: false,
+                fetchDeposits: false,
+                fetchFundingFees: false,
+                fetchL'2OrderBook': true,
+                fetchMarkets: true,
+                fetchMyTrades: false,
+                fetchOHLCV: 'emulated',
+                fetchOpenOrders: false,
+                fetchOrder: false,
+                fetchOrderBook: true,
+                fetchOrderBooks: false,
+                fetchOrders: false,
+                fetchTicker: true,
+                fetchTickers: false,
+                fetchTrades: true,
+                fetchTradingFees: false,
+                fetchTradingLimits: false,
+                fetchTransactions: false,
+                fetchWithdrawals: false,
+                withdraw: false,
             },
-            'urls': {
-                'logo': undefined,
-                'api': undefined,
-                'www': undefined,
-                'doc': undefined,
-                'fees': undefined,
+            urls: {
+                logo: undefined,
+                api: undefined,
+                www: undefined,
+                doc: undefined,
+                fees: undefined,
             },
-            'api': undefined,
-            'requiredCredentials': {
-                'apiKey':     true,
-                'secret':     true,
-                'uid':        false,
-                'login':      false,
-                'password':   false,
-                'twofa':      false, // 2-factor authentication (one-time password key)
-                'privateKey': false, // a "0x"-prefixed hexstring private key for a wallet
-                'walletAddress': false, // the wallet address "0x"-prefixed hexstring
+            api: undefined,
+            requiredCredentials: {
+                apiKey:     true,
+                secret:     true,
+                uid:        false,
+                login:      false,
+                password:   false,
+                twofa:      false, // 2-factor authentication (one-time password key)
+                privateKey: false, // a "0x"-prefixed hexstring private key for a wallet
+                walletAddress: false, // the wallet address "0x"-prefixed hexstring
             },
-            'markets': undefined, // to be filled manually or by fetchMarkets
-            'currencies': {}, // to be filled manually or by fetchMarkets
-            'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
-            'fees': {
-                'trading': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'taker': undefined,
-                    'maker': undefined,
+            markets: undefined, // to be filled manually or by fetchMarkets
+            currencies: {}, // to be filled manually or by fetchMarkets
+            timeframes: undefined, // redefine if the exchange has.fetchOHLCV
+            fees: {
+                trading: {
+                    tierBased: undefined,
+                    percentage: undefined,
+                    taker: undefined,
+                    maker: undefined,
                 },
-                'funding': {
-                    'tierBased': undefined,
-                    'percentage': undefined,
-                    'withdraw': {},
-                    'deposit': {},
+                funding: {
+                    tierBased: undefined,
+                    percentage: undefined,
+                    withdraw: {},
+                    deposit: {},
                 },
             },
-            'parseJsonResponse': true, // whether a reply is required to be in JSON or not
-            'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
-            'exceptions': undefined,
+            parseJsonResponse: true, // whether a reply is required to be in JSON or not
+            skipJsonOnStatusCodes: [], // array of http status codes which override requirement for JSON response
+            exceptions: undefined,
             // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
             // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
             // still, some exchanges report number of open orders together with balance
             // if you set the following flag to 'true' ccxt will leave 'used' funds undefined in case of discrepancy
-            'dontGetUsedBalanceFromStaleCache': false,
-            'commonCurrencies': { // gets extended/overwritten in subclasses
-                'XBT': 'BTC',
-                'BCC': 'BCH',
-                'DRK': 'DASH',
+            dontGetUsedBalanceFromStaleCache: false,
+            commonCurrencies: { // gets extended/overwritten in subclasses
+                XBT: 'BTC',
+                BCC: 'BCH',
+                DRK: 'DASH',
             },
-            'precisionMode': DECIMAL_PLACES,
+            precisionMode: DECIMAL_PLACES,
         } // return
     } // describe ()
 
@@ -186,8 +186,8 @@ module.exports = class Exchange {
         this.fetchOptions = {} // fetch implementation options (JS only)
 
         this.userAgents = {
-            'chrome': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
-            'chrome39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
+            chrome: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36',
+            chrome'39': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36',
         }
 
         this.headers = {}
@@ -383,14 +383,14 @@ module.exports = class Exchange {
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
 
             // fetchImplementation cannot be called on this. in browsers:
-            // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+            // TypeError Failed to execute 'fetch' on Window: Illegal invocation
             const fetchImplementation = this.fetchImplementation
 
             let promise =
-                fetchImplementation (url, this.extend ({ method, headers, body, 'agent': this.agent || null, timeout: this.timeout }, this.fetchOptions))
+                fetchImplementation (url, this.extend ({ method, headers, body, agent: this.agent || null, timeout: this.timeout }, this.fetchOptions))
                     .catch (e => {
                         if (isNode)
-                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '))
+                            throw new ExchangeNotAvailable ([this.id, method, url, e.type, e.message].join (' '))
                         throw e // rethrow all unknown errors
                     })
                     .then (response => this.handleRestResponse (response, url, method, headers, body))
@@ -456,13 +456,13 @@ module.exports = class Exchange {
 
             url = this.proxy (url)
             if (isNode)
-                headers = extend ({ 'Origin': this.origin }, headers)
+                headers = extend ({ Origin: this.origin }, headers)
 
         } else if (typeof this.proxy === 'string') {
 
             if (this.proxy.length)
                 if (isNode)
-                    headers = extend ({ 'Origin': this.origin }, headers)
+                    headers = extend ({ Origin: this.origin }, headers)
 
             url = this.proxy + url
         }
@@ -514,7 +514,7 @@ module.exports = class Exchange {
                     details = 'offline, on maintenance or unreachable from this location at the moment'
                 if (ddosProtection)
                     ExceptionClass = DDoSProtection
-                throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
+                throw new ExceptionClass ([this.id, method, url, response.status, title, details].join (' '))
             }
 
             throw e
@@ -534,11 +534,11 @@ module.exports = class Exchange {
         let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
-        if ([ 418, 429 ].includes (code)) {
+        if ([418, 429].includes (code)) {
             error = DDoSProtection
-        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
+        } else if ([404, 409, 500, 501, 502, 520, 521, 522, 525].includes (code)) {
             error = ExchangeNotAvailable
-        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
+        } else if ([400, 403, 405, 503, 530].includes (code)) {
             let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
             if (ddosProtection) {
                 error = DDoSProtection
@@ -551,16 +551,16 @@ module.exports = class Exchange {
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting',
-                ].join (', ') + ')'
+               ].join (', ') + ')'
             }
-        } else if ([ 408, 504 ].includes (code)) {
+        } else if ([408, 504].includes (code)) {
             error = RequestTimeout
-        } else if ([ 401, 511 ].includes (code)) {
+        } else if ([401, 511].includes (code)) {
             error = AuthenticationError
         } else {
             error = ExchangeError
         }
-        throw new error ([ this.id, method, url, code, reason, details ].join (' '))
+        throw new error ([this.id, method, url, code, reason, details].join (' '))
     }
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
@@ -583,7 +583,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ]
+            const args = [response.status, response.statusText, url, method, responseHeaders, responseBody, json]
             this.handleErrors (...args)
             this.defaultErrorHandler (response, responseBody, url, method)
 
@@ -593,8 +593,8 @@ module.exports = class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         let values = Object.values (markets).map (market => deepExtend ({
-            'limits': this.limits,
-            'precision': this.precision,
+            limits: this.limits,
+            precision: this.precision,
         }, this.fees['trading'], market))
         this.markets = deepExtend (this.markets, indexBy (values, 'symbol'))
         this.marketsById = indexBy (markets, 'id')
@@ -679,19 +679,19 @@ module.exports = class Exchange {
                 ohlcvs['l'][i],
                 ohlcvs['c'][i],
                 ohlcvs['v'][i],
-            ]);
+           ]);
         }
         return result;
     }
 
     convertOHLCVToTradingView (ohlcvs) {
         let result = {
-            't': [],
-            'o': [],
-            'h': [],
-            'l': [],
-            'c': [],
-            'v': [],
+            t: [],
+            o: [],
+            h: [],
+            l: [],
+            c: [],
+            v: [],
         };
         for (let i = 0; i < ohlcvs.length; i++) {
             result['t'].push (parseInt (ohlcvs[i][0] / 1000));
@@ -753,9 +753,9 @@ module.exports = class Exchange {
 
     account () {
         return {
-            'free': 0.0,
-            'used': 0.0,
-            'total': 0.0,
+            free: 0.0,
+            used: 0.0,
+            total: 0.0,
         }
     }
 
@@ -876,7 +876,7 @@ module.exports = class Exchange {
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey])
         let amount = parseFloat (bidask[amountKey])
-        return [ price, amount ]
+        return [price, amount]
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
@@ -886,18 +886,18 @@ module.exports = class Exchange {
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
         let orderbook = await this.fetchOrderBook (symbol, limit, params)
         return extend (orderbook, {
-            'bids': sortBy (aggregate (orderbook.bids), 0, true),
-            'asks': sortBy (aggregate (orderbook.asks), 0),
+            bids: sortBy (aggregate (orderbook.bids), 0, true),
+            asks: sortBy (aggregate (orderbook.asks), 0),
         })
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
         return {
-            'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
-            'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
-            'timestamp': timestamp,
-            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
-            'nonce': undefined,
+            bids: sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
+            asks: sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
+            timestamp,
+            datetime: (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
+            nonce: undefined,
         }
     }
 
@@ -940,7 +940,7 @@ module.exports = class Exchange {
                 }
             }
 
-            [ 'free', 'used', 'total' ].forEach ((account) => {
+            ['free', 'used', 'total'].forEach ((account) => {
                 balance[account] = balance[account] || {}
                 balance[account][currency] = balance[currency][account]
             })
@@ -975,7 +975,7 @@ module.exports = class Exchange {
                 for (let i = 0; i < keys.length; i++) {
                     let symbol = keys[i];
                     this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
+                        limits: limits[symbol],
                     });
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
@@ -1153,10 +1153,10 @@ module.exports = class Exchange {
         let rate = market[takerOrMaker]
         let cost = parseFloat (this.costToPrecision (symbol, amount * price))
         return {
-            'type': takerOrMaker,
-            'currency': market['quote'],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+            type: takerOrMaker,
+            currency: market['quote'],
+            rate,
+            cost: parseFloat (this.feeToPrecision (symbol, rate * cost)),
         }
     }
 
@@ -1247,15 +1247,15 @@ module.exports = class Exchange {
             order['takerFee'], // uint256
             order['expirationUnixTimestampSec'], // uint256
             order['salt'], // uint256
-        ]);
+       ]);
     }
 
     signZeroExOrder (order, privateKey) {
         const orderHash = this.getZeroExOrderHash (order);
         const signature = this.signMessage (orderHash, privateKey);
         return this.extend (order, {
-            'orderHash': orderHash,
-            'ecSignature': signature, // todo fix v if needed
+            orderHash,
+            ecSignature: signature, // todo fix v if needed
         })
     }
 

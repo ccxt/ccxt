@@ -33,10 +33,10 @@ const updateOrders = function (oldOrders, newOrders, closeOpenOrders = false) {
             // order is cached but not present in the list of open orders -> mark the cached order as closed
             if (order['status'] === 'open') {
                 order = this.extend (order, {
-                    'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                    'cost': undefined,
-                    'filled': order['amount'],
-                    'remaining': 0.0,
+                    status: 'closed', // likewise it might have been canceled externally (unnoticed by "us")
+                    cost: undefined,
+                    filled: order['amount'],
+                    remaining: 0.0,
                 });
                 if (typeof order['cost'] === 'undefined') {
                     if (typeof order['filled'] !== 'undefined')

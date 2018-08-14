@@ -9,33 +9,33 @@ const okcoinusd = require ('./okcoinusd.js');
 module.exports = class okex extends okcoinusd {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'okex',
-            'name': 'OKEX',
-            'countries': [ 'CN', 'US' ],
-            'has': {
-                'CORS': false,
-                'futures': true,
-                'fetchTickers': true,
+            id: 'okex',
+            name: 'OKEX',
+            countries: ['CN', 'US'],
+            has: {
+                CORS: false,
+                futures: true,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
-                'api': {
-                    'web': 'https://www.okex.com/v2',
-                    'public': 'https://www.okex.com/api',
-                    'private': 'https://www.okex.com/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/32552768-0d6dd3c6-c4a6-11e7-90f8-c043b64756a7.jpg',
+                api: {
+                    web: 'https://www.okex.com/v2',
+                    public: 'https://www.okex.com/api',
+                    private: 'https://www.okex.com/api',
                 },
-                'www': 'https://www.okex.com',
-                'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
-                'fees': 'https://www.okex.com/fees.html',
+                www: 'https://www.okex.com',
+                doc: 'https://github.com/okcoin-okex/API-docs-OKEx.com',
+                fees: 'https://www.okex.com/fees.html',
             },
-            'commonCurrencies': {
-                'FAIR': 'FairGame',
-                'HOT': 'Hydro Protocol',
-                'MAG': 'Maggie',
-                'YOYO': 'YOYOW',
+            commonCurrencies: {
+                FAIR: 'FairGame',
+                HOT: 'Hydro Protocol',
+                MAG: 'Maggie',
+                YOYO: 'YOYOW',
             },
-            'options': {
-                'fetchTickersMethod': 'fetch_tickers_from_api',
+            options: {
+                fetchTickersMethod: 'fetch_tickers_from_api',
             },
         });
     }
@@ -51,10 +51,10 @@ module.exports = class okex extends okcoinusd {
             key = 'base';
         }
         return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            type: takerOrMaker,
+            currency: market[key],
+            rate,
+            cost: parseFloat (this.feeToPrecision (symbol, cost)),
         };
     }
 
@@ -90,7 +90,7 @@ module.exports = class okex extends okcoinusd {
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
             }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker (this.extend (tickers[i], { timestamp: timestamp }), market);
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

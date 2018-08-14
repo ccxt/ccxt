@@ -9,39 +9,39 @@ const okcoinusd = require ('./okcoinusd.js');
 module.exports = class allcoin extends okcoinusd {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'allcoin',
-            'name': 'Allcoin',
-            'countries': [ 'CA' ],
-            'has': {
-                'CORS': false,
+            id: 'allcoin',
+            name: 'Allcoin',
+            countries: ['CA'],
+            has: {
+                CORS: false,
             },
-            'extension': '',
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
-                'api': {
-                    'web': 'https://www.allcoin.com',
-                    'public': 'https://api.allcoin.com/api',
-                    'private': 'https://api.allcoin.com/api',
+            extension: '',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg',
+                api: {
+                    web: 'https://www.allcoin.com',
+                    public: 'https://api.allcoin.com/api',
+                    private: 'https://api.allcoin.com/api',
                 },
-                'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                www: 'https://www.allcoin.com',
+                doc: 'https://www.allcoin.com/About/APIReference',
             },
-            'api': {
-                'web': {
-                    'get': [
+            api: {
+                web: {
+                    get: [
                         'Home/MarketOverViewDetail/',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'depth',
                         'kline',
                         'ticker',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'batch_trade',
                         'cancel_order',
                         'order_history',
@@ -51,7 +51,7 @@ module.exports = class allcoin extends okcoinusd {
                         'trade',
                         'trade_history',
                         'userinfo',
-                    ],
+                   ],
                 },
             },
         });
@@ -73,37 +73,37 @@ module.exports = class allcoin extends okcoinusd {
                 let symbol = base + '/' + quote;
                 let active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'type': 'spot',
-                    'spot': true,
-                    'future': false,
-                    'maker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
-                    'taker': market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
-                    'precision': {
-                        'amount': market['PrimaryDigits'],
-                        'price': market['SecondaryDigits'],
+                    id,
+                    symbol,
+                    base,
+                    quote,
+                    baseId,
+                    quoteId,
+                    active,
+                    type: 'spot',
+                    spot: true,
+                    future: false,
+                    maker: market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    taker: market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    precision: {
+                        amount: market['PrimaryDigits'],
+                        price: market['SecondaryDigits'],
                     },
-                    'limits': {
-                        'amount': {
-                            'min': market['MinTradeAmount'],
-                            'max': market['MaxTradeAmount'],
+                    limits: {
+                        amount: {
+                            min: market['MinTradeAmount'],
+                            max: market['MaxTradeAmount'],
                         },
-                        'price': {
-                            'min': market['MinOrderPrice'],
-                            'max': market['MaxOrderPrice'],
+                        price: {
+                            min: market['MinOrderPrice'],
+                            max: market['MaxOrderPrice'],
                         },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
+                        cost: {
+                            min: undefined,
+                            max: undefined,
                         },
                     },
-                    'info': market,
+                    info: market,
                 });
             }
         }

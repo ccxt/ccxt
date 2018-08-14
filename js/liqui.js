@@ -6,45 +6,45 @@ const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, D
 module.exports = class liqui extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'liqui',
-            'name': 'Liqui',
-            'countries': [ 'UA' ],
-            'rateLimit': 3000,
-            'version': '3',
-            'userAgent': this.userAgents['chrome'],
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchOrderBooks': true,
-                'fetchOrder': true,
-                'fetchOrders': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchTickers': true,
-                'fetchMyTrades': true,
-                'withdraw': true,
+            id: 'liqui',
+            name: 'Liqui',
+            countries: ['UA'],
+            rateLimit: 3000,
+            version: '3',
+            userAgent: this.userAgents['chrome'],
+            has: {
+                CORS: false,
+                createMarketOrder: false,
+                fetchOrderBooks: true,
+                fetchOrder: true,
+                fetchOrders: 'emulated',
+                fetchOpenOrders: true,
+                fetchClosedOrders: 'emulated',
+                fetchTickers: true,
+                fetchMyTrades: true,
+                withdraw: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
-                'api': {
-                    'public': 'https://api.liqui.io/api',
-                    'private': 'https://api.liqui.io/tapi',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
+                api: {
+                    public: 'https://api.liqui.io/api',
+                    private: 'https://api.liqui.io/tapi',
                 },
-                'www': 'https://liqui.io',
-                'doc': 'https://liqui.io/api',
-                'fees': 'https://liqui.io/fee',
+                www: 'https://liqui.io',
+                doc: 'https://liqui.io/api',
+                fees: 'https://liqui.io/fee',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'info',
                         'ticker/{pair}',
                         'depth/{pair}',
                         'trades/{pair}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -55,25 +55,25 @@ module.exports = class liqui extends Exchange {
                         'WithdrawCoin',
                         'CreateCoupon',
                         'RedeemCoupon',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.001,
-                    'taker': 0.0025,
+            fees: {
+                trading: {
+                    maker: 0.001,
+                    taker: 0.0025,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {},
-                    'deposit': {},
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {},
+                    deposit: {},
                 },
             },
-            'commonCurrencies': {
-                'DSH': 'DASH',
+            commonCurrencies: {
+                DSH: 'DASH',
             },
-            'exceptions': {
+            exceptions: {
                 '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
                 '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
                 '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
@@ -97,19 +97,19 @@ module.exports = class liqui extends Exchange {
             key = 'base';
         }
         return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            type: takerOrMaker,
+            currency: market[key],
+            rate,
+            cost,
         };
     }
 
     getBaseQuoteFromMarketId (id) {
         let uppercase = id.toUpperCase ();
-        let [ base, quote ] = uppercase.split ('_');
+        let [base, quote] = uppercase.split ('_');
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
+        return [base, quote];
     }
 
     async fetchMarkets () {
@@ -120,40 +120,40 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
-            let [ base, quote ] = this.getBaseQuoteFromMarketId (id);
+            let [base, quote] = this.getBaseQuoteFromMarketId (id);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': this.safeInteger (market, 'decimal_places'),
-                'price': this.safeInteger (market, 'decimal_places'),
+                amount: this.safeInteger (market, 'decimal_places'),
+                price: this.safeInteger (market, 'decimal_places'),
             };
             let amountLimits = {
-                'min': this.safeFloat (market, 'min_amount'),
-                'max': this.safeFloat (market, 'max_amount'),
+                min: this.safeFloat (market, 'min_amount'),
+                max: this.safeFloat (market, 'max_amount'),
             };
             let priceLimits = {
-                'min': this.safeFloat (market, 'min_price'),
-                'max': this.safeFloat (market, 'max_price'),
+                min: this.safeFloat (market, 'min_price'),
+                max: this.safeFloat (market, 'max_price'),
             };
             let costLimits = {
-                'min': this.safeFloat (market, 'min_total'),
+                min: this.safeFloat (market, 'min_total'),
             };
             let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
+                amount: amountLimits,
+                price: priceLimits,
+                cost: costLimits,
             };
             let hidden = this.safeInteger (market, 'hidden');
             let active = (hidden === 0);
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'active': active,
-                'taker': market['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                active,
+                taker: market['fee'] / 100,
+                precision,
+                limits,
+                info: market,
             });
         }
         return result;
@@ -163,7 +163,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostGetInfo ();
         let balances = response['return'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let funds = balances['funds'];
         let currencies = Object.keys (funds);
         for (let c = 0; c < currencies.length; c++) {
@@ -177,9 +177,9 @@ module.exports = class liqui extends Exchange {
                 used = 0.0;
             }
             let account = {
-                'free': funds[currency],
-                'used': used,
-                'total': total,
+                free: funds[currency],
+                used,
+                total,
             };
             result[uppercase] = account;
         }
@@ -190,7 +190,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            pair: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit'] = limit; // default = 150, max = 2000
@@ -219,7 +219,7 @@ module.exports = class liqui extends Exchange {
             ids = ids.join ('-');
         }
         let response = await this.publicGetDepthPair (this.extend ({
-            'pair': ids,
+            pair: ids,
         }, params));
         let result = {};
         ids = Object.keys (response);
@@ -243,26 +243,26 @@ module.exports = class liqui extends Exchange {
         }
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': this.safeFloat (ticker, 'vol_cur'),
-            'quoteVolume': this.safeFloat (ticker, 'vol'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: this.safeFloat (ticker, 'avg'),
+            baseVolume: this.safeFloat (ticker, 'vol_cur'),
+            quoteVolume: this.safeFloat (ticker, 'vol'),
+            info: ticker,
         };
     }
 
@@ -281,7 +281,7 @@ module.exports = class liqui extends Exchange {
             ids = ids.join ('-');
         }
         let tickers = await this.publicGetTickerPair (this.extend ({
-            'pair': ids,
+            pair: ids,
         }, params));
         let result = {};
         let keys = Object.keys (tickers);
@@ -300,7 +300,7 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let tickers = await this.fetchTickers ([ symbol ], params);
+        let tickers = await this.fetchTickers ([symbol], params);
         return tickers[symbol];
     }
 
@@ -339,17 +339,17 @@ module.exports = class liqui extends Exchange {
         }
         let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
-            'id': id,
-            'order': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'fee': fee,
-            'info': trade,
+            id,
+            order,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type,
+            side,
+            price,
+            amount,
+            fee,
+            info: trade,
         };
     }
 
@@ -357,7 +357,7 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            pair: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit'] = limit;
@@ -379,10 +379,10 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
-            'type': side,
-            'amount': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
+            pair: market['id'],
+            type: side,
+            amount: this.amountToPrecision (symbol, amount),
+            rate: this.priceToPrecision (symbol, price),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
@@ -402,24 +402,24 @@ module.exports = class liqui extends Exchange {
         }
         let timestamp = this.milliseconds ();
         let order = {
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': price * filled,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'fee': undefined,
-            // 'trades': this.parseTrades (order['trades'], market),
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type,
+            side,
+            price,
+            cost: price * filled,
+            amount,
+            remaining,
+            filled,
+            fee: undefined,
+            // trades: this.parseTrades (order['trades'], market),
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return this.extend ({ info: response }, order);
     }
 
     getOrderIdKey () {
@@ -440,10 +440,10 @@ module.exports = class liqui extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            '0': 'open',
-            '1': 'closed',
-            '2': 'canceled',
-            '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+            0: 'open',
+            1: 'closed',
+            2: 'canceled',
+            3: 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         };
         if (status in statuses) {
             return statuses[status];
@@ -486,21 +486,21 @@ module.exports = class liqui extends Exchange {
         }
         let fee = undefined;
         let result = {
-            'info': order,
-            'id': id,
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost,
+            amount,
+            remaining,
+            filled,
+            status,
+            fee,
         };
         return result;
     }
@@ -511,7 +511,7 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let order = orders[id];
-            let extended = this.extend (order, { 'id': id });
+            let extended = this.extend (order, { id: id });
             result.push (this.parseOrder (extended, market));
         }
         return this.filterBySinceLimit (result, since, limit);
@@ -520,10 +520,10 @@ module.exports = class liqui extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': parseInt (id),
+            order_id: parseInt (id),
         }, params));
         id = id.toString ();
-        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        let newOrder = this.parseOrder (this.extend ({ id: id }, response['return'][id]));
         let oldOrder = (id in this.orders) ? this.orders[id] : {};
         this.orders[id] = this.extend (oldOrder, newOrder);
         return this.orders[id];
@@ -553,10 +553,10 @@ module.exports = class liqui extends Exchange {
                 // cached order is absent from the list of open orders -> mark the cached order as closed
                 if (cachedOrder['status'] === 'open') {
                     cachedOrder = this.extend (cachedOrder, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
+                        status: 'closed', // likewise it might have been canceled externally (unnoticed by "us")
+                        cost: undefined,
+                        filled: cachedOrder['amount'],
+                        remaining: 0.0,
                     });
                     if (typeof cachedOrder['cost'] === 'undefined') {
                         if (typeof cachedOrder['filled'] !== 'undefined') {
@@ -606,14 +606,14 @@ module.exports = class liqui extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {
-            // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
-            // 'count': 1000, // the number of trades for display numerical, default = 1000
-            // 'from_id': trade ID, from which the display starts numerical 0
-            // 'end_id': trade ID on which the display ends numerical ∞
-            // 'order': 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
-            // 'since': 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
-            // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
-            // 'pair': 'eth_btc', // default = all markets
+            // from: 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
+            // count: 1000, // the number of trades for display numerical, default = 1000
+            // from_id: trade ID, from which the display starts numerical 0
+            // end_id: trade ID on which the display ends numerical ∞
+            // order: 'ASC', // sorting, default = DESC (test result: liqui ignores this field, most recent trade always goes last)
+            // since: 1234567890, // UTC start time, default = 0 (test result: liqui ignores this field)
+            // end: 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
+            // pair: 'eth_btc', // default = all markets
         };
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
@@ -637,13 +637,13 @@ module.exports = class liqui extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
-            'amount': parseFloat (amount),
-            'address': address,
+            coinName: currency,
+            amount: parseFloat (amount),
+            address,
         }, params));
         return {
-            'info': response,
-            'id': response['return']['tId'],
+            info: response,
+            id: response['return']['tId'],
         };
     }
 
@@ -662,14 +662,14 @@ module.exports = class liqui extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
-                'nonce': nonce,
-                'method': path,
+                nonce,
+                method: path,
             }, query));
             let signature = this.signBodyWithSecret (body);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': signature,
+                Key: this.apiKey,
+                Sign: signature,
             };
         } else if (api === 'public') {
             url += this.getVersionString () + '/' + this.implodeParams (path, params);
@@ -691,7 +691,7 @@ module.exports = class liqui extends Exchange {
                 }
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

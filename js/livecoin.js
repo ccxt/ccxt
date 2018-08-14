@@ -10,32 +10,32 @@ const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNot
 module.exports = class livecoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'livecoin',
-            'name': 'LiveCoin',
-            'countries': [ 'US', 'UK', 'RU' ],
-            'rateLimit': 1000,
-            'userAgent': this.userAgents['chrome'],
-            'has': {
-                'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchTickers': true,
-                'fetchCurrencies': true,
-                'fetchTradingFees': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'withdraw': true,
+            id: 'livecoin',
+            name: 'LiveCoin',
+            countries: ['US', 'UK', 'RU'],
+            rateLimit: 1000,
+            userAgent: this.userAgents['chrome'],
+            has: {
+                fetchDepositAddress: true,
+                CORS: false,
+                fetchTickers: true,
+                fetchCurrencies: true,
+                fetchTradingFees: true,
+                fetchOrders: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                withdraw: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
-                'api': 'https://api.livecoin.net',
-                'www': 'https://www.livecoin.net',
-                'doc': 'https://www.livecoin.net/api?lang=en',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg',
+                api: 'https://api.livecoin.net',
+                www: 'https://www.livecoin.net',
+                doc: 'https://www.livecoin.net/api?lang=en',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'exchange/all/order_book',
                         'exchange/last_trades',
                         'exchange/maxbid_minask',
@@ -43,10 +43,10 @@ module.exports = class livecoin extends Exchange {
                         'exchange/restrictions',
                         'exchange/ticker', // omit params to get all tickers at once
                         'info/coinInfo',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'exchange/client_orders',
                         'exchange/order',
                         'exchange/trades',
@@ -57,8 +57,8 @@ module.exports = class livecoin extends Exchange {
                         'payment/get/address',
                         'payment/history/size',
                         'payment/history/transactions',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'exchange/buylimit',
                         'exchange/buymarket',
                         'exchange/cancellimit',
@@ -73,34 +73,34 @@ module.exports = class livecoin extends Exchange {
                         'payment/voucher/amount',
                         'payment/voucher/make',
                         'payment/voucher/redeem',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.18 / 100,
-                    'taker': 0.18 / 100,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.18 / 100,
+                    taker: 0.18 / 100,
                 },
             },
-            'commonCurrencies': {
-                'BTCH': 'Bithash',
-                'CPC': 'CapriCoin',
-                'CRC': 'CryCash',
-                'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
-                'eETT': 'EETT',
-                'FirstBlood': '1ST',
-                'FORTYTWO': '42',
-                'ORE': 'Orectic',
-                'RUR': 'RUB',
-                'SCT': 'SpaceCoin',
-                'TPI': 'ThaneCoin',
-                'wETT': 'WETT',
-                'XBT': 'Bricktox',
+            commonCurrencies: {
+                BTCH: 'Bithash',
+                CPC: 'CapriCoin',
+                CRC: 'CryCash',
+                EDR: 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
+                eETT: 'EETT',
+                FirstBlood: '1ST',
+                FORTYTWO: '42',
+                ORE: 'Orectic',
+                RUR: 'RUB',
+                SCT: 'SpaceCoin',
+                TPI: 'ThaneCoin',
+                wETT: 'WETT',
+                XBT: 'Bricktox',
             },
-            'exceptions': {
-                '1': ExchangeError,
+            exceptions: {
+                1: ExchangeError,
                 '10': AuthenticationError,
                 '100': ExchangeError, // invalid parameters
                 '101': AuthenticationError,
@@ -110,7 +110,7 @@ module.exports = class livecoin extends Exchange {
                 '105': InvalidOrder, // unable to block funds
                 '11': AuthenticationError,
                 '12': AuthenticationError,
-                '2': AuthenticationError, // "User not found"
+                2: AuthenticationError, // "User not found"
                 '20': AuthenticationError,
                 '30': AuthenticationError,
                 '31': NotSupported,
@@ -130,19 +130,19 @@ module.exports = class livecoin extends Exchange {
             let market = markets[p];
             let id = market['symbol'];
             let symbol = id;
-            let [ baseId, quoteId ] = symbol.split ('/');
+            let [baseId, quoteId] = symbol.split ('/');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
-                'price': 5,
-                'amount': 8,
-                'cost': 8,
+                price: 5,
+                amount: 8,
+                cost: 8,
             };
             let limits = {
-                'amount': {
-                    'min': Math.pow (10, -precision['amount']),
-                    'max': Math.pow (10, precision['amount']),
+                amount: {
+                    min: Math.pow (10, -precision['amount']),
+                    max: Math.pow (10, precision['amount']),
                 },
             };
             if (coinRestrictions) {
@@ -150,20 +150,20 @@ module.exports = class livecoin extends Exchange {
                 limits['amount']['min'] = this.safeFloat (coinRestrictions, 'minLimitQuantity', limits['amount']['min']);
             }
             limits['price'] = {
-                'min': Math.pow (10, -precision['price']),
-                'max': Math.pow (10, precision['price']),
+                min: Math.pow (10, -precision['price']),
+                max: Math.pow (10, precision['price']),
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits,
+                info: market,
             });
         }
         return result;
@@ -183,33 +183,33 @@ module.exports = class livecoin extends Exchange {
             let precision = 8; // default precision, todo: fix "magic constants"
             let active = (currency['walletStatus'] === 'normal');
             result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': currency['name'],
-                'active': active,
-                'fee': currency['withdrawFee'], // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': currency['minOrderAmount'],
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                info: currency,
+                name: currency['name'],
+                active,
+                fee: currency['withdrawFee'], // todo: redesign
+                precision,
+                limits: {
+                    amount: {
+                        min: currency['minOrderAmount'],
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': currency['minOrderAmount'],
-                        'max': undefined,
+                    cost: {
+                        min: currency['minOrderAmount'],
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': currency['minWithdrawAmount'],
-                        'max': Math.pow (10, precision),
+                    withdraw: {
+                        min: currency['minWithdrawAmount'],
+                        max: Math.pow (10, precision),
                     },
-                    'deposit': {
-                        'min': currency['minDepositAmount'],
-                        'max': undefined,
+                    deposit: {
+                        min: currency['minDepositAmount'],
+                        max: undefined,
                     },
                 },
             };
@@ -221,30 +221,30 @@ module.exports = class livecoin extends Exchange {
     appendFiatCurrencies (result) {
         let precision = 8;
         let defaults = {
-            'info': undefined,
-            'active': true,
-            'fee': undefined,
-            'precision': precision,
-            'limits': {
-                'withdraw': { 'min': undefined, 'max': undefined },
-                'deposit': { 'min': undefined, 'max': undefined },
-                'amount': { 'min': undefined, 'max': undefined },
-                'cost': { 'min': undefined, 'max': undefined },
-                'price': {
-                    'min': Math.pow (10, -precision),
-                    'max': Math.pow (10, precision),
+            info: undefined,
+            active: true,
+            fee: undefined,
+            precision,
+            limits: {
+                withdraw: { min: undefined, max: undefined },
+                deposit: { min: undefined, max: undefined },
+                amount: { min: undefined, max: undefined },
+                cost: { min: undefined, max: undefined },
+                price: {
+                    min: Math.pow (10, -precision),
+                    max: Math.pow (10, precision),
                 },
             },
         };
         let currencies = [
-            { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
-            { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
-            // { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
-        ];
+            { id: 'USD', code: 'USD', name: 'US Dollar' },
+            { id: 'EUR', code: 'EUR', name: 'Euro' },
+            // { id: 'RUR', code: 'RUB', name: 'Russian ruble' },
+       ];
         currencies.push ({
-            'id': 'RUR',
-            'code': this.commonCurrencyCode ('RUR'),
-            'name': 'Russian ruble',
+            id: 'RUR',
+            code: this.commonCurrencyCode ('RUR'),
+            name: 'Russian ruble',
         });
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -257,7 +257,7 @@ module.exports = class livecoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetPaymentBalances ();
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
@@ -282,17 +282,17 @@ module.exports = class livecoin extends Exchange {
         let response = await this.privateGetExchangeCommissionCommonInfo (params);
         const commission = this.safeFloat (response, 'commission');
         return {
-            'info': response,
-            'maker': commission,
-            'taker': commission,
+            info: response,
+            maker: commission,
+            taker: commission,
         };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'currencyPair': this.marketId (symbol),
-            'groupByPrice': 'false',
+            currencyPair: this.marketId (symbol),
+            groupByPrice: 'false',
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
@@ -311,26 +311,26 @@ module.exports = class livecoin extends Exchange {
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'best_bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'best_ask'),
-            'askVolume': undefined,
-            'vwap': this.safeFloat (ticker, 'vwap'),
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'best_bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'best_ask'),
+            askVolume: undefined,
+            vwap: this.safeFloat (ticker, 'vwap'),
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -354,7 +354,7 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetExchangeTicker (this.extend ({
-            'currencyPair': market['id'],
+            currencyPair: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -362,16 +362,16 @@ module.exports = class livecoin extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['time'] * 1000;
         return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': trade['id'].toString (),
-            'order': undefined,
-            'type': undefined,
-            'side': trade['type'].toLowerCase (),
-            'price': trade['price'],
-            'amount': trade['quantity'],
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            id: trade['id'].toString (),
+            order: undefined,
+            type: undefined,
+            side: trade['type'].toLowerCase (),
+            price: trade['price'],
+            amount: trade['quantity'],
         };
     }
 
@@ -379,7 +379,7 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetExchangeLastTrades (this.extend ({
-            'currencyPair': market['id'],
+            currencyPair: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -387,7 +387,7 @@ module.exports = class livecoin extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'orderId': id,
+            orderId: id,
         };
         let response = await this.privateGetExchangeOrder (this.extend (request, params));
         return this.parseOrder (response);
@@ -395,11 +395,11 @@ module.exports = class livecoin extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'OPEN': 'open',
-            'PARTIALLY_FILLED': 'open',
-            'EXECUTED': 'closed',
-            'CANCELLED': 'canceled',
-            'PARTIALLY_FILLED_AND_CANCELLED': 'canceled',
+            OPEN: 'open',
+            PARTIALLY_FILLED: 'open',
+            EXECUTED: 'closed',
+            CANCELLED: 'canceled',
+            PARTIALLY_FILLED_AND_CANCELLED: 'canceled',
         };
         if (status in statuses)
             return statuses[status];
@@ -467,25 +467,25 @@ module.exports = class livecoin extends Exchange {
             feeCurrency = market['quote'];
         }
         return {
-            'info': order,
-            'id': order['id'],
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': trades,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+            info: order,
+            id: order['id'],
+            timestamp,
+            datetime,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type,
+            side,
+            price,
+            amount,
+            cost,
+            filled,
+            remaining,
+            trades,
+            fee: {
+                cost: feeCost,
+                currency: feeCurrency,
+                rate: feeRate,
             },
         };
     }
@@ -516,14 +516,14 @@ module.exports = class livecoin extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let result = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'openClosed': 'OPEN',
+            openClosed: 'OPEN',
         }, params));
         return result;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let result = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'openClosed': 'CLOSED',
+            openClosed: 'CLOSED',
         }, params));
         return result;
     }
@@ -533,15 +533,15 @@ module.exports = class livecoin extends Exchange {
         let method = 'privatePostExchange' + this.capitalize (side) + type;
         let market = this.market (symbol);
         let order = {
-            'quantity': this.amountToPrecision (symbol, amount),
-            'currencyPair': market['id'],
+            quantity: this.amountToPrecision (symbol, amount),
+            currencyPair: market['id'],
         };
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         const result = {
-            'info': response,
-            'id': response['orderId'].toString (),
+            info: response,
+            id: response['orderId'].toString (),
         };
         const success = this.safeValue (response, 'success');
         if (success) {
@@ -557,8 +557,8 @@ module.exports = class livecoin extends Exchange {
         let market = this.market (symbol);
         let currencyPair = market['id'];
         let response = await this.privatePostExchangeCancellimit (this.extend ({
-            'orderId': id,
-            'currencyPair': currencyPair,
+            orderId: id,
+            currencyPair,
         }, params));
         let message = this.safeString (response, 'message', this.json (response));
         if ('success' in response) {
@@ -567,8 +567,8 @@ module.exports = class livecoin extends Exchange {
             } else if ('cancelled' in response) {
                 if (response['cancelled']) {
                     return {
-                        'status': 'canceled',
-                        'info': response,
+                        status: 'canceled',
+                        info: response,
                     };
                 } else {
                     throw new OrderNotFound (message);
@@ -587,23 +587,23 @@ module.exports = class livecoin extends Exchange {
         if (typeof tag !== 'undefined')
             wallet += '::' + tag;
         let withdrawal = {
-            'amount': this.truncate (amount, this.currencies[currency]['precision']), // throws an error when amount is too precise
-            'currency': this.commonCurrencyCode (currency),
-            'wallet': wallet,
+            amount: this.truncate (amount, this.currencies[currency]['precision']), // throws an error when amount is too precise
+            currency: this.commonCurrencyCode (currency),
+            wallet,
         };
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
         let id = this.safeInteger (response, 'id');
         if (typeof id === 'undefined')
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
         return {
-            'info': response,
-            'id': id,
+            info: response,
+            id,
         };
     }
 
     async fetchDepositAddress (currency, params = {}) {
         let request = {
-            'currency': currency,
+            currency,
         };
         let response = await this.privateGetPaymentGetAddress (this.extend (request, params));
         let address = this.safeString (response, 'wallet');
@@ -615,10 +615,10 @@ module.exports = class livecoin extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': currency,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -637,11 +637,11 @@ module.exports = class livecoin extends Exchange {
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
-                'Sign': signature.toUpperCase (),
+                Sign: signature.toUpperCase (),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

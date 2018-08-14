@@ -10,40 +10,40 @@ const { ExchangeError, NullResponse, InvalidOrder, NotSupported } = require ('./
 module.exports = class cex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'cex',
-            'name': 'CEX.IO',
-            'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-            'rateLimit': 1500,
-            'has': {
-                'CORS': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchDepositAddress': true,
+            id: 'cex',
+            name: 'CEX.IO',
+            countries: ['GB', 'EU', 'CY', 'RU'],
+            rateLimit: 1500,
+            has: {
+                CORS: true,
+                fetchTickers: true,
+                fetchOHLCV: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchDepositAddress: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1m',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
-                'api': 'https://cex.io/api',
-                'www': 'https://cex.io',
-                'doc': 'https://cex.io/cex-api',
-                'fees': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
+                api: 'https://cex.io/api',
+                www: 'https://cex.io',
+                doc: 'https://cex.io/cex-api',
+                fees: [
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
-                ],
+               ],
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
+                uid: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currency_limits/',
                         'last_price/{pair}/',
                         'last_prices/{currencies}/',
@@ -52,14 +52,14 @@ module.exports = class cex extends Exchange {
                         'ticker/{pair}/',
                         'tickers/{currencies}/',
                         'trade_history/{pair}/',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'convert/{pair}',
                         'price_stats/{pair}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'active_orders_status/',
                         'archived_orders/{pair}/',
                         'balance/',
@@ -76,47 +76,47 @@ module.exports = class cex extends Exchange {
                         'open_position/{pair}/',
                         'open_positions/{pair}/',
                         'place_order/{pair}/',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.16 / 100,
-                    'taker': 0.25 / 100,
+            fees: {
+                trading: {
+                    maker: 0.16 / 100,
+                    taker: 0.25 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        // 'USD': undefined,
-                        // 'EUR': undefined,
-                        // 'RUB': undefined,
-                        // 'GBP': undefined,
-                        'BTC': 0.001,
-                        'ETH': 0.01,
-                        'BCH': 0.001,
-                        'DASH': 0.01,
-                        'BTG': 0.001,
-                        'ZEC': 0.001,
-                        'XRP': 0.02,
+                funding: {
+                    withdraw: {
+                        // USD: undefined,
+                        // EUR: undefined,
+                        // RUB: undefined,
+                        // GBP: undefined,
+                        BTC: 0.001,
+                        ETH: 0.01,
+                        BCH: 0.001,
+                        DASH: 0.01,
+                        BTG: 0.001,
+                        ZEC: 0.001,
+                        XRP: 0.02,
                     },
-                    'deposit': {
-                        // 'USD': amount => amount * 0.035 + 0.25,
-                        // 'EUR': amount => amount * 0.035 + 0.24,
-                        // 'RUB': amount => amount * 0.05 + 15.57,
-                        // 'GBP': amount => amount * 0.035 + 0.2,
-                        'BTC': 0.0,
-                        'ETH': 0.0,
-                        'BCH': 0.0,
-                        'DASH': 0.0,
-                        'BTG': 0.0,
-                        'ZEC': 0.0,
-                        'XRP': 0.0,
-                        'XLM': 0.0,
+                    deposit: {
+                        // USD: amount => amount * 0.035 + 0.25,
+                        // EUR: amount => amount * 0.035 + 0.24,
+                        // RUB: amount => amount * 0.05 + 15.57,
+                        // GBP: amount => amount * 0.035 + 0.2,
+                        BTC: 0.0,
+                        ETH: 0.0,
+                        BCH: 0.0,
+                        DASH: 0.0,
+                        BTG: 0.0,
+                        ZEC: 0.0,
+                        XRP: 0.0,
+                        XLM: 0.0,
                     },
                 },
             },
-            'options': {
-                'fetchOHLCVWarning': true,
-                'createMarketBuyOrderRequiresPrice': true,
+            options: {
+                fetchOHLCVWarning: true,
+                createMarketBuyOrderRequiresPrice: true,
             },
         });
     }
@@ -128,29 +128,29 @@ module.exports = class cex extends Exchange {
             let market = markets['data']['pairs'][p];
             let id = market['symbol1'] + '/' + market['symbol2'];
             let symbol = id;
-            let [ base, quote ] = symbol.split ('/');
+            let [base, quote] = symbol.split ('/');
             result.push ({
-                'id': id,
-                'info': market,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'precision': {
-                    'price': this.precisionFromString (market['minPrice']),
-                    'amount': -Math.log10 (market['minLotSize']),
+                id,
+                info: market,
+                symbol,
+                base,
+                quote,
+                precision: {
+                    price: this.precisionFromString (market['minPrice']),
+                    amount: -Math.log10 (market['minLotSize']),
                 },
-                'limits': {
-                    'amount': {
-                        'min': market['minLotSize'],
-                        'max': market['maxLotSize'],
+                limits: {
+                    amount: {
+                        min: market['minLotSize'],
+                        max: market['maxLotSize'],
                     },
-                    'price': {
-                        'min': this.safeFloat (market, 'minPrice'),
-                        'max': this.safeFloat (market, 'maxPrice'),
+                    price: {
+                        min: this.safeFloat (market, 'minPrice'),
+                        max: this.safeFloat (market, 'maxPrice'),
                     },
-                    'cost': {
-                        'min': market['minLotSizeS2'],
-                        'max': undefined,
+                    cost: {
+                        min: market['minLotSizeS2'],
+                        max: undefined,
                     },
                 },
             });
@@ -161,17 +161,17 @@ module.exports = class cex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
-        let result = { 'info': response };
-        let ommited = [ 'username', 'timestamp' ];
+        let result = { info: response };
+        let ommited = ['username', 'timestamp'];
         let balances = this.omit (response, ommited);
         let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
             if (currency in balances) {
                 let account = {
-                    'free': this.safeFloat (balances[currency], 'available', 0.0),
-                    'used': this.safeFloat (balances[currency], 'orders', 0.0),
-                    'total': 0.0,
+                    free: this.safeFloat (balances[currency], 'available', 0.0),
+                    used: this.safeFloat (balances[currency], 'orders', 0.0),
+                    total: 0.0,
                 };
                 account['total'] = this.sum (account['free'], account['used']);
                 result[currency] = account;
@@ -183,7 +183,7 @@ module.exports = class cex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         };
         if (typeof limit !== 'undefined') {
             request['depth'] = limit;
@@ -201,7 +201,7 @@ module.exports = class cex extends Exchange {
             ohlcv[3],
             ohlcv[4],
             ohlcv[5],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -211,15 +211,15 @@ module.exports = class cex extends Exchange {
             since = this.milliseconds () - 86400000; // yesterday
         } else {
             if (this.options['fetchOHLCVWarning']) {
-                throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.");
+                throw new ExchangeError (this.id + " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ options: { fetchOHLCVWarning: false }}) to constructor params to suppress this warning message.");
             }
         }
         let ymd = this.ymd (since);
         ymd = ymd.split ('-');
         ymd = ymd.join ('');
         let request = {
-            'pair': market['id'],
-            'yyyymmdd': ymd,
+            pair: market['id'],
+            yyyymmdd: ymd,
         };
         try {
             let response = await this.publicGetOhlcvHdYyyymmddPair (this.extend (request, params));
@@ -250,26 +250,26 @@ module.exports = class cex extends Exchange {
         if (market)
             symbol = market['symbol'];
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': undefined,
-            'ask': ask,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': volume,
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: iso8601,
+            high,
+            low,
+            bid,
+            bidVolume: undefined,
+            ask,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: volume,
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -277,7 +277,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let currencies = Object.keys (this.currencies);
         let response = await this.publicGetTickersCurrencies (this.extend ({
-            'currencies': currencies.join ('/'),
+            currencies: currencies.join ('/'),
         }, params));
         let tickers = response['data'];
         let result = {};
@@ -294,7 +294,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetTickerPair (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -302,15 +302,15 @@ module.exports = class cex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['date']) * 1000;
         return {
-            'info': trade,
-            'id': trade['tid'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            info: trade,
+            id: trade['tid'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['type'],
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -318,7 +318,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradeHistoryPair (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -338,9 +338,9 @@ module.exports = class cex extends Exchange {
         }
         await this.loadMarkets ();
         let request = {
-            'pair': this.marketId (symbol),
-            'type': side,
-            'amount': amount,
+            pair: this.marketId (symbol),
+            type: side,
+            amount,
         };
         if (type === 'limit') {
             request['price'] = price;
@@ -349,14 +349,14 @@ module.exports = class cex extends Exchange {
         }
         let response = await this.privatePostPlaceOrderPair (this.extend (request, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelOrder ({ 'id': id });
+        return await this.privatePostCancelOrder ({ id: id });
     }
 
     parseOrder (order, market = undefined) {
@@ -413,40 +413,40 @@ module.exports = class cex extends Exchange {
                 if (typeof baseFeeCost === 'undefined')
                     baseFeeCost = this.safeFloat (order, baseTakerFee);
                 fee = {
-                    'currency': market['base'],
-                    'rate': feeRate,
-                    'cost': baseFeeCost,
+                    currency: market['base'],
+                    rate: feeRate,
+                    cost: baseFeeCost,
                 };
             } else if ((quoteFee in order) || (quoteTakerFee in order)) {
                 let quoteFeeCost = this.safeFloat (order, quoteFee);
                 if (typeof quoteFeeCost === 'undefined')
                     quoteFeeCost = this.safeFloat (order, quoteTakerFee);
                 fee = {
-                    'currency': market['quote'],
-                    'rate': feeRate,
-                    'cost': quoteFeeCost,
+                    currency: market['quote'],
+                    rate: feeRate,
+                    cost: quoteFeeCost,
                 };
             }
         }
         if (!cost)
             cost = price * filled;
         return {
-            'id': order['id'],
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': undefined,
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': fee,
-            'info': order,
+            id: order['id'],
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: undefined,
+            side: order['type'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee,
+            info: order,
         };
     }
 
@@ -462,7 +462,7 @@ module.exports = class cex extends Exchange {
         }
         let orders = await this[method] (this.extend (request, params));
         for (let i = 0; i < orders.length; i++) {
-            orders[i] = this.extend (orders[i], { 'status': 'open' });
+            orders[i] = this.extend (orders[i], { status: 'open' });
         }
         return this.parseOrders (orders, market, since, limit);
     }
@@ -474,7 +474,7 @@ module.exports = class cex extends Exchange {
             throw new NotSupported (this.id + ' fetchClosedOrders requires a symbol argument');
         }
         let market = this.market (symbol);
-        let request = { 'pair': market['id'] };
+        let request = { pair: market['id'] };
         let response = await this[method] (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
@@ -482,7 +482,7 @@ module.exports = class cex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetOrder (this.extend ({
-            'id': id.toString (),
+            id: id.toString (),
         }, params));
         return this.parseOrder (response);
     }
@@ -503,15 +503,15 @@ module.exports = class cex extends Exchange {
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.urlencode (this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
+                key: this.apiKey,
+                signature: signature.toUpperCase (),
+                nonce,
             }, query));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -540,16 +540,16 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'currency': currency['id'],
+            currency: currency['id'],
         };
         let response = await this.privatePostGetAddress (this.extend (request, params));
         let address = this.safeString (response, 'data');
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'info': response,
+            currency: code,
+            address,
+            tag: undefined,
+            info: response,
         };
     }
 };

@@ -10,38 +10,38 @@ const { AuthenticationError, PermissionDenied } = require ('./base/errors');
 module.exports = class deribit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'deribit',
-            'name': 'Deribit',
-            'countries': [ 'NL' ], // Netherlands
-            'version': 'v1',
-            'userAgent': undefined,
-            'rateLimit': 2000,
-            'has': {
-                'CORS': true,
-                'editOrder': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
-                'fetchTickers': false,
+            id: 'deribit',
+            name: 'Deribit',
+            countries: ['NL'], // Netherlands
+            version: 'v1',
+            userAgent: undefined,
+            rateLimit: 2000,
+            has: {
+                CORS: true,
+                editOrder: true,
+                fetchOrder: true,
+                fetchOrders: false,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchMyTrades: true,
+                fetchTickers: false,
             },
-            'timeframes': {},
-            'urls': {
-                // 'test': 'https://test.deribit.com',
-                'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api': 'https://www.deribit.com',
-                'www': 'https://www.deribit.com',
-                'doc': [
+            timeframes: {},
+            urls: {
+                // test: 'https://test.deribit.com',
+                logo: 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
+                api: 'https://www.deribit.com',
+                www: 'https://www.deribit.com',
+                doc: [
                     'https://www.deribit.com/pages/docs/api',
                     'https://github.com/deribit',
-                ],
-                'fees': 'https://www.deribit.com/pages/information/fees',
-                'referral': 'https://www.deribit.com/reg-1189.4038',
+               ],
+                fees: 'https://www.deribit.com/pages/information/fees',
+                referral: 'https://www.deribit.com/reg-1189.4038',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'test',
                         'getinstruments',
                         'index',
@@ -51,10 +51,10 @@ module.exports = class deribit extends Exchange {
                         'getsummary',
                         'stats',
                         'getannouncments',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'account',
                         'getopenorders',
                         'positions',
@@ -62,22 +62,22 @@ module.exports = class deribit extends Exchange {
                         'orderstate',
                         'tradehistory',
                         'newannouncements',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'buy',
                         'sell',
                         'edit',
                         'cancel',
                         'cancelall',
-                    ],
+                   ],
                 },
             },
-            'exceptions': {
+            exceptions: {
                 'Invalid API Key.': AuthenticationError,
                 'Access Denied': PermissionDenied,
             },
-            'options': {
-                'fetchTickerQuotes': true,
+            options: {
+                fetchTickerQuotes: true,
             },
         });
     }
@@ -94,28 +94,28 @@ module.exports = class deribit extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             result.push ({
-                'id': id,
-                'symbol': id,
-                'base': base,
-                'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
+                id,
+                symbol: id,
+                base,
+                quote,
+                active: market['isActive'],
+                precision: {
+                    amount: market['minTradeSize'],
+                    price: market['tickSize'],
                 },
-                'limits': {
-                    'amount': {
-                        'min': market['minTradeSize'],
+                limits: {
+                    amount: {
+                        min: market['minTradeSize'],
                     },
-                    'price': {
-                        'min': market['tickSize'],
+                    price: {
+                        min: market['tickSize'],
                     },
                 },
-                'type': market['kind'],
-                'spot': false,
-                'future': market['kind'] === 'future',
-                'option': market['kind'] === 'option',
-                'info': market,
+                type: market['kind'],
+                spot: false,
+                future: market['kind'] === 'future',
+                option: market['kind'] === 'option',
+                info: market,
             });
         }
         return result;
@@ -124,10 +124,10 @@ module.exports = class deribit extends Exchange {
     async fetchBalance (params = {}) {
         let account = await this.privateGetAccount ();
         let result = {
-            'BTC': {
-                'free': account['result']['availableFunds'],
-                'used': account['result']['maintenanceMargin'],
-                'total': account['result']['equity'],
+            BTC: {
+                free: account['result']['availableFunds'],
+                used: account['result']['maintenanceMargin'],
+                total: account['result']['equity'],
             },
         };
         return this.parseBalance (result);
@@ -136,10 +136,10 @@ module.exports = class deribit extends Exchange {
     async fetchDepositAddress (currency, params = {}) {
         let account = await this.privateGetAccount ();
         return {
-            'currency': 'BTC',
-            'address': account['depositAddress'],
-            'status': 'ok',
-            'info': account,
+            currency: 'BTC',
+            address: account['depositAddress'],
+            status: 'ok',
+            info: account,
         };
     }
 
@@ -149,26 +149,26 @@ module.exports = class deribit extends Exchange {
         let symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: iso8601,
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bidPrice'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'askPrice'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: undefined,
+            quoteVolume: this.safeFloat (ticker, 'volume'),
+            info: ticker,
         };
     }
 
@@ -176,7 +176,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetsummary (this.extend ({
-            'instrument': market['id'],
+            instrument: market['id'],
         }, params));
         return this.parseTicker (response['result'], market);
     }
@@ -188,16 +188,16 @@ module.exports = class deribit extends Exchange {
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
         return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': trade['direction'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            info: trade,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            order: undefined,
+            type: undefined,
+            side: trade['direction'],
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'quantity'),
         };
     }
 
@@ -205,7 +205,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'instrument': market['id'],
+            instrument: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit'] = limit;
@@ -219,19 +219,19 @@ module.exports = class deribit extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetGetorderbook ({ 'instrument': market['id'] });
+        let response = await this.publicGetGetorderbook ({ instrument: market['id'] });
         let timestamp = parseInt (response['usOut'] / 1000);
         let orderbook = this.parseOrderBook (response['result'], timestamp, 'bids', 'asks', 'price', 'quantity');
         return this.extend (orderbook, {
-            'nonce': this.safeInteger (response, 'tstamp'),
+            nonce: this.safeInteger (response, 'tstamp'),
         });
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            'open': 'open',
-            'cancelled': 'canceled',
-            'filled': 'closed',
+            open: 'open',
+            cancelled: 'canceled',
+            filled: 'closed',
         };
         if (status in statuses) {
             return statuses['status'];
@@ -244,7 +244,7 @@ module.exports = class deribit extends Exchange {
         //     {
         //         "success": true,  // true or false
         //         "message": "",    // empty or text message, e.g. error message
-        //         "result": [       // list of open orders
+        //         "result": [      // list of open orders
         //         {
         //                 "orderId": 5258039,          // ID of the order
         //                 "instrument": "BTC-26MAY17", // instrument name
@@ -265,7 +265,7 @@ module.exports = class deribit extends Exchange {
         //                 "modified": 1494492913289,  // timestamp of the last db write operation, e.g. trade that doesn't change order status
         //                 "adv": false                // advanced type (false, or "usd" or "implv")
         //             }
-        //         ]
+        //        ]
         //     }
         //
         let timestamp = this.safeInteger (order, 'created');
@@ -299,40 +299,40 @@ module.exports = class deribit extends Exchange {
             feeCost = Math.abs (feeCost);
         }
         let fee = {
-            'cost': feeCost,
-            'currency': 'BTC',
+            cost: feeCost,
+            currency: 'BTC',
         };
         return {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': undefined,
+            info: order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp,
+            symbol: order['instrument'],
+            type: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            filled,
+            remaining,
+            status,
+            fee,
+            trades: undefined,
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privateGetOrderstate ({ 'orderId': id });
+        let response = await this.privateGetOrderstate ({ orderId: id });
         return this.parseOrder (response['result']);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'instrument': this.marketId (symbol),
-            'quantity': amount,
-            'type': type,
+            instrument: this.marketId (symbol),
+            quantity: amount,
+            type,
         };
         if (typeof price !== 'undefined')
             request['price'] = price;
@@ -344,7 +344,7 @@ module.exports = class deribit extends Exchange {
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'orderId': id,
+            orderId: id,
         };
         if (typeof amount !== 'undefined')
             request['quantity'] = amount;
@@ -356,7 +356,7 @@ module.exports = class deribit extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
+        let response = await this.privatePostCancel (this.extend ({ orderId: id }, params));
         return this.parseOrder (response['result']);
     }
 
@@ -364,7 +364,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'instrument': market['id'],
+            instrument: market['id'],
         };
         let response = await this.privateGetGetopenorders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
@@ -374,7 +374,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'instrument': market['id'],
+            instrument: market['id'],
         };
         let response = await this.privateGetOrderhistory (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
@@ -384,7 +384,7 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'instrument': market['id'],
+            instrument: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['count'] = limit; // default = 20
@@ -420,6 +420,6 @@ module.exports = class deribit extends Exchange {
             };
             body = this.urlencode (params);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };
