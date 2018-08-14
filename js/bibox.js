@@ -47,8 +47,9 @@ module.exports = class bibox extends Exchange {
                 doc: [
                     'https://github.com/Biboxcom/api_reference/wiki/home_en',
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
-               ],
+                ],
                 fees: 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                referral: 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             api: {
                 public: {
