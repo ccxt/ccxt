@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.120'
+const version = '1.17.121'
 
 Exchange.ccxtVersion = version
 
@@ -12614,7 +12614,7 @@ module.exports = class bitstamp extends Exchange {
             'has': {
                 'CORS': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
+                'fetchOrder': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
