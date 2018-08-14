@@ -231,6 +231,22 @@ module.exports = class kkex extends Exchange {
         return this.parseOrderBook (response);
     }
 
+    parseOrderBook (orderbook) {
+        let keys = Object.keys (orderbook);
+        for (let i = 0; i < keys.length; i++) {
+            let key = keys[i];
+            let val = orderbook[key];
+            if (key !== 'bids' && key !== 'asks') {
+                continue;
+            }
+            for (let j = 0; j < val.length; j++) {
+                val[j][0] = this.safeFloat (val[j], 0);
+                val[j][1] = this.safeFloat (val[j], 1);
+            }
+        }
+        return orderbook;
+    }
+
     parseTrade (trade, market = undefined) {
         let timestamp = this.safeInteger (trade, 'date_ms');
         let datetime = this.iso8601 (timestamp);
