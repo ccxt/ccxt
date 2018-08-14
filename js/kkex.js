@@ -386,7 +386,7 @@ module.exports = class kkex extends Exchange {
             'average': average,
             'type': 'limit',
             'side': side,
-            'price': order['price'],
+            'price': this.safeFloat (order, 'price'),
             'cost': cost,
             'amount': amount,
             'filled': filled,
