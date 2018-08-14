@@ -28,7 +28,7 @@ The structure of the library can be outlined as follows:
     +=============================================================+
     │                              .                              |
     |                     Custom Exchange API                     |
-    |                      (Derived Classes)                      |
+    |         (Derived Classes And Their Implicit Methods)        |
     │                              .                              |
     |       publicGet...           .          privateGet...       |
     |       publicPost...          .         privatePost...       |
