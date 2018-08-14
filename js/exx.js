@@ -10,82 +10,82 @@ const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('.
 module.exports = class exx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'exx',
-            'name': 'EXX',
-            'countries': [ 'CN' ],
-            'rateLimit': 1000 / 10,
-            'userAgent': this.userAgents['chrome'],
-            'has': {
-                'fetchOrder': true,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
+            id: 'exx',
+            name: 'EXX',
+            countries: ['CN'],
+            rateLimit: 1000 / 10,
+            userAgent: this.userAgents['chrome'],
+            has: {
+                fetchOrder: true,
+                fetchTickers: true,
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
-                'api': {
-                    'public': 'https://api.exx.com/data/v1',
-                    'private': 'https://trade.exx.com/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/37770292-fbf613d0-2de4-11e8-9f79-f2dc451b8ccb.jpg',
+                api: {
+                    public: 'https://api.exx.com/data/v1',
+                    private: 'https://trade.exx.com/api',
                 },
-                'www': 'https://www.exx.com/',
-                'doc': 'https://www.exx.com/help/restApi',
-                'fees': 'https://www.exx.com/help/rate',
-                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
+                www: 'https://www.exx.com/',
+                doc: 'https://www.exx.com/help/restApi',
+                fees: 'https://www.exx.com/help/rate',
+                referral: 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'markets',
                         'tickers',
                         'ticker',
                         'depth',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'order',
                         'cancel',
                         'getOrder',
                         'getOpenOrders',
                         'getBalance',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+            fees: {
+                trading: {
+                    maker: 0.1 / 100,
+                    taker: 0.1 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BCC': 0.0003,
-                        'BCD': 0.0,
-                        'BOT': 10.0,
-                        'BTC': 0.001,
-                        'BTG': 0.0,
-                        'BTM': 25.0,
-                        'BTS': 3.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETH': 0.01,
-                        'ETP': 0.012,
-                        'HPY': 0.0,
-                        'HSR': 0.001,
-                        'INK': 20.0,
-                        'LTC': 0.005,
-                        'MCO': 0.6,
-                        'MONA': 0.01,
-                        'QASH': 5.0,
-                        'QCASH': 5.0,
-                        'QTUM': 0.01,
-                        'USDT': 5.0,
+                funding: {
+                    withdraw: {
+                        BCC: 0.0003,
+                        BCD: 0.0,
+                        BOT: 10.0,
+                        BTC: 0.001,
+                        BTG: 0.0,
+                        BTM: 25.0,
+                        BTS: 3.0,
+                        EOS: 1.0,
+                        ETC: 0.01,
+                        ETH: 0.01,
+                        ETP: 0.012,
+                        HPY: 0.0,
+                        HSR: 0.001,
+                        INK: 20.0,
+                        LTC: 0.005,
+                        MCO: 0.6,
+                        MONA: 0.01,
+                        QASH: 5.0,
+                        QCASH: 5.0,
+                        QTUM: 0.01,
+                        USDT: 5.0,
                     },
                 },
             },
-            'commonCurrencies': {
-                'TV': 'TIV', // Ti-Value
+            commonCurrencies: {
+                TV: 'TIV', // Ti-Value
             },
-            'exceptions': {
+            exceptions: {
                 '103': AuthenticationError,
             },
         });
@@ -98,41 +98,41 @@ module.exports = class exx extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            let [baseId, quoteId] = id.split ('_');
             let upper = id.toUpperCase ();
-            let [ base, quote ] = upper.split ('_');
+            let [base, quote] = upper.split ('_');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let active = market['isOpen'] === true;
             let precision = {
-                'amount': parseInt (market['amountScale']),
-                'price': parseInt (market['priceScale']),
+                amount: parseInt (market['amountScale']),
+                price: parseInt (market['priceScale']),
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: Math.pow (10, precision['amount']),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             });
         }
         return result;
@@ -144,26 +144,26 @@ module.exports = class exx extends Exchange {
         ticker = ticker['ticker'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'riseRate'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'riseRate'),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -171,7 +171,7 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetTicker (this.extend ({
-            'currency': market['id'],
+            currency: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -189,8 +189,8 @@ module.exports = class exx extends Exchange {
             let market = this.marketsById[id];
             let symbol = market['symbol'];
             let ticker = {
-                'date': timestamp,
-                'ticker': tickers[id],
+                date: timestamp,
+                ticker: tickers[id],
             };
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -200,7 +200,7 @@ module.exports = class exx extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetDepth (this.extend ({
-            'currency': this.marketId (symbol),
+            currency: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook, orderbook['timestamp']);
     }
@@ -212,18 +212,18 @@ module.exports = class exx extends Exchange {
         let symbol = market['symbol'];
         let cost = this.costToPrecision (symbol, price * amount);
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tid'),
+            order: undefined,
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost,
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -231,7 +231,7 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetTrades (this.extend ({
-            'currency': market['id'],
+            currency: market['id'],
         }, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -239,7 +239,7 @@ module.exports = class exx extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetGetBalance (params);
-        let result = { 'info': balances };
+        let result = { info: balances };
         balances = balances['funds'];
         let currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
@@ -247,9 +247,9 @@ module.exports = class exx extends Exchange {
             let balance = balances[id];
             let currency = this.commonCurrencyCode (id);
             let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['freeze']),
-                'total': parseFloat (balance['total']),
+                free: parseFloat (balance['balance']),
+                used: parseFloat (balance['freeze']),
+                total: parseFloat (balance['total']),
             };
             result[currency] = account;
         }
@@ -275,27 +275,27 @@ module.exports = class exx extends Exchange {
         let fee = undefined;
         if ('fees' in order) {
             fee = {
-                'cost': this.safeFloat (order, 'fees'),
-                'currency': market['quote'],
+                cost: this.safeFloat (order, 'fees'),
+                currency: market['quote'],
             };
         }
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': 'open',
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': fee,
-            'info': order,
+            id: this.safeString (order, 'id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status: 'open',
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee,
+            info: order,
         };
     }
 
@@ -303,19 +303,19 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrder (this.extend ({
-            'currency': market['id'],
-            'type': side,
-            'price': price,
-            'amount': amount,
+            currency: market['id'],
+            type: side,
+            price,
+            amount,
         }, params));
         let id = response['id'];
         let order = this.parseOrder ({
-            'id': id,
-            'trade_date': this.milliseconds (),
-            'total_amount': amount,
-            'price': price,
-            'type': side,
-            'info': response,
+            id,
+            trade_date: this.milliseconds (),
+            total_amount,
+            price,
+            type: side,
+            info: response,
         }, market);
         this.orders[id] = order;
         return order;
@@ -325,8 +325,8 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let result = await this.privateGetCancel (this.extend ({
-            'id': id,
-            'currency': market['id'],
+            id,
+            currency: market['id'],
         }, params));
         return result;
     }
@@ -335,8 +335,8 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = await this.privateGetGetOrder (this.extend ({
-            'id': id,
-            'currency': market['id'],
+            id,
+            currency: market['id'],
         }, params));
         return this.parseOrder (order, market);
     }
@@ -345,7 +345,7 @@ module.exports = class exx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orders = await this.privateGetOpenOrders (this.extend ({
-            'currency': market['id'],
+            currency: market['id'],
         }, params));
         return this.parseOrders (orders, market, since, limit);
     }
@@ -362,8 +362,8 @@ module.exports = class exx extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.keysort (this.extend ({
-                'accesskey': this.apiKey,
-                'nonce': this.nonce (),
+                accesskey: this.apiKey,
+                nonce: this.nonce (),
             }, params)));
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
             url += '?' + query + '&signature=' + signature;
@@ -371,7 +371,7 @@ module.exports = class exx extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

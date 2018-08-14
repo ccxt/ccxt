@@ -10,63 +10,63 @@ const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, 
 module.exports = class bittrex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bittrex',
-            'name': 'Bittrex',
-            'countries': [ 'US' ],
-            'version': 'v1.1',
-            'rateLimit': 1500,
-            'certified': true,
+            id: 'bittrex',
+            name: 'Bittrex',
+            countries: ['US'],
+            version: 'v1.1',
+            rateLimit: 1500,
+            certified: true,
             // new metainfo interface
-            'has': {
-                'CORS': true,
-                'createMarketOrder': false,
-                'fetchDepositAddress': true,
-                'fetchClosedOrders': true,
-                'fetchCurrencies': true,
-                'fetchMyTrades': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchTickers': true,
-                'withdraw': true,
+            has: {
+                CORS: true,
+                createMarketOrder: false,
+                fetchDepositAddress: true,
+                fetchClosedOrders: true,
+                fetchCurrencies: true,
+                fetchMyTrades: false,
+                fetchOHLCV: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchTickers: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 'oneMin',
                 '5m': 'fiveMin',
                 '30m': 'thirtyMin',
                 '1h': 'hour',
                 '1d': 'day',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
-                'api': {
-                    'public': 'https://bittrex.com/api',
-                    'account': 'https://bittrex.com/api',
-                    'market': 'https://bittrex.com/api',
-                    'v2': 'https://bittrex.com/api/v2.0/pub',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg',
+                api: {
+                    public: 'https://bittrex.com/api',
+                    account: 'https://bittrex.com/api',
+                    market: 'https://bittrex.com/api',
+                    v2: 'https://bittrex.com/api/v2.0/pub',
                 },
-                'www': 'https://bittrex.com',
-                'doc': [
+                www: 'https://bittrex.com',
+                doc: [
                     'https://bittrex.com/Home/Api',
                     'https://www.npmjs.org/package/node.bittrex.api',
-                ],
-                'fees': [
+               ],
+                fees: [
                     'https://bittrex.com/Fees',
                     'https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-',
-                ],
+               ],
             },
-            'api': {
-                'v2': {
-                    'get': [
+            api: {
+                v2: {
+                    get: [
                         'currencies/GetBTCPrice',
                         'market/GetTicks',
                         'market/GetLatestTick',
                         'Markets/GetMarketSummaries',
                         'market/GetLatestTick',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'currencies',
                         'markethistory',
                         'markets',
@@ -74,10 +74,10 @@ module.exports = class bittrex extends Exchange {
                         'marketsummary',
                         'orderbook',
                         'ticker',
-                    ],
+                   ],
                 },
-                'account': {
-                    'get': [
+                account: {
+                    get: [
                         'balance',
                         'balances',
                         'depositaddress',
@@ -87,82 +87,82 @@ module.exports = class bittrex extends Exchange {
                         'orderhistory',
                         'withdrawalhistory',
                         'withdraw',
-                    ],
+                   ],
                 },
-                'market': {
-                    'get': [
+                market: {
+                    get: [
                         'buylimit',
                         'buymarket',
                         'cancel',
                         'openorders',
                         'selllimit',
                         'sellmarket',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.0025,
+                    taker: 0.0025,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'VTC': 0.02,
-                        'PPC': 0.02,
-                        'FTC': 0.2,
-                        'RDD': 2,
-                        'NXT': 2,
-                        'DASH': 0.002,
-                        'POT': 0.002,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        BTC: 0.001,
+                        LTC: 0.01,
+                        DOGE: 2,
+                        VTC: 0.02,
+                        PPC: 0.02,
+                        FTC: 0.2,
+                        RDD: 2,
+                        NXT: 2,
+                        DASH: 0.002,
+                        POT: 0.002,
                     },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'VTC': 0,
-                        'PPC': 0,
-                        'FTC': 0,
-                        'RDD': 0,
-                        'NXT': 0,
-                        'DASH': 0,
-                        'POT': 0,
+                    deposit: {
+                        BTC: 0,
+                        LTC: 0,
+                        DOGE: 0,
+                        VTC: 0,
+                        PPC: 0,
+                        FTC: 0,
+                        RDD: 0,
+                        NXT: 0,
+                        DASH: 0,
+                        POT: 0,
                     },
                 },
             },
-            'exceptions': {
+            exceptions: {
                 // 'Call to Cancel was throttled. Try again in 60 seconds.': DDoSProtection,
                 // 'Call to GetBalances was throttled. Try again in 60 seconds.': DDoSProtection,
-                'APISIGN_NOT_PROVIDED': AuthenticationError,
-                'INVALID_SIGNATURE': AuthenticationError,
-                'INVALID_CURRENCY': ExchangeError,
-                'INVALID_PERMISSION': AuthenticationError,
-                'INSUFFICIENT_FUNDS': InsufficientFunds,
-                'QUANTITY_NOT_PROVIDED': InvalidOrder,
-                'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': OrderNotFound,
-                'INVALID_ORDER': InvalidOrder,
-                'UUID_INVALID': OrderNotFound,
-                'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
-                'WHITELIST_VIOLATION_IP': PermissionDenied,
+                APISIGN_NOT_PROVIDED: AuthenticationError,
+                INVALID_SIGNATURE: AuthenticationError,
+                INVALID_CURRENCY: ExchangeError,
+                INVALID_PERMISSION: AuthenticationError,
+                INSUFFICIENT_FUNDS: InsufficientFunds,
+                QUANTITY_NOT_PROVIDED: InvalidOrder,
+                MIN_TRADE_REQUIREMENT_NOT_MET: InvalidOrder,
+                ORDER_NOT_OPEN: OrderNotFound,
+                INVALID_ORDER: InvalidOrder,
+                UUID_INVALID: OrderNotFound,
+                RATE_NOT_PROVIDED: InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
+                WHITELIST_VIOLATION_IP: PermissionDenied,
             },
-            'options': {
+            options: {
                 // price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
+                pricePrecisionByCode: {
+                    USD: 3,
                 },
-                'parseOrderStatus': false,
-                'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                parseOrderStatus: false,
+                hasAlreadyAuthenticatedSuccessfully: false, // a workaround for APIKEY_INVALID
             },
-            'commonCurrencies': {
-                'BITS': 'SWIFT',
-                'CPC': 'CapriCoin',
+            commonCurrencies: {
+                BITS: 'SWIFT',
+                CPC: 'CapriCoin',
             },
         });
     }
@@ -190,28 +190,28 @@ module.exports = class bittrex extends Exchange {
             if (quote in this.options['pricePrecisionByCode'])
                 pricePrecision = this.options['pricePrecisionByCode'][quote];
             let precision = {
-                'amount': 8,
-                'price': pricePrecision,
+                amount: 8,
+                price: pricePrecision,
             };
             let active = market['IsActive'] || market['IsActive'] === 'true';
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': market['MinTradeSize'],
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: market['MinTradeSize'],
+                        max: undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: undefined,
                     },
                 },
             });
@@ -223,7 +223,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let response = await this.accountGetBalances (params);
         let balances = response['result'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let indexed = this.indexBy (balances, 'Currency');
         let keys = Object.keys (indexed);
         for (let i = 0; i < keys.length; i++) {
@@ -245,20 +245,20 @@ module.exports = class bittrex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
-            'market': this.marketId (symbol),
-            'type': 'both',
+            market: this.marketId (symbol),
+            type: 'both',
         }, params));
         let orderbook = response['result'];
         if ('type' in params) {
             if (params['type'] === 'buy') {
                 orderbook = {
-                    'buy': response['result'],
-                    'sell': [],
+                    buy: response['result'],
+                    sell: [],
                 };
             } else if (params['type'] === 'sell') {
                 orderbook = {
-                    'buy': [],
-                    'sell': response['result'],
+                    buy: [],
+                    sell: response['result'],
                 };
             }
         }
@@ -288,26 +288,26 @@ module.exports = class bittrex extends Exchange {
                     percentage = (change / previous) * 100;
             }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'Bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'Ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': previous,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume'),
-            'quoteVolume': this.safeFloat (ticker, 'BaseVolume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: iso8601,
+            high: this.safeFloat (ticker, 'High'),
+            low: this.safeFloat (ticker, 'Low'),
+            bid: this.safeFloat (ticker, 'Bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'Ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: previous,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'Volume'),
+            quoteVolume: this.safeFloat (ticker, 'BaseVolume'),
+            info: ticker,
         };
     }
 
@@ -325,31 +325,31 @@ module.exports = class bittrex extends Exchange {
             let precision = 8; // default precision, todo: fix "magic constants"
             let address = this.safeValue (currency, 'BaseAddress');
             result[code] = {
-                'id': id,
-                'code': code,
-                'address': address,
-                'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                address,
+                info: currency,
+                type: currency['CoinType'],
+                name: currency['CurrencyLong'],
+                active: currency['IsActive'],
+                fee: this.safeFloat (currency, 'TxFee'), // todo: redesign
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': currency['TxFee'],
-                        'max': Math.pow (10, precision),
+                    withdraw: {
+                        min: currency['TxFee'],
+                        max: Math.pow (10, precision),
                     },
                 },
             };
@@ -382,14 +382,14 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarketsummary (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         let ticker = response['result'][0];
         return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        let timestamp = this.parse8601 (trade['TimeStamp'] + '+'00':00');
         let side = undefined;
         if (trade['OrderType'] === 'BUY') {
             side = 'buy';
@@ -400,15 +400,15 @@ module.exports = class bittrex extends Exchange {
         if ('Id' in trade)
             id = trade['Id'].toString ();
         return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
-            'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            id,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: 'limit',
+            side,
+            price: this.safeFloat (trade, 'Price'),
+            amount: this.safeFloat (trade, 'Quantity'),
         };
     }
 
@@ -416,7 +416,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         if ('result' in response) {
             if (typeof response['result'] !== 'undefined')
@@ -426,7 +426,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['T'] + '+00:00');
+        let timestamp = this.parse8601 (ohlcv['T'] + '+'00':00');
         return [
             timestamp,
             ohlcv['O'],
@@ -434,15 +434,15 @@ module.exports = class bittrex extends Exchange {
             ohlcv['L'],
             ohlcv['C'],
             ohlcv['V'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'tickInterval': this.timeframes[timeframe],
-            'marketName': market['id'],
+            tickInterval: this.timeframes[timeframe],
+            marketName: market['id'],
         };
         let response = await this.v2GetMarketGetTicks (this.extend (request, params));
         if ('result' in response) {
@@ -472,21 +472,21 @@ module.exports = class bittrex extends Exchange {
         let market = this.market (symbol);
         let method = 'marketGet' + this.capitalize (side) + type;
         let order = {
-            'market': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
-            'rate': this.priceToPrecision (symbol, price),
+            market: market['id'],
+            quantity: this.amountToPrecision (symbol, amount),
+            rate: this.priceToPrecision (symbol, price),
         };
         // if (type == 'limit')
         //     order['rate'] = this.priceToPrecision (symbol, price);
         let response = await this[method] (this.extend (order, params));
         let orderIdField = this.getOrderIdField ();
         let result = {
-            'info': response,
-            'id': response['result'][orderIdField],
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'status': 'open',
+            info: response,
+            id: response['result'][orderIdField],
+            symbol,
+            type,
+            side,
+            status: 'open',
         };
         return result;
     }
@@ -502,12 +502,12 @@ module.exports = class bittrex extends Exchange {
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
         return this.extend (this.parseOrder (response), {
-            'status': 'canceled',
+            status: 'canceled',
         });
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
+        let [quote, base] = id.split ('-');
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
@@ -552,14 +552,14 @@ module.exports = class bittrex extends Exchange {
         }
         let timestamp = undefined;
         if ('Opened' in order)
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
+            timestamp = this.parse8601 (order['Opened'] + '+'00':00');
         if ('Created' in order)
-            timestamp = this.parse8601 (order['Created'] + '+00:00');
+            timestamp = this.parse8601 (order['Created'] + '+'00':00');
         let lastTradeTimestamp = undefined;
         if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+'00':00');
         if (('Closed' in order) && (typeof order['Closed'] !== 'undefined'))
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+'00':00');
         if (typeof timestamp === 'undefined')
             timestamp = lastTradeTimestamp;
         let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
@@ -572,7 +572,7 @@ module.exports = class bittrex extends Exchange {
         }
         if (commission) {
             fee = {
-                'cost': parseFloat (order[commission]),
+                cost: parseFloat (order[commission]),
             };
             if (typeof market !== 'undefined') {
                 fee['currency'] = market['quote'];
@@ -606,22 +606,22 @@ module.exports = class bittrex extends Exchange {
         if (typeof id === 'undefined')
             id = this.safeString (order, 'OrderId');
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id,
+            timestamp,
+            datetime: iso8601,
+            lastTradeTimestamp,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            cost,
+            average,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
         };
         return result;
     }
@@ -667,7 +667,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.accountGetDepositaddress (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let address = this.safeString (response['result'], 'Address');
         let message = this.safeString (response, 'message');
@@ -680,10 +680,10 @@ module.exports = class bittrex extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -692,9 +692,9 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'currency': currency['id'],
-            'quantity': amount,
-            'address': address,
+            currency: currency['id'],
+            quantity: amount,
+            address,
         };
         if (tag)
             request['paymentid'] = tag;
@@ -705,8 +705,8 @@ module.exports = class bittrex extends Exchange {
                 id = response['result']['uuid'];
         }
         return {
-            'info': response,
-            'id': id,
+            info: response,
+            id,
         };
     }
 
@@ -729,13 +729,13 @@ module.exports = class bittrex extends Exchange {
             if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
                 url += method.toLowerCase ();
             url += path + '?' + this.urlencode (this.extend ({
-                'nonce': nonce,
-                'apikey': this.apiKey,
+                nonce,
+                apikey: this.apiKey,
             }, params));
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
-            headers = { 'apisign': signature };
+            headers = { apisign: signature };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

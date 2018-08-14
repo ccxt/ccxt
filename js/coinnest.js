@@ -10,64 +10,64 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 module.exports = class coinnest extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinnest',
-            'name': 'coinnest',
-            'countries': [ 'KR' ],
-            'rateLimit': 1000,
-            'has': {
-                'fetchOpenOrders': true,
+            id: 'coinnest',
+            name: 'coinnest',
+            countries: ['KR'],
+            rateLimit: 1000,
+            has: {
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg',
-                'api': {
-                    'public': 'https://api.coinnest.co.kr/api',
-                    'private': 'https://api.coinnest.co.kr/api',
-                    'web': 'https://www.coinnest.co.kr',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg',
+                api: {
+                    public: 'https://api.coinnest.co.kr/api',
+                    private: 'https://api.coinnest.co.kr/api',
+                    web: 'https://www.coinnest.co.kr',
                 },
-                'www': 'https://www.coinnest.co.kr',
-                'doc': 'https://www.coinnest.co.kr/doc/intro.html',
-                'fees': [
+                www: 'https://www.coinnest.co.kr',
+                doc: 'https://www.coinnest.co.kr/doc/intro.html',
+                fees: [
                     'https://coinnesthelp.zendesk.com/hc/ko/articles/115002110252-%EA%B1%B0%EB%9E%98-%EC%88%98%EC%88%98%EB%A3%8C%EB%8A%94-%EC%96%BC%EB%A7%88%EC%9D%B8%EA%B0%80%EC%9A%94-',
                     'https://coinnesthelp.zendesk.com/hc/ko/articles/115002110272-%EB%B9%84%ED%8A%B8%EC%BD%94%EC%9D%B8-%EC%88%98%EC%88%98%EB%A3%8C%EB%A5%BC-%EC%84%A0%ED%83%9D%ED%95%98%EB%8A%94-%EC%9D%B4%EC%9C%A0%EA%B0%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80%EC%9A%94-',
-                ],
+               ],
             },
-            'api': {
-                'web': {
-                    'get': [
+            api: {
+                web: {
+                    get: [
                         'coin/allcoin',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'pub/ticker',
                         'pub/depth',
                         'pub/trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'account/balance',
                         'trade/add',
                         'trade/cancel',
                         'trade/fetchtrust',
                         'trade/trust',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+            fees: {
+                trading: {
+                    maker: 0.1 / 100,
+                    taker: 0.1 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': '0.002',
+                funding: {
+                    withdraw: {
+                        BTC: '0.002',
                     },
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
+            precision: {
+                amount: 8,
+                price: 8,
             },
         });
     }
@@ -112,7 +112,7 @@ module.exports = class coinnest extends Exchange {
             'qbt',
             'spc',
             'put',
-        ];
+       ];
         let result = [];
         for (let i = 0; i < coins.length; i++) {
             let baseId = coins[i];
@@ -120,14 +120,14 @@ module.exports = class coinnest extends Exchange {
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let symbol = base + '/' + quote;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'info': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                info: undefined,
             });
         }
         return result;
@@ -138,26 +138,26 @@ module.exports = class coinnest extends Exchange {
         let symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -165,7 +165,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetPubTicker (this.extend ({
-            'coin': market['baseId'],
+            coin: market['baseId'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -174,7 +174,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetPubDepth (this.extend ({
-            'coin': market['baseId'],
+            coin: market['baseId'],
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -186,18 +186,18 @@ module.exports = class coinnest extends Exchange {
         let symbol = market['symbol'];
         let cost = this.priceToPrecision (symbol, amount * price);
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
-            'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': parseFloat (cost),
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: this.safeString (trade, 'tid'),
+            order: undefined,
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost: parseFloat (cost),
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -205,7 +205,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetPubTrades (this.extend ({
-            'coin': market['baseId'],
+            coin: market['baseId'],
         }, params));
         return this.parseTrades (trades, market, since, limit);
     }
@@ -213,7 +213,7 @@ module.exports = class coinnest extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostAccountBalance (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balancKeys = Object.keys (response);
         for (let i = 0; i < balancKeys.length; i++) {
             let key = balancKeys[i];
@@ -227,9 +227,9 @@ module.exports = class coinnest extends Exchange {
             currency = this.commonCurrencyCode (currency);
             if (!(currency in result)) {
                 result[currency] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
+                    free: 0.0,
+                    used: 0.0,
+                    total: 0.0,
                 };
             }
             type = (type === 'reserved' ? 'used' : 'free');
@@ -262,22 +262,22 @@ module.exports = class coinnest extends Exchange {
             filled = amount - remaining;
         }
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': this.safeFloat (order, 'price'),
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': this.safeValue (order, 'info', order),
+            id: this.safeString (order, 'id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price: this.safeFloat (order, 'price'),
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info: this.safeValue (order, 'info', order),
         };
     }
 
@@ -285,19 +285,19 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeAdd (this.extend ({
-            'coin': market['baseId'],
-            'type': side,
-            'number': amount,
-            'price': price,
+            coin: market['baseId'],
+            type: side,
+            number: amount,
+            price,
         }, params));
         let order = {
-            'id': response['id'],
-            'time': this.seconds (),
-            'type': side,
-            'price': price,
-            'amount_total': amount,
-            'amount_over': amount,
-            'info': response,
+            id: response['id'],
+            time: this.seconds (),
+            type: side,
+            price,
+            amount_total: amount,
+            amount_over: amount,
+            info: response,
         };
         let id = order['id'];
         this.orders[id] = this.parseOrder (order, market);
@@ -308,8 +308,8 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeCancel (this.extend ({
-            'id': id,
-            'coin': market['baseId'],
+            id,
+            coin: market['baseId'],
         }, params));
         return response;
     }
@@ -318,8 +318,8 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = await this.privatePostTradeFetchtrust (this.extend ({
-            'id': id,
-            'coin': market['baseId'],
+            id,
+            coin: market['baseId'],
         }, params));
         return this.parseOrder (order, market);
     }
@@ -328,7 +328,7 @@ module.exports = class coinnest extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'coin': market['baseId'],
+            coin: market['baseId'],
         };
         if (typeof since !== 'undefined')
             request['since'] = parseInt (since / 1000);
@@ -340,7 +340,7 @@ module.exports = class coinnest extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'type': '1',
+            type: '1',
         }, params));
     }
 
@@ -354,14 +354,14 @@ module.exports = class coinnest extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend (params, {
-                'key': this.apiKey,
-                'nonce': this.nonce (),
+                key: this.apiKey,
+                nonce: this.nonce (),
             }));
             let secret = this.hash (this.secret);
             body += '&signature=' + this.hmac (this.encode (body), this.encode (secret));
             headers = { 'Content-type': 'application/x-www-form-urlencoded' };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

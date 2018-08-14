@@ -10,34 +10,34 @@ const { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound } = requ
 module.exports = class bitso extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitso',
-            'name': 'Bitso',
-            'countries': [ 'MX' ], // Mexico
-            'rateLimit': 2000, // 30 requests per minute
-            'version': 'v3',
-            'has': {
-                'CORS': true,
-                'fetchMyTrades': true,
-                'fetchOpenOrders': true,
+            id: 'bitso',
+            name: 'Bitso',
+            countries: ['MX'], // Mexico
+            rateLimit: 2000, // 30 requests per minute
+            version: 'v3',
+            has: {
+                CORS: true,
+                fetchMyTrades: true,
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
-                'api': 'https://api.bitso.com',
-                'www': 'https://bitso.com',
-                'doc': 'https://bitso.com/api_info',
-                'fees': 'https://bitso.com/fees?l=es',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
+                api: 'https://api.bitso.com',
+                www: 'https://bitso.com',
+                doc: 'https://bitso.com/api_info',
+                fees: 'https://bitso.com/fees?l=es',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'available_books',
                         'ticker',
                         'order_book',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'account_status',
                         'balance',
                         'fees',
@@ -58,8 +58,8 @@ module.exports = class bitso extends Exchange {
                         'user_trades/{tid}',
                         'withdrawals/',
                         'withdrawals/{wid}',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'bitcoin_withdrawal',
                         'debit_card_withdrawal',
                         'ether_withdrawal',
@@ -74,14 +74,14 @@ module.exports = class bitso extends Exchange {
                         'ripple_withdrawal',
                         'bcash_withdrawal',
                         'litecoin_withdrawal',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'orders/{oid}',
                         'orders/all',
-                    ],
+                   ],
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '0201': AuthenticationError, // Invalid Nonce or Invalid Credentials
                 '104': InvalidNonce, // Cannot perform request - nonce must be higher than 1520307203724237
             },
@@ -95,33 +95,33 @@ module.exports = class bitso extends Exchange {
             let market = markets['payload'][i];
             let id = market['book'];
             let symbol = id.toUpperCase ().replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
+            let [base, quote] = symbol.split ('/');
             let limits = {
-                'amount': {
-                    'min': this.safeFloat (market, 'minimum_amount'),
-                    'max': this.safeFloat (market, 'maximum_amount'),
+                amount: {
+                    min: this.safeFloat (market, 'minimum_amount'),
+                    max: this.safeFloat (market, 'maximum_amount'),
                 },
-                'price': {
-                    'min': this.safeFloat (market, 'minimum_price'),
-                    'max': this.safeFloat (market, 'maximum_price'),
+                price: {
+                    min: this.safeFloat (market, 'minimum_price'),
+                    max: this.safeFloat (market, 'maximum_price'),
                 },
-                'cost': {
-                    'min': this.safeFloat (market, 'minimum_value'),
-                    'max': this.safeFloat (market, 'maximum_value'),
+                cost: {
+                    min: this.safeFloat (market, 'minimum_value'),
+                    max: this.safeFloat (market, 'maximum_value'),
                 },
             };
             let precision = {
-                'amount': this.precisionFromString (market['minimum_amount']),
-                'price': this.precisionFromString (market['minimum_price']),
+                amount: this.precisionFromString (market['minimum_amount']),
+                price: this.precisionFromString (market['minimum_price']),
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-                'limits': limits,
-                'precision': precision,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
+                limits,
+                precision,
             });
         }
         return result;
@@ -131,14 +131,14 @@ module.exports = class bitso extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetBalance ();
         let balances = response['payload']['balances'];
-        let result = { 'info': response };
+        let result = { info: response };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'].toUpperCase ();
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['locked']),
-                'total': parseFloat (balance['total']),
+                free: parseFloat (balance['available']),
+                used: parseFloat (balance['locked']),
+                total: parseFloat (balance['total']),
             };
             result[currency] = account;
         }
@@ -148,7 +148,7 @@ module.exports = class bitso extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderBook (this.extend ({
-            'book': this.marketId (symbol),
+            book: this.marketId (symbol),
         }, params));
         let orderbook = response['payload'];
         let timestamp = this.parse8601 (orderbook['updated_at']);
@@ -158,7 +158,7 @@ module.exports = class bitso extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetTicker (this.extend ({
-            'book': this.marketId (symbol),
+            book: this.marketId (symbol),
         }, params));
         let ticker = response['payload'];
         let timestamp = this.parse8601 (ticker['created_at']);
@@ -167,26 +167,26 @@ module.exports = class bitso extends Exchange {
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': vwap,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -217,8 +217,8 @@ module.exports = class bitso extends Exchange {
                     feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             }
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
+                cost: feeCost,
+                currency: feeCurrency,
             };
         }
         let cost = this.safeFloat (trade, 'minor');
@@ -227,18 +227,18 @@ module.exports = class bitso extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let orderId = this.safeString (trade, 'oid');
         return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            id: trade['tid'].toString (),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            order: orderId,
+            type: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -246,7 +246,7 @@ module.exports = class bitso extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
-            'book': market['id'],
+            book: market['id'],
         }, params));
         return this.parseTrades (response['payload'], market, since, limit);
     }
@@ -265,13 +265,13 @@ module.exports = class bitso extends Exchange {
         // convert it to an integer unconditionally
         if (markerInParams)
             params = this.extend (params, {
-                'marker': parseInt (params['marker']),
+                marker: parseInt (params['marker']),
             });
         let request = {
-            'book': market['id'],
-            'limit': limit, // default = 25, max = 100
-            // 'sort': 'desc', // default = desc
-            // 'marker': id, // integer id to start from
+            book: market['id'],
+            limit, // default = 25, max = 100
+            // sort: 'desc', // default = desc
+            // marker: id, // integer id to start from
         };
         let response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['payload'], market, since, limit);
@@ -280,29 +280,29 @@ module.exports = class bitso extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'book': this.marketId (symbol),
-            'side': side,
-            'type': type,
-            'major': this.amountToPrecision (symbol, amount),
+            book: this.marketId (symbol),
+            side,
+            type,
+            major: this.amountToPrecision (symbol, amount),
         };
         if (type === 'limit')
             order['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePostOrders (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['payload']['oid'],
+            info: response,
+            id: response['payload']['oid'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateDeleteOrdersOid ({ 'oid': id });
+        return await this.privateDeleteOrdersOid ({ oid: id });
     }
 
     parseOrderStatus (status) {
         let statuses = {
             'partial-fill': 'open', // this is a common substitution in ccxt
-            'completed': 'closed',
+            completed: 'closed',
         };
         if (status in statuses)
             return statuses[status];
@@ -326,21 +326,21 @@ module.exports = class bitso extends Exchange {
         let remaining = this.safeFloat (order, 'unfilled_amount');
         let filled = amount - remaining;
         let result = {
-            'info': order,
-            'id': order['oid'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': orderType,
-            'side': side,
-            'price': this.safeFloat (order, 'price'),
-            'amount': amount,
-            'cost': undefined,
-            'remaining': remaining,
-            'filled': filled,
-            'status': status,
-            'fee': undefined,
+            info: order,
+            id: order['oid'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: orderType,
+            side,
+            price: this.safeFloat (order, 'price'),
+            amount,
+            cost: undefined,
+            remaining,
+            filled,
+            status,
+            fee: undefined,
         };
         return result;
     }
@@ -359,13 +359,13 @@ module.exports = class bitso extends Exchange {
         // convert it to an integer unconditionally
         if (markerInParams)
             params = this.extend (params, {
-                'marker': parseInt (params['marker']),
+                marker: parseInt (params['marker']),
             });
         let request = {
-            'book': market['id'],
-            'limit': limit, // default = 25, max = 100
-            // 'sort': 'desc', // default = desc
-            // 'marker': id, // integer id to start from
+            book: market['id'],
+            limit, // default = 25, max = 100
+            // sort: 'desc', // default = desc
+            // marker: id, // integer id to start from
         };
         let response = await this.privateGetOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['payload'], market, since, limit);
@@ -376,7 +376,7 @@ module.exports = class bitso extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrdersOid ({
-            'oid': id,
+            oid,
         });
         let numOrders = response['payload'].length;
         if (!Array.isArray (response['payload']) || (numOrders !== 1)) {
@@ -389,7 +389,7 @@ module.exports = class bitso extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrderTradesOid ({
-            'oid': id,
+            oid,
         });
         return this.parseTrades (response['payload'], market);
     }
@@ -398,7 +398,7 @@ module.exports = class bitso extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'fund_currency': currency['id'],
+            fund_currency: currency['id'],
         };
         let response = await this.privateGetFundingDestination (this.extend (request, params));
         let address = this.safeString (response['payload'], 'account_identifier');
@@ -410,10 +410,10 @@ module.exports = class bitso extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -421,26 +421,26 @@ module.exports = class bitso extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let methods = {
-            'BTC': 'Bitcoin',
-            'ETH': 'Ether',
-            'XRP': 'Ripple',
-            'BCH': 'Bcash',
-            'LTC': 'Litecoin',
+            BTC: 'Bitcoin',
+            ETH: 'Ether',
+            XRP: 'Ripple',
+            BCH: 'Bcash',
+            LTC: 'Litecoin',
         };
         let method = (code in methods) ? methods[code] : undefined;
         if (typeof method === 'undefined') {
             throw new ExchangeError (this.id + ' not valid withdraw coin: ' + code);
         }
         let request = {
-            'amount': amount,
-            'address': address,
-            'destination_tag': tag,
+            amount,
+            address,
+            destination_tag,
         };
         let classMethod = 'privatePost' + method + 'Withdrawal';
         let response = await this[classMethod] (this.extend (request, params));
         return {
-            'info': response,
-            'id': this.safeString (response['payload'], 'wid'),
+            info: response,
+            id: this.safeString (response['payload'], 'wid'),
         };
     }
 
@@ -455,7 +455,7 @@ module.exports = class bitso extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let request = [ nonce, method, endpoint ].join ('');
+            let request = [nonce, method, endpoint].join ('');
             if (method !== 'GET') {
                 if (Object.keys (query).length) {
                     body = this.json (query);
@@ -465,11 +465,11 @@ module.exports = class bitso extends Exchange {
             let signature = this.hmac (this.encode (request), this.encode (this.secret));
             let auth = this.apiKey + ':' + nonce + ':' + signature;
             headers = {
-                'Authorization': 'Bitso ' + auth,
+                Authorization: 'Bitso ' + auth,
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

@@ -10,37 +10,37 @@ const { ExchangeError, NotSupported } = require ('./base/errors');
 module.exports = class bitstamp1 extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitstamp1',
-            'name': 'Bitstamp v1',
-            'countries': [ 'GB' ],
-            'rateLimit': 1000,
-            'version': 'v1',
-            'has': {
-                'CORS': true,
+            id: 'bitstamp1',
+            name: 'Bitstamp v1',
+            countries: ['GB'],
+            rateLimit: 1000,
+            version: 'v1',
+            has: {
+                CORS: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
-                'api': 'https://www.bitstamp.net/api',
-                'www': 'https://www.bitstamp.net',
-                'doc': 'https://www.bitstamp.net/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg',
+                api: 'https://www.bitstamp.net/api',
+                www: 'https://www.bitstamp.net',
+                doc: 'https://www.bitstamp.net/api',
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
+                uid: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'ticker',
                         'ticker_hour',
                         'order_book',
                         'transactions',
                         'eur_usd',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balance',
                         'user_transactions',
                         'open_orders',
@@ -55,22 +55,22 @@ module.exports = class bitstamp1 extends Exchange {
                         'ripple_address',
                         'withdrawal_requests',
                         'bitcoin_withdrawal',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/USD': { 'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025 },
-                'BTC/EUR': { 'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
-                'EUR/USD': { 'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025 },
-                'XRP/USD': { 'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025 },
-                'XRP/EUR': { 'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
-                'XRP/BTC': { 'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025 },
-                'LTC/USD': { 'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025 },
-                'LTC/EUR': { 'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
-                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025 },
-                'ETH/USD': { 'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025 },
-                'ETH/EUR': { 'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
-                'ETH/BTC': { 'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025 },
+            markets: {
+                'BTC/USD': { id: 'btcusd', symbol: 'BTC/USD', base: 'BTC', quote: 'USD', maker: 0.0025, taker: 0.0025 },
+                'BTC/EUR': { id: 'btceur', symbol: 'BTC/EUR', base: 'BTC', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
+                'EUR/USD': { id: 'eurusd', symbol: 'EUR/USD', base: 'EUR', quote: 'USD', maker: 0.0025, taker: 0.0025 },
+                'XRP/USD': { id: 'xrpusd', symbol: 'XRP/USD', base: 'XRP', quote: 'USD', maker: 0.0025, taker: 0.0025 },
+                'XRP/EUR': { id: 'xrpeur', symbol: 'XRP/EUR', base: 'XRP', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
+                'XRP/BTC': { id: 'xrpbtc', symbol: 'XRP/BTC', base: 'XRP', quote: 'BTC', maker: 0.0025, taker: 0.0025 },
+                'LTC/USD': { id: 'ltcusd', symbol: 'LTC/USD', base: 'LTC', quote: 'USD', maker: 0.0025, taker: 0.0025 },
+                'LTC/EUR': { id: 'ltceur', symbol: 'LTC/EUR', base: 'LTC', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
+                'LTC/BTC': { id: 'ltcbtc', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC', maker: 0.0025, taker: 0.0025 },
+                'ETH/USD': { id: 'ethusd', symbol: 'ETH/USD', base: 'ETH', quote: 'USD', maker: 0.0025, taker: 0.0025 },
+                'ETH/EUR': { id: 'etheur', symbol: 'ETH/EUR', base: 'ETH', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
+                'ETH/BTC': { id: 'ethbtc', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC', maker: 0.0025, taker: 0.0025 },
             },
         });
     }
@@ -93,26 +93,26 @@ module.exports = class bitstamp1 extends Exchange {
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': vwap,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap,
+            open: this.safeFloat (ticker, 'open'),
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -133,16 +133,16 @@ module.exports = class bitstamp1 extends Exchange {
                 market = this.markets_by_id[trade['currency_pair']];
         }
         return {
-            'id': trade['tid'].toString (),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': order,
-            'type': undefined,
-            'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            id: trade['tid'].toString (),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            order,
+            type: undefined,
+            side,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -151,14 +151,14 @@ module.exports = class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
         let market = this.market (symbol);
         let response = await this.publicGetTransactions (this.extend ({
-            'time': 'minute',
+            time: 'minute',
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         let balance = await this.privatePostBalance ();
-        let result = { 'info': balance };
+        let result = { info: balance };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -182,18 +182,18 @@ module.exports = class bitstamp1 extends Exchange {
             throw new ExchangeError (this.id + ' v1 supports BTC/USD orders only');
         let method = 'privatePost' + this.capitalize (side);
         let order = {
-            'amount': amount,
-            'price': price,
+            amount,
+            price,
         };
         let response = await this[method] (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder ({ 'id': id });
+        return await this.privatePostCancelOrder ({ id: id });
     }
 
     parseOrderStatus (order) {
@@ -206,7 +206,7 @@ module.exports = class bitstamp1 extends Exchange {
 
     async fetchOrderStatus (id, symbol = undefined) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({ 'id': id });
+        let response = await this.privatePostOrderStatus ({ id: id });
         return this.parseOrderStatus (response);
     }
 
@@ -216,7 +216,7 @@ module.exports = class bitstamp1 extends Exchange {
         if (typeof symbol !== 'undefined')
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
-        let request = this.extend ({ 'id': pair }, params);
+        let request = this.extend ({ id: pair }, params);
         let response = await this.privatePostOpenOrdersId (request);
         return this.parseTrades (response, market, since, limit);
     }
@@ -237,16 +237,16 @@ module.exports = class bitstamp1 extends Exchange {
             let auth = nonce + this.uid + this.apiKey;
             let signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
             query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
+                key: this.apiKey,
+                signature: signature.toUpperCase (),
+                nonce,
             }, query);
             body = this.urlencode (query);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

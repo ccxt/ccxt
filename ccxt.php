@@ -32,9 +32,11 @@ namespace ccxt;
 
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
-spl_autoload_register (function ($class_name) {
-    $class_name = str_replace ("ccxt\\", "", $class_name);
-    $file = PATH_TO_CCXT . $class_name . '.php';
-    if (file_exists ($file))
+spl_autoload_register (function ($className) {
+    $className = str_replace ('ccxt\\', '', $className);
+    $file      = PATH_TO_CCXT . $className . '.php';
+
+    if (file_exists ($file)) {
         require_once ($file);
+    }
 });

@@ -27,13 +27,13 @@ module.exports = (exchange, trade, symbol, now) => {
         'bitfinex',
         'bitfinex2',
         'kraken', // override for kraken and possibly other exchanges as well
-    ].includes (exchange.id)
+   ].includes (exchange.id)
 
     const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
 
     const exchangesExcludedFromTimestampCheck = [
         'gdax',
-    ]
+   ]
 
     if (!exchangesExcludedFromTimestampCheck.includes (exchange.id))
         assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
@@ -44,7 +44,7 @@ module.exports = (exchange, trade, symbol, now) => {
 
     const isExchangeLackingFilteringTradesBySymbol = [
         'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
-    ].includes (exchange.id)
+   ].includes (exchange.id)
 
     if (!isExchangeLackingFilteringTradesBySymbol)
         assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)

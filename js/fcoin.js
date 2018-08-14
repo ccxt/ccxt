@@ -10,30 +10,30 @@ const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, DD
 module.exports = class fcoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'fcoin',
-            'name': 'FCoin',
-            'countries': 'CN',
-            'rateLimit': 2000,
-            'userAgent': this.userAgents['chrome39'],
-            'version': 'v2',
-            'accounts': undefined,
-            'accountsById': undefined,
-            'hostname': 'api.fcoin.com',
-            'has': {
-                'CORS': false,
-                'fetchDepositAddress': false,
-                'fetchOHCLV': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOrderBook': true,
-                'fetchOrderBooks': false,
-                'fetchTradingLimits': false,
-                'withdraw': false,
-                'fetchCurrencies': false,
+            id: 'fcoin',
+            name: 'FCoin',
+            countries: 'CN',
+            rateLimit: 2000,
+            userAgent: this.userAgents['chrome39'],
+            version: 'v2',
+            accounts: undefined,
+            accountsById: undefined,
+            hostname: 'api.fcoin.com',
+            has: {
+                CORS: false,
+                fetchDepositAddress: false,
+                fetchOHCLV: false,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOrderBook: true,
+                fetchOrderBooks: false,
+                fetchTradingLimits: false,
+                withdraw: false,
+                fetchCurrencies: false,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 'M1',
                 '3m': 'M3',
                 '5m': 'M5',
@@ -44,73 +44,73 @@ module.exports = class fcoin extends Exchange {
                 '1w': 'W1',
                 '1M': 'MN',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.fcoin.com',
-                'www': 'https://www.fcoin.com',
-                'referral': 'https://www.fcoin.com/i/Z5P7V',
-                'doc': 'https://developer.fcoin.com',
-                'fees': 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
+                api: 'https://api.fcoin.com',
+                www: 'https://www.fcoin.com',
+                referral: 'https://www.fcoin.com/i/Z5P7V',
+                doc: 'https://developer.fcoin.com',
+                fees: 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
             },
-            'api': {
-                'market': {
-                    'get': [
+            api: {
+                market: {
+                    get: [
                         'ticker/{symbol}',
                         'depth/{level}/{symbol}',
                         'trades/{symbol}',
                         'candles/{timeframe}/{symbol}',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'symbols',
                         'currencies',
                         'server-time',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'accounts/balance',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results', // check order result
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'orders',
                         'orders/{order_id}/submit-cancel', // cancel order
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.001,
-                    'taker': 0.001,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.001,
+                    taker: 0.001,
                 },
             },
-            'limits': {
-                'amount': { 'min': 0.01, 'max': 100000 },
+            limits: {
+                amount: { min: 0.01, max: 100000 },
             },
-            'options': {
-                'createMarketBuyOrderRequiresPrice': true,
-                'limits': {
-                    'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
-                    'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
-                    'ETH/USDT': { 'amount': { 'min': 0.001, 'max': 10000 }},
-                    'LTC/USDT': { 'amount': { 'min': 0.001, 'max': 40000 }},
-                    'BCH/USDT': { 'amount': { 'min': 0.001, 'max': 5000 }},
-                    'BTC/USDT': { 'amount': { 'min': 0.001, 'max': 1000 }},
-                    'ICX/ETH': { 'amount': { 'min': 0.01, 'max': 3000000 }},
-                    'OMG/ETH': { 'amount': { 'min': 0.01, 'max': 500000 }},
-                    'FT/USDT': { 'amount': { 'min': 1, 'max': 10000000 }},
-                    'ZIL/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
-                    'ZIP/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
-                    'FT/BTC': { 'amount': { 'min': 1, 'max': 10000000 }},
-                    'FT/ETH': { 'amount': { 'min': 1, 'max': 10000000 }},
+            options: {
+                createMarketBuyOrderRequiresPrice: true,
+                limits: {
+                    'BTM/USDT': { amount: { min: 0.1, max: 10000000 }},
+                    'ETC/USDT': { amount: { min: 0.001, max: 400000 }},
+                    'ETH/USDT': { amount: { min: 0.001, max: 10000 }},
+                    'LTC/USDT': { amount: { min: 0.001, max: 40000 }},
+                    'BCH/USDT': { amount: { min: 0.001, max: 5000 }},
+                    'BTC/USDT': { amount: { min: 0.001, max: 1000 }},
+                    'ICX/ETH': { amount: { min: 0.01, max: 3000000 }},
+                    'OMG/ETH': { amount: { min: 0.01, max: 500000 }},
+                    'FT/USDT': { amount: { min: 1, max: 10000000 }},
+                    'ZIL/ETH': { amount: { min: 1, max: 10000000 }},
+                    'ZIP/ETH': { amount: { min: 1, max: 10000000 }},
+                    'FT/BTC': { amount: { min: 1, max: 10000000 }},
+                    'FT/ETH': { amount: { min: 1, max: 10000000 }},
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '400': NotSupported, // Bad Request
                 '401': AuthenticationError,
                 '405': NotSupported,
@@ -121,9 +121,9 @@ module.exports = class fcoin extends Exchange {
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
             },
-            'commonCurrencies': {
-                'DAG': 'DAGX',
-                'PAI': 'PCHAIN',
+            commonCurrencies: {
+                DAG: 'DAGX',
+                PAI: 'PCHAIN',
             },
         });
     }
@@ -143,29 +143,29 @@ module.exports = class fcoin extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'price': market['price_decimal'],
-                'amount': market['amount_decimal'],
+                price: market['price_decimal'],
+                amount: market['amount_decimal'],
             };
             let limits = {
-                'price': {
-                    'min': Math.pow (10, -precision['price']),
-                    'max': Math.pow (10, precision['price']),
+                price: {
+                    min: Math.pow (10, -precision['price']),
+                    max: Math.pow (10, precision['price']),
                 },
             };
             if (symbol in this.options['limits']) {
                 limits = this.extend (this.options['limits'][symbol], limits);
             }
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits,
+                info: market,
             });
         }
         return result;
@@ -174,7 +174,7 @@ module.exports = class fcoin extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetAccountsBalance (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -206,7 +206,7 @@ module.exports = class fcoin extends Exchange {
             result.push ([
                 orders[priceField],
                 orders[amountField],
-            ]);
+           ]);
         }
         return result;
     }
@@ -223,8 +223,8 @@ module.exports = class fcoin extends Exchange {
             limit = 'full';
         }
         let request = this.extend ({
-            'symbol': this.marketId (symbol),
-            'level': limit, // L20, L100, full
+            symbol: this.marketId (symbol),
+            level: limit, // L20, L100, full
         }, params);
         let response = await this.marketGetDepthLevelSymbol (request);
         let orderbook = response['data'];
@@ -235,7 +235,7 @@ module.exports = class fcoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.marketGetTickerSymbol (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTicker (ticker['data'], market);
     }
@@ -259,26 +259,26 @@ module.exports = class fcoin extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': values[7],
-            'low': values[8],
-            'bid': values[2],
-            'bidVolume': values[3],
-            'ask': values[4],
-            'askVolume': values[5],
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': values[9],
-            'quoteVolume': values[10],
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: values[7],
+            low: values[8],
+            bid: values[2],
+            bidVolume: values[3],
+            ask: values[4],
+            askVolume: values[5],
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: values[9],
+            quoteVolume: values[10],
+            info: ticker,
         };
     }
 
@@ -295,18 +295,18 @@ module.exports = class fcoin extends Exchange {
         let cost = price * amount;
         let fee = undefined;
         return {
-            'id': orderId,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'order': orderId,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            id: orderId,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: undefined,
+            order: orderId,
+            side,
+            price,
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -314,8 +314,8 @@ module.exports = class fcoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'limit': limit,
+            symbol: market['id'],
+            limit,
         };
         if (typeof since !== 'undefined') {
             request['timestamp'] = parseInt (since / 1000);
@@ -340,41 +340,41 @@ module.exports = class fcoin extends Exchange {
         await this.loadMarkets ();
         let orderType = type;
         let request = {
-            'symbol': this.marketId (symbol),
-            'amount': this.amountToPrecision (symbol, amount),
-            'side': side,
-            'type': orderType,
+            symbol: this.marketId (symbol),
+            amount: this.amountToPrecision (symbol, amount),
+            side,
+            type: orderType,
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let result = await this.privatePostOrders (this.extend (request, params));
         return {
-            'info': result,
-            'id': result['data'],
+            info: result,
+            id: result['data'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrdersOrderIdSubmitCancel (this.extend ({
-            'order_id': id,
+            order_id,
         }, params));
         let order = this.parseOrder (response);
         return this.extend (order, {
-            'id': id,
-            'status': 'canceled',
+            id,
+            status: 'canceled',
         });
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            'submitted': 'open',
-            'canceled': 'canceled',
-            'partial_filled': 'open',
-            'partial_canceled': 'canceled',
-            'filled': 'closed',
-            'pending_cancel': 'canceled',
+            submitted: 'open',
+            canceled: 'canceled',
+            partial_filled: 'open',
+            partial_canceled: 'canceled',
+            filled: 'closed',
+            pending_cancel: 'canceled',
         };
         if (status in statuses) {
             return statuses[status];
@@ -419,26 +419,26 @@ module.exports = class fcoin extends Exchange {
         }
         let feeCost = this.safeFloat (order, 'fill_fees');
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': orderType,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'remaining': remaining,
-            'filled': filled,
-            'average': undefined,
-            'status': status,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
+            info: order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: orderType,
+            side,
+            price,
+            cost,
+            amount,
+            remaining,
+            filled,
+            average: undefined,
+            status,
+            fee: {
+                cost: feeCost,
+                currency: feeCurrency,
             },
-            'trades': undefined,
+            trades: undefined,
         };
         return result;
     }
@@ -446,19 +446,19 @@ module.exports = class fcoin extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = this.extend ({
-            'order_id': id,
+            order_id,
         }, params);
         let response = await this.privateGetOrdersOrderId (request);
         return this.parseOrder (response['data']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted' });
+        let result = await this.fetchOrders (symbol, since, limit, { states: 'submitted' });
         return result;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'filled' });
+        let result = await this.fetchOrders (symbol, since, limit, { states: 'filled' });
         return result;
     }
 
@@ -466,8 +466,8 @@ module.exports = class fcoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'states': 'submitted',
+            symbol: market['id'],
+            states: 'submitted',
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -483,7 +483,7 @@ module.exports = class fcoin extends Exchange {
             ohlcv['low'],
             ohlcv['close'],
             ohlcv['base_vol'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
@@ -493,9 +493,9 @@ module.exports = class fcoin extends Exchange {
         }
         let market = this.market (symbol);
         let request = this.extend ({
-            'symbol': market['id'],
-            'timeframe': this.timeframes[timeframe],
-            'limit': limit,
+            symbol: market['id'],
+            timeframe: this.timeframes[timeframe],
+            limit,
         }, params);
         let response = await this.marketGetCandlesTimeframeSymbol (request);
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
@@ -542,7 +542,7 @@ module.exports = class fcoin extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

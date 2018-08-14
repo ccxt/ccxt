@@ -18,10 +18,10 @@ module.exports =
         return CryptoJS.lib.WordArray.create (arr)
     }
 
-    , stringToBase64: string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
-    , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
-    , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
-    , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
+    , stringToBase'64': string => CryptoJS.enc.Latin1.parse (string).toString (CryptoJS.enc.Base64)
+    , utf'16ToBase64':  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
+    , base'64ToBinary': string => CryptoJS.enc.Base64.parse (string)
+    , base'64ToString': string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     , binaryToString: string => string
 
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
@@ -31,7 +31,7 @@ module.exports =
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 
-    , urlencodeBase64: base64string => base64string.replace (/[=]+$/, '')
+    , urlencodeBase'64': base64string => base64string.replace (/[=]+$/, '')
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 }

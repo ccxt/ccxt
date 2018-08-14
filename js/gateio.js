@@ -10,40 +10,40 @@ const { ExchangeError, InvalidAddress, OrderNotFound, NotSupported, DDoSProtecti
 module.exports = class gateio extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'gateio',
-            'name': 'Gate.io',
-            'countries': [ 'CN' ],
-            'version': '2',
-            'rateLimit': 1000,
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': true,
-                'withdraw': true,
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchOrderTrades': true,
-                'fetchOrders': true,
-                'fetchOrder': true,
+            id: 'gateio',
+            name: 'Gate.io',
+            countries: ['CN'],
+            version: '2',
+            rateLimit: 1000,
+            has: {
+                CORS: false,
+                createMarketOrder: false,
+                fetchTickers: true,
+                withdraw: true,
+                createDepositAddress: true,
+                fetchDepositAddress: true,
+                fetchClosedOrders: true,
+                fetchOpenOrders: true,
+                fetchOrderTrades: true,
+                fetchOrders: true,
+                fetchOrder: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
-                'api': {
-                    'public': 'https://data.gate.io/api',
-                    'private': 'https://data.gate.io/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
+                api: {
+                    public: 'https://data.gate.io/api',
+                    private: 'https://data.gate.io/api',
                 },
-                'www': 'https://gate.io/',
-                'doc': 'https://gate.io/api2',
-                'fees': [
+                www: 'https://gate.io/',
+                doc: 'https://gate.io/api2',
+                fees: [
                     'https://gate.io/fee',
                     'https://support.gate.io/hc/en-us/articles/115003577673',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'pairs',
                         'marketinfo',
                         'marketlist',
@@ -53,10 +53,10 @@ module.exports = class gateio extends Exchange {
                         'trade/{id}',
                         'tradeHistory/{id}',
                         'tradeHistory/{id}/{tid}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balances',
                         'depositAddress',
                         'newAddress',
@@ -69,38 +69,38 @@ module.exports = class gateio extends Exchange {
                         'openOrders',
                         'tradeHistory',
                         'withdraw',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'maker': 0.002,
-                    'taker': 0.002,
+            fees: {
+                trading: {
+                    tierBased: true,
+                    percentage: true,
+                    maker: 0.002,
+                    taker: 0.002,
                 },
             },
-            'exceptions': {
-                '4': DDoSProtection,
-                '7': NotSupported,
-                '8': NotSupported,
-                '9': NotSupported,
+            exceptions: {
+                4: DDoSProtection,
+                7: NotSupported,
+                8: NotSupported,
+                9: NotSupported,
                 '15': DDoSProtection,
                 '16': OrderNotFound,
                 '17': OrderNotFound,
                 '21': InsufficientFunds,
             },
             // https://gate.io/api2#errCode
-            'errorCodeNames': {
-                '1': 'Invalid request',
-                '2': 'Invalid version',
-                '3': 'Invalid request',
-                '4': 'Too many attempts',
-                '5': 'Invalid sign',
-                '6': 'Invalid sign',
-                '7': 'Currency is not supported',
-                '8': 'Currency is not supported',
-                '9': 'Currency is not supported',
+            errorCodeNames: {
+                1: 'Invalid request',
+                2: 'Invalid version',
+                3: 'Invalid request',
+                4: 'Too many attempts',
+                5: 'Invalid sign',
+                6: 'Invalid sign',
+                7: 'Currency is not supported',
+                8: 'Currency is not supported',
+                9: 'Currency is not supported',
                 '10': 'Verified failed',
                 '11': 'Obtaining address failed',
                 '12': 'Empty params',
@@ -114,13 +114,13 @@ module.exports = class gateio extends Exchange {
                 '20': 'Your order size is too small',
                 '21': 'You don\'t have enough fund',
             },
-            'options': {
-                'limits': {
-                    'cost': {
-                        'min': {
-                            'BTC': 0.0001,
-                            'ETH': 0.001,
-                            'USDT': 1,
+            options: {
+                limits: {
+                    cost: {
+                        min: {
+                            BTC: 0.0001,
+                            ETH: 0.001,
+                            USDT: 1,
                         },
                     },
                 },
@@ -139,45 +139,45 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ base, quote ] = id.split ('_');
+            let [base, quote] = id.split ('_');
             base = base.toUpperCase ();
             quote = quote.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': details['decimal_places'],
+                amount: 8,
+                price: details['decimal_places'],
             };
             let amountLimits = {
-                'min': details['min_amount'],
-                'max': undefined,
+                min: details['min_amount'],
+                max: undefined,
             };
             let priceLimits = {
-                'min': Math.pow (10, -details['decimal_places']),
-                'max': undefined,
+                min: Math.pow (10, -details['decimal_places']),
+                max: undefined,
             };
             let defaultCost = amountLimits['min'] * priceLimits['min'];
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, defaultCost);
             let costLimits = {
-                'min': minCost,
-                'max': undefined,
+                min: minCost,
+                max: undefined,
             };
             let limits = {
-                'amount': amountLimits,
-                'price': priceLimits,
-                'cost': costLimits,
+                amount: amountLimits,
+                price: priceLimits,
+                cost: costLimits,
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-                'maker': details['fee'] / 100,
-                'taker': details['fee'] / 100,
-                'precision': precision,
-                'limits': limits,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
+                maker: details['fee'] / 100,
+                taker: details['fee'] / 100,
+                precision,
+                limits,
             });
         }
         return result;
@@ -186,7 +186,7 @@ module.exports = class gateio extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balance = await this.privatePostBalances ();
-        let result = { 'info': balance };
+        let result = { info: balance };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -211,7 +211,7 @@ module.exports = class gateio extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderBookId (this.extend ({
-            'id': this.marketId (symbol),
+            id: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -233,26 +233,26 @@ module.exports = class gateio extends Exchange {
             average = this.sum (last, open) / 2;
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high24hr'),
-            'low': this.safeFloat (ticker, 'low24hr'),
-            'bid': this.safeFloat (ticker, 'highestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'baseVolume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high24hr'),
+            low: this.safeFloat (ticker, 'low24hr'),
+            bid: this.safeFloat (ticker, 'highestBid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'lowestAsk'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage,
+            average,
+            baseVolume: this.safeFloat (ticker, 'quoteVolume'),
+            quoteVolume: this.safeFloat (ticker, 'baseVolume'),
+            info: ticker,
         };
     }
 
@@ -291,7 +291,7 @@ module.exports = class gateio extends Exchange {
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let [ baseId, quoteId ] = id.split ('_');
+            let [baseId, quoteId] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -312,7 +312,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetTickerId (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -338,18 +338,18 @@ module.exports = class gateio extends Exchange {
             }
         }
         return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': orderId,
-            'type': undefined,
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
+            id,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            order: orderId,
+            type: undefined,
+            side: trade['type'],
+            price,
+            amount,
+            cost,
+            fee: undefined,
         };
     }
 
@@ -357,7 +357,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTradeHistoryId (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -370,17 +370,17 @@ module.exports = class gateio extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostGetOrder (this.extend ({
-            'orderNumber': id,
-            'currencyPair': this.marketId (symbol),
+            orderNumber: id,
+            currencyPair: this.marketId (symbol),
         }, params));
         return this.parseOrder (response['order']);
     }
 
     parseOrderStatus (status) {
         let statuses = {
-            'cancelled': 'canceled',
-            // 'closed': 'closed', // these two statuses aren't actually needed
-            // 'open': 'open', // as they are mapped one-to-one
+            cancelled: 'canceled',
+            // closed: 'closed', // these two statuses aren't actually needed
+            // open: 'open', // as they are mapped one-to-one
         };
         if (status in statuses)
             return statuses[status];
@@ -389,22 +389,22 @@ module.exports = class gateio extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        //    {'amount': '0.00000000',
-        //     'currencyPair': 'xlm_usdt',
-        //     'fee': '0.0113766632239302 USDT',
-        //     'feeCurrency': 'USDT',
-        //     'feePercentage': 0.18,
-        //     'feeValue': '0.0113766632239302',
-        //     'filledAmount': '30.14004987',
-        //     'filledRate': 0.2097,
-        //     'initialAmount': '30.14004987',
-        //     'initialRate': '0.2097',
-        //     'left': 0,
-        //     'orderNumber': '998307286',
-        //     'rate': '0.2097',
-        //     'status': 'closed',
-        //     'timestamp': 1531158583,
-        //     'type': 'sell'},
+        //    {amount: '0.00000000',
+        //     currencyPair: 'xlm_usdt',
+        //     fee: '0.0113766632239302 USDT',
+        //     feeCurrency: 'USDT',
+        //     feePercentage: 0.18,
+        //     feeValue: '0.0113766632239302',
+        //     filledAmount: '30.14004987',
+        //     filledRate: 0.2097,
+        //     initialAmount: '30.14004987',
+        //     initialRate: '0.2097',
+        //     left: 0,
+        //     orderNumber: '998307286',
+        //     rate: '0.2097',
+        //     status: 'closed',
+        //     timestamp: 1531158583,
+        //     type: 'sell'},
         //
         let id = this.safeString (order, 'orderNumber');
         let symbol = undefined;
@@ -444,25 +444,25 @@ module.exports = class gateio extends Exchange {
             }
         }
         return {
-            'id': id,
-            'datetime': datetime,
-            'timestamp': timestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': feeRate,
+            id,
+            datetime,
+            timestamp,
+            status,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            cost: undefined,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: {
+                cost: feeCost,
+                currency: feeCurrency,
+                rate: feeRate,
             },
-            'info': order,
+            info: order,
         };
     }
 
@@ -473,15 +473,15 @@ module.exports = class gateio extends Exchange {
         let method = 'privatePost' + this.capitalize (side);
         let market = this.market (symbol);
         let order = {
-            'currencyPair': market['id'],
-            'rate': price,
-            'amount': amount,
+            currencyPair: market['id'],
+            rate: price,
+            amount,
         };
         let response = await this[method] (this.extend (order, params));
         return this.parseOrder (this.extend ({
-            'status': 'open',
-            'type': side,
-            'initialAmount': amount,
+            status: 'open',
+            type: side,
+            initialAmount: amount,
         }, response), market);
     }
 
@@ -490,8 +490,8 @@ module.exports = class gateio extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder requires symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({
-            'orderNumber': id,
-            'currencyPair': this.marketId (symbol),
+            orderNumber: id,
+            currencyPair: this.marketId (symbol),
         });
     }
 
@@ -500,7 +500,7 @@ module.exports = class gateio extends Exchange {
         let currency = this.currency (code);
         method = 'privatePost' + method + 'Address';
         let response = await this[method] (this.extend ({
-            'currency': currency['id'],
+            currency: currency['id'],
         }, params));
         let address = this.safeString (response, 'addr');
         let tag = undefined;
@@ -512,10 +512,10 @@ module.exports = class gateio extends Exchange {
             tag = parts[1];
         }
         return {
-            'currency': currency,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -544,8 +544,8 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostTradeHistory (this.extend ({
-            'currencyPair': market['id'],
-            'orderNumber': id,
+            currencyPair: market['id'],
+            orderNumber: id,
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
@@ -556,7 +556,7 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
-        let response = await this.privatePostTradeHistory (this.extend ({ 'currencyPair': id }, params));
+        let response = await this.privatePostTradeHistory (this.extend ({ currencyPair: id }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
@@ -564,13 +564,13 @@ module.exports = class gateio extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
-            'amount': amount,
-            'address': address, // Address must exist in you AddressBook in security settings
+            currency: currency.toLowerCase (),
+            amount,
+            address, // Address must exist in you AddressBook in security settings
         }, params));
         return {
-            'info': response,
-            'id': undefined,
+            info: response,
+            id: undefined,
         };
     }
 
@@ -584,16 +584,16 @@ module.exports = class gateio extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            let request = { 'nonce': nonce };
+            let request = { nonce: nonce };
             body = this.urlencode (this.extend (request, query));
             let signature = this.hmac (this.encode (body), this.encode (this.secret), 'sha512');
             headers = {
-                'Key': this.apiKey,
-                'Sign': signature,
+                Key: this.apiKey,
+                Sign: signature,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

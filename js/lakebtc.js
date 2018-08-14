@@ -10,34 +10,34 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class lakebtc extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'lakebtc',
-            'name': 'LakeBTC',
-            'countries': [ 'US' ],
-            'version': 'api_v2',
-            'has': {
-                'CORS': true,
-                'createMarketOrder': false,
-                'fetchTickers': true,
+            id: 'lakebtc',
+            name: 'LakeBTC',
+            countries: ['US'],
+            version: 'api_v2',
+            has: {
+                CORS: true,
+                createMarketOrder: false,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
-                'api': 'https://api.lakebtc.com',
-                'www': 'https://www.lakebtc.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg',
+                api: 'https://api.lakebtc.com',
+                www: 'https://www.lakebtc.com',
+                doc: [
                     'https://www.lakebtc.com/s/api_v2',
                     'https://www.lakebtc.com/s/api',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'bcorderbook',
                         'bctrades',
                         'ticker',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'buyOrder',
                         'cancelOrders',
                         'getAccountInfo',
@@ -46,13 +46,13 @@ module.exports = class lakebtc extends Exchange {
                         'getTrades',
                         'openOrders',
                         'sellOrder',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.15 / 100,
-                    'taker': 0.2 / 100,
+            fees: {
+                trading: {
+                    maker: 0.15 / 100,
+                    taker: 0.2 / 100,
                 },
             },
         });
@@ -71,13 +71,13 @@ module.exports = class lakebtc extends Exchange {
             let quote = quoteId.toUpperCase ();
             let symbol = base + '/' + quote;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                info: market,
             });
         }
         return result;
@@ -87,7 +87,7 @@ module.exports = class lakebtc extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['balance'];
-        let result = { 'info': response };
+        let result = { info: response };
         let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -98,9 +98,9 @@ module.exports = class lakebtc extends Exchange {
             }
             let balance = parseFloat (balances[id]);
             let account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
+                free: balance,
+                used: 0.0,
+                total: balance,
             };
             result[code] = account;
         }
@@ -110,7 +110,7 @@ module.exports = class lakebtc extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetBcorderbook (this.extend ({
-            'symbol': this.marketId (symbol),
+            symbol: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -122,26 +122,26 @@ module.exports = class lakebtc extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -173,16 +173,16 @@ module.exports = class lakebtc extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'id': trade['tid'].toString (),
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            id: trade['tid'].toString (),
+            order: undefined,
+            type: undefined,
+            side: undefined,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -190,7 +190,7 @@ module.exports = class lakebtc extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetBctrades (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -202,19 +202,19 @@ module.exports = class lakebtc extends Exchange {
         let method = 'privatePost' + this.capitalize (side) + 'Order';
         let market = this.market (symbol);
         let order = {
-            'params': [ price, amount, market['id'] ],
+            params: [price, amount, market['id']],
         };
         let response = await this[method] (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'].toString (),
+            info: response,
+            id: response['id'].toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({
-            'params': [ id ],
+            params: [id],
         });
     }
 
@@ -237,27 +237,27 @@ module.exports = class lakebtc extends Exchange {
                 queryParams = paramsList.join (',');
             }
             let query = this.urlencode ({
-                'tonce': nonce,
-                'accesskey': this.apiKey,
-                'requestmethod': method.toLowerCase (),
-                'id': nonce,
-                'method': path,
-                'params': queryParams,
+                tonce: nonce,
+                accesskey: this.apiKey,
+                requestmethod: method.toLowerCase (),
+                id: nonce,
+                method: path,
+                params: queryParams,
             });
             body = this.json ({
-                'method': path,
-                'params': queryParams,
-                'id': nonce,
+                method: path,
+                params: queryParams,
+                id: nonce,
             });
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Json-Rpc-Tonce': nonce.toString (),
-                'Authorization': 'Basic ' + this.decode (this.stringToBase64 (auth)),
+                Authorization: 'Basic ' + this.decode (this.stringToBase64 (auth)),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

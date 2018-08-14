@@ -10,38 +10,38 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class btctradeim extends coinegg {
     describe () {
         let result = this.deepExtend (super.describe (), {
-            'id': 'btctradeim',
-            'name': 'BtcTrade.im',
-            'countries': [ 'HK' ],
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
-                'api': {
-                    'web': 'https://api.btctrade.im/coin',
-                    'rest': 'https://api.btctrade.im/api/v1',
+            id: 'btctradeim',
+            name: 'BtcTrade.im',
+            countries: ['HK'],
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
+                api: {
+                    web: 'https://api.btctrade.im/coin',
+                    rest: 'https://api.btctrade.im/api/v1',
                 },
-                'www': 'https://www.btctrade.im',
-                'doc': 'https://www.btctrade.im/help.api.html',
-                'fees': 'https://www.btctrade.im/spend.price.html',
+                www: 'https://www.btctrade.im',
+                doc: 'https://www.btctrade.im/help.api.html',
+                fees: 'https://www.btctrade.im/spend.price.html',
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+            fees: {
+                trading: {
+                    maker: 0.2 / 100,
+                    taker: 0.2 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.001,
+                funding: {
+                    withdraw: {
+                        BTC: 0.001,
                     },
                 },
             },
             // see the fix below
-            //     'options': {
-            //         'quoteIds': [ 'btc', 'eth', 'usc' ],
+            //     options: {
+            //         quoteIds: ['btc', 'eth', 'usc'],
             //     },
         });
         // a fix for PHP array_merge not overwriting "lists" (integer-indexed arrays)
         // https://github.com/ccxt/ccxt/issues/3343
-        result['options']['quoteIds'] = [ 'btc', 'eth', 'usc' ];
+        result['options']['quoteIds'] = ['btc', 'eth', 'usc'];
         return result;
     }
 

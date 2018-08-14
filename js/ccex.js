@@ -10,47 +10,47 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class ccex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'ccex',
-            'name': 'C-CEX',
-            'countries': [ 'DE', 'EU' ],
-            'rateLimit': 1500,
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
-                'fetchOrderBooks': true,
+            id: 'ccex',
+            name: 'C-CEX',
+            countries: ['DE', 'EU'],
+            rateLimit: 1500,
+            has: {
+                CORS: false,
+                fetchTickers: true,
+                fetchOrderBooks: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
-                'api': {
-                    'web': 'https://c-cex.com/t',
-                    'public': 'https://c-cex.com/t/api_pub.html',
-                    'private': 'https://c-cex.com/t/api.html',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg',
+                api: {
+                    web: 'https://c-cex.com/t',
+                    public: 'https://c-cex.com/t/api_pub.html',
+                    private: 'https://c-cex.com/t/api.html',
                 },
-                'www': 'https://c-cex.com',
-                'doc': 'https://c-cex.com/?id=api',
+                www: 'https://c-cex.com',
+                doc: 'https://c-cex.com/?id=api',
             },
-            'api': {
-                'web': {
-                    'get': [
+            api: {
+                web: {
+                    get: [
                         'coinnames',
                         '{market}',
                         'pairs',
                         'prices',
                         'volume_{coin}',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'balancedistribution',
                         'markethistory',
                         'markets',
                         'marketsummaries',
                         'orderbook',
                         'fullorderbook',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'buylimit',
                         'cancel',
                         'getbalance',
@@ -60,22 +60,22 @@ module.exports = class ccex extends Exchange {
                         'getorderhistory',
                         'mytrades',
                         'selllimit',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+            fees: {
+                trading: {
+                    taker: 0.2 / 100,
+                    maker: 0.2 / 100,
                 },
             },
-            'commonCurrencies': {
-                'BLC': 'Cryptobullcoin',
-                'CRC': 'CoreCoin',
-                'IOT': 'IoTcoin',
-                'LUX': 'Luxmi',
-                'VIT': 'VitalCoin',
-                'XID': 'InternationalDiamond',
+            commonCurrencies: {
+                BLC: 'Cryptobullcoin',
+                CRC: 'CoreCoin',
+                IOT: 'IoTcoin',
+                LUX: 'Luxmi',
+                VIT: 'VitalCoin',
+                XID: 'InternationalDiamond',
             },
         });
     }
@@ -86,20 +86,20 @@ module.exports = class ccex extends Exchange {
         let markets = response['pairs'];
         for (let i = 0; i < markets.length; i++) {
             let id = markets[i];
-            let [ baseId, quoteId ] = id.split ('-');
+            let [baseId, quoteId] = id.split ('-');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             result[symbol] = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'info': id,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                info: id,
             };
         }
         // an alternative documented parser
@@ -113,11 +113,11 @@ module.exports = class ccex extends Exchange {
         //         quote = this.commonCurrencyCode (quote);
         //         let symbol = base + '/' + quote;
         //         result.push ({
-        //             'id': id,
-        //             'symbol': symbol,
-        //             'base': base,
-        //             'quote': quote,
-        //             'info': market,
+        //             id,
+        //             symbol,
+        //             base,
+        //             quote,
+        //             info: market,
         //         });
         //     }
         return result;
@@ -127,15 +127,15 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetGetbalances ();
         let balances = response['result'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let code = balance['Currency'];
             let currency = this.commonCurrencyCode (code);
             let account = {
-                'free': balance['Available'],
-                'used': balance['Pending'],
-                'total': balance['Balance'],
+                free: balance['Available'],
+                used: balance['Pending'],
+                total: balance['Balance'],
             };
             result[currency] = account;
         }
@@ -145,8 +145,8 @@ module.exports = class ccex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'market': this.marketId (symbol),
-            'type': 'both',
+            market: this.marketId (symbol),
+            type: 'both',
         };
         if (typeof limit !== 'undefined')
             request['depth'] = limit; // 100
@@ -173,7 +173,7 @@ module.exports = class ccex extends Exchange {
                     let market = this.markets_by_id[symbol];
                     symbol = market['symbol'];
                 } else {
-                    let [ base, quote ] = symbol.split ('-');
+                    let [base, quote] = symbol.split ('-');
                     let invertedId = quote + '-' + base;
                     if (invertedId in this.markets_by_id) {
                         let market = this.markets_by_id[invertedId];
@@ -201,26 +201,26 @@ module.exports = class ccex extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'lastprice');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': this.safeFloat (ticker, 'avg'),
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, 'buysupport'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: this.safeFloat (ticker, 'avg'),
+            baseVolume: undefined,
+            quoteVolume: this.safeFloat (ticker, 'buysupport'),
+            info: ticker,
         };
     }
 
@@ -239,7 +239,7 @@ module.exports = class ccex extends Exchange {
                 symbol = market['symbol'];
             } else {
                 let uppercase = id.toUpperCase ();
-                let [ base, quote ] = uppercase.split ('-');
+                let [base, quote] = uppercase.split ('-');
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
                 symbol = base + '/' + quote;
@@ -253,7 +253,7 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.webGetMarket (this.extend ({
-            'market': market['id'].toLowerCase (),
+            market: market['id'].toLowerCase (),
         }, params));
         let ticker = response['ticker'];
         return this.parseTicker (ticker, market);
@@ -262,16 +262,16 @@ module.exports = class ccex extends Exchange {
     parseTrade (trade, market) {
         let timestamp = this.parse8601 (trade['TimeStamp']);
         return {
-            'id': trade['Id'].toString (),
-            'info': trade,
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['OrderType'].toLowerCase (),
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            id: trade['Id'].toString (),
+            info: trade,
+            order: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['OrderType'].toLowerCase (),
+            price: trade['Price'],
+            amount: trade['Quantity'],
         };
     }
 
@@ -279,9 +279,9 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarkethistory (this.extend ({
-            'market': market['id'],
-            'type': 'both',
-            'depth': 100,
+            market: market['id'],
+            type: 'both',
+            depth: 100,
         }, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
@@ -290,19 +290,19 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let method = 'privateGet' + this.capitalize (side) + type;
         let response = await this[method] (this.extend ({
-            'market': this.marketId (symbol),
-            'quantity': amount,
-            'rate': price,
+            market: this.marketId (symbol),
+            quantity: amount,
+            rate: price,
         }, params));
         return {
-            'info': response,
-            'id': response['result']['uuid'],
+            info: response,
+            id: response['result']['uuid'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privateGetCancel ({ 'uuid': id });
+        return await this.privateGetCancel ({ uuid: id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -311,20 +311,20 @@ module.exports = class ccex extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.keysort (this.extend ({
-                'a': path,
-                'apikey': this.apiKey,
-                'nonce': nonce,
+                a: path,
+                apikey: this.apiKey,
+                nonce,
             }, params));
             url += '?' + this.urlencode (query);
-            headers = { 'apisign': this.hmac (this.encode (url), this.encode (this.secret), 'sha512') };
+            headers = { apisign: this.hmac (this.encode (url), this.encode (this.secret), 'sha512') };
         } else if (api === 'public') {
             url += '?' + this.urlencode (this.extend ({
-                'a': 'get' + path,
+                a: 'get' + path,
             }, params));
         } else {
             url += '/' + this.implodeParams (path, params) + '.json';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

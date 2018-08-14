@@ -10,30 +10,30 @@ const { PermissionDenied } = require ('./base/errors');
 module.exports = class hadax extends huobipro {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'hadax',
-            'name': 'HADAX',
-            'countries': [ 'CN' ],
-            'hostname': 'api.hadax.com',
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',
-                'api': 'https://api.hadax.com',
-                'www': 'https://www.hadax.com',
-                'doc': 'https://github.com/huobiapi/API_Docs/wiki',
+            id: 'hadax',
+            name: 'HADAX',
+            countries: ['CN'],
+            hostname: 'api.hadax.com',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',
+                api: 'https://api.hadax.com',
+                www: 'https://www.hadax.com',
+                doc: 'https://github.com/huobiapi/API_Docs/wiki',
             },
-            'has': {
-                'fetchCurrencies': false,
+            has: {
+                fetchCurrencies: false,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'hadax/common/symbols', // 查询系统支持的所有交易对
                         'hadax/common/currencys', // 查询系统支持的所有币种
                         'common/timestamp', // 查询系统当前时间
                         'hadax/settings/currencys', // ?language=en-US
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'hadax/account/accounts/{id}/balance', // 查询指定账户的余额
                         'order/orders/{id}', // 查询某个订单详情
@@ -45,8 +45,8 @@ module.exports = class hadax extends huobipro {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'hadax/order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
                         'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
                         'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
@@ -61,21 +61,21 @@ module.exports = class hadax extends huobipro {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
-                    ],
+                   ],
                 },
             },
-            'exceptions': {
+            exceptions: {
                 'not-allow-entry-hadax': PermissionDenied,
             },
-            'options': {
-                'fetchMarketsMethod': 'publicGetHadaxCommonSymbols',
-                'fetchBalanceMethod': 'privateGetHadaxAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostHadaxOrderOrdersPlace',
+            options: {
+                fetchMarketsMethod: 'publicGetHadaxCommonSymbols',
+                fetchBalanceMethod: 'privateGetHadaxAccountAccountsIdBalance',
+                createOrderMethod: 'privatePostHadaxOrderOrdersPlace',
             },
-            'commonCurrencies': {
-                'FAIR': 'FairGame',
-                'GET': 'Themis',
-                'HOT': 'Hydro Protocol',
+            commonCurrencies: {
+                FAIR: 'FairGame',
+                GET: 'Themis',
+                HOT: 'Hydro Protocol',
             },
         });
     }

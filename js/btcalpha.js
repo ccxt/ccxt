@@ -10,19 +10,19 @@ const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder } = req
 module.exports = class btcalpha extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'btcalpha',
-            'name': 'BTC-Alpha',
-            'countries': 'US',
-            'version': 'v1',
-            'has': {
-                'fetchTicker': false,
-                'fetchOHLCV': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchMyTrades': true,
+            id: 'btcalpha',
+            name: 'BTC-Alpha',
+            countries: 'US',
+            version: 'v1',
+            has: {
+                fetchTicker: false,
+                fetchOHLCV: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
+                fetchMyTrades: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1',
                 '5m': '5',
                 '15m': '15',
@@ -31,74 +31,74 @@ module.exports = class btcalpha extends Exchange {
                 '4h': '240',
                 '1d': 'D',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
-                'api': 'https://btc-alpha.com/api',
-                'www': 'https://btc-alpha.com',
-                'doc': 'https://btc-alpha.github.io/api-docs',
-                'fees': 'https://btc-alpha.com/fees/',
-                'referral': 'https://btc-alpha.com/?r=123788',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
+                api: 'https://btc-alpha.com/api',
+                www: 'https://btc-alpha.com',
+                doc: 'https://btc-alpha.github.io/api-docs',
+                fees: 'https://btc-alpha.com/fees/',
+                referral: 'https://btc-alpha.com/?r=123788',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'currencies/',
                         'pairs/',
                         'orderbook/{pair_name}/',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'wallets/',
                         'orders/own/',
                         'order/{id}/',
                         'exchanges/own/',
                         'deposits/',
                         'withdraws/',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'order/',
                         'order-cancel/',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+            fees: {
+                trading: {
+                    maker: 0.2 / 100,
+                    taker: 0.2 / 100,
                 },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.00135,
-                        'LTC': 0.0035,
-                        'XMR': 0.018,
-                        'ZEC': 0.002,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'SIB': 1.5,
-                        'CCRB': 4,
-                        'PZM': 0.05,
-                        'ITI': 0.05,
-                        'DCY': 5,
-                        'R': 5,
-                        'ATB': 0.05,
-                        'BRIA': 0.05,
-                        'KZC': 0.05,
-                        'HWC': 1,
-                        'SPA': 1,
-                        'SMS': 0.001,
-                        'REC': 0.01,
-                        'SUP': 1,
-                        'BQ': 100,
-                        'GDS': 0.1,
-                        'EVN': 300,
-                        'TRKC': 0.01,
-                        'UNI': 1,
-                        'STN': 1,
-                        'BCH': undefined,
-                        'QBIC': 0.5,
+                funding: {
+                    withdraw: {
+                        BTC: 0.00135,
+                        LTC: 0.0035,
+                        XMR: 0.018,
+                        ZEC: 0.002,
+                        ETH: 0.01,
+                        ETC: 0.01,
+                        SIB: 1.5,
+                        CCRB: 4,
+                        PZM: 0.05,
+                        ITI: 0.05,
+                        DCY: 5,
+                        R: 5,
+                        ATB: 0.05,
+                        BRIA: 0.05,
+                        KZC: 0.05,
+                        HWC: 1,
+                        SPA: 1,
+                        SMS: 0.001,
+                        REC: 0.01,
+                        SUP: 1,
+                        BQ: 100,
+                        GDS: 0.1,
+                        EVN: 300,
+                        TRKC: 0.01,
+                        UNI: 1,
+                        STN: 1,
+                        BCH: undefined,
+                        QBIC: 0.5,
                     },
                 },
             },
@@ -115,31 +115,31 @@ module.exports = class btcalpha extends Exchange {
             let quote = this.commonCurrencyCode (market['currency2']);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': parseInt (market['price_precision']),
+                amount: 8,
+                price: parseInt (market['price_precision']),
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': parseFloat (market['minimum_order_size']),
-                        'max': parseFloat (market['maximum_order_size']),
+                id,
+                symbol,
+                base,
+                quote,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: parseFloat (market['minimum_order_size']),
+                        max: parseFloat (market['maximum_order_size']),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': Math.pow (10, precision['price']),
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: Math.pow (10, precision['price']),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             });
         }
         return result;
@@ -148,7 +148,7 @@ module.exports = class btcalpha extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'pair_name': this.marketId (symbol),
+            pair_name: this.marketId (symbol),
         };
         if (limit) {
             request['limit_sell'] = limit;
@@ -172,18 +172,18 @@ module.exports = class btcalpha extends Exchange {
         if (!id)
             id = this.safeString (trade, 'tid');
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': this.safeString (trade, 'o_id'),
-            'type': 'limit',
-            'side': trade['type'],
-            'price': price,
-            'amount': amount,
-            'cost': parseFloat (cost),
-            'fee': undefined,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id,
+            order: this.safeString (trade, 'o_id'),
+            type: 'limit',
+            side: trade['type'],
+            price,
+            amount,
+            cost: parseFloat (cost),
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -209,15 +209,15 @@ module.exports = class btcalpha extends Exchange {
             ohlcv['low'],
             ohlcv['close'],
             ohlcv['volume'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
-            'type': this.timeframes[timeframe],
+            pair: market['id'],
+            type: this.timeframes[timeframe],
         };
         if (limit)
             request['limit'] = limit;
@@ -230,14 +230,14 @@ module.exports = class btcalpha extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetWallets (params);
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currency = this.commonCurrencyCode (balance['currency']);
             let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['reserve']),
-                'total': 0.0,
+                free: parseFloat (balance['balance']),
+                used: parseFloat (balance['reserve']),
+                total: 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -256,9 +256,9 @@ module.exports = class btcalpha extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let status = this.safeString (order, 'status');
         let statuses = {
-            '1': 'open',
-            '2': 'canceled',
-            '3': 'closed',
+            1: 'open',
+            2: 'canceled',
+            3: 'closed',
         };
         let id = this.safeString (order, 'oid');
         if (!id)
@@ -267,21 +267,21 @@ module.exports = class btcalpha extends Exchange {
         if (trades)
             trades = this.parseTrades (trades, market);
         return {
-            'id': id,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'status': this.safeString (statuses, status),
-            'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
-            'price': price,
-            'cost': undefined,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'trades': trades,
-            'fee': undefined,
-            'info': order,
+            id,
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            status: this.safeString (statuses, status),
+            symbol,
+            type: 'limit',
+            side: order['type'],
+            price,
+            cost: undefined,
+            amount,
+            filled: undefined,
+            remaining: undefined,
+            trades,
+            fee: undefined,
+            info: order,
         };
     }
 
@@ -289,10 +289,10 @@ module.exports = class btcalpha extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrder (this.extend ({
-            'pair': market['id'],
-            'type': side,
-            'amount': amount,
-            'price': this.priceToPrecision (symbol, price),
+            pair: market['id'],
+            type: side,
+            amount,
+            price: this.priceToPrecision (symbol, price),
         }, params));
         if (!response['success'])
             throw new InvalidOrder (this.id + ' ' + this.json (response));
@@ -301,7 +301,7 @@ module.exports = class btcalpha extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         let response = await this.privatePostOrderCancel (this.extend ({
-            'order': id,
+            order: id,
         }, params));
         return response;
     }
@@ -309,7 +309,7 @@ module.exports = class btcalpha extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = await this.privateGetOrderId (this.extend ({
-            'id': id,
+            id,
         }, params));
         return this.parseOrder (order);
     }
@@ -330,14 +330,14 @@ module.exports = class btcalpha extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': '1',
+            status: '1',
         }, params));
         return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': '3',
+            status: '3',
         }, params));
         return orders;
     }
@@ -366,7 +366,7 @@ module.exports = class btcalpha extends Exchange {
             url += 'v1/';
         }
         url += this.implodeParams (path, params);
-        headers = { 'Accept': 'application/json' };
+        headers = { Accept: 'application/json' };
         if (api === 'public') {
             if (query.length)
                 url += '?' + query;
@@ -384,7 +384,7 @@ module.exports = class btcalpha extends Exchange {
             headers['X-SIGN'] = this.hmac (this.encode (payload), this.encode (this.secret));
             headers['X-NONCE'] = this.nonce ().toString ();
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

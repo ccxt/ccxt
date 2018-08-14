@@ -68,7 +68,7 @@ module.exports =
           { someKey: 'value1', anotherKey: 'anotherValue1' },
           { someKey: 'value2', anotherKey: 'anotherValue2' },
           { someKey: 'value3', anotherKey: 'anotherValue3' },
-       ]
+      ]
        key = 'someKey'
 
        Returns a map:
@@ -96,7 +96,7 @@ module.exports =
           { someKey: 'value1', anotherKey: 'anotherValue1' },
           { someKey: 'value1', anotherKey: 'anotherValue2' },
           { someKey: 'value3', anotherKey: 'anotherValue3' },
-       ]
+      ]
        key = 'someKey'
 
        Returns a map:
@@ -104,10 +104,10 @@ module.exports =
           value1: [
             { someKey: 'value1', anotherKey: 'anotherValue1' },
             { someKey: 'value1', anotherKey: 'anotherValue2' },
-          ]
+         ]
           value3: [
             { someKey: 'value3', anotherKey: 'anotherValue3' }
-          ],
+         ],
       }
     */
 
@@ -131,14 +131,14 @@ module.exports =
           { someKey: 'value1', anotherKey: 'anotherValue1' },
           { someKey: 'value2', anotherKey: 'anotherValue2' },
           { someKey: 'value3', anotherKey: 'anotherValue3' },
-       ]
+      ]
        key = 'someKey'
        value = 'value1'
 
        Returns an array:
       [
           value1: { someKey: 'value1', anotherKey: 'anotherValue1' },
-      ]
+     ]
     */
 
     , filterBy (x, k, value = undefined, out = []) {

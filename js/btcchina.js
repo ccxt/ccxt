@@ -9,42 +9,42 @@ const Exchange = require ('./base/Exchange');
 module.exports = class btcchina extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'btcchina',
-            'name': 'BTCChina',
-            'countries': [ 'CN' ],
-            'rateLimit': 1500,
-            'version': 'v1',
-            'has': {
-                'CORS': true,
+            id: 'btcchina',
+            name: 'BTCChina',
+            countries: ['CN'],
+            rateLimit: 1500,
+            version: 'v1',
+            has: {
+                CORS: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
-                'api': {
-                    'plus': 'https://plus-api.btcchina.com/market',
-                    'public': 'https://data.btcchina.com/data',
-                    'private': 'https://api.btcchina.com/api_trade_v1.php',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766368-465b3286-5ed6-11e7-9a11-0f6467e1d82b.jpg',
+                api: {
+                    plus: 'https://plus-api.btcchina.com/market',
+                    public: 'https://data.btcchina.com/data',
+                    private: 'https://api.btcchina.com/api_trade_v1.php',
                 },
-                'www': 'https://www.btcchina.com',
-                'doc': 'https://www.btcchina.com/apidocs',
+                www: 'https://www.btcchina.com',
+                doc: 'https://www.btcchina.com/apidocs',
             },
-            'api': {
-                'plus': {
-                    'get': [
+            api: {
+                plus: {
+                    get: [
                         'orderbook',
                         'ticker',
                         'trade',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'historydata',
                         'orderbook',
                         'ticker',
                         'trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'BuyIcebergOrder',
                         'BuyOrder',
                         'BuyOrder2',
@@ -72,22 +72,22 @@ module.exports = class btcchina extends Exchange {
                         'SellOrder',
                         'SellOrder2',
                         'SellStopOrder',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/CNY': { 'id': 'btccny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
-                'LTC/CNY': { 'id': 'ltccny', 'symbol': 'LTC/CNY', 'base': 'LTC', 'quote': 'CNY', 'api': 'public', 'plus': false },
-                'LTC/BTC': { 'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'api': 'public', 'plus': false },
-                'BCH/CNY': { 'id': 'bcccny', 'symbol': 'BCH/CNY', 'base': 'BCH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
-                'ETH/CNY': { 'id': 'ethcny', 'symbol': 'ETH/CNY', 'base': 'ETH', 'quote': 'CNY', 'api': 'plus', 'plus': true },
+            markets: {
+                'BTC/CNY': { id: 'btccny', symbol: 'BTC/CNY', base: 'BTC', quote: 'CNY', api: 'public', plus: false },
+                'LTC/CNY': { id: 'ltccny', symbol: 'LTC/CNY', base: 'LTC', quote: 'CNY', api: 'public', plus: false },
+                'LTC/BTC': { id: 'ltcbtc', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC', api: 'public', plus: false },
+                'BCH/CNY': { id: 'bcccny', symbol: 'BCH/CNY', base: 'BCH', quote: 'CNY', api: 'plus', plus: true },
+                'ETH/CNY': { id: 'ethcny', symbol: 'ETH/CNY', base: 'ETH', quote: 'CNY', api: 'plus', plus: true },
             },
         });
     }
 
     async fetchMarkets () {
         let markets = await this.publicGetTicker ({
-            'market': 'all',
+            market: 'all',
         });
         let result = [];
         let keys = Object.keys (markets);
@@ -102,11 +102,11 @@ module.exports = class btcchina extends Exchange {
             quote = quote.toUpperCase ();
             let symbol = base + '/' + quote;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
             });
         }
         return result;
@@ -116,7 +116,7 @@ module.exports = class btcchina extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostGetAccountInfo ();
         let balances = response['result'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -153,23 +153,23 @@ module.exports = class btcchina extends Exchange {
         let timestamp = ticker['date'] * 1000;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'ask': this.safeFloat (ticker, 'sell'),
-            'vwap': this.safeFloat (ticker, 'vwap'),
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            ask: this.safeFloat (ticker, 'sell'),
+            vwap: this.safeFloat (ticker, 'vwap'),
+            open: this.safeFloat (ticker, 'open'),
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -179,22 +179,22 @@ module.exports = class btcchina extends Exchange {
         if (market)
             symbol = market['symbol'];
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'High'),
-            'low': this.safeFloat (ticker, 'Low'),
-            'bid': this.safeFloat (ticker, 'BidPrice'),
-            'ask': this.safeFloat (ticker, 'AskPrice'),
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'Open'),
-            'last': this.safeFloat (ticker, 'Last'),
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'Volume24H'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'High'),
+            low: this.safeFloat (ticker, 'Low'),
+            bid: this.safeFloat (ticker, 'BidPrice'),
+            ask: this.safeFloat (ticker, 'AskPrice'),
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'Open'),
+            last: this.safeFloat (ticker, 'Last'),
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'Volume24H'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -213,30 +213,30 @@ module.exports = class btcchina extends Exchange {
     parseTrade (trade, market) {
         let timestamp = parseInt (trade['date']) * 1000;
         return {
-            'id': trade['tid'],
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            id: trade['tid'],
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined,
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
     parseTradePlus (trade, market) {
         let timestamp = this.parse8601 (trade['timestamp']);
         return {
-            'id': undefined,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['side'].toLowerCase (),
-            'price': trade['price'],
-            'amount': trade['size'],
+            id: undefined,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['side'].toLowerCase (),
+            price: trade['price'],
+            amount: trade['size'],
         };
     }
 
@@ -274,14 +274,14 @@ module.exports = class btcchina extends Exchange {
         let order = {};
         let id = market['id'].toUpperCase ();
         if (type === 'market') {
-            order['params'] = [ undefined, amount, id ];
+            order['params'] = [undefined, amount, id];
         } else {
-            order['params'] = [ price, amount, id ];
+            order['params'] = [price, amount, id];
         }
         let response = await this[method] (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
@@ -289,7 +289,7 @@ module.exports = class btcchina extends Exchange {
         await this.loadMarkets ();
         let market = params['market']; // TODO fixme
         return await this.privatePostCancelOrder (this.extend ({
-            'params': [ id, market ],
+            params: [id, market],
         }, params));
     }
 
@@ -306,9 +306,9 @@ module.exports = class btcchina extends Exchange {
                 p = params['params'];
             let nonce = this.nonce ();
             let request = {
-                'method': path,
-                'id': nonce,
-                'params': p,
+                method: path,
+                id: nonce,
+                params: p,
             };
             p = p.join (',');
             body = this.json (request);
@@ -323,13 +323,13 @@ module.exports = class btcchina extends Exchange {
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
             let auth = this.encode (this.apiKey + ':' + signature);
             headers = {
-                'Authorization': 'Basic ' + this.stringToBase64 (auth),
+                Authorization: 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,
             };
         } else {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

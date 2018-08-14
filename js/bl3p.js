@@ -9,38 +9,38 @@ const Exchange = require ('./base/Exchange');
 module.exports = class bl3p extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bl3p',
-            'name': 'BL3P',
-            'countries': [ 'NL', 'EU' ], // Netherlands, EU
-            'rateLimit': 1000,
-            'version': '1',
-            'comment': 'An exchange market by BitonicNL',
-            'has': {
-                'CORS': false,
+            id: 'bl3p',
+            name: 'BL3P',
+            countries: ['NL', 'EU'], // Netherlands, EU
+            rateLimit: 1000,
+            version: '1',
+            comment: 'An exchange market by BitonicNL',
+            has: {
+                CORS: false,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
-                'api': 'https://api.bl3p.eu',
-                'www': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                api: 'https://api.bl3p.eu',
+                www: [
                     'https://bl3p.eu',
                     'https://bitonic.nl',
-                ],
-                'doc': [
+               ],
+                doc: [
                     'https://github.com/BitonicNL/bl3p-api/tree/master/docs',
                     'https://bl3p.eu/api',
                     'https://bitonic.nl/en/api',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         '{market}/ticker',
                         '{market}/orderbook',
                         '{market}/trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         '{market}/money/depth/full',
                         '{market}/money/order/add',
                         '{market}/money/order/cancel',
@@ -53,12 +53,12 @@ module.exports = class bl3p extends Exchange {
                         'GENMKT/money/new_deposit_address',
                         'GENMKT/money/wallet/history',
                         'GENMKT/money/withdraw',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
-                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025 },
+            markets: {
+                'BTC/EUR': { id: 'BTCEUR', symbol: 'BTC/EUR', base: 'BTC', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
+                'LTC/EUR': { id: 'LTCEUR', symbol: 'LTC/EUR', base: 'LTC', quote: 'EUR', maker: 0.0025, taker: 0.0025 },
             },
         });
     }
@@ -67,7 +67,7 @@ module.exports = class bl3p extends Exchange {
         let response = await this.privatePostGENMKTMoneyInfo ();
         let data = response['data'];
         let balance = data['wallets'];
-        let result = { 'info': data };
+        let result = { info: data };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -96,13 +96,13 @@ module.exports = class bl3p extends Exchange {
         return [
             bidask[priceKey] / 100000.0,
             bidask[amountKey] / 100000000.0,
-        ];
+       ];
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetMarketOrderbook (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         let orderbook = response['data'];
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price_int', 'amount_int');
@@ -110,52 +110,52 @@ module.exports = class bl3p extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         let ticker = await this.publicGetMarketTicker (this.extend ({
-            'market': this.marketId (symbol),
+            market: this.marketId (symbol),
         }, params));
         let timestamp = ticker['timestamp'] * 1000;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']['24h']),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: parseFloat (ticker['volume']['24h']),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
     parseTrade (trade, market) {
         return {
-            'id': trade['trade_id'].toString (),
-            'timestamp': trade['date'],
-            'datetime': this.iso8601 (trade['date']),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price_int'] / 100000.0,
-            'amount': trade['amount_int'] / 100000000.0,
-            'info': trade,
+            id: trade['trade_id'].toString (),
+            timestamp: trade['date'],
+            datetime: this.iso8601 (trade['date']),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined,
+            price: trade['price_int'] / 100000.0,
+            amount: trade['amount_int'] / 100000000.0,
+            info: trade,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetMarketTrades (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         let result = this.parseTrades (response['data']['trades'], market, since, limit);
         return result;
@@ -164,22 +164,22 @@ module.exports = class bl3p extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
         let order = {
-            'market': market['id'],
-            'amount_int': parseInt (amount * 100000000),
-            'fee_currency': market['quote'],
-            'type': (side === 'buy') ? 'bid' : 'ask',
+            market: market['id'],
+            amount_int: parseInt (amount * 100000000),
+            fee_currency: market['quote'],
+            type: (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit')
             order['price_int'] = parseInt (price * 100000.0);
         let response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['data']['order_id'].toString (),
+            info: response,
+            id: response['data']['order_id'].toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostMarketMoneyOrderCancel ({ 'order_id': id });
+        return await this.privatePostMarketMoneyOrderCancel ({ order_id: id });
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -192,7 +192,7 @@ module.exports = class bl3p extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            body = this.urlencode (this.extend ({ nonce: nonce }, query));
             let secret = this.base64ToBinary (this.secret);
             // eslint-disable-next-line quotes
             let auth = request + "\0" + body;
@@ -203,6 +203,6 @@ module.exports = class bl3p extends Exchange {
                 'Rest-Sign': this.decode (signature),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 };

@@ -53,7 +53,7 @@
       { "blankLine": "never", "prev":"*", "next": "*" },
       { "blankLine": "always", "prev":"directive", "next": "*" },
       { "blankLine": "always", "prev":"*", "next": "cjs-export" }
-    ],
+   ],
     "prefer-template": "off",
     "curly": "off",
     "no-plusplus": "off",

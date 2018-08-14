@@ -10,37 +10,37 @@ const { ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = req
 module.exports = class coinone extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinone',
-            'name': 'CoinOne',
-            'countries': [ 'KR' ], // Korea
-            'rateLimit': 667,
-            'version': 'v2',
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchTickers': true,
-                'fetchOrder': true,
+            id: 'coinone',
+            name: 'CoinOne',
+            countries: ['KR'], // Korea
+            rateLimit: 667,
+            version: 'v2',
+            has: {
+                CORS: false,
+                createMarketOrder: false,
+                fetchTickers: true,
+                fetchOrder: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
-                'api': 'https://api.coinone.co.kr',
-                'www': 'https://coinone.co.kr',
-                'doc': 'https://doc.coinone.co.kr',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
+                api: 'https://api.coinone.co.kr',
+                www: 'https://coinone.co.kr',
+                doc: 'https://doc.coinone.co.kr',
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'orderbook/',
                         'trades/',
                         'ticker/',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'account/btc_deposit_address/',
                         'account/balance/',
                         'account/daily_balance/',
@@ -58,34 +58,34 @@ module.exports = class coinone extends Exchange {
                         'transaction/krw/history/',
                         'transaction/btc/',
                         'transaction/coin/',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BCH/KRW': { 'id': 'bch', 'symbol': 'BCH/KRW', 'base': 'BCH', 'quote': 'KRW', 'baseId': 'bch', 'quoteId': 'krw' },
-                'BTC/KRW': { 'id': 'btc', 'symbol': 'BTC/KRW', 'base': 'BTC', 'quote': 'KRW', 'baseId': 'btc', 'quoteId': 'krw' },
-                'BTG/KRW': { 'id': 'btg', 'symbol': 'BTG/KRW', 'base': 'BTG', 'quote': 'KRW', 'baseId': 'btg', 'quoteId': 'krw' },
-                'ETC/KRW': { 'id': 'etc', 'symbol': 'ETC/KRW', 'base': 'ETC', 'quote': 'KRW', 'baseId': 'etc', 'quoteId': 'krw' },
-                'ETH/KRW': { 'id': 'eth', 'symbol': 'ETH/KRW', 'base': 'ETH', 'quote': 'KRW', 'baseId': 'eth', 'quoteId': 'krw' },
-                'IOTA/KRW': { 'id': 'iota', 'symbol': 'IOTA/KRW', 'base': 'IOTA', 'quote': 'KRW', 'baseId': 'iota', 'quoteId': 'krw' },
-                'LTC/KRW': { 'id': 'ltc', 'symbol': 'LTC/KRW', 'base': 'LTC', 'quote': 'KRW', 'baseId': 'ltc', 'quoteId': 'krw' },
-                'OMG/KRW': { 'id': 'omg', 'symbol': 'OMG/KRW', 'base': 'OMG', 'quote': 'KRW', 'baseId': 'omg', 'quoteId': 'krw' },
-                'QTUM/KRW': { 'id': 'qtum', 'symbol': 'QTUM/KRW', 'base': 'QTUM', 'quote': 'KRW', 'baseId': 'qtum', 'quoteId': 'krw' },
-                'XRP/KRW': { 'id': 'xrp', 'symbol': 'XRP/KRW', 'base': 'XRP', 'quote': 'KRW', 'baseId': 'xrp', 'quoteId': 'krw' },
-                'EOS/KRW': { 'id': 'eos', 'symbol': 'EOS/KRW', 'base': 'EOS', 'quote': 'KRW', 'baseId': 'eos', 'quoteId': 'krw' },
-                'DATA/KRW': { 'id': 'data', 'symbol': 'DATA/KRW', 'base': 'DATA', 'quote': 'KRW', 'baseId': 'data', 'quoteId': 'krw' },
-                'ZIL/KRW': { 'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw' },
-                'KNC/KRW': { 'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw' },
-                'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
+            markets: {
+                'BCH/KRW': { id: 'bch', symbol: 'BCH/KRW', base: 'BCH', quote: 'KRW', baseId: 'bch', quoteId: 'krw' },
+                'BTC/KRW': { id: 'btc', symbol: 'BTC/KRW', base: 'BTC', quote: 'KRW', baseId: 'btc', quoteId: 'krw' },
+                'BTG/KRW': { id: 'btg', symbol: 'BTG/KRW', base: 'BTG', quote: 'KRW', baseId: 'btg', quoteId: 'krw' },
+                'ETC/KRW': { id: 'etc', symbol: 'ETC/KRW', base: 'ETC', quote: 'KRW', baseId: 'etc', quoteId: 'krw' },
+                'ETH/KRW': { id: 'eth', symbol: 'ETH/KRW', base: 'ETH', quote: 'KRW', baseId: 'eth', quoteId: 'krw' },
+                'IOTA/KRW': { id: 'iota', symbol: 'IOTA/KRW', base: 'IOTA', quote: 'KRW', baseId: 'iota', quoteId: 'krw' },
+                'LTC/KRW': { id: 'ltc', symbol: 'LTC/KRW', base: 'LTC', quote: 'KRW', baseId: 'ltc', quoteId: 'krw' },
+                'OMG/KRW': { id: 'omg', symbol: 'OMG/KRW', base: 'OMG', quote: 'KRW', baseId: 'omg', quoteId: 'krw' },
+                'QTUM/KRW': { id: 'qtum', symbol: 'QTUM/KRW', base: 'QTUM', quote: 'KRW', baseId: 'qtum', quoteId: 'krw' },
+                'XRP/KRW': { id: 'xrp', symbol: 'XRP/KRW', base: 'XRP', quote: 'KRW', baseId: 'xrp', quoteId: 'krw' },
+                'EOS/KRW': { id: 'eos', symbol: 'EOS/KRW', base: 'EOS', quote: 'KRW', baseId: 'eos', quoteId: 'krw' },
+                'DATA/KRW': { id: 'data', symbol: 'DATA/KRW', base: 'DATA', quote: 'KRW', baseId: 'data', quoteId: 'krw' },
+                'ZIL/KRW': { id: 'zil', symbol: 'ZIL/KRW', base: 'ZIL', quote: 'KRW', baseId: 'zil', quoteId: 'krw' },
+                'KNC/KRW': { id: 'knc', symbol: 'KNC/KRW', base: 'KNC', quote: 'KRW', baseId: 'knc', quoteId: 'krw' },
+                'ZRX/KRW': { id: 'zrx', symbol: 'ZRX/KRW', base: 'ZRX', quote: 'KRW', baseId: 'zrx', quoteId: 'krw' },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'taker': 0.001,
-                    'maker': 0.001,
-                    'tiers': {
-                        'taker': [
+            fees: {
+                trading: {
+                    tierBased: true,
+                    percentage: true,
+                    taker: 0.001,
+                    maker: 0.001,
+                    tiers: {
+                        taker: [
                             [0, 0.001],
                             [100000000, 0.0009],
                             [1000000000, 0.0008],
@@ -95,8 +95,8 @@ module.exports = class coinone extends Exchange {
                             [30000000000, 0.0004],
                             [40000000000, 0.0003],
                             [50000000000, 0.0002],
-                        ],
-                        'maker': [
+                       ],
+                        maker: [
                             [0, 0.001],
                             [100000000, 0.0008],
                             [1000000000, 0.0006],
@@ -106,11 +106,11 @@ module.exports = class coinone extends Exchange {
                             [30000000000, 0],
                             [40000000000, 0],
                             [50000000000, 0],
-                        ],
+                       ],
                     },
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '405': ExchangeNotAvailable,
                 '104': OrderNotFound,
             },
@@ -119,12 +119,12 @@ module.exports = class coinone extends Exchange {
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostAccountBalance ();
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = this.omit (response, [
             'errorCode',
             'result',
             'normalWallets',
-        ]);
+       ]);
         let ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
@@ -136,9 +136,9 @@ module.exports = class coinone extends Exchange {
             let total = parseFloat (balance['balance']);
             let used = total - free;
             let account = {
-                'free': free,
-                'used': used,
-                'total': total,
+                free,
+                used,
+                total,
             };
             result[code] = account;
         }
@@ -148,8 +148,8 @@ module.exports = class coinone extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetOrderbook (this.extend ({
-            'currency': market['id'],
-            'format': 'json',
+            currency: market['id'],
+            format: 'json',
         }, params));
         return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'qty');
     }
@@ -157,8 +157,8 @@ module.exports = class coinone extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetTicker (this.extend ({
-            'currency': 'all',
-            'format': 'json',
+            currency: 'all',
+            format: 'json',
         }, params));
         let result = {};
         let tickers = response;
@@ -180,8 +180,8 @@ module.exports = class coinone extends Exchange {
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTicker (this.extend ({
-            'currency': market['id'],
-            'format': 'json',
+            currency: market['id'],
+            format: 'json',
         }, params));
         return this.parseTicker (response, market);
     }
@@ -195,26 +195,26 @@ module.exports = class coinone extends Exchange {
             change = previousClose - last;
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'first'),
-            'close': last,
-            'last': last,
-            'previousClose': previousClose,
-            'change': change,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: undefined,
+            bidVolume: undefined,
+            ask: undefined,
+            askVolume: undefined,
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'first'),
+            close: last,
+            last,
+            previousClose,
+            change,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -222,26 +222,26 @@ module.exports = class coinone extends Exchange {
         let timestamp = parseInt (trade['timestamp']) * 1000;
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
         return {
-            'id': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'order': undefined,
-            'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'qty'),
-            'fee': undefined,
-            'info': trade,
+            id: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            order: undefined,
+            symbol,
+            type: undefined,
+            side: undefined,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'qty'),
+            fee: undefined,
+            info: trade,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
-            'currency': market['id'],
-            'period': 'hour',
-            'format': 'json',
+            currency: market['id'],
+            period: 'hour',
+            format: 'json',
         }, params));
         return this.parseTrades (response['completeOrders'], market, since, limit);
     }
@@ -251,9 +251,9 @@ module.exports = class coinone extends Exchange {
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let request = {
-            'price': price,
-            'currency': this.marketId (symbol),
-            'qty': amount,
+            price,
+            currency: this.marketId (symbol),
+            qty: amount,
         };
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
@@ -264,22 +264,22 @@ module.exports = class coinone extends Exchange {
         let timestamp = this.milliseconds ();
         let cost = price * amount;
         let order = {
-            'info': response,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': undefined,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': amount,
-            'status': 'open',
-            'fee': undefined,
+            info: response,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type,
+            side,
+            price,
+            cost,
+            average: undefined,
+            amount,
+            filled: undefined,
+            remaining: amount,
+            status: 'open',
+            fee: undefined,
         };
         this.orders[id] = order;
         return order;
@@ -300,8 +300,8 @@ module.exports = class coinone extends Exchange {
         }
         try {
             let response = await this.privatePostOrderOrderInfo (this.extend ({
-                'order_id': id,
-                'currency': market['id'],
+                order_id,
+                currency: market['id'],
             }, params));
             result = this.parseOrder (response);
             this.orders[id] = result;
@@ -322,9 +322,9 @@ module.exports = class coinone extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            'live': 'open',
-            'partially_filled': 'open',
-            'filled': 'closed',
+            live: 'open',
+            partially_filled: 'open',
+            filled: 'closed',
         };
         if (status in statuses)
             return statuses[status];
@@ -361,9 +361,9 @@ module.exports = class coinone extends Exchange {
         }
         let currency = this.safeString (info, 'currency');
         let fee = {
-            'currency': currency,
-            'cost': this.safeFloat (info, 'fee'),
-            'rate': this.safeFloat (info, 'feeRate'),
+            currency,
+            cost: this.safeFloat (info, 'fee'),
+            rate: this.safeFloat (info, 'feeRate'),
         };
         let symbol = undefined;
         if (typeof market === 'undefined') {
@@ -374,21 +374,21 @@ module.exports = class coinone extends Exchange {
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
         };
         return result;
     }
@@ -401,22 +401,22 @@ module.exports = class coinone extends Exchange {
         if (typeof order === 'undefined') {
             if (typeof symbol === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {price: 12345, qty: 1.2345, is_ask: 0} in the params argument of cancelOrder.");
             }
             price = this.safeFloat (params, 'price');
             if (typeof price === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {price: 12345, qty: 1.2345, is_ask: 0} in the params argument of cancelOrder.");
             }
             amount = this.safeFloat (params, 'qty');
             if (typeof amount === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {price: 12345, qty: 1.2345, is_ask: 0} in the params argument of cancelOrder.");
             }
             side = this.safeFloat (params, 'is_ask');
             if (typeof side === 'undefined') {
                 // eslint-disable-next-line quotes
-                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
+                throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {price: 12345, qty: 1.2345, is_ask: 0} in the params argument of cancelOrder.");
             }
         } else {
             price = order['price'];
@@ -425,11 +425,11 @@ module.exports = class coinone extends Exchange {
             symbol = order['symbol'];
         }
         let request = {
-            'order_id': id,
-            'price': price,
-            'qty': amount,
-            'is_ask': side,
-            'currency': this.marketId (symbol),
+            order_id,
+            price,
+            qty: amount,
+            is_ask: side,
+            currency: this.marketId (symbol),
         };
         this.orders[id]['status'] = 'canceled';
         return await this.privatePostOrderCancel (this.extend (request, params));
@@ -449,8 +449,8 @@ module.exports = class coinone extends Exchange {
             url += this.version + '/' + request;
             let nonce = this.nonce ().toString ();
             let json = this.json (this.extend ({
-                'access_token': this.apiKey,
-                'nonce': nonce,
+                access_token: this.apiKey,
+                nonce,
             }, params));
             let payload = this.stringToBase64 (this.encode (json));
             body = this.decode (payload);
@@ -462,7 +462,7 @@ module.exports = class coinone extends Exchange {
                 'X-COINONE-SIGNATURE': signature,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

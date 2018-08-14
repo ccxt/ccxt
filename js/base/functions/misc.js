@@ -27,7 +27,7 @@ const parseTimeframe = (timeframe) => {
 const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
     let ms = parseTimeframe (timeframe) * 1000;
     let ohlcvs = [];
-    const [ timestamp, /* open */, high, low, close, volume, count ] = [ 0, 1, 2, 3, 4, 5, 6 ];
+    const [timestamp, /* open */, high, low, close, volume, count] = [0, 1, 2, 3, 4, 5, 6];
     let oldest = Math.min (trades.length - 1, limit);
 
     for (let i = 0; i <= oldest; i++) {
@@ -47,7 +47,7 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
                 trade.price,  // C
                 trade.amount, // V
                 1,            // count
-            ]);
+           ]);
         } else {
             // still processing the same timeframe -> update opening trade
             ohlcvs[candle][high] = Math.max (ohlcvs[candle][high], trade.price);

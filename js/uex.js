@@ -11,22 +11,22 @@ const { ROUND, TRUNCATE } = require ('./base/functions/number');
 module.exports = class uex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'uex',
-            'name': 'UEX',
-            'countries': [ 'SG', 'US' ],
-            'version': 'v1.0.3',
-            'rateLimit': 1000,
-            'certified': false,
+            id: 'uex',
+            name: 'UEX',
+            countries: ['SG', 'US'],
+            version: 'v1.0.3',
+            rateLimit: 1000,
+            certified: false,
             // new metainfo interface
-            'has': {
-                'CORS': false,
-                'fetchMyTrades': true,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+            has: {
+                CORS: false,
+                fetchMyTrades: true,
+                fetchOHLCV: true,
+                fetchOrder: true,
+                fetchOpenOrders: true,
+                fetchClosedOrders: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1',
                 '5m': '5',
                 '15m': '15',
@@ -39,56 +39,56 @@ module.exports = class uex extends Exchange {
                 '12h': '720',
                 '1d': '1440',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg',
-                'api': 'https://open-api.uex.com/open/api',
-                'www': 'https://www.uex.com',
-                'doc': 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
-                'fees': 'https://www.uex.com/footer/ufees.html',
-                'referral': 'https://www.uex.com/signup.html?code=VAGQLL',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/43999923-051d9884-9e1f-11e8-965a-76948cb17678.jpg',
+                api: 'https://open-api.uex.com/open/api',
+                www: 'https://www.uex.com',
+                doc: 'https://download.uex.com/doc/UEX-API-English-1.0.3.pdf',
+                fees: 'https://www.uex.com/footer/ufees.html',
+                referral: 'https://www.uex.com/signup.html?code=VAGQLL',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'common/symbols',
                         'get_records', // ohlcvs
                         'get_ticker',
                         'get_trades',
                         'market_dept', // dept here is not a typo... they mean depth
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',
                         'new_order', // open orders
                         'all_order',
                         'all_trade',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'create_order',
                         'cancel_order',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.0001,
+                    taker: 0.0005,
                 },
             },
-            'exceptions': {
+            exceptions: {
                 // descriptions from ↓ exchange
-                // '0': 'no error', // succeed
-                '4': InsufficientFunds, // {"code":"4","msg":"余额不足:0E-16","data":null}
-                '5': InvalidOrder, // fail to order {"code":"5","msg":"Price fluctuates more than1000.0%","data":null}
-                '6': InvalidOrder, // the quantity value less than the minimum one {"code":"6","msg":"数量小于最小值:0.001","data":null}
-                '7': InvalidOrder, // the quantity value more than the maximum one {"code":"7","msg":"数量大于最大值:10000","data":null}
-                '8': InvalidOrder, // fail to cancel order
-                '9': ExchangeError, // transaction be frozen
+                // 0: 'no error', // succeed
+                4: InsufficientFunds, // {"code":"4","msg":"余额不足:0E-16","data":null}
+                5: InvalidOrder, // fail to order {"code":"5","msg":"Price fluctuates more than1000.0%","data":null}
+                6: InvalidOrder, // the quantity value less than the minimum one {"code":"6","msg":"数量小于最小值:0.001","data":null}
+                7: InvalidOrder, // the quantity value more than the maximum one {"code":"7","msg":"数量大于最大值:10000","data":null}
+                8: InvalidOrder, // fail to cancel order
+                9: ExchangeError, // transaction be frozen
                 '13': ExchangeError, // Sorry, the program made an error, please contact with the manager.
                 '19': InsufficientFunds, // Available balance is insufficient.
                 '22': OrderNotFound, // The order does not exist. {"code":"22","msg":"not exist order","data":null}
@@ -112,33 +112,33 @@ module.exports = class uex extends Exchange {
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: true,
             },
-            'options': {
-                'createMarketBuyOrderRequiresPrice': true,
-                'limits': {
-                    'BTC/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
-                    'ETH/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
-                    'BCH/USDT': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.01 }},
-                    'ETH/BTC': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.000001 }},
-                    'BCH/BTC': { 'amount': { 'min': 0.001 }, 'price': { 'min': 0.000001 }},
-                    'LEEK/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'CTXC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'COSM/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'MANA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'LBA/BTC': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'OLT/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'DTA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'KNT/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'REN/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'LBA/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'EXC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'ZIL/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'RATING/ETH': { 'amount': { 'min': 100 }, 'price': { 'min': 100 }},
-                    'CENNZ/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
-                    'TTC/ETH': { 'amount': { 'min': 10 }, 'price': { 'min': 10 }},
+            options: {
+                createMarketBuyOrderRequiresPrice: true,
+                limits: {
+                    'BTC/USDT': { amount: { min: 0.001 }, price: { min: 0.01 }},
+                    'ETH/USDT': { amount: { min: 0.001 }, price: { min: 0.01 }},
+                    'BCH/USDT': { amount: { min: 0.001 }, price: { min: 0.01 }},
+                    'ETH/BTC': { amount: { min: 0.001 }, price: { min: 0.000001 }},
+                    'BCH/BTC': { amount: { min: 0.001 }, price: { min: 0.000001 }},
+                    'LEEK/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'CTXC/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'COSM/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'MANA/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'LBA/BTC': { amount: { min: 10 }, price: { min: 10 }},
+                    'OLT/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'DTA/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'KNT/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'REN/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'LBA/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'EXC/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'ZIL/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'RATING/ETH': { amount: { min: 100 }, price: { min: 100 }},
+                    'CENNZ/ETH': { amount: { min: 10 }, price: { min: 10 }},
+                    'TTC/ETH': { amount: { min: 10 }, price: { min: 10 }},
                 },
             },
         });
@@ -171,10 +171,10 @@ module.exports = class uex extends Exchange {
             key = 'base';
         }
         return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            type: takerOrMaker,
+            currency: market[key],
+            rate,
+            cost: parseFloat (this.feeToPrecision (market[key], cost)),
         };
     }
 
@@ -183,7 +183,7 @@ module.exports = class uex extends Exchange {
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: [ {           symbol: "btcusdt",
+        //       data: [{           symbol: "btcusdt",
         //                       count_coin: "usdt",
         //                 amount_precision:  3,
         //                        base_coin: "btc",
@@ -212,36 +212,36 @@ module.exports = class uex extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['amount_precision'],
-                'price': market['price_precision'],
+                amount: market['amount_precision'],
+                price: market['price_precision'],
             };
             let active = true;
             let defaultLimits = this.safeValue (this.options['limits'], symbol, {});
             let limits = this.deepExtend ({
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
+                amount: {
+                    min: undefined,
+                    max: undefined,
                 },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
+                price: {
+                    min: undefined,
+                    max: undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                cost: {
+                    min: undefined,
+                    max: undefined,
                 },
             }, defaultLimits);
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
-                'precision': precision,
-                'limits': limits,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
+                precision,
+                limits,
             });
         }
         return result;
@@ -254,7 +254,7 @@ module.exports = class uex extends Exchange {
         //     { code:   "0",
         //        msg:   "suc",
         //       data: { total_asset:   "0.00000000",
-        //                 coin_list: [ {      normal: "0.00000000",
+        //                 coin_list: [{      normal: "0.00000000",
         //                                btcValuatin: "0.00000000",
         //                                     locked: "0.00000000",
         //                                       coin: "usdt"        },
@@ -272,7 +272,7 @@ module.exports = class uex extends Exchange {
         //                                       coin: "ren"         }]}}
         //
         let balances = response['data']['coin_list'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyId = balance['coin'];
@@ -297,20 +297,20 @@ module.exports = class uex extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketDept (this.extend ({
-            'symbol': this.marketId (symbol),
-            'type': 'step0', // step1, step2 from most detailed to least detailed
+            symbol: this.marketId (symbol),
+            type: 'step0', // step1, step2 from most detailed to least detailed
         }, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: { tick: { asks: [ ["0.05824200", 9.77],
+        //       data: { tick: { asks: [["0.05824200", 9.77],
         //                               ["0.05830000", 7.81],
         //                               ["0.05832900", 8.59],
-        //                               ["0.10000000", 0.001]  ],
-        //                       bids: [ ["0.05780000", 8.25],
+        //                               ["0.10000000", 0.001] ],
+        //                       bids: [["0.05780000", 8.25],
         //                               ["0.05775000", 8.12],
         //                               ["0.05773200", 8.57],
-        //                               ["0.00010000", 0.79]   ],
+        //                               ["0.00010000", 0.79]  ],
         //                       time:    1533412622463            } } }
         //
         let timestamp = this.safeInteger (response['data']['tick'], 'time');
@@ -347,26 +347,26 @@ module.exports = class uex extends Exchange {
         let change = this.safeFloat (ticker, 'change');
         let percentage = change * 100;
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': percentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -374,7 +374,7 @@ module.exports = class uex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetTicker (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         //
         //     { code:   "0",
@@ -452,25 +452,25 @@ module.exports = class uex extends Exchange {
                 }
             }
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
+                cost: feeCost,
+                currency: feeCurrency,
             };
         }
         let orderIdField = (side === 'sell') ? 'ask_id' : 'bid_id';
         let orderId = this.safeString (trade, orderIdField);
         return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            id,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            order: orderId,
+            type: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -478,12 +478,12 @@ module.exports = class uex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetTrades (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: [ {      amount:  0.88,
+        //       data: [{      amount:  0.88,
         //                 create_time:  1533414358000,
         //                       price:  0.058019,
         //                          id:  406531,
@@ -497,7 +497,7 @@ module.exports = class uex extends Exchange {
         //                 create_time:  1533414311000,
         //                       price:  0.058019,
         //                          id:  406529,
-        //                        type: "sell"          } ] }
+        //                        type: "sell"          }] }
         //
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -510,24 +510,24 @@ module.exports = class uex extends Exchange {
             ohlcv[3], // low
             ohlcv[4], // close
             ohlcv[5], // volume
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'period': this.timeframes[timeframe], // in minutes
+            symbol: market['id'],
+            period: this.timeframes[timeframe], // in minutes
         };
         let response = await this.publicGetGetRecords (this.extend (request, params));
         //
         //     { code: '0',
         //        msg: 'suc',
         //       data:
-        //        [ [ 1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1 ],
-        //          [ 1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88 ],
-        //          [ 1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06 ] ] }
+        //        [[1533402420, 0.057833, 0.057833, 0.057833, 0.057833, 18.1],
+        //          [1533402480, 0.057833, 0.057833, 0.057833, 0.057833, 29.88],
+        //          [1533402540, 0.057833, 0.057833, 0.057833, 0.057833, 29.06]] }
         //
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
@@ -551,10 +551,10 @@ module.exports = class uex extends Exchange {
         let orderSide = side.toUpperCase ();
         let amountToPrecision = this.amountToPrecision (symbol, amount);
         let request = {
-            'side': orderSide,
-            'type': orderType,
-            'symbol': market['id'],
-            'volume': amountToPrecision,
+            side: orderSide,
+            type: orderType,
+            symbol: market['id'],
+            volume: amountToPrecision,
             // An excerpt from their docs:
             // side required Trading Direction
             // type required pending order types，1:Limit-price Delegation 2:Market- price Delegation
@@ -583,13 +583,13 @@ module.exports = class uex extends Exchange {
         //
         let result = this.parseOrder (response['data'], market);
         return this.extend (result, {
-            'info': response,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'status': 'open',
-            'price': priceToPrecision,
-            'amount': parseFloat (amountToPrecision),
+            info: response,
+            symbol,
+            type,
+            side,
+            status: 'open',
+            price: priceToPrecision,
+            amount: parseFloat (amountToPrecision),
         });
     }
 
@@ -597,27 +597,27 @@ module.exports = class uex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'order_id': id,
-            'symbol': market['id'],
+            order_id,
+            symbol: market['id'],
         };
         let response = await this.privatePostCancelOrder (this.extend (request, params));
         let order = this.safeValue (response, 'data', {});
         return this.extend (this.parseOrder (order), {
-            'id': id,
-            'symbol': symbol,
-            'status': 'canceled',
+            id,
+            symbol,
+            status: 'canceled',
         });
     }
 
     parseOrderStatus (status) {
         let statuses = {
-            '0': 'open', // INIT(0,"primary order，untraded and not enter the market")
-            '1': 'open', // NEW_(1,"new order，untraded and enter the market ")
-            '2': 'closed', // FILLED(2,"complete deal")
-            '3': 'open', // PART_FILLED(3,"partial deal")
-            '4': 'canceled', // CANCELED(4,"already withdrawn")
-            '5': 'canceled', // PENDING_CANCEL(5,"pending withdrawak")
-            '6': 'canceled', // EXPIRED(6,"abnormal orders")
+            0: 'open', // INIT(0,"primary order，untraded and not enter the market")
+            1: 'open', // NEW_(1,"new order，untraded and enter the market ")
+            2: 'closed', // FILLED(2,"complete deal")
+            3: 'open', // PART_FILLED(3,"partial deal")
+            4: 'canceled', // CANCELED(4,"already withdrawn")
+            5: 'canceled', // PENDING_CANCEL(5,"pending withdrawak")
+            6: 'canceled', // EXPIRED(6,"abnormal orders")
         };
         if (status in statuses) {
             return statuses[status];
@@ -649,26 +649,26 @@ module.exports = class uex extends Exchange {
         //                  id:    424,
         //       remain_volume:   "0.00000000",
         //            baseCoin:   "eth",
-        //           tradeList: [ {     volume: "1.000",
+        //           tradeList: [{     volume: "1.000",
         //                             feeCoin: "YLB",
         //                               price: "0.10000000",
         //                                 fee: "0.16431104",
         //                               ctime:  1510996571195,
         //                          deal_price: "0.10000000",
         //                                  id:  306,
-        //                                type: "买入"            } ],
+        //                                type: "买入"            }],
         //              status:    2                                 }
         //
         // fetchOrder
         //
-        //      { trade_list: [ {     volume: "0.010",
+        //      { trade_list: [{     volume: "0.010",
         //                           feeCoin: "BTC",
         //                             price: "0.05816200",
         //                               fee: "0.00000029",
         //                             ctime:  1533616674000,
         //                        deal_price: "0.00058162",
         //                                id:  415779,
-        //                              type: "卖出"            } ],
+        //                              type: "卖出"            }],
         //        order_info: {          side:   "SELL",
         //                        total_price:   "0.010",
         //                         created_at:    1533616673000,
@@ -685,14 +685,14 @@ module.exports = class uex extends Exchange {
         //                                 id:    3669583,
         //                      remain_volume:   "0.00000000",
         //                           baseCoin:   "eth",
-        //                          tradeList: [ {     volume: "0.010",
+        //                          tradeList: [{     volume: "0.010",
         //                                            feeCoin: "BTC",
         //                                              price: "0.05816200",
         //                                                fee: "0.00000029",
         //                                              ctime:  1533616674000,
         //                                         deal_price: "0.00058162",
         //                                                 id:  415779,
-        //                                               type: "卖出"            } ],
+        //                                               type: "卖出"            }],
         //                             status:    2                                 } }
         //
         let side = this.safeString (order, 'side');
@@ -755,7 +755,7 @@ module.exports = class uex extends Exchange {
             }
             lastTradeTimestamp = trade['timestamp'];
             trades.push (this.extend (trade, {
-                'order': id,
+                order: id,
             }));
         }
         if (typeof feeCost !== 'undefined') {
@@ -766,28 +766,28 @@ module.exports = class uex extends Exchange {
                 feeCurrency = keys[0];
             }
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
+                cost: feeCost,
+                currency: feeCurrency,
             };
         }
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': trades,
+            info: order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            cost,
+            average,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
+            trades,
         };
         return result;
     }
@@ -801,7 +801,7 @@ module.exports = class uex extends Exchange {
         let request = {
             // pageSize optional page size
             // page optional page number
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['pageSize'] = limit;
@@ -811,7 +811,7 @@ module.exports = class uex extends Exchange {
         //     { code:   "0",
         //        msg:   "suc",
         //       data: {     count:    1,
-        //               orderList: [ {          side:   "SELL",
+        //               orderList: [{          side:   "SELL",
         //                                total_price:   "0.010",
         //                                 created_at:    1533616673000,
         //                                  avg_price:   "0.05816200",
@@ -827,15 +827,15 @@ module.exports = class uex extends Exchange {
         //                                         id:    3669583,
         //                              remain_volume:   "0.00000000",
         //                                   baseCoin:   "eth",
-        //                                  tradeList: [ {     volume: "0.010",
+        //                                  tradeList: [{     volume: "0.010",
         //                                                    feeCoin: "BTC",
         //                                                      price: "0.05816200",
         //                                                        fee: "0.00000029",
         //                                                      ctime:  1533616674000,
         //                                                 deal_price: "0.00058162",
         //                                                         id:  415779,
-        //                                                       type: "卖出"            } ],
-        //                                     status:    2                                 } ] } }
+        //                                                       type: "卖出"            }],
+        //                                     status:    2                                 }] } }
         //
         // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
         let orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
@@ -854,21 +854,21 @@ module.exports = class uex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'order_id': id,
-            'symbol': market['id'],
+            order_id,
+            symbol: market['id'],
         };
         let response = await this.privateGetOrderInfo (this.extend (request, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
-        //       data: { trade_list: [ {     volume: "0.010",
+        //       data: { trade_list: [{     volume: "0.010",
         //                                  feeCoin: "BTC",
         //                                    price: "0.05816200",
         //                                      fee: "0.00000029",
         //                                    ctime:  1533616674000,
         //                               deal_price: "0.00058162",
         //                                       id:  415779,
-        //                                     type: "卖出"            } ],
+        //                                     type: "卖出"            }],
         //               order_info: {          side:   "SELL",
         //                               total_price:   "0.010",
         //                                created_at:    1533616673000,
@@ -885,14 +885,14 @@ module.exports = class uex extends Exchange {
         //                                        id:    3669583,
         //                             remain_volume:   "0.00000000",
         //                                  baseCoin:   "eth",
-        //                                 tradeList: [ {     volume: "0.010",
+        //                                 tradeList: [{     volume: "0.010",
         //                                                   feeCoin: "BTC",
         //                                                     price: "0.05816200",
         //                                                       fee: "0.00000029",
         //                                                     ctime:  1533616674000,
         //                                                deal_price: "0.00058162",
         //                                                        id:  415779,
-        //                                                      type: "卖出"            } ],
+        //                                                      type: "卖出"            }],
         //                                    status:    2                                 } } }
         //
         return this.parseOrder (response['data']['order_info'], market);
@@ -907,7 +907,7 @@ module.exports = class uex extends Exchange {
         let request = {
             // pageSize optional page size
             // page optional page number
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['pageSize'] = limit;
@@ -917,7 +917,7 @@ module.exports = class uex extends Exchange {
         //     { code:   "0",
         //        msg:   "suc",
         //       data: {      count:    1,
-        //               resultList: [ {     volume: "0.010",
+        //               resultList: [{     volume: "0.010",
         //                                     side: "SELL",
         //                                  feeCoin: "BTC",
         //                                    price: "0.05816200",
@@ -927,7 +927,7 @@ module.exports = class uex extends Exchange {
         //                                       id:  415779,
         //                                     type: "卖出",
         //                                   bid_id:  3669539,
-        //                                   ask_id:  3669583        } ] } }
+        //                                   ask_id:  3669583        }] } }
         //
         let trades = this.safeValue (response['data'], 'resultList', []);
         return this.parseTrades (trades, market, since, limit);
@@ -943,8 +943,8 @@ module.exports = class uex extends Exchange {
             let timestamp = this.seconds ().toString ();
             let auth = '';
             let query = this.keysort (this.extend (params, {
-                'api_key': this.apiKey,
-                'time': timestamp,
+                api_key: this.apiKey,
+                time: timestamp,
             }));
             let keys = Object.keys (query);
             for (let i = 0; i < keys.length; i++) {
@@ -964,7 +964,7 @@ module.exports = class uex extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

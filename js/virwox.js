@@ -10,31 +10,31 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class virwox extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'virwox',
-            'name': 'VirWoX',
-            'countries': [ 'AT', 'EU' ],
-            'rateLimit': 1000,
-            'has': {
-                'CORS': true,
+            id: 'virwox',
+            name: 'VirWoX',
+            countries: ['AT', 'EU'],
+            rateLimit: 1000,
+            has: {
+                CORS: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
-                'api': {
-                    'public': 'http://api.virwox.com/api/json.php',
-                    'private': 'https://www.virwox.com/api/trading.php',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766894-6da9d360-5eea-11e7-90aa-41f2711b7405.jpg',
+                api: {
+                    public: 'http://api.virwox.com/api/json.php',
+                    private: 'https://www.virwox.com/api/trading.php',
                 },
-                'www': 'https://www.virwox.com',
-                'doc': 'https://www.virwox.com/developers.php',
+                www: 'https://www.virwox.com',
+                doc: 'https://www.virwox.com/developers.php',
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': false,
-                'login': true,
-                'password': true,
+            requiredCredentials: {
+                apiKey: true,
+                secret: false,
+                login: true,
+                password: true,
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -45,8 +45,8 @@ module.exports = class virwox extends Exchange {
                         'getTerminalList',
                         'getGridList',
                         'getGridStatistics',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'getInstruments',
                         'getBestPrices',
                         'getMarketDepth',
@@ -57,25 +57,25 @@ module.exports = class virwox extends Exchange {
                         'getTerminalList',
                         'getGridList',
                         'getGridStatistics',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
                         'getOrders',
                         'getTransactions',
                         'placeOrder',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'cancelOrder',
                         'getBalances',
                         'getCommissionDiscount',
                         'getOrders',
                         'getTransactions',
                         'placeOrder',
-                    ],
+                   ],
                 },
             },
         });
@@ -92,11 +92,11 @@ module.exports = class virwox extends Exchange {
             let base = market['longCurrency'];
             let quote = market['shortCurrency'];
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
             });
         }
         return result;
@@ -106,15 +106,15 @@ module.exports = class virwox extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostGetBalances ();
         let balances = response['result']['accountList'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let total = balance['balance'];
             let account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
+                free: total,
+                used: 0.0,
+                total,
             };
             result[currency] = account;
         }
@@ -124,19 +124,19 @@ module.exports = class virwox extends Exchange {
     async fetchMarketPrice (symbol, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicPostGetBestPrices (this.extend ({
-            'symbols': [ symbol ],
+            symbols: [symbol],
         }, params));
         let result = response['result'];
         return {
-            'bid': this.safeFloat (result[0], 'bestBuyPrice'),
-            'ask': this.safeFloat (result[0], 'bestSellPrice'),
+            bid: this.safeFloat (result[0], 'bestBuyPrice'),
+            ask: this.safeFloat (result[0], 'bestSellPrice'),
         };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'symbols': [ symbol ],
+            symbols: [symbol],
         };
         if (typeof limit !== 'undefined') {
             request['buyDepth'] = limit; // 100
@@ -152,10 +152,10 @@ module.exports = class virwox extends Exchange {
         let end = this.milliseconds ();
         let start = end - 86400000;
         let response = await this.publicGetGetTradedPriceVolume (this.extend ({
-            'instrument': symbol,
-            'endDate': this.ymdhms (end),
-            'startDate': this.ymdhms (start),
-            'HLOC': 1,
+            instrument: symbol,
+            endDate: this.ymdhms (end),
+            startDate: this.ymdhms (start),
+            HLOC: 1,
         }, params));
         let tickers = response['result']['priceVolumeList'];
         let keys = Object.keys (tickers);
@@ -165,26 +165,26 @@ module.exports = class virwox extends Exchange {
         let timestamp = this.milliseconds ();
         let close = this.safeFloat (ticker, 'close');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': close,
-            'last': close,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'longVolume'),
-            'quoteVolume': this.safeFloat (ticker, 'shortVolume'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: undefined,
+            bidVolume: undefined,
+            ask: undefined,
+            askVolume: undefined,
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'open'),
+            close,
+            last: close,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'longVolume'),
+            quoteVolume: this.safeFloat (ticker, 'shortVolume'),
+            info: ticker,
         };
     }
 
@@ -192,17 +192,17 @@ module.exports = class virwox extends Exchange {
         let sec = this.safeInteger (trade, 'time');
         let timestamp = sec * 1000;
         return {
-            'id': trade['tid'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'order': undefined,
-            'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'vol'),
-            'fee': undefined,
-            'info': trade,
+            id: trade['tid'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            order: undefined,
+            symbol,
+            type: undefined,
+            side: undefined,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'vol'),
+            fee: undefined,
+            info: trade,
         };
     }
 
@@ -210,8 +210,8 @@ module.exports = class virwox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetGetRawTradeData (this.extend ({
-            'instrument': symbol,
-            'timespan': 3600,
+            instrument: symbol,
+            timespan: 3600,
         }, params));
         let result = response['result'];
         let trades = result['data'];
@@ -222,22 +222,22 @@ module.exports = class virwox extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
-            'instrument': market['symbol'],
-            'orderType': side.toUpperCase (),
-            'amount': amount,
+            instrument: market['symbol'],
+            orderType: side.toUpperCase (),
+            amount,
         };
         if (type === 'limit')
             order['price'] = price;
         let response = await this.privatePostPlaceOrder (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['result']['orderID'].toString (),
+            info: response,
+            id: response['result']['orderID'].toString (),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostCancelOrder (this.extend ({
-            'orderID': id,
+            orderID: id,
         }, params));
     }
 
@@ -253,18 +253,18 @@ module.exports = class virwox extends Exchange {
         let nonce = this.nonce ();
         if (method === 'GET') {
             url += '?' + this.urlencode (this.extend ({
-                'method': path,
-                'id': nonce,
+                method: path,
+                id: nonce,
             }, auth, params));
         } else {
             headers = { 'Content-Type': 'application/json' };
             body = this.json ({
-                'method': path,
-                'params': this.extend (auth, params),
-                'id': nonce,
+                method: path,
+                params: this.extend (auth, params),
+                id: nonce,
             });
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

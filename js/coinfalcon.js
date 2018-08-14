@@ -10,56 +10,56 @@ const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/
 module.exports = class coinfalcon extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coinfalcon',
-            'name': 'CoinFalcon',
-            'countries': [ 'GB' ],
-            'rateLimit': 1000,
-            'version': 'v1',
-            'has': {
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
+            id: 'coinfalcon',
+            name: 'CoinFalcon',
+            countries: ['GB'],
+            rateLimit: 1000,
+            version: 'v1',
+            has: {
+                fetchTickers: true,
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
-                'www': 'https://coinfalcon.com',
-                'doc': 'https://docs.coinfalcon.com',
-                'fees': 'https://coinfalcon.com/fees',
-                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
+                api: 'https://coinfalcon.com',
+                www: 'https://coinfalcon.com',
+                doc: 'https://docs.coinfalcon.com',
+                fees: 'https://coinfalcon.com/fees',
+                referral: 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'markets',
                         'markets/{market}/orders',
                         'markets/{market}/trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'user/accounts',
                         'user/orders',
                         'user/orders/{id}',
                         'user/trades',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'user/orders',
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'user/orders/{id}',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': true,
-                    'maker': 0.0,
-                    'taker': 0.002, // tiered fee starts at 0.2%
+            fees: {
+                trading: {
+                    tierBased: true,
+                    maker: 0.0,
+                    taker: 0.002, // tiered fee starts at 0.2%
                 },
             },
-            'precision': {
-                'amount': 8,
-                'price': 8,
+            precision: {
+                amount: 8,
+                price: 8,
             },
         });
     }
@@ -70,38 +70,38 @@ module.exports = class coinfalcon extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let [ baseId, quoteId ] = market['name'].split ('-');
+            let [baseId, quoteId] = market['name'].split ('-');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': this.safeInteger (market, 'size_precision'),
-                'price': this.safeInteger (market, 'price_precision'),
+                amount: this.safeInteger (market, 'size_precision'),
+                price: this.safeInteger (market, 'price_precision'),
             };
             result.push ({
-                'id': market['name'],
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                id: market['name'],
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             });
         }
         return result;
@@ -116,26 +116,26 @@ module.exports = class coinfalcon extends Exchange {
         let timestamp = this.milliseconds ();
         let last = parseFloat (ticker['last_price']);
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': parseFloat (ticker['change_in_24h']),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': parseFloat (ticker['volume']),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: undefined,
+            bidVolume: undefined,
+            ask: undefined,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: parseFloat (ticker['change_in_24h']),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: parseFloat (ticker['volume']),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -160,8 +160,8 @@ module.exports = class coinfalcon extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketsMarketOrders (this.extend ({
-            'market': this.marketId (symbol),
-            'level': '3',
+            market: this.marketId (symbol),
+            level: '3',
         }, params));
         return this.parseOrderBook (response['data'], undefined, 'bids', 'asks', 'price', 'size');
     }
@@ -173,18 +173,18 @@ module.exports = class coinfalcon extends Exchange {
         let symbol = market['symbol'];
         let cost = parseFloat (this.costToPrecision (symbol, price * amount));
         return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': undefined,
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id: undefined,
+            order: undefined,
+            type: undefined,
+            side: undefined,
+            price,
+            amount,
+            cost,
+            fee: undefined,
         };
     }
 
@@ -192,7 +192,7 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'],
+            market: market['id'],
         };
         if (typeof since !== 'undefined') {
             request['since'] = this.iso8601 (since);
@@ -204,7 +204,7 @@ module.exports = class coinfalcon extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserAccounts (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -215,9 +215,9 @@ module.exports = class coinfalcon extends Exchange {
                 code = this.currencies_by_id[uppercase]['code'];
             }
             let account = {
-                'free': parseFloat (balance['available_balance']),
-                'used': parseFloat (balance['hold_balance']),
-                'total': parseFloat (balance['balance']),
+                free: parseFloat (balance['available_balance']),
+                used: parseFloat (balance['hold_balance']),
+                total: parseFloat (balance['balance']),
             };
             result[code] = account;
         }
@@ -251,21 +251,21 @@ module.exports = class coinfalcon extends Exchange {
         }
         let type = order['operation_type'].split ('_');
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type[0],
-            'side': order['order_type'],
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
+            id: this.safeString (order, 'id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            status,
+            symbol,
+            type: type[0],
+            side: order['order_type'],
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info: order,
         };
     }
 
@@ -275,9 +275,9 @@ module.exports = class coinfalcon extends Exchange {
         // price/size must be string
         amount = this.amountToPrecision (symbol, parseFloat (amount));
         let request = {
-            'market': market['id'],
-            'size': amount.toString (),
-            'order_type': side,
+            market: market['id'],
+            size: amount.toString (),
+            order_type: side,
         };
         if (type === 'limit') {
             price = this.priceToPrecision (symbol, parseFloat (price));
@@ -294,7 +294,7 @@ module.exports = class coinfalcon extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateDeleteUserOrdersId (this.extend ({
-            'id': id,
+            id,
         }, params));
         let market = this.market (symbol);
         return this.parseOrder (response['data'], market);
@@ -303,7 +303,7 @@ module.exports = class coinfalcon extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserOrdersId (this.extend ({
-            'id': id,
+            id,
         }, params));
         return this.parseOrder (response['data']);
     }
@@ -342,7 +342,7 @@ module.exports = class coinfalcon extends Exchange {
                 body = this.json (query);
             }
             let seconds = this.seconds ().toString ();
-            let payload = [ seconds, method, request ].join ('|');
+            let payload = [seconds, method, request].join ('|');
             if (body) {
                 payload += '|' + body;
             }
@@ -354,7 +354,7 @@ module.exports = class coinfalcon extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

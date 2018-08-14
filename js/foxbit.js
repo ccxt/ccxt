@@ -10,35 +10,35 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class foxbit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'foxbit',
-            'name': 'FoxBit',
-            'countries': [ 'BR' ],
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
+            id: 'foxbit',
+            name: 'FoxBit',
+            countries: ['BR'],
+            has: {
+                CORS: false,
+                createMarketOrder: false,
             },
-            'rateLimit': 1000,
-            'version': 'v1',
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
-                'api': {
-                    'public': 'https://api.blinktrade.com/api',
-                    'private': 'https://api.blinktrade.com/tapi',
+            rateLimit: 1000,
+            version: 'v1',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27991413-11b40d42-647f-11e7-91ee-78ced874dd09.jpg',
+                api: {
+                    public: 'https://api.blinktrade.com/api',
+                    private: 'https://api.blinktrade.com/tapi',
                 },
-                'www': 'https://foxbit.exchange',
-                'doc': 'https://blinktrade.com/docs',
+                www: 'https://foxbit.exchange',
+                doc: 'https://blinktrade.com/docs',
             },
-            'comment': 'Blinktrade API',
-            'api': {
-                'public': {
-                    'get': [
+            comment: 'Blinktrade API',
+            api: {
+                public: {
+                    get: [
                         '{currency}/ticker',    // ?crypto_currency=BTC
                         '{currency}/orderbook', // ?crypto_currency=BTC
                         '{currency}/trades',    // ?crypto_currency=BTC&since=<TIMESTAMP>&limit=<NUMBER>
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'D',   // order
                         'F',   // cancel order
                         'U2',  // balance
@@ -50,28 +50,28 @@ module.exports = class foxbit extends Exchange {
                         'U30', // list deposits
                         'U34', // ledger
                         'U70', // cancel withdrawal
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/VEF': { 'id': 'BTCVEF', 'symbol': 'BTC/VEF', 'base': 'BTC', 'quote': 'VEF', 'brokerId': 1, 'broker': 'SurBitcoin' },
-                'BTC/VND': { 'id': 'BTCVND', 'symbol': 'BTC/VND', 'base': 'BTC', 'quote': 'VND', 'brokerId': 3, 'broker': 'VBTC' },
-                'BTC/BRL': { 'id': 'BTCBRL', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'brokerId': 4, 'broker': 'FoxBit' },
-                'BTC/PKR': { 'id': 'BTCPKR', 'symbol': 'BTC/PKR', 'base': 'BTC', 'quote': 'PKR', 'brokerId': 8, 'broker': 'UrduBit' },
-                'BTC/CLP': { 'id': 'BTCCLP', 'symbol': 'BTC/CLP', 'base': 'BTC', 'quote': 'CLP', 'brokerId': 9, 'broker': 'ChileBit' },
+            markets: {
+                'BTC/VEF': { id: 'BTCVEF', symbol: 'BTC/VEF', base: 'BTC', quote: 'VEF', brokerId: 1, broker: 'SurBitcoin' },
+                'BTC/VND': { id: 'BTCVND', symbol: 'BTC/VND', base: 'BTC', quote: 'VND', brokerId: 3, broker: 'VBTC' },
+                'BTC/BRL': { id: 'BTCBRL', symbol: 'BTC/BRL', base: 'BTC', quote: 'BRL', brokerId: 4, broker: 'FoxBit' },
+                'BTC/PKR': { id: 'BTCPKR', symbol: 'BTC/PKR', base: 'BTC', quote: 'PKR', brokerId: 8, broker: 'UrduBit' },
+                'BTC/CLP': { id: 'BTCCLP', symbol: 'BTC/CLP', base: 'BTC', quote: 'CLP', brokerId: 9, broker: 'ChileBit' },
             },
-            'options': {
-                'brokerId': '4', // https://blinktrade.com/docs/#brokers
+            options: {
+                brokerId: '4', // https://blinktrade.com/docs/#brokers
             },
         });
     }
 
     async fetchBalance (params = {}) {
         let response = await this.privatePostU2 ({
-            'BalanceReqID': this.nonce (),
+            BalanceReqID: this.nonce (),
         });
         let balances = this.safeValue (response['Responses'], this.options['brokerId']);
-        let result = { 'info': response };
+        let result = { info: response };
         if (typeof balances !== 'undefined') {
             let currencyIds = Object.keys (this.currencies_by_id);
             for (let i = 0; i < currencyIds.length; i++) {
@@ -95,8 +95,8 @@ module.exports = class foxbit extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
-            'currency': market['quote'],
-            'crypto_currency': market['base'],
+            currency: market['quote'],
+            crypto_currency: market['base'],
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -104,57 +104,57 @@ module.exports = class foxbit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         let market = this.market (symbol);
         let ticker = await this.publicGetCurrencyTicker (this.extend ({
-            'currency': market['quote'],
-            'crypto_currency': market['base'],
+            currency: market['quote'],
+            crypto_currency: market['base'],
         }, params));
         let timestamp = this.milliseconds ();
         let lowercaseQuote = market['quote'].toLowerCase ();
         let quoteVolume = 'vol_' + lowercaseQuote;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: parseFloat (ticker[quoteVolume]),
+            info: ticker,
         };
     }
 
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'id': this.safeString (trade, 'tid'),
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            id: this.safeString (trade, 'tid'),
+            info: trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['side'],
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
         let response = await this.publicGetCurrencyTrades (this.extend ({
-            'currency': market['quote'],
-            'crypto_currency': market['base'],
+            currency: market['quote'],
+            crypto_currency: market['base'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -165,26 +165,26 @@ module.exports = class foxbit extends Exchange {
         let market = this.market (symbol);
         let orderSide = (side === 'buy') ? '1' : '2';
         let order = {
-            'ClOrdID': this.nonce (),
-            'Symbol': market['id'],
-            'Side': orderSide,
-            'OrdType': '2',
-            'Price': price,
-            'OrderQty': amount,
-            'BrokerID': market['brokerId'],
+            ClOrdID: this.nonce (),
+            Symbol: market['id'],
+            Side: orderSide,
+            OrdType: '2',
+            Price: price,
+            OrderQty: amount,
+            BrokerID: market['brokerId'],
         };
         let response = await this.privatePostD (this.extend (order, params));
         let indexed = this.indexBy (response['Responses'], 'MsgType');
         let execution = indexed['8'];
         return {
-            'info': response,
-            'id': execution['OrderID'],
+            info: response,
+            id: execution['OrderID'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         return await this.privatePostF (this.extend ({
-            'ClOrdID': id,
+            ClOrdID: id,
         }, params));
     }
 
@@ -197,16 +197,16 @@ module.exports = class foxbit extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let request = this.extend ({ 'MsgType': path }, query);
+            let request = this.extend ({ MsgType: path }, query);
             body = this.json (request);
             headers = {
-                'APIKey': this.apiKey,
-                'Nonce': nonce,
-                'Signature': this.hmac (this.encode (nonce), this.encode (this.secret)),
+                APIKey: this.apiKey,
+                Nonce: nonce,
+                Signature: this.hmac (this.encode (nonce), this.encode (this.secret)),
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

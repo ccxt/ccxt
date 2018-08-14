@@ -10,18 +10,18 @@ const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, Inv
 module.exports = class bitbank extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bitbank',
-            'name': 'bitbank',
-            'countries': [ 'JP' ],
-            'version': 'v1',
-            'has': {
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'fetchDepositAddress': true,
-                'withdraw': true,
+            id: 'bitbank',
+            name: 'bitbank',
+            countries: ['JP'],
+            version: 'v1',
+            has: {
+                fetchOHLCV: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
+                fetchDepositAddress: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1min',
                 '5m': '5min',
                 '15m': '15min',
@@ -33,76 +33,76 @@ module.exports = class bitbank extends Exchange {
                 '1d': '1day',
                 '1w': '1week',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
-                'api': {
-                    'public': 'https://public.bitbank.cc',
-                    'private': 'https://api.bitbank.cc',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
+                api: {
+                    public: 'https://public.bitbank.cc',
+                    private: 'https://api.bitbank.cc',
                 },
-                'www': 'https://bitbank.cc/',
-                'doc': 'https://docs.bitbank.cc/',
-                'fees': 'https://bitbank.cc/docs/fees/',
+                www: 'https://bitbank.cc/',
+                doc: 'https://docs.bitbank.cc/',
+                fees: 'https://bitbank.cc/docs/fees/',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         '{pair}/ticker',
                         '{pair}/depth',
                         '{pair}/transactions',
                         '{pair}/transactions/{yyyymmdd}',
                         '{pair}/candlestick/{candletype}/{yyyymmdd}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'user/assets',
                         'user/spot/order',
                         'user/spot/active_orders',
                         'user/spot/trade_history',
                         'user/withdrawal_account',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'user/spot/order',
                         'user/spot/cancel_order',
                         'user/spot/cancel_orders',
                         'user/spot/orders_info',
                         'user/request_withdrawal',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BCH/BTC': { 'id': 'bcc_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bcc', 'quoteId': 'btc' },
-                'BCH/JPY': { 'id': 'bcc_jpy', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bcc', 'quoteId': 'jpy' },
-                'MONA/BTC': { 'id': 'mona_btc', 'symbol': 'MONA/BTC', 'base': 'MONA', 'quote': 'BTC', 'baseId': 'mona', 'quoteId': 'btc' },
-                'MONA/JPY': { 'id': 'mona_jpy', 'symbol': 'MONA/JPY', 'base': 'MONA', 'quote': 'JPY', 'baseId': 'mona', 'quoteId': 'jpy' },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc' },
-                'LTC/BTC': { 'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc' },
-                'XRP/JPY': { 'id': 'xrp_jpy', 'symbol': 'XRP/JPY', 'base': 'XRP', 'quote': 'JPY', 'baseId': 'xrp', 'quoteId': 'jpy' },
-                'BTC/JPY': { 'id': 'btc_jpy', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
+            markets: {
+                'BCH/BTC': { id: 'bcc_btc', symbol: 'BCH/BTC', base: 'BCH', quote: 'BTC', baseId: 'bcc', quoteId: 'btc' },
+                'BCH/JPY': { id: 'bcc_jpy', symbol: 'BCH/JPY', base: 'BCH', quote: 'JPY', baseId: 'bcc', quoteId: 'jpy' },
+                'MONA/BTC': { id: 'mona_btc', symbol: 'MONA/BTC', base: 'MONA', quote: 'BTC', baseId: 'mona', quoteId: 'btc' },
+                'MONA/JPY': { id: 'mona_jpy', symbol: 'MONA/JPY', base: 'MONA', quote: 'JPY', baseId: 'mona', quoteId: 'jpy' },
+                'ETH/BTC': { id: 'eth_btc', symbol: 'ETH/BTC', base: 'ETH', quote: 'BTC', baseId: 'eth', quoteId: 'btc' },
+                'LTC/BTC': { id: 'ltc_btc', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC', baseId: 'ltc', quoteId: 'btc' },
+                'XRP/JPY': { id: 'xrp_jpy', symbol: 'XRP/JPY', base: 'XRP', quote: 'JPY', baseId: 'xrp', quoteId: 'jpy' },
+                'BTC/JPY': { id: 'btc_jpy', symbol: 'BTC/JPY', base: 'BTC', quote: 'JPY', baseId: 'btc', quoteId: 'jpy' },
             },
-            'fees': {
-                'trading': {
+            fees: {
+                trading: {
                     // only temporarily
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    maker: 0.0,
+                    taker: 0.0,
                 },
-                'funding': {
-                    'withdraw': {
-                        // 'JPY': amount => amount > 30000 ? 756 : 540,
-                        'BTC': 0.001,
-                        'LTC': 0.001,
-                        'XRP': 0.15,
-                        'ETH': 0.0005,
-                        'MONA': 0.001,
-                        'BCC': 0.001,
+                funding: {
+                    withdraw: {
+                        // JPY: amount => amount > 30000 ? 756 : 540,
+                        BTC: 0.001,
+                        LTC: 0.001,
+                        XRP: 0.15,
+                        ETH: 0.0005,
+                        MONA: 0.001,
+                        BCC: 0.001,
                     },
                 },
             },
-            'precision': {
-                'price': 8,
-                'amount': 8,
+            precision: {
+                price: 8,
+                amount: 8,
             },
-            'exceptions': {
+            exceptions: {
                 '20001': AuthenticationError,
                 '20002': AuthenticationError,
                 '20003': AuthenticationError,
@@ -127,26 +127,26 @@ module.exports = class bitbank extends Exchange {
         let timestamp = ticker['timestamp'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -154,7 +154,7 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPairTicker (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTicker (response['data'], market);
     }
@@ -162,7 +162,7 @@ module.exports = class bitbank extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetPairDepth (this.extend ({
-            'pair': this.marketId (symbol),
+            pair: this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
         return this.parseOrderBook (orderbook, orderbook['timestamp']);
@@ -181,23 +181,23 @@ module.exports = class bitbank extends Exchange {
         let fee = undefined;
         if ('fee_amount_quote' in trade) {
             fee = {
-                'currency': market['quote'],
-                'cost': this.safeFloat (trade, 'fee_amount_quote'),
+                currency: market['quote'],
+                cost: this.safeFloat (trade, 'fee_amount_quote'),
             };
         }
         return {
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': id,
-            'order': this.safeString (trade, 'order_id'),
-            'type': this.safeString (trade, 'type'),
-            'side': trade['side'],
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
-            'info': trade,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            id,
+            order: this.safeString (trade, 'order_id'),
+            type: this.safeString (trade, 'type'),
+            side: trade['side'],
+            price,
+            amount,
+            cost,
+            fee,
+            info: trade,
         };
     }
 
@@ -205,7 +205,7 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let trades = await this.publicGetPairTransactions (this.extend ({
-            'pair': market['id'],
+            pair: market['id'],
         }, params));
         return this.parseTrades (trades['data']['transactions'], market, since, limit);
     }
@@ -218,7 +218,7 @@ module.exports = class bitbank extends Exchange {
             parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
@@ -228,9 +228,9 @@ module.exports = class bitbank extends Exchange {
         date = this.ymd (date);
         date = date.split ('-');
         let response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend ({
-            'pair': market['id'],
-            'candletype': this.timeframes[timeframe],
-            'yyyymmdd': date.join (''),
+            pair: market['id'],
+            candletype: this.timeframes[timeframe],
+            yyyymmdd: date.join (''),
         }, params));
         let ohlcv = response['data']['candlestick'][0]['ohlcv'];
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
@@ -239,7 +239,7 @@ module.exports = class bitbank extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetUserAssets (params);
-        let result = { 'info': response };
+        let result = { info: response };
         let balances = response['data']['assets'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -249,9 +249,9 @@ module.exports = class bitbank extends Exchange {
                 code = this.currencies_by_id[id]['code'];
             }
             let account = {
-                'free': parseFloat (balance['free_amount']),
-                'used': parseFloat (balance['locked_amount']),
-                'total': parseFloat (balance['onhand_amount']),
+                free: parseFloat (balance['free_amount']),
+                used: parseFloat (balance['locked_amount']),
+                total: parseFloat (balance['onhand_amount']),
             };
             result[code] = account;
         }
@@ -292,22 +292,22 @@ module.exports = class bitbank extends Exchange {
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
         return {
-            'id': this.safeString (order, 'order_id'),
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
+            id: this.safeString (order, 'order_id'),
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type,
+            side,
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            trades: undefined,
+            fee: undefined,
+            info: order,
         };
     }
 
@@ -317,11 +317,11 @@ module.exports = class bitbank extends Exchange {
         if (typeof price === 'undefined')
             throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
-            'pair': market['id'],
-            'amount': this.amountToString (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            'side': side,
-            'type': type,
+            pair: market['id'],
+            amount: this.amountToString (symbol, amount),
+            price: this.priceToPrecision (symbol, price),
+            side,
+            type,
         };
         let response = await this.privatePostUserSpotOrder (this.extend (request, params));
         let id = response['data']['order_id'];
@@ -334,8 +334,8 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostUserSpotCancelOrder (this.extend ({
-            'order_id': id,
-            'pair': market['id'],
+            order_id,
+            pair: market['id'],
         }, params));
         return response['data'];
     }
@@ -344,8 +344,8 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetUserSpotOrder (this.extend ({
-            'order_id': id,
-            'pair': market['id'],
+            order_id,
+            pair: market['id'],
         }, params));
         return this.parseOrder (response['data']);
     }
@@ -354,7 +354,7 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'pair': market['id'],
+            pair: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['count'] = limit;
@@ -385,16 +385,16 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privateGetUserWithdrawalAccount (this.extend ({
-            'asset': currency['id'],
+            asset: currency['id'],
         }, params));
         // Not sure about this if there could be more than one account...
         let accounts = response['data']['accounts'];
         let address = this.safeString (accounts[0], 'address');
         return {
-            'currency': currency,
-            'address': address,
-            'tag': undefined,
-            'info': response,
+            currency,
+            address,
+            tag: undefined,
+            info: response,
         };
     }
 
@@ -405,12 +405,12 @@ module.exports = class bitbank extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostUserRequestWithdrawal (this.extend ({
-            'asset': currency['id'],
-            'amount': amount,
+            asset: currency['id'],
+            amount,
         }, params));
         return {
-            'info': response,
-            'id': response['data']['txid'],
+            info: response,
+            id: response['data']['txid'],
         };
     }
 
@@ -448,7 +448,7 @@ module.exports = class bitbank extends Exchange {
                 'ACCESS-SIGNATURE': this.hmac (this.encode (auth), this.encode (this.secret)),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

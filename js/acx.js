@@ -10,19 +10,19 @@ const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
 module.exports = class acx extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'acx',
-            'name': 'ACX',
-            'countries': [ 'AU' ],
-            'rateLimit': 1000,
-            'version': 'v2',
-            'has': {
-                'CORS': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
-                'withdraw': true,
-                'fetchOrder': true,
+            id: 'acx',
+            name: 'ACX',
+            countries: ['AU'],
+            rateLimit: 1000,
+            version: 'v2',
+            has: {
+                CORS: true,
+                fetchTickers: true,
+                fetchOHLCV: true,
+                withdraw: true,
+                fetchOrder: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1',
                 '5m': '5',
                 '15m': '15',
@@ -35,16 +35,16 @@ module.exports = class acx extends Exchange {
                 '3d': '4320',
                 '1w': '10080',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
-                'extension': '.json',
-                'api': 'https://acx.io/api',
-                'www': 'https://acx.io',
-                'doc': 'https://acx.io/documents/api_v2',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg',
+                extension: '.json',
+                api: 'https://acx.io/api',
+                www: 'https://acx.io',
+                doc: 'https://acx.io/documents/api_v2',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'depth', // Get depth or specified market Both asks and bids are sorted from highest price to lowest.
                         'k_with_pending_trades', // Get K data with pending trades, which are the trades not included in K data yet, because there's delay between trade generated and processed by K data generator
                         'k', // Get OHLC(k line) of specific market
@@ -56,10 +56,10 @@ module.exports = class acx extends Exchange {
                         'timestamp', // Get server current time, in seconds since Unix epoch
                         'trades', // Get recent trades on market, each trade is included only once Trades are sorted in reverse creation order.
                         'trades/{market}',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'members/me', // Get your profile and accounts info
                         'deposits', // Get your deposits history
                         'deposit', // Get details of specific deposit
@@ -69,30 +69,30 @@ module.exports = class acx extends Exchange {
                         'trades/my', // Get your executed trades Trades are sorted in reverse creation order.
                         'withdraws', // Get your cryptocurrency withdraws
                         'withdraw', // Get your cryptocurrency withdraw
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'orders', // Create a Sell/Buy order
                         'orders/multi', // Create multiple sell/buy orders
                         'orders/clear', // Cancel all my orders
                         'order/delete', // Cancel an order
                         'withdraw', // Create a withdraw
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    maker: 0.2 / 100,
+                    taker: 0.2 / 100,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'withdraw': {}, // There is only 1% fee on withdrawals to your bank account.
+                funding: {
+                    tierBased: false,
+                    percentage: true,
+                    withdraw: {}, // There is only 1% fee on withdrawals to your bank account.
                 },
             },
-            'exceptions': {
+            exceptions: {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
             },
@@ -106,15 +106,15 @@ module.exports = class acx extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
+            let [base, quote] = symbol.split ('/');
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                info: market,
             });
         }
         return result;
@@ -124,15 +124,15 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetMembersMe ();
         let balances = response['accounts'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
             let uppercase = currency.toUpperCase ();
             let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['locked']),
-                'total': 0.0,
+                free: parseFloat (balance['balance']),
+                used: parseFloat (balance['locked']),
+                total: 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[uppercase] = account;
@@ -144,7 +144,7 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'market': market['id'],
+            market: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit; // default = 300
@@ -161,26 +161,26 @@ module.exports = class acx extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: this.safeFloat (ticker, 'open'),
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -215,7 +215,7 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTickersMarket (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseTicker (response, market);
     }
@@ -223,16 +223,16 @@ module.exports = class acx extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['created_at']);
         return {
-            'id': trade['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'volume'),
-            'cost': this.safeFloat (trade, 'funds'),
-            'info': trade,
+            id: trade['id'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'volume'),
+            cost: this.safeFloat (trade, 'funds'),
+            info: trade,
         };
     }
 
@@ -240,7 +240,7 @@ module.exports = class acx extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
-            'market': market['id'],
+            market: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -253,7 +253,7 @@ module.exports = class acx extends Exchange {
             ohlcv[3],
             ohlcv[4],
             ohlcv[5],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -262,9 +262,9 @@ module.exports = class acx extends Exchange {
         if (typeof limit === 'undefined')
             limit = 500; // default is 30
         let request = {
-            'market': market['id'],
-            'period': this.timeframes[timeframe],
-            'limit': limit,
+            market: market['id'],
+            period: this.timeframes[timeframe],
+            limit,
         };
         if (typeof since !== 'undefined')
             request['timestamp'] = since;
@@ -291,28 +291,28 @@ module.exports = class acx extends Exchange {
             status = 'canceled';
         }
         return {
-            'id': order['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': order['ord_type'],
-            'side': order['side'],
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'volume'),
-            'filled': this.safeFloat (order, 'executed_volume'),
-            'remaining': this.safeFloat (order, 'remaining_volume'),
-            'trades': undefined,
-            'fee': undefined,
-            'info': order,
+            id: order['id'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type: order['ord_type'],
+            side: order['side'],
+            price: this.safeFloat (order, 'price'),
+            amount: this.safeFloat (order, 'volume'),
+            filled: this.safeFloat (order, 'executed_volume'),
+            remaining: this.safeFloat (order, 'remaining_volume'),
+            trades: undefined,
+            fee: undefined,
+            info: order,
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetOrder (this.extend ({
-            'id': parseInt (id),
+            id: parseInt (id),
         }, params));
         return this.parseOrder (response);
     }
@@ -320,10 +320,10 @@ module.exports = class acx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'market': this.marketId (symbol),
-            'side': side,
-            'volume': amount.toString (),
-            'ord_type': type,
+            market: this.marketId (symbol),
+            side,
+            volume: amount.toString (),
+            ord_type,
         };
         if (type === 'limit') {
             order['price'] = price.toString ();
@@ -335,7 +335,7 @@ module.exports = class acx extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostOrderDelete ({ 'id': id });
+        let result = await this.privatePostOrderDelete ({ id: id });
         let order = this.parseOrder (result);
         let status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -348,13 +348,13 @@ module.exports = class acx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
-            'sum': amount,
-            'address': address,
+            currency: currency.toLowerCase (),
+            sum: amount,
+            address,
         }, params));
         return {
-            'info': result,
-            'id': undefined,
+            info: result,
+            id: undefined,
         };
     }
 
@@ -394,8 +394,8 @@ module.exports = class acx extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
             let query = this.encodeParams (this.extend ({
-                'access_key': this.apiKey,
-                'tonce': nonce,
+                access_key: this.apiKey,
+                tonce: nonce,
             }, params));
             let auth = method + '|' + request + '|' + query;
             let signed = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -407,7 +407,7 @@ module.exports = class acx extends Exchange {
                 headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

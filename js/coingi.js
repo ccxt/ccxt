@@ -10,79 +10,79 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class coingi extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'coingi',
-            'name': 'Coingi',
-            'rateLimit': 1000,
-            'countries': [ 'PA', 'BG', 'CN', 'US' ], // Panama, Bulgaria, China, US
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
+            id: 'coingi',
+            name: 'Coingi',
+            rateLimit: 1000,
+            countries: ['PA', 'BG', 'CN', 'US'], // Panama, Bulgaria, China, US
+            has: {
+                CORS: false,
+                fetchTickers: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
-                'api': {
-                    'www': 'https://coingi.com',
-                    'current': 'https://api.coingi.com',
-                    'user': 'https://api.coingi.com',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
+                api: {
+                    www: 'https://coingi.com',
+                    current: 'https://api.coingi.com',
+                    user: 'https://api.coingi.com',
                 },
-                'www': 'https://coingi.com',
-                'doc': 'http://docs.coingi.apiary.io/',
+                www: 'https://coingi.com',
+                doc: 'http://docs.coingi.apiary.io/',
             },
-            'api': {
-                'www': {
-                    'get': [
+            api: {
+                www: {
+                    get: [
                         '',
-                    ],
+                   ],
                 },
-                'current': {
-                    'get': [
+                current: {
+                    get: [
                         'order-book/{pair}/{askCount}/{bidCount}/{depth}',
                         'transactions/{pair}/{maxCount}',
                         '24hour-rolling-aggregation',
-                    ],
+                   ],
                 },
-                'user': {
-                    'post': [
+                user: {
+                    post: [
                         'balance',
                         'add-order',
                         'cancel-order',
                         'orders',
                         'transactions',
                         'create-crypto-withdrawal',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    taker: 0.2 / 100,
+                    maker: 0.2 / 100,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 2,
-                        'PPC': 0.02,
-                        'VTC': 0.2,
-                        'NMC': 2,
-                        'DASH': 0.002,
-                        'USD': 10,
-                        'EUR': 10,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        BTC: 0.001,
+                        LTC: 0.01,
+                        DOGE: 2,
+                        PPC: 0.02,
+                        VTC: 0.2,
+                        NMC: 2,
+                        DASH: 0.002,
+                        USD: 10,
+                        EUR: 10,
                     },
-                    'deposit': {
-                        'BTC': 0,
-                        'LTC': 0,
-                        'DOGE': 0,
-                        'PPC': 0,
-                        'VTC': 0,
-                        'NMC': 0,
-                        'DASH': 0,
-                        'USD': 5,
-                        'EUR': 1,
+                    deposit: {
+                        BTC: 0,
+                        LTC: 0,
+                        DOGE: 0,
+                        PPC: 0,
+                        VTC: 0,
+                        NMC: 0,
+                        DASH: 0,
+                        USD: 5,
+                        EUR: 1,
                     },
                 },
             },
@@ -109,31 +109,31 @@ module.exports = class coingi extends Exchange {
             let symbol = id;
             id = id.replace ('/', '-');
             id = id.toLowerCase ();
-            let [ base, quote ] = symbol.split ('/');
+            let [base, quote] = symbol.split ('/');
             let precision = {
-                'amount': 8,
-                'price': 8,
+                amount: 8,
+                price: 8,
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': id,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                id,
+                symbol,
+                base,
+                quote,
+                info: id,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: Math.pow (10, precision['amount']),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
+                    cost: {
+                        min: 0,
+                        max: undefined,
                     },
                 },
             });
@@ -150,17 +150,17 @@ module.exports = class coingi extends Exchange {
             lowercaseCurrencies.push (currency.toLowerCase ());
         }
         let balances = await this.userPostBalance ({
-            'currencies': lowercaseCurrencies.join (','),
+            currencies: lowercaseCurrencies.join (','),
         });
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency']['name'];
             currency = currency.toUpperCase ();
             let account = {
-                'free': balance['available'],
-                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': 0.0,
+                free: balance['available'],
+                used: balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
+                total: 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
@@ -172,10 +172,10 @@ module.exports = class coingi extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.currentGetOrderBookPairAskCountBidCountDepth (this.extend ({
-            'pair': market['id'],
-            'depth': 32, // maximum number of depth range steps 1-32
-            'askCount': limit, // maximum returned number of asks 1-512
-            'bidCount': limit, // maximum returned number of bids 1-512
+            pair: market['id'],
+            depth: 32, // maximum number of depth range steps 1-32
+            askCount: limit, // maximum returned number of asks 1-512
+            bidCount: limit, // maximum returned number of bids 1-512
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'baseAmount');
     }
@@ -186,26 +186,26 @@ module.exports = class coingi extends Exchange {
         if (market)
             symbol = market['symbol'];
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
-            'bid': ticker['highestBid'],
-            'bidVolume': undefined,
-            'ask': ticker['lowestAsk'],
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': undefined,
-            'last': undefined,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': ticker['baseVolume'],
-            'quoteVolume': ticker['counterVolume'],
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: ticker['high'],
+            low: ticker['low'],
+            bid: ticker['highestBid'],
+            bidVolume: undefined,
+            ask: ticker['lowestAsk'],
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: undefined,
+            last: undefined,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: ticker['baseVolume'],
+            quoteVolume: ticker['counterVolume'],
+            info: ticker,
         };
     }
 
@@ -239,15 +239,15 @@ module.exports = class coingi extends Exchange {
         if (!market)
             market = this.markets_by_id[trade['currencyPair']];
         return {
-            'id': trade['id'],
-            'info': trade,
-            'timestamp': trade['timestamp'],
-            'datetime': this.iso8601 (trade['timestamp']),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined, // type
-            'price': trade['price'],
-            'amount': trade['amount'],
+            id: trade['id'],
+            info: trade,
+            timestamp: trade['timestamp'],
+            datetime: this.iso8601 (trade['timestamp']),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined, // type
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
@@ -255,8 +255,8 @@ module.exports = class coingi extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.currentGetTransactionsPairMaxCount (this.extend ({
-            'pair': market['id'],
-            'maxCount': 128,
+            pair: market['id'],
+            maxCount: 128,
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -264,21 +264,21 @@ module.exports = class coingi extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'currencyPair': this.marketId (symbol),
-            'volume': amount,
-            'price': price,
-            'orderType': (side === 'buy') ? 0 : 1,
+            currencyPair: this.marketId (symbol),
+            volume: amount,
+            price,
+            orderType: (side === 'buy') ? 0 : 1,
         };
         let response = await this.userPostAddOrder (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['result'],
+            info: response,
+            id: response['result'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.userPostCancelOrder ({ 'orderId': id });
+        return await this.userPostCancelOrder ({ orderId: id });
     }
 
     sign (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -294,8 +294,8 @@ module.exports = class coingi extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let request = this.extend ({
-                'token': this.apiKey,
-                'nonce': nonce,
+                token: this.apiKey,
+                nonce,
             }, query);
             let auth = nonce.toString () + '$' + this.apiKey;
             request['signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
@@ -304,7 +304,7 @@ module.exports = class coingi extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'current', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -10,24 +10,24 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class bxinth extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bxinth',
-            'name': 'BX.in.th',
-            'countries': [ 'TH' ], // Thailand
-            'rateLimit': 1500,
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
-                'fetchOpenOrders': true,
+            id: 'bxinth',
+            name: 'BX.in.th',
+            countries: ['TH'], // Thailand
+            rateLimit: 1500,
+            has: {
+                CORS: false,
+                fetchTickers: true,
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
-                'api': 'https://bx.in.th/api',
-                'www': 'https://bx.in.th',
-                'doc': 'https://bx.in.th/info/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
+                api: 'https://bx.in.th/api',
+                www: 'https://bx.in.th',
+                doc: 'https://bx.in.th/info/api',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         '', // ticker
                         'options',
                         'optionbook',
@@ -35,10 +35,10 @@ module.exports = class bxinth extends Exchange {
                         'pairing',
                         'trade',
                         'tradehistory',
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'balance',
                         'biller',
                         'billgroup',
@@ -59,18 +59,18 @@ module.exports = class bxinth extends Exchange {
                         'order',
                         'withdrawal',
                         'withdrawal-history',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+            fees: {
+                trading: {
+                    taker: 0.25 / 100,
+                    maker: 0.25 / 100,
                 },
             },
-            'commonCurrencies': {
-                'DAS': 'DASH',
-                'DOG': 'DOGE',
+            commonCurrencies: {
+                DAS: 'DASH',
+                DOG: 'DOGE',
             },
         });
     }
@@ -89,14 +89,14 @@ module.exports = class bxinth extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                info: market,
             });
         }
         return result;
@@ -106,15 +106,15 @@ module.exports = class bxinth extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostBalance ();
         let balance = response['balance'];
-        let result = { 'info': balance };
+        let result = { info: balance };
         let currencies = Object.keys (balance);
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let code = this.commonCurrencyCode (currency);
             let account = {
-                'free': parseFloat (balance[currency]['available']),
-                'used': 0.0,
-                'total': parseFloat (balance[currency]['total']),
+                free: parseFloat (balance[currency]['available']),
+                used: 0.0,
+                total: parseFloat (balance[currency]['total']),
             };
             account['used'] = account['total'] - account['free'];
             result[code] = account;
@@ -125,7 +125,7 @@ module.exports = class bxinth extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let orderbook = await this.publicGetOrderbook (this.extend ({
-            'pairing': this.marketId (symbol),
+            pairing: this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
     }
@@ -137,26 +137,26 @@ module.exports = class bxinth extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last_price');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': parseFloat (ticker['orderbook']['bids']['highbid']),
-            'bidVolume': undefined,
-            'ask': parseFloat (ticker['orderbook']['asks']['highbid']),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume_24hours'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: parseFloat (ticker['orderbook']['bids']['highbid']),
+            bidVolume: undefined,
+            ask: parseFloat (ticker['orderbook']['asks']['highbid']),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: this.safeFloat (ticker, 'change'),
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume_24hours'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -179,7 +179,7 @@ module.exports = class bxinth extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let tickers = await this.publicGet (this.extend ({
-            'pairing': market['id'],
+            pairing: market['id'],
         }, params));
         let id = market['id'].toString ();
         let ticker = tickers[id];
@@ -187,18 +187,18 @@ module.exports = class bxinth extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['trade_date'] + '+07:00'); // Thailand UTC+7 offset
+        let timestamp = this.parse8601 (trade['trade_date'] + '+'07':00'); // Thailand UTC+7 offset
         return {
-            'id': trade['trade_id'],
-            'info': trade,
-            'order': trade['order_id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['trade_type'],
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amount'),
+            id: trade['trade_id'],
+            info: trade,
+            order: trade['order_id'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: trade['trade_type'],
+            price: this.safeFloat (trade, 'rate'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -206,7 +206,7 @@ module.exports = class bxinth extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTrade (this.extend ({
-            'pairing': market['id'],
+            pairing: market['id'],
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
@@ -214,14 +214,14 @@ module.exports = class bxinth extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrder (this.extend ({
-            'pairing': this.marketId (symbol),
-            'type': side,
-            'amount': amount,
-            'rate': price,
+            pairing: this.marketId (symbol),
+            type: side,
+            amount,
+            rate: price,
         }, params));
         return {
-            'info': response,
-            'id': response['order_id'].toString (),
+            info: response,
+            id: response['order_id'].toString (),
         };
     }
 
@@ -229,8 +229,8 @@ module.exports = class bxinth extends Exchange {
         await this.loadMarkets ();
         let pairing = undefined; // TODO fixme
         return await this.privatePostCancel ({
-            'order_id': id,
-            'pairing': pairing,
+            order_id,
+            pairing,
         });
     }
 
@@ -249,15 +249,15 @@ module.exports = class bxinth extends Exchange {
         let price = this.safeFloat (order, 'rate');
         let amount = this.safeFloat (order, 'amount');
         return {
-            'info': order,
-            'id': order['order_id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'amount': amount,
+            info: order,
+            id: order['order_id'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            amount,
         };
     }
 
@@ -286,16 +286,16 @@ module.exports = class bxinth extends Exchange {
             let auth = this.apiKey + nonce.toString () + this.secret;
             let signature = this.hash (this.encode (auth), 'sha256');
             body = this.urlencode (this.extend ({
-                'key': this.apiKey,
-                'nonce': nonce,
-                'signature': signature,
+                key: this.apiKey,
+                nonce,
+                signature,
                 // twofa: this.twofa,
             }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -10,22 +10,22 @@ const { ExchangeError, AuthenticationError, InsufficientFunds, OrderNotFound, Ex
 module.exports = class zb extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'zb',
-            'name': 'ZB',
-            'countries': [ 'CN' ],
-            'rateLimit': 1000,
-            'version': 'v1',
-            'has': {
-                'CORS': false,
-                'createMarketOrder': false,
-                'fetchDepositAddress': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchOHLCV': true,
-                'withdraw': true,
+            id: 'zb',
+            name: 'ZB',
+            countries: ['CN'],
+            rateLimit: 1000,
+            version: 'v1',
+            has: {
+                CORS: false,
+                createMarketOrder: false,
+                fetchDepositAddress: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
+                fetchOHLCV: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1min',
                 '3m': '3min',
                 '5m': '5min',
@@ -40,7 +40,7 @@ module.exports = class zb extends Exchange {
                 '3d': '3day',
                 '1w': '1week',
             },
-            'exceptions': {
+            exceptions: {
                 // '1000': 'Successful operation',
                 '1001': ExchangeError, // 'General error message',
                 '1002': ExchangeError, // 'Internal error',
@@ -67,30 +67,30 @@ module.exports = class zb extends Exchange {
                 '4001': ExchangeNotAvailable, // 'API interface is locked or not enabled',
                 '4002': DDoSProtection, // 'Request too often',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
-                'api': {
-                    'public': 'http://api.zb.com/data', // no https for public API
-                    'private': 'https://trade.zb.com/api',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
+                api: {
+                    public: 'http://api.zb.com/data', // no https for public API
+                    private: 'https://trade.zb.com/api',
                 },
-                'www': 'https://www.zb.com',
-                'doc': 'https://www.zb.com/i/developer',
-                'fees': 'https://www.zb.com/i/rate',
-                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
+                www: 'https://www.zb.com',
+                doc: 'https://www.zb.com/i/developer',
+                fees: 'https://www.zb.com/i/rate',
+                referral: 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'markets',
                         'ticker',
                         'allTicker',
                         'depth',
                         'trades',
                         'kline',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         // spot API
                         'order',
                         'cancelOrder',
@@ -119,47 +119,47 @@ module.exports = class zb extends Exchange {
                         'borrow',
                         'repay',
                         'getRepayments',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.0001,
-                        'BCH': 0.0006,
-                        'LTC': 0.005,
-                        'ETH': 0.01,
-                        'ETC': 0.01,
-                        'BTS': 3,
-                        'EOS': 1,
-                        'QTUM': 0.01,
-                        'HSR': 0.001,
-                        'XRP': 0.1,
-                        'USDT': '0.1%',
-                        'QCASH': 5,
-                        'DASH': 0.002,
-                        'BCD': 0,
-                        'UBTC': 0,
-                        'SBTC': 0,
-                        'INK': 20,
-                        'TV': 0.1,
-                        'BTH': 0,
-                        'BCX': 0,
-                        'LBTC': 0,
-                        'CHAT': 20,
-                        'bitCNY': 20,
-                        'HLC': 20,
-                        'BTP': 0,
-                        'BCW': 0,
+            fees: {
+                funding: {
+                    withdraw: {
+                        BTC: 0.0001,
+                        BCH: 0.0006,
+                        LTC: 0.005,
+                        ETH: 0.01,
+                        ETC: 0.01,
+                        BTS: 3,
+                        EOS: 1,
+                        QTUM: 0.01,
+                        HSR: 0.001,
+                        XRP: 0.1,
+                        USDT: '0.1%',
+                        QCASH: 5,
+                        DASH: 0.002,
+                        BCD: 0,
+                        UBTC: 0,
+                        SBTC: 0,
+                        INK: 20,
+                        TV: 0.1,
+                        BTH: 0,
+                        BCX: 0,
+                        LBTC: 0,
+                        CHAT: 20,
+                        bitCNY: 20,
+                        HLC: 20,
+                        BTP: 0,
+                        BCW: 0,
                     },
                 },
-                'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                trading: {
+                    maker: 0.2 / 100,
+                    taker: 0.2 / 100,
                 },
             },
-            'commonCurrencies': {
-                'ENT': 'ENTCash',
+            commonCurrencies: {
+                ENT: 'ENTCash',
             },
         });
     }
@@ -171,38 +171,38 @@ module.exports = class zb extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            let [baseId, quoteId] = id.split ('_');
             let base = this.commonCurrencyCode (baseId.toUpperCase ());
             let quote = this.commonCurrencyCode (quoteId.toUpperCase ());
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': market['amountScale'],
-                'price': market['priceScale'],
+                amount: market['amountScale'],
+                price: market['priceScale'],
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'base': base,
-                'quote': quote,
-                'active': true,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                id,
+                symbol,
+                baseId,
+                quoteId,
+                base,
+                quote,
+                active: true,
+                precision,
+                limits: {
+                    amount: {
+                        min: Math.pow (10, -precision['amount']),
+                        max: undefined,
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
+                    price: {
+                        min: Math.pow (10, -precision['price']),
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': 0,
-                        'max': undefined,
+                    cost: {
+                        min: 0,
+                        max: undefined,
                     },
                 },
-                'info': market,
+                info: market,
             });
         }
         return result;
@@ -214,7 +214,7 @@ module.exports = class zb extends Exchange {
         // todo: use this somehow
         // let permissions = response['result']['base'];
         let balances = response['result']['coins'];
-        let result = { 'info': response };
+        let result = { info: response };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             //     {        enName: "BTC",
@@ -248,7 +248,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privateGetGetUserAddress ({
-            'currency': currency['id'],
+            currency: currency['id'],
         });
         let address = response['message']['datas']['key'];
         let tag = undefined;
@@ -258,10 +258,10 @@ module.exports = class zb extends Exchange {
             tag = arr[1];
         }
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -312,26 +312,26 @@ module.exports = class zb extends Exchange {
         }
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -341,9 +341,9 @@ module.exports = class zb extends Exchange {
         if (typeof limit === 'undefined')
             limit = 1000;
         let request = {
-            'market': market['id'],
-            'type': this.timeframes[timeframe],
-            'limit': limit,
+            market: market['id'],
+            type: this.timeframes[timeframe],
+            limit,
         };
         if (typeof since !== 'undefined')
             request['since'] = since;
@@ -356,15 +356,15 @@ module.exports = class zb extends Exchange {
         let timestamp = trade['date'] * 1000;
         let side = (trade['trade_type'] === 'bid') ? 'buy' : 'sell';
         return {
-            'info': trade,
-            'id': trade['tid'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            info: trade,
+            id: trade['tid'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side,
+            price: this.safeFloat (trade, 'price'),
+            amount: this.safeFloat (trade, 'amount'),
         };
     }
 
@@ -383,23 +383,23 @@ module.exports = class zb extends Exchange {
             throw new InvalidOrder (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let order = {
-            'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToString (symbol, amount),
-            'tradeType': (side === 'buy') ? '1' : '0',
-            'currency': this.marketId (symbol),
+            price: this.priceToPrecision (symbol, price),
+            amount: this.amountToString (symbol, amount),
+            tradeType: (side === 'buy') ? '1' : '0',
+            currency: this.marketId (symbol),
         };
         let response = await this.privateGetOrder (this.extend (order, params));
         return {
-            'info': response,
-            'id': response['id'],
+            info: response,
+            id: response['id'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            id: id.toString (),
+            currency: this.marketId (symbol),
         };
         order = this.extend (order, params);
         return await this.privateGetCancelOrder (order);
@@ -410,8 +410,8 @@ module.exports = class zb extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
         await this.loadMarkets ();
         let order = {
-            'id': id.toString (),
-            'currency': this.marketId (symbol),
+            id: id.toString (),
+            currency: this.marketId (symbol),
         };
         order = this.extend (order, params);
         let response = await this.privateGetGetOrder (order);
@@ -424,9 +424,9 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 50
+            currency: market['id'],
+            pageIndex: 1, // default pageIndex is 1
+            pageSize: limit, // default pageSize is 50
         };
         let method = 'privateGetGetOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
@@ -450,9 +450,9 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'currency': market['id'],
-            'pageIndex': 1, // default pageIndex is 1
-            'pageSize': limit, // default pageSize is 10
+            currency: market['id'],
+            pageIndex: 1, // default pageIndex is 1
+            pageSize: limit, // default pageSize is 10
         };
         let method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
@@ -494,32 +494,32 @@ module.exports = class zb extends Exchange {
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
         let result = {
-            'info': order,
-            'id': order['id'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'average': average,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': undefined,
+            info: order,
+            id: order['id'],
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type,
+            side,
+            price,
+            average,
+            cost,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee: undefined,
         };
         return result;
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            '0': 'open',
-            '1': 'canceled',
-            '2': 'closed',
-            '3': 'open', // partial
+            0: 'open',
+            1: 'canceled',
+            2: 'closed',
+            3: 'open', // partial
         };
         if (status in statuses)
             return statuses[status];
@@ -542,8 +542,8 @@ module.exports = class zb extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             let query = this.keysort (this.extend ({
-                'method': path,
-                'accesskey': this.apiKey,
+                method: path,
+                accesskey: this.apiKey,
             }, params));
             let nonce = this.nonce ();
             query = this.keysort (query);
@@ -553,7 +553,7 @@ module.exports = class zb extends Exchange {
             let suffix = 'sign=' + signature + '&reqTime=' + nonce.toString ();
             url += '/' + path + '?' + auth + '&' + suffix;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {

@@ -1,4 +1,5 @@
 'use strict';
+'use strict';
 
 // ---------------------------------------------------------------------------
 
@@ -9,17 +10,17 @@ const acx = require ('./acx.js');
 module.exports = class yunbi extends acx {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'yunbi',
-            'name': 'YUNBI',
-            'countries': [ 'CN' ],
-            'rateLimit': 1000,
-            'version': 'v2',
-            'has': {
-                'CORS': false,
-                'fetchTickers': true,
-                'fetchOHLCV': true,
+            id: 'yunbi',
+            name: 'YUNBI',
+            countries: ['CN'],
+            rateLimit: 1000,
+            version: 'v2',
+            has: {
+                CORS: false,
+                fetchTickers: true,
+                fetchOHLCV: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1',
                 '5m': '5',
                 '15m': '15',
@@ -32,19 +33,19 @@ module.exports = class yunbi extends acx {
                 '3d': '4320',
                 '1w': '10080',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
-                'extension': '.json', // default extension appended to endpoint URLs
-                'api': 'https://yunbi.com',
-                'www': 'https://yunbi.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28570548-4d646c40-7147-11e7-9cf6-839b93e6d622.jpg',
+                extension: '.json', // default extension appended to endpoint URLs
+                api: 'https://yunbi.com',
+                www: 'https://yunbi.com',
+                doc: [
                     'https://yunbi.com/documents/api/guide',
                     'https://yunbi.com/swagger/',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'tickers',
                         'tickers/{market}',
                         'markets',
@@ -56,10 +57,10 @@ module.exports = class yunbi extends acx {
                         'timestamp',
                         'addresses/{address}',
                         'partners/orders/{id}/trades',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'deposits',
                         'members/me',
                         'deposit',
@@ -67,13 +68,13 @@ module.exports = class yunbi extends acx {
                         'order',
                         'orders',
                         'trades/my',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'order/delete',
                         'orders',
                         'orders/multi',
                         'orders/clear',
-                    ],
+                   ],
                 },
             },
         });

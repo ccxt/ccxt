@@ -20,7 +20,7 @@ module.exports = async (exchange) => {
         'cryptopia',
         'ccex',
         'liqui',
-    ]).reduce ((params, id) => ({ ...params, [id]: [randomSymbols], }), {})
+   ]).reduce ((params, id) => ({ ...params, [id]: [randomSymbols], }), {})
 
     const args = (exchange.id in customExchangeParams) ? customExchangeParams[exchange.id] : []
     const method = 'fetchOrderBooks'

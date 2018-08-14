@@ -37,7 +37,7 @@ module.exports = {
         { "blankLine": "always", "prev":"function", "next": "*" },
         { "blankLine": "always", "prev":"directive", "next": "*" },
         { "blankLine": "always", "prev":"*", "next": "cjs-export" },
-      ],
+     ],
       "import/no-extraneous-dependencies": ["error", { "devDependencies": true }],
     },
 }

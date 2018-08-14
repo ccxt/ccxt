@@ -10,45 +10,45 @@ const { ExchangeError, OrderNotFound, NotSupported, InvalidOrder, DDoSProtection
 module.exports = class btcmarkets extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'btcmarkets',
-            'name': 'BTC Markets',
-            'countries': [ 'AU' ], // Australia
-            'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
-            'has': {
-                'CORS': false,
-                'fetchOHLCV': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchClosedOrders': 'emulated',
-                'fetchOpenOrders': true,
-                'fetchMyTrades': true,
-                'cancelOrders': true,
+            id: 'btcmarkets',
+            name: 'BTC Markets',
+            countries: ['AU'], // Australia
+            rateLimit: 1000, // market data cached for 1 second (trades cached for 2 seconds)
+            has: {
+                CORS: false,
+                fetchOHLCV: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchClosedOrders: 'emulated',
+                fetchOpenOrders: true,
+                fetchMyTrades: true,
+                cancelOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
-                'api': {
-                    'public': 'https://api.btcmarkets.net',
-                    'private': 'https://api.btcmarkets.net',
-                    'web': 'https://btcmarkets.net/data',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/29142911-0e1acfc2-7d5c-11e7-98c4-07d9532b29d7.jpg',
+                api: {
+                    public: 'https://api.btcmarkets.net',
+                    private: 'https://api.btcmarkets.net',
+                    web: 'https://btcmarkets.net/data',
                 },
-                'www': 'https://btcmarkets.net',
-                'doc': 'https://github.com/BTCMarkets/API',
+                www: 'https://btcmarkets.net',
+                doc: 'https://github.com/BTCMarkets/API',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
                         'v2/market/active',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'account/balance',
                         'account/{id}/tradingfee',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'fundtransfer/withdrawCrypto',
                         'fundtransfer/withdrawEFT',
                         'order/create',
@@ -58,22 +58,22 @@ module.exports = class btcmarkets extends Exchange {
                         'order/trade/history',
                         'order/createBatch', // they promise it's coming soon...
                         'order/detail',
-                    ],
+                   ],
                 },
-                'web': {
-                    'get': [
+                web: {
+                    get: [
                         'market/BTCMarkets/{id}/tickByTime',
-                    ],
+                   ],
                 },
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 'minute',
                 '1h': 'hour',
                 '1d': 'day',
             },
-            'exceptions': {
-                '3': InvalidOrder,
-                '6': DDoSProtection,
+            exceptions: {
+                3: InvalidOrder,
+                6: DDoSProtection,
             },
         });
     }
@@ -103,35 +103,35 @@ module.exports = class btcmarkets extends Exchange {
                 minPrice = Math.pow (10, -pricePrecision);
             }
             let precision = {
-                'amount': amountPrecision,
-                'price': pricePrecision,
+                amount: amountPrecision,
+                price: pricePrecision,
             };
             let limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': undefined,
+                amount: {
+                    min: minAmount,
+                    max: undefined,
                 },
-                'price': {
-                    'min': minPrice,
-                    'max': undefined,
+                price: {
+                    min: minPrice,
+                    max: undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                cost: {
+                    min: undefined,
+                    max: undefined,
                 },
             };
             result.push ({
-                'info': market,
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'maker': fee,
-                'taker': fee,
-                'limits': limits,
-                'precision': precision,
+                info: market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                maker: fee,
+                taker: fee,
+                limits,
+                precision,
             });
         }
         return result;
@@ -140,7 +140,7 @@ module.exports = class btcmarkets extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balances = await this.privateGetAccountBalance ();
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currency = balance['currency'];
@@ -149,9 +149,9 @@ module.exports = class btcmarkets extends Exchange {
             let used = parseFloat (balance['pendingFunds'] / multiplier);
             let free = total - used;
             let account = {
-                'free': free,
-                'used': used,
-                'total': total,
+                free,
+                used,
+                total,
             };
             result[currency] = account;
         }
@@ -167,15 +167,15 @@ module.exports = class btcmarkets extends Exchange {
             parseFloat (ohlcv[3]) / multiplier,
             parseFloat (ohlcv[4]) / multiplier,
             parseFloat (ohlcv[5]) / multiplier,
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.load_markets ();
         let market = this.market (symbol);
         let request = {
-            'id': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            id: market['id'],
+            timeWindow: this.timeframes[timeframe],
         };
         if (typeof since !== 'undefined')
             request['since'] = since;
@@ -187,7 +187,7 @@ module.exports = class btcmarkets extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetMarketIdOrderbook (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
@@ -200,26 +200,26 @@ module.exports = class btcmarkets extends Exchange {
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': undefined,
-            'low': undefined,
-            'bid': this.safeFloat (ticker, 'bestBid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'bestAsk'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume24h'),
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: undefined,
+            low: undefined,
+            bid: this.safeFloat (ticker, 'bestBid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'bestAsk'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'volume24h'),
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -227,7 +227,7 @@ module.exports = class btcmarkets extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let ticker = await this.publicGetMarketIdTick (this.extend ({
-            'id': market['id'],
+            id: market['id'],
         }, params));
         return this.parseTicker (ticker, market);
     }
@@ -235,16 +235,16 @@ module.exports = class btcmarkets extends Exchange {
     parseTrade (trade, market) {
         let timestamp = trade['date'] * 1000;
         return {
-            'info': trade,
-            'id': trade['tid'].toString (),
-            'order': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            info: trade,
+            id: trade['tid'].toString (),
+            order: undefined,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side: undefined,
+            price: trade['price'],
+            amount: trade['amount'],
         };
     }
 
@@ -252,8 +252,8 @@ module.exports = class btcmarkets extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetMarketIdTrades (this.extend ({
-            // 'since': 59868345231,
-            'id': market['id'],
+            // since: 59868345231,
+            id: market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -264,7 +264,7 @@ module.exports = class btcmarkets extends Exchange {
         let multiplier = 100000000; // for price and volume
         let orderSide = (side === 'buy') ? 'Bid' : 'Ask';
         let order = this.ordered ({
-            'currency': market['quote'],
+            currency: market['quote'],
         });
         order['currency'] = market['quote'];
         order['instrument'] = market['base'];
@@ -275,8 +275,8 @@ module.exports = class btcmarkets extends Exchange {
         order['clientRequestId'] = this.nonce ().toString ();
         let response = await this.privatePostOrderCreate (order);
         return {
-            'info': response,
-            'id': response['id'].toString (),
+            info: response,
+            id: response['id'].toString (),
         };
     }
 
@@ -285,12 +285,12 @@ module.exports = class btcmarkets extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             ids[i] = parseInt (ids[i]);
         }
-        return await this.privatePostOrderCancel ({ 'orderIds': ids });
+        return await this.privatePostOrderCancel ({ orderIds: ids });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.cancelOrders ([ id ]);
+        return await this.cancelOrders ([id]);
     }
 
     parseMyTrade (trade, market) {
@@ -300,20 +300,20 @@ module.exports = class btcmarkets extends Exchange {
         // BTCMarkets always charge in AUD for AUD-related transactions.
         let currency = (market['quote'] === 'AUD') ? market['quote'] : market['base'];
         return {
-            'info': trade,
-            'id': trade['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': side,
-            'price': trade['price'] / multiplier,
-            'fee': {
-                'currency': currency,
-                'cost': trade['fee'] / multiplier,
+            info: trade,
+            id: trade['id'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol: market['symbol'],
+            type: undefined,
+            side,
+            price: trade['price'] / multiplier,
+            fee: {
+                currency,
+                cost: trade['fee'] / multiplier,
             },
-            'amount': trade['volume'] / multiplier,
-            'order': this.safeString (trade, 'orderId'),
+            amount: trade['volume'] / multiplier,
+            order: this.safeString (trade, 'orderId'),
         };
     }
 
@@ -347,31 +347,31 @@ module.exports = class btcmarkets extends Exchange {
         let cost = price * amount;
         let trades = this.parseMyTrades (order['trades'], market);
         let result = {
-            'info': order,
-            'id': order['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'trades': trades,
-            'fee': undefined,
+            info: order,
+            id: order['id'].toString (),
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol: market['symbol'],
+            type,
+            side,
+            price,
+            cost,
+            amount,
+            filled,
+            remaining,
+            status,
+            trades,
+            fee: undefined,
         };
         return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = [ parseInt (id) ];
+        let ids = [parseInt (id)];
         let response = await this.privatePostOrderDetail (this.extend ({
-            'orderIds': ids,
+            orderIds: ids,
         }, params));
         let numOrders = response['orders'].length;
         if (numOrders < 1)
@@ -382,8 +382,8 @@ module.exports = class btcmarkets extends Exchange {
 
     prepareHistoryRequest (market, since = undefined, limit = undefined) {
         let request = this.ordered ({
-            'currency': market['quote'],
-            'instrument': market['base'],
+            currency: market['quote'],
+            instrument: market['base'],
         });
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -445,8 +445,8 @@ module.exports = class btcmarkets extends Exchange {
             let auth = uri + "\n" + nonce + "\n";
             headers = {
                 'Content-Type': 'application/json',
-                'apikey': this.apiKey,
-                'timestamp': nonce,
+                apikey: this.apiKey,
+                timestamp: nonce,
             };
             if (method === 'POST') {
                 body = this.json (params);
@@ -459,7 +459,7 @@ module.exports = class btcmarkets extends Exchange {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {

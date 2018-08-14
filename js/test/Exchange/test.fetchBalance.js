@@ -34,7 +34,7 @@ module.exports = async (exchange, symbol) => {
         'UAH',
         'RUB',
         'XRP',
-    ]
+   ]
 
     // log.yellow (balance)
 

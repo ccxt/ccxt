@@ -10,41 +10,41 @@ const { ExchangeError, AuthenticationError, InvalidAddress, InsufficientFunds, O
 module.exports = class gatecoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'gatecoin',
-            'name': 'Gatecoin',
-            'rateLimit': 2000,
-            'countries': [ 'HK' ], // Hong Kong
-            'comment': 'a regulated/licensed exchange',
-            'has': {
-                'CORS': false,
-                'createDepositAddress': true,
-                'fetchDepositAddress': true,
-                'fetchOHLCV': true,
-                'fetchOpenOrders': true,
-                'fetchOrder': true,
-                'fetchTickers': true,
-                'withdraw': true,
+            id: 'gatecoin',
+            name: 'Gatecoin',
+            rateLimit: 2000,
+            countries: ['HK'], // Hong Kong
+            comment: 'a regulated/licensed exchange',
+            has: {
+                CORS: false,
+                createDepositAddress: true,
+                fetchDepositAddress: true,
+                fetchOHLCV: true,
+                fetchOpenOrders: true,
+                fetchOrder: true,
+                fetchTickers: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': '1m',
                 '15m': '15m',
                 '1h': '1h',
                 '6h': '6h',
                 '1d': '24h',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
-                'api': 'https://api.gatecoin.com',
-                'www': 'https://gatecoin.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/28646817-508457f2-726c-11e7-9eeb-3528d2413a58.jpg',
+                api: 'https://api.gatecoin.com',
+                www: 'https://gatecoin.com',
+                doc: [
                     'https://gatecoin.com/api',
                     'https://github.com/Gatecoin/RESTful-API-Implementation',
                     'https://api.gatecoin.com/swagger-ui/index.html',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'Public/ExchangeRate', // Get the exchange rates
                         'Public/LiveTicker', // Get live ticker for all currency
                         'Public/LiveTicker/{CurrencyPair}', // Get live ticker by currency
@@ -65,16 +65,16 @@ module.exports = class gatecoin extends Exchange {
                         'Reference/IncomeSourceList', // Get the income source list.
                         'Reference/VerificationLevelList', // Get the verif level list.
                         'Stream/PublicChannel', // Get the public pubnub channel list
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'Export/Transactions', // Request a export of all trades from based on currencypair, start date and end date
                         'Ping', // Post a string, then get it back.
                         'Public/Unsubscribe/{EmailCode}', // Lets the user unsubscribe from emails
                         'RegisterUser', // Initial trader registration.
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'Account/CorporateData', // Get corporate account data
                         'Account/DocumentAddress', // Check if residence proof uploaded
                         'Account/DocumentCorporation', // Check if registered document uploaded
@@ -120,8 +120,8 @@ module.exports = class gatecoin extends Exchange {
                         'Trade/StopOrdersHistory', // Gets all stop orders for the logged in trader. Max 1000 record.
                         'Trade/Trades', // Gets all transactions of logged in user
                         'Trade/UserTrades', // Gets all transactions of logged in user
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'Account/DocumentAddress', // Upload address proof document
                         'Account/DocumentCorporation', // Upload registered document document
                         'Account/DocumentID', // Upload ID document copy
@@ -150,8 +150,8 @@ module.exports = class gatecoin extends Exchange {
                         'Notification/Messages/{ID}', // Mark as read
                         'Trade/Orders', // Place an order at the exchange.
                         'Trade/StopOrders', // Place a stop order at the exchange.
-                    ],
-                    'put': [
+                   ],
+                    put: [
                         'Account/CorporateData', // Update user company data for corporate account
                         'Account/DocumentID', // Update ID document meta data
                         'Account/DocumentInformation', // Update Step3 Data
@@ -168,8 +168,8 @@ module.exports = class gatecoin extends Exchange {
                         'ElectronicWallet/UserWallets/{DigiCurrency}', // Update the name of an external address
                         'Info/ReferenceCurrency', // User's reference currency
                         'Info/ReferenceLanguage', // Update user's reference language
-                    ],
-                    'delete': [
+                   ],
+                    delete: [
                         'APIKey/APIKey/{PublicKey}', // Remove an API key
                         'Bank/Transactions/{RequestID}', // Delete pending account withdraw of the logged in user
                         'Bank/UserAccounts/{Currency}/{Label}', // Delete an account of the logged in user
@@ -179,24 +179,24 @@ module.exports = class gatecoin extends Exchange {
                         'Trade/Orders/{OrderID}', // Cancels an existing order
                         'Trade/StopOrders', // Cancels all existing stop orders
                         'Trade/StopOrders/{ID}', // Cancels an existing stop order
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0035,
+            fees: {
+                trading: {
+                    maker: 0.0025,
+                    taker: 0.0035,
                 },
             },
-            'commonCurrencies': {
-                'BCP': 'BCPT',
-                'FLI': 'FLIXX',
-                'MAN': 'MANA',
-                'SLT': 'SALT',
-                'TRA': 'TRAC',
-                'WGS': 'WINGS',
+            commonCurrencies: {
+                BCP: 'BCPT',
+                FLI: 'FLIXX',
+                MAN: 'MANA',
+                SLT: 'SALT',
+                TRA: 'TRAC',
+                WGS: 'WINGS',
             },
-            'exceptions': {
+            exceptions: {
                 '1005': InsufficientFunds,
                 '1008': OrderNotFound,
                 '1057': InvalidOrder,
@@ -219,34 +219,34 @@ module.exports = class gatecoin extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': market['priceDecimalPlaces'],
+                amount: 8,
+                price: market['priceDecimalPlaces'],
             };
             let limits = {
-                'amount': {
-                    'min': Math.pow (10, -precision['amount']),
-                    'max': undefined,
+                amount: {
+                    min: Math.pow (10, -precision['amount']),
+                    max: undefined,
                 },
-                'price': {
-                    'min': Math.pow (10, -precision['amount']),
-                    'max': undefined,
+                price: {
+                    min: Math.pow (10, -precision['amount']),
+                    max: undefined,
                 },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                cost: {
+                    min: undefined,
+                    max: undefined,
                 },
             };
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': true,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active: true,
+                precision,
+                limits,
+                info: market,
             });
         }
         return result;
@@ -256,7 +256,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetBalanceBalances ();
         let balances = response['balances'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
             let currencyId = balance['currency'];
@@ -264,13 +264,13 @@ module.exports = class gatecoin extends Exchange {
             if (currencyId in this.currencies_by_id)
                 code = this.currencies_by_id[currencyId]['code'];
             let account = {
-                'free': balance['availableBalance'],
-                'used': this.sum (
+                free: balance['availableBalance'],
+                used: this.sum (
                     balance['pendingIncoming'],
                     balance['pendingOutgoing'],
                     balance['openOrder']
                 ),
-                'total': balance['balance'],
+                total: balance['balance'],
             };
             result[code] = account;
         }
@@ -281,7 +281,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.publicGetPublicMarketDepthCurrencyPair (this.extend ({
-            'CurrencyPair': market['id'],
+            CurrencyPair: market['id'],
         }, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'volume');
     }
@@ -289,7 +289,7 @@ module.exports = class gatecoin extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privateGetTradeOrdersOrderID (this.extend ({
-            'OrderID': id,
+            OrderID: id,
         }, params));
         return this.parseOrder (response.order);
     }
@@ -304,26 +304,26 @@ module.exports = class gatecoin extends Exchange {
         let quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
-            'askVolume': undefined,
-            'vwap': vwap,
-            'open': this.safeFloat (ticker, 'open'),
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'bid'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'ask'),
+            askVolume: undefined,
+            vwap,
+            open: this.safeFloat (ticker, 'open'),
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: undefined,
+            baseVolume,
+            quoteVolume,
+            info: ticker,
         };
     }
 
@@ -346,7 +346,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPublicLiveTickerCurrencyPair (this.extend ({
-            'CurrencyPair': market['id'],
+            CurrencyPair: market['id'],
         }, params));
         let ticker = response['ticker'];
         return this.parseTicker (ticker, market);
@@ -379,24 +379,24 @@ module.exports = class gatecoin extends Exchange {
         }
         if (typeof feeCost !== 'undefined') {
             fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-                'rate': this.safeFloat (trade, 'feeRate'),
+                cost: feeCost,
+                currency: feeCurrency,
+                rate: this.safeFloat (trade, 'feeRate'),
             };
         }
         return {
-            'info': trade,
-            'id': this.safeString (trade, 'transactionId'),
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            info: trade,
+            id: this.safeString (trade, 'transactionId'),
+            order: orderId,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            fee,
         };
     }
 
@@ -404,7 +404,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetPublicTransactionsCurrencyPair (this.extend ({
-            'CurrencyPair': market['id'],
+            CurrencyPair: market['id'],
         }, params));
         return this.parseTrades (response['transactions'], market, since, limit);
     }
@@ -417,15 +417,15 @@ module.exports = class gatecoin extends Exchange {
             ohlcv['low'],
             undefined,
             ohlcv['volume'],
-        ];
+       ];
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'CurrencyPair': market['id'],
-            'Timeframe': this.timeframes[timeframe],
+            CurrencyPair: market['id'],
+            Timeframe: this.timeframes[timeframe],
         };
         if (typeof limit !== 'undefined')
             request['Count'] = limit;
@@ -438,9 +438,9 @@ module.exports = class gatecoin extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'Code': this.marketId (symbol),
-            'Way': (side === 'buy') ? 'Bid' : 'Ask',
-            'Amount': amount,
+            Code: this.marketId (symbol),
+            Way: (side === 'buy') ? 'Bid' : 'Ask',
+            Amount: amount,
         };
         if (type === 'limit')
             order['Price'] = price;
@@ -454,24 +454,24 @@ module.exports = class gatecoin extends Exchange {
         // At this point response['responseStatus']['message'] has been verified in handleErrors ()
         // to be == 'OK', so we assume the order has indeed been opened
         return {
-            'info': response,
-            'status': 'open',
-            'id': this.safeString (response, 'clOrderId'), // response['clOrderId'],
+            info: response,
+            status: 'open',
+            id: this.safeString (response, 'clOrderId'), // response['clOrderId'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateDeleteTradeOrdersOrderID ({ 'OrderID': id });
+        const response = await this.privateDeleteTradeOrdersOrderID ({ OrderID: id });
         return response;
     }
 
     parseOrderStatus (status) {
         const statuses = {
-            '1': 'open', // New
-            '2': 'open', // Filling
-            '4': 'canceled',
-            '6': 'closed',
+            1: 'open', // New
+            2: 'open', // Filling
+            4: 'canceled',
+            6: 'closed',
         };
         if (status in statuses)
             return statuses[status];
@@ -541,31 +541,31 @@ module.exports = class gatecoin extends Exchange {
                     }
                     if (typeof feeCost !== 'undefined') {
                         fee = {
-                            'cost': feeCost,
-                            'currency': feeCurrency,
-                            'rate': feeRate,
+                            cost: feeCost,
+                            currency: feeCurrency,
+                            rate: feeRate,
                         };
                     }
                 }
             }
         }
         let result = {
-            'id': id,
-            'datetime': this.iso8601 (timestamp),
-            'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
-            'trades': trades,
-            'fee': fee,
-            'info': order,
+            id,
+            datetime: this.iso8601 (timestamp),
+            timestamp,
+            lastTradeTimestamp: undefined,
+            status,
+            symbol,
+            type,
+            side,
+            price,
+            amount,
+            filled,
+            remaining,
+            cost,
+            trades,
+            fee,
+            info: order,
         };
         return result;
     }
@@ -594,16 +594,16 @@ module.exports = class gatecoin extends Exchange {
             auth = auth.toLowerCase ();
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers = {
-                'API_PUBLIC_KEY': this.apiKey,
-                'API_REQUEST_SIGNATURE': this.decode (signature),
-                'API_REQUEST_DATE': nonceString,
+                API_PUBLIC_KEY: this.apiKey,
+                API_REQUEST_SIGNATURE: this.decode (signature),
+                API_REQUEST_DATE: nonceString,
             };
             if (method !== 'GET') {
                 headers['Content-Type'] = contentType;
-                body = this.json (this.extend ({ 'nonce': nonce }, params));
+                body = this.json (this.extend ({ nonce: nonce }, params));
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -611,14 +611,14 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'DigiCurrency': currency['id'],
-            'Address': address,
-            'Amount': amount,
+            DigiCurrency: currency['id'],
+            Address: address,
+            Amount: amount,
         };
         let response = await this.privatePostElectronicWalletWithdrawalsDigiCurrency (this.extend (request, params));
         return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
+            info: response,
+            id: this.safeString (response, 'id'),
         };
     }
 
@@ -626,7 +626,7 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'DigiCurrency': currency['id'],
+            DigiCurrency: currency['id'],
         };
         let response = await this.privateGetElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
         let result = response['addresses'];
@@ -636,9 +636,9 @@ module.exports = class gatecoin extends Exchange {
         let address = this.safeString (result[0], 'address');
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'info': response,
+            currency: code,
+            address,
+            info: response,
         };
     }
 
@@ -646,15 +646,15 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'DigiCurrency': currency['id'],
+            DigiCurrency: currency['id'],
         };
         let response = await this.privatePostElectronicWalletDepositWalletsDigiCurrency (this.extend (request, params));
         let address = response['address'];
         this.checkAddress (address);
         return {
-            'currency': code,
-            'address': address,
-            'info': response,
+            currency: code,
+            address,
+            info: response,
         };
     }
 
@@ -662,10 +662,10 @@ module.exports = class gatecoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
-            'DigiCurrency': currency['id'],
-            'AddressName': name,
-            'Address': address,
-            'Password': password,
+            DigiCurrency: currency['id'],
+            AddressName: name,
+            Address: address,
+            Password: password,
         };
         // not unified yet
         return await this.privatePostElectronicWalletUserWalletsDigiCurrency (this.extend (request, params));

@@ -10,28 +10,28 @@ const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, Insuffic
 module.exports = class kucoin extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'kucoin',
-            'name': 'Kucoin',
-            'countries': [ 'HK' ], // Hong Kong
-            'version': 'v1',
-            'rateLimit': 2000,
-            'userAgent': this.userAgents['chrome'],
-            'has': {
-                'CORS': false,
-                'cancelOrders': true,
-                'createMarketOrder': false,
-                'fetchDepositAddress': true,
-                'fetchTickers': true,
-                'fetchOHLCV': true, // see the method implementation below
-                'fetchOrder': true,
-                'fetchOrders': false,
-                'fetchClosedOrders': true,
-                'fetchOpenOrders': true,
-                'fetchMyTrades': 'emulated', // this method is to be deleted, see implementation and comments below
-                'fetchCurrencies': true,
-                'withdraw': true,
+            id: 'kucoin',
+            name: 'Kucoin',
+            countries: ['HK'], // Hong Kong
+            version: 'v1',
+            rateLimit: 2000,
+            userAgent: this.userAgents['chrome'],
+            has: {
+                CORS: false,
+                cancelOrders: true,
+                createMarketOrder: false,
+                fetchDepositAddress: true,
+                fetchTickers: true,
+                fetchOHLCV: true, // see the method implementation below
+                fetchOrder: true,
+                fetchOrders: false,
+                fetchClosedOrders: true,
+                fetchOpenOrders: true,
+                fetchMyTrades: 'emulated', // this method is to be deleted, see implementation and comments below
+                fetchCurrencies: true,
+                withdraw: true,
             },
-            'timeframes': {
+            timeframes: {
                 '1m': 1,
                 '5m': 5,
                 '15m': 15,
@@ -41,27 +41,27 @@ module.exports = class kucoin extends Exchange {
                 '1d': 'D',
                 '1w': 'W',
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
-                'api': {
-                    'public': 'https://api.kucoin.com',
-                    'private': 'https://api.kucoin.com',
-                    'kitchen': 'https://kitchen.kucoin.com',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/33795655-b3c46e48-dcf6-11e7-8abe-dc4588ba7901.jpg',
+                api: {
+                    public: 'https://api.kucoin.com',
+                    private: 'https://api.kucoin.com',
+                    kitchen: 'https://kitchen.kucoin.com',
                     'kitchen-2': 'https://kitchen-2.kucoin.com',
                 },
-                'www': 'https://www.kucoin.com',
-                'referral': 'https://www.kucoin.com/?r=E5wkqe',
-                'doc': 'https://kucoinapidocs.docs.apiary.io',
-                'fees': 'https://news.kucoin.com/en/fee',
+                www: 'https://www.kucoin.com',
+                referral: 'https://www.kucoin.com/?r=E5wkqe',
+                doc: 'https://kucoinapidocs.docs.apiary.io',
+                fees: 'https://news.kucoin.com/en/fee',
             },
-            'api': {
-                'kitchen': {
-                    'get': [
+            api: {
+                kitchen: {
+                    get: [
                         'open/chart/history',
-                    ],
+                   ],
                 },
-                'public': {
-                    'get': [
+                public: {
+                    get: [
                         'open/chart/config',
                         'open/chart/history',
                         'open/chart/symbol',
@@ -77,10 +77,10 @@ module.exports = class kucoin extends Exchange {
                         'market/open/coins',
                         'market/open/coins-trending',
                         'market/open/symbols',
-                    ],
+                   ],
                 },
-                'private': {
-                    'get': [
+                private: {
+                    get: [
                         'account/balance',
                         'account/{coin}/wallet/address',
                         'account/{coin}/wallet/records',
@@ -94,8 +94,8 @@ module.exports = class kucoin extends Exchange {
                         'order/detail',
                         'referrer/descendant/count',
                         'user/info',
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'account/{coin}/withdraw/apply',
                         'account/{coin}/withdraw/cancel',
                         'account/promotion/draw',
@@ -103,253 +103,253 @@ module.exports = class kucoin extends Exchange {
                         'order',
                         'order/cancel-all',
                         'user/change-lang',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.001,
-                    'taker': 0.001,
+            fees: {
+                trading: {
+                    maker: 0.001,
+                    taker: 0.001,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'KCS': 2.0,
-                        'BTC': 0.0005,
-                        'USDT': 10.0,
-                        'ETH': 0.01,
-                        'LTC': 0.001,
-                        'NEO': 0.0,
-                        'GAS': 0.0,
-                        'KNC': 0.5,
-                        'BTM': 5.0,
-                        'QTUM': 0.1,
-                        'EOS': 0.5,
-                        'CVC': 3.0,
-                        'OMG': 0.1,
-                        'PAY': 0.5,
-                        'SNT': 20.0,
-                        'BHC': 1.0,
-                        'HSR': 0.01,
-                        'WTC': 0.1,
-                        'VEN': 2.0,
-                        'MTH': 10.0,
-                        'RPX': 1.0,
-                        'REQ': 20.0,
-                        'EVX': 0.5,
-                        'MOD': 0.5,
-                        'NEBL': 0.1,
-                        'DGB': 0.5,
-                        'CAG': 2.0,
-                        'CFD': 0.5,
-                        'RDN': 0.5,
-                        'UKG': 5.0,
-                        'BCPT': 5.0,
-                        'PPT': 0.1,
-                        'BCH': 0.0005,
-                        'STX': 2.0,
-                        'NULS': 1.0,
-                        'GVT': 0.1,
-                        'HST': 2.0,
-                        'PURA': 0.5,
-                        'SUB': 2.0,
-                        'QSP': 5.0,
-                        'POWR': 1.0,
-                        'FLIXX': 10.0,
-                        'LEND': 20.0,
-                        'AMB': 3.0,
-                        'RHOC': 2.0,
-                        'R': 2.0,
-                        'DENT': 50.0,
-                        'DRGN': 1.0,
-                        'ACT': 0.1,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        KCS: 2.0,
+                        BTC: 0.0005,
+                        USDT: 10.0,
+                        ETH: 0.01,
+                        LTC: 0.001,
+                        NEO: 0.0,
+                        GAS: 0.0,
+                        KNC: 0.5,
+                        BTM: 5.0,
+                        QTUM: 0.1,
+                        EOS: 0.5,
+                        CVC: 3.0,
+                        OMG: 0.1,
+                        PAY: 0.5,
+                        SNT: 20.0,
+                        BHC: 1.0,
+                        HSR: 0.01,
+                        WTC: 0.1,
+                        VEN: 2.0,
+                        MTH: 10.0,
+                        RPX: 1.0,
+                        REQ: 20.0,
+                        EVX: 0.5,
+                        MOD: 0.5,
+                        NEBL: 0.1,
+                        DGB: 0.5,
+                        CAG: 2.0,
+                        CFD: 0.5,
+                        RDN: 0.5,
+                        UKG: 5.0,
+                        BCPT: 5.0,
+                        PPT: 0.1,
+                        BCH: 0.0005,
+                        STX: 2.0,
+                        NULS: 1.0,
+                        GVT: 0.1,
+                        HST: 2.0,
+                        PURA: 0.5,
+                        SUB: 2.0,
+                        QSP: 5.0,
+                        POWR: 1.0,
+                        FLIXX: 10.0,
+                        LEND: 20.0,
+                        AMB: 3.0,
+                        RHOC: 2.0,
+                        R: 2.0,
+                        DENT: 50.0,
+                        DRGN: 1.0,
+                        ACT: 0.1,
                     },
-                    'deposit': {},
+                    deposit: {},
                 },
             },
             // exchange-specific options
-            'options': {
-                'fetchOrderBookWarning': true, // raises a warning on null response in fetchOrderBook
-                'timeDifference': 0, // the difference between system clock and Kucoin clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'limits': {
-                    'amount': {
-                        'min': {
-                            'ABT': 1,
-                            'ACAT': 1,
-                            'ACT': 1,
-                            'ADB': 1,
-                            'AGI': 10,
-                            'AION': 1,
-                            'AIX': 1,
-                            'AMB': 1,
-                            'AOA': 1,
-                            'APH': 1,
-                            'ARN': 1,
-                            'ARY': 1,
-                            'AXP': 1,
-                            'BAX': 1,
-                            'BCD': 0.001,
-                            'BCH': 0.00001,
-                            'BCPT': 1,
-                            'BNTY': 1,
-                            'BOS': 1,
-                            'BPT': 1,
-                            'BRD': 1,
-                            'BTC': 0.00001,
-                            'BTG': 0.001,
-                            'BTM': 1,
-                            'CAG': 1,
-                            'CanYaCoin': 1,
-                            'CAPP': 1,
-                            'CAT': 1,
-                            'CBC': 1,
-                            'CHP': 1,
-                            'CHSB': 1,
-                            'COFI': 1,
-                            'COV': 1,
-                            'CPC': 1,
-                            'CS': 1,
-                            'CV': 10,
-                            'CVC': 0.1,
-                            'CXO': 1,
-                            'DACC': 1,
-                            'DADI': 1,
-                            'DAG': 1,
-                            'DASH': 0.01,
-                            'DAT': 1,
-                            'DATX': 1,
-                            'DBC': 1,
-                            'DCC': 1,
-                            'DEB': 1,
-                            'DENT': 1,
-                            'DGB': 1,
-                            'DNA': 1,
-                            'DOCK': 1,
-                            'DRGN': 1,
-                            'DTA': 1,
-                            'EBTC': 1,
-                            'EDR': 1,
-                            'EGT': 1,
-                            'ELA': 1,
-                            'ELEC': 1,
-                            'ELF': 1,
-                            'ELIX': 1,
-                            'ENJ': 1,
-                            'EOS': 0.1,
-                            'ETC': 0.1,
-                            'ETH': 0.00001,
-                            'ETN': 1,
-                            'EXY': 1,
-                            'FLIXX': 0.1,
-                            'FOTA': 1,
-                            'GAS': 0.1,
-                            'GAT': 1,
-                            'GLA': 1,
-                            'GO': 1,
-                            'GVT': 0.1,
-                            'HAV': 1,
-                            'HKN': 1,
-                            'HPB': 1,
-                            'HST': 0.1,
-                            'IHT': 1,
-                            'ING': 1,
-                            'INS': 1,
-                            'IOST': 1,
-                            'IOTX': 1,
-                            'ITC': 1,
-                            'J8T': 1,
-                            'JNT': 1,
-                            'KCS': 1,
-                            'KEY': 1,
-                            'KICK': 1,
-                            'KNC': 0.001,
-                            'LA': 1,
-                            'LALA': 1,
-                            'LEND': 1,
-                            'LOCI': 1,
-                            'LOOM': 1,
-                            'LTC': 1,
-                            'LYM': 1,
-                            'MAN': 1,
-                            'MANA': 1,
-                            'MOBI': 1,
-                            'MOD': 0.1,
-                            'MTH': 1,
-                            'MTN': 1,
-                            'MWAT': 1,
-                            'NANO': 0.1,
-                            'NEBL': 0.1,
-                            'NEO': 0.01,
-                            'NULS': 0.1,
-                            'NUSD': 1,
-                            'OCN': 10,
-                            'OLT': 1,
-                            'OMG': 0.1,
-                            'OMX': 1,
-                            'ONION': 1,
-                            'ONT': 1,
-                            'OPEN': 1,
-                            'PARETO': 1,
-                            'PAY': 0.1,
-                            'PBL': 1,
-                            'PLAY': 1,
-                            'POLL': 1,
-                            'POLY': 1,
-                            'POWR': 0.1,
-                            'PPT': 0.1,
-                            'PRL': 1,
-                            'PURA': 0.1,
-                            'QKC': 1,
-                            'QLC': 1,
-                            'QSP': 0.1,
-                            'QTUM': 0.1,
-                            'R': 1,
-                            'RDN': 1,
-                            'REQ': 1,
-                            'RHOC': 1,
-                            'RPX': 1,
-                            'SHL': 1,
-                            'SNC': 1,
-                            'SNM': 1,
-                            'SNOV': 1,
-                            'SNT': 0.1,
-                            'SOUL': 1,
-                            'SPF': 1,
-                            'SPHTX': 1,
-                            'SRN': 1,
-                            'STK': 1,
-                            'SUB': 0.1,
-                            'TEL': 10,
-                            'TFD': 1,
-                            'TFL': 1,
-                            'TIME': 1,
-                            'TIO': 1,
-                            'TKY': 1,
-                            'TMT': 1,
-                            'TNC': 1,
-                            'TOMO': 1,
-                            'TRAC': 1,
-                            'UKG': 1,
-                            'UTK': 1,
-                            'WAN': 1,
-                            'WAX': 1,
-                            'WPR': 1,
-                            'WTC': 0.1,
-                            'XAS': 0.1,
-                            'XLM': 1,
-                            'XLR': 1,
-                            'ZIL': 1,
-                            'ZINC': 1,
-                            'ZPT': 1,
+            options: {
+                fetchOrderBookWarning: true, // raises a warning on null response in fetchOrderBook
+                timeDifference: 0, // the difference between system clock and Kucoin clock
+                adjustForTimeDifference: false, // controls the adjustment logic upon instantiation
+                limits: {
+                    amount: {
+                        min: {
+                            ABT: 1,
+                            ACAT: 1,
+                            ACT: 1,
+                            ADB: 1,
+                            AGI: 10,
+                            AION: 1,
+                            AIX: 1,
+                            AMB: 1,
+                            AOA: 1,
+                            APH: 1,
+                            ARN: 1,
+                            ARY: 1,
+                            AXP: 1,
+                            BAX: 1,
+                            BCD: 0.001,
+                            BCH: 0.00001,
+                            BCPT: 1,
+                            BNTY: 1,
+                            BOS: 1,
+                            BPT: 1,
+                            BRD: 1,
+                            BTC: 0.00001,
+                            BTG: 0.001,
+                            BTM: 1,
+                            CAG: 1,
+                            CanYaCoin: 1,
+                            CAPP: 1,
+                            CAT: 1,
+                            CBC: 1,
+                            CHP: 1,
+                            CHSB: 1,
+                            COFI: 1,
+                            COV: 1,
+                            CPC: 1,
+                            CS: 1,
+                            CV: 10,
+                            CVC: 0.1,
+                            CXO: 1,
+                            DACC: 1,
+                            DADI: 1,
+                            DAG: 1,
+                            DASH: 0.01,
+                            DAT: 1,
+                            DATX: 1,
+                            DBC: 1,
+                            DCC: 1,
+                            DEB: 1,
+                            DENT: 1,
+                            DGB: 1,
+                            DNA: 1,
+                            DOCK: 1,
+                            DRGN: 1,
+                            DTA: 1,
+                            EBTC: 1,
+                            EDR: 1,
+                            EGT: 1,
+                            ELA: 1,
+                            ELEC: 1,
+                            ELF: 1,
+                            ELIX: 1,
+                            ENJ: 1,
+                            EOS: 0.1,
+                            ETC: 0.1,
+                            ETH: 0.00001,
+                            ETN: 1,
+                            EXY: 1,
+                            FLIXX: 0.1,
+                            FOTA: 1,
+                            GAS: 0.1,
+                            GAT: 1,
+                            GLA: 1,
+                            GO: 1,
+                            GVT: 0.1,
+                            HAV: 1,
+                            HKN: 1,
+                            HPB: 1,
+                            HST: 0.1,
+                            IHT: 1,
+                            ING: 1,
+                            INS: 1,
+                            IOST: 1,
+                            IOTX: 1,
+                            ITC: 1,
+                            J'8T': 1,
+                            JNT: 1,
+                            KCS: 1,
+                            KEY: 1,
+                            KICK: 1,
+                            KNC: 0.001,
+                            LA: 1,
+                            LALA: 1,
+                            LEND: 1,
+                            LOCI: 1,
+                            LOOM: 1,
+                            LTC: 1,
+                            LYM: 1,
+                            MAN: 1,
+                            MANA: 1,
+                            MOBI: 1,
+                            MOD: 0.1,
+                            MTH: 1,
+                            MTN: 1,
+                            MWAT: 1,
+                            NANO: 0.1,
+                            NEBL: 0.1,
+                            NEO: 0.01,
+                            NULS: 0.1,
+                            NUSD: 1,
+                            OCN: 10,
+                            OLT: 1,
+                            OMG: 0.1,
+                            OMX: 1,
+                            ONION: 1,
+                            ONT: 1,
+                            OPEN: 1,
+                            PARETO: 1,
+                            PAY: 0.1,
+                            PBL: 1,
+                            PLAY: 1,
+                            POLL: 1,
+                            POLY: 1,
+                            POWR: 0.1,
+                            PPT: 0.1,
+                            PRL: 1,
+                            PURA: 0.1,
+                            QKC: 1,
+                            QLC: 1,
+                            QSP: 0.1,
+                            QTUM: 0.1,
+                            R: 1,
+                            RDN: 1,
+                            REQ: 1,
+                            RHOC: 1,
+                            RPX: 1,
+                            SHL: 1,
+                            SNC: 1,
+                            SNM: 1,
+                            SNOV: 1,
+                            SNT: 0.1,
+                            SOUL: 1,
+                            SPF: 1,
+                            SPHTX: 1,
+                            SRN: 1,
+                            STK: 1,
+                            SUB: 0.1,
+                            TEL: 10,
+                            TFD: 1,
+                            TFL: 1,
+                            TIME: 1,
+                            TIO: 1,
+                            TKY: 1,
+                            TMT: 1,
+                            TNC: 1,
+                            TOMO: 1,
+                            TRAC: 1,
+                            UKG: 1,
+                            UTK: 1,
+                            WAN: 1,
+                            WAX: 1,
+                            WPR: 1,
+                            WTC: 0.1,
+                            XAS: 0.1,
+                            XLM: 1,
+                            XLR: 1,
+                            ZIL: 1,
+                            ZINC: 1,
+                            ZPT: 1,
                         },
                     },
                 },
             },
-            'commonCurrencies': {
-                'CAN': 'CanYaCoin',
-                'XRB': 'NANO',
+            commonCurrencies: {
+                CAN: 'CanYaCoin',
+                XRB: 'NANO',
             },
         });
     }
@@ -376,10 +376,10 @@ module.exports = class kucoin extends Exchange {
             key = 'base';
         }
         return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            type: takerOrMaker,
+            currency: market[key],
+            rate,
+            cost: parseFloat (this.feeToPrecision (symbol, cost)),
         };
     }
 
@@ -398,32 +398,32 @@ module.exports = class kucoin extends Exchange {
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
-                'amount': 8,
-                'price': 8,
+                amount: 8,
+                price: 8,
             };
             let defaultMinAmount = Math.pow (10, -precision['amount']);
             let minAmount = this.safeFloat (this.options['limits']['amount']['min'], base, defaultMinAmount);
             let active = market['trading'];
             result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'active': active,
-                'taker': this.safeFloat (market, 'feeRate'),
-                'maker': this.safeFloat (market, 'feeRate'),
-                'info': market,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': undefined,
+                id,
+                symbol,
+                base,
+                quote,
+                baseId,
+                quoteId,
+                active,
+                taker: this.safeFloat (market, 'feeRate'),
+                maker: this.safeFloat (market, 'feeRate'),
+                info: market,
+                precision,
+                limits: {
+                    amount: {
+                        min: minAmount,
+                        max: undefined,
                     },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
+                    price: {
+                        min: undefined,
+                        max: undefined,
                     },
                 },
             });
@@ -435,17 +435,17 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privateGetAccountCoinWalletAddress (this.extend ({
-            'coin': currency['id'],
+            coin: currency['id'],
         }, params));
         let data = response['data'];
         let address = this.safeString (data, 'address');
         this.checkAddress (address);
         let tag = this.safeString (data, 'userOid');
         return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
+            currency: code,
+            address,
+            tag,
+            info: response,
         };
     }
 
@@ -467,29 +467,29 @@ module.exports = class kucoin extends Exchange {
             let defaultMinAmount = Math.pow (10, -precision);
             let minAmount = this.safeFloat (this.options['limits']['amount']['min'], code, defaultMinAmount);
             result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': currency['name'],
-                'active': active,
-                'fee': currency['withdrawMinFee'], // todo: redesign
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': minAmount,
-                        'max': Math.pow (10, precision),
+                id,
+                code,
+                info: currency,
+                name: currency['name'],
+                active,
+                fee: currency['withdrawMinFee'], // todo: redesign
+                precision,
+                limits: {
+                    amount: {
+                        min: minAmount,
+                        max: Math.pow (10, precision),
                     },
-                    'price': {
-                        'min': Math.pow (10, -precision),
-                        'max': Math.pow (10, precision),
+                    price: {
+                        min: Math.pow (10, -precision),
+                        max: Math.pow (10, precision),
                     },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                    cost: {
+                        min: undefined,
+                        max: undefined,
                     },
-                    'withdraw': {
-                        'min': currency['withdrawMinAmount'],
-                        'max': Math.pow (10, precision),
+                    withdraw: {
+                        min: currency['withdrawMinAmount'],
+                        max: Math.pow (10, precision),
                     },
                 },
             };
@@ -502,7 +502,7 @@ module.exports = class kucoin extends Exchange {
         let response = await this.privateGetAccountBalance (this.extend ({
         }, params));
         let balances = response['data'];
-        let result = { 'info': balances };
+        let result = { info: balances };
         let indexed = this.indexBy (balances, 'coinType');
         let keys = Object.keys (indexed);
         for (let i = 0; i < keys.length; i++) {
@@ -525,7 +525,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         if (typeof limit !== 'undefined') {
             request['limit'] = limit;
@@ -539,8 +539,8 @@ module.exports = class kucoin extends Exchange {
             if (this.options['fetchOrderBookWarning'])
                 throw new ExchangeError (this.id + " fetchOrderBook returned an null reply. Set exchange.options['fetchOrderBookWarning'] = false to silence this warning");
             orderbook = {
-                'BUY': [],
-                'SELL': [],
+                BUY: [],
+                SELL: [],
             };
         } else {
             orderbook = response['data'];
@@ -660,27 +660,27 @@ module.exports = class kucoin extends Exchange {
         }
         let feeCost = this.safeFloat (order, 'fee');
         let fee = {
-            'cost': this.safeFloat (order, 'feeTotal', feeCost),
-            'rate': this.safeFloat (order, 'feeRate'),
-            'currency': feeCurrency,
+            cost: this.safeFloat (order, 'feeTotal', feeCost),
+            rate: this.safeFloat (order, 'feeRate'),
+            currency: feeCurrency,
         };
         let result = {
-            'info': order,
-            'id': orderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': 'limit',
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
-            'trades': trades,
+            info: order,
+            id: orderId,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: 'limit',
+            side,
+            price,
+            amount,
+            cost,
+            filled,
+            remaining,
+            status,
+            fee,
+            trades,
         };
         return result;
     }
@@ -694,9 +694,9 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'type': orderType,
-            'orderOid': id,
+            symbol: market['id'],
+            type: orderType,
+            orderOid,
         };
         let response = await this.privateGetOrderDetail (this.extend (request, params));
         if (!response['data'])
@@ -717,7 +717,7 @@ module.exports = class kucoin extends Exchange {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = this.parseOrder (this.extend (orders[i], {
-                'status': status,
+                status,
             }), market);
             result.push (order);
         }
@@ -736,7 +736,7 @@ module.exports = class kucoin extends Exchange {
             marketId = '';
         }
         let request = {
-            'symbol': marketId,
+            symbol: marketId,
         };
         let response = await this.privateGetOrderActiveMap (this.extend (request, params));
         let sell = this.safeValue (response['data'], 'SELL');
@@ -751,7 +751,7 @@ module.exports = class kucoin extends Exchange {
         //
         //     for (let i = 0; i < orders.length; i++) {
         //         let order = this.parseOrder (this.extend (orders[i], {
-        //             'status': 'open',
+        //             status: 'open',
         //         }), market);
         //         let orderId = order['id'];
         //         if (orderId in this.orders)
@@ -784,7 +784,7 @@ module.exports = class kucoin extends Exchange {
         //
         //     for (let i = 0; i < orders.length; i++) {
         //         let order = this.parseOrder (this.extend (orders[i], {
-        //             'status': 'closed',
+        //             status: 'closed',
         //         }), market);
         //         let orderId = order['id'];
         //         if (orderId in this.orders)
@@ -806,10 +806,10 @@ module.exports = class kucoin extends Exchange {
         let quote = market['quote'];
         let base = market['base'];
         let request = {
-            'symbol': market['id'],
-            'type': side.toUpperCase (),
-            'price': this.truncate (price, this.currencies[quote]['precision']),
-            'amount': this.truncate (amount, this.currencies[base]['precision']),
+            symbol: market['id'],
+            type: side.toUpperCase (),
+            price: this.truncate (price, this.currencies[quote]['precision']),
+            amount: this.truncate (amount, this.currencies[base]['precision']),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
@@ -821,22 +821,22 @@ module.exports = class kucoin extends Exchange {
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
         let order = {
-            'info': response,
-            'id': orderId,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'lastTradeTimestamp': undefined,
-            'symbol': market['symbol'],
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'price': price,
-            'cost': cost,
-            'status': 'open',
-            'fee': undefined,
-            'trades': undefined,
+            info: response,
+            id: orderId,
+            timestamp,
+            datetime: iso8601,
+            lastTradeTimestamp: undefined,
+            symbol: market['symbol'],
+            type,
+            side,
+            amount,
+            filled: undefined,
+            remaining: undefined,
+            price,
+            cost,
+            status: 'open',
+            fee: undefined,
+            trades: undefined,
         };
         this.orders[orderId] = order;
         return order;
@@ -877,8 +877,8 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
-            'orderOid': id,
+            symbol: market['id'],
+            orderOid,
         };
         if ('type' in params) {
             request['type'] = params['type'].toUpperCase ();
@@ -897,13 +897,13 @@ module.exports = class kucoin extends Exchange {
         //         let timestamp = this.milliseconds ();
         //         let side = request['type'].toLowerCase ();
         //         this.orders[id] = {
-        //             'id': id,
-        //             'timestamp': timestamp,
-        //             'datetime': this.iso8601 (timestamp),
-        //             'type': undefined,
-        //             'side': side,
-        //             'symbol': symbol,
-        //             'status': 'canceled',
+        //             id,
+        //             timestamp,
+        //             datetime: this.iso8601 (timestamp),
+        //             type: undefined,
+        //             side,
+        //             symbol,
+        //             status: 'canceled',
         //         };
         //     }
         //     return response;
@@ -932,26 +932,26 @@ module.exports = class kucoin extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': change,
-            'percentage': changePercentage,
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volValue'),
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (ticker, 'high'),
+            low: this.safeFloat (ticker, 'low'),
+            bid: this.safeFloat (ticker, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (ticker, 'sell'),
+            askVolume: undefined,
+            vwap: undefined,
+            open,
+            close: last,
+            last,
+            previousClose: undefined,
+            change,
+            percentage: changePercentage,
+            average: undefined,
+            baseVolume: this.safeFloat (ticker, 'vol'),
+            quoteVolume: this.safeFloat (ticker, 'volValue'),
+            info: ticker,
         };
     }
 
@@ -972,7 +972,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetOpenTick (this.extend ({
-            'symbol': market['id'],
+            symbol: market['id'],
         }, params));
         let ticker = response['data'];
         return this.parseTicker (ticker, market);
@@ -1021,26 +1021,26 @@ module.exports = class kucoin extends Exchange {
                 }
             }
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': feeCurrency,
+                cost: this.safeFloat (trade, 'fee'),
+                currency: feeCurrency,
             };
         }
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         return {
-            'id': id,
-            'order': order,
-            'info': info,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'amount': amount,
-            'fee': fee,
+            id,
+            order,
+            info,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type,
+            side,
+            price,
+            cost,
+            amount,
+            fee,
         };
     }
 
@@ -1051,8 +1051,8 @@ module.exports = class kucoin extends Exchange {
         }
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
-            'symbol': market['id'],
-            'limit': limit,
+            symbol: market['id'],
+            limit,
         }, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
@@ -1067,7 +1067,7 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -1109,10 +1109,10 @@ module.exports = class kucoin extends Exchange {
             end = Math.min (end, this.sum (start, limit * minutes * 60));
         }
         let request = {
-            'symbol': market['id'],
-            'resolution': resolution,
-            'from': start,
-            'to': end,
+            symbol: market['id'],
+            resolution,
+            from: start,
+            to: end,
         };
         let response = await this.publicGetOpenChartHistory (this.extend (request, params));
         return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
@@ -1124,13 +1124,13 @@ module.exports = class kucoin extends Exchange {
         let currency = this.currency (code);
         this.checkAddress (address);
         let response = await this.privatePostAccountCoinWithdrawApply (this.extend ({
-            'coin': currency['id'],
-            'amount': amount,
-            'address': address,
+            coin: currency['id'],
+            amount,
+            address,
         }, params));
         return {
-            'info': response,
-            'id': undefined,
+            info: response,
+            id: undefined,
         };
     }
 
@@ -1164,7 +1164,7 @@ module.exports = class kucoin extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     throwExceptionOnError (response) {

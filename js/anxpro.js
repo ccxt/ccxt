@@ -10,36 +10,36 @@ const { ExchangeError } = require ('./base/errors');
 module.exports = class anxpro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'anxpro',
-            'name': 'ANXPro',
-            'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
-            'version': '2',
-            'rateLimit': 1500,
-            'has': {
-                'CORS': false,
-                'fetchOHLCV': false,
-                'fetchTrades': false,
-                'withdraw': true,
+            id: 'anxpro',
+            name: 'ANXPro',
+            countries: ['JP', 'SG', 'HK', 'NZ'],
+            version: '2',
+            rateLimit: 1500,
+            has: {
+                CORS: false,
+                fetchOHLCV: false,
+                fetchTrades: false,
+                withdraw: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
-                'api': 'https://anxpro.com/api',
-                'www': 'https://anxpro.com',
-                'doc': [
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
+                api: 'https://anxpro.com/api',
+                www: 'https://anxpro.com',
+                doc: [
                     'http://docs.anxv2.apiary.io',
                     'https://anxpro.com/pages/api',
-                ],
+               ],
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         '{currency_pair}/money/ticker',
                         '{currency_pair}/money/depth/full',
                         '{currency_pair}/money/trade/fetch', // disabled by ANXPro
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         '{currency_pair}/money/order/add',
                         '{currency_pair}/money/order/cancel',
                         '{currency_pair}/money/order/quote',
@@ -50,28 +50,28 @@ module.exports = class anxpro extends Exchange {
                         'money/info',
                         'money/trade/list',
                         'money/wallet/history',
-                    ],
+                   ],
                 },
             },
-            'markets': {
-                'BTC/USD': { 'id': 'BTCUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'multiplier': 100000 },
-                'BTC/HKD': { 'id': 'BTCHKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'multiplier': 100000 },
-                'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'multiplier': 100000 },
-                'BTC/CAD': { 'id': 'BTCCAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'multiplier': 100000 },
-                'BTC/AUD': { 'id': 'BTCAUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'multiplier': 100000 },
-                'BTC/SGD': { 'id': 'BTCSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'multiplier': 100000 },
-                'BTC/JPY': { 'id': 'BTCJPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'multiplier': 100000 },
-                'BTC/GBP': { 'id': 'BTCGBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'multiplier': 100000 },
-                'BTC/NZD': { 'id': 'BTCNZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'multiplier': 100000 },
-                'LTC/BTC': { 'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'multiplier': 100000 },
-                'STR/BTC': { 'id': 'STRBTC', 'symbol': 'STR/BTC', 'base': 'STR', 'quote': 'BTC', 'multiplier': 100000000 },
-                'XRP/BTC': { 'id': 'XRPBTC', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'multiplier': 100000000 },
-                'DOGE/BTC': { 'id': 'DOGEBTC', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'multiplier': 100000000 },
+            markets: {
+                'BTC/USD': { id: 'BTCUSD', symbol: 'BTC/USD', base: 'BTC', quote: 'USD', multiplier: 100000 },
+                'BTC/HKD': { id: 'BTCHKD', symbol: 'BTC/HKD', base: 'BTC', quote: 'HKD', multiplier: 100000 },
+                'BTC/EUR': { id: 'BTCEUR', symbol: 'BTC/EUR', base: 'BTC', quote: 'EUR', multiplier: 100000 },
+                'BTC/CAD': { id: 'BTCCAD', symbol: 'BTC/CAD', base: 'BTC', quote: 'CAD', multiplier: 100000 },
+                'BTC/AUD': { id: 'BTCAUD', symbol: 'BTC/AUD', base: 'BTC', quote: 'AUD', multiplier: 100000 },
+                'BTC/SGD': { id: 'BTCSGD', symbol: 'BTC/SGD', base: 'BTC', quote: 'SGD', multiplier: 100000 },
+                'BTC/JPY': { id: 'BTCJPY', symbol: 'BTC/JPY', base: 'BTC', quote: 'JPY', multiplier: 100000 },
+                'BTC/GBP': { id: 'BTCGBP', symbol: 'BTC/GBP', base: 'BTC', quote: 'GBP', multiplier: 100000 },
+                'BTC/NZD': { id: 'BTCNZD', symbol: 'BTC/NZD', base: 'BTC', quote: 'NZD', multiplier: 100000 },
+                'LTC/BTC': { id: 'LTCBTC', symbol: 'LTC/BTC', base: 'LTC', quote: 'BTC', multiplier: 100000 },
+                'STR/BTC': { id: 'STRBTC', symbol: 'STR/BTC', base: 'STR', quote: 'BTC', multiplier: 100000000 },
+                'XRP/BTC': { id: 'XRPBTC', symbol: 'XRP/BTC', base: 'XRP', quote: 'BTC', multiplier: 100000000 },
+                'DOGE/BTC': { id: 'DOGEBTC', symbol: 'DOGE/BTC', base: 'DOGE', quote: 'BTC', multiplier: 100000000 },
             },
-            'fees': {
-                'trading': {
-                    'maker': 0.3 / 100,
-                    'taker': 0.6 / 100,
+            fees: {
+                trading: {
+                    maker: 0.3 / 100,
+                    taker: 0.6 / 100,
                 },
             },
         });
@@ -81,7 +81,7 @@ module.exports = class anxpro extends Exchange {
         let response = await this.privatePostMoneyInfo ();
         let balance = response['data'];
         let currencies = Object.keys (balance['Wallets']);
-        let result = { 'info': balance };
+        let result = { info: balance };
         for (let c = 0; c < currencies.length; c++) {
             let currency = currencies[c];
             let account = this.account ();
@@ -98,7 +98,7 @@ module.exports = class anxpro extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend ({
-            'currency_pair': this.marketId (symbol),
+            currency_pair: this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
         let t = parseInt (orderbook['dataUpdateTime']);
@@ -108,7 +108,7 @@ module.exports = class anxpro extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         let response = await this.publicGetCurrencyPairMoneyTicker (this.extend ({
-            'currency_pair': this.marketId (symbol),
+            currency_pair: this.marketId (symbol),
         }, params));
         let ticker = response['data'];
         let t = parseInt (ticker['dataUpdateTime']);
@@ -118,26 +118,26 @@ module.exports = class anxpro extends Exchange {
         let baseVolume = parseFloat (ticker['vol']['value']);
         let last = parseFloat (ticker['last']['value']);
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['high']['value']),
-            'low': parseFloat (ticker['low']['value']),
-            'bid': bid,
-            'bidVolume': undefined,
-            'ask': ask,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': parseFloat (ticker['avg']['value']),
-            'baseVolume': baseVolume,
-            'quoteVolume': undefined,
-            'info': ticker,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: parseFloat (ticker['high']['value']),
+            low: parseFloat (ticker['low']['value']),
+            bid,
+            bidVolume: undefined,
+            ask,
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: last,
+            last,
+            previousClose: undefined,
+            change: undefined,
+            percentage: undefined,
+            average: parseFloat (ticker['avg']['value']),
+            baseVolume,
+            quoteVolume: undefined,
+            info: ticker,
         };
     }
 
@@ -148,8 +148,8 @@ module.exports = class anxpro extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
         let order = {
-            'currency_pair': market['id'],
-            'amount_int': parseInt (amount * 100000000), // 10^8
+            currency_pair: market['id'],
+            amount_int: parseInt (amount * 100000000), // 10^8
         };
         if (type === 'limit') {
             order['price_int'] = parseInt (price * market['multiplier']); // 10^5 or 10^8
@@ -157,13 +157,13 @@ module.exports = class anxpro extends Exchange {
         order['type'] = (side === 'buy') ? 'bid' : 'ask';
         let result = await this.privatePostCurrencyPairMoneyOrderAdd (this.extend (order, params));
         return {
-            'info': result,
-            'id': result['data'],
+            info: result,
+            id: result['data'],
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
+        return await this.privatePostCurrencyPairMoneyOrderCancel ({ oid: id });
     }
 
     getAmountMultiplier (currency) {
@@ -186,13 +186,13 @@ module.exports = class anxpro extends Exchange {
         await this.loadMarkets ();
         let multiplier = this.getAmountMultiplier (currency);
         let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
-            'currency': currency,
-            'amount_int': parseInt (amount * multiplier),
-            'address': address,
+            currency,
+            amount_int: parseInt (amount * multiplier),
+            address,
         }, params));
         return {
-            'info': response,
-            'id': response['data']['transactionId'],
+            info: response,
+            id: response['data']['transactionId'],
         };
     }
 
@@ -210,7 +210,7 @@ module.exports = class anxpro extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({ 'nonce': nonce }, query));
+            body = this.urlencode (this.extend ({ nonce: nonce }, query));
             let secret = this.base64ToBinary (this.secret);
             // eslint-disable-next-line quotes
             let auth = request + "\0" + body;
@@ -221,7 +221,7 @@ module.exports = class anxpro extends Exchange {
                 'Rest-Sign': this.decode (signature),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

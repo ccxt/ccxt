@@ -15,7 +15,7 @@ module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
         'binance',
-    ]
+   ]
 
     if (skippedExchanges.includes (exchange.id)) {
         log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
@@ -37,7 +37,7 @@ module.exports = async (exchange, symbol) => {
         } catch (e) {
 
             log ('failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange[method] ([ symbol ])
+            tickers = await exchange[method] ([symbol])
             log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
         }
 

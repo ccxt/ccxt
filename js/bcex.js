@@ -10,49 +10,49 @@ const { ExchangeError, AuthenticationError } = require ('./base/errors');
 module.exports = class bcex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'bcex',
-            'name': 'BCEX',
-            'countries': [ 'CN', 'CA' ],
-            'version': '1',
-            'has': {
-                'fetchBalance': true,
-                'fetchMarkets': true,
-                'createOrder': true,
-                'cancelOrder': true,
-                'fetchTicker': true,
-                'fetchTickers': false,
-                'fetchTrades': true,
-                'fetchOrder': true,
-                'fetchOrders': true,
-                'fetchOpenOrders': true,
+            id: 'bcex',
+            name: 'BCEX',
+            countries: ['CN', 'CA'],
+            version: '1',
+            has: {
+                fetchBalance: true,
+                fetchMarkets: true,
+                createOrder: true,
+                cancelOrder: true,
+                fetchTicker: true,
+                fetchTickers: false,
+                fetchTrades: true,
+                fetchOrder: true,
+                fetchOrders: true,
+                fetchOpenOrders: true,
             },
-            'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
-                'api': 'https://www.bcex.top',
-                'www': 'https://www.bcex.top',
-                'doc': 'https://www.bcex.top/api_market/market/',
-                'fees': 'http://bcex.udesk.cn/hc/articles/57085',
-                'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
+            urls: {
+                logo: 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
+                api: 'https://www.bcex.top',
+                www: 'https://www.bcex.top',
+                doc: 'https://www.bcex.top/api_market/market/',
+                fees: 'http://bcex.udesk.cn/hc/articles/57085',
+                referral: 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
-            'api': {
-                'public': {
-                    'get': [
+            api: {
+                public: {
+                    get: [
                         'Api_Market/getPriceList', // tickers
                         'Api_Order/ticker', // last ohlcv candle (ticker)
                         'Api_Order/depth', // orderbook
                         'Api_Market/getCoinTrade', // ticker
                         'Api_Order/marketOrder', // trades...
-                    ],
-                    'post': [
+                   ],
+                    post: [
                         'Api_Market/getPriceList', // tickers
                         'Api_Order/ticker', // last ohlcv candle (ticker)
                         'Api_Order/depth', // orderbook
                         'Api_Market/getCoinTrade', // ticker
                         'Api_Order/marketOrder', // trades...
-                    ],
+                   ],
                 },
-                'private': {
-                    'post': [
+                private: {
+                    post: [
                         'Api_Order/cancel',
                         'Api_Order/coinTrust', // limit order
                         'Api_Order/orderList', // open / all orders (my trades?)
@@ -60,28 +60,28 @@ module.exports = class bcex extends Exchange {
                         'Api_Order/tradeList', // open / all orders
                         'Api_Order/trustList', // ?
                         'Api_User/userBalance',
-                    ],
+                   ],
                 },
             },
-            'fees': {
-                'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'bid': 0.0,
-                    'ask': 0.02 / 100,
+            fees: {
+                trading: {
+                    tierBased: false,
+                    percentage: true,
+                    bid: 0.0,
+                    ask: 0.02 / 100,
                 },
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'ckusd': 0.0,
-                        'other': 0.05 / 100,
+                funding: {
+                    tierBased: false,
+                    percentage: false,
+                    withdraw: {
+                        ckusd: 0.0,
+                        other: 0.05 / 100,
                     },
-                    'deposit': {},
+                    deposit: {},
                 },
-                'exceptions': {
+                exceptions: {
                     '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
+                    公钥不合法: AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
                 },
             },
         });
@@ -106,34 +106,34 @@ module.exports = class bcex extends Exchange {
                 let symbol = base + '/' + quote;
                 let active = true;
                 let precision = {
-                    'amount': undefined, // todo: might need this for proper order placement
-                    'price': undefined, // todo: find a way to get these values
+                    amount: undefined, // todo: might need this for proper order placement
+                    price: undefined, // todo: find a way to get these values
                 };
                 let limits = {
-                    'amount': {
-                        'min': undefined, // todo
-                        'max': undefined,
+                    amount: {
+                        min: undefined, // todo
+                        max: undefined,
                     },
-                    'price': {
-                        'min': undefined, // todo
-                        'max': undefined,
+                    price: {
+                        min: undefined, // todo
+                        max: undefined,
                     },
-                    'cost': {
-                        'min': undefined, // todo
-                        'max': undefined,
+                    cost: {
+                        min: undefined, // todo
+                        max: undefined,
                     },
                 };
                 result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': precision,
-                    'limits': limits,
-                    'info': market,
+                    id,
+                    symbol,
+                    base,
+                    quote,
+                    baseId,
+                    quoteId,
+                    active,
+                    precision,
+                    limits,
+                    info: market,
                 });
             }
         }
@@ -161,25 +161,25 @@ module.exports = class bcex extends Exchange {
         }
         let side = this.safeString (trade, 'type');
         return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'order': orderId,
-            'fee': undefined,
+            info: trade,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            symbol,
+            type: undefined,
+            side,
+            price,
+            amount,
+            cost,
+            order: orderId,
+            fee: undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'symbol': this.marketId (symbol),
+            symbol: this.marketId (symbol),
         };
         if (typeof limit !== 'undefined') {
             request['limit'] = limit;
@@ -231,32 +231,32 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let request = {
-            'part': market['quoteId'],
-            'coin': market['baseId'],
+            part: market['quoteId'],
+            coin: market['baseId'],
         };
         let response = await this.publicPostApiMarketGetCoinTrade (this.extend (request, params));
         let timestamp = this.milliseconds ();
         return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (response, 'max'),
-            'low': this.safeFloat (response, 'min'),
-            'bid': this.safeFloat (response, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (response, 'sale'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': this.safeFloat (response, 'price'),
-            'last': this.safeFloat (response, 'price'),
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeFloat (response, 'change_24h'),
-            'average': undefined,
-            'baseVolume': this.safeFloat (response, 'volume_24h'),
-            'quoteVolume': undefined,
-            'info': response,
+            symbol,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            high: this.safeFloat (response, 'max'),
+            low: this.safeFloat (response, 'min'),
+            bid: this.safeFloat (response, 'buy'),
+            bidVolume: undefined,
+            ask: this.safeFloat (response, 'sale'),
+            askVolume: undefined,
+            vwap: undefined,
+            open: undefined,
+            close: this.safeFloat (response, 'price'),
+            last: this.safeFloat (response, 'price'),
+            previousClose: undefined,
+            change: undefined,
+            percentage: this.safeFloat (response, 'change_24h'),
+            average: undefined,
+            baseVolume: this.safeFloat (response, 'volume_24h'),
+            quoteVolume: undefined,
+            info: response,
         };
     }
 
@@ -264,7 +264,7 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let marketId = this.marketId (symbol);
         let request = {
-            'symbol': marketId,
+            symbol: marketId,
         };
         let response = await this.publicPostApiOrderDepth (this.extend (request, params));
         let data = response['data'];
@@ -276,7 +276,7 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            symbol: market['id'],
         };
         let response = await this.privatePostApiOrderOrderList (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
@@ -284,10 +284,10 @@ module.exports = class bcex extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            '0': 'open',
-            '1': 'open', // partially filled
-            '2': 'closed',
-            '3': 'canceled',
+            0: 'open',
+            1: 'open', // partially filled
+            2: 'closed',
+            3: 'canceled',
         };
         if (status in statuses) {
             return statuses[status];
@@ -298,30 +298,30 @@ module.exports = class bcex extends Exchange {
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'symbol': this.marketId (symbol),
-            'trust_id': id,
+            symbol: this.marketId (symbol),
+            trust_id,
         };
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = order['created'] * 1000;
         let status = this.parseStatus (order['status']);
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': order['flag'],
-            'side': undefined,
-            'price': order['price'],
-            'cost': undefined,
-            'average': undefined,
-            'amount': order['number'],
-            'filled': order['numberdeal'],
-            'remaining': order['numberover'],
-            'status': status,
-            'fee': undefined,
+            info: order,
+            id,
+            timestamp,
+            datetime: this.iso8601 (timestamp),
+            lastTradeTimestamp: undefined,
+            symbol,
+            type: order['flag'],
+            side: undefined,
+            price: order['price'],
+            cost: undefined,
+            average: undefined,
+            amount: order['number'],
+            filled: order['numberdeal'],
+            remaining: order['numberover'],
+            status,
+            fee: undefined,
         };
         return result;
     }
@@ -343,22 +343,22 @@ module.exports = class bcex extends Exchange {
         let cost = filled * price;
         let fee = undefined;
         let result = {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': iso8601,
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            info: order,
+            id,
+            timestamp,
+            datetime: iso8601,
+            lastTradeTimestamp: undefined,
+            symbol,
+            type,
+            side,
+            price,
+            cost,
+            average,
+            amount,
+            filled,
+            remaining,
+            status,
+            fee,
         };
         return result;
     }
@@ -366,7 +366,7 @@ module.exports = class bcex extends Exchange {
     async fetchOrdersByType (type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'type': type,
+            type,
         };
         let market = undefined;
         if (typeof symbol !== 'undefined') {
@@ -391,16 +391,16 @@ module.exports = class bcex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
-            'symbol': this.marketId (symbol),
-            'type': side,
-            'price': price,
-            'number': amount,
+            symbol: this.marketId (symbol),
+            type: side,
+            price,
+            number: amount,
         };
         let response = await this.privatePostApiOrderCoinTrust (this.extend (order, params));
         let data = response['data'];
         return {
-            'info': response,
-            'id': this.safeString (data, 'order_id'),
+            info: response,
+            id: this.safeString (data, 'order_id'),
         };
     }
 
@@ -426,7 +426,7 @@ module.exports = class bcex extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            let payload = this.urlencode ({ 'api_key': this.apiKey });
+            let payload = this.urlencode ({ api_key: this.apiKey });
             if (Object.keys (query).length) {
                 payload += this.urlencode (this.keysort (query));
             }
@@ -437,7 +437,7 @@ module.exports = class bcex extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { url, method, body, headers: headers };
     }
 
     handleErrors (code, reason, url, method, headers, body) {
