@@ -564,6 +564,7 @@ class huobipro (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        id = self.safe_string(order, 'id')
         side = None
         type = None
         status = None
@@ -571,7 +572,7 @@ class huobipro (Exchange):
             orderType = order['type'].split('-')
             side = orderType[0]
             type = orderType[1]
-            status = self.parse_order_status(order['state'])
+            status = self.parse_order_status(self.safe_string(order, 'state'))
         symbol = None
         if market is None:
             if 'symbol' in order:
@@ -580,19 +581,23 @@ class huobipro (Exchange):
                     market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = order['created-at']
+        timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_float(order, 'amount')
-        filled = float(order['field-amount'])
-        remaining = amount - filled
+        filled = self.safe_float(order, 'field-amount')  # typo in their API, filled amount
         price = self.safe_float(order, 'price')
-        cost = float(order['field-cash-amount'])
-        average = 0
-        # if filled is defined and is not zero
-        if filled:
-            average = float(cost / filled)
+        cost = self.safe_float(order, 'field-cash-amount')  # same typo
+        remaining = None
+        average = None
+        if filled is not None:
+            average = 0
+            if amount is not None:
+                remaining = amount - filled
+            # if cost is defined and filled is not zero
+            if (cost is not None) and(filled > 0):
+                average = cost / filled
         result = {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -651,7 +656,17 @@ class huobipro (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
+        response = await self.privatePostOrderOrdersIdSubmitcancel({'id': id})
+        #
+        #     response = {
+        #         'status': 'ok',
+        #         'data': '10138899000',
+        #     }
+        #
+        return self.extend(self.parse_order(response), {
+            'id': id,
+            'status': 'canceled',
+        })
 
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
