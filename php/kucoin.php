@@ -809,8 +809,8 @@ class kucoin extends Exchange {
         $request = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
-            'price' => $this->truncate ($price, $this->currencies[$quote]['precision']),
-            'amount' => $this->truncate ($amount, $this->currencies[$base]['precision']),
+            'price' => $this->decimal_to_precision($price, TRUNCATE, $this->currencies[$quote]['precision'], DECIMAL_PLACES),
+            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$base]['precision'], DECIMAL_PLACES),
         );
         $price = floatval ($price);
         $amount = floatval ($amount);

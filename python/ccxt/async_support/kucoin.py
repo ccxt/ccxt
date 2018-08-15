@@ -14,6 +14,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class kucoin (Exchange):
@@ -779,8 +781,8 @@ class kucoin (Exchange):
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.truncate(price, self.currencies[quote]['precision']),
-            'amount': self.truncate(amount, self.currencies[base]['precision']),
+            'price': self.decimal_to_precision(price, TRUNCATE, self.currencies[quote]['precision'], DECIMAL_PLACES),
+            'amount': self.decimal_to_precision(amount, TRUNCATE, self.currencies[base]['precision'], DECIMAL_PLACES),
         }
         price = float(price)
         amount = float(amount)
