@@ -293,6 +293,26 @@ module.exports = class btcmarkets extends Exchange {
         return await this.cancelOrders ([ id ]);
     }
 
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let currency = undefined;
+        let cost = undefined;
+        if (market['quote'] === 'AUD') {
+            currency = market['quote'];
+            cost = parseFloat (this.costToPrecision (symbol, amount * price))
+        } else {
+            currency = market['base'];
+            cost = parseFloat (this.amountToPrecision (symbol, amount));
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+        }
+    }
+
     parseMyTrade (trade, market) {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
