@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -808,8 +809,8 @@ module.exports = class kucoin extends Exchange {
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.truncate (price, this.currencies[quote]['precision']),
-            'amount': this.truncate (amount, this.currencies[base]['precision']),
+            'price': this.decimalToPrecision (price, TRUNCATE, this.currencies[quote]['precision'], DECIMAL_PLACES),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[base]['precision'], DECIMAL_PLACES),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
