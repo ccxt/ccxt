@@ -127,7 +127,13 @@ module.exports = class luno extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbook (this.extend ({
+        let method = 'publicGetOrderbook';
+        if (typeof limit !== 'undefined') {
+            if (limit <= 100) {
+                method += 'Top'; // get just the top of the orderbook when limit is low
+            }
+        }
+        let orderbook = await this[method] (this.extend ({
             'pair': this.marketId (symbol),
         }, params));
         let timestamp = orderbook['timestamp'];
