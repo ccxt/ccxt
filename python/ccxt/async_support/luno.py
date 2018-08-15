@@ -124,7 +124,11 @@ class luno (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetOrderbook(self.extend({
+        method = 'publicGetOrderbook'
+        if limit is not None:
+            if limit <= 100:
+                method += 'Top'  # get just the top of the orderbook when limit is low
+        orderbook = await getattr(self, method)(self.extend({
             'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp']
