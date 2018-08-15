@@ -23,6 +23,9 @@ def sync_client(exchange):
 
 async def async_client(exchange):
     client = getattr(ccxta, exchange)()
+    await client.load_markets()
+    if symbol not in client.symbols:
+        raise Exception(exchange + ' does not support symbol ' + symbol)
     tickers = await client.fetch_order_book(symbol)
     await client.close()
     return tickers
