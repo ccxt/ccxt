@@ -596,6 +596,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let id = this.safeString (order, 'id');
         let side = undefined;
         let type = undefined;
         let status = undefined;
@@ -603,7 +604,7 @@ module.exports = class huobipro extends Exchange {
             let orderType = order['type'].split ('-');
             side = orderType[0];
             type = orderType[1];
-            status = this.parseOrderStatus (order['state']);
+            status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         let symbol = undefined;
         if (typeof market === 'undefined') {
@@ -617,20 +618,26 @@ module.exports = class huobipro extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let timestamp = order['created-at'];
+        let timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
-        let filled = parseFloat (order['field-amount']);
-        let remaining = amount - filled;
+        let filled = this.safeFloat (order, 'field-amount'); // typo in their API – filled amount
         let price = this.safeFloat (order, 'price');
-        let cost = parseFloat (order['field-cash-amount']);
-        let average = 0;
-        // if filled is defined and is not zero
-        if (filled) {
-            average = parseFloat (cost / filled);
+        let cost = this.safeFloat (order, 'field-cash-amount'); // same typo
+        let remaining = undefined;
+        let average = undefined;
+        if (typeof filled !== 'undefined') {
+            average = 0;
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+            }
+            // if cost is defined and filled is not zero
+            if ((typeof cost !== 'undefined') && (filled > 0)) {
+                average = cost / filled;
+            }
         }
         let result = {
             'info': order,
-            'id': order['id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -695,7 +702,17 @@ module.exports = class huobipro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        let response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        //
+        //     let response = {
+        //         'status': 'ok',
+        //         'data': '10138899000',
+        //     };
+        //
+        return this.extend (this.parseOrder (response), {
+            'id': id,
+            'status': 'canceled',
+        });
     }
 
     async fetchDepositAddress (code, params = {}) {
