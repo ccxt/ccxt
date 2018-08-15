@@ -620,7 +620,7 @@ module.exports = class huobipro extends Exchange {
         }
         let timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'field-amount'); // typo in their API – filled amount
+        let filled = this.safeFloat (order, 'field-amount'); // typo in their API, filled amount
         let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'field-cash-amount'); // same typo
         let remaining = undefined;
