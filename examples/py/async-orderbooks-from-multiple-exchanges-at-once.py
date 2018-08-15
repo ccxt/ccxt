@@ -12,6 +12,7 @@ sys.path.append(root + '/python')
 
 symbol = 'ETH/BTC'
 
+
 def sync_client(exchange):
     client = getattr(ccxt, exchange)()
     client.load_markets()
