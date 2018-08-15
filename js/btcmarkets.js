@@ -300,7 +300,7 @@ module.exports = class btcmarkets extends Exchange {
         let cost = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
-            cost = parseFloat (this.costToPrecision (symbol, amount * price))
+            cost = parseFloat (this.costToPrecision (symbol, amount * price));
         } else {
             currency = market['base'];
             cost = parseFloat (this.amountToPrecision (symbol, amount));
@@ -310,7 +310,7 @@ module.exports = class btcmarkets extends Exchange {
             'currency': currency,
             'rate': rate,
             'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
-        }
+        };
     }
 
     parseMyTrade (trade, market) {
