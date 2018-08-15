@@ -128,7 +128,13 @@ class luno extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbook (array_merge (array (
+        $method = 'publicGetOrderbook';
+        if ($limit !== null) {
+            if ($limit <= 100) {
+                $method .= 'Top'; // get just the top of the $orderbook when $limit is low
+            }
+        }
+        $orderbook = $this->$method (array_merge (array (
             'pair' => $this->market_id($symbol),
         ), $params));
         $timestamp = $orderbook['timestamp'];
