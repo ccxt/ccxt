@@ -55,7 +55,7 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchDepositAddress, createDepositAddress
 - Unified withdraw
 - Unified fees
-- Unified deposit and withdrawal transaction history
+- Unified fetchTransactions, fetchDeposits, fetchWithdrawals
 - Improved proxy support
 - WebSocket interfaces:
   - Pub: Methods for trading and private calls where supported
