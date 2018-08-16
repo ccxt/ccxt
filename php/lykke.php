@@ -143,15 +143,33 @@ class lykke extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
+        //
+        //     array ( array (                Id => "AEBTC",
+        //                      Name => "AE/BTC",
+        //                  Accuracy =>  6,
+        //          InvertedAccuracy =>  8,
+        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId => "BTC",
+        //                 MinVolume =>  0.4,
+        //         MinInvertedVolume =>  0.0001                                 ),
+        //       {                Id => "AEETH",
+        //                      Name => "AE/ETH",
+        //                  Accuracy =>  6,
+        //          InvertedAccuracy =>  8,
+        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId => "ETH",
+        //                 MinVolume =>  0.4,
+        //         MinInvertedVolume =>  0.001                                  } )
+        //
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['Id'];
-            $base = $market['BaseAssetId'];
-            $quote = $market['QuotingAssetId'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
-            $symbol = $market['Name'];
+            $name = $market['Name'];
+            list ($baseId, $quoteId) = explode ('/', $name);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['Accuracy'],
                 'price' => $market['InvertedAccuracy'],
@@ -172,6 +190,10 @@ class lykke extends Exchange {
                     'price' => array (
                         'min' => pow (10, -$precision['price']),
                         'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
                     ),
                 ),
             );
