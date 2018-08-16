@@ -141,15 +141,33 @@ module.exports = class lykke extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
+        //
+        //     [ {                Id: "AEBTC",
+        //                      Name: "AE/BTC",
+        //                  Accuracy:  6,
+        //          InvertedAccuracy:  8,
+        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId: "BTC",
+        //                 MinVolume:  0.4,
+        //         MinInvertedVolume:  0.0001                                 },
+        //       {                Id: "AEETH",
+        //                      Name: "AE/ETH",
+        //                  Accuracy:  6,
+        //          InvertedAccuracy:  8,
+        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId: "ETH",
+        //                 MinVolume:  0.4,
+        //         MinInvertedVolume:  0.001                                  } ]
+        //
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['Id'];
-            let base = market['BaseAssetId'];
-            let quote = market['QuotingAssetId'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = market['Name'];
+            let name = market['Name'];
+            let [ baseId, quoteId ] = name.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let precision = {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
@@ -170,6 +188,10 @@ module.exports = class lykke extends Exchange {
                     'price': {
                         'min': Math.pow (10, -precision['price']),
                         'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
             });
