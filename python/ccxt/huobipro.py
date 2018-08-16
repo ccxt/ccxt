@@ -331,7 +331,12 @@ class huobipro (Exchange):
             typeParts = type.split('-')
             side = typeParts[0]
             type = typeParts[1]
+        price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'filled-amount', 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         fee = None
         feeCost = self.safe_float(trade, 'filled-fees')
         feeCurrency = None
@@ -355,8 +360,9 @@ class huobipro (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
+            'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 

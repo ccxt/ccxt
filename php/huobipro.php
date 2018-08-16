@@ -336,7 +336,14 @@ class huobipro extends Exchange {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
+        $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'filled-fees');
         $feeCurrency = null;
@@ -363,8 +370,9 @@ class huobipro extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
+            'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
