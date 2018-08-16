@@ -546,7 +546,7 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.decimalToPrecision (fee, TRUNCATE,  8, DECIMAL_PLACES);
+        return this.decimalToPrecision (fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchMarkets () {
