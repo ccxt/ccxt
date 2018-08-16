@@ -41,7 +41,7 @@ type StringSlice []string
 // UnmarshalJSON accepts both forms for StringSlice:
 //   - ["s1", "s2"...]
 //   - "s"
-// For the latter, ss will hold a single element "s"
+// For the latter, ss will hold a slice of one element "s"
 // todo: unify to array form ?
 func (ss *StringSlice) UnmarshalJSON(b []byte) (err error) {
 	// try slice unmarshal
