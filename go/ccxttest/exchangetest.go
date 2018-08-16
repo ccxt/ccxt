@@ -1,102 +1,51 @@
-package ccxt
+package ccxttest
 
 import (
-	"flag"
+	"github.com/ccxt/ccxt/go"
 	"github.com/ccxt/ccxt/go/util"
-	u "github.com/rkjdid/util"
-	"log"
-	"math"
-	"strings"
 	"testing"
 	"time"
 )
 
-var (
-	exchangeName = flag.String("testExchange", "bitfinex", "exchange to test")
-	testREST     = flag.Bool("testREST", true, "test via ccxt-rest")
-	testCfg      = flag.String("testCfg", "config.toml",
-		"toml or json config file with api keys for exchanges (see config.go)")
-
-	Config map[string]APIKey
-	x      Exchange
-	err    error
-)
-
-func init() {
-	flag.Parse()
-
-	if !*testREST {
-		log.Fatal("only -testREST supported for now")
-	}
-
-	var key, sec string
-	_ = u.ReadGenericFile(&Config, *testCfg)
-	if cfg, ok := Config[*exchangeName]; ok {
-		key = cfg.Key
-		sec = cfg.Secret
-	}
-
-	x, err = NewExchangeREST(*exchangeName, *exchangeName, key, sec, nil)
-	if err != nil {
-		log.Fatalf("couldn't create exchange %s: %s", *exchangeName, err)
-	}
-	log.Println(*exchangeName)
+func TestExchange(t *testing.T, x ccxt.Exchange) {
+	t.Run("LoadMarkets", func(t *testing.T) { testLoadMarkets(t, x) })
+	t.Run("FetchOpenOrders", func(t *testing.T) { testFetchOpenOrders(t, x) })
+	t.Run("FetchClosedOrders", func(t *testing.T) { testFetchClosedOrders(t, x) })
+	t.Run("FetchOrders", func(t *testing.T) { testFetchOrders(t, x) })
+	t.Run("FetchTickers", func(t *testing.T) { testFetchTickers(t, x) })
+	t.Run("FetchTicker", func(t *testing.T) { testFetchTicker(t, x) })
+	t.Run("FetchOHLCV", func(t *testing.T) { testFetchOHLCV(t, x) })
+	t.Run("FetchOrderBook", func(t *testing.T) { testFetchOrderBook(t, x) })
+	t.Run("FetchTrades", func(t *testing.T) { testFetchTrades(t, x) })
+	t.Run("FetchBalance", func(t *testing.T) { testFetchBalance(t, x) })
+	t.Run("OrdersBasics", func(t *testing.T) { testOrdersBasics(t, x) })
 }
 
 func skipAuthError(t *testing.T, err error) {
-	if _, ok := err.(AuthenticationError); ok {
+	if _, ok := err.(ccxt.AuthenticationError); ok {
 		t.Skip(err)
 	}
 }
 
 func skipNotSupportedError(t *testing.T, err error) {
-	if _, ok := err.(NotSupportedError); ok {
+	if _, ok := err.(ccxt.NotSupportedError); ok {
 		t.Skip(err)
 	}
 }
 
-func getAnyMarket(t *testing.T, x Exchange) (m Market) {
+func getAnyMarket(t *testing.T, x ccxt.Exchange) (m ccxt.Market) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal("LoadMarkets: ", err)
 	}
 	for _, v := range markets {
-		// avoid weird instruments starting with "." on bitmex
-		if *exchangeName == "bitmex" && strings.HasPrefix(v.Symbol, ".") {
-			continue
-		}
 		return v
 	}
 	t.Fatalf("%s: no markets available", x.Info().Name)
 	return
 }
 
-// TestListExchangeREST cannot fail, it tries to instanciate each available exchanges listed by
-// ccxt and logs error for those who failed and the list of those who succeeded (needs go test -v)
-// An error is always an unmarshalling error, it means the info we get from ccxt implementation
-// of the exchange doesn't match expected type structure.
-func TestListExchangesREST(t *testing.T) {
-	exchanges, err := ListExchangesREST(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%d available exchanges\n", len(exchanges))
-
-	var ok []string
-	for _, v := range exchanges {
-		// init each exchange
-		_, err := NewExchangeREST(v, "test"+v, "", "", nil)
-		if err != nil {
-			t.Logf("couldnt create %s: %s", v, err)
-		} else {
-			ok = append(ok, v)
-		}
-	}
-	t.Logf("successfully created %d/%d exchange instances", len(ok), len(exchanges))
-	t.Logf("\t%v", ok)
-}
-
-func TestExchangeREST_LoadMarkets(t *testing.T) {
+func testLoadMarkets(t *testing.T, x ccxt.Exchange) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal(err)
@@ -104,7 +53,7 @@ func TestExchangeREST_LoadMarkets(t *testing.T) {
 	t.Logf("%d markets available\n", len(markets))
 }
 
-func TestExchangeREST_FetchOpenOrders(t *testing.T) {
+func testFetchOpenOrders(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	openOrders, err := x.FetchOpenOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
@@ -115,7 +64,7 @@ func TestExchangeREST_FetchOpenOrders(t *testing.T) {
 	t.Logf("%s: %d open orders\n", m.Symbol, len(openOrders))
 }
 
-func TestExchangeREST_FetchClosedOrders(t *testing.T) {
+func testFetchClosedOrders(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	orders, err := x.FetchClosedOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
@@ -126,7 +75,7 @@ func TestExchangeREST_FetchClosedOrders(t *testing.T) {
 	t.Logf("%s: %d closed orders", m.Symbol, len(orders))
 }
 
-func TestExchangeREST_FetchOrders(t *testing.T) {
+func testFetchOrders(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	orders, err := x.FetchOrders(&m.Symbol, nil, nil, nil)
 	if err != nil {
@@ -137,7 +86,7 @@ func TestExchangeREST_FetchOrders(t *testing.T) {
 	t.Logf("%s: %d orders", m.Symbol, len(orders))
 }
 
-func TestExchangeREST_FetchTickers(t *testing.T) {
+func testFetchTickers(t *testing.T, x ccxt.Exchange) {
 	tickers, err := x.FetchTickers(nil, nil)
 	if err != nil {
 		skipNotSupportedError(t, err)
@@ -146,7 +95,7 @@ func TestExchangeREST_FetchTickers(t *testing.T) {
 	t.Logf("%d tickers\n", len(tickers))
 }
 
-func TestExchangeREST_FetchTicker(t *testing.T) {
+func testFetchTicker(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	ticker, err := x.FetchTicker(m.Symbol, nil)
 	if err != nil {
@@ -156,7 +105,7 @@ func TestExchangeREST_FetchTicker(t *testing.T) {
 	t.Logf("%s (%.2f%%): %f / %f\n", ticker.Symbol, ticker.Change, ticker.Ask, ticker.Bid)
 }
 
-func TestExchangeREST_FetchOHLCV(t *testing.T) {
+func testFetchOHLCV(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	info := x.Info()
 	if !info.Has["fetchOHLCV"] {
@@ -180,7 +129,7 @@ func TestExchangeREST_FetchOHLCV(t *testing.T) {
 		m.Symbol, len(candles), tf, candles[0].Timestamp, candles[len(candles)-1].Timestamp)
 }
 
-func TestExchangeREST_FetchOrderBook(t *testing.T) {
+func testFetchOrderBook(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	book, err := x.FetchOrderBook(m.Symbol, nil, nil)
 	if err != nil {
@@ -189,7 +138,7 @@ func TestExchangeREST_FetchOrderBook(t *testing.T) {
 	t.Logf("%s: %d asks / %d bids\n", m.Symbol, len(book.Asks), len(book.Bids))
 }
 
-func TestExchangeREST_FetchTrades(t *testing.T) {
+func testFetchTrades(t *testing.T, x ccxt.Exchange) {
 	m := getAnyMarket(t, x)
 	trades, err := x.FetchTrades(m.Symbol, util.Time(time.Now().Add(-time.Minute)), nil)
 	if err != nil {
@@ -199,7 +148,7 @@ func TestExchangeREST_FetchTrades(t *testing.T) {
 	t.Logf("%s: %d trades the last minute", m.Symbol, len(trades))
 }
 
-func TestExchangeREST_FetchBalance(t *testing.T) {
+func testFetchBalance(t *testing.T, x ccxt.Exchange) {
 	b, err := x.FetchBalance(nil)
 	if err != nil {
 		skipAuthError(t, err)
@@ -209,7 +158,7 @@ func TestExchangeREST_FetchBalance(t *testing.T) {
 	t.Logf("balance totals: %v", b.Total)
 }
 
-func TestExchangeREST_OrdersBasics(t *testing.T) {
+func testOrdersBasics(t *testing.T, x ccxt.Exchange) {
 	markets, err := x.LoadMarkets(false)
 	if err != nil {
 		t.Fatal(err)
@@ -224,14 +173,10 @@ func TestExchangeREST_OrdersBasics(t *testing.T) {
 	}
 	balances.FilterZeros()
 
-	var market Market
+	var market ccxt.Market
 	var free float64
 	for _, v := range markets {
-		// avoid weird instruments starting with "." on bitmex
-		if *exchangeName == "bitmex" && strings.HasPrefix(v.Symbol, ".") {
-			continue
-		}
-		if free = balances.Free[v.Base]; free > 0 {
+		if free = balances.Free[v.Base]; free > v.Limits.Amount.Min {
 			market = v
 			break
 		}
@@ -244,8 +189,7 @@ func TestExchangeREST_OrdersBasics(t *testing.T) {
 
 	book, err := x.FetchOrderBook(market.Symbol, nil, nil)
 	if err != nil {
-		t.Fatalf("couldn't fetch order book for %s:%s: %s",
-			*exchangeName, market.Symbol, err)
+		t.Fatalf("couldn't fetch order book for %s:%s: %s", market.Symbol, err)
 	}
 	if len(book.Asks) == 0 {
 		t.Fatalf("empty book.Asks")
@@ -254,11 +198,6 @@ func TestExchangeREST_OrdersBasics(t *testing.T) {
 	// setup order for 10% of available balance @10*highest ask
 	ask := book.Asks[len(book.Asks)-1].Price * 10
 	amount := free * 0.1
-
-	// mex contracts are pegged to USD
-	if *exchangeName == "bitmex" {
-		amount = math.Floor(amount * book.Asks[0].Price)
-	}
 
 	// place our optimistic ask
 	order, err := x.CreateOrder(market.Symbol, "limit", "sell", amount, &ask, nil)
