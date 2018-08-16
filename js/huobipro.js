@@ -335,7 +335,14 @@ module.exports = class huobipro extends Exchange {
             side = typeParts[0];
             type = typeParts[1];
         }
+        let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = amount * price;
+            }
+        }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'filled-fees');
         let feeCurrency = undefined;
@@ -362,8 +369,9 @@ module.exports = class huobipro extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
+            'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
