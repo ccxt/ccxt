@@ -588,7 +588,7 @@ module.exports = class livecoin extends Exchange {
         if (typeof tag !== 'undefined')
             wallet += '::' + tag;
         let withdrawal = {
-            'amount': this.decimalToPrecision (amount, TRUNCATE,  this.currencies[currency]['precision'], DECIMAL_PLACES),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
             'currency': this.commonCurrencyCode (currency),
             'wallet': wallet,
         };
