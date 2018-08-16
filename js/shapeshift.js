@@ -130,11 +130,10 @@ module.exports = class shapeshift extends Exchange {
         const [base, quote] = symbol.split('/');
         let fee = undefined;
         if (side === 'sell') {
-            const { info } = this.markets[symbol];
             fee = info.minerFee;
         } else {
             const { info } = this.markets[`${quote}/${base}`];
-            fee = info.minerFee / info.rate;
+            fee = info.minerFee;
         }
         return {
             'type': undefined,
