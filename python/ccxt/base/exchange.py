@@ -19,7 +19,7 @@ from ccxt.base.errors import InvalidAddress
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 
 # -----------------------------------------------------------------------------
 
@@ -506,6 +506,7 @@ class Exchange(object):
 
     @staticmethod
     def truncate(num, precision=0):
+        """Depreciated, use decimalToPrecision instead"""
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
@@ -513,6 +514,7 @@ class Exchange(object):
 
     @staticmethod
     def truncate_to_string(num, precision=0):
+        """Depreciated, todo: remove references from subclasses"""
         if precision > 0:
             parts = ('{0:.%df}' % precision).format(Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
@@ -916,19 +918,19 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(cost))
+        return self.decimalToPrecision(cost, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
-        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(price))
+        return self.decimalToPrecision(price, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def amount_to_precision(self, symbol, amount):
-        return self.truncate(amount, self.markets[symbol]['precision']['amount'])
+        return float(self.amount_to_string(symbol, amount))
 
     def amount_to_string(self, symbol, amount):
-        return self.truncate_to_string(amount, self.markets[symbol]['precision']['amount'])
+        return self.decimalToPrecision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def fee_to_precision(self, symbol, fee):
-        return ('{:.' + str(self.markets[symbol]['precision']['price']) + 'f}').format(float(fee))
+        return self.decimalToPrecision(fee, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
