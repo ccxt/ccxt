@@ -15,7 +15,7 @@ module.exports = class nebula extends Exchange {
             'countries': [ 'FR' ],
             'version': 'v1',
             'userAgent': undefined,
-            'rateLimit': 2000,
+            'rateLimit': 300000, // 5 * 60 * 1000 please review it if you are whitelisted by our service
             'has': {
                 'CORS': false,
                 'fetchOHLCV': false,
