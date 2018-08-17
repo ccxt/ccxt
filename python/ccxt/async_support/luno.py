@@ -15,7 +15,7 @@ class luno (Exchange):
             'id': 'luno',
             'name': 'luno',
             'countries': ['GB', 'SG', 'ZA'],
-            'rateLimit': 1000,
+            'rateLimit': 10000,
             'version': '1',
             'has': {
                 'CORS': False,
@@ -24,6 +24,7 @@ class luno (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'fetchTradingFees': True,
             },
             'urls': {
@@ -259,17 +260,35 @@ class luno (Exchange):
 
     def parse_trade(self, trade, market):
         side = 'buy' if (trade['is_buy']) else 'sell'
+        feeBase = self.safe_float(trade, 'fee_base')
+        feeCounter = self.safe_float(trade, 'fee_counter')
+        feeCurrency = None
+        feeCost = None
+        if feeBase is not None:
+            if feeBase != 0.0:
+                feeCurrency = market['base']
+                feeCost = feeBase
+        elif feeCounter is not None:
+            if feeCounter != 0.0:
+                feeCurrency = market['quote']
+                feeCost = feeCounter
         return {
             'info': trade,
-            'id': None,
-            'order': None,
+            'id': self.safe_string(trade, 'order_id'),
             'timestamp': trade['timestamp'],
             'datetime': self.iso8601(trade['timestamp']),
             'symbol': market['symbol'],
+            'order': None,
             'type': None,
             'side': side,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
+            # Does not include potential fee costs
+            'cost': self.safe_float(trade, 'counter'),
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -281,6 +300,21 @@ class luno (Exchange):
         if since is not None:
             request['since'] = since
         response = await self.publicGetTrades(self.extend(request, params))
+        return self.parse_trades(response['trades'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateGetListtrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def fetch_trading_fees(self, params={}):
