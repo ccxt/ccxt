@@ -16,7 +16,7 @@ func TestHMAC(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		} else if result != expected {
-			t.Errorf("sha256/hex:\n     got: %s\nexpected: %s", result, expected)
+			t.Errorf("%s:\n     got: %s\nexpected: %s", method, result, expected)
 		}
 	}
 }
