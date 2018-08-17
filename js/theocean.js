@@ -241,7 +241,7 @@ module.exports = class theocean extends Exchange {
         return {
             'free': balance,
             'used': 0,
-            'total': balance,
+            'total': undefined,
         };
     }
 
