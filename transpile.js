@@ -383,7 +383,6 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
     const precisionImports = []
 
     for (let constant in precisionConstants) {
-        // const regex = new RegExp ("[^\\']" + error + "[^\\']")
         if (bodyAsString.indexOf (constant) >= 0) {
             precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
         }
