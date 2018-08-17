@@ -13,7 +13,7 @@ module.exports = class luno extends Exchange {
             'id': 'luno',
             'name': 'luno',
             'countries': [ 'GB', 'SG', 'ZA' ],
-            'rateLimit': 1000,
+            'rateLimit': 10000,
             'version': '1',
             'has': {
                 'CORS': false,
