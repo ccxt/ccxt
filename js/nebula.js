@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, DDoSProtection, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -538,25 +538,48 @@ module.exports = class nebula extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 429)
-            throw new DDoSProtection (this.id + ' ' + body);
+            throw new DDoSProtection (this.id + ' ' + JSON.parse (body));
         if (code >= 400) {
-            if (body) {
-                if (body[0] === '{') {
-                    let response = JSON.parse (body);
-                    if ('error' in response) {
-                        if ('message' in response['error']) {
-                            let feedback = this.id + ' ' + this.json (response);
-                            let message = this.safeValue (response['error'], 'message');
-                            let exceptions = this.exceptions;
-                            if (typeof message !== 'undefined') {
-                                if (message in exceptions) {
-                                    throw new exceptions[message] (feedback);
-                                }
-                            }
-                            throw new ExchangeError (feedback);
-                        }
-                    }
+            if ((body[0] === '{') || (body[0] === '[')) {
+                let response = JSON.parse (body);
+                let feedback = this.id + ' ' + this.json (response);
+                let message = this.safeValue (response, 'message');
+                if (message.indexOf ('Insufficient') >= 0) {
+                    throw new InsufficientFunds (feedback);
+                } else if (message.indexOf ('no order Id provided') >= 0) {
+                    throw new OrderNotFound (feedback);
+                } else if (message.indexOf ('cancel this order') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('Order not found') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('the order book') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('Order value has changed') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('create order') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('Minimum Order Size') >= 0) {
+                    throw new InvalidOrder (feedback);
+                } else if (message.indexOf ('Missing API Key') >= 0) {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('Missing API signature') >= 0) {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('Missing payload') >= 0) {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('BAD API signature') >= 0) {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('Unknown user or API Key') >= 0) {
+                    throw new AuthenticationError (feedback);
+                } else if (message.indexOf ('no symbol provided') >= 0) {
+                    throw new ExchangeError (feedback);
+                } else if (message.indexOf ('Unknown symbol') >= 0) {
+                    throw new ExchangeError (feedback);
+                } else if (message.indexOf ('Unknown coin') >= 0) {
+                    throw new ExchangeError (feedback);
+                } else if (message.indexOf ('country is restricted') >= 0) {
+                    throw new ExchangeError (feedback);
                 }
+                throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
             }
         }
     }
