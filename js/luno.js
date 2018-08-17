@@ -275,17 +275,34 @@ module.exports = class luno extends Exchange {
 
     parseTrade (trade, market) {
         let side = (trade['is_buy']) ? 'buy' : 'sell';
+        let feeBase = this.safeFloat (trade, 'fee_base');
+        let feeCounter = this.safeFloat (trade, 'fee_counter');
+        let feeCurrency = undefined;
+        let feeCost = undefined;
+        if (feeBase !== 0.0) {
+            feeCurrency = market['base'];
+            feeCost = feeBase;
+        } else if (feeCounter !== 0.0) {
+            feeCurrency = market['quote'];
+            feeCost = feeCounter;
+        }
         return {
             'info': trade,
-            'id': undefined,
-            'order': undefined,
+            'id': trade['order_id'],
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
+            'order': undefined,
             'type': undefined,
             'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
+            //Does not include potential fee costs
+            'cost': this.safeFloat (trade, 'counter'),
+            'fee': {
+                'cost' : feeCost,
+                'currency' :feeCurrency,
+            },
         };
     }
 
