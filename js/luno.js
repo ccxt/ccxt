@@ -279,16 +279,20 @@ module.exports = class luno extends Exchange {
         let feeCounter = this.safeFloat (trade, 'fee_counter');
         let feeCurrency = undefined;
         let feeCost = undefined;
-        if (feeBase !== 0.0) {
-            feeCurrency = market['base'];
-            feeCost = feeBase;
-        } else if (feeCounter !== 0.0) {
-            feeCurrency = market['quote'];
-            feeCost = feeCounter;
+        if (typeof feeBase !== 'undefined') {
+            if (feeBase !== 0.0) {
+                feeCurrency = market['base'];
+                feeCost = feeBase;
+            }
+        } else if (typeof feeCounter !== 'undefined') {
+            if (feeCounter !== 0.0) {
+                feeCurrency = market['quote'];
+                feeCost = feeCounter;
+            }
         }
         return {
             'info': trade,
-            'id': trade['order_id'],
+            'id': this.safeString (trade, 'order_id'),
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
@@ -297,11 +301,11 @@ module.exports = class luno extends Exchange {
             'side': side,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
-            //Does not include potential fee costs
+            // Does not include potential fee costs
             'cost': this.safeFloat (trade, 'counter'),
             'fee': {
-                'cost' : feeCost,
-                'currency' :feeCurrency,
+                'cost': feeCost,
+                'currency': feeCurrency,
             },
         };
     }
