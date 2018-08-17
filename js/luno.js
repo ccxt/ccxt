@@ -22,6 +22,7 @@ module.exports = class luno extends Exchange {
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
                 'fetchTradingFees': true,
             },
             'urls': {
@@ -297,6 +298,20 @@ module.exports = class luno extends Exchange {
         if (typeof since !== 'undefined')
             request['since'] = since;
         let response = await this.publicGetTrades (this.extend (request, params));
+        return this.parseTrades (response['trades'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+        };
+        if (typeof since !== 'undefined')
+            request['since'] = since;
+        if (typeof limit !== 'undefined')
+            request['limit'] = limit;
+        let response = await this.privateGetListtrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
