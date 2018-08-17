@@ -1082,7 +1082,7 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
-##### Working With Datetimes and Timestamps
+#### Working With Datetimes and Timestamps
 
 The set of methods for working with UTC dates and timestamps and for converting between them:
 
