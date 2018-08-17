@@ -15,7 +15,7 @@ class luno (Exchange):
             'id': 'luno',
             'name': 'luno',
             'countries': ['GB', 'SG', 'ZA'],
-            'rateLimit': 10000,
+            'rateLimit': 1000,
             'version': '1',
             'has': {
                 'CORS': False,
