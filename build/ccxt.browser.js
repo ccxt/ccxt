@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.135'
+const version = '1.17.136'
 
 Exchange.ccxtVersion = version
 
@@ -5751,13 +5751,13 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'state': 'PENDING',
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'state': 'FILLED',
         }, params));
     }
