@@ -1258,16 +1258,30 @@ In most cases users are **required to use at least some type of pagination** in 
 
 With methods returning lists of objects, exchanges may offer one or more types of pagination. CCXT unifies **date-based pagination** by default, with timestamps **in milliseconds** throughout the entire library.
 
+Working With Datetimes and Timestamps
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The set of methods for working with UTC dates and timestamps and for converting between them:
+
+.. code:: javascript
+
+   exchange.parse8601 ('2018-01-01T00:00:00Z') == 1514764800000 // integer, Z = UTC
+   exchange.iso8601 (1514764800000) == '2018-01-01T00:00:00Z'   // iso8601 string
+   exchange.seconds ()      // integer UTC timestamp in seconds
+   exchange.milliseconds () // integer UTC timestamp in milliseconds
+
 Date-based pagination
 ^^^^^^^^^^^^^^^^^^^^^
 
-The user supplies a ``since`` timestamp **in milliseconds** (!) and a number to ``limit`` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
+This is the type of pagination currently used throughout the CCXT Unified API. The user supplies a ``since`` timestamp **in milliseconds** (!) and a number to ``limit`` results. To traverse the objects of interest page by page, the user runs the following (below is pseudocode, it may require overriding some exchange-specific params, depending on the exchange in question):
 
 .. code:: javascript
 
    // JavaScript
    if (exchange.has['fetchTrades']) {
        let since = exchange.milliseconds () - 86400000 // -1 day from now
+       // alternatively, fetch from a certain starting datetime
+       // let since = exchange.parse8601 ('2018-01-01T00:00:00Z')
        let allTrades = []
        while (since < exchange.milliseconds ()) {
            const symbol = undefined // change for your symbol
@@ -1287,6 +1301,8 @@ The user supplies a ``since`` timestamp **in milliseconds** (!) and a number to 
    # Python
    if exchange.has['fetchOrders']:
        since = exchange.milliseconds () - 86400000  # -1 day from now
+       # alternatively, fetch from a certain starting datetime
+       # since = exchange.parse8601('2018-01-01T00:00:00Z')
        all_orders = []
        while since < exchange.milliseconds ():
            symbol = None  # change for your symbol
@@ -1303,6 +1319,8 @@ The user supplies a ``since`` timestamp **in milliseconds** (!) and a number to 
    // PHP
    if ($exchange->has['fetchMyTrades']) {
        $since = exchange->milliseconds () - 86400000; // -1 day from now
+       // alternatively, fetch from a certain starting datetime
+       // $since = $exchange->parse8601 ('2018-01-01T00:00:00Z')
        $all_trades = array ();
        while (since < exchange->milliseconds ()) {
            $symbol = null; // change for your symbol

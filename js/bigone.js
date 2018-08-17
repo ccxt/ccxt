@@ -581,13 +581,13 @@ module.exports = class bigone extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'state': 'PENDING',
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
             'state': 'FILLED',
         }, params));
     }

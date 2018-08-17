@@ -23,6 +23,7 @@ class luno extends Exchange {
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchMyTrades' => true,
                 'fetchTradingFees' => true,
             ),
             'urls' => array (
@@ -281,17 +282,38 @@ class luno extends Exchange {
 
     public function parse_trade ($trade, $market) {
         $side = ($trade['is_buy']) ? 'buy' : 'sell';
+        $feeBase = $this->safe_float($trade, 'fee_base');
+        $feeCounter = $this->safe_float($trade, 'fee_counter');
+        $feeCurrency = null;
+        $feeCost = null;
+        if ($feeBase !== null) {
+            if ($feeBase !== 0.0) {
+                $feeCurrency = $market['base'];
+                $feeCost = $feeBase;
+            }
+        } else if ($feeCounter !== null) {
+            if ($feeCounter !== 0.0) {
+                $feeCurrency = $market['quote'];
+                $feeCost = $feeCounter;
+            }
+        }
         return array (
             'info' => $trade,
-            'id' => null,
-            'order' => null,
+            'id' => $this->safe_string($trade, 'order_id'),
             'timestamp' => $trade['timestamp'],
             'datetime' => $this->iso8601 ($trade['timestamp']),
             'symbol' => $market['symbol'],
+            'order' => null,
             'type' => null,
             'side' => $side,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'volume'),
+            // Does not include potential fee costs
+            'cost' => $this->safe_float($trade, 'counter'),
+            'fee' => array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            ),
         );
     }
 
@@ -304,6 +326,22 @@ class luno extends Exchange {
         if ($since !== null)
             $request['since'] = $since;
         $response = $this->publicGetTrades (array_merge ($request, $params));
+        return $this->parse_trades($response['trades'], $market, $since, $limit);
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'pair' => $market['id'],
+        );
+        if ($since !== null)
+            $request['since'] = $since;
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privateGetListtrades (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
