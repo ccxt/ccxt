@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.137'
+const version = '1.17.139'
 
 Exchange.ccxtVersion = version
 
@@ -10905,7 +10905,7 @@ module.exports = class bitmarket extends Exchange {
         let result = {
             'info': response,
         };
-        if ('id' in response['order'])
+        if ('id' in response['data'])
             result['id'] = response['id'];
         return result;
     }
@@ -46249,10 +46249,12 @@ module.exports = class poloniex extends Exchange {
                     ],
                 },
             },
+            // Fees are tier-based. More info: https://poloniex.com/fees/
+            // Rates below are highest possible.
             'fees': {
                 'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0025,
+                    'maker': 0.001,
+                    'taker': 0.002,
                 },
                 'funding': {},
             },

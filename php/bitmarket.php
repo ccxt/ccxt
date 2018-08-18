@@ -294,7 +294,7 @@ class bitmarket extends Exchange {
         $result = array (
             'info' => $response,
         );
-        if (is_array ($response['order']) && array_key_exists ('id', $response['order']))
+        if (is_array ($response['data']) && array_key_exists ('id', $response['data']))
             $result['id'] = $response['id'];
         return $result;
     }
