@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.140'
+const version = '1.17.141'
 
 Exchange.ccxtVersion = version
 
@@ -2526,11 +2526,11 @@ module.exports = class Exchange {
                     const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
                     if (cachedOrdersCount === exchangeOrdersCount) {
                         balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                        balance[currency].total = balance[currency].used + balance[currency].free
+                        balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
                     }
                 } else {
                     balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                    balance[currency].total = balance[currency].used + balance[currency].free
+                    balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
                 }
             }
 
