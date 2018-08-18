@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.138'
+const version = '1.17.139'
 
 Exchange.ccxtVersion = version
 
@@ -10905,7 +10905,7 @@ module.exports = class bitmarket extends Exchange {
         let result = {
             'info': response,
         };
-        if ('id' in response['order'])
+        if ('id' in response['data'])
             result['id'] = response['id'];
         return result;
     }
