@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.139'
+const version = '1.17.140'
 
 Exchange.ccxtVersion = version
 
@@ -49069,7 +49069,7 @@ module.exports = class surbitcoin extends foxbit {
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
@@ -49293,6 +49293,9 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchBalanceByCode (code, params = {}) {
+        if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+        }
         await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
@@ -49309,16 +49312,19 @@ module.exports = class theocean extends Exchange {
         return {
             'free': balance,
             'used': 0,
-            'total': balance,
+            'total': undefined,
         };
     }
 
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
+        if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+        }
         const codes = this.safeValue (params, 'codes');
         if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
             throw new ExchangeError (this.id + ' fetchBalance requires a `codes` parameter (an array of currency codes)');
         }
+        await this.loadMarkets ();
         let result = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -49547,10 +49553,16 @@ module.exports = class theocean extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (!(this.walletAddress && this.privateKey)) {
-            throw new ExchangeError (this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".');
+        const errorMessage = this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
+        if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (errorMessage);
         }
+        if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
+            throw new InvalidAddress (errorMessage);
+        }
+        this.checkWalletAddress ();
+        this.checkPrivateKey ();
+        await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');
         const isLimit = (type === 'limit');
