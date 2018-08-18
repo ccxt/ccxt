@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
@@ -237,6 +238,8 @@ class theocean (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_balance_by_code(self, code, params={}):
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(self.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -253,14 +256,16 @@ class theocean (Exchange):
         return {
             'free': balance,
             'used': 0,
-            'total': balance,
+            'total': None,
         }
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(self.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         codes = self.safe_value(params, 'codes')
         if (codes is None) or (not isinstance(codes, list)):
             raise ExchangeError(self.id + ' fetchBalance requires a `codes` parameter(an array of currency codes)')
+        await self.load_markets()
         result = {}
         for i in range(0, len(codes)):
             code = codes[i]
@@ -470,9 +475,14 @@ class theocean (Exchange):
         return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        errorMessage = self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".'
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(errorMessage)
+        if not self.privateKey or (self.privateKey.find('0x') != 0):
+            raise InvalidAddress(errorMessage)
+        self.checkWalletAddress()
+        self.checkPrivateKey()
         await self.load_markets()
-        if not(self.walletAddress and self.privateKey):
-            raise ExchangeError(self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".')
         makerOrTaker = self.safe_string(params, 'makerOrTaker')
         isMarket = (type == 'market')
         isLimit = (type == 'limit')
