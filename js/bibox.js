@@ -480,11 +480,13 @@ module.exports = class bibox extends Exchange {
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = this.safeFloat (order, 'price');
-        price = this.safeFloat (order, 'deal_price', price);
+        let average = this.safeFloat (order, 'deal_price');
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat (order, 'money');
-        cost = this.safeFloat (order, 'deal_money', cost);
+        let cost = this.safeFloat (order, 'deal_money');
+        if (cost === 0) {
+            cost = this.safeFloat (order, 'money');
+        }
         let remaining = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined')
@@ -508,6 +510,7 @@ module.exports = class bibox extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost ? cost : parseFloat (price) * filled,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
