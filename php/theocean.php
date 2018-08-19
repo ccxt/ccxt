@@ -45,6 +45,7 @@ class theocean extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'fee_components',
                         'token_pairs',
                         'ticker',
                         'tickers',
@@ -81,7 +82,6 @@ class theocean extends Exchange {
             ),
             'options' => array (
                 'fetchOrderMethod' => 'fetch_order_from_history',
-                'filledField' => 'confirmed',
             ),
         ));
     }
@@ -737,7 +737,13 @@ class theocean extends Exchange {
         //       }
         //     }
         //
-        return $response;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+        }
+        return array_merge ($this->parse_order($response['canceledOrder'], $market), array (
+            'status' => 'canceled',
+        ));
     }
 
     public function cancel_all_orders ($params = array ()) {
@@ -841,6 +847,8 @@ class theocean extends Exchange {
         //                                        txHash => "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
         //                                   blockNumber => "8094822",
         //                                     $timestamp => "1532261686"                                                          }  ) }
+        //
+        //
         //
         $zeroExOrder = $this->safe_value($order, 'zeroExOrder');
         $id = $this->safe_string($order, 'orderHash');

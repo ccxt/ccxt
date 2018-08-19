@@ -62,6 +62,7 @@ class theocean (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'fee_components',
                         'token_pairs',
                         'ticker',
                         'tickers',
@@ -98,7 +99,6 @@ class theocean (Exchange):
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
-                'filledField': 'confirmed',
             },
         })
 
@@ -711,7 +711,12 @@ class theocean (Exchange):
         #       }
         #     }
         #
-        return response
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.extend(self.parse_order(response['canceledOrder'], market), {
+            'status': 'canceled',
+        })
 
     async def cancel_all_orders(self, params={}):
         response = await self.privateDeleteOrders(params)
@@ -811,6 +816,8 @@ class theocean (Exchange):
         #                                        txHash: "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
         #                                   blockNumber: "8094822",
         #                                     timestamp: "1532261686"                                                          }  ]}
+        #
+        #
         #
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')

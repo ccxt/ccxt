@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.146'
+const version = '1.17.147'
 
 Exchange.ccxtVersion = version
 
@@ -49117,6 +49117,7 @@ module.exports = class theocean extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'fee_components',
                         'token_pairs',
                         'ticker',
                         'tickers',
@@ -49153,7 +49154,6 @@ module.exports = class theocean extends Exchange {
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
-                'filledField': 'confirmed',
             },
         });
     }
@@ -49809,7 +49809,13 @@ module.exports = class theocean extends Exchange {
         //       }
         //     }
         //
-        return response;
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+        }
+        return this.extend (this.parseOrder (response['canceledOrder'], market), {
+            'status': 'canceled',
+        });
     }
 
     async cancelAllOrders (params = {}) {
@@ -49913,6 +49919,8 @@ module.exports = class theocean extends Exchange {
         //                                        txHash: "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
         //                                   blockNumber: "8094822",
         //                                     timestamp: "1532261686"                                                          }  ] }
+        //
+        //
         //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = this.safeString (order, 'orderHash');
