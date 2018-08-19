@@ -41,6 +41,7 @@ module.exports = class theocean extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'fee_components',
                         'token_pairs',
                         'ticker',
                         'tickers',
