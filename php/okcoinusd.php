@@ -444,8 +444,16 @@ class okcoinusd extends Exchange {
         if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
                 $marketId = $ticker['symbol'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$marketId];
+                } else {
+                    list ($baseId, $quoteId) = explode ('_', $ticker['symbol']);
+                    $base = strtoupper ($baseId);
+                    $quote = strtoupper ($quoteId);
+                    $base = $this->common_currency_code($base);
+                    $quote = $this->common_currency_code($quote);
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         if ($market !== null) {
