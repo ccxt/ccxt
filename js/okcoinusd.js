@@ -443,8 +443,16 @@ module.exports = class okcoinusd extends Exchange {
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
+                if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
+                } else {
+                    let [ baseId, quoteId ] = ticker['symbol'].split ('_');
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (base);
+                    quote = this.commonCurrencyCode (quote);
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if (typeof market !== 'undefined') {
