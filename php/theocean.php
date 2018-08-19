@@ -32,6 +32,8 @@ class theocean extends Exchange {
                 'fetchOHLCV' => false,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
+                'fetchOpenOrders' => true,
+                'fetchClosedOrders' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -1074,6 +1076,17 @@ class theocean extends Exchange {
         //     )
         //
         return $this->parse_orders($response, null, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+            'openAmount' => $this->fromWei ('1'),
+        ), $params));
+    }
+
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
