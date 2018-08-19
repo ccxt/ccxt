@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.142'
+const version = '1.17.143'
 
 Exchange.ccxtVersion = version
 
@@ -4930,11 +4930,13 @@ module.exports = class bibox extends Exchange {
         let type = (order['order_type'] === 1) ? 'market' : 'limit';
         let timestamp = order['createdAt'];
         let price = this.safeFloat (order, 'price');
-        price = this.safeFloat (order, 'deal_price', price);
+        let average = this.safeFloat (order, 'deal_price');
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat (order, 'money');
-        cost = this.safeFloat (order, 'deal_money', cost);
+        let cost = this.safeFloat (order, 'deal_money');
+        if (cost === 0) {
+            cost = this.safeFloat (order, 'money');
+        }
         let remaining = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined')
@@ -4958,6 +4960,7 @@ module.exports = class bibox extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost ? cost : parseFloat (price) * filled,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -49097,6 +49100,7 @@ module.exports = class theocean extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': false,
                 'fetchOrder': true,
+                'fetchOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
