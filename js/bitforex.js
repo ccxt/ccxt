@@ -13,7 +13,8 @@ module.exports = class bitforex extends Exchange {
             'id': 'bitforex',
             'name': 'Bitforex',
             'countries': [ 'CN' ],
-            'version': '1',
+            'version': 'v1',
+            'rateLimit': 10000,
             'has': {
                 'fetchBalance': true,
                 'fetchMarkets': true,
@@ -29,11 +30,12 @@ module.exports = class bitforex extends Exchange {
                 'fetchClosedOrders': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1249087/43923293-57f06258-9bef-11e8-8630-53bd65111998.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg',
                 'api': 'https://api.bitforex.com',
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
+                'referral': 'https://www.bitforex.com/registered?inviterId=1867438',
             },
             'api': {
                 'public': {
@@ -532,6 +534,7 @@ module.exports = class bitforex extends Exchange {
             if (Object.keys (query).length) {
                 payload += '&' + this.urlencode (this.keysort (query));
             }
+            // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             let message = '/' + path + '?' + payload;
             let signature = this.hmac (message, this.secret);
             body = payload + '&signData=' + signature;
