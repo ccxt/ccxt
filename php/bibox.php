@@ -484,10 +484,7 @@ class bibox extends Exchange {
         $average = $this->safe_float($order, 'deal_price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float($order, 'deal_money');
-        if ($cost === 0) {
-            $cost = $this->safe_float($order, 'money');
-        }
+        $cost = $this->safe_float_2($order, 'deal_money', 'money');
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
