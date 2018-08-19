@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.145'
+const version = '1.17.146'
 
 Exchange.ccxtVersion = version
 
@@ -49104,6 +49104,8 @@ module.exports = class theocean extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -50146,6 +50148,17 @@ module.exports = class theocean extends Exchange {
         //     ]
         //
         return this.parseOrders (response, undefined, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, limit, this.extend ({
+            'openAmount': this.fromWei ('1'),
+        }, params));
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -49,6 +49,8 @@ class theocean (Exchange):
                 'fetchOHLCV': False,
                 'fetchOrder': True,
                 'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -1018,6 +1020,15 @@ class theocean (Exchange):
         #     ]
         #
         return self.parse_orders(response, None, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({
+            'openAmount': self.fromWei('1'),
+        }, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        orders = self.fetch_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
