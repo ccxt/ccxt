@@ -23,6 +23,7 @@ module.exports = class coinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -79,6 +80,7 @@ module.exports = class coinex extends Exchange {
                     'post': [
                         'order/limit',
                         'order/market',
+                        'balance/coin/withdraw',
                     ],
                     'delete': [
                         'order/pending',
@@ -494,6 +496,24 @@ module.exports = class coinex extends Exchange {
             'limit': 100,
         }, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        if (tag)
+            address = address + ':' + tag;
+        let request = {
+            'coin_type': currency['id'],
+            'coin_address': address,
+            'actual_amount': parseFloat (amount),
+        };
+        let response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'coin_withdraw_id'),
+        };
     }
 
     nonce () {
