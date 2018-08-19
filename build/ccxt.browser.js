@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.141'
+const version = '1.17.142'
 
 Exchange.ccxtVersion = version
 
@@ -36104,12 +36104,14 @@ module.exports = class huobipro extends Exchange {
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'filled-fees');
         let feeCurrency = undefined;
-        if (typeof feeCost !== 'undefined') {
+        if (typeof market !== 'undefined') {
             feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
-        } else {
-            feeCost = this.safeFloat (trade, 'filled-points');
-            if (typeof feeCost !== 'undefined') {
-                feeCurrency = 'HBPOINT';
+        }
+        let filledPoints = this.safeFloat (trade, 'filled-points');
+        if (typeof filledPoints !== 'undefined') {
+            if ((typeof feeCost === 'undefined') || (feeCost === 0.0)) {
+                feeCost = filledPoints;
+                feeCurrency = this.commonCurrencyCode ('HBPOINT');
             }
         }
         if (typeof feeCost !== 'undefined') {

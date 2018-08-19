@@ -347,12 +347,14 @@ class huobipro extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'filled-fees');
         $feeCurrency = null;
-        if ($feeCost !== null) {
+        if ($market !== null) {
             $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
-        } else {
-            $feeCost = $this->safe_float($trade, 'filled-points');
-            if ($feeCost !== null) {
-                $feeCurrency = 'HBPOINT';
+        }
+        $filledPoints = $this->safe_float($trade, 'filled-points');
+        if ($filledPoints !== null) {
+            if (($feeCost === null) || ($feeCost === 0.0)) {
+                $feeCost = $filledPoints;
+                $feeCurrency = $this->common_currency_code('HBPOINT');
             }
         }
         if ($feeCost !== null) {

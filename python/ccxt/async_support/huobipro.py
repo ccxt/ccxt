@@ -340,12 +340,13 @@ class huobipro (Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'filled-fees')
         feeCurrency = None
-        if feeCost is not None:
+        if market is not None:
             feeCurrency = market['base'] if (side == 'buy') else market['quote']
-        else:
-            feeCost = self.safe_float(trade, 'filled-points')
-            if feeCost is not None:
-                feeCurrency = 'HBPOINT'
+        filledPoints = self.safe_float(trade, 'filled-points')
+        if filledPoints is not None:
+            if (feeCost is None) or (feeCost == 0.0):
+                feeCost = filledPoints
+                feeCurrency = self.common_currency_code('HBPOINT')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
