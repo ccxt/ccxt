@@ -483,10 +483,7 @@ module.exports = class bibox extends Exchange {
         let average = this.safeFloat (order, 'deal_price');
         let filled = this.safeFloat (order, 'deal_amount');
         let amount = this.safeFloat (order, 'amount');
-        let cost = this.safeFloat (order, 'deal_money');
-        if (cost === 0) {
-            cost = this.safeFloat (order, 'money');
-        }
+        let cost = this.safeFloat2 (order, 'deal_money', 'money');
         let remaining = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined')
