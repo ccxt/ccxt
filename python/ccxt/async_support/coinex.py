@@ -430,6 +430,8 @@ class coinex (Exchange):
         return self.parse_order(response['data'], market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOrder(self.extend({
@@ -438,7 +440,9 @@ class coinex (Exchange):
         }, params))
         return self.parse_order(response['data'], market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -446,21 +450,19 @@ class coinex (Exchange):
         }
         if limit is not None:
             request['limit'] = limit
-        response = await self.privateGetOrderPending(self.extend(request, params))
+        method = 'privateGetOrder' + self.capitalize(status)
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_orders(response['data']['data'], market)
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_status('pending', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-        }
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.privateGetOrderFinished(self.extend(request, params))
-        return self.parse_orders(response['data']['data'], market)
+        return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privateGetOrderUserDeals(self.extend({
