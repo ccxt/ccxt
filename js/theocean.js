@@ -1074,13 +1074,13 @@ module.exports = class theocean extends Exchange {
         return this.parseOrders (response, undefined, since, limit);
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrders (symbol, since, limit, this.extend ({
             'openAmount': this.fromWei ('1'),
         }, params));
     }
 
-    async fetchClosedOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
