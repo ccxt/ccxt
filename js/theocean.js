@@ -725,7 +725,6 @@ module.exports = class theocean extends Exchange {
             'orderHash': id,
         };
         let response = await this.privateDeleteOrderOrderHash (this.extend (request, params));
-        // let response =
         //
         //     {
         //       "canceledOrder": {
