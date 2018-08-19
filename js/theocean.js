@@ -78,7 +78,6 @@ module.exports = class theocean extends Exchange {
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
-                'filledField': 'confirmed',
             },
         });
     }
