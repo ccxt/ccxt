@@ -725,6 +725,7 @@ module.exports = class theocean extends Exchange {
             'orderHash': id,
         };
         let response = await this.privateDeleteOrderOrderHash (this.extend (request, params));
+        // let response =
         //
         //     {
         //       "canceledOrder": {
@@ -733,7 +734,13 @@ module.exports = class theocean extends Exchange {
         //       }
         //     }
         //
-        return response;
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+        }
+        return this.extend (this.parseOrder (response['canceledOrder'], market), {
+            'status': 'canceled',
+        });
     }
 
     async cancelAllOrders (params = {}) {
@@ -837,6 +844,8 @@ module.exports = class theocean extends Exchange {
         //                                        txHash: "0x043488fdc3f995bf9e632a32424441ed126de90f8cb340a1ff006c2a74ca8336",
         //                                   blockNumber: "8094822",
         //                                     timestamp: "1532261686"                                                          }  ] }
+        //
+        //
         //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = this.safeString (order, 'orderHash');
