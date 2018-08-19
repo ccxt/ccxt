@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.147'
+const version = '1.17.148'
 
 Exchange.ccxtVersion = version
 
@@ -43238,7 +43238,8 @@ module.exports = class luno extends Exchange {
         if (typeof since !== 'undefined')
             request['since'] = since;
         let response = await this.publicGetTrades (this.extend (request, params));
-        return this.parseTrades (response['trades'], market, since, limit);
+        let trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -43254,7 +43255,8 @@ module.exports = class luno extends Exchange {
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetListtrades (this.extend (request, params));
-        return this.parseTrades (response['trades'], market, since, limit);
+        let trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchTradingFees (params = {}) {

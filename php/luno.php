@@ -326,7 +326,8 @@ class luno extends Exchange {
         if ($since !== null)
             $request['since'] = $since;
         $response = $this->publicGetTrades (array_merge ($request, $params));
-        return $this->parse_trades($response['trades'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades', array ());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -342,7 +343,8 @@ class luno extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetListtrades (array_merge ($request, $params));
-        return $this->parse_trades($response['trades'], $market, $since, $limit);
+        $trades = $this->safe_value($response, 'trades', array ());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_trading_fees ($params = array ()) {

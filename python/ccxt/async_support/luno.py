@@ -300,7 +300,8 @@ class luno (Exchange):
         if since is not None:
             request['since'] = since
         response = await self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response['trades'], market, since, limit)
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -315,7 +316,8 @@ class luno (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetListtrades(self.extend(request, params))
-        return self.parse_trades(response['trades'], market, since, limit)
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
