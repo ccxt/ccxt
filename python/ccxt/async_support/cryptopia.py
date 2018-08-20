@@ -148,7 +148,7 @@ class cryptopia (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             numericId = market['Id']
-            # symbol = market['Label']
+            label = market['Label']
             baseId = market['Symbol']
             quoteId = market['BaseSymbol']
             base = self.common_currency_code(baseId)
@@ -191,6 +191,7 @@ class cryptopia (Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             })
         self.options['marketsByLabel'] = self.index_by(result, 'label')
         return result

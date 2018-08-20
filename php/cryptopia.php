@@ -133,7 +133,7 @@ class cryptopia extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $numericId = $market['Id'];
-            // $symbol = $market['Label'];
+            $label = $market['Label'];
             $baseId = $market['Symbol'];
             $quoteId = $market['BaseSymbol'];
             $base = $this->common_currency_code($baseId);
@@ -176,6 +176,7 @@ class cryptopia extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
+                'label' => $label,
             );
         }
         $this->options['marketsByLabel'] = $this->index_by($result, 'label');
