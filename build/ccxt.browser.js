@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.152'
+const version = '1.17.153'
 
 Exchange.ccxtVersion = version
 
@@ -6880,6 +6880,9 @@ module.exports = class bit2c extends Exchange {
                     'taker': 0.5 / 100,
                 },
             },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+            },
         });
     }
 
@@ -6943,7 +6946,8 @@ module.exports = class bit2c extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetExchangesPairTrades (this.extend ({
+        let method = this.options['fetchTradesMethod'];
+        let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -6976,7 +6980,10 @@ module.exports = class bit2c extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            url += '.json';
+            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if (path.indexOf ('lasttrades') < 0) {
+                url += '.json';
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();

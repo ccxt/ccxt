@@ -76,6 +76,9 @@ class bit2c (Exchange):
                     'taker': 0.5 / 100,
                 },
             },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+            },
         })
 
     async def fetch_balance(self, params={}):
@@ -133,7 +136,8 @@ class bit2c (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetExchangesPairTrades(self.extend({
+        method = self.options['fetchTradesMethod']
+        response = await getattr(self, method)(self.extend({
             'pair': market['id'],
         }, params))
         return self.parse_trades(response, market, since, limit)
@@ -162,7 +166,9 @@ class bit2c (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
-            url += '.json'
+            # lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if path.find('lasttrades') < 0:
+                url += '.json'
         else:
             self.check_required_credentials()
             nonce = self.nonce()
