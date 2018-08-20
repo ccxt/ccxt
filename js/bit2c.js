@@ -74,6 +74,9 @@ module.exports = class bit2c extends Exchange {
                     'taker': 0.5 / 100,
                 },
             },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+            },
         });
     }
 
@@ -137,7 +140,8 @@ module.exports = class bit2c extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetExchangesPairLasttrades (this.extend ({
+        let method = this.options['fetchTradesMethod'];
+        let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
