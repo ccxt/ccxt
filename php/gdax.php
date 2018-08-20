@@ -307,13 +307,15 @@ class gdax extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = null;
-        $request = array ();
-        if ($symbol !== null) {
-            $market = $this->market ($symbol);
-            $request['product_id'] = $market['id'];
+        // as of 2018-08-23
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'product_id' => $market['id'],
+        );
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
