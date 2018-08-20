@@ -132,7 +132,7 @@ module.exports = class cryptopia extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let numericId = market['Id'];
-            // let symbol = market['Label'];
+            let label = market['Label'];
             let baseId = market['Symbol'];
             let quoteId = market['BaseSymbol'];
             let base = this.commonCurrencyCode (baseId);
@@ -175,6 +175,7 @@ module.exports = class cryptopia extends Exchange {
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             });
         }
         this.options['marketsByLabel'] = this.indexBy (result, 'label');
