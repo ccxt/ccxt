@@ -778,6 +778,9 @@ module.exports = class cryptopia extends Exchange {
                             if (error.indexOf ('Invalid trade amount') >= 0) {
                                 throw new InvalidOrder (feedback);
                             }
+                            if (error.indexOf ('No matching trades found') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            }
                             if (error.indexOf ('does not exist') >= 0) {
                                 throw new OrderNotFound (feedback);
                             }
