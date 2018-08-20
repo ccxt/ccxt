@@ -779,6 +779,9 @@ class cryptopia extends Exchange {
                             if (mb_strpos ($error, 'Invalid trade amount') !== false) {
                                 throw new InvalidOrder ($feedback);
                             }
+                            if (mb_strpos ($error, 'No matching trades found') !== false) {
+                                throw new OrderNotFound ($feedback);
+                            }
                             if (mb_strpos ($error, 'does not exist') !== false) {
                                 throw new OrderNotFound ($feedback);
                             }

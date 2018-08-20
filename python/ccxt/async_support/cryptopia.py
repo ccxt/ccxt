@@ -722,6 +722,8 @@ class cryptopia (Exchange):
                             feedback = feedback + ' ' + error
                             if error.find('Invalid trade amount') >= 0:
                                 raise InvalidOrder(feedback)
+                            if error.find('No matching trades found') >= 0:
+                                raise OrderNotFound(feedback)
                             if error.find('does not exist') >= 0:
                                 raise OrderNotFound(feedback)
                             if error.find('Insufficient Funds') >= 0:
