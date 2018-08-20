@@ -306,13 +306,12 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
-        let market = undefined;
+        let market = this.market (symbol);
         let request = {};
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['product_id'] = market['id'];
-        }
+        request['product_id'] = market['id'];
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
