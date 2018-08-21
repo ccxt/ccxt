@@ -2601,7 +2601,7 @@ if (exchange.has['fetchWithdrawals']) {
 // fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
 
 if ($exchange->has['fetchWithdrawals']) {
-    withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+    $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
 }
 ```
 
