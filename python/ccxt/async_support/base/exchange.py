@@ -187,7 +187,7 @@ class Exchange(BaseExchange):
         return self.fees
 
     async def fetch_markets(self):
-        return self.markets
+        return self.to_array(self.markets)
 
     async def fetch_currencies(self):
         return self.currencies
