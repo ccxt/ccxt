@@ -302,12 +302,14 @@ class gdax (Exchange):
         }
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # as of 2018-08-23
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
-        market = None
-        request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['product_id'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetFills(self.extend(request, params))

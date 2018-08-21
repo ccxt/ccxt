@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.148'
+const version = '1.17.160'
 
 Exchange.ccxtVersion = version
 
@@ -2332,11 +2332,19 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
     }
 
-    fetchCurrencies () {
-        throw new NotSupported (this.id + ' fetchCurrencies not supported yet');
+    fetchCurrencies (params = {}) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
     fetchMarkets () {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
@@ -6880,6 +6888,9 @@ module.exports = class bit2c extends Exchange {
                     'taker': 0.5 / 100,
                 },
             },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+            },
         });
     }
 
@@ -6943,7 +6954,8 @@ module.exports = class bit2c extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetExchangesPairTrades (this.extend ({
+        let method = this.options['fetchTradesMethod'];
+        let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -6976,7 +6988,10 @@ module.exports = class bit2c extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            url += '.json';
+            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if (path.indexOf ('lasttrades') < 0) {
+                url += '.json';
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -17077,6 +17092,26 @@ module.exports = class btcmarkets extends Exchange {
         return await this.cancelOrders ([ id ]);
     }
 
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[takerOrMaker];
+        let currency = undefined;
+        let cost = undefined;
+        if (market['quote'] === 'AUD') {
+            currency = market['quote'];
+            cost = parseFloat (this.costToPrecision (symbol, amount * price));
+        } else {
+            currency = market['base'];
+            cost = parseFloat (this.amountToPrecision (symbol, amount));
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+        };
+    }
+
     parseMyTrade (trade, market) {
         let multiplier = 100000000;
         let timestamp = trade['creationTime'];
@@ -27036,7 +27071,7 @@ module.exports = class cryptopia extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let numericId = market['Id'];
-            // let symbol = market['Label'];
+            let label = market['Label'];
             let baseId = market['Symbol'];
             let quoteId = market['BaseSymbol'];
             let base = this.commonCurrencyCode (baseId);
@@ -27079,6 +27114,7 @@ module.exports = class cryptopia extends Exchange {
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             });
         }
         this.options['marketsByLabel'] = this.indexBy (result, 'label');
@@ -27681,6 +27717,9 @@ module.exports = class cryptopia extends Exchange {
                             feedback = feedback + ' ' + error;
                             if (error.indexOf ('Invalid trade amount') >= 0) {
                                 throw new InvalidOrder (feedback);
+                            }
+                            if (error.indexOf ('No matching trades found') >= 0) {
+                                throw new OrderNotFound (feedback);
                             }
                             if (error.indexOf ('does not exist') >= 0) {
                                 throw new OrderNotFound (feedback);
@@ -32341,13 +32380,15 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['product_id'] = market['id'];
+        // as of 2018-08-23
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'product_id': market['id'],
+        };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
@@ -37515,15 +37556,21 @@ module.exports = class indodax extends Exchange {
                 'BCD/IDR': { 'id': 'bcd_idr', 'symbol': 'BCD/IDR', 'base': 'BCD', 'quote': 'IDR', 'baseId': 'bcd', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
                 'BCH/IDR': { 'id': 'bch_idr', 'symbol': 'BCH/IDR', 'base': 'BCH', 'quote': 'IDR', 'baseId': 'bch', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.001, 'max': undefined }}},
                 'BTG/IDR': { 'id': 'btg_idr', 'symbol': 'BTG/IDR', 'base': 'BTG', 'quote': 'IDR', 'baseId': 'btg', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'BTS/IDR': { 'id': 'bts_idr', 'symbol': 'BTS/IDR', 'base': 'BTS', 'quote': 'IDR', 'baseId': 'bts', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'DASH/IDR': { 'id': 'drk_idr', 'symbol': 'DASH/IDR', 'base': 'DASH', 'quote': 'IDR', 'baseId': 'drk', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
+                'DOGE/IDR': { 'id': 'doge_idr', 'symbol': 'DOGE/IDR', 'base': 'DOGE', 'quote': 'IDR', 'baseId': 'doge', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 1000, 'max': undefined }}},
                 'ETH/IDR': { 'id': 'eth_idr', 'symbol': 'ETH/IDR', 'base': 'ETH', 'quote': 'IDR', 'baseId': 'eth', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
                 'ETC/IDR': { 'id': 'etc_idr', 'symbol': 'ETC/IDR', 'base': 'ETC', 'quote': 'IDR', 'baseId': 'etc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
+                'GSC/IDR': { 'id': 'gsc_idr', 'symbol': 'GSC/IDR', 'base': 'GSC', 'quote': 'IDR', 'baseId': 'gsc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
                 'IGNIS/IDR': { 'id': 'ignis_idr', 'symbol': 'IGNIS/IDR', 'base': 'IGNIS', 'quote': 'IDR', 'baseId': 'ignis', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
                 'LTC/IDR': { 'id': 'ltc_idr', 'symbol': 'LTC/IDR', 'base': 'LTC', 'quote': 'IDR', 'baseId': 'ltc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.01, 'max': undefined }}},
-                'STQ/IDR': { 'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
+                'NPXS/IDR': { 'id': 'npxs_idr', 'symbol': 'NPXS/IDR', 'base': 'NPXS', 'quote': 'IDR', 'baseId': 'npxs', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
                 'NXT/IDR': { 'id': 'nxt_idr', 'symbol': 'NXT/IDR', 'base': 'NXT', 'quote': 'IDR', 'baseId': 'nxt', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 5, 'max': undefined }}},
+                'STQ/IDR': { 'id': 'stq_idr', 'symbol': 'STQ/IDR', 'base': 'STQ', 'quote': 'IDR', 'baseId': 'stq', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
                 'TEN/IDR': { 'id': 'ten_idr', 'symbol': 'TEN/IDR', 'base': 'TEN', 'quote': 'IDR', 'baseId': 'ten', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 5, 'max': undefined }}},
                 'TRX/IDR': { 'id': 'trx_idr', 'symbol': 'TRX/IDR', 'base': 'TRX', 'quote': 'IDR', 'baseId': 'trx', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
                 'WAVES/IDR': { 'id': 'waves_idr', 'symbol': 'WAVES/IDR', 'base': 'WAVES', 'quote': 'IDR', 'baseId': 'waves', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
+                'XEM/IDR': { 'id': 'nem_btc', 'symbol': 'XEM/IDR', 'base': 'XEM', 'quote': 'IDR', 'baseId': 'nem', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 1, 'max': undefined }}},
                 'XLM/IDR': { 'id': 'str_idr', 'symbol': 'XLM/IDR', 'base': 'XLM', 'quote': 'IDR', 'baseId': 'str', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 20, 'max': undefined }}},
                 'XRP/IDR': { 'id': 'xrp_idr', 'symbol': 'XRP/IDR', 'base': 'XRP', 'quote': 'IDR', 'baseId': 'xrp', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 10, 'max': undefined }}},
                 'XZC/IDR': { 'id': 'xzc_idr', 'symbol': 'XZC/IDR', 'base': 'XZC', 'quote': 'IDR', 'baseId': 'xzc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.1, 'max': undefined }}},
@@ -45291,8 +45338,16 @@ module.exports = class okcoinusd extends Exchange {
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
+                if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
+                } else {
+                    let [ baseId, quoteId ] = ticker['symbol'].split ('_');
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (base);
+                    quote = this.commonCurrencyCode (quote);
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if (typeof market !== 'undefined') {
@@ -45907,13 +45962,7 @@ module.exports = class okex extends okcoinusd {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = undefined;
-            if ('symbol' in ticker) {
-                let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-            }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

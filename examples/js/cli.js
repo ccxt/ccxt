@@ -92,7 +92,7 @@ const enableRateLimit = true
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({ verbose, timeout, enableRateLimit })
+    exchange = new (ccxt)[exchangeId] ({ timeout, enableRateLimit })
 
 } catch (e) {
 
@@ -229,6 +229,8 @@ async function main () {
         if (!no_load_markets) {
             await exchange.loadMarkets ()
         }
+
+        exchange.verbose = true
 
         if (no_send) {
 

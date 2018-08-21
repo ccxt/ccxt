@@ -79,12 +79,7 @@ class okex (okcoinusd):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            market = None
-            if 'symbol' in ticker:
-                marketId = ticker['symbol']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}), market)
+            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}))
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result

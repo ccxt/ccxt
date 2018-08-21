@@ -738,11 +738,19 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
     }
 
-    fetchCurrencies () {
-        throw new NotSupported (this.id + ' fetchCurrencies not supported yet');
+    fetchCurrencies (params = {}) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return new Promise ((resolve, reject) => resolve (this.currencies));
     }
 
     fetchMarkets () {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
