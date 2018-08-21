@@ -1010,10 +1010,18 @@ class Exchange(object):
         return self.fees
 
     def fetch_markets(self):
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
         return self.to_array(self.markets)
 
-    def fetch_currencies(self):
-        return self.to_array(self.currencies)
+    def fetch_currencies(self, params={}):
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
+        return self.currencies
 
     def fetch_fees(self):
         trading = {}
