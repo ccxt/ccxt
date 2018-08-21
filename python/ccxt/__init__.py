@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.160'
+__version__ = '1.17.161'
 
 # ----------------------------------------------------------------------------
 
@@ -77,6 +77,7 @@ from ccxt.bitbay import bitbay                              # noqa: F401
 from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
+from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
@@ -208,6 +209,7 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
+    'bitforex',
     'bithumb',
     'bitkk',
     'bitlish',
