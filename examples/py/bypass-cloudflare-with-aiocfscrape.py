@@ -40,8 +40,8 @@ async def test(id):
         print(type(e).__name__, str(e))
         print('Failed.')
 
-    await exchange.close ()
-    await session.close ()
+    await exchange.close()
+    await session.close()
 
     return markets
 
@@ -68,5 +68,3 @@ if __name__ == '__main__':
         print('[' + type(e).__name__ + ']', str(e))
         print('Usage: python ' + sys.argv[0] + ' id')
         print_supported_exchanges()
-
-
