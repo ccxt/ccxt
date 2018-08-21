@@ -280,7 +280,24 @@ module.exports = class luno extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let side = (trade['is_buy']) ? 'buy' : 'sell';
+        // For public trade data is_buy === True indicates 'buy' side but for private trade data
+        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
+        // private trade data includes ID field which public trade data does not.
+        let id = this.safeString (trade, 'order_id');
+        let takerOrMaker = undefined;
+        let side = undefined;
+        if (typeof id !== 'undefined') {
+            side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
+            if (side === 'sell' && trade['is_buy']) {
+                takerOrMaker = 'taker';
+            } else if (side === 'buy' && !trade['is_buy']) {
+                takerOrMaker = 'taker';
+            } else {
+                takerOrMaker = 'maker';
+            }
+        } else {
+            side = (trade['is_buy']) ? 'buy' : 'sell';
+        }
         let feeBase = this.safeFloat (trade, 'fee_base');
         let feeCounter = this.safeFloat (trade, 'fee_counter');
         let feeCurrency = undefined;
@@ -298,13 +315,14 @@ module.exports = class luno extends Exchange {
         }
         return {
             'info': trade,
-            'id': this.safeString (trade, 'order_id'),
+            'id': id,
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
             'order': undefined,
             'type': undefined,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
             // Does not include potential fee costs
