@@ -233,7 +233,7 @@ class theocean extends Exchange {
 
     public function fetch_balance_by_code ($code, $params = array ()) {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
-            throw new InvalidAddress ($this->id . ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress ($this->id . ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -257,11 +257,11 @@ class theocean extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
-            throw new InvalidAddress ($this->id . ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress ($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $codes = $this->safe_value($params, 'codes');
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
-            throw new ExchangeError ($this->id . ' fetchBalance requires a `$codes` parameter (an array of currency $codes)');
+            throw new ExchangeError ($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
         $this->load_markets();
         $result = array ();
@@ -499,7 +499,6 @@ class theocean extends Exchange {
         if (!$this->privateKey || (mb_strpos ($this->privateKey, '0x') !== 0)) {
             throw new InvalidAddress ($errorMessage);
         }
-        $this->checkWalletAddress ();
         $this->checkPrivateKey ();
         $this->load_markets();
         $makerOrTaker = $this->safe_string($params, 'makerOrTaker');

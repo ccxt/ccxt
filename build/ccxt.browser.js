@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.161'
+const version = '1.17.162'
 
 Exchange.ccxtVersion = version
 
@@ -43810,7 +43810,24 @@ module.exports = class luno extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let side = (trade['is_buy']) ? 'buy' : 'sell';
+        // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
+        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
+        // Private trade data includes ID field which public trade data does not.
+        let order = this.safeString (trade, 'order_id');
+        let takerOrMaker = undefined;
+        let side = undefined;
+        if (typeof order !== 'undefined') {
+            side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
+            if (side === 'sell' && trade['is_buy']) {
+                takerOrMaker = 'maker';
+            } else if (side === 'buy' && !trade['is_buy']) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        } else {
+            side = (trade['is_buy']) ? 'buy' : 'sell';
+        }
         let feeBase = this.safeFloat (trade, 'fee_base');
         let feeCounter = this.safeFloat (trade, 'fee_counter');
         let feeCurrency = undefined;
@@ -43828,13 +43845,14 @@ module.exports = class luno extends Exchange {
         }
         return {
             'info': trade,
-            'id': this.safeString (trade, 'order_id'),
+            'id': undefined,
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': order,
             'type': undefined,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
             // Does not include potential fee costs
@@ -49926,7 +49944,7 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalanceByCode (code, params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -49950,11 +49968,11 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         const codes = this.safeValue (params, 'codes');
         if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
-            throw new ExchangeError (this.id + ' fetchBalance requires a `codes` parameter (an array of currency codes)');
+            throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
         await this.loadMarkets ();
         let result = {};
@@ -50192,7 +50210,6 @@ module.exports = class theocean extends Exchange {
         if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
         }
-        this.checkWalletAddress ();
         this.checkPrivateKey ();
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');

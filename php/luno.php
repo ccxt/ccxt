@@ -281,7 +281,24 @@ class luno extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $side = ($trade['is_buy']) ? 'buy' : 'sell';
+        // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
+        // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
+        // Private $trade data includes ID field which public $trade data does not.
+        $order = $this->safe_string($trade, 'order_id');
+        $takerOrMaker = null;
+        $side = null;
+        if ($order !== null) {
+            $side = ($trade['type'] === 'ASK') ? 'sell' : 'buy';
+            if ($side === 'sell' && $trade['is_buy']) {
+                $takerOrMaker = 'maker';
+            } else if ($side === 'buy' && !$trade['is_buy']) {
+                $takerOrMaker = 'maker';
+            } else {
+                $takerOrMaker = 'taker';
+            }
+        } else {
+            $side = ($trade['is_buy']) ? 'buy' : 'sell';
+        }
         $feeBase = $this->safe_float($trade, 'fee_base');
         $feeCounter = $this->safe_float($trade, 'fee_counter');
         $feeCurrency = null;
@@ -299,13 +316,14 @@ class luno extends Exchange {
         }
         return array (
             'info' => $trade,
-            'id' => $this->safe_string($trade, 'order_id'),
+            'id' => null,
             'timestamp' => $trade['timestamp'],
             'datetime' => $this->iso8601 ($trade['timestamp']),
             'symbol' => $market['symbol'],
-            'order' => null,
+            'order' => $order,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'volume'),
             // Does not include potential fee costs

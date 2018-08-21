@@ -242,7 +242,7 @@ class theocean (Exchange):
 
     async def fetch_balance_by_code(self, code, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):
-            raise InvalidAddress(self.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
+            raise InvalidAddress(self.id + ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -264,10 +264,10 @@ class theocean (Exchange):
 
     async def fetch_balance(self, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):
-            raise InvalidAddress(self.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
+            raise InvalidAddress(self.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         codes = self.safe_value(params, 'codes')
         if (codes is None) or (not isinstance(codes, list)):
-            raise ExchangeError(self.id + ' fetchBalance requires a `codes` parameter(an array of currency codes)')
+            raise ExchangeError(self.id + ' fetchBalance() requires a `codes` parameter(an array of currency codes)')
         await self.load_markets()
         result = {}
         for i in range(0, len(codes)):
@@ -483,7 +483,6 @@ class theocean (Exchange):
             raise InvalidAddress(errorMessage)
         if not self.privateKey or (self.privateKey.find('0x') != 0):
             raise InvalidAddress(errorMessage)
-        self.checkWalletAddress()
         self.checkPrivateKey()
         await self.load_markets()
         makerOrTaker = self.safe_string(params, 'makerOrTaker')
