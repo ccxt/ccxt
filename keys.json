@@ -9,6 +9,7 @@
     "bitbay":        { "skip": true, "apiKey": "3faec3e5458d24809a68fbaf0e97245b", "secret": "2ffb20992e10dd54fd4fd4133cc09b00" },
     "bitfinex":      { },
     "bitfinex2":     { },
+    "bitforex":      { "skip": true },
     "bithumb":       { "skip": true },
     "bitlish":       { "skip": true, "apiKey": "fixed:N5lK4iokAc9ajk0Z8pvHfpoJsyzNzQ2nespNH/mY7is", "login": "igor.kroitor@gmail.com", "password": "VfvfVskfHfve229!" },
     "bitmarket":     { "skip": true, "apiKey": "2024227b532f27d7ced1987653029d91", "secret": "3af0b6c6db5661c4b84ad1624b9702b5" },
