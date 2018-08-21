@@ -315,6 +315,7 @@ module.exports = class luno extends Exchange {
         }
         return {
             'info': trade,
+            'id': undefined,
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
