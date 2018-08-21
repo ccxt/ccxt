@@ -49,7 +49,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 129 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 130 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -85,6 +85,8 @@ The ccxt library currently supports the following 129 cryptocurrency exchange ma
 | bitfinex2          | `Bitfinex v2 <https://www.bitfinex.com>`__                                              |                                                                      | 2     | `API <https://bitfinex.readme.io/v2/docs>`__                                                        | British Virgin Islands                   |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | bitflyer           | `bitFlyer <https://bitflyer.jp>`__                                                      |                                                                      | 1     | `API <https://bitflyer.jp/API>`__                                                                   | Japan                                    |
++--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| bitforex           | `Bitforex <https://www.bitforex.com/registered?inviterId=1867438>`__                    |                                                                      | 1     | `API <https://github.com/bitforexapi/API_Docs/wiki>`__                                              | China                                    |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | bithumb            | `Bithumb <https://www.bithumb.com>`__                                                   |                                                                      | \*    | `API <https://www.bithumb.com/u1/US127>`__                                                          | South Korea                              |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -671,6 +673,7 @@ Social
 .. |bitbay| image:: https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg
 .. |bitfinex2| image:: https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg
 .. |bitflyer| image:: https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg
+.. |bitforex| image:: https://user-images.githubusercontent.com/1294454/44310033-69e9e600-a3d8-11e8-873d-54d74d1bc4e4.jpg
 .. |bithumb| image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
 .. |bitkk| image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
 .. |bitlish| image:: https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg
