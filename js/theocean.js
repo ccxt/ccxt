@@ -229,7 +229,7 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalanceByCode (code, params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -253,11 +253,11 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         const codes = this.safeValue (params, 'codes');
         if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
-            throw new ExchangeError (this.id + ' fetchBalance requires a `codes` parameter (an array of currency codes)');
+            throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
         await this.loadMarkets ();
         let result = {};
@@ -495,7 +495,6 @@ module.exports = class theocean extends Exchange {
         if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
         }
-        this.checkWalletAddress ();
         this.checkPrivateKey ();
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
