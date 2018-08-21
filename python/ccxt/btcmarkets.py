@@ -284,6 +284,24 @@ class btcmarkets (Exchange):
         self.load_markets()
         return self.cancel_orders([id])
 
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        market = self.markets[symbol]
+        rate = market[takerOrMaker]
+        currency = None
+        cost = None
+        if market['quote'] == 'AUD':
+            currency = market['quote']
+            cost = float(self.cost_to_precision(symbol, amount * price))
+        else:
+            currency = market['base']
+            cost = float(self.amount_to_precision(symbol, amount))
+        return {
+            'type': takerOrMaker,
+            'currency': currency,
+            'rate': rate,
+            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+        }
+
     def parse_my_trade(self, trade, market):
         multiplier = 100000000
         timestamp = trade['creationTime']
