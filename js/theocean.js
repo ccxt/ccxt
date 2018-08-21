@@ -495,7 +495,6 @@ module.exports = class theocean extends Exchange {
         if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
         }
-        this.checkPrivateKey ();
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');
