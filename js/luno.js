@@ -280,20 +280,20 @@ module.exports = class luno extends Exchange {
     }
 
     parseTrade (trade, market) {
-        // For public trade data is_buy === True indicates 'buy' side but for private trade data
+        // For public trade data (is_buy === True) indicates 'buy' side but for private trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy side.
-        // private trade data includes ID field which public trade data does not.
-        let id = this.safeString (trade, 'order_id');
+        // Private trade data includes ID field which public trade data does not.
+        let order = this.safeString (trade, 'order_id');
         let takerOrMaker = undefined;
         let side = undefined;
-        if (typeof id !== 'undefined') {
+        if (typeof order !== 'undefined') {
             side = (trade['type'] === 'ASK') ? 'sell' : 'buy';
             if (side === 'sell' && trade['is_buy']) {
-                takerOrMaker = 'taker';
-            } else if (side === 'buy' && !trade['is_buy']) {
-                takerOrMaker = 'taker';
-            } else {
                 takerOrMaker = 'maker';
+            } else if (side === 'buy' && !trade['is_buy']) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
             }
         } else {
             side = (trade['is_buy']) ? 'buy' : 'sell';
@@ -315,11 +315,10 @@ module.exports = class luno extends Exchange {
         }
         return {
             'info': trade,
-            'id': id,
             'timestamp': trade['timestamp'],
             'datetime': this.iso8601 (trade['timestamp']),
             'symbol': market['symbol'],
-            'order': undefined,
+            'order': order,
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
