@@ -14,7 +14,6 @@ module.exports = class bitforex extends Exchange {
             'name': 'Bitforex',
             'countries': [ 'CN' ],
             'version': 'v1',
-            'rateLimit': 10000,
             'has': {
                 'fetchBalance': true,
                 'fetchMarkets': true,
