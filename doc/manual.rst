@@ -2812,7 +2812,7 @@ Withdrawals
    // fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {})
 
    if (exchange.has['fetchWithdrawals']) {
-       const deposits = await exchange.fetchWithdrawals (code, since, limit, params)
+       const withdrawals = await exchange.fetchWithdrawals (code, since, limit, params)
    }
 
 .. code:: python
@@ -2821,7 +2821,7 @@ Withdrawals
    # fetch_withdrawals(code = None, since = None, limit = None, params = {})
 
    if (exchange.has['fetchWithdrawals']) {
-       deposits = exchange.fetch_withdrawals(code, since, limit, params)
+       withdrawals = exchange.fetch_withdrawals(code, since, limit, params)
    }
 
 .. code:: php
@@ -2830,7 +2830,7 @@ Withdrawals
    // fetch_withdrawals ($code = null, $since = null, $limit = null, $params = {})
 
    if ($exchange->has['fetchWithdrawals']) {
-       $deposits = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
+       $withdrawals = $exchange->fetch_withdrawals ($code, $since, $limit, $params);
    }
 
 All Transactions
