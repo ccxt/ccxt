@@ -998,7 +998,9 @@ class theocean extends Exchange {
     }
 
     public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, null, null, $params);
+        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
+            'orderHash' => $id,
+        ), $params));
         $ordersById = $this->index_by($orders, 'id');
         if (is_array ($ordersById) && array_key_exists ($id, $ordersById))
             return $ordersById[$id];
@@ -1063,7 +1065,7 @@ class theocean extends Exchange {
             $request['quoteTokenAddress'] = $market['quoteId'];
         }
         if ($limit !== null) {
-            // $request['start'] = 0; // offset
+            // $request['start'] = 0; // the number of orders to offset from the end
             $request['limit'] = $limit;
         }
         $response = $this->privateGetUserHistory (array_merge ($request, $params));
@@ -1096,13 +1098,14 @@ class theocean extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
-            'openAmount' => $this->fromWei ('1'),
+            'openAmount' => 1, // returns open orders with remaining openAmount >= 1
         ), $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, $since, $limit, $params);
-        return $this->filter_by($orders, 'status', 'closed');
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+            'openAmount' => 0, // returns closed orders with remaining openAmount === 0
+        ), $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
