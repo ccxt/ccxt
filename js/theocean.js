@@ -229,7 +229,7 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalanceByCode (code, params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -253,11 +253,11 @@ module.exports = class theocean extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
-            throw new InvalidAddress (this.id + ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         const codes = this.safeValue (params, 'codes');
         if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
-            throw new ExchangeError (this.id + ' fetchBalance requires a `codes` parameter (an array of currency codes)');
+            throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
         await this.loadMarkets ();
         let result = {};
@@ -495,12 +495,9 @@ module.exports = class theocean extends Exchange {
         if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
         }
-        this.checkWalletAddress ();
-        this.checkPrivateKey ();
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');
-        const isLimit = (type === 'limit');
         const isMakerOrTakerUndefined = (typeof makerOrTaker === 'undefined');
         const isTaker = (makerOrTaker === 'taker');
         const isMaker = (makerOrTaker === 'maker');
@@ -627,26 +624,37 @@ module.exports = class theocean extends Exchange {
         let placeRequest = {};
         let signedMatchingOrder = undefined;
         let signedTargetOrder = undefined;
-        if ((isMarket && isMakerOrTakerUndefined) || isTaker) {
-            if (isUnsignedMatchingOrderDefined) {
+        if (isUnsignedMatchingOrderDefined && isUnsignedTargetOrderDefined) {
+            if (isTaker) {
                 signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
-                placeRequest = this.extend (placeRequest, {
-                    'signedMatchingOrder': signedMatchingOrder,
-                    'matchingOrderID': reserveResponse['matchingOrderID'],
-                });
-            } else if (isMarket || isTaker) {
-                throw new OrderNotFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order');
-            }
-        }
-        if ((isLimit && isMakerOrTakerUndefined) || isMaker) {
-            if (isUnsignedTargetOrderDefined) {
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+            } else if (isMaker) {
                 signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
                 placeRequest['signedTargetOrder'] = signedTargetOrder;
-            } else if (isMaker) {
-                throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');
+            } else {
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
+                placeRequest['signedTargetOrder'] = signedTargetOrder;
             }
-        }
-        if (!isUnsignedMatchingOrderDefined && !isUnsignedTargetOrderDefined) {
+        } else if (isUnsignedMatchingOrderDefined) {
+            if (isMaker) {
+                throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');
+            } else {
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+            }
+        } else if (isUnsignedTargetOrderDefined) {
+            if (isTaker || isMarket) {
+                throw new OrderNotFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order');
+            } else {
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
+                placeRequest['signedTargetOrder'] = signedTargetOrder;
+            }
+        } else {
             throw new OrderNotFillable (this.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment');
         }
         let placeMethod = method + 'Place';

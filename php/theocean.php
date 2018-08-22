@@ -233,7 +233,7 @@ class theocean extends Exchange {
 
     public function fetch_balance_by_code ($code, $params = array ()) {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
-            throw new InvalidAddress ($this->id . ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress ($this->id . ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -257,11 +257,11 @@ class theocean extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
-            throw new InvalidAddress ($this->id . ' checkWalletAddress() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
+            throw new InvalidAddress ($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $codes = $this->safe_value($params, 'codes');
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
-            throw new ExchangeError ($this->id . ' fetchBalance requires a `$codes` parameter (an array of currency $codes)');
+            throw new ExchangeError ($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
         $this->load_markets();
         $result = array ();
@@ -499,12 +499,9 @@ class theocean extends Exchange {
         if (!$this->privateKey || (mb_strpos ($this->privateKey, '0x') !== 0)) {
             throw new InvalidAddress ($errorMessage);
         }
-        $this->checkWalletAddress ();
-        $this->checkPrivateKey ();
         $this->load_markets();
         $makerOrTaker = $this->safe_string($params, 'makerOrTaker');
         $isMarket = ($type === 'market');
-        $isLimit = ($type === 'limit');
         $isMakerOrTakerUndefined = ($makerOrTaker === null);
         $isTaker = ($makerOrTaker === 'taker');
         $isMaker = ($makerOrTaker === 'maker');
@@ -631,26 +628,37 @@ class theocean extends Exchange {
         $placeRequest = array ();
         $signedMatchingOrder = null;
         $signedTargetOrder = null;
-        if (($isMarket && $isMakerOrTakerUndefined) || $isTaker) {
-            if ($isUnsignedMatchingOrderDefined) {
+        if ($isUnsignedMatchingOrderDefined && $isUnsignedTargetOrderDefined) {
+            if ($isTaker) {
                 $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
-                $placeRequest = array_merge ($placeRequest, array (
-                    'signedMatchingOrder' => $signedMatchingOrder,
-                    'matchingOrderID' => $reserveResponse['matchingOrderID'],
-                ));
-            } else if ($isMarket || $isTaker) {
-                throw new OrderNotFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $taker order');
-            }
-        }
-        if (($isLimit && $isMakerOrTakerUndefined) || $isMaker) {
-            if ($isUnsignedTargetOrderDefined) {
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+            } else if ($isMaker) {
                 $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
                 $placeRequest['signedTargetOrder'] = $signedTargetOrder;
-            } else if ($isMaker) {
-                throw new OrderImmediatelyFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $maker order');
+            } else {
+                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedTargetOrder'] = $signedTargetOrder;
             }
-        }
-        if (!$isUnsignedMatchingOrderDefined && !$isUnsignedTargetOrderDefined) {
+        } else if ($isUnsignedMatchingOrderDefined) {
+            if ($isMaker) {
+                throw new OrderImmediatelyFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $maker order');
+            } else {
+                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+            }
+        } else if ($isUnsignedTargetOrderDefined) {
+            if ($isTaker || $isMarket) {
+                throw new OrderNotFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $taker order');
+            } else {
+                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedTargetOrder'] = $signedTargetOrder;
+            }
+        } else {
             throw new OrderNotFillable ($this->id . ' ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable at the moment');
         }
         $placeMethod = $method . 'Place';

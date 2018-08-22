@@ -259,7 +259,22 @@ class luno (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        side = 'buy' if (trade['is_buy']) else 'sell'
+        # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
+        # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
+        # Private trade data includes ID field which public trade data does not.
+        order = self.safe_string(trade, 'order_id')
+        takerOrMaker = None
+        side = None
+        if order is not None:
+            side = 'sell' if (trade['type'] == 'ASK') else 'buy'
+            if side == 'sell' and trade['is_buy']:
+                takerOrMaker = 'maker'
+            elif side == 'buy' and not trade['is_buy']:
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = 'taker'
+        else:
+            side = 'buy' if (trade['is_buy']) else 'sell'
         feeBase = self.safe_float(trade, 'fee_base')
         feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None
@@ -274,13 +289,14 @@ class luno (Exchange):
                 feeCost = feeCounter
         return {
             'info': trade,
-            'id': self.safe_string(trade, 'order_id'),
+            'id': None,
             'timestamp': trade['timestamp'],
             'datetime': self.iso8601(trade['timestamp']),
             'symbol': market['symbol'],
-            'order': None,
+            'order': order,
             'type': None,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
             # Does not include potential fee costs
