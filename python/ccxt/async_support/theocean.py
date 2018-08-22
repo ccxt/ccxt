@@ -946,7 +946,9 @@ class theocean (Exchange):
         return await getattr(self, method)(id, symbol, params)
 
     async def fetch_order_from_history(self, id, symbol=None, params={}):
-        orders = await self.fetch_orders(symbol, None, None, params)
+        orders = await self.fetch_orders(symbol, None, None, self.extend({
+            'orderHash': id,
+        }, params))
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
             return ordersById[id]
@@ -1008,7 +1010,7 @@ class theocean (Exchange):
             request['baseTokenAddress'] = market['baseId']
             request['quoteTokenAddress'] = market['quoteId']
         if limit is not None:
-            # request['start'] = 0  # offset
+            # request['start'] = 0  # the number of orders to offset from the end
             request['limit'] = limit
         response = await self.privateGetUserHistory(self.extend(request, params))
         #
@@ -1039,12 +1041,13 @@ class theocean (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return await self.fetch_orders(symbol, since, limit, self.extend({
-            'openAmount': self.fromWei('1'),
+            'openAmount': 1,  # returns open orders with remaining openAmount >= 1
         }, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = await self.fetch_orders(symbol, since, limit, params)
-        return self.filter_by(orders, 'status', 'closed')
+        return await self.fetch_orders(symbol, since, limit, self.extend({
+            'openAmount': 0,  # returns closed orders with remaining openAmount == 0
+        }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
