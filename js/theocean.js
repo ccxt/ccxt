@@ -165,8 +165,6 @@ module.exports = class theocean extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': undefined,
-                'maker': undefined,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
