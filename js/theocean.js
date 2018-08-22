@@ -994,7 +994,9 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOrderFromHistory (id, symbol = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, undefined, undefined, params);
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+            'orderHash': id,
+        }, params));
         let ordersById = this.indexBy (orders, 'id');
         if (id in ordersById)
             return ordersById[id];
@@ -1059,7 +1061,7 @@ module.exports = class theocean extends Exchange {
             request['quoteTokenAddress'] = market['quoteId'];
         }
         if (typeof limit !== 'undefined') {
-            // request['start'] = 0; // offset
+            // request['start'] = 0; // the number of orders to offset from the end
             request['limit'] = limit;
         }
         let response = await this.privateGetUserHistory (this.extend (request, params));
@@ -1092,13 +1094,13 @@ module.exports = class theocean extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'openAmount': this.fromWei ('1'),
+            'openAmount': 1, // returns open orders with remaining openAmount >= 1
         }, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'openAmount': 0,
+            'openAmount': 0, // returns closed orders with remaining openAmount === 0
         }, params));
     }
 
