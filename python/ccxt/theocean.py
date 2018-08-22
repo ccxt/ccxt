@@ -486,7 +486,6 @@ class theocean (Exchange):
         self.load_markets()
         makerOrTaker = self.safe_string(params, 'makerOrTaker')
         isMarket = (type == 'market')
-        isLimit = (type == 'limit')
         isMakerOrTakerUndefined = (makerOrTaker is None)
         isTaker = (makerOrTaker == 'taker')
         isMaker = (makerOrTaker == 'maker')
@@ -611,22 +610,34 @@ class theocean (Exchange):
         placeRequest = {}
         signedMatchingOrder = None
         signedTargetOrder = None
-        if (isMarket and isMakerOrTakerUndefined) or isTaker:
-            if isUnsignedMatchingOrderDefined:
+        if isUnsignedMatchingOrderDefined and isUnsignedTargetOrderDefined:
+            if isTaker:
                 signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
-                placeRequest = self.extend(placeRequest, {
-                    'signedMatchingOrder': signedMatchingOrder,
-                    'matchingOrderID': reserveResponse['matchingOrderID'],
-                })
-            elif isMarket or isTaker:
-                raise OrderNotFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order')
-        if (isLimit and isMakerOrTakerUndefined) or isMaker:
-            if isUnsignedTargetOrderDefined:
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+            elif isMaker:
                 signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
                 placeRequest['signedTargetOrder'] = signedTargetOrder
-            elif isMaker:
+            else:
+                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
+                placeRequest['signedTargetOrder'] = signedTargetOrder
+        elif isUnsignedMatchingOrderDefined:
+            if isMaker:
                 raise OrderImmediatelyFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order')
-        if not isUnsignedMatchingOrderDefined and not isUnsignedTargetOrderDefined:
+            else:
+                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+        elif isUnsignedTargetOrderDefined:
+            if isTaker or isMarket:
+                raise OrderNotFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order')
+            else:
+                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
+                placeRequest['signedTargetOrder'] = signedTargetOrder
+        else:
             raise OrderNotFillable(self.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment')
         placeMethod = method + 'Place'
         placeResponse = getattr(self, placeMethod)(self.extend(placeRequest, query))

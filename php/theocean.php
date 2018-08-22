@@ -502,7 +502,6 @@ class theocean extends Exchange {
         $this->load_markets();
         $makerOrTaker = $this->safe_string($params, 'makerOrTaker');
         $isMarket = ($type === 'market');
-        $isLimit = ($type === 'limit');
         $isMakerOrTakerUndefined = ($makerOrTaker === null);
         $isTaker = ($makerOrTaker === 'taker');
         $isMaker = ($makerOrTaker === 'maker');
@@ -629,26 +628,37 @@ class theocean extends Exchange {
         $placeRequest = array ();
         $signedMatchingOrder = null;
         $signedTargetOrder = null;
-        if (($isMarket && $isMakerOrTakerUndefined) || $isTaker) {
-            if ($isUnsignedMatchingOrderDefined) {
+        if ($isUnsignedMatchingOrderDefined && $isUnsignedTargetOrderDefined) {
+            if ($isTaker) {
                 $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
-                $placeRequest = array_merge ($placeRequest, array (
-                    'signedMatchingOrder' => $signedMatchingOrder,
-                    'matchingOrderID' => $reserveResponse['matchingOrderID'],
-                ));
-            } else if ($isMarket || $isTaker) {
-                throw new OrderNotFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $taker order');
-            }
-        }
-        if (($isLimit && $isMakerOrTakerUndefined) || $isMaker) {
-            if ($isUnsignedTargetOrderDefined) {
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+            } else if ($isMaker) {
                 $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
                 $placeRequest['signedTargetOrder'] = $signedTargetOrder;
-            } else if ($isMaker) {
-                throw new OrderImmediatelyFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $maker order');
+            } else {
+                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedTargetOrder'] = $signedTargetOrder;
             }
-        }
-        if (!$isUnsignedMatchingOrderDefined && !$isUnsignedTargetOrderDefined) {
+        } else if ($isUnsignedMatchingOrderDefined) {
+            if ($isMaker) {
+                throw new OrderImmediatelyFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $maker order');
+            } else {
+                $signedMatchingOrder = $this->signZeroExOrder (array_merge ($unsignedMatchingOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedMatchingOrder'] = $signedMatchingOrder;
+                $placeRequest['matchingOrderID'] = $reserveResponse['matchingOrderID'];
+            }
+        } else if ($isUnsignedTargetOrderDefined) {
+            if ($isTaker || $isMarket) {
+                throw new OrderNotFillable ($this->id . ' createOrder() ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable as a $taker order');
+            } else {
+                $signedTargetOrder = $this->signZeroExOrder (array_merge ($unsignedTargetOrder, $makerAddress), $this->privateKey);
+                $placeRequest['signedTargetOrder'] = $signedTargetOrder;
+            }
+        } else {
             throw new OrderNotFillable ($this->id . ' ' . $type . ' order to ' . $side . ' ' . $symbol . ' is not fillable at the moment');
         }
         $placeMethod = $method . 'Place';
