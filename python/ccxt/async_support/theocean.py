@@ -183,8 +183,6 @@ class theocean (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': None,
-                'maker': None,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
