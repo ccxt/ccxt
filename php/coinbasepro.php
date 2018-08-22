@@ -20,8 +20,8 @@ class coinbasepro extends gdax {
                 'www' => 'https://pro.coinbase.com/',
                 'doc' => 'https://docs.pro.coinbase.com/',
                 'fees' => array (
-                    'https://www.gdax.com/fees',
-                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                    'https://docs.pro.coinbase.com/#fees',
+                    'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
                 ),
             ),
         ));
