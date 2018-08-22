@@ -13,10 +13,11 @@ class coinbasepro (gdax):
             'id': 'coinbasepro',
             'name': 'Coinbase Pro',
             'urls': {
+                'test': 'https://api-public.sandbox.pro.coinbase.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
                 'api': 'https://api.pro.coinbase.com',
                 'www': 'https://pro.coinbase.com/',
-                'doc': 'https://docs.gdax.com',
+                'doc': 'https://docs.pro.coinbase.com/',
                 'fees': [
                     'https://www.gdax.com/fees',
                     'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
