@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.162'
+const version = '1.17.163'
 
 Exchange.ccxtVersion = version
 
@@ -50210,7 +50210,6 @@ module.exports = class theocean extends Exchange {
         if (!this.privateKey || (this.privateKey.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (errorMessage);
         }
-        this.checkPrivateKey ();
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');

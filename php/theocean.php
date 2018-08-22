@@ -499,7 +499,6 @@ class theocean extends Exchange {
         if (!$this->privateKey || (mb_strpos ($this->privateKey, '0x') !== 0)) {
             throw new InvalidAddress ($errorMessage);
         }
-        $this->checkPrivateKey ();
         $this->load_markets();
         $makerOrTaker = $this->safe_string($params, 'makerOrTaker');
         $isMarket = ($type === 'market');

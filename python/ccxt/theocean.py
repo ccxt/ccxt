@@ -483,7 +483,6 @@ class theocean (Exchange):
             raise InvalidAddress(errorMessage)
         if not self.privateKey or (self.privateKey.find('0x') != 0):
             raise InvalidAddress(errorMessage)
-        self.checkPrivateKey()
         self.load_markets()
         makerOrTaker = self.safe_string(params, 'makerOrTaker')
         isMarket = (type == 'market')
