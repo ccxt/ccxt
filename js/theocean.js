@@ -625,26 +625,37 @@ module.exports = class theocean extends Exchange {
         let placeRequest = {};
         let signedMatchingOrder = undefined;
         let signedTargetOrder = undefined;
-        if ((isMarket && isMakerOrTakerUndefined) || isTaker) {
-            if (isUnsignedMatchingOrderDefined) {
+        if (isUnsignedMatchingOrderDefined && isUnsignedTargetOrderDefined) {
+            if (isTaker) {
                 signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
-                placeRequest = this.extend (placeRequest, {
-                    'signedMatchingOrder': signedMatchingOrder,
-                    'matchingOrderID': reserveResponse['matchingOrderID'],
-                });
-            } else if (isMarket || isTaker) {
-                throw new OrderNotFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order');
-            }
-        }
-        if ((isLimit && isMakerOrTakerUndefined) || isMaker) {
-            if (isUnsignedTargetOrderDefined) {
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+            } else if (isMaker) {
                 signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
                 placeRequest['signedTargetOrder'] = signedTargetOrder;
-            } else if (isMaker) {
-                throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');
+            } else {
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
+                placeRequest['signedTargetOrder'] = signedTargetOrder;
             }
-        }
-        if (!isUnsignedMatchingOrderDefined && !isUnsignedTargetOrderDefined) {
+        } else if (isUnsignedMatchingOrderDefined) {
+            if (isMaker) {
+                throw new OrderImmediatelyFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order');
+            } else {
+                signedMatchingOrder = this.signZeroExOrder (this.extend (unsignedMatchingOrder, makerAddress), this.privateKey);
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder;
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID'];
+            }
+        } else if (isUnsignedTargetOrderDefined) {
+            if (isTaker || isMarket) {
+                throw new OrderNotFillable (this.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order');
+            } else {
+                signedTargetOrder = this.signZeroExOrder (this.extend (unsignedTargetOrder, makerAddress), this.privateKey);
+                placeRequest['signedTargetOrder'] = signedTargetOrder;
+            }
+        } else {
             throw new OrderNotFillable (this.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment');
         }
         let placeMethod = method + 'Place';
