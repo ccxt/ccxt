@@ -30,8 +30,6 @@ class theocean extends Exchange {
                 'CORS' => false, // ?
                 'fetchTickers' => true,
                 'fetchOHLCV' => false,
-                'fetchOrder' => true,
-                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
             ),
@@ -992,9 +990,16 @@ class theocean extends Exchange {
         return $result;
     }
 
-    public function fetch_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
         $method = $this->options['fetchOrderMethod'];
-        return $this->$method ($id, $symbol, $params);
+        return $this->$method ($id, $symbol, array_merge (array (
+            'openAmount' => 1,
+        ), $params));
+    }
+
+    public function fetch_closed_order ($id, $symbol = null, $params = array ()) {
+        $method = $this->options['fetchOrderMethod'];
+        return $this->$method ($id, $symbol, array_merge ($params));
     }
 
     public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {

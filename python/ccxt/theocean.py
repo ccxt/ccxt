@@ -47,8 +47,6 @@ class theocean (Exchange):
                 'CORS': False,  # ?
                 'fetchTickers': True,
                 'fetchOHLCV': False,
-                'fetchOrder': True,
-                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },
@@ -941,9 +939,15 @@ class theocean (Exchange):
         }
         return result
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_open_order(self, id, symbol=None, params={}):
         method = self.options['fetchOrderMethod']
-        return getattr(self, method)(id, symbol, params)
+        return getattr(self, method)(id, symbol, self.extend({
+            'openAmount': 1,
+        }, params))
+
+    def fetch_closed_order(self, id, symbol=None, params={}):
+        method = self.options['fetchOrderMethod']
+        return getattr(self, method)(id, symbol, self.extend(params))
 
     def fetch_order_from_history(self, id, symbol=None, params={}):
         orders = self.fetch_orders(symbol, None, None, self.extend({
