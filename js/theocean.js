@@ -498,7 +498,6 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');
-        const isLimit = (type === 'limit');
         const isMakerOrTakerUndefined = (typeof makerOrTaker === 'undefined');
         const isTaker = (makerOrTaker === 'taker');
         const isMaker = (makerOrTaker === 'maker');
