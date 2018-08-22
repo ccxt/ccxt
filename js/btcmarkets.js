@@ -40,6 +40,7 @@ module.exports = class btcmarkets extends Exchange {
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/{id}/trades',
                         'v2/market/active',
                     ],
                 },
@@ -47,6 +48,9 @@ module.exports = class btcmarkets extends Exchange {
                     'get': [
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'v2/order/history/{id}',
+                        'v2/order/trade/history/{id}',
+                        'v2/transaction/history/{currency}',
                     ],
                     'post': [
                         'fundtransfer/withdrawCrypto',
