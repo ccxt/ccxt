@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -94,6 +95,7 @@ class theocean (Exchange):
                 "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
                 "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
                 'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
+                'Greater than available wallet balance.': InsufficientFunds,  # {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -1095,14 +1097,23 @@ class theocean (Exchange):
                 # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 # {"message":"Order not found","errors":[]}
                 # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 #
                 feedback = self.id + ' ' + self.json(response)
                 exceptions = self.exceptions
+                errors = self.safe_value(response, 'errors')
                 if message in exceptions:
                     raise exceptions[message](feedback)
                 else:
                     if message.find('Orderbook exhausted for intent') >= 0:
                         raise OrderNotFillable(feedback)
+                    elif message == 'Intent validation failed.':
+                        if isinstance(errors, list):
+                            for i in range(0, len(errors)):
+                                error = errors[i]
+                                errorMessage = self.safe_string(error, 'message')
+                                if errorMessage in exceptions:
+                                    raise exceptions[message](feedback)
                     raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
