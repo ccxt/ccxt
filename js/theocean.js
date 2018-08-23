@@ -73,7 +73,7 @@ module.exports = class theocean extends Exchange {
                 "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
                 "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
                 'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
-                'Greater than available wallet balance.': InsufficientFunds, // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+                'Greater than available wallet balance.': InsufficientFunds, // {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
