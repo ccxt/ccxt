@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
@@ -73,6 +73,7 @@ module.exports = class theocean extends Exchange {
                 "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
                 "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
                 'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
+                'Greater than available wallet balance.': InsufficientFunds, // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -1157,14 +1158,26 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 // {"message":"Order not found","errors":[]}
                 // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 //
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
+                let errors = this.safeValue (response, 'errors');
                 if (message in exceptions) {
                     throw new exceptions[message] (feedback);
                 } else {
                     if (message.indexOf ('Orderbook exhausted for intent') >= 0) {
                         throw new OrderNotFillable (feedback);
+                    } else if (message === 'Intent validation failed.') {
+                        if (Array.isArray (errors)) {
+                            for (let i = 0; i < errors.length; i++) {
+                                let error = errors[i];
+                                let errorMessage = this.safeString (error, 'message');
+                                if (errorMessage in exceptions) {
+                                    throw new exceptions[message] (feedback);
+                                }
+                            }
+                        }
                     }
                     throw new ExchangeError (feedback);
                 }
