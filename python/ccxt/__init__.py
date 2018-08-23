@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.172'
+__version__ = '1.17.173'
 
 # ----------------------------------------------------------------------------
 
@@ -108,6 +108,7 @@ from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
+from ccxt.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
@@ -240,6 +241,7 @@ exchanges = [
     'chilebit',
     'cobinhood',
     'coinbase',
+    'coinbaseprime',
     'coinbasepro',
     'coincheck',
     'coinegg',

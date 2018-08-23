@@ -49,7 +49,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 130 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 131 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -147,6 +147,8 @@ The ccxt library currently supports the following 130 cryptocurrency exchange ma
 | cobinhood          | `COBINHOOD <https://cobinhood.com>`__                                                   |                                                                      | 1     | `API <https://cobinhood.github.io/api-public>`__                                                    | Taiwan                                   |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | coinbase           | `coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__                   |                                                                      | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                    | US                                       |
++--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| coinbaseprime      | `Coinbase Prime <https://prime.coinbase.com>`__                                         |                                                                      | \*    | `API <https://docs.prime.coinbase.com>`__                                                           | US                                       |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | coinbasepro        | `Coinbase Pro <https://pro.coinbase.com/>`__                                            |                                                                      | \*    | `API <https://docs.pro.coinbase.com/>`__                                                            | US                                       |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -703,6 +705,7 @@ Social
 .. |chilebit| image:: https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg
 .. |cobinhood| image:: https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg
 .. |coinbase| image:: https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg
+.. |coinbaseprime| image:: https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg
 .. |coinbasepro| image:: https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg
 .. |coincheck| image:: https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg
 .. |coinegg| image:: https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg

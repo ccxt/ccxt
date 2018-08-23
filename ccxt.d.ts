@@ -359,6 +359,7 @@ declare module 'ccxt' {
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
+    export class coinbaseprime extends gdax {}
     export class coinbasepro extends gdax {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
