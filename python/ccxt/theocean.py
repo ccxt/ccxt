@@ -842,15 +842,15 @@ class theocean (Exchange):
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
-        openAmount = self.fromWei(self.safe_float(order, 'openAmount'))
-        reservedAmount = self.fromWei(self.safe_float(order, 'reservedAmount'))
-        filledAmount = self.fromWei(self.safe_float(order, 'filledAmount'))
-        settledAmount = self.fromWei(self.safe_float(order, 'settledAmount'))
-        confirmedAmount = self.fromWei(self.safe_float(order, 'confirmedAmount'))
-        failedAmount = self.fromWei(self.safe_float(order, 'failedAmount'))
-        deadAmount = self.fromWei(self.safe_float(order, 'deadAmount'))
-        prunedAmount = self.fromWei(self.safe_float(order, 'prunedAmount'))
-        amount = self.fromWei(self.safe_float(order, 'amount'))
+        openAmount = self.fromWei(self.safe_string(order, 'openAmount'))
+        reservedAmount = self.fromWei(self.safe_string(order, 'reservedAmount'))
+        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'))
+        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'))
+        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'))
+        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'))
+        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'))
+        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'))
+        amount = self.fromWei(self.safe_string(order, 'amount'))
         if amount is None:
             amount = self.sum(openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount)
         filled = self.sum(filledAmount, settledAmount, confirmedAmount)
@@ -868,7 +868,7 @@ class theocean (Exchange):
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
                     if amount is None:
-                        amount = self.fromWei(self.safe_float(placeEvents[0], 'amount'))
+                        amount = self.fromWei(self.safe_string(placeEvents[0], 'amount'))
                     timestamp = self.safe_integer(placeEvents[0], 'timestamp')
                     timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
                 else:
@@ -902,7 +902,7 @@ class theocean (Exchange):
             if price is not None:
                 cost = filled * price
         fee = None
-        feeCost = self.fromWei(self.safe_float(order, 'feeAmount'))
+        feeCost = self.fromWei(self.safe_string(order, 'feeAmount'))
         if feeCost is not None:
             feeOption = self.safe_string(order, 'feeOption')
             feeCurrency = None

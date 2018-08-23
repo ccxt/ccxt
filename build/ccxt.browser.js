@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.169'
+const version = '1.17.170'
 
 Exchange.ccxtVersion = version
 
@@ -50588,15 +50588,15 @@ module.exports = class theocean extends Exchange {
             symbol = market['symbol'];
         }
         let price = this.safeFloat (order, 'price');
-        let openAmount = this.fromWei (this.safeFloat (order, 'openAmount'));
-        let reservedAmount = this.fromWei (this.safeFloat (order, 'reservedAmount'));
-        let filledAmount = this.fromWei (this.safeFloat (order, 'filledAmount'));
-        let settledAmount = this.fromWei (this.safeFloat (order, 'settledAmount'));
-        let confirmedAmount = this.fromWei (this.safeFloat (order, 'confirmedAmount'));
-        let failedAmount = this.fromWei (this.safeFloat (order, 'failedAmount'));
-        let deadAmount = this.fromWei (this.safeFloat (order, 'deadAmount'));
-        let prunedAmount = this.fromWei (this.safeFloat (order, 'prunedAmount'));
-        let amount = this.fromWei (this.safeFloat (order, 'amount'));
+        let openAmount = this.fromWei (this.safeString (order, 'openAmount'));
+        let reservedAmount = this.fromWei (this.safeString (order, 'reservedAmount'));
+        let filledAmount = this.fromWei (this.safeString (order, 'filledAmount'));
+        let settledAmount = this.fromWei (this.safeString (order, 'settledAmount'));
+        let confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'));
+        let failedAmount = this.fromWei (this.safeString (order, 'failedAmount'));
+        let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'));
+        let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'));
+        let amount = this.fromWei (this.safeString (order, 'amount'));
         if (typeof amount === 'undefined') {
             amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
         }
@@ -50615,7 +50615,7 @@ module.exports = class theocean extends Exchange {
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
                     if (typeof amount === 'undefined') {
-                        amount = this.fromWei (this.safeFloat (placeEvents[0], 'amount'));
+                        amount = this.fromWei (this.safeString (placeEvents[0], 'amount'));
                     }
                     timestamp = this.safeInteger (placeEvents[0], 'timestamp');
                     timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
@@ -50661,7 +50661,7 @@ module.exports = class theocean extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.fromWei (this.safeFloat (order, 'feeAmount'));
+        let feeCost = this.fromWei (this.safeString (order, 'feeAmount'));
         if (typeof feeCost !== 'undefined') {
             let feeOption = this.safeString (order, 'feeOption');
             let feeCurrency = undefined;

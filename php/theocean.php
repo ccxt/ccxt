@@ -876,15 +876,15 @@ class theocean extends Exchange {
             $symbol = $market['symbol'];
         }
         $price = $this->safe_float($order, 'price');
-        $openAmount = $this->fromWei ($this->safe_float($order, 'openAmount'));
-        $reservedAmount = $this->fromWei ($this->safe_float($order, 'reservedAmount'));
-        $filledAmount = $this->fromWei ($this->safe_float($order, 'filledAmount'));
-        $settledAmount = $this->fromWei ($this->safe_float($order, 'settledAmount'));
-        $confirmedAmount = $this->fromWei ($this->safe_float($order, 'confirmedAmount'));
-        $failedAmount = $this->fromWei ($this->safe_float($order, 'failedAmount'));
-        $deadAmount = $this->fromWei ($this->safe_float($order, 'deadAmount'));
-        $prunedAmount = $this->fromWei ($this->safe_float($order, 'prunedAmount'));
-        $amount = $this->fromWei ($this->safe_float($order, 'amount'));
+        $openAmount = $this->fromWei ($this->safe_string($order, 'openAmount'));
+        $reservedAmount = $this->fromWei ($this->safe_string($order, 'reservedAmount'));
+        $filledAmount = $this->fromWei ($this->safe_string($order, 'filledAmount'));
+        $settledAmount = $this->fromWei ($this->safe_string($order, 'settledAmount'));
+        $confirmedAmount = $this->fromWei ($this->safe_string($order, 'confirmedAmount'));
+        $failedAmount = $this->fromWei ($this->safe_string($order, 'failedAmount'));
+        $deadAmount = $this->fromWei ($this->safe_string($order, 'deadAmount'));
+        $prunedAmount = $this->fromWei ($this->safe_string($order, 'prunedAmount'));
+        $amount = $this->fromWei ($this->safe_string($order, 'amount'));
         if ($amount === null) {
             $amount = $this->sum ($openAmount, $reservedAmount, $filledAmount, $settledAmount, $confirmedAmount, $failedAmount, $deadAmount, $prunedAmount);
         }
@@ -903,7 +903,7 @@ class theocean extends Exchange {
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('placed', $timelineEventsGroupedByAction)) {
                     $placeEvents = $this->safe_value($timelineEventsGroupedByAction, 'placed');
                     if ($amount === null) {
-                        $amount = $this->fromWei ($this->safe_float($placeEvents[0], 'amount'));
+                        $amount = $this->fromWei ($this->safe_string($placeEvents[0], 'amount'));
                     }
                     $timestamp = $this->safe_integer($placeEvents[0], 'timestamp');
                     $timestamp = ($timestamp !== null) ? $timestamp * 1000 : $timestamp;
@@ -949,7 +949,7 @@ class theocean extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->fromWei ($this->safe_float($order, 'feeAmount'));
+        $feeCost = $this->fromWei ($this->safe_string($order, 'feeAmount'));
         if ($feeCost !== null) {
             $feeOption = $this->safe_string($order, 'feeOption');
             $feeCurrency = null;
