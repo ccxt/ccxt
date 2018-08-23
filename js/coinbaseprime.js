@@ -13,14 +13,11 @@ module.exports = class coinbaseprime extends gdax {
             'name': 'Coinbase Prime',
             'urls': {
                 'test': 'https://api-public.sandbox.prime.coinbase.com',
-                'logo': 'https://ph-files.imgix.net/58ceb872-d4a9-4cf2-99ea-def0fceb13d7?auto=format&auto=compress&codec=mozjpeg&cs=strip&w=80&h=80&fit=crop',
+                'logo': 'https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg',
                 'api': 'https://api.prime.coinbase.com',
-                'www': 'https://prime.coinbase.com/',
-                'doc': 'https://docs.prime.coinbase.com/',
-                'fees': [
-                    'https://docs.prime.coinbase.com/#fees',
-                    'https://support.prime.coinbase.com/customer/en/portal/articles/2945629-fees?b_id=17475',
-                ],
+                'www': 'https://prime.coinbase.com',
+                'doc': 'https://docs.prime.coinbase.com',
+                'fees': 'https://support.prime.coinbase.com/customer/en/portal/articles/2945629-fees?b_id=17475',
             },
         });
     }
