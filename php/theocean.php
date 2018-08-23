@@ -169,8 +169,6 @@ class theocean extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => null,
-                'maker' => null,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
