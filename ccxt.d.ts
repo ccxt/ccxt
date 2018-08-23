@@ -139,6 +139,24 @@ declare module 'ccxt' {
         vwap?: number;
     }
 
+    export interface Transaction {
+      info: {};
+      id: string;
+      txid: string;
+      timestamp: number;
+      datetime: string;
+      address: string;
+      type: "deposit" | "withdraw";
+      amount: number;
+      currency: string;
+      status: "pending" | "ok";
+      updated: number;
+      fee: {
+        cost: number;
+        rate: number;
+      };
+    }
+
     export interface Tickers {
         info: any;
         [symbol: string]: Ticker;
@@ -278,6 +296,9 @@ declare module 'ccxt' {
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchCurrencies (params?: any): Promise<any>;
+        fetchTransactions (currency?: string, since?: number, limit?: number, params?: = {}): Promise<Transaction[]>
+        fetchDeposits (currency?: string, since?: number, limit?: number, params?: = {}): Promise<Transaction[]>
+        fetchWithdraws (currency?: string, since?: number, limit?: number, params?: = {}): Promise<Transaction[]>
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
         createDepositAddress (currency: string, params?: {}): Promise<any>;
         fetchDepositAddress (currency: string, params?: {}): Promise<any>;
