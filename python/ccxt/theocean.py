@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -94,6 +95,7 @@ class theocean (Exchange):
                 "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
                 "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
                 'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
+                'Greater than available wallet balance.': InsufficientFunds,  # {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -183,8 +185,6 @@ class theocean (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': None,
-                'maker': None,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -844,15 +844,15 @@ class theocean (Exchange):
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
-        openAmount = self.fromWei(self.safe_float(order, 'openAmount'))
-        reservedAmount = self.fromWei(self.safe_float(order, 'reservedAmount'))
-        filledAmount = self.fromWei(self.safe_float(order, 'filledAmount'))
-        settledAmount = self.fromWei(self.safe_float(order, 'settledAmount'))
-        confirmedAmount = self.fromWei(self.safe_float(order, 'confirmedAmount'))
-        failedAmount = self.fromWei(self.safe_float(order, 'failedAmount'))
-        deadAmount = self.fromWei(self.safe_float(order, 'deadAmount'))
-        prunedAmount = self.fromWei(self.safe_float(order, 'prunedAmount'))
-        amount = self.fromWei(self.safe_float(order, 'amount'))
+        openAmount = self.fromWei(self.safe_string(order, 'openAmount'))
+        reservedAmount = self.fromWei(self.safe_string(order, 'reservedAmount'))
+        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'))
+        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'))
+        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'))
+        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'))
+        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'))
+        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'))
+        amount = self.fromWei(self.safe_string(order, 'amount'))
         if amount is None:
             amount = self.sum(openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount)
         filled = self.sum(filledAmount, settledAmount, confirmedAmount)
@@ -870,7 +870,7 @@ class theocean (Exchange):
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
                     if amount is None:
-                        amount = self.fromWei(self.safe_float(placeEvents[0], 'amount'))
+                        amount = self.fromWei(self.safe_string(placeEvents[0], 'amount'))
                     timestamp = self.safe_integer(placeEvents[0], 'timestamp')
                     timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
                 else:
@@ -904,7 +904,7 @@ class theocean (Exchange):
             if price is not None:
                 cost = filled * price
         fee = None
-        feeCost = self.fromWei(self.safe_float(order, 'feeAmount'))
+        feeCost = self.fromWei(self.safe_string(order, 'feeAmount'))
         if feeCost is not None:
             feeOption = self.safe_string(order, 'feeOption')
             feeCurrency = None
@@ -1097,14 +1097,23 @@ class theocean (Exchange):
                 # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 # {"message":"Order not found","errors":[]}
                 # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 #
                 feedback = self.id + ' ' + self.json(response)
                 exceptions = self.exceptions
+                errors = self.safe_value(response, 'errors')
                 if message in exceptions:
                     raise exceptions[message](feedback)
                 else:
                     if message.find('Orderbook exhausted for intent') >= 0:
                         raise OrderNotFillable(feedback)
+                    elif message == 'Intent validation failed.':
+                        if isinstance(errors, list):
+                            for i in range(0, len(errors)):
+                                error = errors[i]
+                                errorMessage = self.safe_string(error, 'message')
+                                if errorMessage in exceptions:
+                                    raise exceptions[message](feedback)
                     raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

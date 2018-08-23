@@ -77,6 +77,7 @@ class theocean extends Exchange {
                 "Schema validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Schema validation failed for 'body'", "errors" => ... )
                 "Logic validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'body'", "errors" => ... )
                 'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
+                'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds', // array ("message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")
             ),
             'options' => array (
                 'fetchOrderMethod' => 'fetch_order_from_history',
@@ -169,8 +170,6 @@ class theocean extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'taker' => null,
-                'maker' => null,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
@@ -878,15 +877,15 @@ class theocean extends Exchange {
             $symbol = $market['symbol'];
         }
         $price = $this->safe_float($order, 'price');
-        $openAmount = $this->fromWei ($this->safe_float($order, 'openAmount'));
-        $reservedAmount = $this->fromWei ($this->safe_float($order, 'reservedAmount'));
-        $filledAmount = $this->fromWei ($this->safe_float($order, 'filledAmount'));
-        $settledAmount = $this->fromWei ($this->safe_float($order, 'settledAmount'));
-        $confirmedAmount = $this->fromWei ($this->safe_float($order, 'confirmedAmount'));
-        $failedAmount = $this->fromWei ($this->safe_float($order, 'failedAmount'));
-        $deadAmount = $this->fromWei ($this->safe_float($order, 'deadAmount'));
-        $prunedAmount = $this->fromWei ($this->safe_float($order, 'prunedAmount'));
-        $amount = $this->fromWei ($this->safe_float($order, 'amount'));
+        $openAmount = $this->fromWei ($this->safe_string($order, 'openAmount'));
+        $reservedAmount = $this->fromWei ($this->safe_string($order, 'reservedAmount'));
+        $filledAmount = $this->fromWei ($this->safe_string($order, 'filledAmount'));
+        $settledAmount = $this->fromWei ($this->safe_string($order, 'settledAmount'));
+        $confirmedAmount = $this->fromWei ($this->safe_string($order, 'confirmedAmount'));
+        $failedAmount = $this->fromWei ($this->safe_string($order, 'failedAmount'));
+        $deadAmount = $this->fromWei ($this->safe_string($order, 'deadAmount'));
+        $prunedAmount = $this->fromWei ($this->safe_string($order, 'prunedAmount'));
+        $amount = $this->fromWei ($this->safe_string($order, 'amount'));
         if ($amount === null) {
             $amount = $this->sum ($openAmount, $reservedAmount, $filledAmount, $settledAmount, $confirmedAmount, $failedAmount, $deadAmount, $prunedAmount);
         }
@@ -905,7 +904,7 @@ class theocean extends Exchange {
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('placed', $timelineEventsGroupedByAction)) {
                     $placeEvents = $this->safe_value($timelineEventsGroupedByAction, 'placed');
                     if ($amount === null) {
-                        $amount = $this->fromWei ($this->safe_float($placeEvents[0], 'amount'));
+                        $amount = $this->fromWei ($this->safe_string($placeEvents[0], 'amount'));
                     }
                     $timestamp = $this->safe_integer($placeEvents[0], 'timestamp');
                     $timestamp = ($timestamp !== null) ? $timestamp * 1000 : $timestamp;
@@ -951,7 +950,7 @@ class theocean extends Exchange {
             }
         }
         $fee = null;
-        $feeCost = $this->fromWei ($this->safe_float($order, 'feeAmount'));
+        $feeCost = $this->fromWei ($this->safe_string($order, 'feeAmount'));
         if ($feeCost !== null) {
             $feeOption = $this->safe_string($order, 'feeOption');
             $feeCurrency = null;
@@ -1146,11 +1145,11 @@ class theocean extends Exchange {
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         if (strlen ($body) < 2)
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         // code 401 and plain $body 'Authentication failed' (with single quotes)
-        // this error is sent if you do not submit a proper Content-Type
+        // this $error is sent if you do not submit a proper Content-Type
         if ($body === "'Authentication failed'") {
             throw new AuthenticationError ($this->id . ' ' . $body);
         }
@@ -1159,18 +1158,30 @@ class theocean extends Exchange {
             $message = $this->safe_string($response, 'message');
             if ($message !== null) {
                 //
-                // array ("$message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","$message":"requires property \"startTime\"","instance":array ("baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"),"property":"instance")]}
-                // array ("$message":"Logic validation failed for 'query'","errors":[{"$message":"startTime should be between 0 and current date","type":"startTime")]}
-                // array ("$message":"Order not found","errors":array ())
+                // array ("$message":"Schema validation failed for 'query'","$errors":[{"name":"required","argument":"startTime","$message":"requires property \"startTime\"","instance":array ("baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"),"property":"instance")]}
+                // array ("$message":"Logic validation failed for 'query'","$errors":[{"$message":"startTime should be between 0 and current date","type":"startTime")]}
+                // array ("$message":"Order not found","$errors":array ())
                 // array ("$message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
+                // array ("$message":"Intent validation failed.","$errors":[{"$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]}
                 //
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exceptions = $this->exceptions;
+                $errors = $this->safe_value($response, 'errors');
                 if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
                     throw new $exceptions[$message] ($feedback);
                 } else {
                     if (mb_strpos ($message, 'Orderbook exhausted for intent') !== false) {
                         throw new OrderNotFillable ($feedback);
+                    } else if ($message === 'Intent validation failed.') {
+                        if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
+                            for ($i = 0; $i < count ($errors); $i++) {
+                                $error = $errors[$i];
+                                $errorMessage = $this->safe_string($error, 'message');
+                                if (is_array ($exceptions) && array_key_exists ($errorMessage, $exceptions)) {
+                                    throw new $exceptions[$message] ($feedback);
+                                }
+                            }
+                        }
                     }
                     throw new ExchangeError ($feedback);
                 }

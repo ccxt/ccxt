@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
@@ -73,6 +73,7 @@ module.exports = class theocean extends Exchange {
                 "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
                 "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
                 'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
+                'Greater than available wallet balance.': InsufficientFunds, // {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -165,8 +166,6 @@ module.exports = class theocean extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': undefined,
-                'maker': undefined,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -874,15 +873,15 @@ module.exports = class theocean extends Exchange {
             symbol = market['symbol'];
         }
         let price = this.safeFloat (order, 'price');
-        let openAmount = this.fromWei (this.safeFloat (order, 'openAmount'));
-        let reservedAmount = this.fromWei (this.safeFloat (order, 'reservedAmount'));
-        let filledAmount = this.fromWei (this.safeFloat (order, 'filledAmount'));
-        let settledAmount = this.fromWei (this.safeFloat (order, 'settledAmount'));
-        let confirmedAmount = this.fromWei (this.safeFloat (order, 'confirmedAmount'));
-        let failedAmount = this.fromWei (this.safeFloat (order, 'failedAmount'));
-        let deadAmount = this.fromWei (this.safeFloat (order, 'deadAmount'));
-        let prunedAmount = this.fromWei (this.safeFloat (order, 'prunedAmount'));
-        let amount = this.fromWei (this.safeFloat (order, 'amount'));
+        let openAmount = this.fromWei (this.safeString (order, 'openAmount'));
+        let reservedAmount = this.fromWei (this.safeString (order, 'reservedAmount'));
+        let filledAmount = this.fromWei (this.safeString (order, 'filledAmount'));
+        let settledAmount = this.fromWei (this.safeString (order, 'settledAmount'));
+        let confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'));
+        let failedAmount = this.fromWei (this.safeString (order, 'failedAmount'));
+        let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'));
+        let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'));
+        let amount = this.fromWei (this.safeString (order, 'amount'));
         if (typeof amount === 'undefined') {
             amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
         }
@@ -901,7 +900,7 @@ module.exports = class theocean extends Exchange {
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
                     if (typeof amount === 'undefined') {
-                        amount = this.fromWei (this.safeFloat (placeEvents[0], 'amount'));
+                        amount = this.fromWei (this.safeString (placeEvents[0], 'amount'));
                     }
                     timestamp = this.safeInteger (placeEvents[0], 'timestamp');
                     timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
@@ -947,7 +946,7 @@ module.exports = class theocean extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.fromWei (this.safeFloat (order, 'feeAmount'));
+        let feeCost = this.fromWei (this.safeString (order, 'feeAmount'));
         if (typeof feeCost !== 'undefined') {
             let feeOption = this.safeString (order, 'feeOption');
             let feeCurrency = undefined;
@@ -1159,14 +1158,26 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 // {"message":"Order not found","errors":[]}
                 // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 //
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
+                let errors = this.safeValue (response, 'errors');
                 if (message in exceptions) {
                     throw new exceptions[message] (feedback);
                 } else {
                     if (message.indexOf ('Orderbook exhausted for intent') >= 0) {
                         throw new OrderNotFillable (feedback);
+                    } else if (message === 'Intent validation failed.') {
+                        if (Array.isArray (errors)) {
+                            for (let i = 0; i < errors.length; i++) {
+                                let error = errors[i];
+                                let errorMessage = this.safeString (error, 'message');
+                                if (errorMessage in exceptions) {
+                                    throw new exceptions[message] (feedback);
+                                }
+                            }
+                        }
                     }
                     throw new ExchangeError (feedback);
                 }
