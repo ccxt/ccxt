@@ -431,7 +431,7 @@ module.exports = class bcex extends Exchange {
                 payload += this.urlencode (this.keysort (query));
             }
             let auth = payload + '&secret_key=' + this.secret;
-            let signature = this.hash (auth);
+            let signature = this.hash (this.encode (auth));
             body = payload + '&sign=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
