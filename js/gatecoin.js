@@ -415,7 +415,7 @@ module.exports = class gatecoin extends Exchange {
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            undefined,
+            ohlcv['last'],
             ohlcv['volume'],
         ];
     }

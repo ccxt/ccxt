@@ -415,7 +415,7 @@ class gatecoin (Exchange):
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            None,
+            ohlcv['last'],
             ohlcv['volume'],
         ]
 

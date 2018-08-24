@@ -406,7 +406,7 @@ class bcex (Exchange):
             if query:
                 payload += self.urlencode(self.keysort(query))
             auth = payload + '&secret_key=' + self.secret
-            signature = self.hash(auth)
+            signature = self.hash(self.encode(auth))
             body = payload + '&sign=' + signature
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
