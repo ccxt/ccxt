@@ -240,7 +240,7 @@ class bigone (Exchange):
             result[symbol] = ticker
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetMarketsSymbolDepth(self.extend({
             'symbol': self.market_id(symbol),
