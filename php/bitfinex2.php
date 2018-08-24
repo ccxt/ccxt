@@ -385,8 +385,12 @@ class bitfinex2 extends bitfinex {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null)
+        if ($limit === null) {
+            $limit = 100;
+        }
+        if ($since === null) {
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
+        }
         $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],

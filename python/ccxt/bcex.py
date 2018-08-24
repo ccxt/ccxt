@@ -404,7 +404,7 @@ class bcex (Exchange):
             self.check_required_credentials()
             payload = self.urlencode({'api_key': self.apiKey})
             if query:
-                payload += self.urlencode(self.keysort(query))
+                payload += '&' + self.urlencode(self.keysort(query))
             auth = payload + '&secret_key=' + self.secret
             signature = self.hash(self.encode(auth))
             body = payload + '&sign=' + signature

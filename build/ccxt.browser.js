@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.176'
+const version = '1.17.179'
 
 Exchange.ccxtVersion = version
 
@@ -4417,7 +4417,7 @@ module.exports = class bcex extends Exchange {
             this.checkRequiredCredentials ();
             let payload = this.urlencode ({ 'api_key': this.apiKey });
             if (Object.keys (query).length) {
-                payload += this.urlencode (this.keysort (query));
+                payload += '&' + this.urlencode (this.keysort (query));
             }
             let auth = payload + '&secret_key=' + this.secret;
             let signature = this.hash (this.encode (auth));
@@ -9344,8 +9344,12 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof since === 'undefined')
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
+        if (typeof since === 'undefined') {
             since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
@@ -30544,7 +30548,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted' });
+        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted,partial_filled' });
         return result;
     }
 
@@ -30558,7 +30562,7 @@ module.exports = class fcoin extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
-            'states': 'submitted',
+            'states': 'submitted,partial_filled,partial_canceled,filled,canceled',
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -30612,7 +30616,7 @@ module.exports = class fcoin extends Exchange {
             query = this.keysort (query);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                    url += '?' + this.rawencode (query);
                 }
             }
             // HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
