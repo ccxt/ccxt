@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.175'
+const version = '1.17.176'
 
 Exchange.ccxtVersion = version
 
@@ -4420,7 +4420,7 @@ module.exports = class bcex extends Exchange {
                 payload += this.urlencode (this.keysort (query));
             }
             let auth = payload + '&secret_key=' + this.secret;
-            let signature = this.hash (auth);
+            let signature = this.hash (this.encode (auth));
             body = payload + '&sign=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
