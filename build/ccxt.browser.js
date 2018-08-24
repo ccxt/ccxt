@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.174'
+const version = '1.17.175'
 
 Exchange.ccxtVersion = version
 
@@ -31767,7 +31767,7 @@ module.exports = class gatecoin extends Exchange {
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            undefined,
+            ohlcv['last'],
             ohlcv['volume'],
         ];
     }
