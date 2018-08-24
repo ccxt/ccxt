@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.177'
+const version = '1.17.178'
 
 Exchange.ccxtVersion = version
 
@@ -30548,7 +30548,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted' });
+        let result = await this.fetchOrders (symbol, since, limit, { 'states': 'submitted,partial_filled' });
         return result;
     }
 
@@ -30562,7 +30562,7 @@ module.exports = class fcoin extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
-            'states': 'submitted',
+            'states': 'submitted,partial_filled,partial_canceled,filled,canceled',
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
@@ -30616,7 +30616,7 @@ module.exports = class fcoin extends Exchange {
             query = this.keysort (query);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                    url += '?' + this.rawencode (query);
                 }
             }
             // HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
