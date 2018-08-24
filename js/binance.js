@@ -29,6 +29,9 @@ module.exports = class binance extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': true,
                 'fetchFundingFees': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -808,6 +811,109 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchTransactions (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        let deposits = await this.fetchDeposits (currency, since, limit, params);
+        let withdrawals = await this.fetchWithdrawals (currency, since, limit, params);
+        return deposits.concat (withdrawals);
+    }
+
+    async fetchDeposits (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let para = {};
+        if (typeof currency !== 'undefined') {
+            const asset = this.currency (currency);
+            para['asset'] = asset.id;
+        }
+        if (typeof since !== 'undefined')
+            para['startTime'] = since;
+        let response = await this.wapiGetDepositHistory (this.extend (para, params));
+        if ('success' in response) {
+            if (response['success']) {
+                return this.parseTransactions (response.depositList, 'deposit', currency, since, limit);
+            }
+        }
+        throw new ExchangeError (this.id + ' depositHistory failed: ' + this.last_http_response);
+    }
+
+    async fetchWithdrawals (currency = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let para = {};
+        if (typeof currency !== 'undefined') {
+            const asset = this.currency (currency);
+            para['asset'] = asset.id;
+        }
+        if (typeof since !== 'undefined')
+            para['startTime'] = since;
+        let response = await this.wapiGetWithdrawHistory (this.extend (para, params));
+        if ('success' in response) {
+            if (response['success']) {
+                return this.parseTransactions (response.withdrawList, 'withdraw', currency, since, limit);
+            }
+        }
+        throw new ExchangeError (this.id + ' withdrawHistory failed: ' + this.last_http_response);
+    }
+
+    parseTransactionStatus (status, side) {
+        if (!(side === 'deposit' || side === 'withdraw'))
+            throw new ExchangeError (this.id + 'deposit/withdraw side set incorrectly: ' + side);
+        if (side === 'deposit') {
+            let statuses = {
+                '0': 'pending',
+                '1': 'ok',
+            };
+            return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        } else {
+            // '0': 'email sent', '1': 'cancelled', '2': 'awaiting approval', '3': 'rejected',
+            // '4': 'processing', '5': 'failure', '6': 'complete',
+            if (status === 6) {
+                return 'ok';
+            } else if (status === 0 || status === 2 || status === 4) {
+                return 'pending';
+            } else if (status === 3 || status === 5) {
+                return 'error';
+            } else if (status === 1) {
+                return 'canceled';
+            }
+        }
+    }
+
+    parseTransaction (transaction, side = undefined) {
+        if (typeof side === 'undefined')
+            throw new ExchangeError (this.id + 'deposit/withdraw side missing: ' + this.json (transaction));
+        // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
+        let address = this.safeString (transaction, 'address');
+        let txId = this.safeValue (transaction, 'txId');
+        let status = this.parseTransactionStatus (parseInt (transaction['status']), side);
+        let currency = this.currency (transaction['asset']);
+        let timestamp = undefined;
+        if ('insertTime' in transaction) {
+            timestamp = transaction['insertTime'];
+        } else if ('applyTime' in transaction) {
+            timestamp = transaction['applyTime'];
+        } else {
+            throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
+        }
+        let amount = parseFloat (transaction['amount']);
+        let result = {
+            'info': transaction,                  // the original decoded JSON as is
+            'id': undefined,                           // string transaction id
+            'address': address,                   // deposit/widthraw address
+            'txid': txId,                         // txid in terms of corresponding currency
+            'timestamp': timestamp,               // Unix timestamp in milliseconds
+            'datetime': this.iso8601 (timestamp), // ISO8601 datetime with milliseconds
+            'currency': currency.id,                 // currency code
+            'order': undefined,                        // string order id or undefined/None/null
+            'status': status,                     // status of the transaction, "pending", "ok"... to be discussed
+            'side': side,                         // direction of the transaction, 'deposit' or 'withdraw'
+            'amount': amount,                     // amount of base currency
+            'fee': {
+                'cost': undefined, // we also need to somehow designate
+                'rate': undefined, // ...it is a network fee or the exchange fee or both
+            },
+        };
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
