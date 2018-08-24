@@ -521,7 +521,7 @@ module.exports = class fcoin extends Exchange {
             query = this.keysort (query);
             if (method === 'GET') {
                 if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query).replace(/%2C/g,',');
+                    url += '?' + this.rawencode (query);
                 }
             }
             // HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
