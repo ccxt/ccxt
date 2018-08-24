@@ -1049,8 +1049,12 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, side = undefined) {
+        let result = Object.values (transactions || []).map ((transaction) => {
+            if (side === undefined)
+                return this.parseTransaction (transaction, currency);
+            return this.parseTransaction (transaction, currency, side);
+        });
         result = this.sortBy (result, 'timestamp');
         let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
@@ -1058,13 +1062,6 @@ module.exports = class Exchange {
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
-        result = sortBy (result, 'timestamp')
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit)
-    }
-
-    parseTransactions (transactions, side = undefined, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, side))
         result = sortBy (result, 'timestamp')
         let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
