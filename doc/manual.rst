@@ -513,7 +513,7 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``rateLimit``: A request rate limit in milliseconds. Specifies the required minimal delay between two consequent HTTP requests to the same exchange. The built-in rate-limiter is disabled by default and is turned on by setting the ``enableRateLimit`` property to true.
 
--  ``enableRateLimit``: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This settings is false (disabled) by default. **The user is required to implement own**\ `rate limiting <https://github.com/ccxt/ccxt/wiki/Manual#rate-limit>`__\ **or enable the built-in rate limiter to avoid being banned from the exchange**.
+-  ``enableRateLimit``: A boolean (true/false) value that enables the built-in rate limiter and throttles consecutive requests. This setting is false (disabled) by default. **The user is required to implement own**\ `rate limiting <https://github.com/ccxt/ccxt/wiki/Manual#rate-limit>`__\ **or enable the built-in rate limiter to avoid being banned from the exchange**.
 
 -  ``userAgent``: An object to set HTTP User-Agent header to. The ccxt library will set its User-Agent by default. Some exchanges may not like it. If you are having difficulties getting a reply from an exchange and want to turn User-Agent off or use the default one, set this value to false, undefined, or an empty string.
 
@@ -1875,7 +1875,7 @@ OHLCV Emulation
 
 Some exchanges don’t offer any OHLCV method, and for those, the ccxt library will emulate OHLCV candles from `Public Trades <https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions>`__. In that case you will see ``exchange.has['fetchOHLCV'] = 'emulated'``. However, because the trade history is usually very limited, the emulated fetchOHLCV methods cover most recent info only and should only be used as a fallback, when no other option is available.
 
-**WARNING: the fetchOHLCV emulations is experimental!**
+**WARNING: the fetchOHLCV emulation is experimental!**
 
 Trades, Executions, Transactions
 --------------------------------
