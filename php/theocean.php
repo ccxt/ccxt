@@ -1178,7 +1178,7 @@ class theocean extends Exchange {
                                 $error = $errors[$i];
                                 $errorMessage = $this->safe_string($error, 'message');
                                 if (is_array ($exceptions) && array_key_exists ($errorMessage, $exceptions)) {
-                                    throw new $exceptions[$message] ($feedback);
+                                    throw new $exceptions[$errorMessage] ($feedback);
                                 }
                             }
                         }

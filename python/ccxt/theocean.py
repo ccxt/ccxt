@@ -1113,7 +1113,7 @@ class theocean (Exchange):
                                 error = errors[i]
                                 errorMessage = self.safe_string(error, 'message')
                                 if errorMessage in exceptions:
-                                    raise exceptions[message](feedback)
+                                    raise exceptions[errorMessage](feedback)
                     raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

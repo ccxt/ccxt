@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.180'
+const version = '1.17.181'
 
 Exchange.ccxtVersion = version
 
@@ -50921,7 +50921,7 @@ module.exports = class theocean extends Exchange {
                                 let error = errors[i];
                                 let errorMessage = this.safeString (error, 'message');
                                 if (errorMessage in exceptions) {
-                                    throw new exceptions[message] (feedback);
+                                    throw new exceptions[errorMessage] (feedback);
                                 }
                             }
                         }
