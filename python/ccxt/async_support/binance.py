@@ -605,6 +605,12 @@ class binance (Exchange):
         type = self.safe_string(order, 'type')
         if type is not None:
             type = type.lower()
+            if type == 'market':
+                if price == 0.0:
+                    quoteCost = self.safe_float(order, 'cummulativeQuoteQty')
+                    if (quoteCost is not None) and(filled is not None):
+                        if (quoteCost > 0) and(filled > 0):
+                            price = filled / quoteCost
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
