@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.184'
+const version = '1.17.185'
 
 Exchange.ccxtVersion = version
 
@@ -10406,7 +10406,7 @@ module.exports = class bitforex extends Exchange {
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
             let message = '/' + path + '?' + payload;
-            let signature = this.hmac (message, this.secret);
+            let signature = this.hmac (this.encode (message), this.encode (this.secret));
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
