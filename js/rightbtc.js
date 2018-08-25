@@ -42,7 +42,7 @@ module.exports = class rightbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getAssetsTradingPairs/zh',
+                        // 'getAssetsTradingPairs/zh', // 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -134,8 +134,8 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetTradingPairs ();
-        let zh = await this.publicGetGetAssetsTradingPairsZh ();
-        let markets = this.extend (zh['result'], response['status']['message']);
+        // let zh = await this.publicGetGetAssetsTradingPairsZh ();
+        let markets = this.extend (response['status']['message']);
         let marketIds = Object.keys (markets);
         let result = [];
         for (let i = 0; i < marketIds.length; i++) {
