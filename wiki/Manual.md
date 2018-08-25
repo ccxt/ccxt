@@ -2541,13 +2541,19 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'amount':    1.2345,     // float
     'currency': 'ETH',       // a common unified currency code, string
     'status':   'pending',   // 'ok', 'failed', 'canceled', string
-    'updated':   undefined,  // timestamp in milliseconds
+    'updated':   undefined,  // UTC timestamp in ms of most recent status change
     'fee': {                 // the entire fee structure may be undefined
         'cost': 0.1234,      // float
         'rate': undefined,   // approximately, fee['cost'] / amount, float
     },
 }
 ```
+
+##### Notes On Transaction Structure
+
+- The `updated` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it `withdrawal` or `deposit`. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports `created_at` and `confirmed_at` for a transaction, then the `updated` field will take the value of `Math.max (created_at, confirmed_at)`, that is, the timestamp of the most recent change of the status.
+- The `updated` field may be undefined in certain exchange-specific cases.
+- The `fee` substructure may be missing, if not supplied within the reply coming from the exchange.
 
 #### Deposits
 
