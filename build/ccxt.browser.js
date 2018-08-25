@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.182'
+const version = '1.17.183'
 
 Exchange.ccxtVersion = version
 
@@ -54072,6 +54072,7 @@ module.exports = class yobit extends liqui {
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
+                'GOT': 'Giotto Coin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
