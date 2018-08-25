@@ -104,14 +104,8 @@ class therock extends Exchange {
         for ($p = 0; $p < count ($markets['tickers']); $p++) {
             $market = $markets['tickers'][$p];
             $id = $market['fund_id'];
-			if (mb_strlen($id)==6):
-				$base = mb_substr ($id, 0, 3);
-				$quote = mb_substr ($id, 3);
-			else:
-				$info = $this->publicGetFundsId(array('id' => $id));
-				$base = $info["trade_currency"];
-				$quote = $info["base_currency"];
-			endif;
+            $base = mb_substr ($id, 0, 3);
+            $quote = mb_substr ($id, 3);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
