@@ -633,7 +633,7 @@ module.exports = class binance extends Exchange {
                     let quoteCost = this.safeFloat (order, 'cummulativeQuoteQty');
                     if ((typeof quoteCost !== 'undefined') && (typeof filled !== 'undefined')) {
                         if ((quoteCost > 0) && (filled > 0)) {
-                            price = filled / quoteCost;
+                            price = quoteCost / filled;
                         }
                     }
                 }
