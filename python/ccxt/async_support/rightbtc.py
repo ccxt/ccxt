@@ -60,7 +60,7 @@ class rightbtc (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'getAssetsTradingPairs/zh',
+                        # 'getAssetsTradingPairs/zh',  # 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -151,8 +151,8 @@ class rightbtc (Exchange):
 
     async def fetch_markets(self):
         response = await self.publicGetTradingPairs()
-        zh = await self.publicGetGetAssetsTradingPairsZh()
-        markets = self.extend(zh['result'], response['status']['message'])
+        # zh = await self.publicGetGetAssetsTradingPairsZh()
+        markets = self.extend(response['status']['message'])
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):

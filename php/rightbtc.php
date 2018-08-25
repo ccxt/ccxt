@@ -47,7 +47,7 @@ class rightbtc extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'getAssetsTradingPairs/zh',
+                        // 'getAssetsTradingPairs/zh', // 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -139,8 +139,8 @@ class rightbtc extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetTradingPairs ();
-        $zh = $this->publicGetGetAssetsTradingPairsZh ();
-        $markets = array_merge ($zh['result'], $response['status']['message']);
+        // $zh = $this->publicGetGetAssetsTradingPairsZh ();
+        $markets = array_merge ($response['status']['message']);
         $marketIds = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($i = 0; $i < count ($marketIds); $i++) {
