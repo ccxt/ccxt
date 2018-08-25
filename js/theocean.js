@@ -1174,7 +1174,7 @@ module.exports = class theocean extends Exchange {
                                 let error = errors[i];
                                 let errorMessage = this.safeString (error, 'message');
                                 if (errorMessage in exceptions) {
-                                    throw new exceptions[message] (feedback);
+                                    throw new exceptions[errorMessage] (feedback);
                                 }
                             }
                         }
