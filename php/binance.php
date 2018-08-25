@@ -627,8 +627,19 @@ class binance extends Exchange {
         }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'type');
-        if ($type !== null)
+        if ($type !== null) {
             $type = strtolower ($type);
+            if ($type === 'market') {
+                if ($price === 0.0) {
+                    $quoteCost = $this->safe_float($order, 'cummulativeQuoteQty');
+                    if (($quoteCost !== null) && ($filled !== null)) {
+                        if (($quoteCost > 0) && ($filled > 0)) {
+                            $price = $filled / $quoteCost;
+                        }
+                    }
+                }
+            }
+        }
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
             $side = strtolower ($side);
