@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.179'
+const version = '1.17.180'
 
 Exchange.ccxtVersion = version
 
@@ -5418,7 +5418,7 @@ module.exports = class bigone extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetMarketsSymbolDepth (this.extend ({
             'symbol': this.marketId (symbol),
@@ -12440,7 +12440,7 @@ module.exports = class bitsane extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetOrderbook (this.extend ({
             'pair': this.marketId (symbol),
