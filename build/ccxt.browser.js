@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.186'
+const version = '1.17.187'
 
 Exchange.ccxtVersion = version
 
@@ -6468,7 +6468,7 @@ module.exports = class binance extends Exchange {
                     let quoteCost = this.safeFloat (order, 'cummulativeQuoteQty');
                     if ((typeof quoteCost !== 'undefined') && (typeof filled !== 'undefined')) {
                         if ((quoteCost > 0) && (filled > 0)) {
-                            price = filled / quoteCost;
+                            price = quoteCost / filled;
                         }
                     }
                 }
