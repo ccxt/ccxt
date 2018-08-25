@@ -610,7 +610,7 @@ class binance (Exchange):
                     quoteCost = self.safe_float(order, 'cummulativeQuoteQty')
                     if (quoteCost is not None) and(filled is not None):
                         if (quoteCost > 0) and(filled > 0):
-                            price = filled / quoteCost
+                            price = quoteCost / filled
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()

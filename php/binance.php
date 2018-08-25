@@ -634,7 +634,7 @@ class binance extends Exchange {
                     $quoteCost = $this->safe_float($order, 'cummulativeQuoteQty');
                     if (($quoteCost !== null) && ($filled !== null)) {
                         if (($quoteCost > 0) && ($filled > 0)) {
-                            $price = $filled / $quoteCost;
+                            $price = $quoteCost / $filled;
                         }
                     }
                 }
