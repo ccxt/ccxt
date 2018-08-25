@@ -103,8 +103,16 @@ module.exports = class therock extends Exchange {
         for (let p = 0; p < markets['tickers'].length; p++) {
             let market = markets['tickers'][p];
             let id = market['fund_id'];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3);
+            if (id.length==6) {
+                let base = id.slice (0, 3);
+                let quote = id.slice (3);
+                }
+			else {
+				let info = await this.publicGetFundsId(array({'id': id }));
+				let base = info['trade_currency'];
+				let quote = info['base_currency'];
+                }
+			endif;
             let symbol = base + '/' + quote;
             result.push ({
                 'id': id,
