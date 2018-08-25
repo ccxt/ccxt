@@ -536,7 +536,7 @@ class bitforex extends Exchange {
             }
             // $message = '/' . 'api/' . $this->version . '/' . $path . '?' . $payload;
             $message = '/' . $path . '?' . $payload;
-            $signature = $this->hmac ($message, $this->secret);
+            $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
             $body = $payload . '&signData=' . $signature;
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',

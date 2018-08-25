@@ -519,7 +519,7 @@ class bitforex (Exchange):
                 payload += '&' + self.urlencode(self.keysort(query))
             # message = '/' + 'api/' + self.version + '/' + path + '?' + payload
             message = '/' + path + '?' + payload
-            signature = self.hmac(message, self.secret)
+            signature = self.hmac(self.encode(message), self.encode(self.secret))
             body = payload + '&signData=' + signature
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
