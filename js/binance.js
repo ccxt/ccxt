@@ -626,8 +626,19 @@ module.exports = class binance extends Exchange {
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
-        if (typeof type !== 'undefined')
+        if (typeof type !== 'undefined') {
             type = type.toLowerCase ();
+            if (type === 'market') {
+                if (price === 0.0) {
+                    let quoteCost = this.safeFloat (order, 'cummulativeQuoteQty');
+                    if ((typeof quoteCost !== 'undefined') && (typeof filled !== 'undefined')) {
+                        if ((quoteCost > 0) && (filled > 0)) {
+                            price = filled / quoteCost;
+                        }
+                    }
+                }
+            }
+        }
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
