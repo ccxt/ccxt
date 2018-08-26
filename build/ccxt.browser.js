@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.187'
+const version = '1.17.188'
 
 Exchange.ccxtVersion = version
 
@@ -2159,6 +2159,15 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
+    getResponseHeaders (response) {
+        let result = {}
+        response.headers.forEach ((value, key) => {
+            key = key.split ('-').map (word => capitalize (word)).join ('-')
+            result[key] = value
+        })
+        return result
+    }
+
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then ((responseBody) => {
@@ -2166,11 +2175,7 @@ module.exports = class Exchange {
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
             let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
 
-            let responseHeaders = {}
-            response.headers.forEach ((value, key) => {
-                key = key.split ('-').map (word => capitalize (word)).join ('-')
-                responseHeaders[key] = value;
-            })
+            let responseHeaders = this.getResponseHeaders (response)
 
             this.last_response_headers = responseHeaders
             this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
