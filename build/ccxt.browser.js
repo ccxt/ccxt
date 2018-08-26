@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.190'
+const version = '1.17.191'
 
 Exchange.ccxtVersion = version
 
@@ -2157,6 +2157,12 @@ module.exports = class Exchange {
             error = ExchangeError
         }
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
+    }
+
+    isJsonEncodedObject (object) {
+        return ((typeof object === 'string') &&
+                (object.length >= 2) &&
+                ((object[0] === '{') || (object[0] === '[')))
     }
 
     getResponseHeaders (response) {
