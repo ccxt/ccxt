@@ -70,6 +70,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'balance/coin/withdraw',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -78,11 +79,12 @@ module.exports = class coinex extends Exchange {
                         'order/user/deals',
                     ],
                     'post': [
-                        'order/limit',
-                        'order/market',
                         'balance/coin/withdraw',
+                        'order/limit',
+                        'order/market',                        
                     ],
                     'delete': [
+                        'balance/coin/withdraw',
                         'order/pending',
                     ],
                 },
