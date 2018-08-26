@@ -102,7 +102,7 @@ module.exports = class cointiger extends huobipro {
             },
             'exceptions': {
                 //    {"code":"1","msg":"系统错误","data":null}
-                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
