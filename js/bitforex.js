@@ -332,7 +332,7 @@ module.exports = class bitforex extends Exchange {
             result[code]['free'] = this.safeFloat (current, 'active');
             result[code]['total'] = this.safeFloat (current, 'fix');
         }
-        return result;
+        return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
