@@ -102,7 +102,7 @@ class cointiger extends huobipro {
             ),
             'exceptions' => array (
                 //    array ("code":"1","msg":"系统错误","data":null)
-                //    array (“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                //    array ("code":"1","msg":"Balance insufficient,余额不足","data":null)
                 '1' => '\\ccxt\\ExchangeError',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',

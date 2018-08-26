@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.189'
+const version = '1.17.190'
 
 Exchange.ccxtVersion = version
 
@@ -10219,7 +10219,7 @@ module.exports = class bitforex extends Exchange {
             result[code]['free'] = this.safeFloat (current, 'active');
             result[code]['total'] = this.safeFloat (current, 'fix');
         }
-        return result;
+        return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -26297,7 +26297,7 @@ module.exports = class cointiger extends huobipro {
             },
             'exceptions': {
                 //    {"code":"1","msg":"系统错误","data":null}
-                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,

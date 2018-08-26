@@ -334,7 +334,7 @@ class bitforex (Exchange):
             result[code]['used'] = self.safe_float(current, 'frozen')
             result[code]['free'] = self.safe_float(current, 'active')
             result[code]['total'] = self.safe_float(current, 'fix')
-        return result
+        return self.parse_balance(result)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
