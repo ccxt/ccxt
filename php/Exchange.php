@@ -632,8 +632,8 @@ class Exchange {
 
     public static function is_json_encoded_object ($input) {
         return (gettype ($body) === 'string') &&
-            (strlen ($body) >= 2) &&
-            (($body[0] === '{') || ($body[0] === '['));
+                (strlen ($body) >= 2) &&
+                (($body[0] === '{') || ($body[0] === '['));
     }
 
     public static function encode ($input) {
