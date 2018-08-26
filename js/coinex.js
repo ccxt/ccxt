@@ -81,7 +81,7 @@ module.exports = class coinex extends Exchange {
                     'post': [
                         'balance/coin/withdraw',
                         'order/limit',
-                        'order/market',                        
+                        'order/market',
                     ],
                     'delete': [
                         'balance/coin/withdraw',
