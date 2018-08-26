@@ -563,6 +563,12 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
+    isJsonEncodedObject (object) {
+        return ((typeof object === 'string') &&
+                (object.length >= 2) &&
+                ((object[0] === '{') || (object[0] === '[')))
+    }
+
     getResponseHeaders (response) {
         let result = {}
         response.headers.forEach ((value, key) => {

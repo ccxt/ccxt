@@ -126,6 +126,7 @@ const commonRegexes = [
     [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
+    [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
 ]
 
 // ----------------------------------------------------------------------------
