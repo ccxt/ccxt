@@ -29,6 +29,7 @@ class coinex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -75,6 +76,7 @@ class coinex (Exchange):
                 },
                 'private': {
                     'get': [
+                        'balance/coin/withdraw',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -83,10 +85,12 @@ class coinex (Exchange):
                         'order/user/deals',
                     ],
                     'post': [
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ],
                     'delete': [
+                        'balance/coin/withdraw',
                         'order/pending',
                     ],
                 },
@@ -471,6 +475,23 @@ class coinex (Exchange):
             'limit': 100,
         }, params))
         return self.parse_trades(response['data']['data'], market, since, limit)
+
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        if tag:
+            address = address + ':' + tag
+        request = {
+            'coin_type': currency['id'],
+            'coin_address': address,
+            'actual_amount': float(amount),
+        }
+        response = await self.privatePostBalanceCoinWithdraw(self.extend(request, params))
+        return {
+            'info': response,
+            'id': self.safe_string(response, 'coin_withdraw_id'),
+        }
 
     def nonce(self):
         return self.milliseconds()

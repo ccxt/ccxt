@@ -87,8 +87,8 @@ class zb (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'http://api.zb.com/data',  # no https for public API
-                    'private': 'https://trade.zb.com/api',
+                    'public': 'http://api.zb.cn/data',  # no https for public API
+                    'private': 'https://trade.zb.cn/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
