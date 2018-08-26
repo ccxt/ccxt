@@ -857,6 +857,8 @@ class okcoinusd (Exchange):
         #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
         # for some reason they require to supply a pair of currencies for withdrawing one currency
         currencyId = currency['id'] + '_usd'
+        if tag:
+            address = address + ':' + tag
         request = {
             'symbol': currencyId,
             'withdraw_address': address,

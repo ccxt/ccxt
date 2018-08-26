@@ -23,6 +23,7 @@ class coinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -69,6 +70,7 @@ class coinex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'balance/coin/withdraw',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -77,10 +79,12 @@ class coinex extends Exchange {
                         'order/user/deals',
                     ),
                     'post' => array (
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ),
                     'delete' => array (
+                        'balance/coin/withdraw',
                         'order/pending',
                     ),
                 ),
@@ -500,6 +504,24 @@ class coinex extends Exchange {
             'limit' => 100,
         ), $params));
         return $this->parse_trades($response['data']['data'], $market, $since, $limit);
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        if ($tag)
+            $address = $address . ':' . $tag;
+        $request = array (
+            'coin_type' => $currency['id'],
+            'coin_address' => $address,
+            'actual_amount' => floatval ($amount),
+        );
+        $response = $this->privatePostBalanceCoinWithdraw (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response, 'coin_withdraw_id'),
+        );
     }
 
     public function nonce () {
