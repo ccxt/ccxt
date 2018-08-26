@@ -56,9 +56,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
         if rounding_mode == ROUND or to_nearest > abs(dec):
             signed = to_nearest if dec > 0 else -to_nearest
             rounded = signed if abs(signed - dec) <= abs(dec) else 0
-            if rounded != 0:
-                return str(rounded * (dec // signed + 1))
-            return str(rounded)
+            return str(rounded * (dec // signed + 1))
         elif rounding_mode == TRUNCATE:
             unsigned = string.lstrip('-')
             truncated = unsigned[:-precision].ljust(-precision + 1, '0')
