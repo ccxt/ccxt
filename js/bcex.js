@@ -408,13 +408,13 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = this.marketId (symbol);;
+            request['symbol'] = this.marketId (symbol);
         }
         if (typeof id !== 'undefined') {
             request['order_id'] = id;
         }
-        let results = await this.privatePostApiOrderCancel (this.extend (request, params));
-        return results;
+        let response = await this.privatePostApiOrderCancel (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
