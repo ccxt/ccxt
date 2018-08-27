@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pprint import pprint
-
 import os
 import sys
 
@@ -32,7 +30,4 @@ for i in range(0, 100):
     print(i)
     print('sent:', exchange.iso8601(exchange.milliseconds()))
     orderbook = exchange.fetch_order_book(symbol)
-    print('received:',
-        exchange.iso8601(exchange.milliseconds()),
-        'bid:', orderbook['bids'][0],
-        'ask:', orderbook['asks'][0])
+    print('received:', exchange.iso8601(exchange.milliseconds()), 'bid:', orderbook['bids'][0], 'ask:', orderbook['asks'][0])
