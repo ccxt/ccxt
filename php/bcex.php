@@ -80,10 +80,10 @@ class bcex extends Exchange {
                     ),
                     'deposit' => array (),
                 ),
-                'exceptions' => array (
-                    '该币不存在,非法操作' => '\\ccxt\\ExchangeError', // array ( code => 1, msg => "该币不存在,非法操作" ) - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    '公钥不合法' => '\\ccxt\\AuthenticationError', // array ( code => 1, msg => '公钥不合法' ) - wrong public key
-                ),
+            ),
+            'exceptions' => array (
+                '该币不存在,非法操作' => '\\ccxt\\ExchangeError', // array ( code => 1, msg => "该币不存在,非法操作" ) - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                '公钥不合法' => '\\ccxt\\AuthenticationError', // array ( code => 1, msg => '公钥不合法' ) - wrong public key
             ),
         ));
     }
@@ -305,7 +305,7 @@ class bcex extends Exchange {
         $response = $this->privatePostApiOrderOrderInfo (array_merge ($request, $params));
         $order = $response['data'];
         $timestamp = $order['created'] * 1000;
-        $status = $this->parseStatus ($order['status']);
+        $status = $this->parse_order_status($order['status']);
         $result = array (
             'info' => $order,
             'id' => $id,
@@ -409,13 +409,13 @@ class bcex extends Exchange {
         $this->load_markets();
         $request = array ();
         if ($symbol !== null) {
-            $request['symbol'] = $symbol;
+            $request['symbol'] = $this->market_id($symbol);
         }
         if ($id !== null) {
             $request['order_id'] = $id;
         }
-        $results = $this->privatePostApiOrderCancel (array_merge ($request, $params));
-        return $results;
+        $response = $this->privatePostApiOrderCancel (array_merge ($request, $params));
+        return $response;
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
