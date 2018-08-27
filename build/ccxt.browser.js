@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.191'
+const version = '1.17.192'
 
 Exchange.ccxtVersion = version
 
@@ -20518,28 +20518,44 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         'completed_at': None,
+        //         'eq_price': '0',
+        //         'filled': '0',
+        //         'id': '88426800-beae-4407-b4a1-f65cef693542',
+        //         'price': '0.00000507',
+        //         'side': 'bid',
+        //         'size': '3503.6489',
+        //         'source': 'exchange',
+        //         'state': 'open',
+        //         'timestamp': 1535258403597,
+        //         'trading_pair_id': 'ACT-BTC',
+        //         'type': 'limit',
+        //     }
+        //
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            let marketId = this.safeString (order, 'trading_pair');
-            marketId = this.safeString (order, 'trading_pair_id', marketId);
+            let marketId = this.safeString2 (order, 'trading_pair', 'trading_pair_id');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger (order, 'timestamp');
-        let price = this.safeFloat (order, 'eq_price');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
         let remaining = undefined;
         let cost = undefined;
+        if (typeof filled !== 'undefined' && typeof average !== 'undefined') {
+            cost = average * filled;
+        } else if (typeof average !== 'undefined') {
+            cost = average * amount;
+        }
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
-            }
-            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
-                cost = price * filled;
-            } else if (typeof price !== 'undefined') {
-                cost = price * amount;
             }
         }
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -20560,6 +20576,7 @@ module.exports = class cobinhood extends Exchange {
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
