@@ -35,6 +35,7 @@ class cobinhood (Exchange):
                 'fetchWithdrawals': True,
                 'withdraw': False,
                 'fetchMyTrades': True,
+                'editOrder': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -126,6 +127,9 @@ class cobinhood (Exchange):
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                    ],
+                    'put': [
+                        'trading/orders/{order_id}',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -494,6 +498,16 @@ class cobinhood (Exchange):
         id = order['id']
         self.orders[id] = order
         return order
+
+    def edit_order(self, id, symbol, type, side, amount, price, params={}):
+        response = self.privatePutTradingOrdersOrderId(self.extend({
+            'order_id': id,
+            'price': self.price_to_precision(symbol, price),
+            'size': self.amount_to_string(symbol, amount),
+        }, params))
+        return self.parse_order(self.extend(response, {
+            'id': id,
+        }))
 
     def cancel_order(self, id, symbol=None, params={}):
         response = self.privateDeleteTradingOrdersOrderId(self.extend({

@@ -79,10 +79,10 @@ module.exports = class bcex extends Exchange {
                     },
                     'deposit': {},
                 },
-                'exceptions': {
-                    '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
-                },
+            },
+            'exceptions': {
+                '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
             },
         });
     }
@@ -304,7 +304,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = order['created'] * 1000;
-        let status = this.parseStatus (order['status']);
+        let status = this.parseOrderStatus (order['status']);
         let result = {
             'info': order,
             'id': id,
@@ -408,13 +408,13 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = symbol;
+            request['symbol'] = this.marketId (symbol);
         }
         if (typeof id !== 'undefined') {
             request['order_id'] = id;
         }
-        let results = await this.privatePostApiOrderCancel (this.extend (request, params));
-        return results;
+        let response = await this.privatePostApiOrderCancel (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

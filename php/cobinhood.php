@@ -30,6 +30,7 @@ class cobinhood extends Exchange {
                 'fetchWithdrawals' => true,
                 'withdraw' => false,
                 'fetchMyTrades' => true,
+                'editOrder' => true,
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -121,6 +122,9 @@ class cobinhood extends Exchange {
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                    ),
+                    'put' => array (
+                        'trading/orders/{order_id}',
                     ),
                     'delete' => array (
                         'trading/orders/{order_id}',
@@ -514,6 +518,17 @@ class cobinhood extends Exchange {
         $id = $order['id'];
         $this->orders[$id] = $order;
         return $order;
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount, $price, $params = array ()) {
+        $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
+            'order_id' => $id,
+            'price' => $this->price_to_precision($symbol, $price),
+            'size' => $this->amount_to_string($symbol, $amount),
+        ), $params));
+        return $this->parse_order(array_merge ($response, array (
+            'id' => $id,
+        )));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {

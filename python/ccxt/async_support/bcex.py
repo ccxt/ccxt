@@ -89,10 +89,10 @@ class bcex (Exchange):
                     },
                     'deposit': {},
                 },
-                'exceptions': {
-                    '该币不存在,非法操作': ExchangeError,  # {code: 1, msg: "该币不存在,非法操作"} - returned when a required symbol parameter is missing in the request(also, maybe on other types of errors as well)
-                    '公钥不合法': AuthenticationError,  # {code: 1, msg: '公钥不合法'} - wrong public key
-                },
+            },
+            'exceptions': {
+                '该币不存在,非法操作': ExchangeError,  # {code: 1, msg: "该币不存在,非法操作"} - returned when a required symbol parameter is missing in the request(also, maybe on other types of errors as well)
+                '公钥不合法': AuthenticationError,  # {code: 1, msg: '公钥不合法'} - wrong public key
             },
         })
 
@@ -292,7 +292,7 @@ class bcex (Exchange):
         response = await self.privatePostApiOrderOrderInfo(self.extend(request, params))
         order = response['data']
         timestamp = order['created'] * 1000
-        status = self.parseStatus(order['status'])
+        status = self.parse_order_status(order['status'])
         result = {
             'info': order,
             'id': id,
@@ -388,11 +388,11 @@ class bcex (Exchange):
         await self.load_markets()
         request = {}
         if symbol is not None:
-            request['symbol'] = symbol
+            request['symbol'] = self.market_id(symbol)
         if id is not None:
             request['order_id'] = id
-        results = await self.privatePostApiOrderCancel(self.extend(request, params))
-        return results
+        response = await self.privatePostApiOrderCancel(self.extend(request, params))
+        return response
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
