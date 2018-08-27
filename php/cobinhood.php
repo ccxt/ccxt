@@ -429,28 +429,44 @@ class cobinhood extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //     {
+        //         'completed_at' => None,
+        //         'eq_price' => '0',
+        //         'filled' => '0',
+        //         'id' => '88426800-beae-4407-b4a1-f65cef693542',
+        //         'price' => '0.00000507',
+        //         'side' => 'bid',
+        //         'size' => '3503.6489',
+        //         'source' => 'exchange',
+        //         'state' => 'open',
+        //         'timestamp' => 1535258403597,
+        //         'trading_pair_id' => 'ACT-BTC',
+        //         'type' => 'limit',
+        //     }
+        //
         $symbol = null;
         if ($market === null) {
-            $marketId = $this->safe_string($order, 'trading_pair');
-            $marketId = $this->safe_string($order, 'trading_pair_id', $marketId);
+            $marketId = $this->safe_string_2($order, 'trading_pair', 'trading_pair_id');
             $market = $this->safe_value($this->markets_by_id, $marketId);
         }
         if ($market !== null)
             $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'timestamp');
-        $price = $this->safe_float($order, 'eq_price');
+        $price = $this->safe_float($order, 'price');
+        $average = $this->safe_float($order, 'eq_price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled');
         $remaining = null;
         $cost = null;
+        if ($filled !== null && $average !== null) {
+            $cost = $average * $filled;
+        } else if ($average !== null) {
+            $cost = $average * $amount;
+        }
         if ($amount !== null) {
             if ($filled !== null) {
                 $remaining = $amount - $filled;
-            }
-            if ($filled !== null && $price !== null) {
-                $cost = $price * $filled;
-            } else if ($price !== null) {
-                $cost = $price * $amount;
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
@@ -471,6 +487,7 @@ class cobinhood extends Exchange {
             'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
