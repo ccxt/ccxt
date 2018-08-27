@@ -408,7 +408,7 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = symbol;
+            request['symbol'] = this.marketId (symbol);;
         }
         if (typeof id !== 'undefined') {
             request['order_id'] = id;
