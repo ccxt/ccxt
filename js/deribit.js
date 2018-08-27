@@ -234,12 +234,13 @@ module.exports = class deribit extends Exchange {
             'filled': 'closed',
         };
         if (status in statuses) {
-            return statuses['status'];
+            return statuses[status];
         }
         return status;
     }
 
     parseOrder (order, market = undefined) {
+        //
         //     {
         //         "orderId": 5258039,          // ID of the order
         //         "type": "limit",             // not documented, but present in the actual response
@@ -265,15 +266,20 @@ module.exports = class deribit extends Exchange {
         //
         let timestamp = this.safeInteger (order, 'created');
         let lastUpdate = this.safeInteger (order, 'lastUpdate');
-        lastUpdate = this.safeInteger (order, 'tstamp', lastUpdate);
-        let modified = this.safeInteger (order, 'modified');
-        let lastTradeTimestamp = Math.max (lastUpdate, modified);
+        let lastTradeTimestamp = this.safeInteger2 (order, 'tstamp', 'modified');
         let id = this.safeString (order, 'orderId');
         let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount');
+        let average = this.safeFloat (order, 'avgPrice');
+        let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filledQuantity');
+        if (typeof lastTradeTimestamp === 'undefined') {
+            if (typeof filled !== 'undefined') {
+                if (filled > 0) {
+                    lastTradeTimestamp = lastUpdate;
+                }
+            }
+        }
         let remaining = undefined;
-        price = this.safeFloat (order, 'avgPrice', price);
         let cost = undefined;
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
@@ -310,11 +316,12 @@ module.exports = class deribit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': undefined,
+            'trades': undefined, // todo: parse trades
         };
     }
 
@@ -334,7 +341,11 @@ module.exports = class deribit extends Exchange {
             request['price'] = price;
         let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response['result']);
+        let order = this.safeValue (response['result'], 'order');
+        if (typeof order === 'undefined') {
+            return response;
+        }
+        return this.parseOrder (order);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
