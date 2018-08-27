@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.187';
+$version = '1.17.193';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.187';
+    const VERSION = '1.17.193';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -628,6 +628,12 @@ class Exchange {
             if (array_key_exists ($key, $params) && $params[$key])
                 $flags |= $options[$key];
         return json_encode ($data, $flags);
+    }
+
+    public static function is_json_encoded_object ($input) {
+        return (gettype ($body) === 'string') &&
+                (strlen ($body) >= 2) &&
+                (($body[0] === '{') || ($body[0] === '['));
     }
 
     public static function encode ($input) {

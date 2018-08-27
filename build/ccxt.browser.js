@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.187'
+const version = '1.17.193'
 
 Exchange.ccxtVersion = version
 
@@ -2159,6 +2159,21 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
+    isJsonEncodedObject (object) {
+        return ((typeof object === 'string') &&
+                (object.length >= 2) &&
+                ((object[0] === '{') || (object[0] === '[')))
+    }
+
+    getResponseHeaders (response) {
+        let result = {}
+        response.headers.forEach ((value, key) => {
+            key = key.split ('-').map (word => capitalize (word)).join ('-')
+            result[key] = value
+        })
+        return result
+    }
+
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
 
         return response.text ().then ((responseBody) => {
@@ -2166,11 +2181,7 @@ module.exports = class Exchange {
             let jsonRequired = this.parseJsonResponse && !this.skipJsonOnStatusCodes.includes (response.status)
             let json = jsonRequired ? this.parseJson (response, responseBody, url, method) : undefined
 
-            let responseHeaders = {}
-            response.headers.forEach ((value, key) => {
-                key = key.split ('-').map (word => capitalize (word)).join ('-')
-                responseHeaders[key] = value;
-            })
+            let responseHeaders = this.getResponseHeaders (response)
 
             this.last_response_headers = responseHeaders
             this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
@@ -10214,7 +10225,7 @@ module.exports = class bitforex extends Exchange {
             result[code]['free'] = this.safeFloat (current, 'active');
             result[code]['total'] = this.safeFloat (current, 'fix');
         }
-        return result;
+        return this.parseBalance (result);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -20507,28 +20518,44 @@ module.exports = class cobinhood extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         'completed_at': None,
+        //         'eq_price': '0',
+        //         'filled': '0',
+        //         'id': '88426800-beae-4407-b4a1-f65cef693542',
+        //         'price': '0.00000507',
+        //         'side': 'bid',
+        //         'size': '3503.6489',
+        //         'source': 'exchange',
+        //         'state': 'open',
+        //         'timestamp': 1535258403597,
+        //         'trading_pair_id': 'ACT-BTC',
+        //         'type': 'limit',
+        //     }
+        //
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            let marketId = this.safeString (order, 'trading_pair');
-            marketId = this.safeString (order, 'trading_pair_id', marketId);
+            let marketId = this.safeString2 (order, 'trading_pair', 'trading_pair_id');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let timestamp = this.safeInteger (order, 'timestamp');
-        let price = this.safeFloat (order, 'eq_price');
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'eq_price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
         let remaining = undefined;
         let cost = undefined;
+        if (typeof filled !== 'undefined' && typeof average !== 'undefined') {
+            cost = average * filled;
+        } else if (typeof average !== 'undefined') {
+            cost = average * amount;
+        }
         if (typeof amount !== 'undefined') {
             if (typeof filled !== 'undefined') {
                 remaining = amount - filled;
-            }
-            if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
-                cost = price * filled;
-            } else if (typeof price !== 'undefined') {
-                cost = price * amount;
             }
         }
         let status = this.parseOrderStatus (this.safeString (order, 'state'));
@@ -20549,6 +20576,7 @@ module.exports = class cobinhood extends Exchange {
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -22034,6 +22062,7 @@ module.exports = class coinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -22080,6 +22109,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'balance/coin/withdraw',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -22088,10 +22118,12 @@ module.exports = class coinex extends Exchange {
                         'order/user/deals',
                     ],
                     'post': [
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ],
                     'delete': [
+                        'balance/coin/withdraw',
                         'order/pending',
                     ],
                 },
@@ -22511,6 +22543,24 @@ module.exports = class coinex extends Exchange {
             'limit': 100,
         }, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        if (tag)
+            address = address + ':' + tag;
+        let request = {
+            'coin_type': currency['id'],
+            'coin_address': address,
+            'actual_amount': parseFloat (amount),
+        };
+        let response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'coin_withdraw_id'),
+        };
     }
 
     nonce () {
@@ -26270,7 +26320,7 @@ module.exports = class cointiger extends huobipro {
             },
             'exceptions': {
                 //    {"code":"1","msg":"系统错误","data":null}
-                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
@@ -46427,6 +46477,9 @@ module.exports = class okcoinusd extends Exchange {
         //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
         // for some reason they require to supply a pair of currencies for withdrawing one currency
         let currencyId = currency['id'] + '_usd';
+        if (tag) {
+            address = address + ':' + tag;
+        }
         let request = {
             'symbol': currencyId,
             'withdraw_address': address,
@@ -54799,8 +54852,8 @@ module.exports = class zb extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'http://api.zb.com/data', // no https for public API
-                    'private': 'https://trade.zb.com/api',
+                    'public': 'http://api.zb.cn/data', // no https for public API
+                    'private': 'https://trade.zb.cn/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',

@@ -333,7 +333,7 @@ class bitforex extends Exchange {
             $result[$code]['free'] = $this->safe_float($current, 'active');
             $result[$code]['total'] = $this->safe_float($current, 'fix');
         }
-        return $result;
+        return $this->parse_balance($result);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {

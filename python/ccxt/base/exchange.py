@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.187'
+__version__ = '1.17.193'
 
 # -----------------------------------------------------------------------------
 
@@ -850,6 +850,12 @@ class Exchange(object):
     @staticmethod
     def json(data, params=None):
         return json.dumps(data, separators=(',', ':'))
+
+    @staticmethod
+    def is_json_encoded_object(input):
+        return (isinstance(input, basestring) and
+                (len(input) >= 2) and
+                ((input[0] == '{') or (input[0] == '[')))
 
     @staticmethod
     def encode(string):
