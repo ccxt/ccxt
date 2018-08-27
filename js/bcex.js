@@ -304,7 +304,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = order['created'] * 1000;
-        let status = this.parseStatus (order['status']);
+        let status = this.parseOrderStatus (order['status']);
         let result = {
             'info': order,
             'id': id,
