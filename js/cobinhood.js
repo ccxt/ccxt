@@ -505,7 +505,7 @@ module.exports = class cobinhood extends Exchange {
     async editOrder (id, symbol, type, side, amount, price, params = {}) {
         let response = await this.privatePutTradingOrdersOrderId (this.extend ({
             'order_id': id,
-            'price': this.amountToString (symbol, price),
+            'price': this.priceToPrecision (symbol, price),
             'size': this.amountToString (symbol, amount),
         }, params));
         return this.parseOrder (this.extend (response, {
