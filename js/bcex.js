@@ -78,7 +78,7 @@ module.exports = class bcex extends Exchange {
                         'other': 0.05 / 100,
                     },
                     'deposit': {},
-                },                
+                },
             },
             'exceptions': {
                 '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
