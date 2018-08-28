@@ -276,7 +276,7 @@ module.exports = class coinfalcon extends Exchange {
         amount = this.amountToPrecision (symbol, amount);
         let request = {
             'market': market['id'],
-            'size': amount.toString (),
+            'size': amount,
             'order_type': side,
         };
         if (type === 'limit') {

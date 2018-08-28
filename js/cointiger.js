@@ -695,19 +695,7 @@ module.exports = class cointiger extends huobipro {
         return result;
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
-    feeToPrecision (currency, fee) {
+    feeToPrecision (currency, fee) {  // Depreciated...
         return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
     }
 
