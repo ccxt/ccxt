@@ -512,8 +512,10 @@ module.exports = class Exchange {
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
                     details = 'offline, on maintenance or unreachable from this location at the moment'
-                if (ddosProtection)
+                // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
+                if ((response.status < 500) && (ddosProtection)) {
                     ExceptionClass = DDoSProtection
+                }
                 throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
             }
 
