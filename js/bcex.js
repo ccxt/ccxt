@@ -67,8 +67,8 @@ module.exports = class bcex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'bid': 0.0,
-                    'ask': 0.02 / 100,
+                    'maker': 0.0,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
