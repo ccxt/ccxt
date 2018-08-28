@@ -4,7 +4,7 @@
 
 const huobipro = require ('./huobipro.js');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
+const { ROUND } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
