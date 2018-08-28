@@ -886,7 +886,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'requestClientId': requestClientId,
         };
         if (typeof amount !== 'undefined')
-            request['quantity'] = this.amountToPrecision (symbol, parseFloat (amount));
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         if (typeof price !== 'undefined')
             request['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePatchOrderClientOrderId (this.extend (request, params));

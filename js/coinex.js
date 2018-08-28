@@ -117,18 +117,6 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
     feeToPrecision (currency, fee) {
         return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
     }
@@ -382,7 +370,7 @@ module.exports = class coinex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.parseOrderStatus (order['status']);
         return {
             'id': this.safeString (order, 'id'),

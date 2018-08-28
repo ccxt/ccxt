@@ -384,7 +384,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let order = {
             'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToString (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'tradeType': (side === 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };

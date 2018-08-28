@@ -729,7 +729,7 @@ module.exports = class cointiger extends huobipro {
             if (typeof price === 'undefined') {
                 throw new InvalidOrder (this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
             }
-            order['volume'] = this.amountToPrecision (symbol, amount * price);
+            order['volume'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
         }
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);

@@ -918,19 +918,16 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimalToPrecision(cost, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
+        return self.decimalToPrecision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimalToPrecision(price, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
+        return self.decimalToPrecision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def amount_to_precision(self, symbol, amount):
-        return float(self.amount_to_string(symbol, amount))
-
-    def amount_to_string(self, symbol, amount):
-        return self.decimalToPrecision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+        return self.decimalToPrecision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimalToPrecision(fee, ROUND, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
+        return self.decimalToPrecision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets

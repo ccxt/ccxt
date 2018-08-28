@@ -1130,23 +1130,19 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, DECIMAL_PLACES)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     priceToPrecision (symbol, price) {
-        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, DECIMAL_PLACES)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return parseFloat (this.amountToString (symbol, amount))
-    }
-
-    amountToString (symbol, amount) {
-        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, DECIMAL_PLACES)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, DECIMAL_PLACES)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

@@ -1847,7 +1847,7 @@ class Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return self::decimalToPrecision ($cost, ROUND, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
+        return self::decimalToPrecision ($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function costToPrecision ($symbol, $cost) {
@@ -1855,7 +1855,7 @@ class Exchange {
     }
 
     public function price_to_precision ($symbol, $price) {
-        return self::decimalToPrecision ($price, ROUND, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
+        return self::decimalToPrecision ($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function priceToPrecision ($symbol, $price) {
@@ -1863,23 +1863,15 @@ class Exchange {
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return floatval ($this->amount_to_string ($symbol, $amount));
-    }
-
-    public function amount_to_string ($symbol, $amount) {
-        return self::decimalToPrecision ($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+        return self::decimalToPrecision ($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function amountToPrecision ($symbol, $amount) {
         return $this->amount_to_precision ($symbol, $amount);
     }
 
-    public function amountToString ($symbol, $amount) {
-        return $this->amount_to_string ($symbol, $amount);
-    }
-
     public function fee_to_precision ($symbol, $fee) {
-        return self::decimalToPrecision ($fee, ROUND, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
+        return self::decimalToPrecision ($fee, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function feeToPrecision ($symbol, $fee) {
