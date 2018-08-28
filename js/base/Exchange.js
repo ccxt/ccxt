@@ -37,7 +37,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const { DECIMAL_PLACES } = functions.precisionConstants
+const { DECIMAL_PLACES, ROUND } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 

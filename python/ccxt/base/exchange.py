@@ -19,7 +19,7 @@ from ccxt.base.errors import InvalidAddress
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, ROUND
 
 # -----------------------------------------------------------------------------
 
