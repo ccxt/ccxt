@@ -1910,6 +1910,14 @@ class Exchange {
         return $this->fee_to_precision ($symbol, $fee);
     }
 
+    public function currency_to_precision ($currency, $fee) {
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode);
+    }
+
+    public function currencyToPrecision ($symbol, $fee) {
+        return $this->currency_to_precision ($symbol, $fee);
+    }
+
     public function commonCurrencyCode ($currency) {
         return $this->common_currency_code ($currency);
     }
