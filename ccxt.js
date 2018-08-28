@@ -169,6 +169,7 @@ const exchanges = {
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),
     'virwox':                  require ('./js/virwox.js'),
+    'walutomat':               require ('./js/walutomat.js'),
     'wex':                     require ('./js/wex.js'),
     'xbtce':                   require ('./js/xbtce.js'),
     'yobit':                   require ('./js/yobit.js'),
