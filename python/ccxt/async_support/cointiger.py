@@ -494,14 +494,14 @@ class cointiger (huobipro):
             order = self.extend(orders[i], {
                 'status': status,
             })
-            result.append(self.parse_order(order, market, since, limit))
+            result.append(self.parse_order(order, market))
         return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('open', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         #

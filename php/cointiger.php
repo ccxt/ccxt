@@ -504,7 +504,7 @@ class cointiger extends huobipro {
             $order = array_merge ($orders[$i], array (
                 'status' => $status,
             ));
-            $result[] = $this->parse_order($order, $market, $since, $limit);
+            $result[] = $this->parse_order($order, $market);
         }
         return $result;
     }
