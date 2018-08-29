@@ -303,7 +303,7 @@ class exx extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrder (array_merge (array (
+        $response = $this->privateGetGetOrder (array_merge (array (
             'currency' => $market['id'],
             'type' => $side,
             'price' => $price,
@@ -345,7 +345,7 @@ class exx extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orders = $this->privateGetOpenOrders (array_merge (array (
+        $orders = $this->privateGetGetOpenOrders (array_merge (array (
             'currency' => $market['id'],
         ), $params));
         return $this->parse_orders($orders, $market, $since, $limit);

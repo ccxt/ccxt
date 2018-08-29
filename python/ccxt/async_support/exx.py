@@ -300,7 +300,7 @@ class exx (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrder(self.extend({
+        response = await self.privateGetGetOrder(self.extend({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -339,7 +339,7 @@ class exx (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orders = await self.privateGetOpenOrders(self.extend({
+        orders = await self.privateGetGetOpenOrders(self.extend({
             'currency': market['id'],
         }, params))
         return self.parse_orders(orders, market, since, limit)
