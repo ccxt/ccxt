@@ -302,7 +302,7 @@ module.exports = class exx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
+        let response = await this.privateGetGetOrder (this.extend ({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -344,7 +344,7 @@ module.exports = class exx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privateGetOpenOrders (this.extend ({
+        let orders = await this.privateGetGetOpenOrders (this.extend ({
             'currency': market['id'],
         }, params));
         return this.parseOrders (orders, market, since, limit);
