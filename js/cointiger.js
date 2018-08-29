@@ -504,17 +504,17 @@ module.exports = class cointiger extends huobipro {
             let order = this.extend (orders[i], {
                 'status': status,
             });
-            result.push (this.parseOrder (order, market, since, limit));
+            result.push (this.parseOrder (order, market));
         }
         return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

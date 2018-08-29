@@ -68,8 +68,8 @@ class bcex extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'bid' => 0.0,
-                    'ask' => 0.02 / 100,
+                    'maker' => 0.0,
+                    'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -84,6 +84,7 @@ class bcex extends Exchange {
             'exceptions' => array (
                 '该币不存在,非法操作' => '\\ccxt\\ExchangeError', // array ( code => 1, msg => "该币不存在,非法操作" ) - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 '公钥不合法' => '\\ccxt\\AuthenticationError', // array ( code => 1, msg => '公钥不合法' ) - wrong public key
+                '您的可用余额不足' => '\\ccxt\\InsufficientFunds', // array ( code => 1, msg => '您的可用余额不足' ) - your available balance is insufficient
             ),
         ));
     }

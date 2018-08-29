@@ -494,7 +494,7 @@ class cointiger (huobipro):
             order = self.extend(orders[i], {
                 'status': status,
             })
-            result.append(self.parse_order(order, market, since, limit))
+            result.append(self.parse_order(order, market))
         return result
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):

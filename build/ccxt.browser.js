@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.198'
+const version = '1.17.202'
 
 Exchange.ccxtVersion = version
 
@@ -2108,8 +2108,10 @@ module.exports = class Exchange {
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
                     details = 'offline, on maintenance or unreachable from this location at the moment'
-                if (ddosProtection)
+                // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
+                if ((response.status < 500) && (ddosProtection)) {
                     ExceptionClass = DDoSProtection
+                }
                 throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
             }
 
@@ -4003,7 +4005,7 @@ module.exports =
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -4067,8 +4069,8 @@ module.exports = class bcex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'bid': 0.0,
-                    'ask': 0.02 / 100,
+                    'maker': 0.0,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -4083,6 +4085,7 @@ module.exports = class bcex extends Exchange {
             'exceptions': {
                 '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
+                '您的可用余额不足': InsufficientFunds, // { code: 1, msg: '您的可用余额不足' } - your available balance is insufficient
             },
         });
     }
@@ -26742,17 +26745,17 @@ module.exports = class cointiger extends huobipro {
             let order = this.extend (orders[i], {
                 'status': status,
             });
-            result.push (this.parseOrder (order, market, since, limit));
+            result.push (this.parseOrder (order, market));
         }
         return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
