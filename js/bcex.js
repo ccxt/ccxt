@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,8 @@ module.exports = class bcex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'bid': 0.0,
-                    'ask': 0.02 / 100,
+                    'maker': 0.0,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -83,6 +83,7 @@ module.exports = class bcex extends Exchange {
             'exceptions': {
                 '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
+                '您的可用余额不足': InsufficientFunds, // { code: 1, msg: '您的可用余额不足' } - your available balance is insufficient
             },
         });
     }
