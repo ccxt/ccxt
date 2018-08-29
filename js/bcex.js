@@ -107,8 +107,8 @@ module.exports = class bcex extends Exchange {
                 let symbol = base + '/' + quote;
                 let active = true;
                 let precision = {
-                    'amount': undefined, // todo: might need this for proper order placement
-                    'price': undefined, // todo: find a way to get these values
+                    'amount': 8, // todo: Look for a better way to find a value. A value is needed for order placement, 8 used as default. 
+                    'price': len(market['current'].split('.')[1]), // todo: Look for a better way. For the moment, get number of decimals from last price
                 };
                 let limits = {
                     'amount': {
