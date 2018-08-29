@@ -391,7 +391,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (typeof limit === 'undefined')
