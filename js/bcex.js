@@ -108,7 +108,7 @@ module.exports = class bcex extends Exchange {
                 let active = true;
                 let precision = {
                     'amount': 8, // todo: Look for a way to find a value.
-                    'price': self.precisionFromString (market['current']), // todo: Look for a better way. For the moment, get number of decimals from last price
+                    'price': this.precisionFromString (market['current']), // todo: Look for a better way. For the moment, get number of decimals from last price
                 };
                 let limits = {
                     'amount': {
