@@ -106,10 +106,9 @@ module.exports = class bcex extends Exchange {
                 let id = baseId + '2' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = true;
-                let priceDecimals = market['current'].split ('.')[1];
                 let precision = {
-                    'amount': undefined, // todo: Look for a way to find a value.
-                    'price': priceDecimals.length, // todo: Look for a better way. For the moment, get number of decimals from last price
+                    'amount': 8, // todo: Look for a way to find a value.
+                    'price': self.precisionFromString (market['current']), // todo: Look for a better way. For the moment, get number of decimals from last price
                 };
                 let limits = {
                     'amount': {
@@ -395,8 +394,8 @@ module.exports = class bcex extends Exchange {
         let order = {
             'symbol': this.marketId (symbol),
             'type': side,
-            'price': price,
-            'number': amount,
+            'price': self.priceToPrecision (symbol, price),
+            'number': self.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostApiOrderCoinTrust (this.extend (order, params));
         let data = response['data'];
