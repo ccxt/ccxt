@@ -482,7 +482,8 @@ module.exports = class bitfinex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balanceType = this.safeString (params, 'type', 'exchange');
-        let balances = await this.privatePostBalances ();
+        let query = this.omit (params, 'type');
+        let balances = await this.privatePostBalances (query);
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
