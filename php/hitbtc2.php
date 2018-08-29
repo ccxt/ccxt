@@ -661,7 +661,8 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $method = 'privateGet' . $this->capitalize ($type) . 'Balance';
-        $balances = $this->$method ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->$method ($query);
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
