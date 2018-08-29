@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.203'
+const version = '1.17.204'
 
 Exchange.ccxtVersion = version
 
@@ -26579,26 +26579,23 @@ module.exports = class cointiger extends huobipro {
             amount = this.safeFloat2 (trade, 'amount', 'volume');
         }
         let fee = undefined;
-        if (typeof side !== 'undefined') {
-            let feeCostField = side + '_fee';
-            let feeCost = this.safeFloat (trade, feeCostField);
-            if (typeof feeCost !== 'undefined') {
-                let feeCurrency = undefined;
-                if (typeof market !== 'undefined') {
-                    feeCurrency = market['base'];
-                }
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            let feeCurrency = undefined;
+            if (typeof market !== 'undefined') {
+                feeCurrency = market['base'];
             }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         if (typeof amount !== 'undefined')
             if (typeof price !== 'undefined')
                 if (typeof cost === 'undefined')
                     cost = amount * price;
         let timestamp = this.safeInteger2 (trade, 'created_at', 'ts');
-        timestamp = this.safeInteger (trade, 'created', timestamp);
+        timestamp = this.safeInteger2 (trade, 'created', 'mtime', timestamp);
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];

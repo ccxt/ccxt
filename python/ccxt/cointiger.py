@@ -341,23 +341,21 @@ class cointiger (huobipro):
             price = self.safe_float(trade, 'price')
             amount = self.safe_float_2(trade, 'amount', 'volume')
         fee = None
-        if side is not None:
-            feeCostField = side + '_fee'
-            feeCost = self.safe_float(trade, feeCostField)
-            if feeCost is not None:
-                feeCurrency = None
-                if market is not None:
-                    feeCurrency = market['base']
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                }
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = None
+            if market is not None:
+                feeCurrency = market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         if amount is not None:
             if price is not None:
                 if cost is None:
                     cost = amount * price
         timestamp = self.safe_integer_2(trade, 'created_at', 'ts')
-        timestamp = self.safe_integer(trade, 'created', timestamp)
+        timestamp = self.safe_integer_2(trade, 'created', 'mtime', timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
