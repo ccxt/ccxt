@@ -394,8 +394,8 @@ module.exports = class bcex extends Exchange {
         let order = {
             'symbol': this.marketId (symbol),
             'type': side,
-            'price': self.priceToPrecision (symbol, price),
-            'number': self.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+            'number': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostApiOrderCoinTrust (this.extend (order, params));
         let data = response['data'];
