@@ -338,26 +338,23 @@ class cointiger extends huobipro {
             $amount = $this->safe_float_2($trade, 'amount', 'volume');
         }
         $fee = null;
-        if ($side !== null) {
-            $feeCostField = $side . '_fee';
-            $feeCost = $this->safe_float($trade, $feeCostField);
-            if ($feeCost !== null) {
-                $feeCurrency = null;
-                if ($market !== null) {
-                    $feeCurrency = $market['base'];
-                }
-                $fee = array (
-                    'cost' => $feeCost,
-                    'currency' => $feeCurrency,
-                );
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = $market['base'];
             }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
         }
         if ($amount !== null)
             if ($price !== null)
                 if ($cost === null)
                     $cost = $amount * $price;
         $timestamp = $this->safe_integer_2($trade, 'created_at', 'ts');
-        $timestamp = $this->safe_integer($trade, 'created', $timestamp);
+        $timestamp = $this->safe_integer_2($trade, 'created', 'mtime', $timestamp);
         $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
