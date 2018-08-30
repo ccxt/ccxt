@@ -563,11 +563,11 @@ class gdax (Exchange):
         return self.parseTransactions(response)
 
     def parse_transaction_status(self, transaction):
-        if transaction['canceled_at']:
+        if 'canceled_at' in transaction and transaction['canceled_at']:
             return 'canceled'
-        elif transaction['completed_at']:
+        elif 'completed_at' in transaction and transaction['completed_at']:
             return 'ok'
-        elif transaction['procesed_at']:
+        elif 'procesed_at' in transaction and transaction['procesed_at']:
             return 'pending'
         else:
             return 'failed'
