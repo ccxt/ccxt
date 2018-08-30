@@ -443,39 +443,35 @@ module.exports = class bigone extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // NAME      DESCRIPTION       EXAMPLE                              REQUIRE
-        // market_id market uuid       d2185614-50c3-4588-b146-b8afe7534da6 true
-        // side      order side one of "ASK"/"BID"                          true
-        // price     order price       string                               true
-        // amount    order amount      string, must larger than 0           true
-        // {
-        //   "data":
-        //     {
-        //       "id": 10,
-        //       "market_uuid": "BTC-EOS",
-        //       "price": "10.00",
-        //       "amount": "10.00",
-        //       "filled_amount": "9.0",
-        //       "avg_deal_price": "12.0",
-        //       "side": "ASK",
-        //       "state": "FILLED"
-        //     }
-        // }
-        //
+
+        
+        
+        
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let bigoneSide = undefined;
-        if (side === 'buy') {
-            bigoneSide = 'BID';
-        } else {
-            bigoneSide = 'ASK';
-        }
-        let response = await this.privatePostOrders (this.extend ({
-            'market_id': market['id'],
-            'side': bigoneSide,
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-        }, params));
+        side = (side === 'buy') ? 'BID' : 'ASK';
+        let request = {
+            'market_id': market['id'], // market uuid d2185614-50c3-4588-b146-b8afe7534da6, required
+            'side': side, // order side one of "ASK"/"BID", required
+            'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
+            'price': this.priceToPrecision (symbol, price), // order price, string, required
+        };
+        let response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //     {
+        //       "data":
+        //         {
+        //           "id": 10,
+        //           "market_uuid": "BTC-EOS",
+        //           "price": "10.00",
+        //           "amount": "10.00",
+        //           "filled_amount": "9.0",
+        //           "avg_deal_price": "12.0",
+        //           "side": "ASK",
+        //           "state": "FILLED"
+        //         }
+        //     }
+        //
         let order = this.safeValue (response, 'data');
         return this.parseOrder (order, market);
     }
@@ -484,19 +480,20 @@ module.exports = class bigone extends Exchange {
         await this.loadMarkets ();
         let request = { 'order_id': id };
         let response = await this.privatePostOrdersOrderIdCancel (this.extend (request, params));
-        // {
-        //   "data":
+        //
         //     {
-        //       "id": 10,
-        //       "market_uuid": "BTC-EOS",
-        //       "price": "10.00",
-        //       "amount": "10.00",
-        //       "filled_amount": "9.0",
-        //       "avg_deal_price": "12.0",
-        //       "side": "ASK",
-        //       "state": "FILLED"
+        //       "data":
+        //         {
+        //           "id": 10,
+        //           "market_uuid": "BTC-EOS",
+        //           "price": "10.00",
+        //           "amount": "10.00",
+        //           "filled_amount": "9.0",
+        //           "avg_deal_price": "12.0",
+        //           "side": "ASK",
+        //           "state": "FILLED"
+        //         }
         //     }
-        // }
         //
         let order = response['data'];
         return this.parseOrder (order);
@@ -565,32 +562,32 @@ module.exports = class bigone extends Exchange {
             request['first'] = limit;
         }
         let response = await this.privateGetOrders (this.extend (request, params));
-        // {
-        //  "data":
+        //
         //     {
-        //       "edges": [
-        //         {
-        //           "node": {
-        //             "id": 10,
-        //             "market_id": "ETH-BTC",
-        //             "price": "10.00",
-        //             "amount": "10.00",
-        //             "filled_amount": "9.0",
-        //             "avg_deal_price": "12.0",
-        //             "side": "ASK",
-        //             "state": "FILLED"
-        //           },
-        //           "cursor": "dGVzdGN1cmVzZQo="
-        //         }
-        //       ],
-        //       "page_info": {
-        //         "end_cursor": "dGVzdGN1cmVzZQo=",
-        //         "start_cursor": "dGVzdGN1cmVzZQo=",
-        //         "has_next_page": true,
-        //         "has_previous_page": false
-        //       }
+        //          "data": {
+        //              "edges": [
+        //                  {
+        //                      "node": {
+        //                          "id": 10,
+        //                          "market_id": "ETH-BTC",
+        //                          "price": "10.00",
+        //                          "amount": "10.00",
+        //                          "filled_amount": "9.0",
+        //                          "avg_deal_price": "12.0",
+        //                          "side": "ASK",
+        //                          "state": "FILLED"
+        //                      },
+        //                      "cursor": "dGVzdGN1cmVzZQo="
+        //                  }
+        //              ],
+        //              "page_info": {
+        //                  "end_cursor": "dGVzdGN1cmVzZQo=",
+        //                  "start_cursor": "dGVzdGN1cmVzZQo=",
+        //                  "has_next_page": true,
+        //                  "has_previous_page": false
+        //              }
+        //          }
         //     }
-        // }
         //
         let data = this.safeValue (response, 'data', {});
         let orders = this.safeValue (data, 'edges', []);
