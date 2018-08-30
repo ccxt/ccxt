@@ -314,7 +314,7 @@ module.exports = class bcex extends Exchange {
         if (side === 'sale')
             side = 'sell';
         // Can't use parseOrder because the data format is different btw endpoint for fetchOrder and fetchOrders
-        let result = {  
+        let result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -468,7 +468,7 @@ module.exports = class bcex extends Exchange {
                     // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                     // { code: 1, msg: '公钥不合法' } - wrong public key
                     // { code: 1, msg: '价格输入有误，请检查你的数值精度' } - 'The price input is incorrect, please check your numerical accuracy'
-                    // { code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} - 
+                    // { code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} -
                     //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
                     //
                     let message = this.safeString (response, 'msg');
@@ -484,7 +484,7 @@ module.exports = class bcex extends Exchange {
             }
         }
     }
-    
+
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[side];
