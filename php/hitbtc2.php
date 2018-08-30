@@ -802,11 +802,12 @@ class hitbtc2 extends hitbtc {
             }
         }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-            $currency = $market ? $market['quote'] : null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = $market ? $market['quote'] : null;
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => $currency,
+                'cost' => abs ($feeCost),
+                'currency' => $feeCurrency,
             );
         }
         $orderId = null;

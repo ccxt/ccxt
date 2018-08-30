@@ -798,11 +798,12 @@ class hitbtc2 (hitbtc):
             else:
                 symbol = id
         fee = None
-        if 'fee' in trade:
-            currency = market['quote'] if market else None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
             fee = {
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': currency,
+                'cost': abs(feeCost),
+                'currency': feeCurrency,
             }
         orderId = None
         if 'clientOrderId' in trade:
