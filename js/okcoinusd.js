@@ -587,7 +587,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserinfo ();
+        let response = await this.privatePostUserinfo (params);
         let balances = response['info']['funds'];
         let result = { 'info': response };
         let ids = Object.keys (balances['free']);
