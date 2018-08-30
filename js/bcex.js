@@ -308,23 +308,27 @@ module.exports = class bcex extends Exchange {
         };
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
-        let timestamp = order['created'] * 1000;
+        let timestamp = this.safeInteger (order, 'created') * 1000;
         let status = this.parseOrderStatus (order['status']);
-        let result = {
+        let side = this.safeString (order, 'flag');
+        if (side === 'sale')
+            side = 'sell';
+        // Can't use parseOrder because the data format is different btw endpoint for fetchOrder and fetchOrders
+        let result = {  
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': order['flag'],
-            'side': undefined,
-            'price': order['price'],
+            'type': undefined,
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
             'cost': undefined,
-            'average': undefined,
-            'amount': order['number'],
-            'filled': order['numberdeal'],
-            'remaining': order['numberover'],
+            'average': this.safeFloat (order, 'avg_price'),
+            'amount': this.safeFloat (order, 'number'),
+            'filled': this.safeFloat (order, 'numberdeal'),
+            'remaining': this.safeFloat (order, 'numberover'),
             'status': status,
             'fee': undefined,
         };
@@ -333,15 +337,17 @@ module.exports = class bcex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
-        let timestamp = order['datetime'] * 1000;
+        let timestamp = this.safeInteger (order, 'datetime') * 1000;
         let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
         let type = undefined;
-        let side = order['type'];
-        let price = order['price'];
-        let average = order['avg_price'];
-        let amount = order['amount'];
-        let remaining = order['amount_outstanding'];
+        let side = this.safeString (order, 'type');
+        if (side === 'sale')
+            side = 'sell';
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'avg_price');
+        let amount = this.safeFloat (order, 'amount');
+        let remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = amount - remaining;
         let status = this.safeString (order, 'status');
         status = this.parseOrderStatus (status);
