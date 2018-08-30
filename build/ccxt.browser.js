@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.205'
+const version = '1.17.207'
 
 Exchange.ccxtVersion = version
 
@@ -8536,7 +8536,8 @@ module.exports = class bitfinex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balanceType = this.safeString (params, 'type', 'exchange');
-        let balances = await this.privatePostBalances ();
+        let query = this.omit (params, 'type');
+        let balances = await this.privatePostBalances (query);
         let result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
@@ -33364,11 +33365,11 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTransactionStatus (transaction) {
-        if (transaction['canceled_at']) {
+        if ('canceled_at' in transaction && transaction['canceled_at']) {
             return 'canceled';
-        } else if (transaction['completed_at']) {
+        } else if ('completed_at' in transaction && transaction['completed_at']) {
             return 'ok';
-        } else if (transaction['procesed_at']) {
+        } else if ('procesed_at' in transaction && transaction['procesed_at']) {
             return 'pending';
         } else {
             return 'failed';
@@ -35702,7 +35703,8 @@ module.exports = class hitbtc2 extends hitbtc {
         await this.loadMarkets ();
         let type = this.safeString (params, 'type', 'trading');
         let method = 'privateGet' + this.capitalize (type) + 'Balance';
-        let balances = await this[method] ();
+        let query = this.omit (params, 'type');
+        let balances = await this[method] (query);
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];

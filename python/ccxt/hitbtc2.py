@@ -669,7 +669,8 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
         method = 'privateGet' + self.capitalize(type) + 'Balance'
-        balances = getattr(self, method)()
+        query = self.omit(params, 'type')
+        balances = getattr(self, method)(query)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]

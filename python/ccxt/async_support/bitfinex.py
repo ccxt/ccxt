@@ -484,7 +484,8 @@ class bitfinex (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balanceType = self.safe_string(params, 'type', 'exchange')
-        balances = await self.privatePostBalances()
+        query = self.omit(params, 'type')
+        balances = await self.privatePostBalances(query)
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]

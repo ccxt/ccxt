@@ -482,7 +482,8 @@ class bitfinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
-        $balances = $this->privatePostBalances ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->privatePostBalances ($query);
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
