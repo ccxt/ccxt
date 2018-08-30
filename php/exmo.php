@@ -153,7 +153,7 @@ class exmo extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostUserInfo ();
+        $response = $this->privatePostUserInfo ($params);
         $result = array ( 'info' => $response );
         $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {

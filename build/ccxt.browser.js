@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.211'
+const version = '1.17.212'
 
 Exchange.ccxtVersion = version
 
@@ -29273,7 +29273,7 @@ module.exports = class exmo extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo ();
+        let response = await this.privatePostUserInfo (params);
         let result = { 'info': response };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
