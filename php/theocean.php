@@ -78,6 +78,7 @@ class theocean extends Exchange {
                 "Logic validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'body'", "errors" => ... )
                 'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
                 'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds', // array ("message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")
+                'Fillable amount under minimum WETH trade size.' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
             ),
             'options' => array (
                 'fetchOrderMethod' => 'fetch_order_from_history',
