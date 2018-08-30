@@ -443,10 +443,6 @@ module.exports = class bigone extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-
-        
-        
-        
         await this.loadMarkets ();
         let market = this.market (symbol);
         side = (side === 'buy') ? 'BID' : 'ASK';
