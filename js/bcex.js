@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -84,6 +84,8 @@ module.exports = class bcex extends Exchange {
                 '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
                 '您的可用余额不足': InsufficientFunds, // { code: 1, msg: '您的可用余额不足' } - your available balance is insufficient
+                '您的btc不足': InsufficientFunds, // { code: 1, msg: '您的btc不足' } - your btc is insufficient
+                '参数非法': InvalidOrder, // {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
             },
         });
     }
@@ -455,11 +457,16 @@ module.exports = class bcex extends Exchange {
                     //
                     // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                     // { code: 1, msg: '公钥不合法' } - wrong public key
+                    // { code: 1, msg: '价格输入有误，请检查你的数值精度' } - 'The price input is incorrect, please check your numerical accuracy'
+                    // { code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} - 
+                    //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
                     //
                     let message = this.safeString (response, 'msg');
                     let exceptions = this.exceptions;
                     if (message in exceptions) {
                         throw new exceptions[message] (feedback);
+                    } else if (message.indexOf ('请您重新挂单') >= 0) {  // minimum limit
+                        throw new InvalidOrder (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
