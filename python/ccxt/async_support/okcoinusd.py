@@ -573,7 +573,7 @@ class okcoinusd (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostUserinfo()
+        response = await self.privatePostUserinfo(params)
         balances = response['info']['funds']
         result = {'info': response}
         ids = list(balances['free'].keys())

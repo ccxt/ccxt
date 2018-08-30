@@ -588,7 +588,7 @@ class okcoinusd extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostUserinfo ();
+        $response = $this->privatePostUserinfo ($params);
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
         $ids = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();

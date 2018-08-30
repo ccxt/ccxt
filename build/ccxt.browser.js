@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.210'
+const version = '1.17.211'
 
 Exchange.ccxtVersion = version
 
@@ -46219,7 +46219,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserinfo ();
+        let response = await this.privatePostUserinfo (params);
         let balances = response['info']['funds'];
         let result = { 'info': response };
         let ids = Object.keys (balances['free']);
@@ -49941,6 +49941,7 @@ module.exports = class theocean extends Exchange {
                 "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
                 'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
                 'Greater than available wallet balance.': InsufficientFunds, // {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
+                'Fillable amount under minimum WETH trade size.': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
