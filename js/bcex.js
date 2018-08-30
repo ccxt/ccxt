@@ -460,7 +460,6 @@ module.exports = class bcex extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            let feedback = this.id + ' ' + body;
             let code = this.safeValue (response, 'code');
             if (typeof code !== 'undefined') {
                 if (code !== 0) {
@@ -472,6 +471,7 @@ module.exports = class bcex extends Exchange {
                     //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
                     //
                     let message = this.safeString (response, 'msg');
+                    let feedback = this.id + ' msg: ' + message + ' ' + body;
                     let exceptions = this.exceptions;
                     if (message in exceptions) {
                         throw new exceptions[message] (feedback);
