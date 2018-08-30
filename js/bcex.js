@@ -299,6 +299,8 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {
             'symbol': this.marketId (symbol),
@@ -408,6 +410,8 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
