@@ -591,7 +591,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
+        let response = await this.privatePostBalance (params);
         let balances = this.safeValue (response, 'result');
         if (typeof balances === 'undefined')
             throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
