@@ -87,6 +87,7 @@ module.exports = class kuna extends acx {
                 let baseId = id.replace ('btc', '');
                 baseId = baseId.replace ('uah', '');
                 baseId = baseId.replace ('gbg', '');
+                baseId = baseId.replace ('eth', '');
                 if (baseId.length > 0) {
                     let baseIdLength = baseId.length - 0; // a transpiler workaround
                     let quoteId = id.slice (baseIdLength);
