@@ -86,6 +86,7 @@ class kuna (acx):
                 baseId = id.replace('btc', '')
                 baseId = baseId.replace('uah', '')
                 baseId = baseId.replace('gbg', '')
+                baseId = baseId.replace('eth', '')
                 if len(baseId) > 0:
                     baseIdLength = len(baseId) - 0  # a transpiler workaround
                     quoteId = id[baseIdLength:]

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.212'
+const version = '1.17.213'
 
 Exchange.ccxtVersion = version
 
@@ -41293,6 +41293,7 @@ module.exports = class kuna extends acx {
                 let baseId = id.replace ('btc', '');
                 baseId = baseId.replace ('uah', '');
                 baseId = baseId.replace ('gbg', '');
+                baseId = baseId.replace ('eth', '');
                 if (baseId.length > 0) {
                     let baseIdLength = baseId.length - 0; // a transpiler workaround
                     let quoteId = id.slice (baseIdLength);
