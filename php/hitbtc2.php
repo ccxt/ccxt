@@ -806,7 +806,7 @@ class hitbtc2 extends hitbtc {
         if ($feeCost !== null) {
             $feeCurrency = $market ? $market['quote'] : null;
             $fee = array (
-                'cost' => abs ($feeCost),
+                'cost' => $feeCost,
                 'currency' => $feeCurrency,
             );
         }

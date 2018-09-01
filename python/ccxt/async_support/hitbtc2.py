@@ -802,7 +802,7 @@ class hitbtc2 (hitbtc):
         if feeCost is not None:
             feeCurrency = market['quote'] if market else None
             fee = {
-                'cost': abs(feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             }
         orderId = None
