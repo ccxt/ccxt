@@ -910,11 +910,15 @@ class Exchange(object):
     def fromWei(self, amount, unit='ether'):
         if Web3 is None:
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
+        if amount is None:
+            return amount
         return float(Web3.fromWei(int(amount), unit))
 
     def toWei(self, amount, unit='ether'):
         if Web3 is None:
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
+        if amount is None:
+            return amount
         return str(Web3.toWei(int(amount), unit))
 
     def precision_from_string(self, string):
