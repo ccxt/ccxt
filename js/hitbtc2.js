@@ -805,7 +805,7 @@ module.exports = class hitbtc2 extends hitbtc {
         if (typeof feeCost !== 'undefined') {
             let feeCurrency = market ? market['quote'] : undefined;
             fee = {
-                'cost': Math.abs (feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
