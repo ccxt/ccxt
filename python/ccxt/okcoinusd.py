@@ -573,7 +573,7 @@ class okcoinusd (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostUserinfo()
+        response = self.privatePostUserinfo(params)
         balances = response['info']['funds']
         result = {'info': response}
         ids = list(balances['free'].keys())

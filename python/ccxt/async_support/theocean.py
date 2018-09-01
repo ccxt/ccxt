@@ -96,6 +96,7 @@ class theocean (Exchange):
                 "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
                 'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
                 'Greater than available wallet balance.': InsufficientFunds,  # {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
+                'Fillable amount under minimum WETH trade size.': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
