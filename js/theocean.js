@@ -967,8 +967,8 @@ module.exports = class theocean extends Exchange {
                 throw new NotSupported (this.id + ' encountered an unsupported order fee option: ' + feeOption);
             }
             fee = {
-                'feeCost': feeCost,
-                'feeCurrency': feeCurrency,
+                'сost': feeCost,
+                'сurrency': feeCurrency,
             };
         }
         let result = {
