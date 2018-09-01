@@ -13,7 +13,7 @@ class bigone extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bigone',
             'name' => 'BigONE',
-            'countries' => 'GB',
+            'countries' => array ( 'GB' ),
             'version' => 'v2',
             'has' => array (
                 'fetchTickers' => true,

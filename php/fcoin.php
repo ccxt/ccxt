@@ -13,7 +13,7 @@ class fcoin extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'fcoin',
             'name' => 'FCoin',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v2',

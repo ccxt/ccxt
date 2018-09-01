@@ -31,7 +31,7 @@ class fcoin (Exchange):
         return self.deep_extend(super(fcoin, self).describe(), {
             'id': 'fcoin',
             'name': 'FCoin',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
             'version': 'v2',
