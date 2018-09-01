@@ -177,12 +177,6 @@ module.exports = class tradeogre extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!headers) {
-            headers = {};
-        }
-        if (!body) {
-            body = {};
-        }
         let url = this.urls['api'][api];
         if (api === 'private') {
             this.checkRequiredCredentials ();
