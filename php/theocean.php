@@ -72,13 +72,19 @@ class theocean extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                "Schema validation failed for 'query'" => '\\ccxt\\ExchangeError', // array ( "message" => "Schema validation failed for 'query'", "errors" => ... )
-                "Logic validation failed for 'query'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'query'", "errors" => ... )
-                "Schema validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Schema validation failed for 'body'", "errors" => ... )
-                "Logic validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'body'", "errors" => ... )
-                'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
-                'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds', // array ("message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")
-                'Fillable amount under minimum WETH trade size.' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
+                'exact' => array (
+                    // "Schema validation failed for 'query'" => '\\ccxt\\ExchangeError', // array ( "message" => "Schema validation failed for 'query'", "errors" => ... )
+                    // "Logic validation failed for 'query'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'query'", "errors" => ... )
+                    // "Schema validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Schema validation failed for 'body'", "errors" => ... )
+                    // "Logic validation failed for 'body'" => '\\ccxt\\ExchangeError', // array ( "message" => "Logic validation failed for 'body'", "errors" => ... )
+                    'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
+                ),
+                'broad' => array (
+                    'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
+                    'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
+                    'Fillable amount under minimum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
+                    'Fillable amount over maximum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount")
+                ),
             ),
             'options' => array (
                 'fetchOrderMethod' => 'fetch_order_from_history',
@@ -1144,13 +1150,23 @@ class theocean extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
+    public function find_broadly_matched_key ($map, $broadString) {
+        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
+        for ($i = 0; $i < count ($partialKeys); $i++) {
+            $partialKey = $partialKeys[$i];
+            if (mb_strpos ($broadString, $partialKey) !== false)
+                return $partialKey;
+        }
+        return null;
+    }
+
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
-            return; // fallback to default $error handler
+            return; // fallback to default error handler
         if (strlen ($body) < 2)
-            return; // fallback to default $error handler
+            return; // fallback to default error handler
         // code 401 and plain $body 'Authentication failed' (with single quotes)
-        // this $error is sent if you do not submit a proper Content-Type
+        // this error is sent if you do not submit a proper Content-Type
         if ($body === "'Authentication failed'") {
             throw new AuthenticationError ($this->id . ' ' . $body);
         }
@@ -1159,33 +1175,22 @@ class theocean extends Exchange {
             $message = $this->safe_string($response, 'message');
             if ($message !== null) {
                 //
-                // array ("$message":"Schema validation failed for 'query'","$errors":[{"name":"required","argument":"startTime","$message":"requires property \"startTime\"","instance":array ("baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"),"property":"instance")]}
-                // array ("$message":"Logic validation failed for 'query'","$errors":[{"$message":"startTime should be between 0 and current date","type":"startTime")]}
-                // array ("$message":"Order not found","$errors":array ())
+                // array ("$message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","$message":"requires property \"startTime\"","instance":array ("baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"),"property":"instance")]}
+                // array ("$message":"Logic validation failed for 'query'","errors":[{"$message":"startTime should be between 0 and current date","type":"startTime")]}
+                // array ("$message":"Order not found","errors":array ())
                 // array ("$message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
-                // array ("$message":"Intent validation failed.","$errors":[{"$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]}
+                // array ("$message":"Intent validation failed.","errors":[{"$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]}
+                // array ("$message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"$message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":array ("signedTargetOrder":array ("error":array ("$message":"Unsigned target order validation failed.","errors":[array ("$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]),"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":array ("v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"))),"property":"instance")]}
                 //
                 $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
-                $errors = $this->safe_value($response, 'errors');
-                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                    throw new $exceptions[$message] ($feedback);
-                } else {
-                    if (mb_strpos ($message, 'Orderbook exhausted for intent') !== false) {
-                        throw new OrderNotFillable ($feedback);
-                    } else if ($message === 'Intent validation failed.') {
-                        if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
-                            for ($i = 0; $i < count ($errors); $i++) {
-                                $error = $errors[$i];
-                                $errorMessage = $this->safe_string($error, 'message');
-                                if (is_array ($exceptions) && array_key_exists ($errorMessage, $exceptions)) {
-                                    throw new $exceptions[$errorMessage] ($feedback);
-                                }
-                            }
-                        }
-                    }
-                    throw new ExchangeError ($feedback);
-                }
+                $exact = $this->exceptions['exact'];
+                if (is_array ($exact) && array_key_exists ($message, $exact))
+                    throw new $exact[$message] ($feedback);
+                $broad = $this->exceptions['broad'];
+                $broadKey = $this->find_broadly_matched_key ($broad, $body);
+                if ($broadKey !== null)
+                    throw new $broad[$broadKey] ($feedback);
+                throw new ExchangeError ($feedback); // unknown $message
             }
         }
     }

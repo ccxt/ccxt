@@ -90,13 +90,19 @@ class theocean (Exchange):
                 },
             },
             'exceptions': {
-                "Schema validation failed for 'query'": ExchangeError,  # {"message": "Schema validation failed for 'query'", "errors": ...}
-                "Logic validation failed for 'query'": ExchangeError,  # {"message": "Logic validation failed for 'query'", "errors": ...}
-                "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
-                "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
-                'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
-                'Greater than available wallet balance.': InsufficientFunds,  # {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
-                'Fillable amount under minimum WETH trade size.': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
+                'exact': {
+                    # "Schema validation failed for 'query'": ExchangeError,  # {"message": "Schema validation failed for 'query'", "errors": ...}
+                    # "Logic validation failed for 'query'": ExchangeError,  # {"message": "Logic validation failed for 'query'", "errors": ...}
+                    # "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
+                    # "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
+                    'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
+                },
+                'broad': {
+                    'Greater than available wallet balance.': InsufficientFunds,
+                    'Orderbook exhausted for intent': OrderNotFillable,  # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                    'Fillable amount under minimum': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
+                    'Fillable amount over maximum': InvalidOrder,  # {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
+                },
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -1080,6 +1086,14 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def find_broadly_matched_key(self, map, broadString):
+        partialKeys = list(map.keys())
+        for i in range(0, len(partialKeys)):
+            partialKey = partialKeys[i]
+            if broadString.find(partialKey) >= 0:
+                return partialKey
+        return None
+
     def handle_errors(self, httpCode, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
@@ -1099,23 +1113,17 @@ class theocean (Exchange):
                 # {"message":"Order not found","errors":[]}
                 # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+                # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
                 #
                 feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                errors = self.safe_value(response, 'errors')
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                else:
-                    if message.find('Orderbook exhausted for intent') >= 0:
-                        raise OrderNotFillable(feedback)
-                    elif message == 'Intent validation failed.':
-                        if isinstance(errors, list):
-                            for i in range(0, len(errors)):
-                                error = errors[i]
-                                errorMessage = self.safe_string(error, 'message')
-                                if errorMessage in exceptions:
-                                    raise exceptions[errorMessage](feedback)
-                    raise ExchangeError(feedback)
+                exact = self.exceptions['exact']
+                if message in exact:
+                    raise exact[message](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.find_broadly_matched_key(broad, body)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
