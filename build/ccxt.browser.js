@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.218'
+const version = '1.17.219'
 
 Exchange.ccxtVersion = version
 
@@ -50822,8 +50822,8 @@ module.exports = class theocean extends Exchange {
                 throw new NotSupported (this.id + ' encountered an unsupported order fee option: ' + feeOption);
             }
             fee = {
-                'feeCost': feeCost,
-                'feeCurrency': feeCurrency,
+                'сost': feeCost,
+                'сurrency': feeCurrency,
             };
         }
         let result = {

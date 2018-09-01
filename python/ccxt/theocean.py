@@ -923,8 +923,8 @@ class theocean (Exchange):
             else:
                 raise NotSupported(self.id + ' encountered an unsupported order fee option: ' + feeOption)
             fee = {
-                'feeCost': feeCost,
-                'feeCurrency': feeCurrency,
+                'сost': feeCost,
+                'сurrency': feeCurrency,
             }
         result = {
             'info': order,
