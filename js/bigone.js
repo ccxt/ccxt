@@ -12,7 +12,7 @@ module.exports = class bigone extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bigone',
             'name': 'BigONE',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'version': 'v2',
             'has': {
                 'fetchTickers': true,
