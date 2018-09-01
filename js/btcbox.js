@@ -48,10 +48,10 @@ module.exports = class btcbox extends Exchange {
                 },
             },
             'markets': {
-                'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
-                'ETH/JPY': { 'id': 'ETH/JPY', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY' },
-                'LTC/JPY': { 'id': 'LTC/JPY', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY' },
-                'BCH/JPY': { 'id': 'BCH/JPY', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY' },
+                'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
+                'ETH/JPY': { 'id': 'ETH/JPY', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
+                'LTC/JPY': { 'id': 'LTC/JPY', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
+                'BCH/JPY': { 'id': 'BCH/JPY', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy' },
             },
             'exceptions': {
                 '104': AuthenticationError,
@@ -97,7 +97,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['base'].toLowerCase ();
+            request['coin'] = market['baseId'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
@@ -138,7 +138,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['base'].toLowerCase ();
+            request['coin'] = market['baseId'];
         let ticker = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
@@ -165,7 +165,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['base'].toLowerCase ();
+            request['coin'] = market['baseId'];
         let response = await this.publicGetOrders (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -180,7 +180,7 @@ module.exports = class btcbox extends Exchange {
         };
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['base'].toLowerCase ();
+            request['coin'] = market['baseId'];
         let response = await this.privatePostTradeAdd (this.extend (request, params));
         return {
             'info': response,
