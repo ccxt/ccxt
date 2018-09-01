@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.213'
+const version = '1.17.214'
 
 Exchange.ccxtVersion = version
 
@@ -16743,7 +16743,7 @@ module.exports = class btcbox extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
@@ -16757,7 +16757,6 @@ module.exports = class btcbox extends Exchange {
                         'depth',
                         'orders',
                         'ticker',
-                        'allticker',
                     ],
                 },
                 'private': {
@@ -16772,7 +16771,10 @@ module.exports = class btcbox extends Exchange {
                 },
             },
             'markets': {
-                'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY' },
+                'BTC/JPY': { 'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy' },
+                'ETH/JPY': { 'id': 'ETH/JPY', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy' },
+                'LTC/JPY': { 'id': 'LTC/JPY', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy' },
+                'BCH/JPY': { 'id': 'BCH/JPY', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy' },
             },
             'exceptions': {
                 '104': AuthenticationError,
@@ -16818,7 +16820,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['baseId'];
         let orderbook = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
@@ -16853,28 +16855,13 @@ module.exports = class btcbox extends Exchange {
         };
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let tickers = await this.publicGetAllticker (params);
-        let ids = Object.keys (tickers);
-        let result = {};
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
-            result[symbol] = this.parseTicker (ticker, market);
-        }
-        return result;
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['baseId'];
         let ticker = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
@@ -16901,7 +16888,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['baseId'];
         let response = await this.publicGetOrders (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -16916,7 +16903,7 @@ module.exports = class btcbox extends Exchange {
         };
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['baseId'];
         let response = await this.privatePostTradeAdd (this.extend (request, params));
         return {
             'info': response,
