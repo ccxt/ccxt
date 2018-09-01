@@ -188,7 +188,7 @@ class bibox extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_string($ticker, 'percent'),
+            'percentage' => $this->safe_float($ticker, 'percent'),
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_float($ticker, 'amount'),

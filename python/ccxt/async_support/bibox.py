@@ -200,7 +200,7 @@ class bibox (Exchange):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_string(ticker, 'percent'),
+            'percentage': self.safe_float(ticker, 'percent'),
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),
