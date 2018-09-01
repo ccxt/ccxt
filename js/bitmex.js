@@ -413,7 +413,7 @@ module.exports = class bitmex extends Exchange {
             'type': undefined,
             'side': trade['side'].toLowerCase (),
             'price': trade['price'],
-            'amount': trade['size'],
+            'amount': trade['size'] / trade['price'],
         };
     }
 
