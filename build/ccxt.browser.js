@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.214'
+const version = '1.17.215'
 
 Exchange.ccxtVersion = version
 
@@ -49923,13 +49923,19 @@ module.exports = class theocean extends Exchange {
                 },
             },
             'exceptions': {
-                "Schema validation failed for 'query'": ExchangeError, // { "message": "Schema validation failed for 'query'", "errors": ... }
-                "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
-                "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
-                "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
-                'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
-                'Greater than available wallet balance.': InsufficientFunds, // {"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}
-                'Fillable amount under minimum WETH trade size.': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
+                'exact': {
+                    // "Schema validation failed for 'query'": ExchangeError, // { "message": "Schema validation failed for 'query'", "errors": ... }
+                    // "Logic validation failed for 'query'": ExchangeError, // { "message": "Logic validation failed for 'query'", "errors": ... }
+                    // "Schema validation failed for 'body'": ExchangeError, // { "message": "Schema validation failed for 'body'", "errors": ... }
+                    // "Logic validation failed for 'body'": ExchangeError, // { "message": "Logic validation failed for 'body'", "errors": ... }
+                    'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
+                },
+                'broad': {
+                    'Greater than available wallet balance.': InsufficientFunds,
+                    'Orderbook exhausted for intent': OrderNotFillable, // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                    'Fillable amount under minimum': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
+                    'Fillable amount over maximum': InvalidOrder, // {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
+                },
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
@@ -50995,6 +51001,16 @@ module.exports = class theocean extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    findBroadlyMatchedKey (map, broadString) {
+        const partialKeys = Object.keys (map);
+        for (let i = 0; i < partialKeys.length; i++) {
+            const partialKey = partialKeys[i];
+            if (broadString.indexOf (partialKey) >= 0)
+                return partialKey;
+        }
+        return undefined;
+    }
+
     handleErrors (httpCode, reason, url, method, headers, body) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
@@ -51015,28 +51031,17 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Order not found","errors":[]}
                 // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+                // {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
                 //
                 const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
-                let errors = this.safeValue (response, 'errors');
-                if (message in exceptions) {
-                    throw new exceptions[message] (feedback);
-                } else {
-                    if (message.indexOf ('Orderbook exhausted for intent') >= 0) {
-                        throw new OrderNotFillable (feedback);
-                    } else if (message === 'Intent validation failed.') {
-                        if (Array.isArray (errors)) {
-                            for (let i = 0; i < errors.length; i++) {
-                                let error = errors[i];
-                                let errorMessage = this.safeString (error, 'message');
-                                if (errorMessage in exceptions) {
-                                    throw new exceptions[errorMessage] (feedback);
-                                }
-                            }
-                        }
-                    }
-                    throw new ExchangeError (feedback);
-                }
+                const exact = this.exceptions['exact'];
+                if (message in exact)
+                    throw new exact[message] (feedback);
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, body);
+                if (typeof broadKey !== 'undefined')
+                    throw new broad[broadKey] (feedback);
+                throw new ExchangeError (feedback); // unknown message
             }
         }
     }
