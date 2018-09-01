@@ -97,7 +97,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['base'].toLowerCase ();
         let orderbook = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
@@ -165,7 +165,7 @@ module.exports = class btcbox extends Exchange {
         let request = {};
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['base'].toLowerCase ();
         let response = await this.publicGetOrders (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -180,7 +180,7 @@ module.exports = class btcbox extends Exchange {
         };
         let numSymbols = this.symbols.length;
         if (numSymbols > 1)
-            request['coin'] = market['id'];
+            request['coin'] = market['base'].toLowerCase ();
         let response = await this.privatePostTradeAdd (this.extend (request, params));
         return {
             'info': response,
