@@ -184,6 +184,10 @@ class bibox (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
+        percentage = self.safe_string(ticker, 'percent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+            percentage = float(percentage)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -200,7 +204,7 @@ class bibox (Exchange):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_float(ticker, 'percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),

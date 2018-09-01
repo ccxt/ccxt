@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.219'
+const version = '1.17.220'
 
 Exchange.ccxtVersion = version
 
@@ -4645,6 +4645,11 @@ module.exports = class bibox extends Exchange {
         let iso8601 = undefined;
         if (typeof timestamp !== 'undefined')
             iso8601 = this.iso8601 (timestamp);
+        let percentage = this.safeString (ticker, 'percent');
+        if (typeof percentage !== 'undefined') {
+            percentage = percentage.replace ('%', '');
+            percentage = parseFloat (percentage);
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -4661,7 +4666,7 @@ module.exports = class bibox extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.safeFloat (ticker, 'percent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': this.safeFloat (ticker, 'amount'),
