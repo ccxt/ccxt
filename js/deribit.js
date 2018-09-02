@@ -326,6 +326,7 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrderstate ({ 'orderId': id });
         return this.parseOrder (response['result']);
     }
