@@ -327,6 +327,7 @@ class deribit extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrderstate (array ( 'orderId' => $id ));
         return $this->parse_order($response['result']);
     }

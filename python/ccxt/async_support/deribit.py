@@ -306,6 +306,7 @@ class deribit (Exchange):
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrderstate({'orderId': id})
         return self.parse_order(response['result'])
 
