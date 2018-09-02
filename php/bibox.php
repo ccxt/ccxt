@@ -172,6 +172,11 @@ class bibox extends Exchange {
         $iso8601 = null;
         if ($timestamp !== null)
             $iso8601 = $this->iso8601 ($timestamp);
+        $percentage = $this->safe_string($ticker, 'percent');
+        if ($percentage !== null) {
+            $percentage = str_replace ('%', '', $percentage);
+            $percentage = floatval ($percentage);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -188,7 +193,7 @@ class bibox extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_float($ticker, 'percent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_float($ticker, 'amount'),

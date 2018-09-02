@@ -24,7 +24,7 @@ class bigone (Exchange):
         return self.deep_extend(super(bigone, self).describe(), {
             'id': 'bigone',
             'name': 'BigONE',
-            'countries': 'GB',
+            'countries': ['GB'],
             'version': 'v2',
             'has': {
                 'fetchTickers': True,

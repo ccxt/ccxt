@@ -12,7 +12,7 @@ module.exports = class btcalpha extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'btcalpha',
             'name': 'BTC-Alpha',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'v1',
             'has': {
                 'fetchTicker': false,

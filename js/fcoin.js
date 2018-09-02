@@ -12,7 +12,7 @@ module.exports = class fcoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'fcoin',
             'name': 'FCoin',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome39'],
             'version': 'v2',
