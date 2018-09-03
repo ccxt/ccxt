@@ -690,7 +690,7 @@ module.exports = class exmo extends Exchange {
         let url = this.urls['api'][api] + '/';
         if (api !== 'web') {
             url += this.version + '/';
-        };
+        }
         url += path;
         if ((api === 'public') || (api === 'web')) {
             if (Object.keys (params).length)
