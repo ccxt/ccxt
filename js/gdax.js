@@ -642,35 +642,16 @@ module.exports = class gdax extends Exchange {
         return response;
     }
 
-    _websocketOnMessage (contextId, data) {
-        console.log(data)
-    }
-
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
-        let id = this.market_id (symbol);
         let payload = {
             'type': 'subscriptions',
             'product_ids': ['BTC-USD'],
-            'channels': ["level2"]
+            'channels': ['level2'],
         };
         this.websocketSendJson (payload);
     }
 
-    _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
-    }
-
-    _websocketOnOpen (contextId, websocketConexConfig) {
-
-    }
-
     _websocketGenerateUrlStream (events, options) {
-        return options['url']
-    }
-
-    _websocketMarketId (symbol) {
-
-    }
-
-    _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
+        return options['url'];
     }
 };

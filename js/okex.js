@@ -61,15 +61,7 @@ module.exports = class okex extends okcoinusd {
         });
     }
 
-    calculateFee (
-        symbol,
-        type,
-        side,
-        amount,
-        price,
-        takerOrMaker = 'taker',
-        params = {}
-    ) {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];

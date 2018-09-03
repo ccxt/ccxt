@@ -592,7 +592,7 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _websocketHandleConnected (contextId, msg, oid, resData) {
+    _websocketHandleConnected (contextId, msg, oid, data) { // eslint-disable-line no-unused-vars
         this.websocketSendJson (this._websocketAuthPayload ());
     }
 
@@ -605,7 +605,7 @@ module.exports = class cex extends Exchange {
         }
     }
 
-    _websocketHandlePing (contextId, msg, oid, resData) {
+    _websocketHandlePing (contextId, msg, oid, data) { // eslint-disable-line no-unused-vars
         this.websocketSendJson ({ 'e': 'pong' });
     }
 

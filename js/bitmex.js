@@ -641,8 +641,8 @@ module.exports = class bitmex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    _websocketOnOpen (contextId, websocketOptions) {
-        let lastTimer = this._contextGet(contextId, 'timer');
+    _websocketOnOpen (contextId, websocketOptions) { // eslint-disable-line no-unused-vars
+        let lastTimer = this._contextGet (contextId, 'timer');
         if (typeof lastTimer !== 'undefined') {
             this._cancelTimeout (lastTimer);
         }
