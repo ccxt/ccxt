@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -380,7 +380,7 @@ module.exports = class bitz extends Exchange {
     parseMicrotime (microtime) {
         if (typeof microtime === 'undefined') {
             return microtime;
-        };
+        }
         let parts = microtime.split (' ');
         let milliseconds = parseFloat (parts[0]);
         let seconds = parseInt (parts[1]);
@@ -705,7 +705,7 @@ module.exports = class bitz extends Exchange {
             if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined')) {
                 let marketId = baseId + '_' + quoteId;
                 if (marketId in this.markets_by_id) {
-                    market = this.safeValue (this.markets_by_id, marketId)
+                    market = this.safeValue (this.markets_by_id, marketId);
                 } else {
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
