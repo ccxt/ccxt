@@ -698,7 +698,7 @@ module.exports = class cobinhood extends Exchange {
             'timestamp': timestamp,
             'datetime': datetime,
             'address': undefined, // or is it defined?
-            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
+            'type': type, // direction of the transaction, ('deposit' | 'withdrawal')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (transaction['status']),
