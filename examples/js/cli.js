@@ -230,7 +230,7 @@ async function main () {
             await exchange.loadMarkets ()
         }
 
-        exchange.verbose = true
+        exchange.verbose = verbose
 
         if (no_send) {
 
