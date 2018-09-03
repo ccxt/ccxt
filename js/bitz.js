@@ -45,7 +45,7 @@ module.exports = class bitz extends Exchange {
                     'assets': 'https://apiv2.bitz.com',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://www.bit-z.com/api.html',
+                'doc': 'https://apidoc.bit-z.com/en',
                 'fees': 'https://www.bit-z.com/about/fee',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
@@ -775,7 +775,7 @@ module.exports = class bitz extends Exchange {
             'number': this.amountToString (symbol, amount),
             'tradePwd': this.password,
         };
-        let response = await this.privatePostTradeAdd (this.extend (request, params));
+        let response = await this.tradePostAddEntrustSheet (this.extend (request, params));
         //
         //     {
         //         "status": 200,
