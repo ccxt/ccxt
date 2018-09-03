@@ -845,30 +845,43 @@ module.exports = class bitz extends Exchange {
         return this.parseOrder (response['data']);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (typeof symbol === 'undefined') {
             throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            'coinFrom': market['baseId'],
+            'coinTo': market['quoteId'],
+            // 'type': 1, // optional integer, 1 = buy, 2 = sell
+            // 'page': 1, // optional integer
+            // 'pageSize': 100, // optional integer, max 100
+            // 'startTime': 1510235730, // optional integer timestamp in seconds
+            // 'endTime': 1510235730, // optional integer timestamp in seconds
         };
-        // Parameter：
-        // Parameter	Whether or not	Type	Remarks
-        // apiKey	yes	string	user request for apiKey
-        // timeStamp	yes	string	current timestamp
-        // nonce	yes	string	random 6 bit character
-        // sign	yes	string	signature of request parameter
-        // coinFrom	yes	string	eos、vtc
-        // coinTo	yes	string	btc、eth trade area
-        // type	no	integer	1:buy,2:sell If no type defined, will return all data
-        // page	no	integer	current page
-        // pageSize	no	integer	show number max:100
-        // startTime	no	string	start time
-        // endTime	no	string	end time
-        let response = await this.tradePostGetUserNowEntrustSheet (this.extend (request, params));
+        if (typeof limit !== 'undefined') {
+            request['page'] = 1;
+            request['pageSize'] = limit;
+        }
+        if (typeof since !== 'undefined') {
+            request['startTime'] = parseInt (since / 1000);
+            // request['endTime'] = parseInt (since / 1000);
+        }
+        let response = await this[method]. (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('tradePostGetHistoryEntrustSheet', symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('tradePostGetUserNowEntrustSheet', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('tradePostGetHistoryEntrustSheet', symbol, since, limit, params);
     }
 
     nonce () {
