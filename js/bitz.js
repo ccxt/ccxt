@@ -488,6 +488,16 @@ module.exports = class bitz extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //    { id:  115807453,
+        //       t: "19:36:24",
+        //       T:  1535974584,
+        //       p: "0.03983296",
+        //       n: "0.1000",
+        //       s: "buy"         },
+        //
         let id = this.safeString (trade, 'id');
         let timestamp = this.safeInteger (trade, 'T');
         if (typeof timestamp !== 'undefined') {
@@ -523,6 +533,25 @@ module.exports = class bitz extends Exchange {
         let response = await this.marketGetOrder (this.extend ({
             'symbol': market['id'],
         }, params));
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: [ { id:  115807453,
+        //                       t: "19:36:24",
+        //                       T:  1535974584,
+        //                       p: "0.03983296",
+        //                       n: "0.1000",
+        //                       s: "buy"         },
+        //                    { id:  115806811,
+        //                       t: "19:33:19",
+        //                       T:  1535974399,
+        //                       p: "0.03981135",
+        //                       n: "9.4612",
+        //                       s: "sell"        }  ],
+        //            time:    1535974583,
+        //       microtime:   "0.57118100 1535974583",
+        //          source:   "api"                     }
+        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 
