@@ -806,9 +806,73 @@ module.exports = class bitz extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostTradeCancel (this.extend ({
-            'id': id,
+        let response = await this.tradePostCancelEntrustSheet (this.extend ({
+            'entrustSheetId': id,
         }, params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":{
+        //             "updateAssetsData":{
+        //                 "coin":"bz",
+        //                 "over":"1000.00000000",
+        //                 "lock":"-1000.00000000"
+        //             },
+        //             "assetsInfo":{
+        //                 "coin":"bz",
+        //                 "over":"9999.99999999",
+        //                 "lock":"9999.99999999"
+        //             }
+        //         },
+        //         "time":"1535464383",
+        //         "microtime":"0.91558000 1535464383",
+        //         "source":"api"
+        //     }
+        //
+        return response;
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.tradePostCancelEntrustSheet (this.extend ({
+            'ids': ids.join (','),
+        }, params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":{
+        //             "744173808":{
+        //                 "updateAssetsData":{
+        //                     "coin":"bz",
+        //                     "over":"100.00000000",
+        //                     "lock":"-100.00000000"
+        //                 },
+        //                 "assetsInfo":{
+        //                     "coin":"bz",
+        //                     "over":"899.99999999",
+        //                     "lock":"19099.99999999"
+        //                 }
+        //             },
+        //             "744173809":{
+        //                 "updateAssetsData":{
+        //                     "coin":"bz",
+        //                     "over":"100.00000000",
+        //                     "lock":"-100.00000000"
+        //                 },
+        //                 "assetsInfo":{
+        //                     "coin":"bz",
+        //                     "over":"999.99999999",
+        //                     "lock":"18999.99999999"
+        //                 }
+        //             }
+        //         },
+        //         "time":"1535525649",
+        //         "microtime":"0.05009400 1535525649",
+        //         "source":"api"
+        //     }
+        //
         return response;
     }
 
@@ -868,20 +932,71 @@ module.exports = class bitz extends Exchange {
             request['startTime'] = parseInt (since / 1000);
             // request['endTime'] = parseInt (since / 1000);
         }
-        let response = await this[method]. (this.extend (request, params));
-        return this.parseOrders (response['data'], market, since, limit);
+        let response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": 200,
+        //         "msg": "",
+        //         "data": {
+        //             "data": [
+        //                 {
+        //                     "id": "693248739",
+        //                     "uid": "2074056",
+        //                     "price": "100.00000000",
+        //                     "number": "10.0000",
+        //                     "total": "0.00000000",
+        //                     "numberOver": "0.0000",
+        //                     "numberDeal": "0.0000",
+        //                     "flag": "sale",
+        //                     "status": "3", // 0:unfilled, 1:partial deal, 2:all transactions, 3:already cancelled
+        //                     "isNew": "N",
+        //                     "coinFrom": "vtc",
+        //                     "coinTo": "dkkt",
+        //                     "created": "1533035300",
+        //                 },
+        //                 {
+        //                     "id": "723086996",
+        //                     "uid": "2074056",
+        //                     "price": "100.00000000",
+        //                     "number": "10.0000",
+        //                     "total": "0.00000000",
+        //                     "numberOver": "0.0000",
+        //                     "numberDeal": "0.0000",
+        //                     "flag": "sale",
+        //                     "status": "3",
+        //                     "isNew": "N",
+        //                     "coinFrom": "bz",
+        //                     "coinTo": "usdt",
+        //                     "created": "1533523568",
+        //                 },
+        //             ],
+        //             "pageInfo": {
+        //                 "limit": "10",
+        //                 "offest": "0",
+        //                 "current_page": "1",
+        //                 "page_size": "10",
+        //                 "total_count": "17",
+        //                 "page_count": "2",
+        //             }
+        //         },
+        //         "time": "1533279329",
+        //         "microtime": "0.15305300 1533279329",
+        //         "source": "api"
+        //     }
+        //
+        return this.parseOrders (response['data']['data'], undefined, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersWithMethod ('tradePostGetHistoryEntrustSheet', symbol, since, limit, params);
+        return await this.fetchOrdersWithMethod ('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersWithMethod ('tradePostGetUserNowEntrustSheet', symbol, since, limit, params);
+        return await this.fetchOrdersWithMethod ('tradePostGetUserNowEntrustSheet', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersWithMethod ('tradePostGetHistoryEntrustSheet', symbol, since, limit, params);
+        return await this.fetchOrdersWithMethod ('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params);
     }
 
     nonce () {
