@@ -20,6 +20,9 @@ module.exports = class bitz extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrders': true,
+                'fetchOrder': true,
                 'createMarketOrder': false,
             },
             'timeframes': {
@@ -718,7 +721,7 @@ module.exports = class bitz extends Exchange {
         if (typeof side !== 'undefined') {
             side = (side === 'sale') ? 'sell' : 'buy';
         }
-        let price = this.safeString (order, 'price');
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'number');
         let remaining = this.safeFloat (order, 'numberOver');
         let filled = this.safeFloat (order, 'numberDeal');
@@ -809,12 +812,62 @@ module.exports = class bitz extends Exchange {
         return response;
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'entrustSheetId': id,
+        };
+        const response = await this.tradePostGetEntrustSheetInfo (this.extend (request, params));
+        //
+        //     {
+        //         "status":200,
+        //         "msg":"",
+        //         "data":{
+        //             "id":"708279852",
+        //             "uId":"2074056",
+        //             "price":"100.00000000",
+        //             "number":"10.0000",
+        //             "total":"0.00000000",
+        //             "numberOver":"10.0000",
+        //             "numberDeal":"0.0000",
+        //             "flag":"sale",
+        //             "status":"0",  //0:unfilled, 1:partial deal, 2:all transactions, 3:already cancelled
+        //             "coinFrom":"bz",
+        //             "coinTo":"usdt",
+        //             "orderTotalPrice":"0",
+        //             "created":"1533279876"
+        //         },
+        //         "time":"1533280294",
+        //         "microtime":"0.36859200 1533280294",
+        //         "source":"api"
+        //     }
+        //
+        return this.parseOrder (response['data']);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
         let market = this.market (symbol);
-        let response = await this.privatePostOpenOrders (this.extend ({
+        let request = {
             'symbol': market['id'],
-        }, params));
+        };
+        // Parameter：
+        // Parameter	Whether or not	Type	Remarks
+        // apiKey	yes	string	user request for apiKey
+        // timeStamp	yes	string	current timestamp
+        // nonce	yes	string	random 6 bit character
+        // sign	yes	string	signature of request parameter
+        // coinFrom	yes	string	eos、vtc
+        // coinTo	yes	string	btc、eth trade area
+        // type	no	integer	1:buy,2:sell If no type defined, will return all data
+        // page	no	integer	current page
+        // pageSize	no	integer	show number max:100
+        // startTime	no	string	start time
+        // endTime	no	string	end time
+        let response = await this.tradePostGetUserNowEntrustSheet (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
