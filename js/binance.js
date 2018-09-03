@@ -539,11 +539,19 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
