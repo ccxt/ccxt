@@ -564,7 +564,7 @@ module.exports = class exmo extends Exchange {
                     filled += trade['amount'];
                     if (typeof feeCost === 'undefined')
                         feeCost = 0.0;
-                    // feeCost += trade['fee']['cost'];
+                    feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;
                     cost += trade['cost'];
