@@ -20,6 +20,7 @@ module.exports = class bitz extends Exchange {
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'createMarketOrder': false,
             },
             'timeframes': {
                 '1m': '1min',
@@ -663,42 +664,90 @@ module.exports = class bitz extends Exchange {
         return this.parseOHLCVs (response['data']['bars'], market, timeframe, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'open', // partially filled
+            '2': 'closed', // filled
+            '3': 'canceled',
+        };
+        if (status in statuses) {
+            return statuses[status];
+        }
+        return status;
+    }
+
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //    {
+        //         "id": "693248739",   // order id
+        //         "uId": "2074056",    // uid
+        //         "price": "100",      // price
+        //         "number": "10",      // number
+        //         "numberOver": "10",  // undealed
+        //         "flag": "sale",      // flag
+        //         "status": "0",       // unfilled
+        //         "coinFrom": "vtc",
+        //         "coinTo": "dkkt",
+        //         "numberDeal": "0"    // dealed
+        //     }
+        //
+        let id = this.safeString (order, 'id');
         let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let baseId = this.safeString (order, 'coinFrom');
+            let quoteId = this.safeString (order, 'coinTo');
+            if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined')) {
+                let marketId = baseId + '_' + quoteId;
+                if (marketId in this.markets_by_id) {
+                    market = this.safeValue (this.markets_by_id, marketId)
+                } else {
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (base);
+                    quote = this.commonCurrencyCode (quote);
+                    symbol = base + '/' + quote;
+                }
+            }
+        }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let side = this.safeString (order, 'side');
-        if (typeof side === 'undefined') {
-            side = this.safeString (order, 'type');
-            if (typeof side !== 'undefined')
-                side = (side === 'in') ? 'buy' : 'sell';
-            if (typeof side === 'undefined')
-                side = this.safeString (order, 'flag');
+        let side = this.safeString (order, 'flag');
+        if (typeof side !== 'undefined') {
+            side = (side === 'sale') ? 'sell' : 'buy';
         }
+        let price = this.safeString (order, 'price');
         let amount = this.safeFloat (order, 'number');
-        let remaining = this.safeFloat (order, 'numberover');
-        let filled = undefined;
-        if (typeof amount !== 'undefined')
-            if (typeof remaining !== 'undefined')
-                filled = amount - remaining;
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        if ('datetime' in order) {
-            timestamp = this.parse8601 (order['datetime']);
-            iso8601 = this.iso8601 (timestamp);
+        let remaining = this.safeFloat (order, 'numberOver');
+        let filled = this.safeFloat (order, 'numberDeal');
+        let timestamp = this.safeInteger (order, 'timestamp');
+        if (typeof timestamp === 'undefined') {
+            timestamp = this.safeInteger (order, 'created');
+            if (typeof timestamp !== 'undefined') {
+                timestamp = timestamp * 1000;
+            }
         }
+        let cost = this.safeFloat (order, 'orderTotalPrice');
+        if (typeof price !== 'undefined') {
+            if (typeof filled !== 'undefined') {
+                cost = filled * price;
+            }
+        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
-            'id': order['id'],
-            'datetime': iso8601,
+            'id': id,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': order['price'],
-            'cost': undefined,
-            'amount': order['number'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': undefined,
@@ -709,30 +758,47 @@ module.exports = class bitz extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' createOrder allows limit orders only');
+        }
         let market = this.market (symbol);
-        let orderType = (side === 'buy') ? 'in' : 'out';
+        let orderType = (side === 'buy') ? '1' : '2';
         if (!this.password)
             throw new ExchangeError (this.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         let request = {
-            'coin': market['id'],
+            'symbol': market['id'],
             'type': orderType,
             'price': this.priceToPrecision (symbol, price),
             'number': this.amountToString (symbol, amount),
-            'tradepwd': this.password,
+            'tradePwd': this.password,
         };
         let response = await this.privatePostTradeAdd (this.extend (request, params));
-        const log = require ('ololog');
-        log.unlimited.yellow (response);
-        process.exit ();
-        let id = response['data']['id'];
-        let order = this.parseOrder ({
-            'id': id,
-            'price': price,
-            'number': amount,
-            'side': side,
-        }, market);
-        this.orders[id] = order;
-        return order;
+        //
+        //     {
+        //         "status": 200,
+        //         "msg": "",
+        //         "data": {
+        //             "id": "693248739",   // order id
+        //             "uId": "2074056",    // uid
+        //             "price": "100",      // price
+        //             "number": "10",      // number
+        //             "numberOver": "10",  // undealed
+        //             "flag": "sale",      // flag
+        //             "status": "0",       // unfilled
+        //             "coinFrom": "vtc",
+        //             "coinTo": "dkkt",
+        //             "numberDeal": "0"    // dealed
+        //         },
+        //         "time": "1533035297",
+        //         "microtime": "0.41892000 1533035297",
+        //         "source": "api",
+        //     }
+        //
+        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let order = this.extend ({
+            'timestamp': timestamp,
+        }, response['data']);
+        return this.parseOrder (order, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -747,7 +813,7 @@ module.exports = class bitz extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOpenOrders (this.extend ({
-            'coin': market['id'],
+            'symbol': market['id'],
         }, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
