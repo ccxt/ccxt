@@ -482,6 +482,25 @@ module.exports = class bitz extends Exchange {
         let response = await this.marketGetDepth (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: {     asks: [ ["10.00000000", "0.4426", "4.4260"],
+        //                                ["1.00000000", "0.8339", "0.8339"],
+        //                                ["0.91700000", "0.0500", "0.0458"],
+        //                                ["0.20000000", "0.1000", "0.0200"],
+        //                                ["0.03987120", "16.1262", "0.6429"],
+        //                                ["0.03986120", "9.7523", "0.3887"]   ],
+        //                        bids: [ ["0.03976145", "0.0359", "0.0014"],
+        //                                ["0.03973401", "20.9493", "0.8323"],
+        //                                ["0.03967970", "0.0328", "0.0013"],
+        //                                ["0.00000002", "10000.0000", "0.0002"],
+        //                                ["0.00000001", "231840.7500", "0.0023"] ],
+        //                    coinPair:   "eth_btc"                                  },
+        //            time:    1535974778,
+        //       microtime:   "0.04017400 1535974778",
+        //          source:   "api"                                                     }
+        //
         let orderbook = response['data'];
         let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
         return this.parseOrderBook (orderbook, timestamp);
