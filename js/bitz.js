@@ -1018,7 +1018,7 @@ module.exports = class bitz extends Exchange {
                 url += '?' + query;
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (this.keysort (this.extend ({
+            body = this.rawencode (this.keysort (this.extend ({
                 'apiKey': this.apiKey,
                 'timeStamp': this.seconds (),
                 'nonce': this.nonce (),
@@ -1038,13 +1038,26 @@ module.exports = class bitz extends Exchange {
             let response = JSON.parse (body);
             let status = this.safeString (response, 'status');
             if (typeof status !== 'undefined') {
+                const feedback = this.id + ' ' + body;
+                const exceptions = this.exceptions;
                 //
                 //     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
                 //
-                if (status === '200')
-                    return; // no error
-                const feedback = this.id + ' ' + body;
-                const exceptions = this.exceptions;
+                if (status === '200') {
+                    //
+                    //     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
+                    //
+                    const code = this.safeInteger (response, 'data');
+                    if (typeof code !== 'undefined') {
+                        if (code in exceptions) {
+                            throw new exceptions[code] (feedback);
+                        } else {
+                            throw new ExchangeError (feedback);
+                        }
+                    } else {
+                        return; // no error
+                    }
+                }
                 if (status in exceptions) {
                     throw new exceptions[status] (feedback);
                 } else {
