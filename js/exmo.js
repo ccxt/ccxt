@@ -152,7 +152,7 @@ module.exports = class exmo extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo ();
+        let response = await this.privatePostUserInfo (params);
         let result = { 'info': response };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {

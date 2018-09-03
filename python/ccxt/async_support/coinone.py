@@ -254,6 +254,8 @@ class coinone (Exchange):
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
         id = self.safe_string(response, 'orderId')
+        if id is not None:
+            id = id.upper()
         timestamp = self.milliseconds()
         cost = price * amount
         order = {
@@ -319,6 +321,8 @@ class coinone (Exchange):
     def parse_order(self, order, market=None):
         info = self.safe_value(order, 'info')
         id = self.safe_string(info, 'orderId')
+        if id is not None:
+            id = id.upper()
         timestamp = int(info['timestamp']) * 1000
         status = self.safe_string(order, 'status')
         status = self.parse_order_status(status)

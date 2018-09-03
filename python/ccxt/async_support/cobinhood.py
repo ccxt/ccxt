@@ -31,8 +31,11 @@ class cobinhood (Exchange):
                 'fetchOrder': True,
                 'fetchDepositAddress': True,
                 'createDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
                 'withdraw': False,
                 'fetchMyTrades': True,
+                'editOrder': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -124,6 +127,9 @@ class cobinhood (Exchange):
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                    ],
+                    'put': [
+                        'trading/orders/{order_id}',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -413,26 +419,42 @@ class cobinhood (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         'completed_at': None,
+        #         'eq_price': '0',
+        #         'filled': '0',
+        #         'id': '88426800-beae-4407-b4a1-f65cef693542',
+        #         'price': '0.00000507',
+        #         'side': 'bid',
+        #         'size': '3503.6489',
+        #         'source': 'exchange',
+        #         'state': 'open',
+        #         'timestamp': 1535258403597,
+        #         'trading_pair_id': 'ACT-BTC',
+        #         'type': 'limit',
+        #     }
+        #
         symbol = None
         if market is None:
-            marketId = self.safe_string(order, 'trading_pair')
-            marketId = self.safe_string(order, 'trading_pair_id', marketId)
+            marketId = self.safe_string_2(order, 'trading_pair', 'trading_pair_id')
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
-        price = self.safe_float(order, 'eq_price')
+        price = self.safe_float(order, 'price')
+        average = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
         remaining = None
         cost = None
+        if filled is not None and average is not None:
+            cost = average * filled
+        elif average is not None:
+            cost = average * amount
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-            if filled is not None and price is not None:
-                cost = price * filled
-            elif price is not None:
-                cost = price * amount
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'bid':
@@ -450,6 +472,7 @@ class cobinhood (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -475,6 +498,16 @@ class cobinhood (Exchange):
         id = order['id']
         self.orders[id] = order
         return order
+
+    async def edit_order(self, id, symbol, type, side, amount, price, params={}):
+        response = await self.privatePutTradingOrdersOrderId(self.extend({
+            'order_id': id,
+            'price': self.price_to_precision(symbol, price),
+            'size': self.amount_to_string(symbol, amount),
+        }, params))
+        return self.parse_order(self.extend(response, {
+            'id': id,
+        }))
 
     async def cancel_order(self, id, symbol=None, params={}):
         response = await self.privateDeleteTradingOrdersOrderId(self.extend({
@@ -545,6 +578,94 @@ class cobinhood (Exchange):
             'currency': code,
             'address': address,
             'info': response,
+        }
+
+    async def withdraw(self, code, amount, address, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        response = await self.privatePostWalletWithdrawals(self.extend({
+            'currency': currency['id'],
+            'amount': amount,
+            'address': address,
+        }, params))
+        return {
+            'id': response['result']['withdrawal_id'],
+            'info': response,
+        }
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code arguemnt')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetWalletDeposits(self.extend(request, params))
+        return self.parseTransactions(response['result']['deposits'], currency)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code arguemnt')
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetWalletWithdrawals(self.extend(request, params))
+        return self.parseTransactions(response['result']['withdrawals'], currency)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'tx_pending_two_factor_auth': 'pending',
+            'tx_pending_email_auth': 'pending',
+            'tx_pending_approval': 'pending',
+            'tx_approved': 'pending',
+            'tx_processing': 'pending',
+            'tx_pending': 'pending',
+            'tx_sent': 'pending',
+            'tx_cancelled': 'canceled',
+            'tx_timeout': 'error',
+            'tx_invalid': 'error',
+            'tx_rejected': 'error',
+            'tx_confirmed': 'ok',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status.lower()
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_integer(transaction, 'created_at')
+        datetime = None
+        if timestamp is not None:
+            datetime = self.iso8601(timestamp)
+        code = None
+        if currency is None:
+            currencyId = self.safe_string(transaction, 'currency')
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+            else:
+                code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            typeParts = type.split('_')
+            type = typeParts[0]
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'withdrawal_id'),
+            'txid': self.safe_string(transaction, 'txhash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': None,  # or is it defined?
+            'type': type,  # direction of the transaction,('deposit' | 'withdraw')
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': self.parse_transaction_status(transaction['status']),
+            'updated': None,
+            'fee': {
+                'cost': self.safe_float(transaction, 'fee'),
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

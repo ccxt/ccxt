@@ -13,7 +13,7 @@ class fcoin extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'fcoin',
             'name' => 'FCoin',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'rateLimit' => 2000,
             'userAgent' => $this->userAgents['chrome39'],
             'version' => 'v2',
@@ -121,6 +121,10 @@ class fcoin extends Exchange {
                 '3008' => '\\ccxt\\InvalidOrder',
                 '6004' => '\\ccxt\\InvalidNonce',
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
+            ),
+            'commonCurrencies' => array (
+                'DAG' => 'DAGX',
+                'PAI' => 'PCHAIN',
             ),
         ));
     }
@@ -450,7 +454,7 @@ class fcoin extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $result = $this->fetch_orders($symbol, $since, $limit, array ( 'states' => 'submitted' ));
+        $result = $this->fetch_orders($symbol, $since, $limit, array ( 'states' => 'submitted,partial_filled' ));
         return $result;
     }
 
@@ -464,7 +468,7 @@ class fcoin extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'symbol' => $market['id'],
-            'states' => 'submitted',
+            'states' => 'submitted,partial_filled,partial_canceled,filled,canceled',
         );
         if ($limit !== null)
             $request['limit'] = $limit;
@@ -518,7 +522,7 @@ class fcoin extends Exchange {
             $query = $this->keysort ($query);
             if ($method === 'GET') {
                 if ($query) {
-                    $url .= '?' . $this->urlencode ($query);
+                    $url .= '?' . $this->rawencode ($query);
                 }
             }
             // HTTP_METHOD . HTTP_REQUEST_URI . TIMESTAMP . POST_BODY

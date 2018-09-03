@@ -288,6 +288,8 @@ class gdax extends Exchange {
         // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
         if ($orderId !== null)
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -297,20 +299,23 @@ class gdax extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'size'),
+            'price' => $price,
+            'amount' => $amount,
             'fee' => $fee,
+            'cost' => $price * $amount,
         );
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = null;
-        $request = array ();
-        if ($symbol !== null) {
-            $market = $this->market ($symbol);
-            $request['product_id'] = $market['id'];
+        // as of 2018-08-23
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'product_id' => $market['id'],
+        );
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
@@ -510,10 +515,11 @@ class gdax extends Exchange {
         return $response;
     }
 
-    public function deposit ($currency, $amount, $address, $params = array ()) {
+    public function deposit ($code, $amount, $address, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'amount' => $amount,
         );
         $method = 'privatePostDeposits';
@@ -538,11 +544,12 @@ class gdax extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $currency = $this->currency ($code);
         $this->load_markets();
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'amount' => $amount,
         );
         $method = 'privatePostWithdrawals';
@@ -560,6 +567,81 @@ class gdax extends Exchange {
         return array (
             'info' => $response,
             'id' => $response['id'],
+        );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchTransactions() requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $accountId = null;
+        $accounts = $this->privateGetAccounts ();
+        for ($i = 0; $i < count ($accounts); $i++) {
+            $account = $accounts[$i];
+            // todo => use unified common currencies below
+            if ($account['currency'] === $currency['id']) {
+                $accountId = $account['id'];
+                break;
+            }
+        }
+        if ($accountId === null) {
+            throw new ExchangeError ($this->id . ' fetchTransactions() could not find $account id for ' . $code);
+        }
+        $request = array (
+            'limit' => $limit,
+            'id' => $accountId,
+        );
+        $response = $this->privateGetAccountsIdTransfers (array_merge ($request, $params));
+        for ($i = 0; $i < count ($response); $i++) {
+            $response[$i]['currency'] = $code;
+        }
+        return $this->parseTransactions ($response);
+    }
+
+    public function parse_transaction_status ($transaction) {
+        if (is_array ($transaction && $transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && $transaction['canceled_at'])) {
+            return 'canceled';
+        } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
+            return 'ok';
+        } else if (is_array ($transaction && $transaction['procesed_at']) && array_key_exists ('procesed_at', $transaction && $transaction['procesed_at'])) {
+            return 'pending';
+        } else {
+            return 'failed';
+        }
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_integer($transaction, 'created_at');
+        $datetime = null;
+        if ($timestamp !== null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction['details'], 'crypto_transaction_hash'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'address' => null, // or is it defined?
+            'type' => $this->safe_string($transaction, 'type'), // direction of the $transaction, ('deposit' | 'withdraw')
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $this->parse_transaction_status ($transaction),
+            'updated' => null,
+            'fee' => array (
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 

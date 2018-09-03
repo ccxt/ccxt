@@ -261,19 +261,27 @@ class bitfinex (Exchange):
                 },
             },
             'commonCurrencies': {
-                'ATM': 'ATMI',  # Bitfinex uses ATM instead of the official ATMI
+                'ABS': 'ABYSS',
+                'AIO': 'AION',
+                'ATM': 'ATMI',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
                 'CTX': 'CTXC',
+                'DAD': 'DADI',
                 'DAT': 'DATA',
-                'DSH': 'DASH',  # Bitfinex names Dash as DSH, instead of DASH
+                'DSH': 'DASH',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
+                'IQX': 'IQ',
+                'MIT': 'MITH',
                 'MNA': 'MANA',
+                'NCA': 'NCASH',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
+                'POY': 'POLY',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
+                'SEE': 'SEER',
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
@@ -476,7 +484,8 @@ class bitfinex (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         balanceType = self.safe_string(params, 'type', 'exchange')
-        balances = await self.privatePostBalances()
+        query = self.omit(params, 'type')
+        balances = await self.privatePostBalances(query)
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]

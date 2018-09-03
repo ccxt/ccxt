@@ -55,7 +55,7 @@ Below is a list of functionality we would like to have implemented in the librar
 - Unified fetchDepositAddress, createDepositAddress
 - Unified withdraw
 - Unified fees
-- Unified deposit and withdrawal transaction history
+- Unified fetchTransactions, fetchDeposits, fetchWithdrawals
 - Improved proxy support
 - WebSocket interfaces:
   - Pub: Methods for trading and private calls where supported
@@ -228,6 +228,7 @@ And structurally:
 - do not use conditional statements that are too complex (heavy if-bracketing)
 - do not use heavy ternary conditionals
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
+- do not use `.includes()`, use `.indexOf()` instead!
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead

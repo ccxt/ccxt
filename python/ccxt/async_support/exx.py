@@ -27,6 +27,7 @@ class exx (Exchange):
             'name': 'EXX',
             'countries': ['CN'],
             'rateLimit': 1000 / 10,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchOrder': True,
                 'fetchTickers': True,
@@ -41,6 +42,7 @@ class exx (Exchange):
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
@@ -94,7 +96,7 @@ class exx (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
+                'TV': 'TIV',  # Ti-Value
             },
             'exceptions': {
                 '103': AuthenticationError,
@@ -298,7 +300,7 @@ class exx (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrder(self.extend({
+        response = await self.privateGetGetOrder(self.extend({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -337,7 +339,7 @@ class exx (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orders = await self.privateGetOpenOrders(self.extend({
+        orders = await self.privateGetGetOpenOrders(self.extend({
             'currency': market['id'],
         }, params))
         return self.parse_orders(orders, market, since, limit)
@@ -358,6 +360,9 @@ class exx (Exchange):
             }, params)))
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):

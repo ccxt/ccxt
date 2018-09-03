@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.84'
+__version__ = '1.17.223'
 
 # -----------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ import random
 import certifi
 import aiohttp
 import ssl
+import sys
 import yarl
 
 # -----------------------------------------------------------------------------
@@ -49,12 +50,7 @@ class Exchange(BaseExchange):
             self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.own_session = 'session' not in config
-        if self.own_session:
-            # Create out SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=certifi.where())
-            # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+        self.open()
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
 
@@ -66,6 +62,22 @@ class Exchange(BaseExchange):
     def __del__(self):
         if self.session is not None:
             self.logger.warning(self.id + " requires to release all resources with an explicit call to the .close() coroutine. If you are creating the exchange instance from within your async coroutine, add exchange.close() to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).")
+
+    if sys.version_info >= (3, 5):
+        async def __aenter__(self):
+            self.open()
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            await self.close()
+
+    def open(self):
+        if self.own_session and self.session is None:
+            # Create our SSL context object with our CA cert file
+            context = ssl.create_default_context(cafile=certifi.where())
+            # Pass this SSL context to aiohttp and create a TCPConnector
+            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
 
     async def close(self):
         if self.session is not None:
@@ -175,9 +187,17 @@ class Exchange(BaseExchange):
         return self.fees
 
     async def fetch_markets(self):
-        return self.markets
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
+        return self.to_array(self.markets)
 
-    async def fetch_currencies(self):
+    async def fetch_currencies(self, params={}):
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
         return self.currencies
 
     async def fetch_order_status(self, id, market=None):
@@ -211,9 +231,11 @@ class Exchange(BaseExchange):
         trades = await self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
 
+    async def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+
     async def fetch_full_tickers(self, symbols=None, params={}):
-        tickers = await self.fetch_tickers(symbols, params)
-        return tickers
+        return await self.fetch_tickers(symbols, params)
 
     async def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:

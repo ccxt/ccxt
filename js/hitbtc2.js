@@ -660,7 +660,8 @@ module.exports = class hitbtc2 extends hitbtc {
         await this.loadMarkets ();
         let type = this.safeString (params, 'type', 'trading');
         let method = 'privateGet' + this.capitalize (type) + 'Balance';
-        let balances = await this[method] ();
+        let query = this.omit (params, 'type');
+        let balances = await this[method] (query);
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
             let balance = balances[b];
@@ -800,11 +801,12 @@ module.exports = class hitbtc2 extends hitbtc {
             }
         }
         let fee = undefined;
-        if ('fee' in trade) {
-            let currency = market ? market['quote'] : undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            let feeCurrency = market ? market['quote'] : undefined;
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': currency,
+                'cost': feeCost,
+                'currency': feeCurrency,
             };
         }
         let orderId = undefined;

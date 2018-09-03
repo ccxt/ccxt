@@ -99,13 +99,14 @@ class coinmarketcap (Exchange):
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
             'Catcoin': 'Catcoin',
-            'Content and AD Network': 'Content and AD Network',  # conflict with CAN(Content and AD Network)
+            'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
             'FairGame': 'FairGame',
+            'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
@@ -119,6 +120,7 @@ class coinmarketcap (Exchange):
             'Maggie': 'Maggie',
             'IOTA': 'IOTA',  # a special case, most exchanges list it as IOTA, therefore we change just the Coinmarketcap instead of changing them all
             'NetCoin': 'NetCoin',
+            'PCHAIN': 'PCHAIN',  # conflict with PAI(Project Pai)
             'Polcoin': 'Polcoin',
             'PutinCoin': 'PutinCoin',  # conflict with PUT(Profile Utility Token)
             'Rcoin': 'Rcoin',  # conflict with RCN(Ripio Credit Network)

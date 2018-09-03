@@ -235,7 +235,7 @@ class bitsane extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetOrderbook (array_merge (array (
             'pair' => $this->market_id($symbol),
@@ -424,11 +424,13 @@ class bitsane extends Exchange {
             $body = array_merge (array (
                 'nonce' => $this->nonce (),
             ), $params);
-            $body = base64_encode ($this->json ($body));
+            $payload = $this->json ($body);
+            $payload64 = base64_encode ($this->encode ($payload));
+            $body = $this->decode ($payload64);
             $headers = array (
                 'X-BS-APIKEY' => $this->apiKey,
                 'X-BS-PAYLOAD' => $body,
-                'X-BS-SIGNATURE' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha384'),
+                'X-BS-SIGNATURE' => $this->hmac ($payload64, $this->encode ($this->secret), 'sha384'),
             );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

@@ -24,6 +24,7 @@ class luno (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchMyTrades': True,
                 'fetchTradingFees': True,
             },
             'urls': {
@@ -105,17 +106,18 @@ class luno (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalance()
-        balances = response['balance']
+        wallets = response['balance']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = self.common_currency_code(balance['asset'])
-            reserved = float(balance['reserved'])
-            unconfirmed = float(balance['unconfirmed'])
+        for b in range(0, len(wallets)):
+            wallet = wallets[b]
+            currency = self.common_currency_code(wallet['asset'])
+            reserved = float(wallet['reserved'])
+            unconfirmed = float(wallet['unconfirmed'])
+            balance = float(wallet['balance'])
             account = {
                 'free': 0.0,
                 'used': self.sum(reserved, unconfirmed),
-                'total': float(balance['balance']),
+                'total': self.sum(balance, unconfirmed),
             }
             account['free'] = account['total'] - account['used']
             result[currency] = account
@@ -123,7 +125,11 @@ class luno (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbook(self.extend({
+        method = 'publicGetOrderbook'
+        if limit is not None:
+            if limit <= 100:
+                method += 'Top'  # get just the top of the orderbook when limit is low
+        orderbook = getattr(self, method)(self.extend({
             'pair': self.market_id(symbol),
         }, params))
         timestamp = orderbook['timestamp']
@@ -141,6 +147,7 @@ class luno (Exchange):
         quoteFee = self.safe_float(order, 'fee_counter')
         baseFee = self.safe_float(order, 'fee_base')
         filled = self.safe_float(order, 'base')
+        cost = self.safe_float(order, 'counter')
         remaining = None
         if amount is not None:
             if filled is not None:
@@ -164,6 +171,7 @@ class luno (Exchange):
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': remaining,
             'trades': None,
             'fee': fee,
@@ -251,18 +259,52 @@ class luno (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        side = 'buy' if (trade['is_buy']) else 'sell'
+        # For public trade data(is_buy is True) indicates 'buy' side but for private trade data
+        # is_buy indicates maker or taker. The value of "type"(ASK/BID) indicate sell/buy side.
+        # Private trade data includes ID field which public trade data does not.
+        order = self.safe_string(trade, 'order_id')
+        takerOrMaker = None
+        side = None
+        if order is not None:
+            side = 'sell' if (trade['type'] == 'ASK') else 'buy'
+            if side == 'sell' and trade['is_buy']:
+                takerOrMaker = 'maker'
+            elif side == 'buy' and not trade['is_buy']:
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = 'taker'
+        else:
+            side = 'buy' if (trade['is_buy']) else 'sell'
+        feeBase = self.safe_float(trade, 'fee_base')
+        feeCounter = self.safe_float(trade, 'fee_counter')
+        feeCurrency = None
+        feeCost = None
+        if feeBase is not None:
+            if feeBase != 0.0:
+                feeCurrency = market['base']
+                feeCost = feeBase
+        elif feeCounter is not None:
+            if feeCounter != 0.0:
+                feeCurrency = market['quote']
+                feeCost = feeCounter
         return {
             'info': trade,
             'id': None,
-            'order': None,
             'timestamp': trade['timestamp'],
             'datetime': self.iso8601(trade['timestamp']),
             'symbol': market['symbol'],
+            'order': order,
             'type': None,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
+            # Does not include potential fee costs
+            'cost': self.safe_float(trade, 'counter'),
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -274,7 +316,24 @@ class luno (Exchange):
         if since is not None:
             request['since'] = since
         response = self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response['trades'], market, since, limit)
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        if since is not None:
+            request['since'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetListtrades(self.extend(request, params))
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()

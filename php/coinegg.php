@@ -145,6 +145,9 @@ class coinegg extends Exchange {
             'options' => array (
                 'quoteIds' => array ( 'btc', 'eth', 'usc', 'usdt' ),
             ),
+            'commonCurrencies' => array (
+                'JBC' => 'JubaoCoin',
+            ),
         ));
     }
 

@@ -102,26 +102,31 @@ module.exports = class bitflyer extends Exchange {
                 spot = false;
             }
             let currencies = id.split ('_');
+            let baseId = undefined;
+            let quoteId = undefined;
             let base = undefined;
             let quote = undefined;
-            let symbol = id;
             let numCurrencies = currencies.length;
             if (numCurrencies === 1) {
-                base = symbol.slice (0, 3);
-                quote = symbol.slice (3, 6);
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
             } else if (numCurrencies === 2) {
-                base = currencies[0];
-                quote = currencies[1];
-                symbol = base + '/' + quote;
+                baseId = currencies[0];
+                quoteId = currencies[1];
             } else {
-                base = currencies[1];
-                quote = currencies[2];
+                baseId = currencies[1];
+                quoteId = currencies[2];
             }
+            base = this.commonCurrencyCode (baseId);
+            quote = this.commonCurrencyCode (quoteId);
+            let symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
                 'future': future,

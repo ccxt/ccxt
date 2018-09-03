@@ -88,6 +88,7 @@ class kuna extends acx {
                 $baseId = str_replace ('btc', '', $id);
                 $baseId = str_replace ('uah', '', $baseId);
                 $baseId = str_replace ('gbg', '', $baseId);
+                $baseId = str_replace ('eth', '', $baseId);
                 if (strlen ($baseId) > 0) {
                     $baseIdLength = strlen ($baseId) - 0; // a transpiler workaround
                     $quoteId = mb_substr ($id, $baseIdLength);

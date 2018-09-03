@@ -661,7 +661,8 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $method = 'privateGet' . $this->capitalize ($type) . 'Balance';
-        $balances = $this->$method ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->$method ($query);
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -801,11 +802,12 @@ class hitbtc2 extends hitbtc {
             }
         }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-            $currency = $market ? $market['quote'] : null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = $market ? $market['quote'] : null;
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => $currency,
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
             );
         }
         $orderId = null;

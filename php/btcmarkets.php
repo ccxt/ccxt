@@ -32,7 +32,7 @@ class btcmarkets extends Exchange {
                     'private' => 'https://api.btcmarkets.net',
                     'web' => 'https://btcmarkets.net/data',
                 ),
-                'www' => 'https://btcmarkets.net/',
+                'www' => 'https://btcmarkets.net',
                 'doc' => 'https://github.com/BTCMarkets/API',
             ),
             'api' => array (
@@ -41,6 +41,7 @@ class btcmarkets extends Exchange {
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/active',
                     ),
                 ),
                 'private' => array (
@@ -66,19 +67,6 @@ class btcmarkets extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BTC/AUD' => array ( 'id' => 'BTC/AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'LTC/AUD' => array ( 'id' => 'LTC/AUD', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'ETH/AUD' => array ( 'id' => 'ETH/AUD', 'symbol' => 'ETH/AUD', 'base' => 'ETH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'ETC/AUD' => array ( 'id' => 'ETC/AUD', 'symbol' => 'ETC/AUD', 'base' => 'ETC', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'XRP/AUD' => array ( 'id' => 'XRP/AUD', 'symbol' => 'XRP/AUD', 'base' => 'XRP', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'BCH/AUD' => array ( 'id' => 'BCH/AUD', 'symbol' => 'BCH/AUD', 'base' => 'BCH', 'quote' => 'AUD', 'maker' => 0.0085, 'taker' => 0.0085, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null )), 'precision' => array ( 'price' => 2 )),
-                'LTC/BTC' => array ( 'id' => 'LTC/BTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
-                'ETH/BTC' => array ( 'id' => 'ETH/BTC', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
-                'ETC/BTC' => array ( 'id' => 'ETC/BTC', 'symbol' => 'ETC/BTC', 'base' => 'ETC', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
-                'XRP/BTC' => array ( 'id' => 'XRP/BTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
-                'BCH/BTC' => array ( 'id' => 'BCH/BTC', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.0022, 'taker' => 0.0022, 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ))),
-            ),
             'timeframes' => array (
                 '1m' => 'minute',
                 '1h' => 'hour',
@@ -89,6 +77,65 @@ class btcmarkets extends Exchange {
                 '6' => '\\ccxt\\DDoSProtection',
             ),
         ));
+    }
+
+    public function fetch_markets () {
+        $response = $this->publicGetV2MarketActive ();
+        $result = array ();
+        $markets = $response['markets'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $baseId = $market['instrument'];
+            $quoteId = $market['currency'];
+            $id = $baseId . '/' . $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $fee = ($quote === 'AUD') ? 0.0085 : 0.0022;
+            $pricePrecision = 2;
+            $amountPrecision = 4;
+            $minAmount = 0.001; // where does it come from?
+            $minPrice = null;
+            if ($quote === 'AUD') {
+                if (($base === 'XRP') || ($base === 'OMG')) {
+                    $pricePrecision = 4;
+                }
+                $amountPrecision = -log10 ($minAmount);
+                $minPrice = pow (10, -$pricePrecision);
+            }
+            $precision = array (
+                'amount' => $amountPrecision,
+                'price' => $pricePrecision,
+            );
+            $limits = array (
+                'amount' => array (
+                    'min' => $minAmount,
+                    'max' => null,
+                ),
+                'price' => array (
+                    'min' => $minPrice,
+                    'max' => null,
+                ),
+                'cost' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+            );
+            $result[] = array (
+                'info' => $market,
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'maker' => $fee,
+                'taker' => $fee,
+                'limits' => $limits,
+                'precision' => $precision,
+            );
+        }
+        return $result;
     }
 
     public function fetch_balance ($params = array ()) {
@@ -245,6 +292,26 @@ class btcmarkets extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         return $this->cancel_orders (array ( $id ));
+    }
+
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $currency = null;
+        $cost = null;
+        if ($market['quote'] === 'AUD') {
+            $currency = $market['quote'];
+            $cost = floatval ($this->cost_to_precision($symbol, $amount * $price));
+        } else {
+            $currency = $market['base'];
+            $cost = floatval ($this->amount_to_precision($symbol, $amount));
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $currency,
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $rate * $cost)),
+        );
     }
 
     public function parse_my_trade ($trade, $market) {
@@ -434,10 +501,5 @@ class btcmarkets extends Exchange {
                 }
             }
         }
-    }
-
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        return $response;
     }
 }

@@ -116,12 +116,13 @@ class cryptopia (Exchange):
                 'BEAN': 'BITB',  # rebranding, see issue  #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
+                'FT': 'Fabric Token',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'KARM': 'KARMA',
@@ -147,7 +148,7 @@ class cryptopia (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             numericId = market['Id']
-            # symbol = market['Label']
+            label = market['Label']
             baseId = market['Symbol']
             quoteId = market['BaseSymbol']
             base = self.common_currency_code(baseId)
@@ -190,6 +191,7 @@ class cryptopia (Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             })
         self.options['marketsByLabel'] = self.index_by(result, 'label')
         return result
@@ -721,6 +723,8 @@ class cryptopia (Exchange):
                             feedback = feedback + ' ' + error
                             if error.find('Invalid trade amount') >= 0:
                                 raise InvalidOrder(feedback)
+                            if error.find('No matching trades found') >= 0:
+                                raise OrderNotFound(feedback)
                             if error.find('does not exist') >= 0:
                                 raise OrderNotFound(feedback)
                             if error.find('Insufficient Funds') >= 0:

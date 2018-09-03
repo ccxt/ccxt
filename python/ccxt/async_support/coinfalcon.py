@@ -56,8 +56,9 @@ class coinfalcon (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'tierBased': True,
+                    'maker': 0.0,
+                    'taker': 0.002,  # tiered fee starts at 0.2%
                 },
             },
             'precision': {

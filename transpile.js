@@ -126,6 +126,7 @@ const commonRegexes = [
     [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
+    [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
 ]
 
 // ----------------------------------------------------------------------------
@@ -317,9 +318,9 @@ const phpRegexes = [
     [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow ($1)' ],
     [ /Math\.log/g, 'log' ],
     [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
-    [ /\(([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
-    [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
-    [ /([^\s]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
+    [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
     [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
     [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
@@ -383,7 +384,6 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
     const precisionImports = []
 
     for (let constant in precisionConstants) {
-        // const regex = new RegExp ("[^\\']" + error + "[^\\']")
         if (bodyAsString.indexOf (constant) >= 0) {
             precisionImports.push ('from ccxt.base.decimal_to_precision import ' + constant)
         }

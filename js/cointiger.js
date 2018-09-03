@@ -102,7 +102,7 @@ module.exports = class cointiger extends huobipro {
             },
             'exceptions': {
                 //    {"code":"1","msg":"系统错误","data":null}
-                //    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
@@ -113,6 +113,10 @@ module.exports = class cointiger extends huobipro {
                 '100002': ExchangeNotAvailable,
                 '100003': ExchangeError,
                 '100005': AuthenticationError,
+            },
+            'commonCurrencies': {
+                'FGC': 'FoundGameCoin',
+                'TCT': 'The Tycoon Chain Token',
             },
         });
     }
@@ -334,26 +338,23 @@ module.exports = class cointiger extends huobipro {
             amount = this.safeFloat2 (trade, 'amount', 'volume');
         }
         let fee = undefined;
-        if (typeof side !== 'undefined') {
-            let feeCostField = side + '_fee';
-            let feeCost = this.safeFloat (trade, feeCostField);
-            if (typeof feeCost !== 'undefined') {
-                let feeCurrency = undefined;
-                if (typeof market !== 'undefined') {
-                    feeCurrency = market['base'];
-                }
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            let feeCurrency = undefined;
+            if (typeof market !== 'undefined') {
+                feeCurrency = market['base'];
             }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
         }
         if (typeof amount !== 'undefined')
             if (typeof price !== 'undefined')
                 if (typeof cost === 'undefined')
                     cost = amount * price;
         let timestamp = this.safeInteger2 (trade, 'created_at', 'ts');
-        timestamp = this.safeInteger (trade, 'created', timestamp);
+        timestamp = this.safeInteger2 (trade, 'created', 'mtime', timestamp);
         let symbol = undefined;
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
@@ -387,7 +388,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (typeof limit === 'undefined')
@@ -500,17 +501,17 @@ module.exports = class cointiger extends huobipro {
             let order = this.extend (orders[i], {
                 'status': status,
             });
-            result.push (this.parseOrder (order, market, since, limit));
+            result.push (this.parseOrder (order, market));
         }
         return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -246,19 +246,27 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'ATM' => 'ATMI', // Bitfinex uses ATM instead of the official ATMI
+                'ABS' => 'ABYSS',
+                'AIO' => 'AION',
+                'ATM' => 'ATMI',
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
                 'CTX' => 'CTXC',
+                'DAD' => 'DADI',
                 'DAT' => 'DATA',
-                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'DSH' => 'DASH',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
+                'IQX' => 'IQ',
+                'MIT' => 'MITH',
                 'MNA' => 'MANA',
+                'NCA' => 'NCASH',
                 'ORS' => 'ORS Group', // conflict with Origin Sport #3230
+                'POY' => 'POLY',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
+                'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
@@ -474,7 +482,8 @@ class bitfinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
-        $balances = $this->privatePostBalances ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->privatePostBalances ($query);
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];

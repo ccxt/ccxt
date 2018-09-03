@@ -4,4 +4,4 @@ The structure of CCXT defines a good, portable and cross-compatible standard for
 
 ## Contact Us
 
-For inquiries on getting your exchange integrated, listed and certified: business@ccxt.trade
+For inquiries on getting your exchange integrated, listed and certified: info@ccxt.trade

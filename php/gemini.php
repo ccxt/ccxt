@@ -27,7 +27,11 @@ class gemini extends Exchange {
                 'fetchOrders' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
+                'createMarketOrder' => false,
                 'withdraw' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => false,
+                'fetchDeposits' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -64,6 +68,7 @@ class gemini extends Exchange {
                         'orders',
                         'mytrades',
                         'tradevolume',
+                        'transfers',
                         'balances',
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
@@ -346,6 +351,55 @@ class gemini extends Exchange {
 
     public function nonce () {
         return $this->milliseconds ();
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $response = $this->privatePostTransfers (array_merge ($request, $params));
+        return $this->parseTransactions ($response);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_integer($transaction, 'timestampms');
+        $datetime = null;
+        if ($timestamp !== null)
+            $datetime = $this->iso8601 ($timestamp);
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = $this->safe_string($transaction, 'type');
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        $status = 'pending';
+        // When deposits show as Advanced or Complete they are available for trading.
+        if ($transaction['status'])
+            $status = 'ok';
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'eid'),
+            'txid' => $this->safe_string($transaction, 'txHash'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'address' => null, // or is it defined?
+            'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => array (
+                'cost' => null,
+                'rate' => null,
+            ),
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

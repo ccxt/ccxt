@@ -15,6 +15,7 @@ class exx extends Exchange {
             'name' => 'EXX',
             'countries' => array ( 'CN' ),
             'rateLimit' => 1000 / 10,
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'fetchOrder' => true,
                 'fetchTickers' => true,
@@ -29,6 +30,7 @@ class exx extends Exchange {
                 'www' => 'https://www.exx.com/',
                 'doc' => 'https://www.exx.com/help/restApi',
                 'fees' => 'https://www.exx.com/help/rate',
+                'referral' => 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             ),
             'api' => array (
                 'public' => array (
@@ -82,7 +84,7 @@ class exx extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'CAN' => 'Content and AD Network',
+                'TV' => 'TIV', // Ti-Value
             ),
             'exceptions' => array (
                 '103' => '\\ccxt\\AuthenticationError',
@@ -301,7 +303,7 @@ class exx extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrder (array_merge (array (
+        $response = $this->privateGetGetOrder (array_merge (array (
             'currency' => $market['id'],
             'type' => $side,
             'price' => $price,
@@ -343,7 +345,7 @@ class exx extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orders = $this->privateGetOpenOrders (array_merge (array (
+        $orders = $this->privateGetGetOpenOrders (array_merge (array (
             'currency' => $market['id'],
         ), $params));
         return $this->parse_orders($orders, $market, $since, $limit);
@@ -366,6 +368,9 @@ class exx extends Exchange {
             ), $params)));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
             $url .= '?' . $query . '&$signature=' . $signature;
+            $headers = array (
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            );
         }
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

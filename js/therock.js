@@ -31,6 +31,7 @@ module.exports = class therock extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'funds',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -98,21 +99,81 @@ module.exports = class therock extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetFundsTickers ();
+        let response = await this.publicGetFunds ();
+        //
+        //     { funds: [ {                      id:   "BTCEUR",
+        //                              description:   "Trade Bitcoin with Euro",
+        //                                     type:   "currency",
+        //                            base_currency:   "EUR",
+        //                           trade_currency:   "BTC",
+        //                                  buy_fee:    0.2,
+        //                                 sell_fee:    0.2,
+        //                      minimum_price_offer:    0.01,
+        //                   minimum_quantity_offer:    0.0005,
+        //                   base_currency_decimals:    2,
+        //                  trade_currency_decimals:    4,
+        //                                leverages: []                           },
+        //                {                      id:   "LTCEUR",
+        //                              description:   "Trade Litecoin with Euro",
+        //                                     type:   "currency",
+        //                            base_currency:   "EUR",
+        //                           trade_currency:   "LTC",
+        //                                  buy_fee:    0.2,
+        //                                 sell_fee:    0.2,
+        //                      minimum_price_offer:    0.01,
+        //                   minimum_quantity_offer:    0.01,
+        //                   base_currency_decimals:    2,
+        //                  trade_currency_decimals:    2,
+        //                                leverages: []                            } ] }
+        //
+        let markets = this.safeValue (response, 'funds');
         let result = [];
-        for (let p = 0; p < markets['tickers'].length; p++) {
-            let market = markets['tickers'][p];
-            let id = market['fund_id'];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3);
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'info': market,
-            });
+        if (typeof markets === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
+        } else {
+            for (let i = 0; i < markets.length; i++) {
+                let market = markets[i];
+                let id = this.safeString (market, 'id');
+                let baseId = this.safeString (market, 'trade_currency');
+                let quoteId = this.safeString (market, 'base_currency');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                let symbol = base + '/' + quote;
+                let buy_fee = this.safeFloat (market, 'buy_fee');
+                let sell_fee = this.safeFloat (market, 'sell_fee');
+                let taker = Math.max (buy_fee, sell_fee);
+                let maker = taker;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'info': market,
+                    'active': true,
+                    'maker': maker,
+                    'taker': taker,
+                    'precision': {
+                        'amount': this.safeInteger (market, 'trade_currency_decimals'),
+                        'price': this.safeInteger (market, 'base_currency_decimals'),
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': this.safeFloat (market, 'minimum_quantity_offer'),
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': this.safeFloat (market, 'minimum_price_offer'),
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                });
+            }
         }
         return result;
     }

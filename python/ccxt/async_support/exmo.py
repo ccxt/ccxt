@@ -165,7 +165,7 @@ class exmo (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostUserInfo()
+        response = await self.privatePostUserInfo(params)
         result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):

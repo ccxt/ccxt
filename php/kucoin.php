@@ -202,7 +202,7 @@ class kucoin extends Exchange {
                             'BTG' => 0.001,
                             'BTM' => 1,
                             'CAG' => 1,
-                            'CanYa' => 1,
+                            'CanYaCoin' => 1,
                             'CAPP' => 1,
                             'CAT' => 1,
                             'CBC' => 1,
@@ -349,7 +349,7 @@ class kucoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'CAN' => 'CanYa',
+                'CAN' => 'CanYaCoin',
                 'XRB' => 'NANO',
             ),
         ));
@@ -809,8 +809,8 @@ class kucoin extends Exchange {
         $request = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
-            'price' => $this->truncate ($price, $this->currencies[$quote]['precision']),
-            'amount' => $this->truncate ($amount, $this->currencies[$base]['precision']),
+            'price' => $this->decimal_to_precision($price, TRUNCATE, $this->currencies[$quote]['precision'], DECIMAL_PLACES),
+            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$base]['precision'], DECIMAL_PLACES),
         );
         $price = floatval ($price);
         $amount = floatval ($amount);

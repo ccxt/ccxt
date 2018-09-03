@@ -14,6 +14,7 @@ module.exports = class exx extends Exchange {
             'name': 'EXX',
             'countries': [ 'CN' ],
             'rateLimit': 1000 / 10,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchOrder': true,
                 'fetchTickers': true,
@@ -28,6 +29,7 @@ module.exports = class exx extends Exchange {
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
@@ -81,7 +83,7 @@ module.exports = class exx extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
+                'TV': 'TIV', // Ti-Value
             },
             'exceptions': {
                 '103': AuthenticationError,
@@ -300,7 +302,7 @@ module.exports = class exx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
+        let response = await this.privateGetGetOrder (this.extend ({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -342,7 +344,7 @@ module.exports = class exx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privateGetOpenOrders (this.extend ({
+        let orders = await this.privateGetGetOpenOrders (this.extend ({
             'currency': market['id'],
         }, params));
         return this.parseOrders (orders, market, since, limit);
@@ -365,6 +367,9 @@ module.exports = class exx extends Exchange {
             }, params)));
             let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
             url += '?' + query + '&signature=' + signature;
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
