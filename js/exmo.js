@@ -27,10 +27,16 @@ module.exports = class exmo extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchTradingFees': true,
+                'fetchFundingFees': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-                'api': 'https://api.exmo.com',
+                'api': {
+                    'public': 'https://api.exmo.com',
+                    'private': 'https://api.exmo.com',
+                    'web': 'https://exmo.me',
+                },
                 'www': 'https://exmo.me',
                 'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
@@ -40,6 +46,12 @@ module.exports = class exmo extends Exchange {
                 'fees': 'https://exmo.com/en/docs/fees',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'ctrl/feesAndLimits',
+                        'en/docs/fees',
+                    ],
+                },
                 'public': {
                     'get': [
                         'currency',
@@ -111,7 +123,41 @@ module.exports = class exmo extends Exchange {
         });
     }
 
+    async fetchTradingFees (params = {}) {
+        let response = undefined;
+        let oldParseJsonResponse = this.parseJsonResponse;
+        try {
+            this.parseJsonResponse = false;
+            response = await this.webGetEnDocsFees (params);
+            this.parseJsonResponse = oldParseJsonResponse;
+        } catch (e) {
+            // ensure parseJsonResponse is restored no matter what
+            this.parseJsonResponse = oldParseJsonResponse;
+            throw e;
+        }
+        let parts = response.split ('<td class="th_fees_2" colspan="2">');
+        let numParts = parts.length;
+        if (numParts !== 2) {
+            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        }
+        const rest = parts[1];
+        parts = rest.split ('</td>');
+        numParts = parts.length;
+        if (numParts < 2) {
+            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        }
+        const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
+        let taker = fee;
+        let maker = fee;
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        };
+    }
+
     async fetchMarkets () {
+        let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
         let result = [];
@@ -126,6 +172,8 @@ module.exports = class exmo extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': true,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
@@ -260,20 +308,49 @@ module.exports = class exmo extends Exchange {
         return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
+        let fee = undefined;
+        let symbol = undefined;
+        let id = this.safeString (trade, 'trade_id');
+        let orderId = this.safeString (trade, 'order_id');
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
+        let cost = this.safeFloat (trade, 'amount');
+        let side = this.safeString (trade, 'type');
+        let type = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            if (market['taker'] !== market['maker']) {
+                throw new ExchangeError (this.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ');
+            }
+            if ((side === 'buy') && (typeof amount !== 'undefined')) {
+                fee = {
+                    'currency': market['base'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                };
+            } else if ((side === 'sell') && (typeof cost !== 'undefined')) {
+                fee = {
+                    'currency': market['quote'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                };
+            }
+        }
         return {
-            'id': trade['trade_id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'order_id'),
-            'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
-            'cost': this.safeFloat (trade, 'amount'),
+            'symbol': symbol,
+            'order': orderId,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -610,11 +687,15 @@ module.exports = class exmo extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api === 'public') {
+        let url = this.urls['api'][api] + '/';
+        if (api !== 'web') {
+            url += this.version + '/';
+        };
+        url += path;
+        if ((api === 'public') || (api === 'web')) {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-        } else {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
