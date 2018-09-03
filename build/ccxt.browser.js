@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.221'
+const version = '1.17.222'
 
 Exchange.ccxtVersion = version
 
@@ -28785,6 +28785,7 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrderstate ({ 'orderId': id });
         return this.parseOrder (response['result']);
     }
