@@ -62,7 +62,7 @@ class bitz (Exchange):
                     'assets': 'https://apiv2.bitz.com',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://www.bit-z.com/api.html',
+                'doc': 'https://apidoc.bit-z.com/en',
                 'fees': 'https://www.bit-z.com/about/fee',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
@@ -751,7 +751,7 @@ class bitz (Exchange):
             'number': self.amount_to_string(symbol, amount),
             'tradePwd': self.password,
         }
-        response = await self.privatePostTradeAdd(self.extend(request, params))
+        response = await self.tradePostAddEntrustSheet(self.extend(request, params))
         #
         #     {
         #         "status": 200,
@@ -981,7 +981,7 @@ class bitz (Exchange):
                 url += '?' + query
         else:
             self.check_required_credentials()
-            body = self.urlencode(self.keysort(self.extend({
+            body = self.rawencode(self.keysort(self.extend({
                 'apiKey': self.apiKey,
                 'timeStamp': self.seconds(),
                 'nonce': self.nonce(),
@@ -999,13 +999,23 @@ class bitz (Exchange):
             response = json.loads(body)
             status = self.safe_string(response, 'status')
             if status is not None:
+                feedback = self.id + ' ' + body
+                exceptions = self.exceptions
                 #
                 #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
                 #
                 if status == '200':
-                    return  # no error
-                feedback = self.id + ' ' + body
-                exceptions = self.exceptions
+                    #
+                    #     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
+                    #
+                    code = self.safe_integer(response, 'data')
+                    if code is not None:
+                        if code in exceptions:
+                            raise exceptions[code](feedback)
+                        else:
+                            raise ExchangeError(feedback)
+                    else:
+                        return  # no error
                 if status in exceptions:
                     raise exceptions[status](feedback)
                 else:
