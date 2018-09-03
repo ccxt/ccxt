@@ -488,23 +488,27 @@ module.exports = class bitz extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let hkt = this.sum (this.milliseconds (), 28800000);
-        let utcDate = this.iso8601 (hkt);
-        utcDate = utcDate.split ('T');
-        utcDate = utcDate[0] + ' ' + trade['t'] + '+08';
-        let timestamp = this.parse8601 (utcDate);
+        let id = this.safeString (trade, 'id');
+        let timestamp = this.safeInteger (trade, 'T');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = timestamp * 1000;
+        }
         let price = this.safeFloat (trade, 'p');
         let amount = this.safeFloat (trade, 'n');
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let cost = this.priceToPrecision (symbol, amount * price);
+        let side = this.safeString (trade, 's');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': undefined,
+            'id': id,
             'order': undefined,
             'type': 'limit',
-            'side': trade['s'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -516,11 +520,10 @@ module.exports = class bitz extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetOrders (this.extend ({
-            'coin': market['id'],
+        let response = await this.marketGetOrder (this.extend ({
+            'symbol': market['id'],
         }, params));
-        let trades = response['data']['d'];
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
