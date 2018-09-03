@@ -524,11 +524,17 @@ class binance (Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(trade, 'symbol')
+            market = self.safe_value(self.markets_by_id, marketId)
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': None,

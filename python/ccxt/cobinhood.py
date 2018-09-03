@@ -657,7 +657,7 @@ class cobinhood (Exchange):
             'timestamp': timestamp,
             'datetime': datetime,
             'address': None,  # or is it defined?
-            'type': type,  # direction of the transaction,('deposit' | 'withdraw')
+            'type': type,  # direction of the transaction,('deposit' | 'withdrawal')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(transaction['status']),

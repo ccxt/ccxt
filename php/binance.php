@@ -540,11 +540,19 @@ class binance extends Exchange {
         $takerOrMaker = null;
         if (is_array ($trade) && array_key_exists ('isMaker', $trade))
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'symbol');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'id' => $id,
             'order' => $order,
             'type' => null,

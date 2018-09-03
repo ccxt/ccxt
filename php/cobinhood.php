@@ -699,7 +699,7 @@ class cobinhood extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'address' => null, // or is it defined?
-            'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
+            'type' => $type, // direction of the $transaction, ('deposit' | 'withdrawal')
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status ($transaction['status']),
