@@ -479,11 +479,11 @@ module.exports = class bitz extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepth (this.extend ({
-            'coin': this.marketId (symbol),
+        let response = await this.marketGetDepth (this.extend ({
+            'symbol': this.marketId (symbol),
         }, params));
         let orderbook = response['data'];
-        let timestamp = orderbook['date'] * 1000;
+        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
         return this.parseOrderBook (orderbook, timestamp);
     }
 
