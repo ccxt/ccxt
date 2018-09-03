@@ -22,12 +22,16 @@ module.exports = class bitz extends Exchange {
                 'fetchOpenOrders': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '1d': '1d',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '60min',
+                '4h': '4hour',
+                '1d': '1day',
+                '5d': '5day',
+                '1w': '1week',
+                '1M': '1mon',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
@@ -291,55 +295,183 @@ module.exports = class bitz extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['date'] * 1000;
-        let symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        //
+        //      {          symbol: "eth_btc",
+        //            quoteVolume: "3905.72",
+        //                 volume: "97058.21",
+        //            priceChange: "-1.72",
+        //         priceChange24h: "-1.65",
+        //               askPrice: "0.03971272",
+        //                 askQty: "0.0663",
+        //               bidPrice: "0.03961469",
+        //                 bidQty: "19.5451",
+        //                   open: "0.04036769",
+        //                   high: "0.04062988",
+        //                    low: "0.03956123",
+        //                    now: "0.03970100",
+        //                firstId:  115567767,
+        //                 lastId:  115795316,
+        //              dealCount:  14078,
+        //        numberPrecision:  4,
+        //         pricePrecision:  8,
+        //                    cny: "1959.05",
+        //                    usd: "287.10",
+        //                    krw: "318655.82"   }
+        //
+        let timestamp = undefined;
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (ticker, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let last = this.safeFloat (ticker, 'now');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'sell'),
-            'askVolume': undefined,
+            'bid': this.safeFloat (ticker, 'bidPrice'),
+            'bidVolume': this.safeFloat (ticker, 'bidQty'),
+            'ask': this.safeFloat (ticker, 'askPrice'),
+            'askVolume': this.safeFloat (ticker, 'askQty'),
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeFloat (ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeFloat (ticker, 'priceChange24h'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': undefined,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
+    }
+
+    parseMicrotime (microtime) {
+        if (typeof microtime === 'undefined') {
+            return microtime;
+        };
+        let parts = microtime.split (' ');
+        let milliseconds = parseFloat (parts[0]);
+        let seconds = parseInt (parts[1]);
+        let total = seconds + milliseconds;
+        return parseInt (total * 1000);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
-            'coin': market['id'],
+        let response = await this.marketGetTicker (this.extend ({
+            'symbol': market['id'],
         }, params));
-        return this.parseTicker (response['data'], market);
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: {          symbol: "eth_btc",
+        //                        quoteVolume: "3905.72",
+        //                             volume: "97058.21",
+        //                        priceChange: "-1.72",
+        //                     priceChange24h: "-1.65",
+        //                           askPrice: "0.03971272",
+        //                             askQty: "0.0663",
+        //                           bidPrice: "0.03961469",
+        //                             bidQty: "19.5451",
+        //                               open: "0.04036769",
+        //                               high: "0.04062988",
+        //                                low: "0.03956123",
+        //                                now: "0.03970100",
+        //                            firstId:  115567767,
+        //                             lastId:  115795316,
+        //                          dealCount:  14078,
+        //                    numberPrecision:  4,
+        //                     pricePrecision:  8,
+        //                                cny: "1959.05",
+        //                                usd: "287.10",
+        //                                krw: "318655.82"   },
+        //            time:    1535970397,
+        //       microtime:   "0.76341900 1535970397",
+        //          source:   "api"                             }
+        //
+        const ticker = this.parseTicker (response['data'], market);
+        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        return this.extend (ticker, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTickerall (params);
+        let request = {};
+        if (typeof symbols !== 'undefined') {
+            let ids = this.marketIds (symbols);
+            request['symbols'] = ids.join (',');
+        }
+        let response = await this.marketGetTickerall (this.extend (request, params));
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: {   ela_btc: {          symbol: "ela_btc",
+        //                                     quoteVolume: "0.00",
+        //                                          volume: "3.28",
+        //                                     priceChange: "0.00",
+        //                                  priceChange24h: "0.00",
+        //                                        askPrice: "0.00147984",
+        //                                          askQty: "5.4580",
+        //                                        bidPrice: "0.00120230",
+        //                                          bidQty: "12.5384",
+        //                                            open: "0.00149078",
+        //                                            high: "0.00149078",
+        //                                             low: "0.00149078",
+        //                                             now: "0.00149078",
+        //                                         firstId:  115581219,
+        //                                          lastId:  115581219,
+        //                                       dealCount:  1,
+        //                                 numberPrecision:  4,
+        //                                  pricePrecision:  8,
+        //                                             cny: "73.66",
+        //                                             usd: "10.79",
+        //                                             krw: "11995.03"    }     },
+        //            time:    1535971578,
+        //       microtime:   "0.39854200 1535971578",
+        //          source:   "api"                                                }
+        //
         let tickers = response['data'];
+        let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
+        let iso8601 = this.iso8601 (timestamp);
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            // they will return some rare tickers set to boolean false under their symbol key
-            if (tickers[id]) {
-                result[symbol] = this.parseTicker (tickers[id], market);
+            let ticker = tickers[id];
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+            }
+            ticker = this.parseTicker (tickers[id], market);
+            let symbol = ticker['symbol'];
+            if (typeof symbol === 'undefined') {
+                if (typeof market !== 'undefined') {
+                    symbol = market['symbol'];
+                } else {
+                    let [ baseId, quoteId ] = id.split ('_');
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (baseId);
+                    quote = this.commonCurrencyCode (quoteId);
+                    symbol = base + '/' + quote;
+                }
+            }
+            if (typeof symbol !== 'undefined') {
+                result[symbol] = this.extend (ticker, {
+                    'timestamp': timestamp,
+                    'datetime': iso8601,
+                });
             }
         }
         return result;
@@ -391,15 +523,72 @@ module.exports = class bitz extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //      {     time: "1535973420000",
+        //            open: "0.03975084",
+        //            high: "0.03975084",
+        //             low: "0.03967700",
+        //           close: "0.03967700",
+        //          volume: "12.4733",
+        //        datetime: "2018-09-03 19:17:00" }
+        //
+        return [
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let duration = this.parseTimeframe (timeframe) * 1000;
         let market = this.market (symbol);
-        let response = await this.publicGetKline (this.extend ({
-            'coin': market['id'],
-            'type': this.timeframes[timeframe],
-        }, params));
-        let ohlcv = JSON.parse (response['data']['datas']['data']);
-        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+        let request = {
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        if (typeof limit !== 'undefined') {
+            request['size'] = Math.min (limit, 300); // 1-300
+            if (typeof since !== 'undefined') {
+                request['to'] = since + limit * duration * 1000;
+            }
+        } else {
+            if (typeof since !== 'undefined') {
+                throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument to be supplied along with the limit argument');
+            }
+        }
+        let response = await this.marketGetKline (this.extend (request, params));
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: {       bars: [ {     time: "1535973420000",
+        //                                        open: "0.03975084",
+        //                                        high: "0.03975084",
+        //                                         low: "0.03967700",
+        //                                       close: "0.03967700",
+        //                                      volume: "12.4733",
+        //                                    datetime: "2018-09-03 19:17:00" },
+        //                                  {     time: "1535955480000",
+        //                                        open: "0.04009900",
+        //                                        high: "0.04016745",
+        //                                         low: "0.04009900",
+        //                                       close: "0.04012074",
+        //                                      volume: "74.4803",
+        //                                    datetime: "2018-09-03 14:18:00" }  ],
+        //                    resolution:   "1min",
+        //                        symbol:   "eth_btc",
+        //                          from:   "1535973420000",
+        //                            to:   "1535955480000",
+        //                          size:    300                                    },
+        //            time:    1535973435,
+        //       microtime:   "0.56462100 1535973435",
+        //          source:   "api"                                                    }
+        //
+        return this.parseOHLCVs (response['data']['bars'], market, timeframe, since, limit);
     }
 
     parseOrder (order, market = undefined) {
