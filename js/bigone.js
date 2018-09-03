@@ -589,6 +589,7 @@ module.exports = class bigone extends Exchange {
         let orders = this.safeValue (data, 'edges', []);
         let result = [];
         for (let i = 0; i < orders.length; i++) {
+            orders[i]['node']['cursor'] = orders[i]['cursor'];
             result.push (this.parseOrder (orders[i]['node'], market));
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
