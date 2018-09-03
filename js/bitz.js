@@ -43,6 +43,7 @@ module.exports = class bitz extends Exchange {
                 'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
+                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {
                 'market': {
@@ -270,26 +271,46 @@ module.exports = class bitz extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalances (params);
-        let data = response['data'];
-        let balances = this.omit (data, 'uid');
+        let response = await this.assetsPostGetUserAssets (params);
+        //
+        //     {
+        //         status: 200,
+        //         msg: "",
+        //         data: {
+        //             cny: 0,
+        //             usd: 0,
+        //             btc_total: 0,
+        //             info: [{
+        //                 "name": "zpr",
+        //                 "num": "37.49067275",
+        //                 "over": "37.49067275",
+        //                 "lock": "0.00000000",
+        //                 "btc": "0.00000000",
+        //                 "usd": "0.00000000",
+        //                 "cny": "0.00000000",
+        //             }],
+        //         },
+        //         time: 1535983966,
+        //         microtime: "0.70400500 1535983966",
+        //         source: "api",
+        //     }
+        //
+        let balances = response['data']['info'];
         let result = { 'info': response };
-        let keys = Object.keys (balances);
-        for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let idHasUnderscore = (id.indexOf ('_') >= 0);
-            if (!idHasUnderscore) {
-                let code = id.toUpperCase ();
-                if (id in this.currencies_by_id) {
-                    code = this.currencies_by_id[id]['code'];
-                }
-                let account = this.account ();
-                let usedField = id + '_lock';
-                account['used'] = this.safeFloat (balances, usedField);
-                account['total'] = this.safeFloat (balances, id);
-                account['free'] = account['total'] - account['used'];
-                result[code] = account;
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let currencyId = this.safeString (balance, 'name');
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.markets_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
             }
+            let account = this.account ();
+            account['used'] = this.safeFloat (balance, 'lock');
+            account['total'] = this.safeFloat (balance, 'num');
+            account['free'] = this.safeFloat (balance, 'over');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -700,6 +721,9 @@ module.exports = class bitz extends Exchange {
             'tradepwd': this.password,
         };
         let response = await this.privatePostTradeAdd (this.extend (request, params));
+        const log = require ('ololog');
+        log.unlimited.yellow (response);
+        process.exit ();
         let id = response['data']['id'];
         let order = this.parseOrder ({
             'id': id,
@@ -748,8 +772,8 @@ module.exports = class bitz extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.keysort (this.extend ({
-                'api_key': this.apiKey,
-                'timestamp': this.seconds (),
+                'apiKey': this.apiKey,
+                'timeStamp': this.seconds (),
                 'nonce': this.nonce (),
             }, params)));
             body += '&sign=' + this.hash (this.encode (body + this.secret));
