@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ module.exports = class bitz extends Exchange {
             'name': 'Bit-Z',
             'countries': [ 'HK' ],
             'rateLimit': 2000,
-            'version': 'v1',
+            'version': 'v2',
             'userAgent': this.userAgents['chrome'],
             'has': {
                 'fetchTickers': true,
@@ -31,27 +31,42 @@ module.exports = class bitz extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
-                'api': 'https://api.bit-z.com/api_v1',
+                'api': {
+                    'market': 'https://apiv2.bitz.com',
+                    'trade': 'https://apiv2.bitz.com',
+                    'assets': 'https://apiv2.bitz.com',
+                },
                 'www': 'https://www.bit-z.com',
                 'doc': 'https://www.bit-z.com/api.html',
                 'fees': 'https://www.bit-z.com/about/fee',
             },
             'api': {
-                'public': {
+                'market': {
                     'get': [
                         'ticker',
-                        'tickerall',
                         'depth',
-                        'orders',
+                        'order', // trades
+                        'tickerall',
                         'kline',
+                        'symbolList',
+                        'currencyRate',
+                        'currencyCoinRate',
+                        'coinRate',
                     ],
                 },
-                'private': {
+                'trade': {
                     'post': [
-                        'balances',
-                        'tradeAdd',
-                        'tradeCancel',
-                        'openOrders',
+                        'addEntrustSheet',
+                        'cancelEntrustSheet',
+                        'cancelAllEntrustSheet',
+                        'getUserHistoryEntrustSheet', // closed orders
+                        'getUserNowEntrustSheet', // open orders
+                        'getEntrustSheetInfo', // order
+                    ],
+                },
+                'assets': {
+                    'post': [
+                        'getUserAssets',
                     ],
                 },
             },
@@ -131,32 +146,119 @@ module.exports = class bitz extends Exchange {
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
+            'exceptions': {
+                // '200': Success
+                '-102': ExchangeError, // Invalid parameter
+                '-103': AuthenticationError, // Verification failed
+                '-104': ExchangeNotAvailable, // Network Error-1
+                '-105': AuthenticationError, // Invalid api signature
+                '-106': ExchangeNotAvailable, // Network Error-2
+                '-109': AuthenticationError, // Invalid scretKey
+                '-110': DDoSProtection, // The number of access requests exceeded
+                '-111': PermissionDenied, // Current IP is not in the range of trusted IP
+                '-112': ExchangeNotAvailable, // Service is under maintenance
+                '-100015': AuthenticationError, // Trade password error
+                '-100044': ExchangeError, // Fail to request data
+                '-100101': ExchangeError, // Invalid symbol
+                '-100201': ExchangeError, // Invalid symbol
+                '-100301': ExchangeError, // Invalid symbol
+                '-100401': ExchangeError, // Invalid symbol
+                '-100302': ExchangeError, // Type of K-line error
+                '-100303': ExchangeError, // Size of K-line error
+                '-200003': AuthenticationError, // Please set trade password
+                '-200005': PermissionDenied, // This account can not trade
+                '-200025': ExchangeNotAvailable, // Temporary trading halt
+                '-200027': InvalidOrder, // Price Error
+                '-200028': InvalidOrder, // Amount must be greater than 0
+                '-200029': InvalidOrder, // Number must be between %s and %d
+                '-200030': InvalidOrder, // Over price range
+                '-200031': InsufficientFunds, // Insufficient assets
+                '-200032': ExchangeError, // System error. Please contact customer service
+                '-200033': ExchangeError, // Fail to trade
+                '-200034': OrderNotFound, // The order does not exist
+                '-200035': OrderNotFound, // Cancellation error, order filled
+                '-200037': InvalidOrder, // Trade direction error
+                '-200038': ExchangeError, // Trading Market Error
+                '-200055': OrderNotFound, // Order record does not exist
+                '-300069': AuthenticationError, // api_key is illegal
+                '-300101': ExchangeError, // Transaction type error
+                '-300102': InvalidOrder, // Price or number cannot be less than 0
+                '-300103': AuthenticationError, // Trade password error
+                '-301001': ExchangeNotAvailable, // Network Error-3
+            },
         });
     }
 
     async fetchMarkets () {
-        let response = await this.publicGetTickerall ();
+        let response = await this.marketGetSymbolList ();
+        //
+        //     {    status:    200,
+        //             msg:   "",
+        //            data: {   ltc_btc: {          id: "1",
+        //                                        name: "ltc_btc",
+        //                                    coinFrom: "ltc",
+        //                                      coinTo: "btc",
+        //                                 numberFloat: "4",
+        //                                  priceFloat: "8",
+        //                                      status: "1",
+        //                                    minTrade: "0.010",
+        //                                    maxTrade: "500000000.000" },
+        //                    qtum_usdt: {          id: "196",
+        //                                        name: "qtum_usdt",
+        //                                    coinFrom: "qtum",
+        //                                      coinTo: "usdt",
+        //                                 numberFloat: "4",
+        //                                  priceFloat: "2",
+        //                                      status: "1",
+        //                                    minTrade: "0.100",
+        //                                    maxTrade: "500000000.000" },  },
+        //            time:    1535969146,
+        //       microtime:   "0.66955600 1535969146",
+        //          source:   "api"                                           }
+        //
         let markets = response['data'];
         let ids = Object.keys (markets);
         let result = [];
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
             let market = markets[id];
-            let [ baseId, quoteId ] = id.split ('_');
+            let numericId = this.safeString (market, 'id');
+            let baseId = this.safeString (market, 'coinFrom');
+            let quoteId = this.safeString (market, 'coinTo');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
+            let precision = {
+                'amount': this.safeInteger (market, 'numberFloat'),
+                'price': this.safeInteger (market, 'priceFloat'),
+            };
             result.push ({
+                'info': market,
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': true,
-                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'minTrade'),
+                        'max': this.safeFloat (market, 'maxTrade'),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -396,10 +498,10 @@ module.exports = class bitz extends Exchange {
         return this.options['lastNonce'];
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+    sign (path, api = 'market', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.capitalize (api) + '/' + path;
         let query = undefined;
-        if (api === 'public') {
+        if (api === 'market') {
             query = this.urlencode (params);
             if (query.length)
                 url += '?' + query;
@@ -416,25 +518,28 @@ module.exports = class bitz extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let code = this.safeString (response, 'code');
-        if (code !== '0') {
-            let ErrorClass = this.safeValue ({
-                '103': AuthenticationError,
-                '104': AuthenticationError,
-                '200': AuthenticationError,
-                '202': AuthenticationError,
-                '401': AuthenticationError,
-                '406': AuthenticationError,
-                '203': InvalidNonce,
-                '201': OrderNotFound,
-                '408': InsufficientFunds,
-                '106': DDoSProtection,
-            }, code, ExchangeError);
-            let message = this.safeString (response, 'msg', 'Error');
-            throw new ErrorClass (message);
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return; // fallback to default error handler
+        if (body.length < 2)
+            return; // fallback to default error handler
+        if ((body[0] === '{') || (body[0] === '[')) {
+            let response = JSON.parse (body);
+            let status = this.safeString (response, 'status');
+            if (typeof status !== 'undefined') {
+                //
+                //     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
+                //
+                if (status === '200')
+                    return; // no error
+                const feedback = this.id + ' ' + body;
+                const exceptions = this.exceptions;
+                if (status in exceptions) {
+                    throw new exceptions[status] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
+                }
+            }
         }
-        return response;
     }
 };
