@@ -243,11 +243,14 @@ module.exports = class exmo extends Exchange {
             withdraw[code] = this.parseFixedFloatValue (this.safeString (item, 'wd'));
             deposit[code] = this.parseFixedFloatValue (this.safeString (item, 'dep'));
         }
-        return {
+        const result = {
             'info': response,
             'withdraw': withdraw,
             'deposit': deposit,
         };
+        // cache them for later use
+        this.options['fundingFees'] = result;
+        return result;
     }
 
     async fetchCurrencies () {
@@ -898,6 +901,18 @@ module.exports = class exmo extends Exchange {
             }
         }
         let fee = undefined;
+        // fixed funding fees only (for now)
+        if (!this.fees['funding']['percentage']) {
+            let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
+            let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            if (typeof feeCost !== 'undefined') {
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                    'rate': undefined,
+                };
+            }
+        }
         return {
             'id': undefined,
             'currency': code,
