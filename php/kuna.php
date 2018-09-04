@@ -144,11 +144,13 @@ class kuna extends acx {
         if ($market)
             $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'side');
-        $sideMap = array (
-            'ask' => 'sell',
-            'bid' => 'buy',
-        );
-        $side = $sideMap[$side];
+        if ($side !== null) {
+            $sideMap = array (
+                'ask' => 'sell',
+                'bid' => 'buy',
+            );
+            $side = $this->safe_string($sideMap, $side);
+        }
         $cost = $this->safe_float($trade, 'funds');
         $order = $this->safe_string($trade, 'order_id');
         return array (
