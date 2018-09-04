@@ -24,6 +24,7 @@ module.exports = class bcex extends Exchange {
                 'fetchTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
             },
             'urls': {
@@ -393,6 +394,11 @@ module.exports = class bcex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrdersByType ('open', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
