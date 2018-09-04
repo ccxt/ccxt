@@ -169,12 +169,14 @@ class gateio extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
+            $active = true;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'active' => $active,
                 'maker' => $details['fee'] / 100,
                 'taker' => $details['fee'] / 100,
                 'precision' => $precision,
