@@ -51,8 +51,8 @@ class rightbtc (Exchange):
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 ],
                 # eslint-disable-next-line no-useless-escape
                 # 'fees': 'https://www.rightbtc.com/\#\not /support/fee',
@@ -255,11 +255,16 @@ class rightbtc (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    async def fetch_order_book(self, symbol, params={}):
+    async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetDepthTradingPair(self.extend({
+        request = {
             'trading_pair': self.market_id(symbol),
-        }, params))
+        }
+        method = 'publicGetDepthTradingPair'
+        if limit is not None:
+            method += 'Count'
+            request['count'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
         bidsasks = {}
         types = ['bid', 'ask']
         for ti in range(0, len(types)):

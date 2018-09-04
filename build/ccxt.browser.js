@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.227'
+const version = '1.17.228'
 
 Exchange.ccxtVersion = version
 
@@ -38106,6 +38106,7 @@ module.exports = class ice3x extends Exchange {
             'name': 'ICE3X',
             'countries': [ 'ZA' ], // South Africa
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': true,
                 'fetchTickers': true,
@@ -38116,7 +38117,7 @@ module.exports = class ice3x extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api': 'https://ice3x.com/api/v1',
+                'api': 'https://ice3x.com/api',
                 'www': [
                     'https://ice3x.com',
                     'https://ice3x.co.za',
@@ -38293,11 +38294,21 @@ module.exports = class ice3x extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbookInfo (this.extend ({
+        const request = {
             'pair_id': this.marketId (symbol),
-        }, params));
+        };
+        if (typeof limit !== 'undefined') {
+            let type = this.safeString (params, 'type');
+            if ((type !== 'ask') && (type !== 'bid')) {
+                // eslint-disable-next-line quotes
+                throw new ExchangeError (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
+            } else {
+                request['items_per_page'] = limit;
+            }
+        }
+        let response = await this.publicGetOrderbookInfo (this.extend (request, params));
         let orderbook = response['response']['entities'];
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
@@ -38488,7 +38499,7 @@ module.exports = class ice3x extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
@@ -49478,8 +49489,8 @@ module.exports = class rightbtc extends Exchange {
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 ],
                 // eslint-disable-next-line no-useless-escape
                 // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
@@ -49691,11 +49702,17 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepthTradingPair (this.extend ({
+        let request = {
             'trading_pair': this.marketId (symbol),
-        }, params));
+        };
+        let method = 'publicGetDepthTradingPair';
+        if (typeof limit !== 'undefined') {
+            method += 'Count';
+            request['count'] = limit;
+        }
+        let response = await this[method] (this.extend (request, params));
         let bidsasks = {};
         let types = ['bid', 'ask'];
         for (let ti = 0; ti < types.length; ti++) {
