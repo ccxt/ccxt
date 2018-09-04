@@ -168,12 +168,14 @@ module.exports = class gateio extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
+            let active = true;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
                 'maker': details['fee'] / 100,
                 'taker': details['fee'] / 100,
                 'precision': precision,
