@@ -43,10 +43,16 @@ class exmo (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': True,
                 'withdraw': True,
+                'fetchTradingFees': True,
+                'fetchFundingFees': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-                'api': 'https://api.exmo.com',
+                'api': {
+                    'public': 'https://api.exmo.com',
+                    'private': 'https://api.exmo.com',
+                    'web': 'https://exmo.me',
+                },
                 'www': 'https://exmo.me',
                 'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
@@ -56,6 +62,12 @@ class exmo (Exchange):
                 'fees': 'https://exmo.com/en/docs/fees',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'ctrl/feesAndLimits',
+                        'en/docs/fees',
+                    ],
+                },
                 'public': {
                     'get': [
                         'currency',
@@ -126,7 +138,37 @@ class exmo (Exchange):
             },
         })
 
+    def fetch_trading_fees(self, params={}):
+        response = None
+        oldParseJsonResponse = self.parseJsonResponse
+        try:
+            self.parseJsonResponse = False
+            response = self.webGetEnDocsFees(params)
+            self.parseJsonResponse = oldParseJsonResponse
+        except Exception as e:
+            # ensure parseJsonResponse is restored no matter what
+            self.parseJsonResponse = oldParseJsonResponse
+            raise e
+        parts = response.split('<td class="th_fees_2" colspan="2">')
+        numParts = len(parts)
+        if numParts != 2:
+            raise ExchangeError(self.id + ' fetchTradingFees format has changed')
+        rest = parts[1]
+        parts = rest.split('</td>')
+        numParts = len(parts)
+        if numParts < 2:
+            raise ExchangeError(self.id + ' fetchTradingFees format has changed')
+        fee = float(parts[0].replace('%', '')) * 0.01
+        taker = fee
+        maker = fee
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        }
+
     def fetch_markets(self):
+        fees = self.fetch_trading_fees()
         markets = self.publicGetPairSettings()
         keys = list(markets.keys())
         result = []
@@ -141,6 +183,8 @@ class exmo (Exchange):
                 'base': base,
                 'quote': quote,
                 'active': True,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
                 'limits': {
                     'amount': {
                         'min': self.safe_float(market, 'min_quantity'),
@@ -262,20 +306,46 @@ class exmo (Exchange):
         market = self.market(symbol)
         return self.parse_ticker(response[market['id']], market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
+        fee = None
+        symbol = None
+        id = self.safe_string(trade, 'trade_id')
+        orderId = self.safe_string(trade, 'order_id')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        cost = self.safe_float(trade, 'amount')
+        side = self.safe_string(trade, 'type')
+        type = None
+        if market is not None:
+            symbol = market['symbol']
+            if market['taker'] != market['maker']:
+                raise ExchangeError(self.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ')
+            if (side == 'buy') and(amount is not None):
+                fee = {
+                    'currency': market['base'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                }
+            elif (side == 'sell') and(cost is not None):
+                fee = {
+                    'currency': market['quote'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                }
         return {
-            'id': str(trade['trade_id']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'order': self.safe_string(trade, 'order_id'),
-            'type': None,
-            'side': trade['type'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'quantity'),
-            'cost': self.safe_float(trade, 'amount'),
+            'symbol': symbol,
+            'order': orderId,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -465,7 +535,7 @@ class exmo (Exchange):
                     filled += trade['amount']
                     if feeCost is None:
                         feeCost = 0.0
-                    # feeCost += trade['fee']['cost']
+                    feeCost += trade['fee']['cost']
                     if cost is None:
                         cost = 0.0
                     cost += trade['cost']
@@ -575,11 +645,14 @@ class exmo (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + path
-        if api == 'public':
+        url = self.urls['api'][api] + '/'
+        if api != 'web':
+            url += self.version + '/'
+        url += path
+        if (api == 'public') or (api == 'web'):
             if params:
                 url += '?' + self.urlencode(params)
-        else:
+        elif api == 'private':
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({'nonce': nonce}, params))

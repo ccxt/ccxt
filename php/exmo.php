@@ -28,10 +28,16 @@ class exmo extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
+                'fetchTradingFees' => true,
+                'fetchFundingFees' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-                'api' => 'https://api.exmo.com',
+                'api' => array (
+                    'public' => 'https://api.exmo.com',
+                    'private' => 'https://api.exmo.com',
+                    'web' => 'https://exmo.me',
+                ),
                 'www' => 'https://exmo.me',
                 'referral' => 'https://exmo.me/?ref=131685',
                 'doc' => array (
@@ -41,6 +47,12 @@ class exmo extends Exchange {
                 'fees' => 'https://exmo.com/en/docs/fees',
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'ctrl/feesAndLimits',
+                        'en/docs/fees',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'currency',
@@ -112,7 +124,41 @@ class exmo extends Exchange {
         ));
     }
 
+    public function fetch_trading_fees ($params = array ()) {
+        $response = null;
+        $oldParseJsonResponse = $this->parseJsonResponse;
+        try {
+            $this->parseJsonResponse = false;
+            $response = $this->webGetEnDocsFees ($params);
+            $this->parseJsonResponse = $oldParseJsonResponse;
+        } catch (Exception $e) {
+            // ensure parseJsonResponse is restored no matter what
+            $this->parseJsonResponse = $oldParseJsonResponse;
+            throw $e;
+        }
+        $parts = explode ('<td class="th_fees_2" colspan="2">', $response);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        if ($numParts !== 2) {
+            throw new ExchangeError ($this->id . ' fetchTradingFees format has changed');
+        }
+        $rest = $parts[1];
+        $parts = explode ('</td>', $rest);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        if ($numParts < 2) {
+            throw new ExchangeError ($this->id . ' fetchTradingFees format has changed');
+        }
+        $fee = floatval (str_replace ('%', '', $parts[0])) * 0.01;
+        $taker = $fee;
+        $maker = $fee;
+        return array (
+            'info' => $response,
+            'maker' => $maker,
+            'taker' => $taker,
+        );
+    }
+
     public function fetch_markets () {
+        $fees = $this->fetch_trading_fees();
         $markets = $this->publicGetPairSettings ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
@@ -127,6 +173,8 @@ class exmo extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
+                'taker' => $fees['taker'],
+                'maker' => $fees['maker'],
                 'limits' => array (
                     'amount' => array (
                         'min' => $this->safe_float($market, 'min_quantity'),
@@ -261,20 +309,49 @@ class exmo extends Exchange {
         return $this->parse_ticker($response[$market['id']], $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['date'] * 1000;
+        $fee = null;
+        $symbol = null;
+        $id = $this->safe_string($trade, 'trade_id');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
+        $cost = $this->safe_float($trade, 'amount');
+        $side = $this->safe_string($trade, 'type');
+        $type = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if ($market['taker'] !== $market['maker']) {
+                throw new ExchangeError ($this->id . ' parseTrade can not deduce proper $fee costs, taker and maker fees now differ');
+            }
+            if (($side === 'buy') && ($amount !== null)) {
+                $fee = array (
+                    'currency' => $market['base'],
+                    'cost' => $amount * $market['taker'],
+                    'rate' => $market['taker'],
+                );
+            } else if (($side === 'sell') && ($cost !== null)) {
+                $fee = array (
+                    'currency' => $market['quote'],
+                    'cost' => $amount * $market['taker'],
+                    'rate' => $market['taker'],
+                );
+            }
+        }
         return array (
-            'id' => (string) $trade['trade_id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'order' => $this->safe_string($trade, 'order_id'),
-            'type' => null,
-            'side' => $trade['type'],
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'quantity'),
-            'cost' => $this->safe_float($trade, 'amount'),
+            'symbol' => $symbol,
+            'order' => $orderId,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -488,7 +565,7 @@ class exmo extends Exchange {
                     $filled .= $trade['amount'];
                     if ($feeCost === null)
                         $feeCost = 0.0;
-                    // $feeCost .= $trade['fee']['cost'];
+                    $feeCost .= $trade['fee']['cost'];
                     if ($cost === null)
                         $cost = 0.0;
                     $cost .= $trade['cost'];
@@ -611,11 +688,15 @@ class exmo extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api === 'public') {
+        $url = $this->urls['api'][$api] . '/';
+        if ($api !== 'web') {
+            $url .= $this->version . '/';
+        }
+        $url .= $path;
+        if (($api === 'public') || ($api === 'web')) {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
-        } else {
+        } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));
