@@ -686,6 +686,139 @@ module.exports = class exmo extends Exchange {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses  = {
+            'transferred': 'ok',
+            'paid': 'ok',
+            'pending': 'pending',
+            'processing': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchTransactions
+        //
+        //          {
+        //            "dt": 1461841192,
+        //            "type": "deposit",
+        //            "curr": "RUB",
+        //            "status": "processing",
+        //            "provider": "Qiwi (LA) [12345]",
+        //            "amount": "1",
+        //            "account": "",
+        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          }
+        //
+        const timestamp = this.safeFloat (response, 'dt');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = timestamp * 1000;
+        }
+        const address = this.safeString (response, 'account');
+        const amount = this.safeFloat (response, 'amount');
+        if (typeof amount !== 'undefined') {
+            amount = Math.abs (amount);
+        }
+        const status = this.parseTransactionStatus (this.safeString (response, 'status'));
+        const txid = this.safeString (transaction, 'txid');
+        const type = this.safeString (transaction, 'type');
+        return ({
+            'id': undefined,
+            'currency': response['curr'],
+            'amount': amount,
+            'address': address ? address.replace (/^.+:\s/, '') : undefined,
+            'status': statuses[status] || status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'fee': this.safeFloat (response, 'fee'),
+            'info': response,
+        })
+    }
+
+            //
+        // Fields description:
+        // result - 'true' in case of successful got history and 'false' in case of an error
+        // error - contains the error description
+        // begin - history period begin
+        // end - history period end
+        // history - history data,
+        // dt - date of the operation
+        // type - type of the operation
+        // curr - currency of the operation
+        // status - status of the operation
+        // provider - provider of the operation
+        // amount - amount of the operation
+        // account - account of the operation (may be empty)
+        // txid - transaction ID that should be used for tracking it on blockchain
+        //
+        for (let i = 0; i < accounts.length; i++) {
+            let account = accounts[i];
+            // todo: use unified common currencies below
+            if (account['currency'] === currency['id']) {
+                accountId = account['id'];
+                break;
+            }
+        }
+        if (typeof accountId === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
+        }
+        let request = {
+            'limit': limit,
+            'id': accountId,
+        };
+        let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+        for (let i = 0; i < response.length; i++) {
+            response[i]['currency'] = code;
+        }
+        return this.parseTransactions (response);
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (typeof since !== 'undefined') {
+            request['date'] = parseInt (since / 1000);
+        }
+        let currency = undefined;
+        if (typeof code !== 'undefined') {
+            currency = this.currency (code);
+        }
+        let response = await this.privatePostWalletHistory (this.extend (request, params));
+        //
+        //     {
+        //       "result": true,
+        //       "error": "",
+        //       "begin": "1493942400",
+        //       "end": "1494028800",
+        //       "history": [
+        //          {
+        //            "dt": 1461841192,
+        //            "type": "deposit",
+        //            "curr": "RUB",
+        //            "status": "processing",
+        //            "provider": "Qiwi (LA) [12345]",
+        //            "amount": "1",
+        //            "account": "",
+        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          },
+        //          {
+        //            "dt": 1463414785,
+        //            "type": "withdrawal",
+        //            "curr": "USD",
+        //            "status": "paid",
+        //            "provider": "EXCODE",
+        //            "amount": "-1",
+        //            "account": "EX-CODE_19371_USDda...",
+        //            "txid": "",
+        //          },
+        //       ],
+        //     }
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api !== 'web') {
