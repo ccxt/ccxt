@@ -45,6 +45,7 @@ class exmo (Exchange):
                 'withdraw': True,
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
+                'fetchCurrencies': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -98,29 +99,14 @@ class exmo (Exchange):
             },
             'fees': {
                 'trading': {
+                    'tierBased': False,
+                    'percentage': True,
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 1,
-                        'DASH': 0.01,
-                        'ETH': 0.01,
-                        'WAVES': 0.001,
-                        'ZEC': 0.001,
-                        'USDT': 25,
-                        'XMR': 0.05,
-                        'XRP': 0.02,
-                        'KICK': 350,
-                        'ETC': 0.01,
-                        'BCH': 0.001,
-                    },
-                    'deposit': {
-                        'USDT': 15,
-                        'KICK': 50,
-                    },
+                    'tierBased': False,
+                    'percentage': False,  # fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
             'exceptions': {
@@ -166,6 +152,174 @@ class exmo (Exchange):
             'maker': maker,
             'taker': taker,
         }
+
+    def parse_fixed_float_value(self, input):
+        if (input is None) or (input == '-'):
+            return None
+        isPercentage = (input.find('%') >= 0)
+        parts = input.split(' ')
+        value = parts[0].replace('%', '')
+        result = float(value)
+        if (result > 0) and isPercentage:
+            raise ExchangeError(self.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input)
+        return result
+
+    async def fetch_funding_fees(self, params={}):
+        response = await self.webGetCtrlFeesAndLimits(params)
+        #
+        #     {success:    1,
+        #          ctlr:   "feesAndLimits",
+        #         error:   "",
+        #          data: {limits: [{ pair: "BTC/USD",
+        #                              min_q: "0.001",
+        #                              max_q: "100",
+        #                              min_p: "1",
+        #                              max_p: "30000",
+        #                              min_a: "1",
+        #                              max_a: "200000"   },
+        #                            { pair: "KICK/ETH",
+        #                              min_q: "100",
+        #                              max_q: "200000",
+        #                              min_p: "0.000001",
+        #                              max_p: "1",
+        #                              min_a: "0.0001",
+        #                              max_a: "100"       }    ],
+        #                    fees: [{group:   "crypto",
+        #                              title:   "Криптовалюта",
+        #                              items: [{prov: "BTC", dep: "0%", wd: "0.0005 BTC"},
+        #                                       {prov: "LTC", dep: "0%", wd: "0.01 LTC"},
+        #                                       {prov: "DOGE", dep: "0%", wd: "1 Doge"},
+        #                                       {prov: "DASH", dep: "0%", wd: "0.01 DASH"},
+        #                                       {prov: "ETH", dep: "0%", wd: "0.01 ETH"},
+        #                                       {prov: "WAVES", dep: "0%", wd: "0.001 WAVES"},
+        #                                       {prov: "ZEC", dep: "0%", wd: "0.001 ZEC"},
+        #                                       {prov: "USDT", dep: "5 USDT", wd: "5 USDT"},
+        #                                       {prov: "NEO", dep: "0%", wd: "0%"},
+        #                                       {prov: "GAS", dep: "0%", wd: "0%"},
+        #                                       {prov: "ZRX", dep: "0%", wd: "1 ZRX"},
+        #                                       {prov: "GNT", dep: "0%", wd: "1 GNT"}]},
+        #                            {group:   "usd",
+        #                              title:   "USD",
+        #                              items: [{prov: "AdvCash", dep: "1%", wd: "3%"},
+        #                                       {prov: "Perfect Money", dep: "-", wd: "1%"},
+        #                                       {prov: "Neteller", dep: "3.5% + 0.29 USD, wd: "1.95%"},
+        #                                       {prov: "Wire Transfer", dep: "0%", wd: "1% + 20 USD"},
+        #                                       {prov: "CryptoCapital", dep: "0.5%", wd: "1.9%"},
+        #                                       {prov: "Skrill", dep: "3.5% + 0.36 USD", wd: "3%"},
+        #                                       {prov: "Payeer", dep: "1.95%", wd: "3.95%"},
+        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
+        #                            {group:   "eur",
+        #                              title:   "EUR",
+        #                              items: [{prov: "CryptoCapital", dep: "0%", wd: "-"},
+        #                                       {prov: "SEPA", dep: "25 EUR", wd: "1%"},
+        #                                       {prov: "Perfect Money", dep: "-", wd: "1.95%"},
+        #                                       {prov: "Neteller", dep: "3.5%+0.25 EUR", wd: "1.95%"},
+        #                                       {prov: "Payeer", dep: "2%", wd: "1%"},
+        #                                       {prov: "AdvCash", dep: "1%", wd: "3%"},
+        #                                       {prov: "Skrill", dep: "3.5% + 0.29 EUR", wd: "3%"},
+        #                                       {prov: "Rapid Transfer", dep: "1.5% + 0.29 EUR", wd: "-"},
+        #                                       {prov: "MisterTango SEPA", dep: "5 EUR", wd: "1%"},
+        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
+        #                            {group:   "rub",
+        #                              title:   "RUB",
+        #                              items: [{prov: "Payeer", dep: "2.45%", wd: "5.95%"},
+        #                                       {prov: "Yandex Money", dep: "4.5%", wd: "-"},
+        #                                       {prov: "AdvCash", dep: "1.45%", wd: "5.45%"},
+        #                                       {prov: "Qiwi", dep: "4.95%", wd: "-"},
+        #                                       {prov: "Visa/Mastercard", dep: "-", wd: "6.95% + 100 RUB"  }]},
+        #                            {group:   "pln",
+        #                              title:   "PLN",
+        #                              items: [{prov: "Neteller", dep: "3.5% + 4 PLN", wd: "-"},
+        #                                       {prov: "Rapid Transfer", dep: "1.5% + 1.21 PLN", wd: "-"},
+        #                                       {prov: "CryptoCapital", dep: "20 PLN", wd: "-"},
+        #                                       {prov: "Skrill", dep: "3.5% + 1.21 PLN", wd: "-"},
+        #                                       {prov: "Visa/MasterCard(Simplex)", dep: "6%", wd: "-"}]},
+        #                            {group:   "uah",
+        #                              title:   "UAH",
+        #                              items: [{prov: "AdvCash", dep: "1%", wd: "6%"},
+        #                                       {prov: "Visa/MasterCard", dep: "2.6%", wd: "8% + 30 UAH"}]}]} }
+        #
+        #
+        # the code below assumes all non-zero crypto fees are fixed(for now)
+        withdraw = {}
+        deposit = {}
+        groups = self.safe_value(response['data'], 'fees')
+        groupsByGroup = self.index_by(groups, 'group')
+        items = groupsByGroup['crypto']['items']
+        for i in range(0, len(items)):
+            item = items[i]
+            code = self.common_currency_code(self.safe_string(item, 'prov'))
+            withdraw[code] = self.parse_fixed_float_value(self.safe_string(item, 'wd'))
+            deposit[code] = self.parse_fixed_float_value(self.safe_string(item, 'dep'))
+        result = {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': deposit,
+        }
+        # cache them for later use
+        self.options['fundingFees'] = result
+        return result
+
+    async def fetch_currencies(self, params={}):
+        fees = await self.fetch_funding_fees(params)
+        # todo redesign the 'fee' property in currencies
+        ids = list(fees['withdraw'].keys())
+        limitsByMarketId = self.index_by(fees['info']['data']['limits'], 'pair')
+        marketIds = list(limitsByMarketId.keys())
+        minAmounts = {}
+        minPrices = {}
+        minCosts = {}
+        maxAmounts = {}
+        maxPrices = {}
+        maxCosts = {}
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            limit = limitsByMarketId[marketId]
+            baseId, quoteId = marketId.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            maxAmount = self.safe_float(limit, 'max_q')
+            maxPrice = self.safe_float(limit, 'max_p')
+            maxCost = self.safe_float(limit, 'max_a')
+            minAmount = self.safe_float(limit, 'min_q')
+            minPrice = self.safe_float(limit, 'min_p')
+            minCost = self.safe_float(limit, 'min_a')
+            minAmounts[base] = min(self.safe_float(minAmounts, base, minAmount), minAmount)
+            maxAmounts[base] = max(self.safe_float(maxAmounts, base, maxAmount), maxAmount)
+            minPrices[quote] = min(self.safe_float(minPrices, quote, minPrice), minPrice)
+            minCosts[quote] = min(self.safe_float(minCosts, quote, minCost), minCost)
+            maxPrices[quote] = max(self.safe_float(maxPrices, quote, maxPrice), maxPrice)
+            maxCosts[quote] = max(self.safe_float(maxCosts, quote, maxCost), maxCost)
+        result = {}
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.common_currency_code(id)
+            fee = self.safe_value(fees['withdraw'], code)
+            active = True
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': 8,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(minAmounts, code),
+                        'max': self.safe_float(maxAmounts, code),
+                    },
+                    'price': {
+                        'min': self.safe_float(minPrices, code),
+                        'max': self.safe_float(maxPrices, code),
+                    },
+                    'cost': {
+                        'min': self.safe_float(minCosts, code),
+                        'max': self.safe_float(maxCosts, code),
+                    },
+                },
+                'info': fee,
+            }
+        return result
 
     async def fetch_markets(self):
         fees = await self.fetch_trading_fees()
@@ -643,6 +797,118 @@ class exmo (Exchange):
             'info': result,
             'id': result['task_id'],
         }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'transferred': 'ok',
+            'paid': 'ok',
+            'pending': 'pending',
+            'processing': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchTransactions
+        #
+        #          {
+        #            "dt": 1461841192,
+        #            "type": "deposit",
+        #            "curr": "RUB",
+        #            "status": "processing",
+        #            "provider": "Qiwi(LA) [12345]",
+        #            "amount": "1",
+        #            "account": "",
+        #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        #          }
+        #
+        timestamp = self.safe_float(transaction, 'dt')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        amount = self.safe_float(transaction, 'amount')
+        if amount is not None:
+            amount = abs(amount)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        txid = self.safe_string(transaction, 'txid')
+        type = self.safe_string(transaction, 'type')
+        code = self.safe_string(transaction, 'curr')
+        if currency is None:
+            currency = self.safe_value(self.currencies_by_id, code)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(code)
+        address = self.safe_string(transaction, 'account')
+        if address is not None:
+            parts = address.split(':')
+            numParts = len(parts)
+            if numParts == 2:
+                address = parts[1]
+        fee = None
+        # fixed funding fees only(for now)
+        if not self.fees['funding']['percentage']:
+            key = 'withdraw' if (type == 'withdrawal') else 'deposit'
+            feeCost = self.safe_float(self.options['fundingFees'][key], code)
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                    'rate': None,
+                }
+        return {
+            'id': None,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'fee': fee,
+            'info': transaction,
+        }
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            request['date'] = int(since / 1000)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = await self.privatePostWalletHistory(self.extend(request, params))
+        #
+        #     {
+        #       "result": True,
+        #       "error": "",
+        #       "begin": "1493942400",
+        #       "end": "1494028800",
+        #       "history": [
+        #          {
+        #            "dt": 1461841192,
+        #            "type": "deposit",
+        #            "curr": "RUB",
+        #            "status": "processing",
+        #            "provider": "Qiwi(LA) [12345]",
+        #            "amount": "1",
+        #            "account": "",
+        #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        #          },
+        #          {
+        #            "dt": 1463414785,
+        #            "type": "withdrawal",
+        #            "curr": "USD",
+        #            "status": "paid",
+        #            "provider": "EXCODE",
+        #            "amount": "-1",
+        #            "account": "EX-CODE_19371_USDda...",
+        #            "txid": "",
+        #          },
+        #       ],
+        #     }
+        #
+        return self.parseTransactions(response['history'], currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
