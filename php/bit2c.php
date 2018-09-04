@@ -75,6 +75,9 @@ class bit2c extends Exchange {
                     'taker' => 0.5 / 100,
                 ),
             ),
+            'options' => array (
+                'fetchTradesMethod' => 'public_get_exchanges_pair_lasttrades',
+            ),
         ));
     }
 
@@ -138,7 +141,8 @@ class bit2c extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetExchangesPairTrades (array_merge (array (
+        $method = $this->options['fetchTradesMethod'];
+        $response = $this->$method (array_merge (array (
             'pair' => $market['id'],
         ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
@@ -171,7 +175,10 @@ class bit2c extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            $url .= '.json';
+            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if (mb_strpos ($path, 'lasttrades') < 0) {
+                $url .= '.json';
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();

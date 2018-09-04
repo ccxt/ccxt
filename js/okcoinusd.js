@@ -443,8 +443,16 @@ module.exports = class okcoinusd extends Exchange {
         if (typeof market === 'undefined') {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
+                if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
+                } else {
+                    let [ baseId, quoteId ] = ticker['symbol'].split ('_');
+                    let base = baseId.toUpperCase ();
+                    let quote = quoteId.toUpperCase ();
+                    base = this.commonCurrencyCode (base);
+                    quote = this.commonCurrencyCode (quote);
+                    symbol = base + '/' + quote;
+                }
             }
         }
         if (typeof market !== 'undefined') {
@@ -579,7 +587,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserinfo ();
+        let response = await this.privatePostUserinfo (params);
         let balances = response['info']['funds'];
         let result = { 'info': response };
         let ids = Object.keys (balances['free']);
@@ -893,6 +901,9 @@ module.exports = class okcoinusd extends Exchange {
         //     throw new ExchangeError (this.id + ' withdraw() requires amount > 0.01');
         // for some reason they require to supply a pair of currencies for withdrawing one currency
         let currencyId = currency['id'] + '_usd';
+        if (tag) {
+            address = address + ':' + tag;
+        }
         let request = {
             'symbol': currencyId,
             'withdraw_address': address,

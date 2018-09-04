@@ -225,49 +225,47 @@ class deribit (Exchange):
             'filled': 'closed',
         }
         if status in statuses:
-            return statuses['status']
+            return statuses[status]
         return status
 
     def parse_order(self, order, market=None):
-        # .
+        #
         #     {
-        #         "success": True,  # True or False
-        #         "message": "",    # empty or text message, e.g. error message
-        #         "result": [      # list of open orders
-        #         {
-        #                 "orderId": 5258039,          # ID of the order
-        #                 "instrument": "BTC-26MAY17",  # instrument name
-        #                 "direction": "sell",         # order direction, "buy" or "sell"
-        #                 "price": 1860,               # float, USD for futures, BTC for options
-        #                 "label": "",                 # label set by the owner, up to 32 chars
-        #                 "quantity": 10,              # quantity, in contracts($10 per contract for futures, ฿1 — for options)
-        #                 "filledQuantity": 3,         # filled quantity, in contracts($10 per contract for futures, ฿1 — for options)
-        #                 "avgPrice": 1860,            # average fill price of the order
-        #                 "commission": -0.000001613,  # in BTC units
-        #                 "created": 1494491899308,    # creation timestamp
-        #                 "state": "open",             # open, cancelled, etc
-        #                 "postOnly": False            # True for post-only orders only
+        #         "orderId": 5258039,          # ID of the order
+        #         "type": "limit",             # not documented, but present in the actual response
+        #         "instrument": "BTC-26MAY17",  # instrument name(market id)
+        #         "direction": "sell",         # order direction, "buy" or "sell"
+        #         "price": 1860,               # float, USD for futures, BTC for options
+        #         "label": "",                 # label set by the owner, up to 32 chars
+        #         "quantity": 10,              # quantity, in contracts($10 per contract for futures, ฿1 — for options)
+        #         "filledQuantity": 3,         # filled quantity, in contracts($10 per contract for futures, ฿1 — for options)
+        #         "avgPrice": 1860,            # average fill price of the order
+        #         "commission": -0.000001613,  # in BTC units
+        #         "created": 1494491899308,    # creation timestamp
+        #         "state": "open",             # open, cancelled, etc
+        #         "postOnly": False            # True for post-only orders only
         # open orders --------------------------------------------------------
-        #                 "lastUpdate": 1494491988754,  # timestamp of the last order state change(before self cancelorder of course)
+        #         "lastUpdate": 1494491988754,  # timestamp of the last order state change(before self cancelorder of course)
         # closed orders ------------------------------------------------------
-        #                 "tstamp": 1494492913288,    # timestamp of the last order state change
-        #                 "modified": 1494492913289,  # timestamp of the last db write operation, e.g. trade that doesn't change order status
-        #                 "adv": False                # advanced type(false, or "usd" or "implv")
-        #             }
-        #         ]
+        #         "tstamp": 1494492913288,     # timestamp of the last order state change, documented, but may be missing in the actual response
+        #         "modified": 1494492913289,   # timestamp of the last db write operation, e.g. trade that doesn't change order status, documented, but may missing in the actual response
+        #         "adv": False                 # advanced type(false, or "usd" or "implv")
+        #         "trades": [],                # not documented, injected from the outside of the parseOrder method into the order
         #     }
         #
         timestamp = self.safe_integer(order, 'created')
         lastUpdate = self.safe_integer(order, 'lastUpdate')
-        lastUpdate = self.safe_integer(order, 'tstamp', lastUpdate)
-        modified = self.safe_integer(order, 'modified')
-        lastTradeTimestamp = max(lastUpdate, modified)
+        lastTradeTimestamp = self.safe_integer_2(order, 'tstamp', 'modified')
         id = self.safe_string(order, 'orderId')
         price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'amount')
+        average = self.safe_float(order, 'avgPrice')
+        amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'filledQuantity')
+        if lastTradeTimestamp is None:
+            if filled is not None:
+                if filled > 0:
+                    lastTradeTimestamp = lastUpdate
         remaining = None
-        price = self.safe_float(order, 'avgPrice', price)
         cost = None
         if filled is not None:
             if amount is not None:
@@ -286,6 +284,7 @@ class deribit (Exchange):
             'cost': feeCost,
             'currency': 'BTC',
         }
+        type = self.safe_string(order, 'type')
         return {
             'info': order,
             'id': id,
@@ -293,19 +292,21 @@ class deribit (Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': order['instrument'],
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': None,
+            'trades': None,  # todo: parse trades
         }
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privateGetOrderstate({'orderId': id})
         return self.parse_order(response['result'])
 
@@ -320,7 +321,10 @@ class deribit (Exchange):
             request['price'] = price
         method = 'privatePost' + self.capitalize(side)
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parse_order(response['result'])
+        order = self.safe_value(response['result'], 'order')
+        if order is None:
+            return response
+        return self.parse_order(order)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()

@@ -446,6 +446,13 @@ class okcoinusd (Exchange):
                 marketId = ticker['symbol']
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
+                else:
+                    baseId, quoteId = ticker['symbol'].split('_')
+                    base = baseId.upper()
+                    quote = quoteId.upper()
+                    base = self.common_currency_code(base)
+                    quote = self.common_currency_code(quote)
+                    symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
@@ -566,7 +573,7 @@ class okcoinusd (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostUserinfo()
+        response = await self.privatePostUserinfo(params)
         balances = response['info']['funds']
         result = {'info': response}
         ids = list(balances['free'].keys())
@@ -850,6 +857,8 @@ class okcoinusd (Exchange):
         #     raise ExchangeError(self.id + ' withdraw() requires amount > 0.01')
         # for some reason they require to supply a pair of currencies for withdrawing one currency
         currencyId = currency['id'] + '_usd'
+        if tag:
+            address = address + ':' + tag
         request = {
             'symbol': currencyId,
             'withdraw_address': address,

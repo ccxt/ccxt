@@ -3,8 +3,9 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose') || false
-const strict  = process.argv.includes ('--strict')  || false
+    , verbose = process.argv.includes ('--verbose') || false
+    , strict  = process.argv.includes ('--strict')  || false
+    , compact = process.argv.includes ('--compact') || false
 
 
 /*  ------------------------------------------------------------------------ */
@@ -100,7 +101,13 @@ const checkAgainst = strict ?
             checkAgainst (market['id'].toString (), argument))
 
 
-    log (asTable (markets.map (market => ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ]))))
+    log (asTable (markets.map (market => {
+        market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])
+        return (!compact) ? market : {
+            'symbol': market['symbol'],
+            'exchange': market['exchange'],
+        };
+    })))
 
     log ("\n---------------------------------------------------------------\n")
 

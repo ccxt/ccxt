@@ -38,8 +38,8 @@ class rightbtc extends Exchange {
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
                 'doc' => array (
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 ),
                 // eslint-disable-next-line no-useless-escape
                 // 'fees' => 'https://www.rightbtc.com/\#\!/support/fee',
@@ -47,7 +47,7 @@ class rightbtc extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
-                        'getAssetsTradingPairs/zh',
+                        // 'getAssetsTradingPairs/zh', // 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -139,8 +139,8 @@ class rightbtc extends Exchange {
 
     public function fetch_markets () {
         $response = $this->publicGetTradingPairs ();
-        $zh = $this->publicGetGetAssetsTradingPairsZh ();
-        $markets = array_merge ($zh['result'], $response['status']['message']);
+        // $zh = $this->publicGetGetAssetsTradingPairsZh ();
+        $markets = array_merge ($response['status']['message']);
         $marketIds = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
         for ($i = 0; $i < count ($marketIds); $i++) {
@@ -251,11 +251,17 @@ class rightbtc extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetDepthTradingPair (array_merge (array (
+        $request = array (
             'trading_pair' => $this->market_id($symbol),
-        ), $params));
+        );
+        $method = 'publicGetDepthTradingPair';
+        if ($limit !== null) {
+            $method .= 'Count';
+            $request['count'] = $limit;
+        }
+        $response = $this->$method (array_merge ($request, $params));
         $bidsasks = array ();
         $types = ['bid', 'ask'];
         for ($ti = 0; $ti < count ($types); $ti++) {

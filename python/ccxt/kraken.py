@@ -582,7 +582,7 @@ class kraken (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
+        response = self.privatePostBalance(params)
         balances = self.safe_value(response, 'result')
         if balances is None:
             raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))

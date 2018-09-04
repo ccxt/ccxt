@@ -669,7 +669,8 @@ class hitbtc2 (hitbtc):
         self.load_markets()
         type = self.safe_string(params, 'type', 'trading')
         method = 'privateGet' + self.capitalize(type) + 'Balance'
-        balances = getattr(self, method)()
+        query = self.omit(params, 'type')
+        balances = getattr(self, method)(query)
         result = {'info': balances}
         for b in range(0, len(balances)):
             balance = balances[b]
@@ -797,11 +798,12 @@ class hitbtc2 (hitbtc):
             else:
                 symbol = id
         fee = None
-        if 'fee' in trade:
-            currency = market['quote'] if market else None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = market['quote'] if market else None
             fee = {
-                'cost': self.safe_float(trade, 'fee'),
-                'currency': currency,
+                'cost': feeCost,
+                'currency': feeCurrency,
             }
         orderId = None
         if 'clientOrderId' in trade:

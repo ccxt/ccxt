@@ -302,12 +302,14 @@ class gdax (Exchange):
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # as of 2018-08-23
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
-        market = None
-        request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['product_id'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
@@ -561,11 +563,11 @@ class gdax (Exchange):
         return self.parseTransactions(response)
 
     def parse_transaction_status(self, transaction):
-        if transaction['canceled_at']:
+        if 'canceled_at' in transaction and transaction['canceled_at']:
             return 'canceled'
-        elif transaction['completed_at']:
+        elif 'completed_at' in transaction and transaction['completed_at']:
             return 'ok'
-        elif transaction['procesed_at']:
+        elif 'procesed_at' in transaction and transaction['procesed_at']:
             return 'pending'
         else:
             return 'failed'

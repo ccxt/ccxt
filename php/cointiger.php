@@ -102,7 +102,7 @@ class cointiger extends huobipro {
             ),
             'exceptions' => array (
                 //    array ("code":"1","msg":"系统错误","data":null)
-                //    array (“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null)
+                //    array ("code":"1","msg":"Balance insufficient,余额不足","data":null)
                 '1' => '\\ccxt\\ExchangeError',
                 '2' => '\\ccxt\\ExchangeError',
                 '5' => '\\ccxt\\InvalidOrder',
@@ -338,26 +338,23 @@ class cointiger extends huobipro {
             $amount = $this->safe_float_2($trade, 'amount', 'volume');
         }
         $fee = null;
-        if ($side !== null) {
-            $feeCostField = $side . '_fee';
-            $feeCost = $this->safe_float($trade, $feeCostField);
-            if ($feeCost !== null) {
-                $feeCurrency = null;
-                if ($market !== null) {
-                    $feeCurrency = $market['base'];
-                }
-                $fee = array (
-                    'cost' => $feeCost,
-                    'currency' => $feeCurrency,
-                );
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = null;
+            if ($market !== null) {
+                $feeCurrency = $market['base'];
             }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
+            );
         }
         if ($amount !== null)
             if ($price !== null)
                 if ($cost === null)
                     $cost = $amount * $price;
         $timestamp = $this->safe_integer_2($trade, 'created_at', 'ts');
-        $timestamp = $this->safe_integer($trade, 'created', $timestamp);
+        $timestamp = $this->safe_integer_2($trade, 'created', 'mtime', $timestamp);
         $symbol = null;
         if ($market !== null)
             $symbol = $market['symbol'];
@@ -391,7 +388,7 @@ class cointiger extends huobipro {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($limit === null)
@@ -504,7 +501,7 @@ class cointiger extends huobipro {
             $order = array_merge ($orders[$i], array (
                 'status' => $status,
             ));
-            $result[] = $this->parse_order($order, $market, $since, $limit);
+            $result[] = $this->parse_order($order, $market);
         }
         return $result;
     }

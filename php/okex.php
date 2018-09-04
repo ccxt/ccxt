@@ -86,13 +86,7 @@ class okex extends okcoinusd {
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
-            $market = null;
-            if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
-                $marketId = $ticker['symbol'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
-            }
-            $ticker = $this->parse_ticker(array_merge ($tickers[$i], array ( 'timestamp' => $timestamp )), $market);
+            $ticker = $this->parse_ticker(array_merge ($tickers[$i], array ( 'timestamp' => $timestamp )));
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }

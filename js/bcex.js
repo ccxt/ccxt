@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -67,8 +67,8 @@ module.exports = class bcex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'bid': 0.0,
-                    'ask': 0.02 / 100,
+                    'maker': 0.0,
+                    'taker': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -79,10 +79,11 @@ module.exports = class bcex extends Exchange {
                     },
                     'deposit': {},
                 },
-                'exceptions': {
-                    '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
-                },
+            },
+            'exceptions': {
+                '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
+                '您的可用余额不足': InsufficientFunds, // { code: 1, msg: '您的可用余额不足' } - your available balance is insufficient
             },
         });
     }
@@ -304,7 +305,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = order['created'] * 1000;
-        let status = this.parseStatus (order['status']);
+        let status = this.parseOrderStatus (order['status']);
         let result = {
             'info': order,
             'id': id,
@@ -408,13 +409,13 @@ module.exports = class bcex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
-            request['symbol'] = symbol;
+            request['symbol'] = this.marketId (symbol);
         }
         if (typeof id !== 'undefined') {
             request['order_id'] = id;
         }
-        let results = await this.privatePostApiOrderCancel (this.extend (request, params));
-        return results;
+        let response = await this.privatePostApiOrderCancel (this.extend (request, params));
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -428,10 +429,10 @@ module.exports = class bcex extends Exchange {
             this.checkRequiredCredentials ();
             let payload = this.urlencode ({ 'api_key': this.apiKey });
             if (Object.keys (query).length) {
-                payload += this.urlencode (this.keysort (query));
+                payload += '&' + this.urlencode (this.keysort (query));
             }
             let auth = payload + '&secret_key=' + this.secret;
-            let signature = this.hash (auth);
+            let signature = this.hash (this.encode (auth));
             body = payload + '&sign=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',

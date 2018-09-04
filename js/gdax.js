@@ -306,13 +306,15 @@ module.exports = class gdax extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['product_id'] = market['id'];
+        // as of 2018-08-23
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'product_id': market['id'],
+        };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
@@ -598,11 +600,11 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTransactionStatus (transaction) {
-        if (transaction['canceled_at']) {
+        if ('canceled_at' in transaction && transaction['canceled_at']) {
             return 'canceled';
-        } else if (transaction['completed_at']) {
+        } else if ('completed_at' in transaction && transaction['completed_at']) {
             return 'ok';
-        } else if (transaction['procesed_at']) {
+        } else if ('procesed_at' in transaction && transaction['procesed_at']) {
             return 'pending';
         } else {
             return 'failed';

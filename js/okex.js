@@ -84,13 +84,7 @@ module.exports = class okex extends okcoinusd {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = undefined;
-            if ('symbol' in ticker) {
-                let marketId = ticker['symbol'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-            }
-            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }), market);
+            ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
             let symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

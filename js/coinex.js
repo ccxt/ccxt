@@ -23,6 +23,7 @@ module.exports = class coinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -69,6 +70,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'balance/coin/withdraw',
                         'balance/info',
                         'order',
                         'order/pending',
@@ -77,10 +79,12 @@ module.exports = class coinex extends Exchange {
                         'order/user/deals',
                     ],
                     'post': [
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ],
                     'delete': [
+                        'balance/coin/withdraw',
                         'order/pending',
                     ],
                 },
@@ -440,6 +444,9 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrder (this.extend ({
@@ -449,7 +456,10 @@ module.exports = class coinex extends Exchange {
         return this.parseOrder (response['data'], market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -457,23 +467,23 @@ module.exports = class coinex extends Exchange {
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        let response = await this.privateGetOrderPending (this.extend (request, params));
+        let method = 'privateGetOrder' + this.capitalize (status);
+        let response = await this[method] (this.extend (request, params));
         return this.parseOrders (response['data']['data'], market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('pending', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-        };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
-        let response = await this.privateGetOrderFinished (this.extend (request, params));
-        return this.parseOrders (response['data']['data'], market);
+        return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof symbol === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrderUserDeals (this.extend ({
@@ -482,6 +492,24 @@ module.exports = class coinex extends Exchange {
             'limit': 100,
         }, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        if (tag)
+            address = address + ':' + tag;
+        let request = {
+            'coin_type': currency['id'],
+            'coin_address': address,
+            'actual_amount': parseFloat (amount),
+        };
+        let response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
+        return {
+            'info': response,
+            'id': this.safeString (response, 'coin_withdraw_id'),
+        };
     }
 
     nonce () {

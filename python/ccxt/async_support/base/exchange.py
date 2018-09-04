@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.132'
+__version__ = '1.17.230'
 
 # -----------------------------------------------------------------------------
 
@@ -187,9 +187,17 @@ class Exchange(BaseExchange):
         return self.fees
 
     async def fetch_markets(self):
-        return self.markets
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
+        return self.to_array(self.markets)
 
-    async def fetch_currencies(self):
+    async def fetch_currencies(self, params={}):
+        # markets are returned as a list
+        # currencies are returned as a dict
+        # this is for historical reasons
+        # and may be changed for consistency later
         return self.currencies
 
     async def fetch_order_status(self, id, market=None):

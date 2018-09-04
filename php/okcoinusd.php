@@ -444,8 +444,16 @@ class okcoinusd extends Exchange {
         if ($market === null) {
             if (is_array ($ticker) && array_key_exists ('symbol', $ticker)) {
                 $marketId = $ticker['symbol'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$marketId];
+                } else {
+                    list ($baseId, $quoteId) = explode ('_', $ticker['symbol']);
+                    $base = strtoupper ($baseId);
+                    $quote = strtoupper ($quoteId);
+                    $base = $this->common_currency_code($base);
+                    $quote = $this->common_currency_code($quote);
+                    $symbol = $base . '/' . $quote;
+                }
             }
         }
         if ($market !== null) {
@@ -580,7 +588,7 @@ class okcoinusd extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostUserinfo ();
+        $response = $this->privatePostUserinfo ($params);
         $balances = $response['info']['funds'];
         $result = array ( 'info' => $response );
         $ids = is_array ($balances['free']) ? array_keys ($balances['free']) : array ();
@@ -894,6 +902,9 @@ class okcoinusd extends Exchange {
         //     throw new ExchangeError ($this->id . ' withdraw() requires $amount > 0.01');
         // for some reason they require to supply a pair of currencies for withdrawing one $currency
         $currencyId = $currency['id'] . '_usd';
+        if ($tag) {
+            $address = $address . ':' . $tag;
+        }
         $request = array (
             'symbol' => $currencyId,
             'withdraw_address' => $address,

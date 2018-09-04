@@ -32,6 +32,7 @@ class therock extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'funds',
                         'funds/{id}/orderbook',
                         'funds/{id}/ticker',
                         'funds/{id}/trades',
@@ -99,21 +100,81 @@ class therock extends Exchange {
     }
 
     public function fetch_markets () {
-        $markets = $this->publicGetFundsTickers ();
+        $response = $this->publicGetFunds ();
+        //
+        //     { funds => array ( array (                      $id =>   "BTCEUR",
+        //                              description =>   "Trade Bitcoin with Euro",
+        //                                     type =>   "currency",
+        //                            base_currency =>   "EUR",
+        //                           trade_currency =>   "BTC",
+        //                                  $buy_fee =>    0.2,
+        //                                 $sell_fee =>    0.2,
+        //                      minimum_price_offer =>    0.01,
+        //                   minimum_quantity_offer =>    0.0005,
+        //                   base_currency_decimals =>    2,
+        //                  trade_currency_decimals =>    4,
+        //                                leverages => array ()                           ),
+        //                {                      $id =>   "LTCEUR",
+        //                              description =>   "Trade Litecoin with Euro",
+        //                                     type =>   "currency",
+        //                            base_currency =>   "EUR",
+        //                           trade_currency =>   "LTC",
+        //                                  $buy_fee =>    0.2,
+        //                                 $sell_fee =>    0.2,
+        //                      minimum_price_offer =>    0.01,
+        //                   minimum_quantity_offer =>    0.01,
+        //                   base_currency_decimals =>    2,
+        //                  trade_currency_decimals =>    2,
+        //                                leverages => array ()                            } ) }
+        //
+        $markets = $this->safe_value($response, 'funds');
         $result = array ();
-        for ($p = 0; $p < count ($markets['tickers']); $p++) {
-            $market = $markets['tickers'][$p];
-            $id = $market['fund_id'];
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3);
-            $symbol = $base . '/' . $quote;
-            $result[] = array (
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'info' => $market,
-            );
+        if ($markets === null) {
+            throw new ExchangeError ($this->id . ' fetchMarkets got an unexpected response');
+        } else {
+            for ($i = 0; $i < count ($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'id');
+                $baseId = $this->safe_string($market, 'trade_currency');
+                $quoteId = $this->safe_string($market, 'base_currency');
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $buy_fee = $this->safe_float($market, 'buy_fee');
+                $sell_fee = $this->safe_float($market, 'sell_fee');
+                $taker = max ($buy_fee, $sell_fee);
+                $maker = $taker;
+                $result[] = array (
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'info' => $market,
+                    'active' => true,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                    'precision' => array (
+                        'amount' => $this->safe_integer($market, 'trade_currency_decimals'),
+                        'price' => $this->safe_integer($market, 'base_currency_decimals'),
+                    ),
+                    'limits' => array (
+                        'amount' => array (
+                            'min' => $this->safe_float($market, 'minimum_quantity_offer'),
+                            'max' => null,
+                        ),
+                        'price' => array (
+                            'min' => $this->safe_float($market, 'minimum_price_offer'),
+                            'max' => null,
+                        ),
+                        'cost' => array (
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
         }
         return $result;
     }

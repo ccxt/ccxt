@@ -86,6 +86,7 @@ class kuna (acx):
                 baseId = id.replace('btc', '')
                 baseId = baseId.replace('uah', '')
                 baseId = baseId.replace('gbg', '')
+                baseId = baseId.replace('eth', '')
                 if len(baseId) > 0:
                     baseIdLength = len(baseId) - 0  # a transpiler workaround
                     quoteId = id[baseIdLength:]
@@ -134,11 +135,12 @@ class kuna (acx):
         if market:
             symbol = market['symbol']
         side = self.safe_string(trade, 'side')
-        sideMap = {
-            'ask': 'sell',
-            'bid': 'buy',
-        }
-        side = sideMap[side]
+        if side is not None:
+            sideMap = {
+                'ask': 'sell',
+                'bid': 'buy',
+            }
+            side = self.safe_string(sideMap, side)
         cost = self.safe_float(trade, 'funds')
         order = self.safe_string(trade, 'order_id')
         return {

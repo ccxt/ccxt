@@ -73,7 +73,6 @@ setup(
     extras_require={
         ':python_version>="3.5.2"': [
             'aiohttp>=3.0.1',
-            'cchardet==2.1.1',
             'aiodns==1.1.1',
             'yarl==1.1.0',
             'web3==4.4.1',

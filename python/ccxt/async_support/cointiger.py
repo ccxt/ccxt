@@ -119,7 +119,7 @@ class cointiger (huobipro):
             },
             'exceptions': {
                 #    {"code":"1","msg":"系统错误","data":null}
-                #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                #    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
                 '2': ExchangeError,
                 '5': InvalidOrder,
@@ -341,23 +341,21 @@ class cointiger (huobipro):
             price = self.safe_float(trade, 'price')
             amount = self.safe_float_2(trade, 'amount', 'volume')
         fee = None
-        if side is not None:
-            feeCostField = side + '_fee'
-            feeCost = self.safe_float(trade, feeCostField)
-            if feeCost is not None:
-                feeCurrency = None
-                if market is not None:
-                    feeCurrency = market['base']
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                }
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrency = None
+            if market is not None:
+                feeCurrency = market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
         if amount is not None:
             if price is not None:
                 if cost is None:
                     cost = amount * price
         timestamp = self.safe_integer_2(trade, 'created_at', 'ts')
-        timestamp = self.safe_integer(trade, 'created', timestamp)
+        timestamp = self.safe_integer_2(trade, 'created', 'mtime', timestamp)
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -389,7 +387,7 @@ class cointiger (huobipro):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -494,14 +492,14 @@ class cointiger (huobipro):
             order = self.extend(orders[i], {
                 'status': status,
             })
-            result.append(self.parse_order(order, market, since, limit))
+            result.append(self.parse_order(order, market))
         return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('open', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         #

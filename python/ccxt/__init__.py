@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.132'
+__version__ = '1.17.230'
 
 # ----------------------------------------------------------------------------
 
@@ -77,6 +77,7 @@ from ccxt.bitbay import bitbay                              # noqa: F401
 from ccxt.bitfinex import bitfinex                          # noqa: F401
 from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
+from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
@@ -107,6 +108,7 @@ from ccxt.chbtc import chbtc                                # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
 from ccxt.coinbase import coinbase                          # noqa: F401
+from ccxt.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.coincheck import coincheck                        # noqa: F401
 from ccxt.coinegg import coinegg                            # noqa: F401
@@ -208,6 +210,7 @@ exchanges = [
     'bitfinex',
     'bitfinex2',
     'bitflyer',
+    'bitforex',
     'bithumb',
     'bitkk',
     'bitlish',
@@ -238,6 +241,7 @@ exchanges = [
     'chilebit',
     'cobinhood',
     'coinbase',
+    'coinbaseprime',
     'coinbasepro',
     'coincheck',
     'coinegg',
