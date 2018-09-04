@@ -210,6 +210,7 @@ module.exports = class ice3x extends Exchange {
         if (typeof limit !== 'undefined') {
             let type = this.safeString (params, 'type');
             if ((type !== 'ask') && (type !== 'bid')) {
+                // eslint-disable-next-line quotes
                 throw new ExchangeError (this.id + " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a limit");
             } else {
                 request['items_per_page'] = limit;
