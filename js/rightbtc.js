@@ -32,10 +32,7 @@ module.exports = class rightbtc extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
-                'doc': [
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
-                ],
+                'doc': 'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 // eslint-disable-next-line no-useless-escape
                 // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
             },
@@ -246,7 +243,7 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetDepthTradingPair (this.extend ({
             'trading_pair': this.marketId (symbol),
