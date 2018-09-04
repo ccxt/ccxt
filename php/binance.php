@@ -621,7 +621,7 @@ class binance extends Exchange {
         $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty');
         $remaining = null;
-        $cost = null;
+        $cost = $this->safe_float($order, 'cummulativeQuoteQty');
         if ($filled !== null) {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
@@ -631,7 +631,9 @@ class binance extends Exchange {
                 $remaining = max ($remaining, 0.0);
             }
             if ($price !== null) {
-                $cost = $price * $filled;
+                if ($cost === null) {
+                    $cost = $price * $filled;
+                }
             }
         }
         $id = $this->safe_string($order, 'orderId');
@@ -640,10 +642,9 @@ class binance extends Exchange {
             $type = strtolower ($type);
             if ($type === 'market') {
                 if ($price === 0.0) {
-                    $quoteCost = $this->safe_float($order, 'cummulativeQuoteQty');
-                    if (($quoteCost !== null) && ($filled !== null)) {
-                        if (($quoteCost > 0) && ($filled > 0)) {
-                            $price = $quoteCost / $filled;
+                    if (($cost !== null) && ($filled !== null)) {
+                        if (($cost > 0) && ($filled > 0)) {
+                            $price = $cost / $filled;
                         }
                     }
                 }

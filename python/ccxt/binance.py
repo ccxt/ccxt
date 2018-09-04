@@ -599,7 +599,7 @@ class binance (Exchange):
         amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty')
         remaining = None
-        cost = None
+        cost = self.safe_float(order, 'cummulativeQuoteQty')
         if filled is not None:
             if amount is not None:
                 remaining = amount - filled
@@ -607,17 +607,17 @@ class binance (Exchange):
                     remaining = float(self.amount_to_precision(symbol, remaining))
                 remaining = max(remaining, 0.0)
             if price is not None:
-                cost = price * filled
+                if cost is None:
+                    cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
         if type is not None:
             type = type.lower()
             if type == 'market':
                 if price == 0.0:
-                    quoteCost = self.safe_float(order, 'cummulativeQuoteQty')
-                    if (quoteCost is not None) and(filled is not None):
-                        if (quoteCost > 0) and(filled > 0):
-                            price = quoteCost / filled
+                    if (cost is not None) and(filled is not None):
+                        if (cost > 0) and(filled > 0):
+                            price = cost / filled
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
