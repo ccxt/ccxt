@@ -253,8 +253,8 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchCurrencies () {
-        let fees = await this.fetchFundingFees ();
+    async fetchCurrencies (params = {}) {
+        let fees = await this.fetchFundingFees (params);
         // todo redesign the 'fee' property in currencies
         let ids = Object.keys (fees['withdraw']);
         let limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
