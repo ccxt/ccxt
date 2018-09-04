@@ -224,7 +224,7 @@ module.exports = class bcex extends Exchange {
         keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
-            let total = this.sum (result[key]['used'], result[key]['total']);
+            let total = this.sum (result[key]['used'], result[key]['free']);
             result[key]['total'] = total;
         }
         result['info'] = data;
