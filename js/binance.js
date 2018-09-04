@@ -620,7 +620,7 @@ module.exports = class binance extends Exchange {
         let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = undefined;
+        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
@@ -630,7 +630,9 @@ module.exports = class binance extends Exchange {
                 remaining = Math.max (remaining, 0.0);
             }
             if (typeof price !== 'undefined') {
-                cost = price * filled;
+                if (typeof cost === 'undefined') {
+                    cost = price * filled;
+                }
             }
         }
         let id = this.safeString (order, 'orderId');
@@ -639,10 +641,9 @@ module.exports = class binance extends Exchange {
             type = type.toLowerCase ();
             if (type === 'market') {
                 if (price === 0.0) {
-                    let quoteCost = this.safeFloat (order, 'cummulativeQuoteQty');
-                    if ((typeof quoteCost !== 'undefined') && (typeof filled !== 'undefined')) {
-                        if ((quoteCost > 0) && (filled > 0)) {
-                            price = quoteCost / filled;
+                    if ((typeof cost !== 'undefined') && (typeof filled !== 'undefined')) {
+                        if ((cost > 0) && (filled > 0)) {
+                            price = cost / filled;
                         }
                     }
                 }
