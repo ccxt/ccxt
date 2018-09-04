@@ -32,7 +32,10 @@ module.exports = class rightbtc extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg',
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
-                'doc': 'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                'doc': [
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                ],
                 // eslint-disable-next-line no-useless-escape
                 // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
             },
@@ -245,9 +248,15 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepthTradingPair (this.extend ({
+        let request = {
             'trading_pair': this.marketId (symbol),
-        }, params));
+        };
+        let method = 'publicGetDepthTradingPair';
+        if (typeof limit !== 'undefined') {
+            method += 'Count';
+            request['count'] = limit;
+        }
+        let response = await this[method] (this.extend (request, params));
         let bidsasks = {};
         let types = ['bid', 'ask'];
         for (let ti = 0; ti < types.length; ti++) {
