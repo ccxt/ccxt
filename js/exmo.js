@@ -82,29 +82,12 @@ module.exports = class exmo extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'percentage': true,
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 1,
-                        'DASH': 0.01,
-                        'ETH': 0.01,
-                        'WAVES': 0.001,
-                        'ZEC': 0.001,
-                        'USDT': 25,
-                        'XMR': 0.05,
-                        'XRP': 0.02,
-                        'KICK': 350,
-                        'ETC': 0.01,
-                        'BCH': 0.001,
-                    },
-                    'deposit': {
-                        'USDT': 15,
-                        'KICK': 50,
-                    },
+                    'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
             'exceptions': {
@@ -153,6 +136,120 @@ module.exports = class exmo extends Exchange {
             'info': response,
             'maker': maker,
             'taker': taker,
+        };
+    }
+
+    parseFixedFloatValue (value) {
+        if ((typeof value === 'undefined') || (value === '-')) {
+            return undefined;
+        }
+        let isPercentage = (value.indexOf ('%') >= 0);
+        let parts = value.split (' ');
+        let result = parseFloat (parts[0]);
+        if ((result > 0) && isPercentage) {
+            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + value);
+        }
+        return result;
+    }
+
+    async fetchFundingFees (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.webGetCtrlFeesAndLimits (params);
+        //
+        //     { success:    1,
+        //          ctlr:   "feesAndLimits",
+        //         error:   "",
+        //          data: { limits: [ {  pair: "BTC/USD",
+        //                              min_q: "0.001",
+        //                              max_q: "100",
+        //                              min_p: "1",
+        //                              max_p: "30000",
+        //                              min_a: "1",
+        //                              max_a: "200000"   },
+        //                            {  pair: "KICK/ETH",
+        //                              min_q: "100",
+        //                              max_q: "200000",
+        //                              min_p: "0.000001",
+        //                              max_p: "1",
+        //                              min_a: "0.0001",
+        //                              max_a: "100"       }    ],
+        //                    fees: [ { group:   "crypto",
+        //                              title:   "Криптовалюта",
+        //                              items: [ { prov: "BTC", dep: "0%", wd: "0.0005 BTC" },
+        //                                       { prov: "LTC", dep: "0%", wd: "0.01 LTC" },
+        //                                       { prov: "DOGE", dep: "0%", wd: "1 Doge" },
+        //                                       { prov: "DASH", dep: "0%", wd: "0.01 DASH" },
+        //                                       { prov: "ETH", dep: "0%", wd: "0.01 ETH" },
+        //                                       { prov: "WAVES", dep: "0%", wd: "0.001 WAVES" },
+        //                                       { prov: "ZEC", dep: "0%", wd: "0.001 ZEC" },
+        //                                       { prov: "USDT", dep: "5 USDT", wd: "5 USDT" },
+        //                                       { prov: "NEO", dep: "0%", wd: "0%" },
+        //                                       { prov: "GAS", dep: "0%", wd: "0%" },
+        //                                       { prov: "ZRX", dep: "0%", wd: "1 ZRX" },
+        //                                       { prov: "GNT", dep: "0%", wd: "1 GNT" } ] },
+        //                            { group:   "usd",
+        //                              title:   "USD",
+        //                              items: [ { prov: "AdvCash", dep: "1%", wd: "3%" },
+        //                                       { prov: "Perfect Money", dep: "-", wd: "1%" },
+        //                                       { prov: "Neteller", dep: "3.5% + 0.29 USD, wd: "1.95%" },
+        //                                       { prov: "Wire Transfer", dep: "0%", wd: "1% + 20 USD" },
+        //                                       { prov: "CryptoCapital", dep: "0.5%", wd: "1.9%" },
+        //                                       { prov: "Skrill", dep: "3.5% + 0.36 USD", wd: "3%" },
+        //                                       { prov: "Payeer", dep: "1.95%", wd: "3.95%" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "eur",
+        //                              title:   "EUR",
+        //                              items: [ { prov: "CryptoCapital", dep: "0%", wd: "-" },
+        //                                       { prov: "SEPA", dep: "25 EUR", wd: "1%" },
+        //                                       { prov: "Perfect Money", dep: "-", wd: "1.95%" },
+        //                                       { prov: "Neteller", dep: "3.5%+0.25 EUR", wd: "1.95%" },
+        //                                       { prov: "Payeer", dep: "2%", wd: "1%" },
+        //                                       { prov: "AdvCash", dep: "1%", wd: "3%" },
+        //                                       { prov: "Skrill", dep: "3.5% + 0.29 EUR", wd: "3%" },
+        //                                       { prov: "Rapid Transfer", dep: "1.5% + 0.29 EUR", wd: "-" },
+        //                                       { prov: "MisterTango SEPA", dep: "5 EUR", wd: "1%" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "rub",
+        //                              title:   "RUB",
+        //                              items: [ { prov: "Payeer", dep: "2.45%", wd: "5.95%" },
+        //                                       { prov: "Yandex Money", dep: "4.5%", wd: "-" },
+        //                                       { prov: "AdvCash", dep: "1.45%", wd: "5.45%" },
+        //                                       { prov: "Qiwi", dep: "4.95%", wd: "-" },
+        //                                       { prov: "Visa/Mastercard", dep: "-", wd: "6.95% + 100 RUB"  } ] },
+        //                            { group:   "pln",
+        //                              title:   "PLN",
+        //                              items: [ { prov: "Neteller", dep: "3.5% + 4 PLN", wd: "-" },
+        //                                       { prov: "Rapid Transfer", dep: "1.5% + 1.21 PLN", wd: "-" },
+        //                                       { prov: "CryptoCapital", dep: "20 PLN", wd: "-" },
+        //                                       { prov: "Skrill", dep: "3.5% + 1.21 PLN", wd: "-" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "uah",
+        //                              title:   "UAH",
+        //                              items: [ { prov: "AdvCash", dep: "1%", wd: "6%" },
+        //                                       { prov: "Visa/MasterCard", dep: "2.6%", wd: "8% + 30 UAH" } ] } ] } }
+        //
+        //
+        // the code below assumes all non-zero crypto fees are fixed (for now)
+        const withdraw = {};
+        const deposit = {};
+        const groups = this.safeValue (response['data'], 'fees');
+        const groupsByGroup = this.indexBy (groups, 'group');
+        const items = groupsByGroup['crypto']['items'];
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let code = this.safeString (item, 'prov');
+            if (code in this.currencies_by_id) {
+                code = this.currencies_by_id[code]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
+            withdraw[code] = this.parseFixedFloatValue (this.safeString (item, 'wd'));
+            deposit[code] = this.parseFixedFloatValue (this.safeString (item, 'dep'));
+        }
+        return {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': deposit,
         };
     }
 
@@ -687,7 +784,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        const statuses  = {
+        const statuses = {
             'transferred': 'ok',
             'paid': 'ok',
             'pending': 'pending',
@@ -711,69 +808,49 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        const timestamp = this.safeFloat (response, 'dt');
+        let timestamp = this.safeFloat (transaction, 'dt');
         if (typeof timestamp !== 'undefined') {
             timestamp = timestamp * 1000;
         }
-        const address = this.safeString (response, 'account');
-        const amount = this.safeFloat (response, 'amount');
+        let amount = this.safeFloat (transaction, 'amount');
         if (typeof amount !== 'undefined') {
             amount = Math.abs (amount);
         }
-        const status = this.parseTransactionStatus (this.safeString (response, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const type = this.safeString (transaction, 'type');
-        return ({
+        let code = this.safeString (transaction, 'curr');
+        if (typeof currency === 'undefined') {
+            currency = this.safeValue (this.currencies_by_id, code);
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (code);
+        }
+        let address = this.safeString (transaction, 'account');
+        if (typeof address !== 'undefined') {
+            const parts = address.split (':');
+            let numParts = parts.length;
+            if (numParts === 2) {
+                address = parts[1];
+            }
+        }
+        let fee = undefined;
+        return {
             'id': undefined,
-            'currency': response['curr'],
+            'currency': code,
             'amount': amount,
-            'address': address ? address.replace (/^.+:\s/, '') : undefined,
-            'status': statuses[status] || status,
+            'address': address,
+            'status': status,
             'type': type,
             'updated': undefined,
             'txid': txid,
             'timestamp': timestamp,
-            'fee': this.safeFloat (response, 'fee'),
-            'info': response,
-        })
-    }
-
-            //
-        // Fields description:
-        // result - 'true' in case of successful got history and 'false' in case of an error
-        // error - contains the error description
-        // begin - history period begin
-        // end - history period end
-        // history - history data,
-        // dt - date of the operation
-        // type - type of the operation
-        // curr - currency of the operation
-        // status - status of the operation
-        // provider - provider of the operation
-        // amount - amount of the operation
-        // account - account of the operation (may be empty)
-        // txid - transaction ID that should be used for tracking it on blockchain
-        //
-        for (let i = 0; i < accounts.length; i++) {
-            let account = accounts[i];
-            // todo: use unified common currencies below
-            if (account['currency'] === currency['id']) {
-                accountId = account['id'];
-                break;
-            }
-        }
-        if (typeof accountId === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
-        }
-        let request = {
-            'limit': limit,
-            'id': accountId,
+            'fee': fee,
+            'info': transaction,
         };
-        let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
-        for (let i = 0; i < response.length; i++) {
-            response[i]['currency'] = code;
-        }
-        return this.parseTransactions (response);
+    }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
@@ -816,7 +893,7 @@ module.exports = class exmo extends Exchange {
         //       ],
         //     }
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response['history'], currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
