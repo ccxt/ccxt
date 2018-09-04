@@ -355,7 +355,7 @@ module.exports = class bitz extends Exchange {
             'type': orderType,
             'price': this.priceToPrecision (symbol, price),
             'number': this.amountToPrecision (symbol, amount),
-            'tradepwd': this.password,
+            'tradePwd': this.password,
         };
         let response = await this.privatePostTradeAdd (this.extend (request, params));
         let id = response['data']['id'];
