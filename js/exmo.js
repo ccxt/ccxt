@@ -29,6 +29,7 @@ module.exports = class exmo extends Exchange {
                 'withdraw': true,
                 'fetchTradingFees': true,
                 'fetchFundingFees': true,
+                'fetchCurrencies': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -82,11 +83,13 @@ module.exports = class exmo extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
                     'percentage': true,
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
+                    'tierBased': false,
                     'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
@@ -153,7 +156,6 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchFundingFees (params = {}) {
-        await this.loadMarkets ();
         const response = await this.webGetCtrlFeesAndLimits (params);
         //
         //     { success:    1,
@@ -237,12 +239,7 @@ module.exports = class exmo extends Exchange {
         const items = groupsByGroup['crypto']['items'];
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
-            let code = this.safeString (item, 'prov');
-            if (code in this.currencies_by_id) {
-                code = this.currencies_by_id[code]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
             withdraw[code] = this.parseFixedFloatValue (this.safeString (item, 'wd'));
             deposit[code] = this.parseFixedFloatValue (this.safeString (item, 'dep'));
         }
@@ -251,6 +248,70 @@ module.exports = class exmo extends Exchange {
             'withdraw': withdraw,
             'deposit': deposit,
         };
+    }
+
+    async fetchCurrencies () {
+        let fees = await this.fetchFundingFees ();
+        // todo redesign the 'fee' property in currencies
+        let ids = Object.keys (fees['withdraw']);
+        let limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
+        let marketIds = Object.keys (limitsByMarketId);
+        let minAmounts = {};
+        let minPrices = {};
+        let minCosts = {};
+        let maxAmounts = {};
+        let maxPrices = {};
+        let maxCosts = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let limit = limitsByMarketId[marketId];
+            let [ baseId, quoteId ] = marketId.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let maxAmount = this.safeFloat (limit, 'max_q');
+            let maxPrice = this.safeFloat (limit, 'max_p');
+            let maxCost = this.safeFloat (limit, 'max_a');
+            let minAmount = this.safeFloat (limit, 'min_q');
+            let minPrice = this.safeFloat (limit, 'min_p');
+            let minCost = this.safeFloat (limit, 'min_a');
+            minAmounts[base] = Math.min (this.safeFloat (minAmounts, base, minAmount), minAmount);
+            maxAmounts[base] = Math.max (this.safeFloat (maxAmounts, base, maxAmount), maxAmount);
+            minPrices[quote] = Math.min (this.safeFloat (minPrices, quote, minPrice), minPrice);
+            minCosts[quote] = Math.min (this.safeFloat (minCosts, quote, minCost), minCost);
+            maxPrices[quote] = Math.max (this.safeFloat (maxPrices, quote, maxPrice), maxPrice);
+            maxCosts[quote] = Math.max (this.safeFloat (maxCosts, quote, maxCost), maxCost);
+        }
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = this.commonCurrencyCode (id);
+            let fee = this.safeValue (fees['withdraw'], code);
+            let active = true;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': 8,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (minAmounts, code),
+                        'max': this.safeFloat (maxAmounts, code),
+                    },
+                    'price': {
+                        'min': this.safeFloat (minPrices, code),
+                        'max': this.safeFloat (maxPrices, code),
+                    },
+                    'cost': {
+                        'min': this.safeFloat (minCosts, code),
+                        'max': this.safeFloat (maxCosts, code),
+                    },
+                },
+                'info': fee,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets () {
