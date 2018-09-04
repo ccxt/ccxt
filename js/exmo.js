@@ -142,15 +142,16 @@ module.exports = class exmo extends Exchange {
         };
     }
 
-    parseFixedFloatValue (value) {
-        if ((typeof value === 'undefined') || (value === '-')) {
+    parseFixedFloatValue (input) {
+        if ((typeof input === 'undefined') || (input === '-')) {
             return undefined;
         }
-        let isPercentage = (value.indexOf ('%') >= 0);
-        let parts = value.split (' ');
-        let result = parseFloat (parts[0]);
+        let isPercentage = (input.indexOf ('%') >= 0);
+        let parts = input.split (' ');
+        let value = parts[0].replace ('%', '');
+        let result = parseFloat (value);
         if ((result > 0) && isPercentage) {
-            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + value);
+            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input);
         }
         return result;
     }
