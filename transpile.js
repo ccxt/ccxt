@@ -127,6 +127,7 @@ const commonRegexes = [
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
+    [ /\.parseIfJsonEncodedObject\s/g, '.parse_if_json_encoded_object'],
 ]
 
 // ----------------------------------------------------------------------------
@@ -135,12 +136,21 @@ const pythonRegexes = [
 
     [ /Array\.isArray\s*\(([^\)]+)\)/g, 'isinstance($1, list)' ],
     [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, 'isinstance($1, $2)' ],
+
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] is None' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] is not None' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
     [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 is None' ],
     [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 is not None' ],
+
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] is None' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] is not None' ],
+    [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+    [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 is None' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 is not None' ],
+
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, 'isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, 'not isinstance($1[$2], basestring)' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, 'isinstance($1, basestring)' ],
@@ -240,16 +250,26 @@ const python2Regexes = [
 const phpRegexes = [
     [ /\{([a-zA-Z0-9_]+?)\}/g, '<$1>' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
     [ /Array\.isArray\s*\(([^\)]+)\)/g, "gettype ($1) === 'array' && count (array_filter (array_keys ($1), 'is_string')) == 0" ],
+
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2] === null' ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] !== null' ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
     [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1 === null' ],
     [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 !== null' ],
+
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2] === null' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] !== null' ],
+    [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1 === null' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 !== null' ],
+    [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1 === null' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 !== null' ],
+
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, "gettype ($1[$2]) === 'string'" ],
     [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, "gettype ($1[$2]) !== 'string'" ],
     [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, "gettype ($1) === 'string'" ],
     [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, "gettype ($1) !== 'string'" ],
+
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
