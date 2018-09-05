@@ -31,6 +31,9 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -820,6 +823,68 @@ module.exports = class bitfinex extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code arguemnt');
+        }
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = parseInt (this.safeFloat (transaction, 'timestamp_created')) * 1000;
+        let updated = parseInt (this.safeFloat (transaction, 'timestamp')) * 1000;
+        let datetime = undefined;
+        if (typeof timestamp !== 'undefined') {
+            datetime = this.iso8601 (timestamp);
+        }
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type').toLowerCase (); // DEPOSIT or WITHDRAWAL
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': this.safeString (transaction, 'address'),
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'cost': Math.abs (this.safeFloat (transaction, 'fee')),
+                'rate': code,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'CANCELED': 'canceled',
+            'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status.toLowerCase ();
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
