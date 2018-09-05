@@ -183,12 +183,14 @@ class gateio (Exchange):
                 'price': priceLimits,
                 'cost': costLimits,
             }
+            active = True
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
                 'maker': details['fee'] / 100,
                 'taker': details['fee'] / 100,
                 'precision': precision,
