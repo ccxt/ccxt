@@ -77,7 +77,7 @@
     "paymium":       { "skip": true },
     "poloniex":      { "skip": true, "timeout": 20000 },
     "quadrigacx":    { "apiKey": "qvFrjjJEEF", "secret": "f18f8f178696d36a760a6c4f13bc6fa7", "uid": "395037" },
-    "quoinex":       { },
+    "quoinex":       { "skip": true },
     "qryptos":       { "skip": true },
     "rightbtc":      { "skip": true },
     "southxchange":  { "skip": true, "apiKey": "owpxVPAjPFGanKyBxLVsnYXXwsrmAg", "secret": "yGNICYpkFgcenQTCyDNXtSPnkOXQBIEsIoLYmEnYqsFuvIQGEU" },
