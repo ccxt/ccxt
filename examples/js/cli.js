@@ -4,6 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--verbose')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
@@ -131,6 +132,7 @@ function printSupportedExchanges () {
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
+    log ('--debug           Print debugging output')
     log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
     log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
@@ -225,6 +227,10 @@ async function main () {
             exchange.headers = cfscrapeCookies (www)
 
         no_load_markets = no_send ? true : no_load_markets
+
+        if (debug) {
+            exchange.verbose = verbose
+        }
 
         if (!no_load_markets) {
             await exchange.loadMarkets ()
