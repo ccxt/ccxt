@@ -630,6 +630,18 @@ class Exchange {
         return json_encode ($data, $flags);
     }
 
+    public static function parse_if_json_encoded_object ($input) {
+        if ((gettype ($body) !== 'string') || (strlen ($body) < 2)) {
+            return $input;
+        }
+        if ($body[0] === '{') {
+            return json_decode ($result, $as_associative_array = true);
+        } else if ($body[1] === '[') {
+            return json_decode ($result);
+        }
+        return $input;
+    }
+
     public static function is_json_encoded_object ($input) {
         return (gettype ($body) === 'string') &&
                 (strlen ($body) >= 2) &&
