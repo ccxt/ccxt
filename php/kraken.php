@@ -17,6 +17,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
+            'parseJsonResponse' => false,
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -213,17 +214,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_min_order_sizes () {
-        $html = null;
-        $oldParseJsonResponse = $this->parseJsonResponse;
-        try {
-            $this->parseJsonResponse = false;
-            $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            $this->parseJsonResponse = $oldParseJsonResponse;
-        } catch (Exception $e) {
-            // ensure parseJsonResponse is restored no matter what
-            $this->parseJsonResponse = $oldParseJsonResponse;
-            throw $e;
-        }
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $parts = explode ('ul>', $html);
         $ul = $parts[1];
         $listItems = explode ('</li', $ul);
@@ -934,5 +925,10 @@ class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        return $this->parse_if_json_encoded_object($response);
     }
 }

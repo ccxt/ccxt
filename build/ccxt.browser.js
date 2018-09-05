@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.232'
+const version = '1.17.233'
 
 Exchange.ccxtVersion = version
 
@@ -2159,6 +2159,10 @@ module.exports = class Exchange {
             error = ExchangeError
         }
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
+    }
+
+    parseIfJsonEncodedObject (input) {
+        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
     }
 
     isJsonEncodedObject (object) {
@@ -40072,6 +40076,7 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'certified': true,
+            'parseJsonResponse': false,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -40268,17 +40273,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderSizes () {
-        let html = undefined;
-        let oldParseJsonResponse = this.parseJsonResponse;
-        try {
-            this.parseJsonResponse = false;
-            html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            this.parseJsonResponse = oldParseJsonResponse;
-        } catch (e) {
-            // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = oldParseJsonResponse;
-            throw e;
-        }
+        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         let parts = html.split ('ul>');
         let ul = parts[1];
         let listItems = ul.split ('</li');
@@ -40989,6 +40984,11 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
     }
 };
 
