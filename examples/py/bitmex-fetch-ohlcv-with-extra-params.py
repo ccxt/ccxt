@@ -30,4 +30,4 @@ while True:
         candles[num_candles - 1][2],
         candles[num_candles - 1][3],
         candles[num_candles - 1][4]))
-    time.sleep(bitmex.rateLimit * 5)
+    time.sleep((bitmex.rateLimit / 1000) * 30)  # just a safe 30-sec delay
