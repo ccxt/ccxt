@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ module.exports = class yobit extends liqui {
         return this.deepExtend (super.describe (), {
             'id': 'yobit',
             'name': 'YoBit',
-            'countries': 'RU',
+            'countries': [ 'RU' ],
             'rateLimit': 3000, // responses are cached every 2 seconds
             'version': '3',
             'has': {
@@ -100,6 +100,7 @@ module.exports = class yobit extends liqui {
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
+                'GOT': 'Giotto Coin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -240,6 +241,9 @@ module.exports = class yobit extends liqui {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                         } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Total transaction amount') {
+                            // eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            throw new InvalidOrder (this.id + ' ' + this.json (response));
                         }
                     }
                     throw new ExchangeError (this.id + ' ' + this.json (response));

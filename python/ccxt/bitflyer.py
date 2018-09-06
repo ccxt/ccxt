@@ -14,7 +14,7 @@ class bitflyer (Exchange):
         return self.deep_extend(super(bitflyer, self).describe(), {
             'id': 'bitflyer',
             'name': 'bitFlyer',
-            'countries': 'JP',
+            'countries': ['JP'],
             'version': 'v1',
             'rateLimit': 1000,  # their nonce-timestamp is in seconds...
             'has': {
@@ -102,25 +102,30 @@ class bitflyer (Exchange):
                 future = True
                 spot = False
             currencies = id.split('_')
+            baseId = None
+            quoteId = None
             base = None
             quote = None
-            symbol = id
             numCurrencies = len(currencies)
             if numCurrencies == 1:
-                base = symbol[0:3]
-                quote = symbol[3:6]
+                baseId = id[0:3]
+                quoteId = id[3:6]
             elif numCurrencies == 2:
-                base = currencies[0]
-                quote = currencies[1]
-                symbol = base + '/' + quote
+                baseId = currencies[0]
+                quoteId = currencies[1]
             else:
-                base = currencies[1]
-                quote = currencies[2]
+                baseId = currencies[1]
+                quoteId = currencies[2]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = (base + '/' + quote) if (numCurrencies == 2) else id
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
                 'future': future,
@@ -310,7 +315,7 @@ class bitflyer (Exchange):
         }
         response = self.privateGetGetchildorders(self.extend(request, params))
         orders = self.parse_orders(response, market, since, limit)
-        if symbol:
+        if symbol is not None:
             orders = self.filter_by(orders, 'symbol', symbol)
         return orders
 
@@ -343,7 +348,7 @@ class bitflyer (Exchange):
         request = {
             'product_code': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['count'] = limit
         response = self.privateGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

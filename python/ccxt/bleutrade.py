@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.bittrex import bittrex
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -17,9 +16,10 @@ class bleutrade (bittrex):
         return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
-            'countries': 'BR',  # Brazil
+            'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'certified': False,
             'has': {
                 'CORS': True,
                 'fetchTickers': True,
@@ -131,7 +131,6 @@ class bleutrade (bittrex):
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -168,7 +167,7 @@ class bleutrade (bittrex):
         # depth(optional, default is 500, max is 20000)
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             self.load_markets()
             market = self.market(symbol)
         else:

@@ -13,7 +13,7 @@ class lykke extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'lykke',
             'name' => 'Lykke',
-            'countries' => 'CH',
+            'countries' => array ( 'CH' ),
             'version' => 'v1',
             'rateLimit' => 200,
             'has' => array (
@@ -143,15 +143,33 @@ class lykke extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
+        //
+        //     array ( array (                Id => "AEBTC",
+        //                      Name => "AE/BTC",
+        //                  Accuracy =>  6,
+        //          InvertedAccuracy =>  8,
+        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId => "BTC",
+        //                 MinVolume =>  0.4,
+        //         MinInvertedVolume =>  0.0001                                 ),
+        //       {                Id => "AEETH",
+        //                      Name => "AE/ETH",
+        //                  Accuracy =>  6,
+        //          InvertedAccuracy =>  8,
+        //               BaseAssetId => "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId => "ETH",
+        //                 MinVolume =>  0.4,
+        //         MinInvertedVolume =>  0.001                                  } )
+        //
         $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['Id'];
-            $base = $market['BaseAssetId'];
-            $quote = $market['QuotingAssetId'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
-            $symbol = $market['Name'];
+            $name = $market['Name'];
+            list ($baseId, $quoteId) = explode ('/', $name);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['Accuracy'],
                 'price' => $market['InvertedAccuracy'],
@@ -163,7 +181,6 @@ class lykke extends Exchange {
                 'quote' => $quote,
                 'active' => true,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -173,6 +190,10 @@ class lykke extends Exchange {
                     'price' => array (
                         'min' => pow (10, -$precision['price']),
                         'max' => pow (10, $precision['price']),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
                     ),
                 ),
             );
@@ -245,7 +266,7 @@ class lykke extends Exchange {
     public function parse_order ($order, $market = null) {
         $status = $this->parse_order_status($order['Status']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($order) && array_key_exists ('AssetPairId', $order))
                 if (is_array ($this->markets_by_id) && array_key_exists ($order['AssetPairId'], $this->markets_by_id))
                     $market = $this->markets_by_id[$order['AssetPairId']];

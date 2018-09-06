@@ -12,7 +12,7 @@ module.exports = class bitmex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC', // Seychelles
+            'countries': [ 'SC' ], // Seychelles
             'version': 'v1',
             'userAgent': undefined,
             'rateLimit': 2000,
@@ -135,7 +135,7 @@ module.exports = class bitmex extends Exchange {
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': true,
+                'fetchTickerQuotes': false,
             },
         });
     }
@@ -147,14 +147,14 @@ module.exports = class bitmex extends Exchange {
             let market = markets[p];
             let active = (market['state'] !== 'Unlisted');
             let id = market['symbol'];
-            let base = market['underlying'];
-            let quote = market['quoteCurrency'];
+            let baseId = market['underlying'];
+            let quoteId = market['quoteCurrency'];
             let type = undefined;
             let future = false;
             let prediction = false;
-            let basequote = base + quote;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let basequote = baseId + quoteId;
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let swap = (id === basequote);
             let symbol = id;
             if (swap) {
@@ -180,6 +180,8 @@ module.exports = class bitmex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -395,7 +397,7 @@ module.exports = class bitmex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in trade)
                 market = this.markets_by_id[trade['symbol']];
         }
@@ -432,7 +434,7 @@ module.exports = class bitmex extends Exchange {
         if (typeof status !== 'undefined')
             status = this.parseOrderStatus (status);
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else {
             let id = order['symbol'];

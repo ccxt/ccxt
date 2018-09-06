@@ -76,7 +76,10 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
             # need to clarify these conditionals
             if dot >= end:
                 end -= 1
-            precise = string[:end].ljust(dot, '0')
+            if precision >= len(string.replace('.', '')):
+                precise = string
+            else:
+                precise = string[:end].ljust(dot, '0')
         precise = precise.rstrip('.')
 
     if padding_mode == NO_PADDING:

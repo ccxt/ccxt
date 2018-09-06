@@ -250,6 +250,8 @@ class independentreserve (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=50, params={}):
         self.load_markets()
         pageIndex = self.safe_integer(params, 'pageIndex', 1)
+        if limit is None:
+            limit = 50
         request = self.ordered({
             'pageIndex': pageIndex,
             'pageSize': limit,
@@ -341,19 +343,20 @@ class independentreserve (Exchange):
                 'apiKey=' + self.apiKey,
                 'nonce=' + str(nonce),
             ]
-            # remove self crap
             keys = list(params.keys())
-            payload = []
             for i in range(0, len(keys)):
                 key = keys[i]
-                payload.append(key + '=' + params[key])
-            auth = self.array_concat(auth, payload)
+                value = str(params[key])
+                auth.append(key + '=' + value)
             message = ','.join(auth)
             signature = self.hmac(self.encode(message), self.encode(self.secret))
-            body = self.json({
-                'apiKey': self.apiKey,
-                'nonce': nonce,
-                'signature': signature,
-            })
+            query = self.ordered({})
+            query['apiKey'] = self.apiKey
+            query['nonce'] = nonce
+            query['signature'] = signature.upper()
+            for i in range(0, len(keys)):
+                key = keys[i]
+                query[key] = params[key]
+            body = self.json(query)
             headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

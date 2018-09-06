@@ -13,7 +13,7 @@ class btcturk extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'btcturk',
             'name' => 'BTCTurk',
-            'countries' => 'TR', // Turkey
+            'countries' => array ( 'TR' ), // Turkey
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,

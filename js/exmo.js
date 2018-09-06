@@ -27,10 +27,17 @@ module.exports = class exmo extends Exchange {
                 'fetchMyTrades': true,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchTradingFees': true,
+                'fetchFundingFees': true,
+                'fetchCurrencies': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-                'api': 'https://api.exmo.com',
+                'api': {
+                    'public': 'https://api.exmo.com',
+                    'private': 'https://api.exmo.com',
+                    'web': 'https://exmo.me',
+                },
                 'www': 'https://exmo.me',
                 'referral': 'https://exmo.me/?ref=131685',
                 'doc': [
@@ -40,6 +47,12 @@ module.exports = class exmo extends Exchange {
                 'fees': 'https://exmo.com/en/docs/fees',
             },
             'api': {
+                'web': {
+                    'get': [
+                        'ctrl/feesAndLimits',
+                        'en/docs/fees',
+                    ],
+                },
                 'public': {
                     'get': [
                         'currency',
@@ -70,29 +83,14 @@ module.exports = class exmo extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': false,
+                    'percentage': true,
                     'maker': 0.2 / 100,
                     'taker': 0.2 / 100,
                 },
                 'funding': {
-                    'withdraw': {
-                        'BTC': 0.001,
-                        'LTC': 0.01,
-                        'DOGE': 1,
-                        'DASH': 0.01,
-                        'ETH': 0.01,
-                        'WAVES': 0.001,
-                        'ZEC': 0.001,
-                        'USDT': 25,
-                        'XMR': 0.05,
-                        'XRP': 0.02,
-                        'KICK': 350,
-                        'ETC': 0.01,
-                        'BCH': 0.001,
-                    },
-                    'deposit': {
-                        'USDT': 15,
-                        'KICK': 50,
-                    },
+                    'tierBased': false,
+                    'percentage': false, // fixed funding fees for crypto, see fetchFundingFees below
                 },
             },
             'exceptions': {
@@ -111,7 +109,217 @@ module.exports = class exmo extends Exchange {
         });
     }
 
+    async fetchTradingFees (params = {}) {
+        let response = undefined;
+        let oldParseJsonResponse = this.parseJsonResponse;
+        try {
+            this.parseJsonResponse = false;
+            response = await this.webGetEnDocsFees (params);
+            this.parseJsonResponse = oldParseJsonResponse;
+        } catch (e) {
+            // ensure parseJsonResponse is restored no matter what
+            this.parseJsonResponse = oldParseJsonResponse;
+            throw e;
+        }
+        let parts = response.split ('<td class="th_fees_2" colspan="2">');
+        let numParts = parts.length;
+        if (numParts !== 2) {
+            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        }
+        const rest = parts[1];
+        parts = rest.split ('</td>');
+        numParts = parts.length;
+        if (numParts < 2) {
+            throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+        }
+        const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
+        let taker = fee;
+        let maker = fee;
+        return {
+            'info': response,
+            'maker': maker,
+            'taker': taker,
+        };
+    }
+
+    parseFixedFloatValue (input) {
+        if ((typeof input === 'undefined') || (input === '-')) {
+            return undefined;
+        }
+        let isPercentage = (input.indexOf ('%') >= 0);
+        let parts = input.split (' ');
+        let value = parts[0].replace ('%', '');
+        let result = parseFloat (value);
+        if ((result > 0) && isPercentage) {
+            throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input);
+        }
+        return result;
+    }
+
+    async fetchFundingFees (params = {}) {
+        const response = await this.webGetCtrlFeesAndLimits (params);
+        //
+        //     { success:    1,
+        //          ctlr:   "feesAndLimits",
+        //         error:   "",
+        //          data: { limits: [ {  pair: "BTC/USD",
+        //                              min_q: "0.001",
+        //                              max_q: "100",
+        //                              min_p: "1",
+        //                              max_p: "30000",
+        //                              min_a: "1",
+        //                              max_a: "200000"   },
+        //                            {  pair: "KICK/ETH",
+        //                              min_q: "100",
+        //                              max_q: "200000",
+        //                              min_p: "0.000001",
+        //                              max_p: "1",
+        //                              min_a: "0.0001",
+        //                              max_a: "100"       }    ],
+        //                    fees: [ { group:   "crypto",
+        //                              title:   "Криптовалюта",
+        //                              items: [ { prov: "BTC", dep: "0%", wd: "0.0005 BTC" },
+        //                                       { prov: "LTC", dep: "0%", wd: "0.01 LTC" },
+        //                                       { prov: "DOGE", dep: "0%", wd: "1 Doge" },
+        //                                       { prov: "DASH", dep: "0%", wd: "0.01 DASH" },
+        //                                       { prov: "ETH", dep: "0%", wd: "0.01 ETH" },
+        //                                       { prov: "WAVES", dep: "0%", wd: "0.001 WAVES" },
+        //                                       { prov: "ZEC", dep: "0%", wd: "0.001 ZEC" },
+        //                                       { prov: "USDT", dep: "5 USDT", wd: "5 USDT" },
+        //                                       { prov: "NEO", dep: "0%", wd: "0%" },
+        //                                       { prov: "GAS", dep: "0%", wd: "0%" },
+        //                                       { prov: "ZRX", dep: "0%", wd: "1 ZRX" },
+        //                                       { prov: "GNT", dep: "0%", wd: "1 GNT" } ] },
+        //                            { group:   "usd",
+        //                              title:   "USD",
+        //                              items: [ { prov: "AdvCash", dep: "1%", wd: "3%" },
+        //                                       { prov: "Perfect Money", dep: "-", wd: "1%" },
+        //                                       { prov: "Neteller", dep: "3.5% + 0.29 USD, wd: "1.95%" },
+        //                                       { prov: "Wire Transfer", dep: "0%", wd: "1% + 20 USD" },
+        //                                       { prov: "CryptoCapital", dep: "0.5%", wd: "1.9%" },
+        //                                       { prov: "Skrill", dep: "3.5% + 0.36 USD", wd: "3%" },
+        //                                       { prov: "Payeer", dep: "1.95%", wd: "3.95%" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "eur",
+        //                              title:   "EUR",
+        //                              items: [ { prov: "CryptoCapital", dep: "0%", wd: "-" },
+        //                                       { prov: "SEPA", dep: "25 EUR", wd: "1%" },
+        //                                       { prov: "Perfect Money", dep: "-", wd: "1.95%" },
+        //                                       { prov: "Neteller", dep: "3.5%+0.25 EUR", wd: "1.95%" },
+        //                                       { prov: "Payeer", dep: "2%", wd: "1%" },
+        //                                       { prov: "AdvCash", dep: "1%", wd: "3%" },
+        //                                       { prov: "Skrill", dep: "3.5% + 0.29 EUR", wd: "3%" },
+        //                                       { prov: "Rapid Transfer", dep: "1.5% + 0.29 EUR", wd: "-" },
+        //                                       { prov: "MisterTango SEPA", dep: "5 EUR", wd: "1%" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "rub",
+        //                              title:   "RUB",
+        //                              items: [ { prov: "Payeer", dep: "2.45%", wd: "5.95%" },
+        //                                       { prov: "Yandex Money", dep: "4.5%", wd: "-" },
+        //                                       { prov: "AdvCash", dep: "1.45%", wd: "5.45%" },
+        //                                       { prov: "Qiwi", dep: "4.95%", wd: "-" },
+        //                                       { prov: "Visa/Mastercard", dep: "-", wd: "6.95% + 100 RUB"  } ] },
+        //                            { group:   "pln",
+        //                              title:   "PLN",
+        //                              items: [ { prov: "Neteller", dep: "3.5% + 4 PLN", wd: "-" },
+        //                                       { prov: "Rapid Transfer", dep: "1.5% + 1.21 PLN", wd: "-" },
+        //                                       { prov: "CryptoCapital", dep: "20 PLN", wd: "-" },
+        //                                       { prov: "Skrill", dep: "3.5% + 1.21 PLN", wd: "-" },
+        //                                       { prov: "Visa/MasterCard (Simplex)", dep: "6%", wd: "-" } ] },
+        //                            { group:   "uah",
+        //                              title:   "UAH",
+        //                              items: [ { prov: "AdvCash", dep: "1%", wd: "6%" },
+        //                                       { prov: "Visa/MasterCard", dep: "2.6%", wd: "8% + 30 UAH" } ] } ] } }
+        //
+        //
+        // the code below assumes all non-zero crypto fees are fixed (for now)
+        const withdraw = {};
+        const deposit = {};
+        const groups = this.safeValue (response['data'], 'fees');
+        const groupsByGroup = this.indexBy (groups, 'group');
+        const items = groupsByGroup['crypto']['items'];
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
+            withdraw[code] = this.parseFixedFloatValue (this.safeString (item, 'wd'));
+            deposit[code] = this.parseFixedFloatValue (this.safeString (item, 'dep'));
+        }
+        const result = {
+            'info': response,
+            'withdraw': withdraw,
+            'deposit': deposit,
+        };
+        // cache them for later use
+        this.options['fundingFees'] = result;
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let fees = await this.fetchFundingFees (params);
+        // todo redesign the 'fee' property in currencies
+        let ids = Object.keys (fees['withdraw']);
+        let limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
+        let marketIds = Object.keys (limitsByMarketId);
+        let minAmounts = {};
+        let minPrices = {};
+        let minCosts = {};
+        let maxAmounts = {};
+        let maxPrices = {};
+        let maxCosts = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let limit = limitsByMarketId[marketId];
+            let [ baseId, quoteId ] = marketId.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let maxAmount = this.safeFloat (limit, 'max_q');
+            let maxPrice = this.safeFloat (limit, 'max_p');
+            let maxCost = this.safeFloat (limit, 'max_a');
+            let minAmount = this.safeFloat (limit, 'min_q');
+            let minPrice = this.safeFloat (limit, 'min_p');
+            let minCost = this.safeFloat (limit, 'min_a');
+            minAmounts[base] = Math.min (this.safeFloat (minAmounts, base, minAmount), minAmount);
+            maxAmounts[base] = Math.max (this.safeFloat (maxAmounts, base, maxAmount), maxAmount);
+            minPrices[quote] = Math.min (this.safeFloat (minPrices, quote, minPrice), minPrice);
+            minCosts[quote] = Math.min (this.safeFloat (minCosts, quote, minCost), minCost);
+            maxPrices[quote] = Math.max (this.safeFloat (maxPrices, quote, maxPrice), maxPrice);
+            maxCosts[quote] = Math.max (this.safeFloat (maxCosts, quote, maxCost), maxCost);
+        }
+        let result = {};
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = this.commonCurrencyCode (id);
+            let fee = this.safeValue (fees['withdraw'], code);
+            let active = true;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': 8,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (minAmounts, code),
+                        'max': this.safeFloat (maxAmounts, code),
+                    },
+                    'price': {
+                        'min': this.safeFloat (minPrices, code),
+                        'max': this.safeFloat (maxPrices, code),
+                    },
+                    'cost': {
+                        'min': this.safeFloat (minCosts, code),
+                        'max': this.safeFloat (maxCosts, code),
+                    },
+                },
+                'info': fee,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets () {
+        let fees = await this.fetchTradingFees ();
         let markets = await this.publicGetPairSettings ();
         let keys = Object.keys (markets);
         let result = [];
@@ -126,6 +334,8 @@ module.exports = class exmo extends Exchange {
                 'base': base,
                 'quote': quote,
                 'active': true,
+                'taker': fees['taker'],
+                'maker': fees['maker'],
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'min_quantity'),
@@ -152,7 +362,7 @@ module.exports = class exmo extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo ();
+        let response = await this.privatePostUserInfo (params);
         let result = { 'info': response };
         let currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
@@ -184,7 +394,7 @@ module.exports = class exmo extends Exchange {
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (typeof symbols === 'undefined') {
             ids = this.ids.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
@@ -260,20 +470,49 @@ module.exports = class exmo extends Exchange {
         return this.parseTicker (response[market['id']], market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = trade['date'] * 1000;
+        let fee = undefined;
+        let symbol = undefined;
+        let id = this.safeString (trade, 'trade_id');
+        let orderId = this.safeString (trade, 'order_id');
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
+        let cost = this.safeFloat (trade, 'amount');
+        let side = this.safeString (trade, 'type');
+        let type = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+            if (market['taker'] !== market['maker']) {
+                throw new ExchangeError (this.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ');
+            }
+            if ((side === 'buy') && (typeof amount !== 'undefined')) {
+                fee = {
+                    'currency': market['base'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                };
+            } else if ((side === 'sell') && (typeof cost !== 'undefined')) {
+                fee = {
+                    'currency': market['quote'],
+                    'cost': amount * market['taker'],
+                    'rate': market['taker'],
+                };
+            }
+        }
         return {
-            'id': trade['trade_id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'order_id'),
-            'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
-            'cost': this.safeFloat (trade, 'amount'),
+            'symbol': symbol,
+            'order': orderId,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
     }
 
@@ -487,7 +726,7 @@ module.exports = class exmo extends Exchange {
                     filled += trade['amount'];
                     if (typeof feeCost === 'undefined')
                         feeCost = 0.0;
-                    // feeCost += trade['fee']['cost'];
+                    feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;
                     cost += trade['cost'];
@@ -609,12 +848,141 @@ module.exports = class exmo extends Exchange {
         };
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'transferred': 'ok',
+            'paid': 'ok',
+            'pending': 'pending',
+            'processing': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchTransactions
+        //
+        //          {
+        //            "dt": 1461841192,
+        //            "type": "deposit",
+        //            "curr": "RUB",
+        //            "status": "processing",
+        //            "provider": "Qiwi (LA) [12345]",
+        //            "amount": "1",
+        //            "account": "",
+        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          }
+        //
+        let timestamp = this.safeFloat (transaction, 'dt');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = timestamp * 1000;
+        }
+        let amount = this.safeFloat (transaction, 'amount');
+        if (typeof amount !== 'undefined') {
+            amount = Math.abs (amount);
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const txid = this.safeString (transaction, 'txid');
+        const type = this.safeString (transaction, 'type');
+        let code = this.safeString (transaction, 'curr');
+        if (typeof currency === 'undefined') {
+            currency = this.safeValue (this.currencies_by_id, code);
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (code);
+        }
+        let address = this.safeString (transaction, 'account');
+        if (typeof address !== 'undefined') {
+            const parts = address.split (':');
+            let numParts = parts.length;
+            if (numParts === 2) {
+                address = parts[1];
+            }
+        }
+        let fee = undefined;
+        // fixed funding fees only (for now)
+        if (!this.fees['funding']['percentage']) {
+            let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
+            let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
+            if (typeof feeCost !== 'undefined') {
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                    'rate': undefined,
+                };
+            }
+        }
+        return {
+            'id': undefined,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'fee': fee,
+            'info': transaction,
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (typeof since !== 'undefined') {
+            request['date'] = parseInt (since / 1000);
+        }
+        let currency = undefined;
+        if (typeof code !== 'undefined') {
+            currency = this.currency (code);
+        }
+        let response = await this.privatePostWalletHistory (this.extend (request, params));
+        //
+        //     {
+        //       "result": true,
+        //       "error": "",
+        //       "begin": "1493942400",
+        //       "end": "1494028800",
+        //       "history": [
+        //          {
+        //            "dt": 1461841192,
+        //            "type": "deposit",
+        //            "curr": "RUB",
+        //            "status": "processing",
+        //            "provider": "Qiwi (LA) [12345]",
+        //            "amount": "1",
+        //            "account": "",
+        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          },
+        //          {
+        //            "dt": 1463414785,
+        //            "type": "withdrawal",
+        //            "curr": "USD",
+        //            "status": "paid",
+        //            "provider": "EXCODE",
+        //            "amount": "-1",
+        //            "account": "EX-CODE_19371_USDda...",
+        //            "txid": "",
+        //          },
+        //       ],
+        //     }
+        //
+        return this.parseTransactions (response['history'], currency, since, limit);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
-        if (api === 'public') {
+        let url = this.urls['api'][api] + '/';
+        if (api !== 'web') {
+            url += this.version + '/';
+        }
+        url += path;
+        if ((api === 'public') || (api === 'web')) {
             if (Object.keys (params).length)
                 url += '?' + this.urlencode (params);
-        } else {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));

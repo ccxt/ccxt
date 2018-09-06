@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ module.exports = class cryptopia extends Exchange {
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ', // New Zealand
+            'countries': [ 'NZ' ], // New Zealand
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
@@ -40,9 +40,8 @@ module.exports = class cryptopia extends Exchange {
                 'www': 'https://www.cryptopia.co.nz',
                 'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ],
             },
             'timeframes': {
@@ -97,14 +96,16 @@ module.exports = class cryptopia extends Exchange {
             'commonCurrencies': {
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
+                'BEAN': 'BITB', // rebranding, see issue #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
+                'FT': 'Fabric Token',
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'KARM': 'KARMA',
@@ -112,6 +113,7 @@ module.exports = class cryptopia extends Exchange {
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
+                'PLC': 'Polcoin',
                 'RED': 'RedCoin',
                 'STC': 'StopTrumpCoin',
                 'QBT': 'Cubits',
@@ -129,13 +131,14 @@ module.exports = class cryptopia extends Exchange {
         let markets = response['Data'];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['Id'];
-            let symbol = market['Label'];
+            let numericId = market['Id'];
+            let label = market['Label'];
             let baseId = market['Symbol'];
             let quoteId = market['BaseSymbol'];
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            let id = baseId + '_' + quoteId;
             let precision = {
                 'amount': 8,
                 'price': 8,
@@ -161,7 +164,7 @@ module.exports = class cryptopia extends Exchange {
             result.push ({
                 'id': id,
                 'symbol': symbol,
-                'label': market['Label'],
+                'numericId': numericId,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -169,10 +172,10 @@ module.exports = class cryptopia extends Exchange {
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
-                'lot': limits['amount']['min'],
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             });
         }
         this.options['marketsByLabel'] = this.indexBy (result, 'label');
@@ -212,7 +215,7 @@ module.exports = class cryptopia extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'tradePairId': market['id'],
+            'tradePairId': market['numericId'],
             'dataRange': dataRange,
             'dataGroup': this.timeframes[timeframe],
         };
@@ -250,7 +253,7 @@ module.exports = class cryptopia extends Exchange {
         let result = {};
         for (let i = 0; i < orderbooks.length; i++) {
             let orderbook = orderbooks[i];
-            let id = this.safeInteger (orderbook, 'TradePairId');
+            let id = this.safeString (orderbook, 'Market');
             let symbol = id;
             if (id in this.markets_by_id) {
                 let market = this.markets_by_id[id];
@@ -264,7 +267,7 @@ module.exports = class cryptopia extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (typeof market !== 'undefined')
             symbol = market['symbol'];
         let open = this.safeFloat (ticker, 'Open');
         let last = this.safeFloat (ticker, 'LastPrice');
@@ -317,7 +320,7 @@ module.exports = class cryptopia extends Exchange {
         let tickers = response['Data'];
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let id = ticker['TradePairId'];
+            let id = ticker['Label'].replace ('/', '_');
             let recognized = (id in this.markets_by_id);
             if (!recognized) {
                 if (this.options['fetchTickersErrors'])
@@ -343,14 +346,16 @@ module.exports = class cryptopia extends Exchange {
             price = this.safeFloat (trade, 'Rate');
         let cost = this.safeFloat (trade, 'Total');
         let id = this.safeString (trade, 'TradeId');
-        if (!market) {
-            if ('TradePairId' in trade)
-                if (trade['TradePairId'] in this.markets_by_id)
-                    market = this.markets_by_id[trade['TradePairId']];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'Market');
+            marketId = marketId.replace ('/', '_');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         let symbol = undefined;
         let fee = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('Fee' in trade) {
                 fee = {
@@ -397,9 +402,9 @@ module.exports = class cryptopia extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            request['TradePairId'] = market['id'];
+            request['Market'] = market['id'];
         }
         if (typeof limit !== 'undefined') {
             request['Count'] = limit; // default 100
@@ -484,7 +489,7 @@ module.exports = class cryptopia extends Exchange {
         // price = parseFloat (price);
         // amount = parseFloat (amount);
         let request = {
-            'TradePairId': market['id'],
+            'Market': market['id'],
             'Type': this.capitalize (side),
             // 'Rate': this.priceToPrecision (symbol, price),
             // 'Amount': this.amountToPrecision (symbol, amount),
@@ -556,7 +561,7 @@ module.exports = class cryptopia extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         } else if ('Market' in order) {
             let id = order['Market'];
@@ -570,7 +575,10 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.safeInteger (order, 'TimeStamp');
+        let timestamp = this.safeString (order, 'TimeStamp');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = this.parse8601 (order['TimeStamp']);
+        }
         let datetime = undefined;
         if (timestamp) {
             datetime = this.iso8601 (timestamp);
@@ -619,7 +627,7 @@ module.exports = class cryptopia extends Exchange {
         };
         if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
-            request['TradePairId'] = market['id'];
+            request['Market'] = market['id'];
         }
         let response = await this.privatePostGetOpenOrders (this.extend (request, params));
         let orders = [];
@@ -768,6 +776,12 @@ module.exports = class cryptopia extends Exchange {
                         let feedback = this.id;
                         if (typeof error === 'string') {
                             feedback = feedback + ' ' + error;
+                            if (error.indexOf ('Invalid trade amount') >= 0) {
+                                throw new InvalidOrder (feedback);
+                            }
+                            if (error.indexOf ('No matching trades found') >= 0) {
+                                throw new OrderNotFound (feedback);
+                            }
                             if (error.indexOf ('does not exist') >= 0) {
                                 throw new OrderNotFound (feedback);
                             }

@@ -18,7 +18,7 @@ class bitmex (Exchange):
         return self.deep_extend(super(bitmex, self).describe(), {
             'id': 'bitmex',
             'name': 'BitMEX',
-            'countries': 'SC',  # Seychelles
+            'countries': ['SC'],  # Seychelles
             'version': 'v1',
             'userAgent': None,
             'rateLimit': 2000,
@@ -141,7 +141,7 @@ class bitmex (Exchange):
                 'Access Denied': PermissionDenied,
             },
             'options': {
-                'fetchTickerQuotes': True,
+                'fetchTickerQuotes': False,
             },
         })
 
@@ -152,14 +152,14 @@ class bitmex (Exchange):
             market = markets[p]
             active = (market['state'] != 'Unlisted')
             id = market['symbol']
-            base = market['underlying']
-            quote = market['quoteCurrency']
+            baseId = market['underlying']
+            quoteId = market['quoteCurrency']
             type = None
             future = False
             prediction = False
-            basequote = base + quote
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            basequote = baseId + quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             swap = (id == basequote)
             symbol = id
             if swap:
@@ -184,6 +184,8 @@ class bitmex (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -382,7 +384,7 @@ class bitmex (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
-        if not market:
+        if market is None:
             if 'symbol' in trade:
                 market = self.markets_by_id[trade['symbol']]
         if market:
@@ -416,7 +418,7 @@ class bitmex (Exchange):
         if status is not None:
             status = self.parse_order_status(status)
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             id = order['symbol']

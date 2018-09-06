@@ -13,7 +13,7 @@ class kuna extends acx {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kuna',
             'name' => 'Kuna',
-            'countries' => 'UA',
+            'countries' => array ( 'UA' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
@@ -59,13 +59,13 @@ class kuna extends acx {
 
     public function fetch_markets () {
         $predefinedMarkets = array (
-            array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'baseId' => 'eth', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'baseId' => 'gbg', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'lot' => 0.001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))), // Golos Gold (GBG != GOLOS)
-            array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'baseId' => 'kun', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
-            array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'baseId' => 'waves', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'lot' => 0.000001, 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'btcuah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'ethuah', 'symbol' => 'ETH/UAH', 'base' => 'ETH', 'quote' => 'UAH', 'baseId' => 'eth', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'gbguah', 'symbol' => 'GBG/UAH', 'base' => 'GBG', 'quote' => 'UAH', 'baseId' => 'gbg', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 3, 'price' => 2 ), 'limits' => array ( 'amount' => array ( 'min' => 0.001, 'max' => null ), 'price' => array ( 'min' => 0.01, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))), // Golos Gold (GBG != GOLOS)
+            array ( 'id' => 'kunbtc', 'symbol' => 'KUN/BTC', 'base' => 'KUN', 'quote' => 'BTC', 'baseId' => 'kun', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'bchbtc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'precision' => array ( 'amount' => 6, 'price' => 6 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 0.000001, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'bchuah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
+            array ( 'id' => 'wavesuah', 'symbol' => 'WAVES/UAH', 'base' => 'WAVES', 'quote' => 'UAH', 'baseId' => 'waves', 'quoteId' => 'uah', 'precision' => array ( 'amount' => 6, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.000001, 'max' => null ), 'price' => array ( 'min' => 1, 'max' => null ), 'cost' => array ( 'min' => 0.000001, 'max' => null ))),
             array ( 'id' => 'arnbtc', 'symbol' => 'ARN/BTC', 'base' => 'ARN', 'quote' => 'BTC', 'baseId' => 'arn', 'quoteId' => 'btc' ),
             array ( 'id' => 'b2bbtc', 'symbol' => 'B2B/BTC', 'base' => 'B2B', 'quote' => 'BTC', 'baseId' => 'b2b', 'quoteId' => 'btc' ),
             array ( 'id' => 'evrbtc', 'symbol' => 'EVR/BTC', 'base' => 'EVR', 'quote' => 'BTC', 'baseId' => 'evr', 'quoteId' => 'btc' ),
@@ -88,6 +88,7 @@ class kuna extends acx {
                 $baseId = str_replace ('btc', '', $id);
                 $baseId = str_replace ('uah', '', $baseId);
                 $baseId = str_replace ('gbg', '', $baseId);
+                $baseId = str_replace ('eth', '', $baseId);
                 if (strlen ($baseId) > 0) {
                     $baseIdLength = strlen ($baseId) - 0; // a transpiler workaround
                     $quoteId = mb_substr ($id, $baseIdLength);
@@ -124,7 +125,7 @@ class kuna extends acx {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -143,11 +144,13 @@ class kuna extends acx {
         if ($market)
             $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'side');
-        $sideMap = array (
-            'ask' => 'sell',
-            'bid' => 'buy',
-        );
-        $side = $sideMap[$side];
+        if ($side !== null) {
+            $sideMap = array (
+                'ask' => 'sell',
+                'bid' => 'buy',
+            );
+            $side = $this->safe_string($sideMap, $side);
+        }
         $cost = $this->safe_float($trade, 'funds');
         $order = $this->safe_string($trade, 'order_id');
         return array (
@@ -175,7 +178,7 @@ class kuna extends acx {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (!$symbol)
+        if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);

@@ -12,8 +12,9 @@ module.exports = class binance extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
-            'countries': 'JP', // Japan
+            'countries': [ 'JP' ], // Japan
             'rateLimit': 500,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
@@ -68,6 +69,7 @@ module.exports = class binance extends Exchange {
                 'web': {
                     'get': [
                         'exchange/public/product',
+                        'assetWithdraw/getAllAsset.html',
                     ],
                 },
                 'wapi': {
@@ -75,6 +77,7 @@ module.exports = class binance extends Exchange {
                         'withdraw',
                     ],
                     'get': [
+                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
@@ -253,7 +256,6 @@ module.exports = class binance extends Exchange {
             'commonCurrencies': {
                 'YOYO': 'YOYOW',
                 'BCC': 'BCH',
-                'NANO': 'XRB',
             },
             // exchange-specific options
             'options': {
@@ -273,6 +275,8 @@ module.exports = class binance extends Exchange {
                 '-1021': InvalidNonce, // 'your time is ahead of server'
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
+                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
                 '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
@@ -318,8 +322,6 @@ module.exports = class binance extends Exchange {
                 'price': market['quotePrecision'],
             };
             let active = (market['status'] === 'TRADING');
-            // lot size is deprecated as of 2018.02.06
-            let lot = -1 * Math.log10 (precision['amount']);
             let entry = {
                 'id': id,
                 'symbol': symbol,
@@ -328,7 +330,6 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'lot': lot, // lot size is deprecated as of 2018.02.06
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -341,7 +342,7 @@ module.exports = class binance extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': lot,
+                        'min': -1 * Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
@@ -357,7 +358,6 @@ module.exports = class binance extends Exchange {
             if ('LOT_SIZE' in filters) {
                 let filter = filters['LOT_SIZE'];
                 entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
-                entry['lot'] = this.safeFloat (filter, 'stepSize'); // lot size is deprecated as of 2018.02.06
                 entry['limits']['amount'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
@@ -500,10 +500,12 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined') {
             request['startTime'] = since;
-        if (typeof limit !== 'undefined')
+        }
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit; // default == max == 500
+        }
         let response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
@@ -537,11 +539,19 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -569,7 +579,16 @@ module.exports = class binance extends Exchange {
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
         // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = maximum = 500
+        // 'limit': 500,     // default = 500, maximum = 1000
+        //
+        // Caveats:
+        // - default limit (500) applies only if no other parameters set, trades up
+        //   to the maximum limit may be returned to satisfy other parameters
+        // - if both limit and time window is set and time window contains more
+        //   trades than the limit then the last trades from the window are returned
+        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
+        //   which is different from actual trade id
+        // - setting both fromId and time window results in error
         let response = await this.publicGetAggTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -601,7 +620,7 @@ module.exports = class binance extends Exchange {
         let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = undefined;
+        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
@@ -611,16 +630,25 @@ module.exports = class binance extends Exchange {
                 remaining = Math.max (remaining, 0.0);
             }
             if (typeof price !== 'undefined') {
-                cost = price * filled;
-                if (this.options['parseOrderToPrecision']) {
-                    cost = parseFloat (this.costToPrecision (symbol, cost));
+                if (typeof cost === 'undefined') {
+                    cost = price * filled;
                 }
             }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
-        if (typeof type !== 'undefined')
+        if (typeof type !== 'undefined') {
             type = type.toLowerCase ();
+            if (type === 'market') {
+                if (price === 0.0) {
+                    if ((typeof cost !== 'undefined') && (typeof filled !== 'undefined')) {
+                        if ((cost > 0) && (filled > 0)) {
+                            price = cost / filled;
+                        }
+                    }
+                }
+            }
+        }
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
@@ -631,13 +659,22 @@ module.exports = class binance extends Exchange {
             trades = this.parseTrades (fills, market);
             let numTrades = trades.length;
             if (numTrades > 0) {
+                cost = trades[0]['cost'];
                 fee = {
                     'cost': trades[0]['fee']['cost'],
                     'currency': trades[0]['fee']['currency'],
                 };
                 for (let i = 1; i < trades.length; i++) {
+                    cost = this.sum (cost, trades[i]['cost']);
                     fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
                 }
+                if (cost && filled)
+                    price = cost / filled;
+            }
+        }
+        if (typeof cost !== 'undefined') {
+            if (this.options['parseOrderToPrecision']) {
+                cost = parseFloat (this.costToPrecision (symbol, cost));
             }
         }
         let result = {
@@ -715,8 +752,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let origClientOrderId = this.safeValue (params, 'origClientOrderId');
@@ -732,14 +769,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol param');
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -768,7 +805,7 @@ module.exports = class binance extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -781,14 +818,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -815,8 +852,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -904,7 +941,7 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('Price * QTY is zero or less') >= 0)
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
             if (body.indexOf ('LOT_SIZE') >= 0)
-                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size, use this.amountToLots (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
                 throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
         }
@@ -939,15 +976,15 @@ module.exports = class binance extends Exchange {
                         } else if (message === 'Account has insufficient balance for requested action.') {
                             throw new InsufficientFunds (this.id + ' ' + body);
                         } else if (message === 'Rest API trading is not enabled.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
+                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
-                        throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
+                        throw new ExchangeError (this.id + ' ' + body);
                     }
                 }
                 if (!success) {
-                    throw new ExchangeError (this.id + ': success value false: ' + body);
+                    throw new ExchangeError (this.id + ' ' + body);
                 }
             }
         }

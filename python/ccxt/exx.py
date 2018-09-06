@@ -4,10 +4,19 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class exx (Exchange):
@@ -16,8 +25,9 @@ class exx (Exchange):
         return self.deep_extend(super(exx, self).describe(), {
             'id': 'exx',
             'name': 'EXX',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000 / 10,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'fetchOrder': True,
                 'fetchTickers': True,
@@ -32,6 +42,7 @@ class exx (Exchange):
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
             },
             'api': {
                 'public': {
@@ -85,7 +96,10 @@ class exx (Exchange):
                 },
             },
             'commonCurrencies': {
-                'CAN': 'Content and AD Network',
+                'TV': 'TIV',  # Ti-Value
+            },
+            'exceptions': {
+                '103': AuthenticationError,
             },
         })
 
@@ -107,7 +121,6 @@ class exx (Exchange):
                 'amount': int(market['amountScale']),
                 'price': int(market['priceScale']),
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -116,11 +129,10 @@ class exx (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'lot': lot,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': math.pow(10, precision['amount']),
                     },
                     'price': {
@@ -288,7 +300,7 @@ class exx (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privateGetOrder(self.extend({
+        response = self.privateGetGetOrder(self.extend({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -327,7 +339,7 @@ class exx (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        orders = self.privateGetOpenOrders(self.extend({
+        orders = self.privateGetGetOpenOrders(self.extend({
             'currency': market['id'],
         }, params))
         return self.parse_orders(orders, market, since, limit)
@@ -348,14 +360,36 @@ class exx (Exchange):
             }, params)))
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
             url += '?' + query + '&signature=' + signature
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        code = self.safe_integer(response, 'code')
-        message = self.safe_string(response, 'message')
-        if code and code != 100 and message:
-            if code == 103:
-                raise AuthenticationError(message)
-            raise ExchangeError(message)
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            response = json.loads(body)
+            #
+            #  {"result":false,"message":"服务端忙碌"}
+            #  ... and other formats
+            #
+            code = self.safe_string(response, 'code')
+            message = self.safe_string(response, 'message')
+            feedback = self.id + ' ' + self.json(response)
+            if code == '100':
+                return
+            if code is not None:
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                raise ExchangeError(feedback)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

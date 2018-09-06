@@ -12,9 +12,11 @@ module.exports = class kraken extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kraken',
             'name': 'Kraken',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': '0',
             'rateLimit': 3000,
+            'certified': true,
+            'parseJsonResponse': false,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -197,6 +199,7 @@ module.exports = class kraken extends Exchange {
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
                 'EGeneral:Internal error': ExchangeNotAvailable,
+                'EGeneral:Temporary lockout': DDoSProtection,
             },
         });
     }
@@ -210,16 +213,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderSizes () {
-        let html = undefined;
-        try {
-            this.parseJsonResponse = false;
-            html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            this.parseJsonResponse = true;
-        } catch (e) {
-            // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = true;
-            throw e;
-        }
+        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         let parts = html.split ('ul>');
         let ul = parts[1];
         let listItems = ul.split ('</li');
@@ -524,7 +518,7 @@ module.exports = class kraken extends Exchange {
             market = this.findMarketByAltnameOrId (trade['pair']);
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
-            id = trade['id'];
+            id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = parseInt (trade['time'] * 1000);
             side = trade['type'];
             type = trade['ordertype'];
@@ -588,7 +582,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
+        let response = await this.privatePostBalance (params);
         let balances = this.safeValue (response, 'result');
         if (typeof balances === 'undefined')
             throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
@@ -672,8 +666,10 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if (!price)
-            price = this.safeFloat (order, 'price');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (description, 'price2');
+        if ((typeof price === 'undefined') || (price === 0))
+            price = this.safeFloat (order, 'price', price);
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             if ('fee' in order) {
@@ -928,5 +924,10 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
     }
 };

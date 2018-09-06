@@ -30,7 +30,7 @@ class gatecoin (Exchange):
             'id': 'gatecoin',
             'name': 'Gatecoin',
             'rateLimit': 2000,
-            'countries': 'HK',  # Hong Kong
+            'countries': ['HK'],  # Hong Kong
             'comment': 'a regulated/licensed exchange',
             'has': {
                 'CORS': False,
@@ -415,7 +415,7 @@ class gatecoin (Exchange):
             ohlcv['open'],
             ohlcv['high'],
             ohlcv['low'],
-            None,
+            ohlcv['last'],
             ohlcv['volume'],
         ]
 

@@ -10,6 +10,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -21,7 +22,7 @@ class gdax (Exchange):
         return self.deep_extend(super(gdax, self).describe(), {
             'id': 'gdax',
             'name': 'GDAX',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,
             'userAgent': self.userAgents['chrome'],
             'has': {
@@ -33,6 +34,7 @@ class gdax (Exchange):
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
                 'fetchMyTrades': True,
             },
             'timeframes': {
@@ -253,7 +255,7 @@ class gdax (Exchange):
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
         symbol = None
-        if not market:
+        if market is None:
             if 'product_id' in trade:
                 marketId = trade['product_id']
                 if marketId in self.markets_by_id:
@@ -262,7 +264,7 @@ class gdax (Exchange):
             symbol = market['symbol']
         feeRate = None
         feeCurrency = None
-        if market:
+        if market is not None:
             feeCurrency = market['quote']
             if 'liquidity' in trade:
                 rateType = 'taker' if (trade['liquidity'] == 'T') else 'maker'
@@ -282,6 +284,8 @@ class gdax (Exchange):
         # GDAX returns inverted side to fetchMyTrades vs fetchTrades
         if orderId is not None:
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         return {
             'id': id,
             'order': orderId,
@@ -291,18 +295,21 @@ class gdax (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'size'),
+            'price': price,
+            'amount': amount,
             'fee': fee,
+            'cost': price * amount,
         }
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # as of 2018-08-23
+        if symbol is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
-        market = None
-        request = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['product_id'] = market['id']
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetFills(self.extend(request, params))
@@ -360,7 +367,7 @@ class gdax (Exchange):
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['created_at'])
         symbol = None
-        if not market:
+        if market is None:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
         status = self.parse_order_status(order['status'])
@@ -414,7 +421,7 @@ class gdax (Exchange):
             'status': 'all',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -424,7 +431,7 @@ class gdax (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -436,7 +443,7 @@ class gdax (Exchange):
             'status': 'done',
         }
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['id']
         response = self.privateGetOrders(self.extend(request, params))
@@ -480,10 +487,11 @@ class gdax (Exchange):
         response = self.privateGetPaymentMethods()
         return response
 
-    def deposit(self, currency, amount, address, params={}):
+    def deposit(self, code, amount, address, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         }
         method = 'privatePostDeposits'
@@ -506,11 +514,12 @@ class gdax (Exchange):
             'id': response['id'],
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        currency = self.currency(code)
         self.load_markets()
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'amount': amount,
         }
         method = 'privatePostWithdrawals'
@@ -527,6 +536,69 @@ class gdax (Exchange):
         return {
             'info': response,
             'id': response['id'],
+        }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+        currency = self.currency(code)
+        accountId = None
+        accounts = self.privateGetAccounts()
+        for i in range(0, len(accounts)):
+            account = accounts[i]
+            # todo: use unified common currencies below
+            if account['currency'] == currency['id']:
+                accountId = account['id']
+                break
+        if accountId is None:
+            raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
+        request = {
+            'limit': limit,
+            'id': accountId,
+        }
+        response = self.privateGetAccountsIdTransfers(self.extend(request, params))
+        for i in range(0, len(response)):
+            response[i]['currency'] = code
+        return self.parseTransactions(response)
+
+    def parse_transaction_status(self, transaction):
+        if 'canceled_at' in transaction and transaction['canceled_at']:
+            return 'canceled'
+        elif 'completed_at' in transaction and transaction['completed_at']:
+            return 'ok'
+        elif 'procesed_at' in transaction and transaction['procesed_at']:
+            return 'pending'
+        else:
+            return 'failed'
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_integer(transaction, 'created_at')
+        datetime = None
+        if timestamp is not None:
+            datetime = self.iso8601(timestamp)
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        if currency is not None:
+            code = currency['code']
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction['details'], 'crypto_transaction_hash'),
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'address': None,  # or is it defined?
+            'type': self.safe_string(transaction, 'type'),  # direction of the transaction,('deposit' | 'withdraw')
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': self.parse_transaction_status(transaction),
+            'updated': None,
+            'fee': {
+                'cost': None,
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
@@ -556,6 +628,33 @@ class gdax (Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        accounts = self.safe_value(self.options, 'coinbaseAccounts')
+        if accounts is None:
+            accounts = self.privateGetCoinbaseAccounts()
+            self.options['coinbaseAccounts'] = accounts  # cache it
+            self.options['coinbaseAccountsByCurrencyId'] = self.index_by(accounts, 'currency')
+        currencyId = currency['id']
+        account = self.safe_value(self.options['coinbaseAccountsByCurrencyId'], currencyId)
+        if account is None:
+            # eslint-disable-next-line quotes
+            raise InvalidAddress(self.id + " fetchDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in self.options['coinbaseAccountsByCurrencyId']")
+        response = self.privatePostCoinbaseAccountsIdAddresses(self.extend({
+            'id': account['id'],
+        }, params))
+        address = self.safe_string(response, 'address')
+        # todo: figure self out
+        # tag = self.safe_string(response, 'addressTag')
+        tag = None
+        return {
+            'currency': code,
+            'address': self.check_address(address),
+            'tag': tag,
+            'info': response,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body):
         if (code == 400) or (code == 404):

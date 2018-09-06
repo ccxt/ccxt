@@ -13,7 +13,7 @@ class poloniex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'poloniex',
             'name' => 'Poloniex',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 1000, // up to 6 calls per second
             'has' => array (
                 'createDepositAddress' => true,
@@ -99,10 +99,12 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
+            // Fees are tier-based. More info => https://poloniex.com/fees/
+            // Rates below are highest possible.
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.0015,
-                    'taker' => 0.0025,
+                    'maker' => 0.001,
+                    'taker' => 0.002,
                 ),
                 'funding' => array (),
             ),
@@ -153,6 +155,15 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
+                'Permission denied' => '\\ccxt\\PermissionDenied',
+                'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
+                'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
+                'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
+                'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
+                'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+            ),
         ));
     }
 
@@ -188,7 +199,7 @@ class poloniex extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if (!$since)
+        if ($since === null)
             $since = 0;
         $request = array (
             'currencyPair' => $market['id'],
@@ -336,8 +347,18 @@ class poloniex extends Exchange {
         $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+            $symbol = null;
+            $market = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+            } else {
+                list ($quoteId, $baseId) = explode ('_', $id);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $market = array ( 'symbol' => $symbol );
+            }
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -412,7 +433,7 @@ class poloniex extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
             $base = $market['base'];
             $quote = $market['quote'];
@@ -473,20 +494,20 @@ class poloniex extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
+        if ($symbol !== null)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $request = array ( 'currencyPair' => $pair );
         if ($since !== null) {
             $request['start'] = intval ($since / 1000);
-            $request['end'] = $this->seconds ();
+            $request['end'] = $this->seconds () . 1; // adding 1 is a fix for #3411
         }
         // $limit is disabled (does not really work as expected)
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = intval ($limit);
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         $result = array ();
-        if ($market) {
+        if ($market !== null) {
             $result = $this->parse_trades($response, $market);
         } else {
             if ($response) {
@@ -578,14 +599,14 @@ class poloniex extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol)
+        if ($symbol !== null)
             $market = $this->market ($symbol);
         $pair = $market ? $market['id'] : 'all';
         $response = $this->privatePostReturnOpenOrders (array_merge (array (
             'currencyPair' => $pair,
         )));
         $openOrders = array ();
-        if ($market) {
+        if ($market !== null) {
             $openOrders = $this->parse_open_orders ($response, $market, $openOrders);
         } else {
             $marketIds = is_array ($response) ? array_keys ($response) : array ();
@@ -623,7 +644,7 @@ class poloniex extends Exchange {
                 }
             }
             $order = $this->orders[$id];
-            if ($market) {
+            if ($market !== null) {
                 if ($order['symbol'] === $symbol)
                     $result[] = $order;
             } else {
@@ -717,7 +738,7 @@ class poloniex extends Exchange {
             $result = array_merge ($this->orders[$newid], array ( 'info' => $response ));
         } else {
             $market = null;
-            if ($symbol)
+            if ($symbol !== null)
                 $market = $this->market ($symbol);
             $result = $this->parse_order($response, $market);
             $this->orders[$result['id']] = $result;
@@ -761,7 +782,7 @@ class poloniex extends Exchange {
         return (is_array ($indexed) && array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $trades = $this->privatePostReturnOrderTrades (array_merge (array (
             'orderNumber' => $id,
@@ -770,6 +791,7 @@ class poloniex extends Exchange {
     }
 
     public function create_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostGenerateNewAddress (array (
             'currency' => $currency['id'],
@@ -787,6 +809,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
         $currency = $this->currency ($code);
         $response = $this->privatePostReturnDepositAddresses ();
         $currencyId = $currency['id'];
@@ -848,21 +871,13 @@ class poloniex extends Exchange {
             // syntax error, resort to default error handler
             return;
         }
+        // array ("error":"Permission denied.")
         if (is_array ($response) && array_key_exists ('error', $response)) {
             $message = $response['error'];
             $feedback = $this->id . ' ' . $this->json ($response);
-            if ($message === 'Invalid order number, or you are not the person who placed the order.') {
-                throw new OrderNotFound ($feedback);
-            } else if ($message === 'Connection timed out. Please try again.') {
-                throw new RequestTimeout ($feedback);
-            } else if ($message === 'Internal error. Please try again.') {
-                throw new ExchangeNotAvailable ($feedback);
-            } else if ($message === 'Order not found, or you are not the person who placed it.') {
-                throw new OrderNotFound ($feedback);
-            } else if ($message === 'Invalid API key/secret pair.') {
-                throw new AuthenticationError ($feedback);
-            } else if ($message === 'Please do not make more than 8 API calls per second.') {
-                throw new DDoSProtection ($feedback);
+            $exceptions = $this->exceptions;
+            if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                throw new $exceptions[$message] ($feedback);
             } else if (mb_strpos ($message, 'Total must be at least') !== false) {
                 throw new InvalidOrder ($feedback);
             } else if (mb_strpos ($message, 'This account is frozen.') !== false) {

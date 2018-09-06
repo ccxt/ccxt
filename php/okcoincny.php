@@ -13,7 +13,7 @@ class okcoincny extends okcoinusd {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'okcoincny',
             'name' => 'OKCoin CNY',
-            'countries' => 'CN',
+            'countries' => array ( 'CN' ),
             'has' => array (
                 'CORS' => false,
             ),

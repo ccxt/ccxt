@@ -29,15 +29,17 @@ class zb (Exchange):
         return self.deep_extend(super(zb, self).describe(), {
             'id': 'zb',
             'name': 'ZB',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'fetchDepositAddress': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
+                'fetchOHLCV': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -85,18 +87,20 @@ class zb (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg',
                 'api': {
-                    'public': 'http://api.zb.com/data',  # no https for public API
-                    'private': 'https://trade.zb.com/api',
+                    'public': 'http://api.zb.cn/data',  # no https for public API
+                    'private': 'https://trade.zb.cn/api',
                 },
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
                     'get': [
                         'markets',
                         'ticker',
+                        'allTicker',
                         'depth',
                         'trades',
                         'kline',
@@ -191,7 +195,6 @@ class zb (Exchange):
                 'amount': market['amountScale'],
                 'price': market['priceScale'],
             }
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -199,12 +202,11 @@ class zb (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'lot': lot,
                 'active': True,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
@@ -253,6 +255,25 @@ class zb (Exchange):
     def get_market_field_name(self):
         return 'market'
 
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        response = self.privateGetGetUserAddress({
+            'currency': currency['id'],
+        })
+        address = response['message']['datas']['key']
+        tag = None
+        if address.find('_') >= 0:
+            arr = address.split('_')
+            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = arr[1]
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -262,6 +283,21 @@ class zb (Exchange):
         orderbook = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.publicGetAllTicker(params)
+        result = {}
+        anotherMarketsById = {}
+        marketIds = list(self.marketsById.keys())
+        for i in range(0, len(marketIds)):
+            tickerId = marketIds[i].replace('_', '')
+            anotherMarketsById[tickerId] = self.marketsById[marketIds[i]]
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            market = anotherMarketsById[ids[i]]
+            result[market['symbol']] = self.parse_ticker(response[ids[i]], market)
+        return result
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
@@ -270,7 +306,13 @@ class zb (Exchange):
         request[marketFieldName] = market['id']
         response = self.publicGetTicker(self.extend(request, params))
         ticker = response['ticker']
+        return self.parse_ticker(ticker, market)
+
+    def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
+        symbol = None
+        if market != 'None':
+            symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -308,7 +350,8 @@ class zb (Exchange):
         if since is not None:
             request['since'] = since
         response = self.publicGetKline(self.extend(request, params))
-        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
@@ -372,7 +415,7 @@ class zb (Exchange):
         return self.parse_order(response, None)
 
     def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -395,7 +438,7 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=10, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + 'fetchOpenOrders requires a symbol parameter')
         self.load_markets()
         market = self.market(symbol)
@@ -503,11 +546,20 @@ class zb (Exchange):
             return  # fallback to default error handler
         if body[0] == '{':
             response = json.loads(body)
+            feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
-                message = self.id + ' ' + self.json(response)
                 if code in self.exceptions:
                     ExceptionClass = self.exceptions[code]
-                    raise ExceptionClass(message)
+                    raise ExceptionClass(feedback)
                 elif code != '1000':
-                    raise ExchangeError(message)
+                    raise ExchangeError(feedback)
+            # special case for {"result":false,"message":"服务端忙碌"}(a "Busy Server" reply)
+            result = self.safe_value(response, 'result')
+            if result is not None:
+                if not result:
+                    message = self.safe_string(response, 'message')
+                    if message == u'服务端忙碌':
+                        raise ExchangeNotAvailable(feedback)
+                    else:
+                        raise ExchangeError(feedback)

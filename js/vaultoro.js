@@ -11,7 +11,7 @@ module.exports = class vaultoro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'rateLimit': 1000,
             'version': '1',
             'has': {

@@ -13,7 +13,7 @@ class coinnest extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinnest',
             'name' => 'coinnest',
-            'countries' => 'KR',
+            'countries' => array ( 'KR' ),
             'rateLimit' => 1000,
             'has' => array (
                 'fetchOpenOrders' => true,
@@ -331,9 +331,9 @@ class coinnest extends Exchange {
         $request = array (
             'coin' => $market['baseId'],
         );
-        if ($since)
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
-        if ($limit)
+        if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privatePostTradeTrust (array_merge ($request, $params));
         return $this->parse_orders($response, $market);

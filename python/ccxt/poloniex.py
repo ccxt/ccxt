@@ -9,6 +9,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -27,7 +28,7 @@ class poloniex (Exchange):
         return self.deep_extend(super(poloniex, self).describe(), {
             'id': 'poloniex',
             'name': 'Poloniex',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 1000,  # up to 6 calls per second
             'has': {
                 'createDepositAddress': True,
@@ -113,10 +114,12 @@ class poloniex (Exchange):
                     ],
                 },
             },
+            # Fees are tier-based. More info: https://poloniex.com/fees/
+            # Rates below are highest possible.
             'fees': {
                 'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0025,
+                    'maker': 0.001,
+                    'taker': 0.002,
                 },
                 'funding': {},
             },
@@ -167,6 +170,15 @@ class poloniex (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
+                'Permission denied': PermissionDenied,
+                'Connection timed out. Please try again.': RequestTimeout,
+                'Internal error. Please try again.': ExchangeNotAvailable,
+                'Order not found, or you are not the person who placed it.': OrderNotFound,
+                'Invalid API key/secret pair.': AuthenticationError,
+                'Please do not make more than 8 API calls per second.': DDoSProtection,
+            },
         })
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
@@ -198,7 +210,7 @@ class poloniex (Exchange):
     def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        if not since:
+        if since is None:
             since = 0
         request = {
             'currencyPair': market['id'],
@@ -337,8 +349,17 @@ class poloniex (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            symbol = None
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+            else:
+                quoteId, baseId = id.split('_')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+                market = {'symbol': symbol}
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
@@ -406,7 +427,7 @@ class poloniex (Exchange):
                 quote = parts[0]
                 base = parts[1]
                 symbol = base + '/' + quote
-        if market:
+        if market is not None:
             symbol = market['symbol']
             base = market['base']
             quote = market['quote']
@@ -461,19 +482,19 @@ class poloniex (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         request = {'currencyPair': pair}
         if since is not None:
             request['start'] = int(since / 1000)
-            request['end'] = self.seconds()
+            request['end'] = self.seconds() + 1  # adding 1 is a fix for  #3411
         # limit is disabled(does not really work as expected)
-        if limit:
+        if limit is not None:
             request['limit'] = int(limit)
         response = self.privatePostReturnTradeHistory(self.extend(request, params))
         result = []
-        if market:
+        if market is not None:
             result = self.parse_trades(response, market)
         else:
             if response:
@@ -552,14 +573,14 @@ class poloniex (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
         response = self.privatePostReturnOpenOrders(self.extend({
             'currencyPair': pair,
         }))
         openOrders = []
-        if market:
+        if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
         else:
             marketIds = list(response.keys())
@@ -591,7 +612,7 @@ class poloniex (Exchange):
                             order['cost'] = order['filled'] * order['price']
                     self.orders[id] = order
             order = self.orders[id]
-            if market:
+            if market is not None:
                 if order['symbol'] == symbol:
                     result.append(order)
             else:
@@ -674,7 +695,7 @@ class poloniex (Exchange):
             result = self.extend(self.orders[newid], {'info': response})
         else:
             market = None
-            if symbol:
+            if symbol is not None:
                 market = self.market(symbol)
             result = self.parse_order(response, market)
             self.orders[result['id']] = result
@@ -712,7 +733,7 @@ class poloniex (Exchange):
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         trades = self.privatePostReturnOrderTrades(self.extend({
             'orderNumber': id,
@@ -720,6 +741,7 @@ class poloniex (Exchange):
         return self.parse_trades(trades)
 
     def create_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostGenerateNewAddress({
             'currency': currency['id'],
@@ -736,6 +758,7 @@ class poloniex (Exchange):
         }
 
     def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
         currency = self.currency(code)
         response = self.privatePostReturnDepositAddresses()
         currencyId = currency['id']
@@ -791,21 +814,13 @@ class poloniex (Exchange):
         except Exception as e:
             # syntax error, resort to default error handler
             return
+        # {"error":"Permission denied."}
         if 'error' in response:
             message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            if message == 'Invalid order number, or you are not the person who placed the order.':
-                raise OrderNotFound(feedback)
-            elif message == 'Connection timed out. Please try again.':
-                raise RequestTimeout(feedback)
-            elif message == 'Internal error. Please try again.':
-                raise ExchangeNotAvailable(feedback)
-            elif message == 'Order not found, or you are not the person who placed it.':
-                raise OrderNotFound(feedback)
-            elif message == 'Invalid API key/secret pair.':
-                raise AuthenticationError(feedback)
-            elif message == 'Please do not make more than 8 API calls per second.':
-                raise DDoSProtection(feedback)
+            exceptions = self.exceptions
+            if message in exceptions:
+                raise exceptions[message](feedback)
             elif message.find('Total must be at least') >= 0:
                 raise InvalidOrder(feedback)
             elif message.find('This account is frozen.') >= 0:

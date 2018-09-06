@@ -16,8 +16,9 @@ class ice3x (Exchange):
         return self.deep_extend(super(ice3x, self).describe(), {
             'id': 'ice3x',
             'name': 'ICE3X',
-            'countries': 'ZA',  # South Africa
+            'countries': ['ZA'],  # South Africa
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchCurrencies': True,
                 'fetchTickers': True,
@@ -28,7 +29,7 @@ class ice3x (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api': 'https://ice3x.com/api/v1',
+                'api': 'https://ice3x.com/api',
                 'www': [
                     'https://ice3x.com',
                     'https://ice3x.co.za',
@@ -144,7 +145,6 @@ class ice3x (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': True,
-                'lot': None,
                 'info': market,
             })
         return result
@@ -196,11 +196,19 @@ class ice3x (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetOrderbookInfo(self.extend({
+        request = {
             'pair_id': self.market_id(symbol),
-        }, params))
+        }
+        if limit is not None:
+            type = self.safe_string(params, 'type')
+            if (type != 'ask') and(type != 'bid'):
+                # eslint-disable-next-line quotes
+                raise ExchangeError(self.id + " fetchOrderBook requires an exchange-specific extra 'type' param('bid' or 'ask') when used with a limit")
+            else:
+                request['items_per_page'] = limit
+        response = self.publicGetOrderbookInfo(self.extend(request, params))
         orderbook = response['response']['entities']
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
@@ -348,9 +356,9 @@ class ice3x (Exchange):
         request = {
             'pair_id': market['id'],
         }
-        if limit:
+        if limit is not None:
             request['items_per_page'] = limit
-        if since:
+        if since is not None:
             request['date_from'] = int(since / 1000)
         response = self.privatePostTradeList(self.extend(request, params))
         trades = response['response']['entities']
@@ -374,7 +382,7 @@ class ice3x (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api'] + '/' + self.version + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

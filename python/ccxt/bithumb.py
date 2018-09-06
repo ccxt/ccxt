@@ -23,7 +23,7 @@ class bithumb (Exchange):
         return self.deep_extend(super(bithumb, self).describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': 'KR',  # South Korea
+            'countries': ['KR'],  # South Korea
             'rateLimit': 500,
             'has': {
                 'CORS': True,
@@ -97,7 +97,6 @@ class bithumb (Exchange):
                     'base': base,
                     'quote': quote,
                     'info': market,
-                    'lot': None,
                     'active': True,
                     'precision': {
                         'amount': None,

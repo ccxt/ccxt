@@ -13,7 +13,7 @@ class braziliex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'braziliex',
             'name' => 'Braziliex',
-            'countries' => 'BR',
+            'countries' => array ( 'BR' ),
             'rateLimit' => 1000,
             'has' => array (
                 'fetchCurrencies' => true,
@@ -54,6 +54,7 @@ class braziliex extends Exchange {
             ),
             'commonCurrencies' => array (
                 'EPC' => 'Epacoin',
+                'ABC' => 'Anti Bureaucracy Coin',
             ),
             'fees' => array (
                 'trading' => array (
@@ -149,7 +150,6 @@ class braziliex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => strtoupper ($symbol),
@@ -158,11 +158,10 @@ class braziliex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'lot' => $lot,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -308,7 +307,7 @@ class braziliex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $marketId = $this->safe_string($order, 'market');
             if ($marketId)
                 if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))

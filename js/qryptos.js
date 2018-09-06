@@ -319,8 +319,13 @@ module.exports = class qryptos extends Exchange {
         };
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
+        if (typeof since !== 'undefined') {
+            // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
+            request['timestamp'] = parseInt (since / 1000);
+        }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        return this.parseTrades (response['models'], market, since, limit);
+        let result = (typeof since !== 'undefined') ? response : response['models'];
+        return this.parseTrades (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -381,7 +386,7 @@ module.exports = class qryptos extends Exchange {
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
-        if (market) {
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
         return {
@@ -418,7 +423,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }

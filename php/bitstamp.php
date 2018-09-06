@@ -13,13 +13,13 @@ class bitstamp extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitstamp',
             'name' => 'Bitstamp',
-            'countries' => 'GB',
+            'countries' => array ( 'GB' ),
             'rateLimit' => 1000,
             'version' => 'v2',
             'has' => array (
                 'CORS' => true,
                 'fetchDepositAddress' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => 'emulated',
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => true,
@@ -168,7 +168,6 @@ class bitstamp extends Exchange {
             $cost = $parts[0];
             // list ($cost, $currency) = explode (' ', $market['minimum_order']);
             $active = ($market['trading'] === 'Enabled');
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -178,12 +177,11 @@ class bitstamp extends Exchange {
                 'quoteId' => $quoteId,
                 'symbolId' => $symbolId,
                 'info' => $market,
-                'lot' => $lot,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
@@ -469,14 +467,13 @@ class bitstamp extends Exchange {
         $cost = null;
         if ($transactions !== null) {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
+                $feeCost = 0.0;
                 for ($i = 0; $i < count ($transactions); $i++) {
                     $trade = $this->parse_trade(array_merge (array (
                         'order_id' => $id,
                         'side' => $side,
                     ), $transactions[$i]), $market);
                     $filled .= $trade['amount'];
-                    if ($feeCost === null)
-                        $feeCost = 0.0;
                     $feeCost .= $trade['fee']['cost'];
                     if ($cost === null)
                         $cost = 0.0;

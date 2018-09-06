@@ -11,7 +11,7 @@ module.exports = class okcoincny extends okcoinusd {
         return this.deepExtend (super.describe (), {
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'has': {
                 'CORS': false,
             },

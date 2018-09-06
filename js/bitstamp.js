@@ -12,13 +12,13 @@ module.exports = class bitstamp extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
                 'CORS': true,
                 'fetchDepositAddress': true,
-                'fetchOrder': true,
+                'fetchOrder': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
@@ -167,7 +167,6 @@ module.exports = class bitstamp extends Exchange {
             let cost = parts[0];
             // let [ cost, currency ] = market['minimum_order'].split (' ');
             let active = (market['trading'] === 'Enabled');
-            let lot = Math.pow (10, -precision['amount']);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -177,12 +176,11 @@ module.exports = class bitstamp extends Exchange {
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
-                'lot': lot,
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': undefined,
                     },
                     'price': {
@@ -468,14 +466,13 @@ module.exports = class bitstamp extends Exchange {
         let cost = undefined;
         if (typeof transactions !== 'undefined') {
             if (Array.isArray (transactions)) {
+                feeCost = 0.0;
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (this.extend ({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market);
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
-                        feeCost = 0.0;
                     feeCost += trade['fee']['cost'];
                     if (typeof cost === 'undefined')
                         cost = 0.0;

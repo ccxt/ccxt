@@ -13,8 +13,9 @@ class bitfinex2 extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex2',
             'name' => 'Bitfinex v2',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v2',
+            'certified' => false,
             // new metainfo interface
             'has' => array (
                 'CORS' => true,
@@ -78,11 +79,12 @@ class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/long/last',
-                        'stats1/{key}:{size}:{symbol}/long/hist',
-                        'stats1/{key}:{size}:{symbol}/short/last',
-                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -213,7 +215,6 @@ class bitfinex2 extends bitfinex {
                 'active' => true,
                 'precision' => $precision,
                 'limits' => $limits,
-                'lot' => pow (10, -$precision['amount']),
                 'info' => $market,
             );
         }
@@ -238,6 +239,8 @@ class bitfinex2 extends bitfinex {
                 } else if ($currency[0] === 't') {
                     $currency = mb_substr ($currency, 1);
                     $code = strtoupper ($currency);
+                    $code = $this->common_currency_code($code);
+                } else {
                     $code = $this->common_currency_code($code);
                 }
                 $account = $this->account ();
@@ -309,7 +312,7 @@ class bitfinex2 extends bitfinex {
             'last' => $last,
             'previousClose' => null,
             'change' => $ticker[$length - 6],
-            'percentage' => $ticker[$length - 5],
+            'percentage' => $ticker[$length - 5] * 100,
             'average' => null,
             'baseVolume' => $ticker[$length - 3],
             'quoteVolume' => null,
@@ -364,13 +367,16 @@ class bitfinex2 extends bitfinex {
     public function fetch_trades ($symbol, $since = null, $limit = 120, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        $sort = '-1';
         $request = array (
             'symbol' => $market['id'],
-            'sort' => '-1',
             'limit' => $limit, // default = max = 120
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['start'] = $since;
+            $sort = '1';
+        }
+        $request['sort'] = $sort;
         $response = $this->publicGetTradesSymbolHist (array_merge ($request, $params));
         $trades = $this->sort_by($response, 1);
         return $this->parse_trades($trades, $market, null, $limit);
@@ -379,8 +385,12 @@ class bitfinex2 extends bitfinex {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null)
+        if ($limit === null) {
+            $limit = 100;
+        }
+        if ($since === null) {
             $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
+        }
         $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],

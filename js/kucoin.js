@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -12,7 +13,7 @@ module.exports = class kucoin extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kucoin',
             'name': 'Kucoin',
-            'countries': 'HK', // Hong Kong
+            'countries': [ 'HK' ], // Hong Kong
             'version': 'v1',
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome'],
@@ -176,169 +177,180 @@ module.exports = class kucoin extends Exchange {
                 'limits': {
                     'amount': {
                         'min': {
-                            'BTC': 0.00001,
-                            'ETH': 0.00001,
-                            'BCH': 0.00001,
-                            'GAS': 0.1,
-                            'NEO': 0.01,
-                            'KCS': 1,
-                            'TMT': 1,
-                            'TFD': 1,
-                            'LALA': 1,
-                            'CS': 1,
-                            'DOCK': 1,
-                            'ETN': 1,
-                            'IHT': 1,
-                            'KICK': 1,
-                            'WAN': 1,
+                            'ABT': 1,
+                            'ACAT': 1,
                             'ACT': 1,
+                            'ADB': 1,
+                            'AGI': 10,
+                            'AION': 1,
+                            'AIX': 1,
+                            'AMB': 1,
+                            'AOA': 1,
                             'APH': 1,
-                            'BAX': 1,
-                            'DATX': 1,
-                            'DEB': 1,
-                            'ELEC': 1,
-                            'GO': 1,
-                            'HSR': 1,
-                            'IOTX': 1,
-                            'LOOM': 1,
-                            'LYM': 1,
-                            'MOBI': 1,
-                            'OMX': 1,
-                            'ONT': 1,
-                            'OPEN': 1,
-                            'QKC': 1,
-                            'SHL': 1,
-                            'SOUL': 1,
-                            'SPHTX': 1,
-                            'SRN': 1,
-                            'TKY': 1,
-                            'TOMO': 1,
-                            'TRAC': 1,
-                            'COV': 1,
-                            'DADI': 1,
-                            'ELF': 1,
-                            'LTC': 1,
-                            'MAN': 1,
-                            'PRL': 1,
-                            'STK': 1,
-                            'ZIL': 1,
-                            'ZPT': 1,
-                            'BPT': 1,
-                            'CAPP': 1,
-                            'POLY': 1,
-                            'TNC': 1,
-                            'XRB': 0.1,
+                            'ARN': 1,
+                            'ARY': 1,
                             'AXP': 1,
+                            'BAX': 1,
+                            'BCD': 0.001,
+                            'BCH': 0.00001,
+                            'BCPT': 1,
+                            'BNTY': 1,
+                            'BOS': 1,
+                            'BPT': 1,
+                            'BRD': 1,
+                            'BTC': 0.00001,
+                            'BTG': 0.001,
+                            'BTM': 1,
+                            'CAG': 1,
+                            'CanYaCoin': 1,
+                            'CAPP': 1,
+                            'CAT': 1,
+                            'CBC': 1,
+                            'CHP': 1,
+                            'CHSB': 1,
                             'COFI': 1,
+                            'COV': 1,
+                            'CPC': 1,
+                            'CS': 1,
+                            'CV': 10,
+                            'CVC': 0.1,
                             'CXO': 1,
+                            'DACC': 1,
+                            'DADI': 1,
+                            'DAG': 1,
+                            'DASH': 0.01,
+                            'DAT': 1,
+                            'DATX': 1,
+                            'DBC': 1,
+                            'DCC': 1,
+                            'DEB': 1,
+                            'DENT': 1,
+                            'DGB': 1,
+                            'DNA': 1,
+                            'DOCK': 1,
                             'DRGN': 1,
                             'DTA': 1,
-                            'ING': 1,
-                            'MTN': 1,
-                            'OCN': 10,
-                            'PARETO': 1,
-                            'SNC': 1,
-                            'TEL': 10,
-                            'WAX': 1,
-                            'ADB': 1,
-                            'BOS': 1,
-                            'HAT': 1,
-                            'HKN': 1,
-                            'HPB': 1,
-                            'IOST': 1,
-                            'ARY': 1,
-                            'DBC': 1,
-                            'KEY': 1,
-                            'GAT': 1,
-                            'RPX': 1,
-                            'ACAT': 1,
-                            'CV': 10,
-                            'QLC': 1,
-                            'R': 1,
-                            'TIO': 1,
-                            'ITC': 1,
-                            'AGI': 10,
-                            'EXY': 1,
-                            'MWAT': 1,
-                            'DENT': 1,
-                            'J8T': 1,
-                            'LOCI': 1,
-                            'CAT': 1,
-                            'ARN': 1,
-                            'CAN': 1,
-                            'EOS': 0.1,
-                            'ETC': 0.1,
-                            'JNT': 1,
-                            'PLAY': 1,
-                            'CHP': 1,
-                            'DASH': 0.01,
-                            'DNA': 1,
                             'EBTC': 1,
-                            'FOTA': 1,
-                            'PURA': 0.1,
-                            'UTK': 1,
-                            'CAG': 1,
-                            'GLA': 1,
-                            'HAV': 1,
-                            'SPF': 1,
-                            'TIME': 1,
-                            'ABT': 1,
-                            'BNTY': 1,
+                            'EDR': 1,
+                            'EGT': 1,
+                            'ELA': 1,
+                            'ELEC': 1,
+                            'ELF': 1,
                             'ELIX': 1,
                             'ENJ': 1,
-                            'AIX': 1,
-                            'VEN': 1,
-                            'AION': 1,
-                            'DAT': 1,
-                            'QTUM': 0.1,
-                            'WTC': 0.1,
-                            'DGB': 1,
-                            'SNOV': 1,
-                            'BRD': 1,
-                            'AMB': 1,
-                            'BTM': 1,
-                            'MANA': 1,
-                            'RHOC': 1,
-                            'XLR': 1,
-                            'XAS': 0.1,
-                            'CHSB': 1,
-                            'UKG': 1,
-                            'POLL': 1,
+                            'EOS': 0.1,
+                            'ETC': 0.1,
+                            'ETH': 0.00001,
+                            'ETN': 1,
+                            'EXY': 1,
                             'FLIXX': 0.1,
-                            'INS': 1,
-                            'OMG': 0.1,
-                            'TFL': 1,
-                            'WPR': 1,
-                            'LEND': 1,
-                            'KNC': 0.001,
-                            'BCD': 0.001,
-                            'LA': 1,
-                            'ONION': 1,
-                            'POWR': 0.1,
-                            'SNM': 1,
-                            'BTG': 0.001,
-                            'PBL': 1,
-                            'MOD': 0.1,
-                            'PPT': 0.1,
-                            'BCPT': 1,
+                            'FOTA': 1,
+                            'GAS': 0.1,
+                            'GAT': 1,
+                            'GLA': 1,
+                            'GO': 1,
                             'GVT': 0.1,
+                            'HAV': 1,
+                            'HKN': 1,
+                            'HPB': 1,
                             'HST': 0.1,
-                            'SNT': 0.1,
-                            'SUB': 0.1,
-                            'NEBL': 0.1,
-                            'CVC': 0.1,
+                            'IHT': 1,
+                            'ING': 1,
+                            'INS': 1,
+                            'IOST': 1,
+                            'IOTX': 1,
+                            'ITC': 1,
+                            'J8T': 1,
+                            'JNT': 1,
+                            'KCS': 1,
+                            'KEY': 1,
+                            'KICK': 1,
+                            'KNC': 0.001,
+                            'LA': 1,
+                            'LALA': 1,
+                            'LEND': 1,
+                            'LOCI': 1,
+                            'LOOM': 1,
+                            'LTC': 1,
+                            'LYM': 1,
+                            'MAN': 1,
+                            'MANA': 1,
+                            'MOBI': 1,
+                            'MOD': 0.1,
                             'MTH': 1,
+                            'MTN': 1,
+                            'MWAT': 1,
+                            'NANO': 0.1,
+                            'NEBL': 0.1,
+                            'NEO': 0.01,
                             'NULS': 0.1,
+                            'NUSD': 1,
+                            'OCN': 10,
+                            'OLT': 1,
+                            'OMG': 0.1,
+                            'OMX': 1,
+                            'ONION': 1,
+                            'ONT': 1,
+                            'OPEN': 1,
+                            'PARETO': 1,
                             'PAY': 0.1,
+                            'PBL': 1,
+                            'PLAY': 1,
+                            'POLL': 1,
+                            'POLY': 1,
+                            'POWR': 0.1,
+                            'PPT': 0.1,
+                            'PRL': 1,
+                            'PURA': 0.1,
+                            'QKC': 1,
+                            'QLC': 1,
+                            'QSP': 0.1,
+                            'QTUM': 0.1,
+                            'R': 1,
                             'RDN': 1,
                             'REQ': 1,
-                            'QSP': 0.1,
+                            'RHOC': 1,
+                            'RPX': 1,
+                            'SHL': 1,
+                            'SNC': 1,
+                            'SNM': 1,
+                            'SNOV': 1,
+                            'SNT': 0.1,
+                            'SOUL': 1,
+                            'SPF': 1,
+                            'SPHTX': 1,
+                            'SRN': 1,
+                            'STK': 1,
+                            'SUB': 0.1,
+                            'TEL': 10,
+                            'TFD': 1,
+                            'TFL': 1,
+                            'TIME': 1,
+                            'TIO': 1,
+                            'TKY': 1,
+                            'TMT': 1,
+                            'TNC': 1,
+                            'TOMO': 1,
+                            'TRAC': 1,
+                            'UKG': 1,
+                            'UTK': 1,
+                            'WAN': 1,
+                            'WAX': 1,
+                            'WPR': 1,
+                            'WTC': 0.1,
+                            'XAS': 0.1,
+                            'XLM': 1,
+                            'XLR': 1,
+                            'ZIL': 1,
+                            'ZINC': 1,
+                            'ZPT': 1,
                         },
                     },
                 },
             },
             'commonCurrencies': {
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
+                'XRB': 'NANO',
             },
         });
     }
@@ -354,6 +366,24 @@ module.exports = class kucoin extends Exchange {
         return this.options['timeDifference'];
     }
 
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let key = 'quote';
+        let rate = market[takerOrMaker];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        if (side === 'sell') {
+            cost *= price;
+        } else {
+            key = 'base';
+        }
+        return {
+            'type': takerOrMaker,
+            'currency': market[key],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+        };
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetMarketOpenSymbols ();
         if (this.options['adjustForTimeDifference'])
@@ -363,10 +393,10 @@ module.exports = class kucoin extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['symbol'];
-            let base = market['coinType'];
-            let quote = market['coinTypePair'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            let baseId = market['coinType'];
+            let quoteId = market['coinTypePair'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': 8,
@@ -380,11 +410,12 @@ module.exports = class kucoin extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': this.safeFloat (market, 'feeRate'),
                 'maker': this.safeFloat (market, 'feeRate'),
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -548,7 +579,16 @@ module.exports = class kucoin extends Exchange {
         }
         let timestamp = this.safeValue (order, 'createdAt');
         let remaining = this.safeFloat (order, 'pendingAmount');
-        let status = this.safeValue (order, 'status');
+        let status = undefined;
+        if ('status' in order) {
+            status = order['status'];
+        } else {
+            if (this.safeValue (order, 'isActive', true)) {
+                status = 'open';
+            } else {
+                status = 'closed';
+            }
+        }
         let filled = this.safeFloat (order, 'dealAmount');
         let amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat (order, 'dealValue');
@@ -769,8 +809,8 @@ module.exports = class kucoin extends Exchange {
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.truncate (price, this.currencies[quote]['precision']),
-            'amount': this.truncate (amount, this.currencies[base]['precision']),
+            'price': this.decimalToPrecision (price, TRUNCATE, this.currencies[quote]['precision'], DECIMAL_PLACES),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[base]['precision'], DECIMAL_PLACES),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
@@ -808,7 +848,7 @@ module.exports = class kucoin extends Exchange {
         // docs say symbol is required, but it seems to be optional
         // you can cancel all orders, or filter by symbol or type or both
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             await this.loadMarkets ();
             let market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -875,10 +915,11 @@ module.exports = class kucoin extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['datetime'];
         let symbol = undefined;
-        if (market) {
-            symbol = market['symbol'];
-        } else {
-            symbol = ticker['coinType'] + '/' + ticker['coinTypePair'];
+        if (typeof market === 'undefined') {
+            let marketId = ticker['coinType'] + '-' + ticker['coinTypePair'];
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         // TNC coin doesn't have changerate for some reason
         let change = this.safeFloat (ticker, 'change');
@@ -888,6 +929,9 @@ module.exports = class kucoin extends Exchange {
             if (typeof change !== 'undefined')
                 open = last - change;
         let changePercentage = this.safeFloat (ticker, 'changeRate');
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -913,6 +957,7 @@ module.exports = class kucoin extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetMarketOpenSymbols (params);
         let tickers = response['data'];
         let result = {};
@@ -1002,6 +1047,9 @@ module.exports = class kucoin extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        if (typeof limit === 'undefined') {
+            limit = 100; // default to 100 even if it was explicitly set to undefined by the user
+        }
         let market = this.market (symbol);
         let response = await this.publicGetOpenDealOrders (this.extend ({
             'symbol': market['id'],
@@ -1015,14 +1063,14 @@ module.exports = class kucoin extends Exchange {
         // it improperly mimics fetchMyTrades with closed orders
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
-        if (!symbol)
+        if (typeof symbol === 'undefined')
             throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (limit)
+        if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this.privateGetDealOrders (this.extend (request, params));
         return this.parseTrades (response['data']['datas'], market, since, limit);

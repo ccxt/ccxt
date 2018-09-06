@@ -31,9 +31,10 @@ class bittrex (Exchange):
         return self.deep_extend(super(bittrex, self).describe(), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'v1.1',
             'rateLimit': 1500,
+            'certified': True,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -164,13 +165,17 @@ class bittrex (Exchange):
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': InvalidOrder,
+                'ORDER_NOT_OPEN': OrderNotFound,
                 'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                # price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
             },
@@ -197,9 +202,12 @@ class bittrex (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            pricePrecision = 8
+            if quote in self.options['pricePrecisionByCode']:
+                pricePrecision = self.options['pricePrecisionByCode'][quote]
             precision = {
                 'amount': 8,
-                'price': 8,
+                'price': pricePrecision,
             }
             active = market['IsActive'] or market['IsActive'] == 'true'
             result.append({
@@ -440,7 +448,7 @@ class bittrex (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.marketGetOpenorders(self.extend(request, params))
@@ -481,7 +489,9 @@ class bittrex (Exchange):
         request = {}
         request[orderIdField] = id
         response = self.marketGetCancel(self.extend(request, params))
-        return self.parse_order(response)
+        return self.extend(self.parse_order(response), {
+            'status': 'canceled',
+        })
 
     def parse_symbol(self, id):
         quote, base = id.split('-')
@@ -546,7 +556,7 @@ class bittrex (Exchange):
             }
             if market is not None:
                 fee['currency'] = market['quote']
-            elif symbol:
+            elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
                 if quoteCurrencyId in self.currencies_by_id:
@@ -612,12 +622,12 @@ class bittrex (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
         response = self.accountGetOrderhistory(self.extend(request, params))
         orders = self.parse_orders(response['result'], market, since, limit)
-        if symbol:
+        if symbol is not None:
             return self.filter_by_symbol(orders, symbol)
         return orders
 
@@ -739,6 +749,13 @@ class bittrex (Exchange):
                     if message.find('problem') >= 0:
                         raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
                 raise ExchangeError(feedback)
+
+    def append_timezone_parse8601(self, x):
+        length = len(x)
+        lastSymbol = x[length - 1]
+        if (lastSymbol == 'Z') or (x.find('+') >= 0):
+            return self.parse8601(x)
+        return self.parse8601(x + 'Z')
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

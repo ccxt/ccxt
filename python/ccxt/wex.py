@@ -17,7 +17,7 @@ class wex (liqui):
         return self.deep_extend(super(wex, self).describe(), {
             'id': 'wex',
             'name': 'WEX',
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'version': '3',
             'has': {
                 'CORS': False,

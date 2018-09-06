@@ -25,13 +25,13 @@ class bitstamp (Exchange):
         return self.deep_extend(super(bitstamp, self).describe(), {
             'id': 'bitstamp',
             'name': 'Bitstamp',
-            'countries': 'GB',
+            'countries': ['GB'],
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
                 'CORS': True,
                 'fetchDepositAddress': True,
-                'fetchOrder': True,
+                'fetchOrder': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'withdraw': True,
@@ -179,7 +179,6 @@ class bitstamp (Exchange):
             cost = parts[0]
             # cost, currency = market['minimum_order'].split(' ')
             active = (market['trading'] == 'Enabled')
-            lot = math.pow(10, -precision['amount'])
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -189,12 +188,11 @@ class bitstamp (Exchange):
                 'quoteId': quoteId,
                 'symbolId': symbolId,
                 'info': market,
-                'lot': lot,
                 'active': active,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': math.pow(10, -precision['amount']),
                         'max': None,
                     },
                     'price': {
@@ -453,14 +451,13 @@ class bitstamp (Exchange):
         cost = None
         if transactions is not None:
             if isinstance(transactions, list):
+                feeCost = 0.0
                 for i in range(0, len(transactions)):
                     trade = self.parse_trade(self.extend({
                         'order_id': id,
                         'side': side,
                     }, transactions[i]), market)
                     filled += trade['amount']
-                    if feeCost is None:
-                        feeCost = 0.0
                     feeCost += trade['fee']['cost']
                     if cost is None:
                         cost = 0.0

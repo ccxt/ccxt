@@ -15,7 +15,7 @@ class lakebtc (Exchange):
         return self.deep_extend(super(lakebtc, self).describe(), {
             'id': 'lakebtc',
             'name': 'LakeBTC',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'api_v2',
             'has': {
                 'CORS': True,
@@ -201,7 +201,9 @@ class lakebtc (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'params': id})
+        return self.privatePostCancelOrder({
+            'params': [id],
+        })
 
     def nonce(self):
         return self.microseconds()
@@ -217,7 +219,8 @@ class lakebtc (Exchange):
             nonce = self.nonce()
             queryParams = ''
             if 'params' in params:
-                queryParams = params['params'].join()
+                paramsList = params['params']
+                queryParams = ','.join(paramsList)
             query = self.urlencode({
                 'tonce': nonce,
                 'accesskey': self.apiKey,

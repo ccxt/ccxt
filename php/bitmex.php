@@ -13,7 +13,7 @@ class bitmex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmex',
             'name' => 'BitMEX',
-            'countries' => 'SC', // Seychelles
+            'countries' => array ( 'SC' ), // Seychelles
             'version' => 'v1',
             'userAgent' => null,
             'rateLimit' => 2000,
@@ -136,7 +136,7 @@ class bitmex extends Exchange {
                 'Access Denied' => '\\ccxt\\PermissionDenied',
             ),
             'options' => array (
-                'fetchTickerQuotes' => true,
+                'fetchTickerQuotes' => false,
             ),
         ));
     }
@@ -148,14 +148,14 @@ class bitmex extends Exchange {
             $market = $markets[$p];
             $active = ($market['state'] !== 'Unlisted');
             $id = $market['symbol'];
-            $base = $market['underlying'];
-            $quote = $market['quoteCurrency'];
+            $baseId = $market['underlying'];
+            $quoteId = $market['quoteCurrency'];
             $type = null;
             $future = false;
             $prediction = false;
-            $basequote = $base . $quote;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $basequote = $baseId . $quoteId;
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $swap = ($id === $basequote);
             $symbol = $id;
             if ($swap) {
@@ -181,6 +181,8 @@ class bitmex extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -396,7 +398,7 @@ class bitmex extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['timestamp']);
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             if (is_array ($trade) && array_key_exists ('symbol', $trade))
                 $market = $this->markets_by_id[$trade['symbol']];
         }
@@ -433,7 +435,7 @@ class bitmex extends Exchange {
         if ($status !== null)
             $status = $this->parse_order_status($status);
         $symbol = null;
-        if ($market) {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
             $id = $order['symbol'];

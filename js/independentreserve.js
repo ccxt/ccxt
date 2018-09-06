@@ -265,6 +265,9 @@ module.exports = class independentreserve extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let pageIndex = this.safeInteger (params, 'pageIndex', 1);
+        if (typeof limit === 'undefined') {
+            limit = 50;
+        }
         const request = this.ordered ({
             'pageIndex': pageIndex,
             'pageSize': limit,
@@ -365,21 +368,23 @@ module.exports = class independentreserve extends Exchange {
                 'apiKey=' + this.apiKey,
                 'nonce=' + nonce.toString (),
             ];
-            // remove this crap
             let keys = Object.keys (params);
-            let payload = [];
             for (let i = 0; i < keys.length; i++) {
                 let key = keys[i];
-                payload.push (key + '=' + params[key]);
+                let value = params[key].toString ();
+                auth.push (key + '=' + value);
             }
-            auth = this.arrayConcat (auth, payload);
             let message = auth.join (',');
             let signature = this.hmac (this.encode (message), this.encode (this.secret));
-            body = this.json ({
-                'apiKey': this.apiKey,
-                'nonce': nonce,
-                'signature': signature,
-            });
+            let query = this.ordered ({});
+            query['apiKey'] = this.apiKey;
+            query['nonce'] = nonce;
+            query['signature'] = signature.toUpperCase ();
+            for (let i = 0; i < keys.length; i++) {
+                let key = keys[i];
+                query[key] = params[key];
+            }
+            body = this.json (query);
             headers = { 'Content-Type': 'application/json' };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

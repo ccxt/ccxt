@@ -12,9 +12,10 @@ module.exports = class bittrex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bittrex',
             'name': 'Bittrex',
-            'countries': 'US',
+            'countries': [ 'US' ],
             'version': 'v1.1',
             'rateLimit': 1500,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'CORS': true,
@@ -145,13 +146,17 @@ module.exports = class bittrex extends Exchange {
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
                 'QUANTITY_NOT_PROVIDED': InvalidOrder,
                 'MIN_TRADE_REQUIREMENT_NOT_MET': InvalidOrder,
-                'ORDER_NOT_OPEN': InvalidOrder,
+                'ORDER_NOT_OPEN': OrderNotFound,
                 'INVALID_ORDER': InvalidOrder,
                 'UUID_INVALID': OrderNotFound,
                 'RATE_NOT_PROVIDED': InvalidOrder, // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
             },
             'options': {
+                // price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
             },
@@ -181,9 +186,12 @@ module.exports = class bittrex extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            let pricePrecision = 8;
+            if (quote in this.options['pricePrecisionByCode'])
+                pricePrecision = this.options['pricePrecisionByCode'][quote];
             let precision = {
                 'amount': 8,
-                'price': 8,
+                'price': pricePrecision,
             };
             let active = market['IsActive'] || market['IsActive'] === 'true';
             result.push ({
@@ -448,7 +456,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
@@ -493,7 +501,9 @@ module.exports = class bittrex extends Exchange {
         let request = {};
         request[orderIdField] = id;
         let response = await this.marketGetCancel (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.extend (this.parseOrder (response), {
+            'status': 'canceled',
+        });
     }
 
     parseSymbol (id) {
@@ -566,7 +576,7 @@ module.exports = class bittrex extends Exchange {
             };
             if (typeof market !== 'undefined') {
                 fee['currency'] = market['quote'];
-            } else if (symbol) {
+            } else if (typeof symbol !== 'undefined') {
                 let currencyIds = symbol.split ('/');
                 let quoteCurrencyId = currencyIds[1];
                 if (quoteCurrencyId in this.currencies_by_id)
@@ -642,13 +652,13 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market, since, limit);
-        if (symbol)
+        if (typeof symbol !== 'undefined')
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
@@ -786,6 +796,15 @@ module.exports = class bittrex extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+    }
+
+    appendTimezoneParse8601 (x) {
+        let length = x.length;
+        let lastSymbol = x[length - 1];
+        if ((lastSymbol === 'Z') || (x.indexOf ('+') >= 0)) {
+            return this.parse8601 (x);
+        }
+        return this.parse8601 (x + 'Z');
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

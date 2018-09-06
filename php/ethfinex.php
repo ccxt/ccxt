@@ -13,10 +13,11 @@ class ethfinex extends bitfinex {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'ethfinex',
             'name' => 'Ethfinex',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
             // new metainfo interface
+            'certified' => false,
             'has' => array (
                 'CORS' => false,
                 'createDepositAddress' => true,

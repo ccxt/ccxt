@@ -12,7 +12,7 @@ module.exports = class bitso extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitso',
             'name': 'Bitso',
-            'countries': 'MX', // Mexico
+            'countries': [ 'MX' ], // Mexico
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
@@ -114,14 +114,12 @@ module.exports = class bitso extends Exchange {
                 'amount': this.precisionFromString (market['minimum_amount']),
                 'price': this.precisionFromString (market['minimum_price']),
             };
-            let lot = limits['amount']['min'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'lot': lot,
                 'limits': limits,
                 'precision': precision,
             });
@@ -387,7 +385,7 @@ module.exports = class bitso extends Exchange {
         return this.parseOrder (response['payload'][0], market);
     }
 
-    async fetchOrderTrades (id, symbol = undefined, params = {}) {
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateGetOrderTradesOid ({

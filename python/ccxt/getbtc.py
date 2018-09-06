@@ -31,8 +31,8 @@ class getbtc (_1btcxe):
                 },
             },
             'markets': {
-                'BTC/USD': {'lot': 1e-08, 'symbol': 'BTC/USD', 'quote': 'USD', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'USD', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
-                'BTC/EUR': {'lot': 1e-08, 'symbol': 'BTC/EUR', 'quote': 'EUR', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'EUR', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
-                'BTC/RUB': {'lot': 1e-08, 'symbol': 'BTC/RUB', 'quote': 'RUB', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'RUB', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': 'None', 'min': 1e-08}}},
+                'BTC/USD': {'symbol': 'BTC/USD', 'quote': 'USD', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'USD', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': None, 'min': 1e-08}}},
+                'BTC/EUR': {'symbol': 'BTC/EUR', 'quote': 'EUR', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'EUR', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': None, 'min': 1e-08}}},
+                'BTC/RUB': {'symbol': 'BTC/RUB', 'quote': 'RUB', 'base': 'BTC', 'precision': {'amount': 8, 'price': 8}, 'id': 'RUB', 'limits': {'amount': {'max': None, 'min': 1e-08}, 'price': {'max': None, 'min': 1e-08}}},
             },
         })

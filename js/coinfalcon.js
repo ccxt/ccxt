@@ -12,18 +12,20 @@ module.exports = class coinfalcon extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinfalcon',
             'name': 'CoinFalcon',
-            'countries': 'GB',
+            'countries': [ 'GB' ],
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchTickers': true,
                 'fetchOpenOrders': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com/api/v1',
+                'api': 'https://coinfalcon.com',
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
@@ -37,20 +39,22 @@ module.exports = class coinfalcon extends Exchange {
                     'get': [
                         'user/accounts',
                         'user/orders',
+                        'user/orders/{id}',
                         'user/trades',
                     ],
                     'post': [
                         'user/orders',
                     ],
                     'delete': [
-                        'user/orders',
+                        'user/orders/{id}',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'tierBased': true,
+                    'maker': 0.0,
+                    'taker': 0.002, // tiered fee starts at 0.2%
                 },
             },
             'precision': {
@@ -104,7 +108,7 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        if (!market) {
+        if (typeof market === 'undefined') {
             let marketId = ticker['name'];
             market = this.marketsById[marketId];
         }
@@ -190,7 +194,7 @@ module.exports = class coinfalcon extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['since'] = this.iso8601 (since);
         }
         let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
@@ -204,23 +208,32 @@ module.exports = class coinfalcon extends Exchange {
         let balances = response['data'];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
-            let currencyId = balance['currency'];
-            let currency = this.commonCurrencyCode (currencyId);
+            let currencyId = this.safeString (balance, 'currency_code');
+            let uppercase = currencyId.toUpperCase ();
+            let code = this.commonCurrencyCode (uppercase);
+            if (uppercase in this.currencies_by_id) {
+                code = this.currencies_by_id[uppercase]['code'];
+            }
             let account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['hold']),
+                'free': parseFloat (balance['available_balance']),
+                'used': parseFloat (balance['hold_balance']),
                 'total': parseFloat (balance['balance']),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {
-        if (!market) {
-            market = this.marketsById[order['market']];
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (order, 'market');
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
         }
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         let timestamp = this.parse8601 (order['created_at']);
         let price = parseFloat (order['price']);
         let amount = this.safeFloat (order, 'size');
@@ -280,20 +293,28 @@ module.exports = class coinfalcon extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteUserOrders (this.extend ({
+        let response = await this.privateDeleteUserOrdersId (this.extend ({
             'id': id,
         }, params));
         let market = this.market (symbol);
         return this.parseOrder (response['data'], market);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetUserOrdersId (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response['data']);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (symbol) {
+        if (typeof symbol !== 'undefined') {
             request['market'] = this.marketId (symbol);
         }
-        if (since) {
+        if (typeof since !== 'undefined') {
             request['since_time'] = this.iso8601 (this.milliseconds ());
         }
         // TODO: test status=all if it works for closed orders too
@@ -306,24 +327,22 @@ module.exports = class coinfalcon extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + request;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            query = this.urlencode (query);
-            if (query.length)
-                url += '?' + query;
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
-                url += '?' + this.urlencode (query);
+                if (Object.keys (query).length)
+                    url += '?' + this.urlencode (query);
             } else {
                 body = this.json (query);
             }
-            let seconds = this.seconds ();
-            let requestPath = url.split ('/');
-            requestPath = requestPath.slice (3);
-            requestPath = '/' + requestPath.join ('/');
-            let payload = [seconds, method, requestPath].join ('|');
+            let seconds = this.seconds ().toString ();
+            let payload = [ seconds, method, request ].join ('|');
             if (body) {
                 payload += '|' + body;
             }

@@ -13,7 +13,7 @@ class itbit extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'itbit',
             'name' => 'itBit',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 2000,
             'version' => 'v1',
             'has' => array (

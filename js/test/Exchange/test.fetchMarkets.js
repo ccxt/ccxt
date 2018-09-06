@@ -14,6 +14,7 @@ const log       = require ('ololog')
 module.exports = async (exchange) => {
 
     const skippedExchanges = [
+        'bitforex',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

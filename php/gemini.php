@@ -13,7 +13,7 @@ class gemini extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'gemini',
             'name' => 'Gemini',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 1500, // 200 for private API
             'version' => 'v1',
             'has' => array (
@@ -25,9 +25,13 @@ class gemini extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
-                'fetchOpenOrders' => false,
+                'fetchOpenOrders' => true,
                 'fetchClosedOrders' => false,
+                'createMarketOrder' => false,
                 'withdraw' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => false,
+                'fetchDeposits' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -64,6 +68,7 @@ class gemini extends Exchange {
                         'orders',
                         'mytrades',
                         'tradevolume',
+                        'transfers',
                         'balances',
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
@@ -172,7 +177,7 @@ class gemini extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['type'],
+            'side' => strtolower ($trade['type']),
             'price' => $price,
             'cost' => $price * $amount,
             'amount' => $amount,
@@ -216,15 +221,18 @@ class gemini extends Exchange {
         if ($order['is_live']) {
             $status = 'open';
         }
-        if ($order['is_canceled']) {
+        if ($order['is_cancelled']) {
             $status = 'canceled';
         }
         $price = $this->safe_float($order, 'price');
-        $price = $this->safe_float($order, 'avg_execution_price', $price);
+        $average = $this->safe_float($order, 'avg_execution_price');
+        if ($average !== 0.0) {
+            $price = $average; // prefer filling (execution) $price over the submitted $price
+        }
         $cost = null;
         if ($filled !== null) {
-            if ($price !== null) {
-                $cost = $filled * $price;
+            if ($average !== null) {
+                $cost = $filled * $average;
             }
         }
         $type = $this->safe_string($order, 'type');
@@ -255,8 +263,9 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'side' => $order['side'],
+            'side' => strtolower ($order['side']),
             'price' => $price,
+            'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -271,6 +280,17 @@ class gemini extends Exchange {
             'order_id' => $id,
         ), $params));
         return $this->parse_order($response);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->privatePostOrders ($params);
+        $orders = $this->parse_orders($response, null, $since, $limit);
+        if ($symbol !== null) {
+            $market = $this->market ($symbol); // throws on non-existent $symbol
+            $orders = $this->filter_by_symbol($orders, $market['symbol']);
+        }
+        return $orders;
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -307,7 +327,9 @@ class gemini extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null)
-            $request['limit'] = $limit;
+            $request['limit_trades'] = $limit;
+        if ($since !== null)
+            $request['timestamp'] = intval ($since / 1000);
         $response = $this->privatePostMytrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -324,6 +346,59 @@ class gemini extends Exchange {
         return array (
             'info' => $response,
             'id' => $this->safe_string($response, 'txHash'),
+        );
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        $response = $this->privatePostTransfers (array_merge ($request, $params));
+        return $this->parseTransactions ($response);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_integer($transaction, 'timestampms');
+        $datetime = null;
+        if ($timestamp !== null)
+            $datetime = $this->iso8601 ($timestamp);
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = $this->safe_string($transaction, 'type');
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        $status = 'pending';
+        // When deposits show as Advanced or Complete they are available for trading.
+        if ($transaction['status'])
+            $status = 'ok';
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'eid'),
+            'txid' => $this->safe_string($transaction, 'txHash'),
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
+            'address' => null, // or is it defined?
+            'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => array (
+                'cost' => null,
+                'rate' => null,
+            ),
         );
     }
 

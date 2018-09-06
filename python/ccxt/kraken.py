@@ -32,9 +32,11 @@ class kraken (Exchange):
         return self.deep_extend(super(kraken, self).describe(), {
             'id': 'kraken',
             'name': 'Kraken',
-            'countries': 'US',
+            'countries': ['US'],
             'version': '0',
             'rateLimit': 3000,
+            'certified': True,
+            'parseJsonResponse': False,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
@@ -217,6 +219,7 @@ class kraken (Exchange):
                 'EAPI:Rate limit exceeded': DDoSProtection,
                 'EQuery:Unknown asset': ExchangeError,
                 'EGeneral:Internal error': ExchangeNotAvailable,
+                'EGeneral:Temporary lockout': DDoSProtection,
             },
         })
 
@@ -227,15 +230,7 @@ class kraken (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
 
     def fetch_min_order_sizes(self):
-        html = None
-        try:
-            self.parseJsonResponse = False
-            html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
-            self.parseJsonResponse = True
-        except Exception as e:
-            # ensure parseJsonResponse is restored no matter what
-            self.parseJsonResponse = True
-            raise e
+        html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
         parts = html.split('ul>')
         ul = parts[1]
         listItems = ul.split('</li')
@@ -519,7 +514,7 @@ class kraken (Exchange):
             market = self.find_market_by_altname_or_id(trade['pair'])
         if 'ordertxid' in trade:
             order = trade['ordertxid']
-            id = trade['id']
+            id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = int(trade['time'] * 1000)
             side = trade['type']
             type = trade['ordertype']
@@ -579,7 +574,7 @@ class kraken (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
+        response = self.privatePostBalance(params)
         balances = self.safe_value(response, 'result')
         if balances is None:
             raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))
@@ -653,8 +648,10 @@ class kraken (Exchange):
         fee = None
         cost = self.safe_float(order, 'cost')
         price = self.safe_float(description, 'price')
-        if not price:
-            price = self.safe_float(order, 'price')
+        if (price is None) or (price == 0):
+            price = self.safe_float(description, 'price2')
+        if (price is None) or (price == 0):
+            price = self.safe_float(order, 'price', price)
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
@@ -880,3 +877,7 @@ class kraken (Exchange):
                             if response['error'][i] in self.exceptions:
                                 raise self.exceptions[response['error'][i]](message)
                         raise ExchangeError(message)
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        return self.parse_if_json_encoded_object(response)

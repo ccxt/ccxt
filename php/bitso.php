@@ -13,7 +13,7 @@ class bitso extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitso',
             'name' => 'Bitso',
-            'countries' => 'MX', // Mexico
+            'countries' => array ( 'MX' ), // Mexico
             'rateLimit' => 2000, // 30 requests per minute
             'version' => 'v3',
             'has' => array (
@@ -115,14 +115,12 @@ class bitso extends Exchange {
                 'amount' => $this->precision_from_string($market['minimum_amount']),
                 'price' => $this->precision_from_string($market['minimum_price']),
             );
-            $lot = $limits['amount']['min'];
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
-                'lot' => $lot,
                 'limits' => $limits,
                 'precision' => $precision,
             );
@@ -388,7 +386,7 @@ class bitso extends Exchange {
         return $this->parse_order($response['payload'][0], $market);
     }
 
-    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+    public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetOrderTradesOid (array (

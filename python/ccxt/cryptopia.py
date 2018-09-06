@@ -17,6 +17,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderNotCached
 from ccxt.base.errors import InvalidNonce
@@ -29,7 +30,7 @@ class cryptopia (Exchange):
             'id': 'cryptopia',
             'name': 'Cryptopia',
             'rateLimit': 1500,
-            'countries': 'NZ',  # New Zealand
+            'countries': ['NZ'],  # New Zealand
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
@@ -56,9 +57,8 @@ class cryptopia (Exchange):
                 'www': 'https://www.cryptopia.co.nz',
                 'referral': 'https://www.cryptopia.co.nz/Register?referrer=kroitor',
                 'doc': [
-                    'https://www.cryptopia.co.nz/Forum/Category/45',
-                    'https://www.cryptopia.co.nz/Forum/Thread/255',
-                    'https://www.cryptopia.co.nz/Forum/Thread/256',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=a75703dcdbb9130084ed147a3a9619bc',
+                    'https://support.cryptopia.co.nz/csm?id=kb_article&sys_id=40e9c310dbf9130084ed147a3a9619eb',
                 ],
             },
             'timeframes': {
@@ -113,14 +113,16 @@ class cryptopia (Exchange):
             'commonCurrencies': {
                 'ACC': 'AdCoin',
                 'BAT': 'BatCoin',
+                'BEAN': 'BITB',  # rebranding, see issue  #3380
                 'BLZ': 'BlazeCoin',
                 'BTG': 'Bitgem',
-                'CAN': 'CanYa',
+                'CAN': 'CanYaCoin',
                 'CAT': 'Catcoin',
                 'CC': 'CCX',
                 'CMT': 'Comet',
                 'EPC': 'ExperienceCoin',
                 'FCN': 'Facilecoin',
+                'FT': 'Fabric Token',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
                 'KARM': 'KARMA',
@@ -128,6 +130,7 @@ class cryptopia (Exchange):
                 'LDC': 'LADACoin',
                 'MARKS': 'Bitmark',
                 'NET': 'NetCoin',
+                'PLC': 'Polcoin',
                 'RED': 'RedCoin',
                 'STC': 'StopTrumpCoin',
                 'QBT': 'Cubits',
@@ -144,13 +147,14 @@ class cryptopia (Exchange):
         markets = response['Data']
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['Id']
-            symbol = market['Label']
+            numericId = market['Id']
+            label = market['Label']
             baseId = market['Symbol']
             quoteId = market['BaseSymbol']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            id = baseId + '_' + quoteId
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -176,7 +180,7 @@ class cryptopia (Exchange):
             result.append({
                 'id': id,
                 'symbol': symbol,
-                'label': market['Label'],
+                'numericId': numericId,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -184,10 +188,10 @@ class cryptopia (Exchange):
                 'info': market,
                 'maker': market['TradeFee'] / 100,
                 'taker': market['TradeFee'] / 100,
-                'lot': limits['amount']['min'],
                 'active': active,
                 'precision': precision,
                 'limits': limits,
+                'label': label,
             })
         self.options['marketsByLabel'] = self.index_by(result, 'label')
         return result
@@ -221,7 +225,7 @@ class cryptopia (Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'tradePairId': market['id'],
+            'tradePairId': market['numericId'],
             'dataRange': dataRange,
             'dataGroup': self.timeframes[timeframe],
         }
@@ -253,7 +257,7 @@ class cryptopia (Exchange):
         result = {}
         for i in range(0, len(orderbooks)):
             orderbook = orderbooks[i]
-            id = self.safe_integer(orderbook, 'TradePairId')
+            id = self.safe_string(orderbook, 'Market')
             symbol = id
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
@@ -264,7 +268,7 @@ class cryptopia (Exchange):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         open = self.safe_float(ticker, 'Open')
         last = self.safe_float(ticker, 'LastPrice')
@@ -315,7 +319,7 @@ class cryptopia (Exchange):
         tickers = response['Data']
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            id = ticker['TradePairId']
+            id = ticker['Label'].replace('/', '_')
             recognized = (id in list(self.markets_by_id.keys()))
             if not recognized:
                 if self.options['fetchTickersErrors']:
@@ -337,13 +341,14 @@ class cryptopia (Exchange):
             price = self.safe_float(trade, 'Rate')
         cost = self.safe_float(trade, 'Total')
         id = self.safe_string(trade, 'TradeId')
-        if not market:
-            if 'TradePairId' in trade:
-                if trade['TradePairId'] in self.markets_by_id:
-                    market = self.markets_by_id[trade['TradePairId']]
+        if market is None:
+            marketId = self.safe_string(trade, 'Market')
+            marketId = marketId.replace('/', '_')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         symbol = None
         fee = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
             if 'Fee' in trade:
                 fee = {
@@ -385,9 +390,9 @@ class cryptopia (Exchange):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
-            request['TradePairId'] = market['id']
+            request['Market'] = market['id']
         if limit is not None:
             request['Count'] = limit  # default 100
         response = self.privatePostGetTradeHistory(self.extend(request, params))
@@ -465,7 +470,7 @@ class cryptopia (Exchange):
         # price = float(price)
         # amount = float(amount)
         request = {
-            'TradePairId': market['id'],
+            'Market': market['id'],
             'Type': self.capitalize(side),
             # 'Rate': self.price_to_precision(symbol, price),
             # 'Amount': self.amount_to_precision(symbol, amount),
@@ -529,7 +534,7 @@ class cryptopia (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         elif 'Market' in order:
             id = order['Market']
@@ -540,7 +545,9 @@ class cryptopia (Exchange):
                 if id in self.options['marketsByLabel']:
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'TimeStamp')
+        timestamp = self.safe_string(order, 'TimeStamp')
+        if timestamp is not None:
+            timestamp = self.parse8601(order['TimeStamp'])
         datetime = None
         if timestamp:
             datetime = self.iso8601(timestamp)
@@ -584,7 +591,7 @@ class cryptopia (Exchange):
         }
         if symbol is not None:
             market = self.market(symbol)
-            request['TradePairId'] = market['id']
+            request['Market'] = market['id']
         response = self.privatePostGetOpenOrders(self.extend(request, params))
         orders = []
         for i in range(0, len(response['Data'])):
@@ -714,6 +721,10 @@ class cryptopia (Exchange):
                         feedback = self.id
                         if isinstance(error, basestring):
                             feedback = feedback + ' ' + error
+                            if error.find('Invalid trade amount') >= 0:
+                                raise InvalidOrder(feedback)
+                            if error.find('No matching trades found') >= 0:
+                                raise OrderNotFound(feedback)
                             if error.find('does not exist') >= 0:
                                 raise OrderNotFound(feedback)
                             if error.find('Insufficient Funds') >= 0:

@@ -13,9 +13,10 @@ class bitfinex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
-            'countries' => 'VG',
+            'countries' => array ( 'VG' ),
             'version' => 'v1',
             'rateLimit' => 1500,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'CORS' => false,
@@ -245,15 +246,27 @@ class bitfinex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'ABS' => 'ABYSS',
+                'AIO' => 'AION',
+                'ATM' => 'ATMI',
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
+                'CTX' => 'CTXC',
+                'DAD' => 'DADI',
                 'DAT' => 'DATA',
-                'DSH' => 'DASH', // Bitfinex names Dash as DSH, instead of DASH
+                'DSH' => 'DASH',
+                'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
+                'IQX' => 'IQ',
+                'MIT' => 'MITH',
                 'MNA' => 'MANA',
+                'NCA' => 'NCASH',
+                'ORS' => 'ORS Group', // conflict with Origin Sport #3230
+                'POY' => 'POLY',
                 'QSH' => 'QASH',
                 'QTM' => 'QTUM',
+                'SEE' => 'SEER',
                 'SNG' => 'SNGLS',
                 'SPK' => 'SPANK',
                 'STJ' => 'STORJ',
@@ -271,8 +284,10 @@ class bitfinex extends Exchange {
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
+                    'Ratelimit' => '\\ccxt\\DDoSProtection',
                     'Nonce is too small.' => '\\ccxt\\InvalidNonce',
                     'No summary found.' => '\\ccxt\\ExchangeError', // fetchTradingFees (summary) endpoint can give this vague error message
+                    'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
@@ -467,7 +482,8 @@ class bitfinex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balanceType = $this->safe_string($params, 'type', 'exchange');
-        $balances = $this->privatePostBalances ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->privatePostBalances ($query);
         $result = array ( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
@@ -612,6 +628,8 @@ class bitfinex extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
@@ -665,13 +683,13 @@ class bitfinex extends Exchange {
             $status = 'closed';
         }
         $symbol = null;
-        if (!$market) {
+        if ($market === null) {
             $exchange = strtoupper ($order['symbol']);
             if (is_array ($this->markets_by_id) && array_key_exists ($exchange, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$exchange];
             }
         }
-        if ($market)
+        if ($market !== null)
             $symbol = $market['symbol'];
         $orderType = $order['type'];
         $exchange = mb_strpos ($orderType, 'exchange ') !== false;
@@ -707,7 +725,7 @@ class bitfinex extends Exchange {
                 throw new ExchangeError ($this->id . ' has no $symbol ' . $symbol);
         $response = $this->privatePostOrders ($params);
         $orders = $this->parse_orders($response, null, $since, $limit);
-        if ($symbol)
+        if ($symbol !== null)
             $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
     }

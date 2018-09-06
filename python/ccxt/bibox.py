@@ -54,7 +54,7 @@ class bibox (Exchange):
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
+                '12h': '12hour',
                 '1d': 'day',
                 '1w': 'week',
             },
@@ -67,6 +67,7 @@ class bibox (Exchange):
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -115,6 +116,7 @@ class bibox (Exchange):
             },
             'commonCurrencies': {
                 'KEY': 'Bihu',
+                'PAI': 'PCHAIN',
             },
         })
 
@@ -145,7 +147,6 @@ class bibox (Exchange):
                 'quoteId': quote,
                 'active': True,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -164,7 +165,7 @@ class bibox (Exchange):
         # we don't set values that are not defined by the exchange
         timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         else:
             base = ticker['coin_symbol']
@@ -183,6 +184,10 @@ class bibox (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
+        percentage = self.safe_string(ticker, 'percent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+            percentage = float(percentage)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -199,7 +204,7 @@ class bibox (Exchange):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_string(ticker, 'percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),
@@ -462,11 +467,10 @@ class bibox (Exchange):
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
-        price = self.safe_float(order, 'deal_price', price)
+        average = self.safe_float(order, 'deal_price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
-        cost = self.safe_float(order, 'money')
-        cost = self.safe_float(order, 'deal_money', cost)
+        cost = self.safe_float_2(order, 'deal_money', 'money')
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -489,6 +493,7 @@ class bibox (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost if cost else float(price) * filled,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -546,7 +551,7 @@ class bibox (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if not symbol:
+        if symbol is None:
             raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
@@ -573,9 +578,12 @@ class bibox (Exchange):
             }, params),
         })
         address = self.safe_string(response, 'result')
+        tag = None  # todo: figure self out
         result = {
-            'info': response,
+            'currency': code,
             'address': address,
+            'tag': tag,
+            'info': response,
         }
         return result
 
@@ -606,8 +614,8 @@ class bibox (Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        # by default it will try load withdrawal fees of all currencies(with separate requests)
+        # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()
         withdrawFees = {}
         info = {}

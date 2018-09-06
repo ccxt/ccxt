@@ -13,9 +13,11 @@ class kraken extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kraken',
             'name' => 'Kraken',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'version' => '0',
             'rateLimit' => 3000,
+            'certified' => true,
+            'parseJsonResponse' => false,
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -198,6 +200,7 @@ class kraken extends Exchange {
                 'EAPI:Rate limit exceeded' => '\\ccxt\\DDoSProtection',
                 'EQuery:Unknown asset' => '\\ccxt\\ExchangeError',
                 'EGeneral:Internal error' => '\\ccxt\\ExchangeNotAvailable',
+                'EGeneral:Temporary lockout' => '\\ccxt\\DDoSProtection',
             ),
         ));
     }
@@ -211,16 +214,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_min_order_sizes () {
-        $html = null;
-        try {
-            $this->parseJsonResponse = false;
-            $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            $this->parseJsonResponse = true;
-        } catch (Exception $e) {
-            // ensure parseJsonResponse is restored no matter what
-            $this->parseJsonResponse = true;
-            throw $e;
-        }
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $parts = explode ('ul>', $html);
         $ul = $parts[1];
         $listItems = explode ('</li', $ul);
@@ -525,7 +519,7 @@ class kraken extends Exchange {
             $market = $this->find_market_by_altname_or_id ($trade['pair']);
         if (is_array ($trade) && array_key_exists ('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
-            $id = $trade['id'];
+            $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = intval ($trade['time'] * 1000);
             $side = $trade['type'];
             $type = $trade['ordertype'];
@@ -589,7 +583,7 @@ class kraken extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ();
+        $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result');
         if ($balances === null)
             throw new ExchangeNotAvailable ($this->id . ' fetchBalance failed due to a malformed $response ' . $this->json ($response));
@@ -673,8 +667,10 @@ class kraken extends Exchange {
         $fee = null;
         $cost = $this->safe_float($order, 'cost');
         $price = $this->safe_float($description, 'price');
-        if (!$price)
-            $price = $this->safe_float($order, 'price');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($description, 'price2');
+        if (($price === null) || ($price === 0))
+            $price = $this->safe_float($order, 'price', $price);
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
@@ -929,5 +925,10 @@ class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        return $this->parse_if_json_encoded_object($response);
     }
 }

@@ -13,7 +13,7 @@ class coinbase extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'coinbase',
             'name' => 'coinbase',
-            'countries' => 'US',
+            'countries' => array ( 'US' ),
             'rateLimit' => 400, // 10k calls per hour
             'version' => 'v2',
             'userAgent' => $this->userAgents['chrome'],

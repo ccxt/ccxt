@@ -12,7 +12,7 @@ module.exports = class huobipro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'huobipro',
             'name': 'Huobi Pro',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'rateLimit': 2000,
             'userAgent': this.userAgents['chrome39'],
             'version': 'v1',
@@ -23,11 +23,12 @@ module.exports = class huobipro extends Exchange {
                 'CORS': false,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'fetchOrders': false,
                 'fetchTradingLimits': true,
+                'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
             },
@@ -112,9 +113,11 @@ module.exports = class huobipro extends Exchange {
             },
             'exceptions': {
                 'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
                 'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
                 'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                 'order-limitorder-price-min-error': InvalidOrder, // limit order price error
+                'order-limitorder-price-max-error': InvalidOrder, // limit order price error
                 'order-orderstate-error': OrderNotFound, // canceling an already canceled order
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                 'order-update-error': ExchangeNotAvailable, // undocumented error
@@ -131,38 +134,67 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let info = {};
-        let limits = {};
         if (typeof symbols === 'undefined')
             symbols = this.symbols;
+        let result = {};
         for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
-            let market = this.market (symbol);
-            let response = await this.publicGetCommonExchange (this.extend ({
-                'symbol': market['id'],
-            }));
-            let limit = this.parseTradingLimits (response);
-            info[symbol] = response;
-            limits[symbol] = limit;
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
-        return {
-            'limits': limits,
-            'info': info,
-        };
+        return result;
     }
 
-    parseTradingLimits (response, symbol = undefined, params = {}) {
-        let data = response['data'];
-        if (typeof data === 'undefined') {
-            return undefined;
-        }
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.publicGetCommonExchange (this.extend (request, params));
+        //
+        //     { status:   "ok",
+        //         data: {                                  symbol: "aidocbtc",
+        //                              'buy-limit-must-less-than':  1.1,
+        //                          'sell-limit-must-greater-than':  0.9,
+        //                         'limit-order-must-greater-than':  1,
+        //                            'limit-order-must-less-than':  5000000,
+        //                    'market-buy-order-must-greater-than':  0.0001,
+        //                       'market-buy-order-must-less-than':  100,
+        //                   'market-sell-order-must-greater-than':  1,
+        //                      'market-sell-order-must-less-than':  500000,
+        //                       'circuit-break-when-greater-than':  10000,
+        //                          'circuit-break-when-less-than':  10,
+        //                 'market-sell-order-rate-must-less-than':  0.1,
+        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //   {                                  symbol: "aidocbtc",
+        //                  'buy-limit-must-less-than':  1.1,
+        //              'sell-limit-must-greater-than':  0.9,
+        //             'limit-order-must-greater-than':  1,
+        //                'limit-order-must-less-than':  5000000,
+        //        'market-buy-order-must-greater-than':  0.0001,
+        //           'market-buy-order-must-less-than':  100,
+        //       'market-sell-order-must-greater-than':  1,
+        //          'market-sell-order-must-less-than':  500000,
+        //           'circuit-break-when-greater-than':  10000,
+        //              'circuit-break-when-less-than':  10,
+        //     'market-sell-order-rate-must-less-than':  0.1,
+        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //
         return {
-            'amount': {
-                'min': data['limit-order-must-greater-than'],
-                'max': data['limit-order-must-less-than'],
+            'info': limits,
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
+                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
+                },
             },
         };
     }
@@ -189,7 +221,6 @@ module.exports = class huobipro extends Exchange {
                 'amount': market['amount-precision'],
                 'price': market['price-precision'],
             };
-            let lot = Math.pow (10, -precision['amount']);
             let maker = (base === 'OMG') ? 0 : 0.2 / 100;
             let taker = (base === 'OMG') ? 0 : 0.2 / 100;
             result.push ({
@@ -197,14 +228,15 @@ module.exports = class huobipro extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'lot': lot,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': lot,
+                        'min': Math.pow (10, -precision['amount']),
                         'max': Math.pow (10, precision['amount']),
                     },
                     'price': {
@@ -313,20 +345,77 @@ module.exports = class huobipro extends Exchange {
         return this.parseTicker (response['tick'], market);
     }
 
-    parseTrade (trade, market) {
-        let timestamp = trade['ts'];
+    parseTrade (trade, market = undefined) {
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
+        let order = this.safeString (trade, 'order-id');
+        let side = this.safeString (trade, 'direction');
+        let type = this.safeString (trade, 'type');
+        if (typeof type !== 'undefined') {
+            let typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
+        }
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
+        let cost = undefined;
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
+                cost = amount * price;
+            }
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'filled-fees');
+        let feeCurrency = undefined;
+        if (typeof market !== 'undefined') {
+            feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+        }
+        let filledPoints = this.safeFloat (trade, 'filled-points');
+        if (typeof filledPoints !== 'undefined') {
+            if ((typeof feeCost === 'undefined') || (feeCost === 0.0)) {
+                feeCost = filledPoints;
+                feeCurrency = this.commonCurrencyCode ('HBPOINT');
+            }
+        }
+        if (typeof feeCost !== 'undefined') {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
-            'id': trade['id'].toString (),
-            'order': undefined,
+            'id': this.safeString (trade, 'id'),
+            'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['direction'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrderMatchresults (params);
+        let trades = this.parseTrades (response['data'], undefined, since, limit);
+        if (typeof symbol !== 'undefined') {
+            let market = this.market (symbol);
+            trades = this.filterBySymbol (trades, market['symbol']);
+        }
+        return trades;
     }
 
     async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
@@ -497,14 +586,16 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchOrdersByStates (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol parameter');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderOrders (this.extend ({
-            'symbol': market['id'],
+        let request = {
             'states': states,
-        }, params));
+        };
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let response = await this.privateGetOrderOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -544,6 +635,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let id = this.safeString (order, 'id');
         let side = undefined;
         let type = undefined;
         let status = undefined;
@@ -551,10 +643,10 @@ module.exports = class huobipro extends Exchange {
             let orderType = order['type'].split ('-');
             side = orderType[0];
             type = orderType[1];
-            status = this.parseOrderStatus (order['state']);
+            status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         let symbol = undefined;
-        if (!market) {
+        if (typeof market === 'undefined') {
             if ('symbol' in order) {
                 if (order['symbol'] in this.markets_by_id) {
                     let marketId = order['symbol'];
@@ -562,20 +654,29 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (market)
+        if (typeof market !== 'undefined') {
             symbol = market['symbol'];
-        let timestamp = order['created-at'];
+        }
+        let timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
-        let filled = parseFloat (order['field-amount']);
-        let remaining = amount - filled;
+        let filled = this.safeFloat (order, 'field-amount'); // typo in their API, filled amount
         let price = this.safeFloat (order, 'price');
-        let cost = parseFloat (order['field-cash-amount']);
-        let average = 0;
-        if (filled)
-            average = parseFloat (cost / filled);
+        let cost = this.safeFloat (order, 'field-cash-amount'); // same typo
+        let remaining = undefined;
+        let average = undefined;
+        if (typeof filled !== 'undefined') {
+            average = 0;
+            if (typeof amount !== 'undefined') {
+                remaining = amount - filled;
+            }
+            // if cost is defined and filled is not zero
+            if ((typeof cost !== 'undefined') && (filled > 0)) {
+                average = cost / filled;
+            }
+        }
         let result = {
             'info': order,
-            'id': order['id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -598,7 +699,7 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         await this.loadAccounts ();
         let market = this.market (symbol);
-        let order = {
+        let request = {
             'account-id': this.accounts[0]['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'symbol': market['id'],
@@ -609,14 +710,15 @@ module.exports = class huobipro extends Exchange {
                 if (typeof price === 'undefined') {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
-                    order['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             }
         }
-        if (type === 'limit')
-            order['price'] = this.priceToPrecision (symbol, price);
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         let method = this.options['createOrderMethod'];
-        let response = await this[method] (this.extend (order, params));
+        let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
@@ -639,7 +741,17 @@ module.exports = class huobipro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        let response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        //
+        //     let response = {
+        //         'status': 'ok',
+        //         'data': '10138899000',
+        //     };
+        //
+        return this.extend (this.parseOrder (response), {
+            'id': id,
+            'status': 'canceled',
+        });
     }
 
     async fetchDepositAddress (code, params = {}) {

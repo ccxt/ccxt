@@ -31,9 +31,12 @@ class okex (okcoinusd):
             },
             'commonCurrencies': {
                 'FAIR': 'FairGame',
+                'HOT': 'Hydro Protocol',
                 'MAG': 'Maggie',
-                'NANO': 'XRB',
                 'YOYO': 'YOYOW',
+            },
+            'options': {
+                'fetchTickersMethod': 'fetch_tickers_from_api',
             },
         })
 
@@ -67,7 +70,7 @@ class okex (okcoinusd):
                 markets[i]['taker'] = 0.0005
         return markets
 
-    def fetch_tickers(self, symbols=None, params={}):
+    def fetch_tickers_from_api(self, symbols=None, params={}):
         self.load_markets()
         request = {}
         response = self.publicGetTickers(self.extend(request, params))
@@ -76,12 +79,24 @@ class okex (okcoinusd):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            market = None
-            if 'symbol' in ticker:
-                marketId = ticker['symbol']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}), market)
+            ticker = self.parse_ticker(self.extend(tickers[i], {'timestamp': timestamp}))
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
+
+    def fetch_tickers_from_web(self, symbols=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.webGetSpotMarketsTickers(self.extend(request, params))
+        tickers = response['data']
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = self.parse_ticker(tickers[i])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
+        return result
+
+    def fetch_tickers(self, symbols=None, params={}):
+        method = self.options['fetchTickersMethod']
+        response = getattr(self, method)(symbols, params)
+        return response

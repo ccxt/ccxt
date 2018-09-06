@@ -12,8 +12,9 @@ module.exports = class bitfinex2 extends bitfinex {
         return this.deepExtend (super.describe (), {
             'id': 'bitfinex2',
             'name': 'Bitfinex v2',
-            'countries': 'VG',
+            'countries': [ 'VG' ],
             'version': 'v2',
+            'certified': false,
             // new metainfo interface
             'has': {
                 'CORS': true,
@@ -77,11 +78,12 @@ module.exports = class bitfinex2 extends bitfinex {
                         'book/{symbol}/P2',
                         'book/{symbol}/P3',
                         'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}/{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/long/last',
-                        'stats1/{key}:{size}:{symbol}/long/hist',
-                        'stats1/{key}:{size}:{symbol}/short/last',
-                        'stats1/{key}:{size}:{symbol}/short/hist',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -212,7 +214,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'active': true,
                 'precision': precision,
                 'limits': limits,
-                'lot': Math.pow (10, -precision['amount']),
                 'info': market,
             });
         }
@@ -237,6 +238,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 } else if (currency[0] === 't') {
                     currency = currency.slice (1);
                     code = currency.toUpperCase ();
+                    code = this.commonCurrencyCode (code);
+                } else {
                     code = this.commonCurrencyCode (code);
                 }
                 let account = this.account ();
@@ -308,7 +311,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'last': last,
             'previousClose': undefined,
             'change': ticker[length - 6],
-            'percentage': ticker[length - 5],
+            'percentage': ticker[length - 5] * 100,
             'average': undefined,
             'baseVolume': ticker[length - 3],
             'quoteVolume': undefined,
@@ -363,13 +366,16 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchTrades (symbol, since = undefined, limit = 120, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        let sort = '-1';
         let request = {
             'symbol': market['id'],
-            'sort': '-1',
             'limit': limit, // default = max = 120
         };
-        if (typeof since !== 'undefined')
+        if (typeof since !== 'undefined') {
             request['start'] = since;
+            sort = '1';
+        }
+        request['sort'] = sort;
         let response = await this.publicGetTradesSymbolHist (this.extend (request, params));
         let trades = this.sortBy (response, 1);
         return this.parseTrades (trades, market, undefined, limit);
@@ -378,8 +384,12 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof since === 'undefined')
+        if (typeof limit === 'undefined') {
+            limit = 100;
+        }
+        if (typeof since === 'undefined') {
             since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+        }
         let request = {
             'symbol': market['id'],
             'timeframe': this.timeframes[timeframe],
