@@ -102,6 +102,7 @@ module.exports = class coinmarketcap extends Exchange {
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
+            'CrowdCoin': 'CrowdCoin', // conflict with CRC CryCash
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)

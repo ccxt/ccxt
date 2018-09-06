@@ -129,10 +129,10 @@ module.exports = class livecoin extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['symbol'];
-            let symbol = id;
-            let [ baseId, quoteId ] = symbol.split ('/');
+            let [ baseId, quoteId ] = id.split ('/');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
                 'price': 5,
