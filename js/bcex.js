@@ -177,25 +177,8 @@ module.exports = class bcex extends Exchange {
                 let id = baseId + '2' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = true;
-                let precision = {
-                    'amount': 8, // todo: Look for a way to find a value.
-                    'price': this.precisionFromString (market['current']), // todo: Look for a better way. For the moment, get number of decimals from last price
-                };
-                let limits = {
-                    'amount': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                };
-                result.push ({
+                let defaults = this.safeValue (this.options['limits'], symbol, {});
+                result.push (this.extend ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -203,10 +186,28 @@ module.exports = class bcex extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': active,
-                    'precision': precision,
-                    'limits': limits,
+                    // overrided by defaults from this.options['limits']
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
+                    // overrided by defaults from this.options['limits']
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
-                });
+                }, defaults));
             }
         }
         return result;
