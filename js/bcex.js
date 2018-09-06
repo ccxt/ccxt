@@ -91,6 +91,34 @@ module.exports = class bcex extends Exchange {
             },
         });
     }
+    
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //  {         high:  0.03721392,
+        //             low:  0.03335362,
+        //             buy: "0.03525757",
+        //            sell: "0.03531160",
+        //            last:  0.0352634,
+        //             vol: "184742.4176",
+        //       min_trade: "0.01500000",
+        //       max_trade: "100.00000000",
+        //    number_float: "4",
+        //     price_float: "8"             }
+        //
+        return {
+            'info': limits,
+            'precision': {
+                'amount': this.safeInteger (limits, 'number_float'),
+                'price': this.safeInteger (limits, 'price_float'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'min_trade'),
+                    'max': this.safeFloat (limits, 'max_trade'),
+                },
+            },
+        };
+    }
 
     async fetchMarkets () {
         let response = await this.publicGetApiMarketGetPriceList ();
