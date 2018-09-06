@@ -1630,6 +1630,30 @@ class Exchange {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
     }
 
+    public function fetchTransactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_transactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_transactions() not implemented yet');
+    }
+
+    public function fetchDeposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_deposits ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_deposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_deposits() not implemented yet');
+    }
+
+    public function fetchWithdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_withdrawals ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_withdrawals() not implemented yet');
+    }
+
     public function fetch_markets () {
         // markets are returned as a list
         // currencies are returned as a dict

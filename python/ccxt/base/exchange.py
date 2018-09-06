@@ -1099,6 +1099,15 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         self.raise_error(NotSupported, details='fetch_order_trades() is not implemented yet')
 
+    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_transactions() is not implemented yet')
+
+    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_deposits() is not implemented yet')
+
+    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_withdrawals() is not implemented yet')
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
