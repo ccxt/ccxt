@@ -770,8 +770,8 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    feeToPrecision (currency, fee) {
-        return parseFloat (this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']));
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -788,7 +788,7 @@ module.exports = class huobipro extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 

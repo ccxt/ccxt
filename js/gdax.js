@@ -491,11 +491,6 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    feeToPrecision (currency, fee) {
-        let cost = parseFloat (fee);
-        return cost.toFixed (this.currencies[currency]['precision']);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
@@ -505,7 +500,7 @@ module.exports = class gdax extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (currency, rate * cost)),
+            'cost': parseFloat (this.currencyToPrecision (currency, rate * cost)),
         };
     }
 
