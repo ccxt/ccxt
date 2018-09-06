@@ -139,8 +139,9 @@ class huobipro extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $symbols = array ( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
         $this->load_markets();
-        if ($symbols === null)
+        if ($symbols === null) {
             $symbols = $this->symbols;
+        }
         $result = array ();
         for ($i = 0; $i < count ($symbols); $i++) {
             $symbol = $symbols[$i];
