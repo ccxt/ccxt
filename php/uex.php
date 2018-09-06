@@ -156,10 +156,6 @@ class uex extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
     }
 
-    public function fee_to_precision ($currency, $fee) {
-        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
-    }
-
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
@@ -174,7 +170,7 @@ class uex extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
+            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
         );
     }
 
