@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.237'
+const version = '1.17.238'
 
 Exchange.ccxtVersion = version
 
@@ -2349,6 +2349,18 @@ module.exports = class Exchange {
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    }
+
+    fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+    }
+
+    fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+    }
+
+    fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
     }
 
     fetchCurrencies (params = {}) {
