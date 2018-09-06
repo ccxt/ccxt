@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.234'
+const version = '1.17.235'
 
 Exchange.ccxtVersion = version
 
@@ -2591,13 +2591,9 @@ module.exports = class Exchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 let response = await this.fetchTradingLimits (symbols);
-                let limits = response['limits'];
-                let keys = Object.keys (limits);
-                for (let i = 0; i < keys.length; i++) {
-                    let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
-                    });
+                for (let i = 0; i < symbols.length; i++) {
+                    let symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
@@ -5119,8 +5115,8 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -6736,8 +6732,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -37664,38 +37660,67 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let info = {};
-        let limits = {};
         if (typeof symbols === 'undefined')
             symbols = this.symbols;
+        let result = {};
         for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
-            let market = this.market (symbol);
-            let response = await this.publicGetCommonExchange (this.extend ({
-                'symbol': market['id'],
-            }));
-            let limit = this.parseTradingLimits (response);
-            info[symbol] = response;
-            limits[symbol] = limit;
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
-        return {
-            'limits': limits,
-            'info': info,
-        };
+        return result;
     }
 
-    parseTradingLimits (response, symbol = undefined, params = {}) {
-        let data = response['data'];
-        if (typeof data === 'undefined') {
-            return undefined;
-        }
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.publicGetCommonExchange (this.extend (request, params));
+        //
+        //     { status:   "ok",
+        //         data: {                                  symbol: "aidocbtc",
+        //                              'buy-limit-must-less-than':  1.1,
+        //                          'sell-limit-must-greater-than':  0.9,
+        //                         'limit-order-must-greater-than':  1,
+        //                            'limit-order-must-less-than':  5000000,
+        //                    'market-buy-order-must-greater-than':  0.0001,
+        //                       'market-buy-order-must-less-than':  100,
+        //                   'market-sell-order-must-greater-than':  1,
+        //                      'market-sell-order-must-less-than':  500000,
+        //                       'circuit-break-when-greater-than':  10000,
+        //                          'circuit-break-when-less-than':  10,
+        //                 'market-sell-order-rate-must-less-than':  0.1,
+        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //   {                                  symbol: "aidocbtc",
+        //                  'buy-limit-must-less-than':  1.1,
+        //              'sell-limit-must-greater-than':  0.9,
+        //             'limit-order-must-greater-than':  1,
+        //                'limit-order-must-less-than':  5000000,
+        //        'market-buy-order-must-greater-than':  0.0001,
+        //           'market-buy-order-must-less-than':  100,
+        //       'market-sell-order-must-greater-than':  1,
+        //          'market-sell-order-must-less-than':  500000,
+        //           'circuit-break-when-greater-than':  10000,
+        //              'circuit-break-when-less-than':  10,
+        //     'market-sell-order-rate-must-less-than':  0.1,
+        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //
         return {
-            'amount': {
-                'min': data['limit-order-must-greater-than'],
-                'max': data['limit-order-must-less-than'],
+            'info': limits,
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
+                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
+                },
             },
         };
     }

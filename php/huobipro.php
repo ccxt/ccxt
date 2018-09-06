@@ -135,38 +135,67 @@ class huobipro extends Exchange {
     }
 
     public function fetch_trading_limits ($symbols = null, $params = array ()) {
+        // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        //  however if you define $symbols = array ( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
         $this->load_markets();
-        $info = array ();
-        $limits = array ();
         if ($symbols === null)
             $symbols = $this->symbols;
+        $result = array ();
         for ($i = 0; $i < count ($symbols); $i++) {
             $symbol = $symbols[$i];
-            $market = $this->market ($symbol);
-            $response = $this->publicGetCommonExchange (array_merge (array (
-                'symbol' => $market['id'],
-            )));
-            $limit = $this->parse_trading_limits ($response);
-            $info[$symbol] = $response;
-            $limits[$symbol] = $limit;
+            $result[$symbol] = $this->fetch_trading_limits_by_id ($this->market_id($symbol), $params);
         }
-        return array (
-            'limits' => $limits,
-            'info' => $info,
-        );
+        return $result;
     }
 
-    public function parse_trading_limits ($response, $symbol = null, $params = array ()) {
-        $data = $response['data'];
-        if ($data === null) {
-            return null;
-        }
+    public function fetch_trading_limits_by_id ($id, $params = array ()) {
+        $request = array (
+            'symbol' => $id,
+        );
+        $response = $this->publicGetCommonExchange (array_merge ($request, $params));
+        //
+        //     { status =>   "ok",
+        //         data => {                                  symbol => "aidocbtc",
+        //                              'buy-limit-must-less-than' =>  1.1,
+        //                          'sell-limit-must-greater-than' =>  0.9,
+        //                         'limit-order-must-greater-than' =>  1,
+        //                            'limit-order-must-less-than' =>  5000000,
+        //                    'market-buy-order-must-greater-than' =>  0.0001,
+        //                       'market-buy-order-must-less-than' =>  100,
+        //                   'market-sell-order-must-greater-than' =>  1,
+        //                      'market-sell-order-must-less-than' =>  500000,
+        //                       'circuit-break-when-greater-than' =>  10000,
+        //                          'circuit-break-when-less-than' =>  10,
+        //                 'market-sell-order-rate-must-less-than' =>  0.1,
+        //                  'market-buy-order-rate-must-less-than' =>  0.1        } }
+        //
+        return $this->parse_trading_limits ($this->safe_value($response, 'data', array ()));
+    }
+
+    public function parse_trading_limits ($limits, $symbol = null, $params = array ()) {
+        //
+        //   {                                  $symbol => "aidocbtc",
+        //                  'buy-limit-must-less-than' =>  1.1,
+        //              'sell-limit-must-greater-than' =>  0.9,
+        //             'limit-order-must-greater-than' =>  1,
+        //                'limit-order-must-less-than' =>  5000000,
+        //        'market-buy-order-must-greater-than' =>  0.0001,
+        //           'market-buy-order-must-less-than' =>  100,
+        //       'market-sell-order-must-greater-than' =>  1,
+        //          'market-sell-order-must-less-than' =>  500000,
+        //           'circuit-break-when-greater-than' =>  10000,
+        //              'circuit-break-when-less-than' =>  10,
+        //     'market-sell-order-rate-must-less-than' =>  0.1,
+        //      'market-buy-order-rate-must-less-than' =>  0.1        }
+        //
         return array (
-            'amount' => array (
-                'min' => $data['limit-order-must-greater-than'],
-                'max' => $data['limit-order-must-less-than'],
+            'info' => $limits,
+            'limits' => array (
+                'amount' => array (
+                    'min' => $this->safe_float($limits, 'limit-order-must-greater-than'),
+                    'max' => $this->safe_float($limits, 'limit-order-must-less-than'),
+                ),
             ),
         );
     }
