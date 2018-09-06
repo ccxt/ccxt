@@ -177,6 +177,7 @@ class Exchange {
         'kuna',
         'lakebtc',
         'lbank',
+        'linkcoin',
         'liqui',
         'livecoin',
         'luno',
@@ -1414,13 +1415,11 @@ class Exchange {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
                 $response = $this->fetch_trading_limits ($symbols);
-                $limits = $response['limits'];
-                $keys = is_array ($limits) ? array_keys ($limits) : array ();
-                for ($i = 0; $i < count ($keys); $i++) {
-                    $symbol = $keys[$i];
-                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
-                        'limits' => $limits[$symbol],
-                    ));
+                // $limits = $response['limits'];
+                // $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], $response[$symbol]);
                 }
                 $this->options['limitsLoaded'] = $this->milliseconds ();
             }
