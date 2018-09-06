@@ -685,7 +685,7 @@ module.exports = class bcex extends Exchange {
             }
         }
     }
-    
+
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[side];
