@@ -404,6 +404,8 @@ Below is a detailed description of each of the base exchange properties:
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
 
+#### Exchange Metadata
+
 - `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
     ```JavaScript
