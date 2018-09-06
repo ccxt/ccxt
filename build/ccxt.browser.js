@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.239'
+const version = '1.17.240'
 
 Exchange.ccxtVersion = version
 
@@ -25322,8 +25322,11 @@ module.exports = class coinmarketcap extends Exchange {
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
             'CPChain': 'CPChain',
+            'CrowdCoin': 'CrowdCoin', // conflict with CRC CryCash
             'Cubits': 'Cubits', // conflict with QBT (Qbao)
             'DAO.Casino': 'DAO.Casino', // conflict with BET (BetaCoin)
+            'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
+            'EDRcoin': 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
             'FairGame': 'FairGame',
             'Fabric Token': 'Fabric Token',
@@ -44355,7 +44358,6 @@ module.exports = class livecoin extends Exchange {
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'CapriCoin',
-                'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -44397,10 +44399,10 @@ module.exports = class livecoin extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['symbol'];
-            let symbol = id;
-            let [ baseId, quoteId ] = symbol.split ('/');
+            let [ baseId, quoteId ] = id.split ('/');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
                 'price': 5,
@@ -55453,7 +55455,6 @@ module.exports = class yobit extends liqui {
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
-                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',

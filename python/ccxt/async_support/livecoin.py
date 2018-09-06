@@ -105,7 +105,6 @@ class livecoin (Exchange):
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'CapriCoin',
-                'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -146,10 +145,10 @@ class livecoin (Exchange):
         for p in range(0, len(markets)):
             market = markets[p]
             id = market['symbol']
-            symbol = id
-            baseId, quoteId = symbol.split('/')
+            baseId, quoteId = id.split('/')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             coinRestrictions = self.safe_value(restrictionsById, symbol)
             precision = {
                 'price': 5,

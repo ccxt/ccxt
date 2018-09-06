@@ -102,8 +102,11 @@ class coinmarketcap (Exchange):
             'CanYaCoin': 'CanYaCoin',  # conflict with CAN(Content and AD Network)
             'Comet': 'Comet',  # conflict with CMT(CyberMiles)
             'CPChain': 'CPChain',
+            'CrowdCoin': 'CrowdCoin',  # conflict with CRC CryCash
             'Cubits': 'Cubits',  # conflict with QBT(Qbao)
             'DAO.Casino': 'DAO.Casino',  # conflict with BET(BetaCoin)
+            'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
+            'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
             'FairGame': 'FairGame',
             'Fabric Token': 'Fabric Token',

@@ -88,7 +88,6 @@ class livecoin extends Exchange {
             'commonCurrencies' => array (
                 'BTCH' => 'Bithash',
                 'CPC' => 'CapriCoin',
-                'CRC' => 'CryCash',
                 'EDR' => 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT' => 'EETT',
                 'FirstBlood' => '1ST',
@@ -130,10 +129,10 @@ class livecoin extends Exchange {
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['symbol'];
-            $symbol = $id;
-            list ($baseId, $quoteId) = explode ('/', $symbol);
+            list ($baseId, $quoteId) = explode ('/', $id);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $coinRestrictions = $this->safe_value($restrictionsById, $symbol);
             $precision = array (
                 'price' => 5,
