@@ -787,9 +787,7 @@ module.exports = class huobipro extends Exchange {
 
     _websocketOnMessage (contextId, data) {
         // TODO: pako function in Exchange.js/.py/.php
-        // let text = pako.inflate (data, {
-        //    'to': 'string',
-        // });
+        // let text = pako.inflate (data, { 'to': 'string', });
         let msg = JSON.parse (data);
         if (msg.ping) {
             // heartbeat ping-pong
@@ -800,10 +798,8 @@ module.exports = class huobipro extends Exchange {
         } else if (msg.tick) {
             // console.log(msg);
             this._websocketDispatch (contextId, msg);
-        } else {
-            // :remove
-            // console.log(text);
         }
+        //  else :remove console.log(text);
     }
 
     _websocketDispatch (contextId, data) {
@@ -826,10 +822,9 @@ module.exports = class huobipro extends Exchange {
             this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
             // note, huobipro limit != depth
             this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
-        } else if (channel === 'kline') {
-            // TODO:kline
-            // console.log('kline', data.tick);
         }
+        // TODO:kline
+        // console.log('kline', data.tick);
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
@@ -846,7 +841,7 @@ module.exports = class huobipro extends Exchange {
         this._contextSetSymbolData (contextId, event, symbol, data);
         const rawsymbol = this.marketId (symbol);
         const sendJson = {
-            'sub': `market.${rawsymbol}.depth.step${params['depth']}`,
+            'sub': 'market.' + rawsymbol + '.depth.step' + params['depth'],
             'id': rawsymbol,
         };
         this.websocketSendJson (sendJson);
@@ -861,7 +856,7 @@ module.exports = class huobipro extends Exchange {
         params['depth'] = params['depth'] || '2';
         const rawsymbol = this.marketId (symbol);
         const sendJson = {
-            'unsub': `market.${rawsymbol}.depth.step${params['depth']}`,
+            'unsub': 'market.' + rawsymbol + '.depth.step' + params['depth'],
             'id': rawsymbol,
         };
         this.websocketSendJson (sendJson);

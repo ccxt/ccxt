@@ -1170,10 +1170,8 @@ module.exports = class hitbtc2 extends hitbtc {
 
     _websocketOnMessage (contextId, data) {
         let msg = JSON.parse (data);
-        if (msg.error) {
-            // TODO:error handle
-            // console.error ('response error', msg.error);
-        } else if (msg.method) {
+        // TODO: if (msg.error) error handle
+        if (msg.method) {
             if (msg.method === 'snapshotOrderbook') {
                 // const orderbook = msg.params;
                 // :parse orderbook
