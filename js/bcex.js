@@ -26,6 +26,7 @@ module.exports = class bcex extends Exchange {
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOpenOrders': true,
+                'fetchTradingLimits': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
@@ -90,6 +91,22 @@ module.exports = class bcex extends Exchange {
                 '订单信息不存在': OrderNotFound, // {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
             },
         });
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
+        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        if (typeof symbols === 'undefined') {
+            symbols = this.symbols;
+        }
+        let result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
     }
 
     async fetchTradingLimitsById (id, params = {}) {
