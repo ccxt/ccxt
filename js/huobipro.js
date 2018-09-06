@@ -138,8 +138,9 @@ module.exports = class huobipro extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        if (typeof symbols === 'undefined')
+        if (typeof symbols === 'undefined') {
             symbols = this.symbols;
+        }
         let result = {};
         for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
