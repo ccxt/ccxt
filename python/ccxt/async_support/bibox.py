@@ -184,6 +184,10 @@ class bibox (Exchange):
         iso8601 = None
         if timestamp is not None:
             iso8601 = self.iso8601(timestamp)
+        percentage = self.safe_string(ticker, 'percent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+            percentage = float(percentage)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -200,7 +204,7 @@ class bibox (Exchange):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_string(ticker, 'percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),
@@ -463,11 +467,10 @@ class bibox (Exchange):
         type = 'market' if (order['order_type'] == 1) else 'limit'
         timestamp = order['createdAt']
         price = self.safe_float(order, 'price')
-        price = self.safe_float(order, 'deal_price', price)
+        average = self.safe_float(order, 'deal_price')
         filled = self.safe_float(order, 'deal_amount')
         amount = self.safe_float(order, 'amount')
-        cost = self.safe_float(order, 'money')
-        cost = self.safe_float(order, 'deal_money', cost)
+        cost = self.safe_float_2(order, 'deal_money', 'money')
         remaining = None
         if filled is not None:
             if amount is not None:
@@ -490,6 +493,7 @@ class bibox (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost if cost else float(price) * filled,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,

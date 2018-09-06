@@ -73,7 +73,7 @@ with open(keys_file) as file:
     keys = json.load(file)
 
 config = {
-    'verbose': argv.verbose,
+    # 'verbose': argv.verbose,  # set later, after load_markets
     'timeout': 30000,
     'enableRateLimit': True,
 }
@@ -113,6 +113,8 @@ for arg in argv.args:
         args.append(arg)
 
 exchange.load_markets()
+
+exchange.verbose = argv.verbose  # now set verbose mode
 
 method = getattr(exchange, argv.method)
 

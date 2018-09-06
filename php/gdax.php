@@ -307,13 +307,15 @@ class gdax extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = null;
-        $request = array ();
-        if ($symbol !== null) {
-            $market = $this->market ($symbol);
-            $request['product_id'] = $market['id'];
+        // as of 2018-08-23
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'product_id' => $market['id'],
+        );
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
@@ -599,11 +601,11 @@ class gdax extends Exchange {
     }
 
     public function parse_transaction_status ($transaction) {
-        if ($transaction['canceled_at']) {
+        if (is_array ($transaction && $transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && $transaction['canceled_at'])) {
             return 'canceled';
-        } else if ($transaction['completed_at']) {
+        } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
             return 'ok';
-        } else if ($transaction['procesed_at']) {
+        } else if (is_array ($transaction && $transaction['procesed_at']) && array_key_exists ('procesed_at', $transaction && $transaction['procesed_at'])) {
             return 'pending';
         } else {
             return 'failed';

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.132';
+$version = '1.17.230';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.132';
+    const VERSION = '1.17.230';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -96,6 +96,7 @@ class Exchange {
         'bitfinex',
         'bitfinex2',
         'bitflyer',
+        'bitforex',
         'bithumb',
         'bitkk',
         'bitlish',
@@ -126,6 +127,7 @@ class Exchange {
         'chilebit',
         'cobinhood',
         'coinbase',
+        'coinbaseprime',
         'coinbasepro',
         'coincheck',
         'coinegg',
@@ -626,6 +628,12 @@ class Exchange {
             if (array_key_exists ($key, $params) && $params[$key])
                 $flags |= $options[$key];
         return json_encode ($data, $flags);
+    }
+
+    public static function is_json_encoded_object ($input) {
+        return (gettype ($body) === 'string') &&
+                (strlen ($body) >= 2) &&
+                (($body[0] === '{') || ($body[0] === '['));
     }
 
     public static function encode ($input) {
@@ -1613,11 +1621,27 @@ class Exchange {
     }
 
     public function fetch_markets () {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
         return $this->markets ? array_values ($this->markets) : array ();
     }
 
     public function fetchMarkets  () {
         return $this->fetch_markets ();
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        // markets are returned as a list
+        // currencies are returned as a dict
+        // this is for historical reasons
+        // and may be changed for consistency later
+        return $this->currencies ? $this->currencies : array ();
+    }
+
+    public function fetchCurrencies ($params = array ()) {
+        return $this->fetch_currencies ();
     }
 
     public function fetchBalance () {

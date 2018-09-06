@@ -35,6 +35,7 @@ class cobinhood (Exchange):
                 'fetchWithdrawals': True,
                 'withdraw': False,
                 'fetchMyTrades': True,
+                'editOrder': True,
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -126,6 +127,9 @@ class cobinhood (Exchange):
                         'wallet/deposit_addresses',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                    ],
+                    'put': [
+                        'trading/orders/{order_id}',
                     ],
                     'delete': [
                         'trading/orders/{order_id}',
@@ -415,26 +419,42 @@ class cobinhood (Exchange):
         return status
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         'completed_at': None,
+        #         'eq_price': '0',
+        #         'filled': '0',
+        #         'id': '88426800-beae-4407-b4a1-f65cef693542',
+        #         'price': '0.00000507',
+        #         'side': 'bid',
+        #         'size': '3503.6489',
+        #         'source': 'exchange',
+        #         'state': 'open',
+        #         'timestamp': 1535258403597,
+        #         'trading_pair_id': 'ACT-BTC',
+        #         'type': 'limit',
+        #     }
+        #
         symbol = None
         if market is None:
-            marketId = self.safe_string(order, 'trading_pair')
-            marketId = self.safe_string(order, 'trading_pair_id', marketId)
+            marketId = self.safe_string_2(order, 'trading_pair', 'trading_pair_id')
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
-        price = self.safe_float(order, 'eq_price')
+        price = self.safe_float(order, 'price')
+        average = self.safe_float(order, 'eq_price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled')
         remaining = None
         cost = None
+        if filled is not None and average is not None:
+            cost = average * filled
+        elif average is not None:
+            cost = average * amount
         if amount is not None:
             if filled is not None:
                 remaining = amount - filled
-            if filled is not None and price is not None:
-                cost = price * filled
-            elif price is not None:
-                cost = price * amount
         status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'side')
         if side == 'bid':
@@ -452,6 +472,7 @@ class cobinhood (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -477,6 +498,16 @@ class cobinhood (Exchange):
         id = order['id']
         self.orders[id] = order
         return order
+
+    async def edit_order(self, id, symbol, type, side, amount, price, params={}):
+        response = await self.privatePutTradingOrdersOrderId(self.extend({
+            'order_id': id,
+            'price': self.price_to_precision(symbol, price),
+            'size': self.amount_to_string(symbol, amount),
+        }, params))
+        return self.parse_order(self.extend(response, {
+            'id': id,
+        }))
 
     async def cancel_order(self, id, symbol=None, params={}):
         response = await self.privateDeleteTradingOrdersOrderId(self.extend({
@@ -626,7 +657,7 @@ class cobinhood (Exchange):
             'timestamp': timestamp,
             'datetime': datetime,
             'address': None,  # or is it defined?
-            'type': type,  # direction of the transaction,('deposit' | 'withdraw')
+            'type': type,  # direction of the transaction,('deposit' | 'withdrawal')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(transaction['status']),

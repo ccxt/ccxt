@@ -15,6 +15,8 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
@@ -46,7 +48,8 @@ class theocean (Exchange):
                 'CORS': False,  # ?
                 'fetchTickers': True,
                 'fetchOHLCV': False,
-                'fetchOrder': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -58,6 +61,7 @@ class theocean (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'fee_components',
                         'token_pairs',
                         'ticker',
                         'tickers',
@@ -86,15 +90,22 @@ class theocean (Exchange):
                 },
             },
             'exceptions': {
-                "Schema validation failed for 'query'": ExchangeError,  # {"message": "Schema validation failed for 'query'", "errors": ...}
-                "Logic validation failed for 'query'": ExchangeError,  # {"message": "Logic validation failed for 'query'", "errors": ...}
-                "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
-                "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
-                'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
+                'exact': {
+                    # "Schema validation failed for 'query'": ExchangeError,  # {"message": "Schema validation failed for 'query'", "errors": ...}
+                    # "Logic validation failed for 'query'": ExchangeError,  # {"message": "Logic validation failed for 'query'", "errors": ...}
+                    # "Schema validation failed for 'body'": ExchangeError,  # {"message": "Schema validation failed for 'body'", "errors": ...}
+                    # "Logic validation failed for 'body'": ExchangeError,  # {"message": "Logic validation failed for 'body'", "errors": ...}
+                    'Order not found': OrderNotFound,  # {"message":"Order not found","errors":...}
+                },
+                'broad': {
+                    'Greater than available wallet balance.': InsufficientFunds,
+                    'Orderbook exhausted for intent': OrderNotFillable,  # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                    'Fillable amount under minimum': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
+                    'Fillable amount over maximum': InvalidOrder,  # {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
+                },
             },
             'options': {
                 'fetchOrderMethod': 'fetch_order_from_history',
-                'filledField': 'confirmed',
             },
         })
 
@@ -181,8 +192,6 @@ class theocean (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'taker': None,
-                'maker': None,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -237,6 +246,8 @@ class theocean (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_balance_by_code(self, code, params={}):
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(self.id + ' fetchBalanceByCode() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -253,14 +264,16 @@ class theocean (Exchange):
         return {
             'free': balance,
             'used': 0,
-            'total': balance,
+            'total': None,
         }
 
     def fetch_balance(self, params={}):
-        self.load_markets()
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(self.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
         codes = self.safe_value(params, 'codes')
         if (codes is None) or (not isinstance(codes, list)):
-            raise ExchangeError(self.id + ' fetchBalance requires a `codes` parameter(an array of currency codes)')
+            raise ExchangeError(self.id + ' fetchBalance() requires a `codes` parameter(an array of currency codes)')
+        self.load_markets()
         result = {}
         for i in range(0, len(codes)):
             code = codes[i]
@@ -470,12 +483,14 @@ class theocean (Exchange):
         return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        errorMessage = self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".'
+        if not self.walletAddress or (self.walletAddress.find('0x') != 0):
+            raise InvalidAddress(errorMessage)
+        if not self.privateKey or (self.privateKey.find('0x') != 0):
+            raise InvalidAddress(errorMessage)
         self.load_markets()
-        if not(self.walletAddress and self.privateKey):
-            raise ExchangeError(self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a hex-string like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a hex string like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".')
         makerOrTaker = self.safe_string(params, 'makerOrTaker')
         isMarket = (type == 'market')
-        isLimit = (type == 'limit')
         isMakerOrTakerUndefined = (makerOrTaker is None)
         isTaker = (makerOrTaker == 'taker')
         isMaker = (makerOrTaker == 'maker')
@@ -600,22 +615,34 @@ class theocean (Exchange):
         placeRequest = {}
         signedMatchingOrder = None
         signedTargetOrder = None
-        if (isMarket and isMakerOrTakerUndefined) or isTaker:
-            if isUnsignedMatchingOrderDefined:
+        if isUnsignedMatchingOrderDefined and isUnsignedTargetOrderDefined:
+            if isTaker:
                 signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
-                placeRequest = self.extend(placeRequest, {
-                    'signedMatchingOrder': signedMatchingOrder,
-                    'matchingOrderID': reserveResponse['matchingOrderID'],
-                })
-            elif isMarket or isTaker:
-                raise OrderNotFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order')
-        if (isLimit and isMakerOrTakerUndefined) or isMaker:
-            if isUnsignedTargetOrderDefined:
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+            elif isMaker:
                 signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
                 placeRequest['signedTargetOrder'] = signedTargetOrder
-            elif isMaker:
+            else:
+                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
+                placeRequest['signedTargetOrder'] = signedTargetOrder
+        elif isUnsignedMatchingOrderDefined:
+            if isMaker:
                 raise OrderImmediatelyFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a maker order')
-        if not isUnsignedMatchingOrderDefined and not isUnsignedTargetOrderDefined:
+            else:
+                signedMatchingOrder = self.signZeroExOrder(self.extend(unsignedMatchingOrder, makerAddress), self.privateKey)
+                placeRequest['signedMatchingOrder'] = signedMatchingOrder
+                placeRequest['matchingOrderID'] = reserveResponse['matchingOrderID']
+        elif isUnsignedTargetOrderDefined:
+            if isTaker or isMarket:
+                raise OrderNotFillable(self.id + ' createOrder() ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable as a taker order')
+            else:
+                signedTargetOrder = self.signZeroExOrder(self.extend(unsignedTargetOrder, makerAddress), self.privateKey)
+                placeRequest['signedTargetOrder'] = signedTargetOrder
+        else:
             raise OrderNotFillable(self.id + ' ' + type + ' order to ' + side + ' ' + symbol + ' is not fillable at the moment')
         placeMethod = method + 'Place'
         placeResponse = getattr(self, placeMethod)(self.extend(placeRequest, query))
@@ -698,7 +725,12 @@ class theocean (Exchange):
         #       }
         #     }
         #
-        return response
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.extend(self.parse_order(response['canceledOrder'], market), {
+            'status': 'canceled',
+        })
 
     def cancel_all_orders(self, params={}):
         response = self.privateDeleteOrders(params)
@@ -799,6 +831,8 @@ class theocean (Exchange):
         #                                   blockNumber: "8094822",
         #                                     timestamp: "1532261686"                                                          }  ]}
         #
+        #
+        #
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')
         if (id is None) and(zeroExOrder is not None):
@@ -817,15 +851,15 @@ class theocean (Exchange):
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
-        openAmount = self.fromWei(self.safe_float(order, 'openAmount'))
-        reservedAmount = self.fromWei(self.safe_float(order, 'reservedAmount'))
-        filledAmount = self.fromWei(self.safe_float(order, 'filledAmount'))
-        settledAmount = self.fromWei(self.safe_float(order, 'settledAmount'))
-        confirmedAmount = self.fromWei(self.safe_float(order, 'confirmedAmount'))
-        failedAmount = self.fromWei(self.safe_float(order, 'failedAmount'))
-        deadAmount = self.fromWei(self.safe_float(order, 'deadAmount'))
-        prunedAmount = self.fromWei(self.safe_float(order, 'prunedAmount'))
-        amount = self.fromWei(self.safe_float(order, 'amount'))
+        openAmount = self.fromWei(self.safe_string(order, 'openAmount'))
+        reservedAmount = self.fromWei(self.safe_string(order, 'reservedAmount'))
+        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'))
+        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'))
+        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'))
+        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'))
+        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'))
+        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'))
+        amount = self.fromWei(self.safe_string(order, 'amount'))
         if amount is None:
             amount = self.sum(openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount)
         filled = self.sum(filledAmount, settledAmount, confirmedAmount)
@@ -843,7 +877,7 @@ class theocean (Exchange):
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
                     if amount is None:
-                        amount = self.fromWei(self.safe_float(placeEvents[0], 'amount'))
+                        amount = self.fromWei(self.safe_string(placeEvents[0], 'amount'))
                     timestamp = self.safe_integer(placeEvents[0], 'timestamp')
                     timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
                 else:
@@ -877,7 +911,7 @@ class theocean (Exchange):
             if price is not None:
                 cost = filled * price
         fee = None
-        feeCost = self.fromWei(self.safe_float(order, 'feeAmount'))
+        feeCost = self.fromWei(self.safe_string(order, 'feeAmount'))
         if feeCost is not None:
             feeOption = self.safe_string(order, 'feeOption')
             feeCurrency = None
@@ -889,8 +923,8 @@ class theocean (Exchange):
             else:
                 raise NotSupported(self.id + ' encountered an unsupported order fee option: ' + feeOption)
             fee = {
-                'feeCost': feeCost,
-                'feeCurrency': feeCurrency,
+                'сost': feeCost,
+                'сurrency': feeCurrency,
             }
         result = {
             'info': order,
@@ -912,12 +946,20 @@ class theocean (Exchange):
         }
         return result
 
-    def fetch_order(self, id, symbol=None, params={}):
+    def fetch_open_order(self, id, symbol=None, params={}):
         method = self.options['fetchOrderMethod']
-        return getattr(self, method)(id, symbol, params)
+        return getattr(self, method)(id, symbol, self.extend({
+            'openAmount': 1,
+        }, params))
+
+    def fetch_closed_order(self, id, symbol=None, params={}):
+        method = self.options['fetchOrderMethod']
+        return getattr(self, method)(id, symbol, self.extend(params))
 
     def fetch_order_from_history(self, id, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, None, None, params)
+        orders = self.fetch_orders(symbol, None, None, self.extend({
+            'orderHash': id,
+        }, params))
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
             return ordersById[id]
@@ -979,7 +1021,7 @@ class theocean (Exchange):
             request['baseTokenAddress'] = market['baseId']
             request['quoteTokenAddress'] = market['quoteId']
         if limit is not None:
-            # request['start'] = 0  # offset
+            # request['start'] = 0  # the number of orders to offset from the end
             request['limit'] = limit
         response = self.privateGetUserHistory(self.extend(request, params))
         #
@@ -1008,6 +1050,16 @@ class theocean (Exchange):
         #
         return self.parse_orders(response, None, since, limit)
 
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({
+            'openAmount': 1,  # returns open orders with remaining openAmount >= 1
+        }, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders(symbol, since, limit, self.extend({
+            'openAmount': 0,  # returns closed orders with remaining openAmount == 0
+        }, params))
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -1034,6 +1086,14 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
+    def find_broadly_matched_key(self, map, broadString):
+        partialKeys = list(map.keys())
+        for i in range(0, len(partialKeys)):
+            partialKey = partialKeys[i]
+            if broadString.find(partialKey) >= 0:
+                return partialKey
+        return None
+
     def handle_errors(self, httpCode, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
@@ -1052,15 +1112,18 @@ class theocean (Exchange):
                 # {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
                 # {"message":"Order not found","errors":[]}
                 # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
+                # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
+                # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
                 #
                 feedback = self.id + ' ' + self.json(response)
-                exceptions = self.exceptions
-                if message in exceptions:
-                    raise exceptions[message](feedback)
-                else:
-                    if message.find('Orderbook exhausted for intent') >= 0:
-                        raise OrderNotFillable(feedback)
-                    raise ExchangeError(feedback)
+                exact = self.exceptions['exact']
+                if message in exact:
+                    raise exact[message](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.find_broadly_matched_key(broad, body)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

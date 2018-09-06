@@ -103,26 +103,31 @@ class bitflyer extends Exchange {
                 $spot = false;
             }
             $currencies = explode ('_', $id);
+            $baseId = null;
+            $quoteId = null;
             $base = null;
             $quote = null;
-            $symbol = $id;
             $numCurrencies = is_array ($currencies) ? count ($currencies) : 0;
             if ($numCurrencies === 1) {
-                $base = mb_substr ($symbol, 0, 3);
-                $quote = mb_substr ($symbol, 3, 6);
+                $baseId = mb_substr ($id, 0, 3);
+                $quoteId = mb_substr ($id, 3, 6);
             } else if ($numCurrencies === 2) {
-                $base = $currencies[0];
-                $quote = $currencies[1];
-                $symbol = $base . '/' . $quote;
+                $baseId = $currencies[0];
+                $quoteId = $currencies[1];
             } else {
-                $base = $currencies[1];
-                $quote = $currencies[2];
+                $baseId = $currencies[1];
+                $quoteId = $currencies[2];
             }
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'type' => $type,
                 'spot' => $spot,
                 'future' => $future,

@@ -592,7 +592,7 @@ class kraken extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ();
+        $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result');
         if ($balances === null)
             throw new ExchangeNotAvailable ($this->id . ' fetchBalance failed due to a malformed $response ' . $this->json ($response));

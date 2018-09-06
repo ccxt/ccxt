@@ -87,6 +87,7 @@ module.exports = class kuna extends acx {
                 let baseId = id.replace ('btc', '');
                 baseId = baseId.replace ('uah', '');
                 baseId = baseId.replace ('gbg', '');
+                baseId = baseId.replace ('eth', '');
                 if (baseId.length > 0) {
                     let baseIdLength = baseId.length - 0; // a transpiler workaround
                     let quoteId = id.slice (baseIdLength);
@@ -142,11 +143,13 @@ module.exports = class kuna extends acx {
         if (market)
             symbol = market['symbol'];
         let side = this.safeString (trade, 'side');
-        let sideMap = {
-            'ask': 'sell',
-            'bid': 'buy',
-        };
-        side = sideMap[side];
+        if (typeof side !== 'undefined') {
+            let sideMap = {
+                'ask': 'sell',
+                'bid': 'buy',
+            };
+            side = this.safeString (sideMap, side);
+        }
         let cost = this.safeFloat (trade, 'funds');
         let order = this.safeString (trade, 'order_id');
         return {

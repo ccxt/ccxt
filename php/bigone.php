@@ -13,7 +13,7 @@ class bigone extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bigone',
             'name' => 'BigONE',
-            'countries' => 'GB',
+            'countries' => array ( 'GB' ),
             'version' => 'v2',
             'has' => array (
                 'fetchTickers' => true,
@@ -22,6 +22,7 @@ class bigone extends Exchange {
                 'fetchDepositAddress' => true,
                 'withdraw' => true,
                 'fetchOHLCV' => false,
+                'createMarketOrder' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -239,7 +240,7 @@ class bigone extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetMarketsSymbolDepth (array_merge (array (
             'symbol' => $this->market_id($symbol),
@@ -273,7 +274,12 @@ class bigone extends Exchange {
             $symbol = $market['symbol'];
         }
         $cost = $this->cost_to_precision($symbol, $price * $amount);
-        $side = $node['taker_side'] === 'ASK' ? 'sell' : 'buy';
+        $side = null;
+        if ($node['taker_side'] === 'ASK') {
+            $side = 'sell';
+        } else {
+            $side = 'buy';
+        }
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -390,7 +396,7 @@ class bigone extends Exchange {
         //       "state" => "FILLED"
         //     }
         //
-        $id = $this->safe_string($order, 'order_id');
+        $id = $this->safe_string($order, 'id');
         if ($market === null) {
             $marketId = $this->safe_string($order, 'market_id');
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
@@ -406,7 +412,7 @@ class bigone extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->parse8601 ($order['created_at']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'inserted_at'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'filled_amount');
@@ -438,32 +444,33 @@ class bigone extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        // NAME      DESCRIPTION       EXAMPLE                              REQUIRE
-        // market_id $market uuid       d2185614-50c3-4588-b146-b8afe7534da6 true
-        // $side      order $side one of "ASK"/"BID"                          true
-        // $price     order $price       string                               true
-        // $amount    order $amount      string, must larger than 0           true
-        //
-        //     {
-        //       "id" => 10,
-        //       "market_uuid" => "BTC-EOS",
-        //       "$price" => "10.00",
-        //       "$amount" => "10.00",
-        //       "filled_amount" => "9.0",
-        //       "avg_deal_price" => "12.0",
-        //       "$side" => "ASK",
-        //       "state" => "FILLED"
-        //     }
-        //
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostOrders (array_merge (array (
-            'order_market' => $market['id'],
-            'order_side' => ($side === 'buy' ? 'BID' : 'ASK'),
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price),
-        ), $params));
-        return $this->parse_order($response, $market);
+        $side = ($side === 'buy') ? 'BID' : 'ASK';
+        $request = array (
+            'market_id' => $market['id'], // $market uuid d2185614-50c3-4588-b146-b8afe7534da6, required
+            'side' => $side, // $order $side one of "ASK"/"BID", required
+            'amount' => $this->amount_to_precision($symbol, $amount), // $order $amount, string, required
+            'price' => $this->price_to_precision($symbol, $price), // $order $price, string, required
+        );
+        $response = $this->privatePostOrders (array_merge ($request, $params));
+        //
+        //     {
+        //       "data":
+        //         {
+        //           "id" => 10,
+        //           "market_uuid" => "BTC-EOS",
+        //           "$price" => "10.00",
+        //           "$amount" => "10.00",
+        //           "filled_amount" => "9.0",
+        //           "avg_deal_price" => "12.0",
+        //           "$side" => "ASK",
+        //           "state" => "FILLED"
+        //         }
+        //     }
+        //
+        $order = $this->safe_value($response, 'data');
+        return $this->parse_order($order, $market);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -472,17 +479,21 @@ class bigone extends Exchange {
         $response = $this->privatePostOrdersOrderIdCancel (array_merge ($request, $params));
         //
         //     {
-        //       "$id" => 10,
-        //       "market_uuid" => "BTC-EOS",
-        //       "price" => "10.00",
-        //       "amount" => "10.00",
-        //       "filled_amount" => "9.0",
-        //       "avg_deal_price" => "12.0",
-        //       "side" => "ASK",
-        //       "state" => "FILLED"
+        //       "data":
+        //         {
+        //           "$id" => 10,
+        //           "market_uuid" => "BTC-EOS",
+        //           "price" => "10.00",
+        //           "amount" => "10.00",
+        //           "filled_amount" => "9.0",
+        //           "avg_deal_price" => "12.0",
+        //           "side" => "ASK",
+        //           "state" => "FILLED"
+        //         }
         //     }
         //
-        return $this->parse_order($response);
+        $order = $response['data'];
+        return $this->parse_order($order);
     }
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
@@ -550,35 +561,47 @@ class bigone extends Exchange {
         $response = $this->privateGetOrders (array_merge ($request, $params));
         //
         //     {
-        //       "edges" => array (
-        //         {
-        //           "node" => array (
-        //             "id" => 10,
-        //             "market_id" => "ETH-BTC",
-        //             "price" => "10.00",
-        //             "amount" => "10.00",
-        //             "filled_amount" => "9.0",
-        //             "avg_deal_price" => "12.0",
-        //             "side" => "ASK",
-        //             "state" => "FILLED"
-        //           ),
-        //           "cursor" => "dGVzdGN1cmVzZQo="
-        //         }
-        //       ),
-        //       "page_info" => {
-        //         "end_cursor" => "dGVzdGN1cmVzZQo=",
-        //         "start_cursor" => "dGVzdGN1cmVzZQo=",
-        //         "has_next_page" => true,
-        //         "has_previous_page" => false
-        //       }
+        //          "$data" => {
+        //              "edges" => array (
+        //                  {
+        //                      "node" => array (
+        //                          "id" => 10,
+        //                          "market_id" => "ETH-BTC",
+        //                          "price" => "10.00",
+        //                          "amount" => "10.00",
+        //                          "filled_amount" => "9.0",
+        //                          "avg_deal_price" => "12.0",
+        //                          "side" => "ASK",
+        //                          "state" => "FILLED"
+        //                      ),
+        //                      "cursor" => "dGVzdGN1cmVzZQo="
+        //                  }
+        //              ),
+        //              "page_info" => {
+        //                  "end_cursor" => "dGVzdGN1cmVzZQo=",
+        //                  "start_cursor" => "dGVzdGN1cmVzZQo=",
+        //                  "has_next_page" => true,
+        //                  "has_previous_page" => false
+        //              }
+        //          }
         //     }
         //
-        $orders = $this->safe_value($response, 'edges', array ());
+        $data = $this->safe_value($response, 'data', array ());
+        $orders = $this->safe_value($data, 'edges', array ());
         $result = array ();
         for ($i = 0; $i < count ($orders); $i++) {
             $result[] = $this->parse_order($orders[$i]['node'], $market);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'PENDING' => 'open',
+            'FILLED' => 'closed',
+            'CANCELED' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -637,7 +660,10 @@ class bigone extends Exchange {
             $data = $this->safe_value($response, 'data');
             if ($error !== null || $errors !== null || $data === null) {
                 $feedback = $this->id . ' ' . $this->json ($response);
-                $code = $this->safe_integer($error, 'code');
+                $code = null;
+                if ($error !== null) {
+                    $code = $this->safe_integer($error, 'code');
+                }
                 $exceptions = $this->exceptions['codes'];
                 if ($errors !== null) {
                     $code = $this->safe_string($errors, 'detail');

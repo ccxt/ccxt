@@ -276,6 +276,7 @@ class binance extends Exchange {
                 '-1021' => '\\ccxt\\InvalidNonce', // 'your time is ahead of server'
                 '-1022' => '\\ccxt\\AuthenticationError', // array ("code":-1022,"msg":"Signature for this request is not valid.")
                 '-1100' => '\\ccxt\\InvalidOrder', // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1104' => '\\ccxt\\ExchangeError', // Not all sent parameters were read, read 8 parameters but was sent 9
                 '-1128' => '\\ccxt\\ExchangeError', // array ("code":-1128,"msg":"Combination of optional parameters invalid.")
                 '-2010' => '\\ccxt\\ExchangeError', // generic error code for createOrder -> 'Account has insufficient balance for requested action.', array ("code":-2010,"msg":"Rest API trading is not enabled."), etc...
                 '-2011' => '\\ccxt\\OrderNotFound', // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
@@ -539,11 +540,19 @@ class binance extends Exchange {
         $takerOrMaker = null;
         if (is_array ($trade) && array_key_exists ('isMaker', $trade))
             $takerOrMaker = $trade['isMaker'] ? 'maker' : 'taker';
+        $symbol = null;
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'symbol');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'id' => $id,
             'order' => $order,
             'type' => null,
@@ -612,7 +621,7 @@ class binance extends Exchange {
         $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty');
         $remaining = null;
-        $cost = null;
+        $cost = $this->safe_float($order, 'cummulativeQuoteQty');
         if ($filled !== null) {
             if ($amount !== null) {
                 $remaining = $amount - $filled;
@@ -622,13 +631,25 @@ class binance extends Exchange {
                 $remaining = max ($remaining, 0.0);
             }
             if ($price !== null) {
-                $cost = $price * $filled;
+                if ($cost === null) {
+                    $cost = $price * $filled;
+                }
             }
         }
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string($order, 'type');
-        if ($type !== null)
+        if ($type !== null) {
             $type = strtolower ($type);
+            if ($type === 'market') {
+                if ($price === 0.0) {
+                    if (($cost !== null) && ($filled !== null)) {
+                        if (($cost > 0) && ($filled > 0)) {
+                            $price = $cost / $filled;
+                        }
+                    }
+                }
+            }
+        }
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
             $side = strtolower ($side);
@@ -960,11 +981,11 @@ class binance extends Exchange {
                         }
                         throw new $exceptions[$error] ($this->id . ' ' . $body);
                     } else {
-                        throw new ExchangeError ($this->id . ' => unknown $error $code => ' . $body . ' ' . $error);
+                        throw new ExchangeError ($this->id . ' ' . $body);
                     }
                 }
                 if (!$success) {
-                    throw new ExchangeError ($this->id . ' => $success value false => ' . $body);
+                    throw new ExchangeError ($this->id . ' ' . $body);
                 }
             }
         }

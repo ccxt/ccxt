@@ -31,7 +31,7 @@ class fcoin (Exchange):
         return self.deep_extend(super(fcoin, self).describe(), {
             'id': 'fcoin',
             'name': 'FCoin',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 2000,
             'userAgent': self.userAgents['chrome39'],
             'version': 'v2',
@@ -432,7 +432,7 @@ class fcoin (Exchange):
         return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = self.fetch_orders(symbol, since, limit, {'states': 'submitted'})
+        result = self.fetch_orders(symbol, since, limit, {'states': 'submitted,partial_filled'})
         return result
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -444,7 +444,7 @@ class fcoin (Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'states': 'submitted',
+            'states': 'submitted,partial_filled,partial_canceled,filled,canceled',
         }
         if limit is not None:
             request['limit'] = limit
@@ -492,7 +492,7 @@ class fcoin (Exchange):
             query = self.keysort(query)
             if method == 'GET':
                 if query:
-                    url += '?' + self.urlencode(query)
+                    url += '?' + self.rawencode(query)
             # HTTP_METHOD + HTTP_REQUEST_URI + TIMESTAMP + POST_BODY
             auth = method + url + timestamp
             if method == 'POST':

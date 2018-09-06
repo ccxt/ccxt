@@ -285,6 +285,7 @@ class binance (Exchange):
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
                 '-1022': AuthenticationError,  # {"code":-1022,"msg":"Signature for self request is not valid."}
                 '-1100': InvalidOrder,  # createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1104': ExchangeError,  # Not all sent parameters were read, read 8 parameters but was sent 9
                 '-1128': ExchangeError,  # {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError,  # generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound,  # cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
@@ -523,11 +524,17 @@ class binance (Exchange):
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(trade, 'symbol')
+            market = self.safe_value(self.markets_by_id, marketId)
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': None,
@@ -592,7 +599,7 @@ class binance (Exchange):
         amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty')
         remaining = None
-        cost = None
+        cost = self.safe_float(order, 'cummulativeQuoteQty')
         if filled is not None:
             if amount is not None:
                 remaining = amount - filled
@@ -600,11 +607,17 @@ class binance (Exchange):
                     remaining = float(self.amount_to_precision(symbol, remaining))
                 remaining = max(remaining, 0.0)
             if price is not None:
-                cost = price * filled
+                if cost is None:
+                    cost = price * filled
         id = self.safe_string(order, 'orderId')
         type = self.safe_string(order, 'type')
         if type is not None:
             type = type.lower()
+            if type == 'market':
+                if price == 0.0:
+                    if (cost is not None) and(filled is not None):
+                        if (cost > 0) and(filled > 0):
+                            price = cost / filled
         side = self.safe_string(order, 'side')
         if side is not None:
             side = side.lower()
@@ -902,9 +915,9 @@ class binance (Exchange):
                             raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
-                        raise ExchangeError(self.id + ': unknown error code: ' + body + ' ' + error)
+                        raise ExchangeError(self.id + ' ' + body)
                 if not success:
-                    raise ExchangeError(self.id + ': success value False: ' + body)
+                    raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

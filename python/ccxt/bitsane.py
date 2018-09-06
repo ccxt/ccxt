@@ -236,7 +236,7 @@ class bitsane (Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, params={}):
+    def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         response = self.publicGetOrderbook(self.extend({
             'pair': self.market_id(symbol),

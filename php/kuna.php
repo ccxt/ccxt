@@ -88,6 +88,7 @@ class kuna extends acx {
                 $baseId = str_replace ('btc', '', $id);
                 $baseId = str_replace ('uah', '', $baseId);
                 $baseId = str_replace ('gbg', '', $baseId);
+                $baseId = str_replace ('eth', '', $baseId);
                 if (strlen ($baseId) > 0) {
                     $baseIdLength = strlen ($baseId) - 0; // a transpiler workaround
                     $quoteId = mb_substr ($id, $baseIdLength);
@@ -143,11 +144,13 @@ class kuna extends acx {
         if ($market)
             $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'side');
-        $sideMap = array (
-            'ask' => 'sell',
-            'bid' => 'buy',
-        );
-        $side = $sideMap[$side];
+        if ($side !== null) {
+            $sideMap = array (
+                'ask' => 'sell',
+                'bid' => 'buy',
+            );
+            $side = $this->safe_string($sideMap, $side);
+        }
         $cost = $this->safe_float($trade, 'funds');
         $order = $this->safe_string($trade, 'order_id');
         return array (

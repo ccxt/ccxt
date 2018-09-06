@@ -416,7 +416,7 @@ class gatecoin extends Exchange {
             $ohlcv['open'],
             $ohlcv['high'],
             $ohlcv['low'],
-            null,
+            $ohlcv['last'],
             $ohlcv['volume'],
         ];
     }

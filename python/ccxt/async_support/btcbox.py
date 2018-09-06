@@ -29,7 +29,7 @@ class btcbox (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
-                'fetchTickers': True,
+                'fetchTickers': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31275803-4df755a8-aaa1-11e7-9abb-11ec2fad9f2d.jpg',
@@ -43,7 +43,6 @@ class btcbox (Exchange):
                         'depth',
                         'orders',
                         'ticker',
-                        'allticker',
                     ],
                 },
                 'private': {
@@ -58,7 +57,10 @@ class btcbox (Exchange):
                 },
             },
             'markets': {
-                'BTC/JPY': {'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},
+                'BTC/JPY': {'id': 'BTC/JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy'},
+                'ETH/JPY': {'id': 'ETH/JPY', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy'},
+                'LTC/JPY': {'id': 'LTC/JPY', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy'},
+                'BCH/JPY': {'id': 'BCH/JPY', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy'},
             },
             'exceptions': {
                 '104': AuthenticationError,
@@ -101,7 +103,7 @@ class btcbox (Exchange):
         request = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
-            request['coin'] = market['id']
+            request['coin'] = market['baseId']
         orderbook = await self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
@@ -134,26 +136,13 @@ class btcbox (Exchange):
             'info': ticker,
         }
 
-    async def fetch_tickers(self, symbols=None, params={}):
-        await self.load_markets()
-        tickers = await self.publicGetAllticker(params)
-        ids = list(tickers.keys())
-        result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
-        return result
-
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
         request = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
-            request['coin'] = market['id']
+            request['coin'] = market['baseId']
         ticker = await self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
@@ -178,7 +167,7 @@ class btcbox (Exchange):
         request = {}
         numSymbols = len(self.symbols)
         if numSymbols > 1:
-            request['coin'] = market['id']
+            request['coin'] = market['baseId']
         response = await self.publicGetOrders(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -192,7 +181,7 @@ class btcbox (Exchange):
         }
         numSymbols = len(self.symbols)
         if numSymbols > 1:
-            request['coin'] = market['id']
+            request['coin'] = market['baseId']
         response = await self.privatePostTradeAdd(self.extend(request, params))
         return {
             'info': response,

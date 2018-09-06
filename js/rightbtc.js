@@ -33,8 +33,8 @@ module.exports = class rightbtc extends Exchange {
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 ],
                 // eslint-disable-next-line no-useless-escape
                 // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
@@ -42,7 +42,7 @@ module.exports = class rightbtc extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'getAssetsTradingPairs/zh',
+                        // 'getAssetsTradingPairs/zh', // 404
                         'trading_pairs',
                         'ticker/{trading_pair}',
                         'tickers',
@@ -134,8 +134,8 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetTradingPairs ();
-        let zh = await this.publicGetGetAssetsTradingPairsZh ();
-        let markets = this.extend (zh['result'], response['status']['message']);
+        // let zh = await this.publicGetGetAssetsTradingPairsZh ();
+        let markets = this.extend (response['status']['message']);
         let marketIds = Object.keys (markets);
         let result = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -246,11 +246,17 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepthTradingPair (this.extend ({
+        let request = {
             'trading_pair': this.marketId (symbol),
-        }, params));
+        };
+        let method = 'publicGetDepthTradingPair';
+        if (typeof limit !== 'undefined') {
+            method += 'Count';
+            request['count'] = limit;
+        }
+        let response = await this[method] (this.extend (request, params));
         let bidsasks = {};
         let types = ['bid', 'ask'];
         for (let ti = 0; ti < types.length; ti++) {

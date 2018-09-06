@@ -294,6 +294,26 @@ class btcmarkets extends Exchange {
         return $this->cancel_orders (array ( $id ));
     }
 
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        $market = $this->markets[$symbol];
+        $rate = $market[$takerOrMaker];
+        $currency = null;
+        $cost = null;
+        if ($market['quote'] === 'AUD') {
+            $currency = $market['quote'];
+            $cost = floatval ($this->cost_to_precision($symbol, $amount * $price));
+        } else {
+            $currency = $market['base'];
+            $cost = floatval ($this->amount_to_precision($symbol, $amount));
+        }
+        return array (
+            'type' => $takerOrMaker,
+            'currency' => $currency,
+            'rate' => $rate,
+            'cost' => floatval ($this->fee_to_precision($symbol, $rate * $cost)),
+        );
+    }
+
     public function parse_my_trade ($trade, $market) {
         $multiplier = 100000000;
         $timestamp = $trade['creationTime'];

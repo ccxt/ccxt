@@ -25,7 +25,7 @@ class btcalpha (Exchange):
         return self.deep_extend(super(btcalpha, self).describe(), {
             'id': 'btcalpha',
             'name': 'BTC-Alpha',
-            'countries': 'US',
+            'countries': ['US'],
             'version': 'v1',
             'has': {
                 'fetchTicker': False,

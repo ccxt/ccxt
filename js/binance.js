@@ -275,6 +275,7 @@ module.exports = class binance extends Exchange {
                 '-1021': InvalidNonce, // 'your time is ahead of server'
                 '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
                 '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
+                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
                 '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
                 '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
                 '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
@@ -538,11 +539,19 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = this.safeString (trade, 'symbol');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': id,
             'order': order,
             'type': undefined,
@@ -611,7 +620,7 @@ module.exports = class binance extends Exchange {
         let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = undefined;
+        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
         if (typeof filled !== 'undefined') {
             if (typeof amount !== 'undefined') {
                 remaining = amount - filled;
@@ -621,13 +630,25 @@ module.exports = class binance extends Exchange {
                 remaining = Math.max (remaining, 0.0);
             }
             if (typeof price !== 'undefined') {
-                cost = price * filled;
+                if (typeof cost === 'undefined') {
+                    cost = price * filled;
+                }
             }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
-        if (typeof type !== 'undefined')
+        if (typeof type !== 'undefined') {
             type = type.toLowerCase ();
+            if (type === 'market') {
+                if (price === 0.0) {
+                    if ((typeof cost !== 'undefined') && (typeof filled !== 'undefined')) {
+                        if ((cost > 0) && (filled > 0)) {
+                            price = cost / filled;
+                        }
+                    }
+                }
+            }
+        }
         let side = this.safeString (order, 'side');
         if (typeof side !== 'undefined')
             side = side.toLowerCase ();
@@ -959,11 +980,11 @@ module.exports = class binance extends Exchange {
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {
-                        throw new ExchangeError (this.id + ': unknown error code: ' + body + ' ' + error);
+                        throw new ExchangeError (this.id + ' ' + body);
                     }
                 }
                 if (!success) {
-                    throw new ExchangeError (this.id + ': success value false: ' + body);
+                    throw new ExchangeError (this.id + ' ' + body);
                 }
             }
         }

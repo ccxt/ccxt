@@ -98,10 +98,12 @@ module.exports = class poloniex extends Exchange {
                     ],
                 },
             },
+            // Fees are tier-based. More info: https://poloniex.com/fees/
+            // Rates below are highest possible.
             'fees': {
                 'trading': {
-                    'maker': 0.0015,
-                    'taker': 0.0025,
+                    'maker': 0.001,
+                    'taker': 0.002,
                 },
                 'funding': {},
             },
