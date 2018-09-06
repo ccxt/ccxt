@@ -92,6 +92,28 @@ module.exports = class bcex extends Exchange {
         });
     }
 
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.publicPostApiOrderTicker (this.extend (request, params));
+        //
+        //     {  code:    0,
+        //         msg:   "获取牌价信息成功",
+        //        data: {         high:  0.03721392,
+        //                         low:  0.03335362,
+        //                         buy: "0.03525757",
+        //                        sell: "0.03531160",
+        //                        last:  0.0352634,
+        //                         vol: "184742.4176",
+        //                   min_trade: "0.01500000",
+        //                   max_trade: "100.00000000",
+        //                number_float: "4",
+        //                 price_float: "8"             } } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
     parseTradingLimits (limits, symbol = undefined, params = {}) {
         //
         //  {         high:  0.03721392,
