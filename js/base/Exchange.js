@@ -995,13 +995,9 @@ module.exports = class Exchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 let response = await this.fetchTradingLimits (symbols);
-                let limits = response['limits'];
-                let keys = Object.keys (limits);
-                for (let i = 0; i < keys.length; i++) {
-                    let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
-                    });
+                for (let i = 0; i < symbols.length; i++) {
+                    let symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
