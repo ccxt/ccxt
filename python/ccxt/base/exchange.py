@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.230'
+__version__ = '1.17.239'
 
 # -----------------------------------------------------------------------------
 
@@ -854,6 +854,10 @@ class Exchange(object):
         return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
+    def parse_if_json_encoded_object(input):
+        return json.loads(input) if Exchange.is_json_encoded_object(input) else input
+
+    @staticmethod
     def is_json_encoded_object(input):
         return (isinstance(input, basestring) and
                 (len(input) >= 2) and
@@ -938,6 +942,9 @@ class Exchange(object):
 
     def fee_to_precision(self, symbol, fee):
         return self.decimalToPrecision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+
+    def currency_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
 
     def set_markets(self, markets, currencies=None):
         values = list(markets.values()) if type(markets) is dict else markets
@@ -1094,6 +1101,15 @@ class Exchange(object):
     def fetch_order_trades(self, id, symbol=None, params={}):
         self.raise_error(NotSupported, details='fetch_order_trades() is not implemented yet')
 
+    def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_transactions() is not implemented yet')
+
+    def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_deposits() is not implemented yet')
+
+    def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
+        self.raise_error(NotSupported, details='fetch_withdrawals() is not implemented yet')
+
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
 
@@ -1171,13 +1187,9 @@ class Exchange(object):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
                 response = self.fetch_trading_limits(symbols)
-                limits = response['limits']
-                keys = list(limits.keys())
-                for i in range(0, len(keys)):
-                    symbol = keys[i]
-                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
-                        'limits': limits[symbol],
-                    })
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 

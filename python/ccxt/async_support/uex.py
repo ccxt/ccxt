@@ -92,8 +92,8 @@ class uex (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -168,9 +168,6 @@ class uex (Exchange):
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
 
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
-
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         key = 'quote'
@@ -184,7 +181,7 @@ class uex (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], cost)),
+            'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
     async def fetch_markets(self):

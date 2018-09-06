@@ -566,6 +566,10 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
+    parseIfJsonEncodedObject (input) {
+        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
+    }
+
     isJsonEncodedObject (object) {
         return ((typeof object === 'string') &&
                 (object.length >= 2) &&
@@ -750,6 +754,18 @@ module.exports = class Exchange {
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    }
+
+    fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+    }
+
+    fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+    }
+
+    fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
     }
 
     fetchCurrencies (params = {}) {
@@ -992,13 +1008,9 @@ module.exports = class Exchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 let response = await this.fetchTradingLimits (symbols);
-                let limits = response['limits'];
-                let keys = Object.keys (limits);
-                for (let i = 0; i < keys.length; i++) {
-                    let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
-                    });
+                for (let i = 0; i < symbols.length; i++) {
+                    let symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
@@ -1164,6 +1176,10 @@ module.exports = class Exchange {
 
     feeToPrecision (symbol, fee) {
         return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+    }
+
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

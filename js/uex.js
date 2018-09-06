@@ -76,8 +76,8 @@ module.exports = class uex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -144,10 +144,6 @@ module.exports = class uex extends Exchange {
         });
     }
 
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let key = 'quote';
@@ -162,7 +158,7 @@ module.exports = class uex extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 

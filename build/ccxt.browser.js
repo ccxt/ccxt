@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.230'
+const version = '1.17.239'
 
 Exchange.ccxtVersion = version
 
@@ -1633,7 +1633,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const { DECIMAL_PLACES } = functions.precisionConstants
+const { DECIMAL_PLACES, ROUND } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -2161,6 +2161,10 @@ module.exports = class Exchange {
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }
 
+    parseIfJsonEncodedObject (input) {
+        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
+    }
+
     isJsonEncodedObject (object) {
         return ((typeof object === 'string') &&
                 (object.length >= 2) &&
@@ -2345,6 +2349,18 @@ module.exports = class Exchange {
 
     fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
+    }
+
+    fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+    }
+
+    fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+    }
+
+    fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
     }
 
     fetchCurrencies (params = {}) {
@@ -2587,13 +2603,9 @@ module.exports = class Exchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 let response = await this.fetchTradingLimits (symbols);
-                let limits = response['limits'];
-                let keys = Object.keys (limits);
-                for (let i = 0; i < keys.length; i++) {
-                    let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
-                    });
+                for (let i = 0; i < symbols.length; i++) {
+                    let symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
@@ -2763,6 +2775,10 @@ module.exports = class Exchange {
 
     feeToPrecision (symbol, fee) {
         return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+    }
+
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -4005,7 +4021,7 @@ module.exports =
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -4026,7 +4042,9 @@ module.exports = class bcex extends Exchange {
                 'fetchTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchClosedOrders': 'emulated',
                 'fetchOpenOrders': true,
+                'fetchTradingLimits': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43362240-21c26622-92ee-11e8-9464-5801ec526d77.jpg',
@@ -4069,8 +4087,8 @@ module.exports = class bcex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.2 / 100,
+                    'buy': 0.0,
+                    'sell': 0.2 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -4086,8 +4104,203 @@ module.exports = class bcex extends Exchange {
                 '该币不存在,非法操作': ExchangeError, // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                 '公钥不合法': AuthenticationError, // { code: 1, msg: '公钥不合法' } - wrong public key
                 '您的可用余额不足': InsufficientFunds, // { code: 1, msg: '您的可用余额不足' } - your available balance is insufficient
+                '您的btc不足': InsufficientFunds, // { code: 1, msg: '您的btc不足' } - your btc is insufficient
+                '参数非法': InvalidOrder, // {'code': 1, 'msg': '参数非法'} - 'Parameter illegal'
+                '订单信息不存在': OrderNotFound, // {'code': 1, 'msg': '订单信息不存在'} - 'Order information does not exist'
+            },
+            'options': {
+                'limits': {
+                    // hardcoding is deprecated, using these predefined values is not recommended, use loadTradingLimits instead
+                    'AFC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 6, 'max': 120000 }}},
+                    'AFC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 6, 'max': 120000 }}},
+                    'AFT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 15, 'max': 300000 }}},
+                    'AICC/CNET': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 5, 'max': 50000 }}},
+                    'AIDOC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 5, 'max': 100000 }}},
+                    'AISI/ETH': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.001, 'max': 500 }}},
+                    'AIT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 20, 'max': 400000 }}},
+                    'ANS/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.1, 'max': 500 }}},
+                    'ANS/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.1, 'max': 1000 }}},
+                    'ARC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 60, 'max': 600000 }}},
+                    'AXF/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 100, 'max': 1000000 }}},
+                    'BASH/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 250, 'max': 3000000 }}},
+                    'BATT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 60, 'max': 1500000 }}},
+                    'BCD/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 0.3, 'max': 7000 }}},
+                    'BHPC/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 2, 'max': 70000 }}},
+                    'BHPC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 2, 'max': 60000 }}},
+                    'BOPO/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 100, 'max': 2000000 }}},
+                    'BOPO/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 100, 'max': 10000000 }}},
+                    'BTC/CKUSD': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.001, 'max': 10 }}},
+                    'BTC/CNET': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.0005, 'max': 5 }}},
+                    'BTC/USDT': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.0002, 'max': 4 }}},
+                    'BTE/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 25, 'max': 250000 }}},
+                    'BU/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 20, 'max': 400000 }}},
+                    'CIC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 3000, 'max': 30000000 }}},
+                    'CIT/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 4, 'max': 40000 }}},
+                    'CIT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 4, 'max': 40000 }}},
+                    'CMT/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 5, 'max': 2500000 }}},
+                    'CNET/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 12, 'max': 120000 }}},
+                    'CNMC/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 4, 'max': 50000 }}},
+                    'CTC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 5, 'max': 550000 }}},
+                    'CZR/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 12, 'max': 500000 }}},
+                    'DCON/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 8, 'max': 300000 }}},
+                    'DCT/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 2, 'max': 40000 }}},
+                    'DCT/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 2, 'max': 2000 }}},
+                    'DOGE/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 3000, 'max': 14000000 }}},
+                    'DOGE/CKUSD': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 500, 'max': 2000000 }}},
+                    'DRCT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 16, 'max': 190000 }}},
+                    'ELA/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 0.02, 'max': 500 }}},
+                    'ELF/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 0.1, 'max': 100000 }}},
+                    'ELF/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 0.01, 'max': 100000 }}},
+                    'EOS/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.5, 'max': 5000 }}},
+                    'EOS/CNET': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 2.5, 'max': 30000 }}},
+                    'EOS/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 0.18, 'max': 1800 }}},
+                    'ETC/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.2, 'max': 2500 }}},
+                    'ETC/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.2, 'max': 2500 }}},
+                    'ETF/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 7, 'max': 150000 }}},
+                    'ETH/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.015, 'max': 100 }}},
+                    'ETH/CKUSD': { 'precision': { 'amount': 4, 'price': 4 }, 'limits': { 'amount': { 'min': 0.005, 'max': 100 }}},
+                    'ETH/USDT': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.005, 'max': 100 }}},
+                    'FCT/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.24, 'max': 1000 }}},
+                    'FCT/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.24, 'max': 1000 }}},
+                    'GAME/CNET': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 1, 'max': 10000 }}},
+                    'GOOC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 200, 'max': 2000000 }}},
+                    'GP/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 600, 'max': 6000000 }}},
+                    'HSC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 1000, 'max': 20000000 }}},
+                    'IFISH/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 300, 'max': 8000000 }}},
+                    'IIC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 50, 'max': 4000000 }}},
+                    'IMOS/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 15, 'max': 300000 }}},
+                    'JC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 300, 'max': 3000000 }}},
+                    'LBTC/BTC': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 0.1, 'max': 3000 }}},
+                    'LEC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 500, 'max': 5000000 }}},
+                    'LKY/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 10, 'max': 70000 }}},
+                    'LKY/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 10, 'max': 100000 }}},
+                    'LMC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 25, 'max': 250000 }}},
+                    'LSK/CNET': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.3, 'max': 3000 }}},
+                    'LTC/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': 500 }}},
+                    'LTC/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.01, 'max': 500 }}},
+                    'LTC/USDT': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.02, 'max': 450 }}},
+                    'MC/CNET': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 10000, 'max': 100000000 }}},
+                    'MCC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 30, 'max': 350000 }}},
+                    'MOC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 25, 'max': 600000 }}},
+                    'MRYC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 300, 'max': 3000000 }}},
+                    'MT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 200, 'max': 6000000 }}},
+                    'MXI/CNET': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 5000, 'max': 60000000 }}},
+                    'NAI/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 10, 'max': 100000 }}},
+                    'NAS/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.2, 'max': 15000 }}},
+                    'NAS/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.5, 'max': 5000 }}},
+                    'NEWOS/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 65, 'max': 700000 }}},
+                    'NKN/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 3, 'max': 350000 }}},
+                    'NTK/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 2, 'max': 30000 }}},
+                    'ONT/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 0.2, 'max': 2000 }}},
+                    'ONT/ETH': { 'precision': { 'amount': 3, 'price': 8 }, 'limits': { 'amount': { 'min': 0.01, 'max': 1000 }}},
+                    'PNT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 80, 'max': 800000 }}},
+                    'PST/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 5, 'max': 100000 }}},
+                    'PTT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 450, 'max': 10000000 }}},
+                    'QTUM/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.4, 'max': 2800 }}},
+                    'QTUM/CKUSD': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 0.1, 'max': 1000 }}},
+                    'RATING/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 500, 'max': 10000000 }}},
+                    'RHC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 1000, 'max': 10000000 }}},
+                    'SDA/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 20, 'max': 500000 }}},
+                    'SDD/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 10, 'max': 100000 }}},
+                    'SHC/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 250, 'max': 2500000 }}},
+                    'SHE/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 100, 'max': 5000000 }}},
+                    'SMC/CNET': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 1000, 'max': 10000000 }}},
+                    'SOP/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 50, 'max': 1000000 }}},
+                    'TAC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 35, 'max': 800000 }}},
+                    'TIP/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 7, 'max': 200000 }}},
+                    'TKT/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 40, 'max': 400000 }}},
+                    'TLC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 500, 'max': 10000000 }}},
+                    'TNC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 10, 'max': 110000 }}},
+                    'TUB/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 200, 'max': 8000000 }}},
+                    'UC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 100, 'max': 3000000 }}},
+                    'UDB/CNET': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 2000, 'max': 40000000 }}},
+                    'UIC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 5, 'max': 150000 }}},
+                    'VAAC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 10, 'max': 250000 }}},
+                    'VPN/CNET': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 200, 'max': 2000000 }}},
+                    'VSC/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 30, 'max': 650000 }}},
+                    'WAVES/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 0.15, 'max': 1500 }}},
+                    'WDNA/ETH': { 'precision': { 'amount': 2, 'price': 8 }, 'limits': { 'amount': { 'min': 100, 'max': 250000 }}},
+                    'WIC/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 3, 'max': 30000 }}},
+                    'XAS/CNET': { 'precision': { 'amount': 2, 'price': 2 }, 'limits': { 'amount': { 'min': 2.5, 'max': 25000 }}},
+                    'XLM/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 10, 'max': 300000 }}},
+                    'XLM/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 1, 'max': 300000 }}},
+                    'XLM/USDT': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 5, 'max': 150000 }}},
+                    'XRP/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 24, 'max': 100000 }}},
+                    'XRP/CKUSD': { 'precision': { 'amount': 2, 'price': 3 }, 'limits': { 'amount': { 'min': 5, 'max': 50000 }}},
+                    'YBCT/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 15, 'max': 200000 }}},
+                    'YBCT/CKUSD': { 'precision': { 'amount': 2, 'price': 4 }, 'limits': { 'amount': { 'min': 10, 'max': 200000 }}},
+                    'YBY/CNET': { 'precision': { 'amount': 2, 'price': 6 }, 'limits': { 'amount': { 'min': 25000, 'max': 250000000 }}},
+                    'ZEC/BTC': { 'precision': { 'amount': 4, 'price': 8 }, 'limits': { 'amount': { 'min': 0.02, 'max': 100 }}},
+                    'ZEC/CKUSD': { 'precision': { 'amount': 4, 'price': 2 }, 'limits': { 'amount': { 'min': 0.02, 'max': 100 }}},
+                },
             },
         });
+    }
+
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
+        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
+        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        if (typeof symbols === 'undefined') {
+            symbols = this.symbols;
+        }
+        let result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            let symbol = symbols[i];
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
+    }
+
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.publicPostApiOrderTicker (this.extend (request, params));
+        //
+        //     {  code:    0,
+        //         msg:   "获取牌价信息成功",
+        //        data: {         high:  0.03721392,
+        //                         low:  0.03335362,
+        //                         buy: "0.03525757",
+        //                        sell: "0.03531160",
+        //                        last:  0.0352634,
+        //                         vol: "184742.4176",
+        //                   min_trade: "0.01500000",
+        //                   max_trade: "100.00000000",
+        //                number_float: "4",
+        //                 price_float: "8"             } } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //  {         high:  0.03721392,
+        //             low:  0.03335362,
+        //             buy: "0.03525757",
+        //            sell: "0.03531160",
+        //            last:  0.0352634,
+        //             vol: "184742.4176",
+        //       min_trade: "0.01500000",
+        //       max_trade: "100.00000000",
+        //    number_float: "4",
+        //     price_float: "8"             }
+        //
+        return {
+            'info': limits,
+            'precision': {
+                'amount': this.safeInteger (limits, 'number_float'),
+                'price': this.safeInteger (limits, 'price_float'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'min_trade'),
+                    'max': this.safeFloat (limits, 'max_trade'),
+                },
+            },
+        };
     }
 
     async fetchMarkets () {
@@ -4108,25 +4321,8 @@ module.exports = class bcex extends Exchange {
                 let id = baseId + '2' + quoteId;
                 let symbol = base + '/' + quote;
                 let active = true;
-                let precision = {
-                    'amount': undefined, // todo: might need this for proper order placement
-                    'price': undefined, // todo: find a way to get these values
-                };
-                let limits = {
-                    'amount': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined, // todo
-                        'max': undefined,
-                    },
-                };
-                result.push ({
+                let defaults = this.safeValue (this.options['limits'], symbol, {});
+                result.push (this.extend ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
@@ -4134,10 +4330,28 @@ module.exports = class bcex extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': active,
-                    'precision': precision,
-                    'limits': limits,
+                    // overrided by defaults from this.options['limits']
+                    'precision': {
+                        'amount': undefined,
+                        'price': undefined,
+                    },
+                    // overrided by defaults from this.options['limits']
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'price': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
-                });
+                }, defaults));
             }
         }
         return result;
@@ -4223,7 +4437,7 @@ module.exports = class bcex extends Exchange {
         keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             let key = keys[i];
-            let total = this.sum (result[key]['used'], result[key]['total']);
+            let total = this.sum (result[key]['used'], result[key]['free']);
             result[key]['total'] = total;
         }
         result['info'] = data;
@@ -4299,6 +4513,8 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {
             'symbol': this.marketId (symbol),
@@ -4306,8 +4522,12 @@ module.exports = class bcex extends Exchange {
         };
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
-        let timestamp = order['created'] * 1000;
+        let timestamp = this.safeInteger (order, 'created') * 1000;
         let status = this.parseOrderStatus (order['status']);
+        let side = this.safeString (order, 'flag');
+        if (side === 'sale')
+            side = 'sell';
+        // Can't use parseOrder because the data format is different btw endpoint for fetchOrder and fetchOrders
         let result = {
             'info': order,
             'id': id,
@@ -4315,14 +4535,14 @@ module.exports = class bcex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': order['flag'],
-            'side': undefined,
-            'price': order['price'],
+            'type': undefined,
+            'side': side,
+            'price': this.safeFloat (order, 'price'),
             'cost': undefined,
-            'average': undefined,
-            'amount': order['number'],
-            'filled': order['numberdeal'],
-            'remaining': order['numberover'],
+            'average': this.safeFloat (order, 'avg_price'),
+            'amount': this.safeFloat (order, 'number'),
+            'filled': this.safeFloat (order, 'numberdeal'),
+            'remaining': this.safeFloat (order, 'numberover'),
             'status': status,
             'fee': undefined,
         };
@@ -4331,15 +4551,17 @@ module.exports = class bcex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
-        let timestamp = order['datetime'] * 1000;
+        let timestamp = this.safeInteger (order, 'datetime') * 1000;
         let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
         let type = undefined;
-        let side = order['type'];
-        let price = order['price'];
-        let average = order['avg_price'];
-        let amount = order['amount'];
-        let remaining = order['amount_outstanding'];
+        let side = this.safeString (order, 'type');
+        if (side === 'sale')
+            side = 'sell';
+        let price = this.safeFloat (order, 'price');
+        let average = this.safeFloat (order, 'avg_price');
+        let amount = this.safeFloat (order, 'amount');
+        let remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = amount - remaining;
         let status = this.safeString (order, 'status');
         status = this.parseOrderStatus (status);
@@ -4387,6 +4609,11 @@ module.exports = class bcex extends Exchange {
         return this.fetchOrdersByType ('open', symbol, since, limit, params);
     }
 
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrdersByType ('all', symbol, since, limit, params);
     }
@@ -4396,8 +4623,8 @@ module.exports = class bcex extends Exchange {
         let order = {
             'symbol': this.marketId (symbol),
             'type': side,
-            'price': price,
-            'number': amount,
+            'price': this.priceToPrecision (symbol, price),
+            'number': this.amountToPrecision (symbol, amount),
         };
         let response = await this.privatePostApiOrderCoinTrust (this.extend (order, params));
         let data = response['data'];
@@ -4408,6 +4635,8 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (typeof symbol === 'undefined')
+            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         if (typeof symbol !== 'undefined') {
@@ -4450,24 +4679,41 @@ module.exports = class bcex extends Exchange {
             return; // fallback to default error handler
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
-            let feedback = this.id + ' ' + body;
             let code = this.safeValue (response, 'code');
             if (typeof code !== 'undefined') {
                 if (code !== 0) {
                     //
                     // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
                     // { code: 1, msg: '公钥不合法' } - wrong public key
+                    // { code: 1, msg: '价格输入有误，请检查你的数值精度' } - 'The price input is incorrect, please check your numerical accuracy'
+                    // { code: 1, msg: '单笔最小交易数量不能小于0.00100000,请您重新挂单'} -
+                    //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
                     //
                     let message = this.safeString (response, 'msg');
+                    let feedback = this.id + ' msg: ' + message + ' ' + body;
                     let exceptions = this.exceptions;
                     if (message in exceptions) {
                         throw new exceptions[message] (feedback);
+                    } else if (message.indexOf ('请您重新挂单') >= 0) {  // minimum limit
+                        throw new InvalidOrder (feedback);
                     } else {
                         throw new ExchangeError (feedback);
                     }
                 }
             }
         }
+    }
+
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let rate = market[side];
+        let cost = parseFloat (this.costToPrecision (symbol, amount * price));
+        return {
+            'type': takerOrMaker,
+            'currency': market['quote'],
+            'rate': rate,
+            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
+        };
     }
 };
 
@@ -5115,8 +5361,8 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -6732,8 +6978,8 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
@@ -8552,10 +8798,6 @@ module.exports = class bitfinex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
@@ -8570,7 +8812,7 @@ module.exports = class bitfinex extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 
@@ -22853,10 +23095,6 @@ module.exports = class coinex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
     }
 
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     async fetchMarkets () {
         let response = await this.webGetResMarket ();
         let markets = response['data']['market_info'];
@@ -27601,10 +27839,6 @@ module.exports = class cointiger extends huobipro {
 
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -33342,12 +33576,14 @@ module.exports = class gateio extends Exchange {
                 'price': priceLimits,
                 'cost': costLimits,
             };
+            let active = true;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
+                'active': active,
                 'maker': details['fee'] / 100,
                 'taker': details['fee'] / 100,
                 'precision': precision,
@@ -34282,11 +34518,6 @@ module.exports = class gdax extends Exchange {
         return await this.privateDeleteOrdersId ({ 'id': id });
     }
 
-    feeToPrecision (currency, fee) {
-        let cost = parseFloat (fee);
-        return cost.toFixed (this.currencies[currency]['precision']);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let rate = market[takerOrMaker];
@@ -34296,7 +34527,7 @@ module.exports = class gdax extends Exchange {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (currency, rate * cost)),
+            'cost': parseFloat (this.currencyToPrecision (currency, rate * cost)),
         };
     }
 
@@ -37658,38 +37889,68 @@ module.exports = class huobipro extends Exchange {
     }
 
     async fetchTradingLimits (symbols = undefined, params = {}) {
+        // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let info = {};
-        let limits = {};
-        if (typeof symbols === 'undefined')
+        if (typeof symbols === 'undefined') {
             symbols = this.symbols;
+        }
+        let result = {};
         for (let i = 0; i < symbols.length; i++) {
             let symbol = symbols[i];
-            let market = this.market (symbol);
-            let response = await this.publicGetCommonExchange (this.extend ({
-                'symbol': market['id'],
-            }));
-            let limit = this.parseTradingLimits (response);
-            info[symbol] = response;
-            limits[symbol] = limit;
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
-        return {
-            'limits': limits,
-            'info': info,
-        };
+        return result;
     }
 
-    parseTradingLimits (response, symbol = undefined, params = {}) {
-        let data = response['data'];
-        if (typeof data === 'undefined') {
-            return undefined;
-        }
+    async fetchTradingLimitsById (id, params = {}) {
+        let request = {
+            'symbol': id,
+        };
+        let response = await this.publicGetCommonExchange (this.extend (request, params));
+        //
+        //     { status:   "ok",
+        //         data: {                                  symbol: "aidocbtc",
+        //                              'buy-limit-must-less-than':  1.1,
+        //                          'sell-limit-must-greater-than':  0.9,
+        //                         'limit-order-must-greater-than':  1,
+        //                            'limit-order-must-less-than':  5000000,
+        //                    'market-buy-order-must-greater-than':  0.0001,
+        //                       'market-buy-order-must-less-than':  100,
+        //                   'market-sell-order-must-greater-than':  1,
+        //                      'market-sell-order-must-less-than':  500000,
+        //                       'circuit-break-when-greater-than':  10000,
+        //                          'circuit-break-when-less-than':  10,
+        //                 'market-sell-order-rate-must-less-than':  0.1,
+        //                  'market-buy-order-rate-must-less-than':  0.1        } }
+        //
+        return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //   {                                  symbol: "aidocbtc",
+        //                  'buy-limit-must-less-than':  1.1,
+        //              'sell-limit-must-greater-than':  0.9,
+        //             'limit-order-must-greater-than':  1,
+        //                'limit-order-must-less-than':  5000000,
+        //        'market-buy-order-must-greater-than':  0.0001,
+        //           'market-buy-order-must-less-than':  100,
+        //       'market-sell-order-must-greater-than':  1,
+        //          'market-sell-order-must-less-than':  500000,
+        //           'circuit-break-when-greater-than':  10000,
+        //              'circuit-break-when-less-than':  10,
+        //     'market-sell-order-rate-must-less-than':  0.1,
+        //      'market-buy-order-rate-must-less-than':  0.1        }
+        //
         return {
-            'amount': {
-                'min': data['limit-order-must-greater-than'],
-                'max': data['limit-order-must-less-than'],
+            'info': limits,
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'limit-order-must-greater-than'),
+                    'max': this.safeFloat (limits, 'limit-order-must-less-than'),
+                },
             },
         };
     }
@@ -38264,8 +38525,8 @@ module.exports = class huobipro extends Exchange {
         };
     }
 
-    feeToPrecision (currency, fee) {
-        return parseFloat (this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']));
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, 0, this.currencies[currency]['precision']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -38282,7 +38543,7 @@ module.exports = class huobipro extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 
@@ -40070,6 +40331,7 @@ module.exports = class kraken extends Exchange {
             'version': '0',
             'rateLimit': 3000,
             'certified': true,
+            'parseJsonResponse': false,
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
@@ -40266,17 +40528,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchMinOrderSizes () {
-        let html = undefined;
-        let oldParseJsonResponse = this.parseJsonResponse;
-        try {
-            this.parseJsonResponse = false;
-            html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            this.parseJsonResponse = oldParseJsonResponse;
-        } catch (e) {
-            // ensure parseJsonResponse is restored no matter what
-            this.parseJsonResponse = oldParseJsonResponse;
-            throw e;
-        }
+        let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         let parts = html.split ('ul>');
         let ul = parts[1];
         let listItems = ul.split ('</li');
@@ -40987,6 +41239,11 @@ module.exports = class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let response = await this.fetch2 (path, api, method, params, headers, body);
+        return this.parseIfJsonEncodedObject (response);
     }
 };
 
@@ -53107,8 +53364,8 @@ module.exports = class uex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -53187,10 +53444,6 @@ module.exports = class uex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
     }
 
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let key = 'quote';
@@ -53205,7 +53458,7 @@ module.exports = class uex extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 

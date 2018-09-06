@@ -673,9 +673,6 @@ class cointiger (huobipro):
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
 
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
-
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if not self.password:

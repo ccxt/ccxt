@@ -121,10 +121,6 @@ module.exports = class coinex extends Exchange {
         });
     }
 
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     async fetchMarkets () {
         let response = await this.webGetResMarket ();
         let markets = response['data']['market_info'];

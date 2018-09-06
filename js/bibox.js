@@ -641,8 +641,8 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};

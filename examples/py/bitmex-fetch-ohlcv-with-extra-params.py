@@ -30,4 +30,6 @@ while True:
         candles[num_candles - 1][2],
         candles[num_candles - 1][3],
         candles[num_candles - 1][4]))
-    time.sleep(bitmex.rateLimit * 5)
+    # * 5 to make distinct delay and to avoid too much load
+    # / 1000 to convert milliseconds to fractional seconds
+    time.sleep(bitmex.rateLimit * 5 / 1000)

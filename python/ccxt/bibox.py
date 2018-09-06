@@ -614,8 +614,8 @@ class bibox (Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        # by default it will try load withdrawal fees of all currencies(with separate requests)
+        # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()
         withdrawFees = {}
         info = {}

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.230';
+$version = '1.17.239';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.230';
+    const VERSION = '1.17.239';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -628,6 +628,18 @@ class Exchange {
             if (array_key_exists ($key, $params) && $params[$key])
                 $flags |= $options[$key];
         return json_encode ($data, $flags);
+    }
+
+    public static function parse_if_json_encoded_object ($input) {
+        if ((gettype ($body) !== 'string') || (strlen ($body) < 2)) {
+            return $input;
+        }
+        if ($body[0] === '{') {
+            return json_decode ($result, $as_associative_array = true);
+        } else if ($body[1] === '[') {
+            return json_decode ($result);
+        }
+        return $input;
     }
 
     public static function is_json_encoded_object ($input) {
@@ -1402,13 +1414,11 @@ class Exchange {
         if ($this->has['fetchTradingLimits']) {
             if ($reload || !(is_array ($this->options) && array_key_exists ('limitsLoaded', $this->options))) {
                 $response = $this->fetch_trading_limits ($symbols);
-                $limits = $response['limits'];
-                $keys = is_array ($limits) ? array_keys ($limits) : array ();
-                for ($i = 0; $i < count ($keys); $i++) {
-                    $symbol = $keys[$i];
-                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], array (
-                        'limits' => $limits[$symbol],
-                    ));
+                // $limits = $response['limits'];
+                // $keys = is_array ($limits) ? array_keys ($limits) : array ();
+                for ($i = 0; $i < count ($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $this->markets[$symbol] = array_replace_recursive ($this->markets[$symbol], $response[$symbol]);
                 }
                 $this->options['limitsLoaded'] = $this->milliseconds ();
             }
@@ -1618,6 +1628,30 @@ class Exchange {
 
     public function fetchMyTrades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_my_trades ($symbol, $since, $limit, $params);
+    }
+
+    public function fetchTransactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_transactions ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_transactions() not implemented yet');
+    }
+
+    public function fetchDeposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_deposits ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_deposits ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_deposits() not implemented yet');
+    }
+
+    public function fetchWithdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_withdrawals ($symbol, $since, $limit, $params);
+    }
+
+    public function fetch_withdrawals ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        throw new NotSupported ($this->id . ' fetch_withdrawals() not implemented yet');
     }
 
     public function fetch_markets () {
@@ -1900,6 +1934,14 @@ class Exchange {
 
     public function feeToPrecision ($symbol, $fee) {
         return $this->fee_to_precision ($symbol, $fee);
+    }
+
+    public function currency_to_precision ($currency, $fee) {
+        return self::decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision'], $this->precisionMode);
+    }
+
+    public function currencyToPrecision ($symbol, $fee) {
+        return $this->currency_to_precision ($symbol, $fee);
     }
 
     public function commonCurrencyCode ($currency) {

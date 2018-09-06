@@ -692,10 +692,6 @@ module.exports = class cointiger extends huobipro {
         return result;
     }
 
-    feeToPrecision (currency, fee) {  // Depreciated...
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (!this.password)
