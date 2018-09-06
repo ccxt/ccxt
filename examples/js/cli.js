@@ -204,19 +204,9 @@ async function main () {
 
     } else {
 
-        let args = params.map (param => {
-            if (param === 'undefined')
-                return undefined
-            if (param[0] === '{' || param[0] === '[')
-                return JSON.parse (param)
-            if (param.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g))
-                return exchange.parse8601 (param)
-            if (param.match (/[a-zA-Z-]/g))
-                return param
-            if (param.match (/^[+0-9\.-]+$/))
-                return parseFloat (param)
-            return param
-        })
+        let args = params
+            .map (s => s.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
