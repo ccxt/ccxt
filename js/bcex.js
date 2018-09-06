@@ -685,16 +685,4 @@ module.exports = class bcex extends Exchange {
             }
         }
     }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let rate = market[side];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * price));
-        return {
-            'type': takerOrMaker,
-            'currency': market['quote'],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, rate * cost)),
-        };
-    }
 };
