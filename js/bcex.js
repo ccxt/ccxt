@@ -91,7 +91,7 @@ module.exports = class bcex extends Exchange {
             },
         });
     }
-    
+
     parseTradingLimits (limits, symbol = undefined, params = {}) {
         //
         //  {         high:  0.03721392,
