@@ -36,6 +36,7 @@ class kraken (Exchange):
             'version': '0',
             'rateLimit': 3000,
             'certified': True,
+            'parseJsonResponse': False,
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
@@ -229,16 +230,7 @@ class kraken (Exchange):
         return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
 
     def fetch_min_order_sizes(self):
-        html = None
-        oldParseJsonResponse = self.parseJsonResponse
-        try:
-            self.parseJsonResponse = False
-            html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
-            self.parseJsonResponse = oldParseJsonResponse
-        except Exception as e:
-            # ensure parseJsonResponse is restored no matter what
-            self.parseJsonResponse = oldParseJsonResponse
-            raise e
+        html = self.zendeskGet205893708WhatIsTheMinimumOrderSize()
         parts = html.split('ul>')
         ul = parts[1]
         listItems = ul.split('</li')
@@ -885,3 +877,7 @@ class kraken (Exchange):
                             if response['error'][i] in self.exceptions:
                                 raise self.exceptions[response['error'][i]](message)
                         raise ExchangeError(message)
+
+    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = self.fetch2(path, api, method, params, headers, body)
+        return self.parse_if_json_encoded_object(response)
