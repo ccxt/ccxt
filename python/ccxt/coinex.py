@@ -135,9 +135,6 @@ class coinex (Exchange):
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
 
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
-
     def fetch_markets(self):
         response = self.webGetResMarket()
         markets = response['data']['market_info']

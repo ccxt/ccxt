@@ -492,11 +492,6 @@ class gdax extends Exchange {
         return $this->privateDeleteOrdersId (array ( 'id' => $id ));
     }
 
-    public function fee_to_precision ($currency, $fee) {
-        $cost = floatval ($fee);
-        return sprintf ('%.' . $this->currencies[$currency]['precision'] . 'f', $cost);
-    }
-
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $rate = $market[$takerOrMaker];
@@ -506,7 +501,7 @@ class gdax extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($currency, $rate * $cost)),
+            'cost' => floatval ($this->currency_to_precision($currency, $rate * $cost)),
         );
     }
 

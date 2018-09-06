@@ -133,10 +133,6 @@ class coinex extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
     }
 
-    public function fee_to_precision ($currency, $fee) {
-        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
-    }
-
     public function fetch_markets () {
         $response = $this->webGetResMarket ();
         $markets = $response['data']['market_info'];

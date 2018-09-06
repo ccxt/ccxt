@@ -467,10 +467,6 @@ class gdax (Exchange):
         self.load_markets()
         return self.privateDeleteOrdersId({'id': id})
 
-    def fee_to_precision(self, currency, fee):
-        cost = float(fee)
-        return('{:.' + str(self.currencies[currency]['precision']) + 'f}').format(cost)
-
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
@@ -480,7 +476,7 @@ class gdax (Exchange):
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': float(self.fee_to_precision(currency, rate * cost)),
+            'cost': float(self.currency_to_precision(currency, rate * cost)),
         }
 
     def get_payment_methods(self):

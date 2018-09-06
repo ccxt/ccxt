@@ -718,8 +718,8 @@ class huobipro (Exchange):
             'info': response,
         }
 
-    def fee_to_precision(self, currency, fee):
-        return float(self.decimal_to_precision(fee, 0, self.currencies[currency]['precision']))
+    def currency_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -734,7 +734,7 @@ class huobipro (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], cost)),
+            'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
