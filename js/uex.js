@@ -76,8 +76,8 @@ module.exports = class uex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
