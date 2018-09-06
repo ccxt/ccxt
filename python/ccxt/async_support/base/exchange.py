@@ -247,12 +247,8 @@ class Exchange(BaseExchange):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
                 response = await self.fetch_trading_limits(symbols)
-                limits = response['limits']
-                keys = list(limits.keys())
-                for i in range(0, len(keys)):
-                    symbol = keys[i]
-                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
-                        'limits': limits[symbol],
-                    })
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
