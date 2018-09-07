@@ -287,6 +287,7 @@ class bitfinex (Exchange):
                 'STJ': 'STORJ',
                 'YYW': 'YOYOW',
                 'USD': 'USDT',
+                'UTN': 'UTNP',
             },
             'exceptions': {
                 'exact': {
