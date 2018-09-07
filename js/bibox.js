@@ -214,7 +214,7 @@ module.exports = class bibox extends Exchange {
         let tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
             let ticker = this.parseTicker (rawTickers[i]);
-            if (this.inArray (ticker['symbol'], symbols)) {
+            if ((typeof symbols === 'undefined') || (this.inArray (ticker['symbol'], symbols))) {
                 tickers.push (ticker);
             }
         }
