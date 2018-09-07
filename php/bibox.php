@@ -214,9 +214,12 @@ class bibox extends Exchange {
     public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+            $ticker = $this->parse_ticker($rawTickers[$i]);
+            if (($symbols === null) || ($this->in_array($ticker['symbol'], $symbols))) {
+                $tickers[] = $ticker;
+            }
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $tickers;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
