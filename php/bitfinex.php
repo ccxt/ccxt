@@ -272,6 +272,7 @@ class bitfinex extends Exchange {
                 'STJ' => 'STORJ',
                 'YYW' => 'YOYOW',
                 'USD' => 'USDT',
+                'UTN' => 'UTNP',
             ),
             'exceptions' => array (
                 'exact' => array (
