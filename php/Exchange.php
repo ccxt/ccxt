@@ -1905,7 +1905,7 @@ class Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return self::decimalToPrecision ($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        return self::decimal_to_precision ($cost, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function costToPrecision ($symbol, $cost) {
@@ -1913,7 +1913,7 @@ class Exchange {
     }
 
     public function price_to_precision ($symbol, $price) {
-        return self::decimalToPrecision ($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
+        return self::decimal_to_precision ($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function priceToPrecision ($symbol, $price) {
@@ -1921,7 +1921,7 @@ class Exchange {
     }
 
     public function amount_to_precision ($symbol, $amount) {
-        return self::decimalToPrecision ($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
+        return self::decimal_to_precision ($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], $this->precisionMode);
     }
 
     public function amountToPrecision ($symbol, $amount) {
