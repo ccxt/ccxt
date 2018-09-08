@@ -866,18 +866,25 @@ module.exports = class binance extends Exchange {
         return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseDepositStatus (status) {
         let statuses = {
             '0': 'pending',
             '1': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
+    }
+
+    parseWithdrawalStatus (status) {
+        let statuses = {
+            '0': 'pending',
+            '1': 'canceled', // different from 1 = ok in deposits
             '2': 'pending',
             '3': 'error',
             '4': 'pending',
             '5': 'error',
             '6': 'ok',
         };
-        let statusString = status.toString ();
-        return (statusString in statuses) ? statuses[statusString] : statusString;
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseTransaction (transaction, currency = undefined, side = undefined) {
