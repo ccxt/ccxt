@@ -506,7 +506,7 @@ class Exchange(object):
 
     @staticmethod
     def truncate(num, precision=0):
-        """Depreciated, use decimalToPrecision instead"""
+        """Deprecated, use decimalToPrecision instead"""
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
@@ -514,7 +514,7 @@ class Exchange(object):
 
     @staticmethod
     def truncate_to_string(num, precision=0):
-        """Depreciated, todo: remove references from subclasses"""
+        """Deprecated, todo: remove references from subclasses"""
         if precision > 0:
             parts = ('{0:.%df}' % precision).format(Decimal(num)).split('.')
             decimal_digits = parts[1][:precision].rstrip('0')
