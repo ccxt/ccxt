@@ -524,6 +524,17 @@ module.exports = class Exchange {
         }
     }
 
+    // a helper for matching error strings exactly vs broadly
+    findBroadlyMatchedKey (broad, string) {
+        const keys = Object.keys (broad);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (string.indexOf (key) >= 0)
+                return key;
+        }
+        return undefined;
+    }
+
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
         // override me
     }
