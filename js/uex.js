@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -142,18 +141,6 @@ module.exports = class uex extends Exchange {
                 },
             },
         });
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -569,7 +556,6 @@ module.exports = class uex extends Exchange {
         if (type === 'limit') {
             priceToPrecision = this.priceToPrecision (symbol, price);
             request['price'] = priceToPrecision;
-            priceToPrecision = parseFloat (priceToPrecision);
         }
         let response = await this.privatePostCreateOrder (this.extend (request, params));
         //
@@ -584,7 +570,7 @@ module.exports = class uex extends Exchange {
             'type': type,
             'side': side,
             'status': 'open',
-            'price': priceToPrecision,
+            'price': parseFloat (priceToPrecision),
             'amount': parseFloat (amountToPrecision),
         });
     }

@@ -690,8 +690,6 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let market = this.market (symbol);
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         let response = await this[method] (this.extend ({
             'currencyPair': market['id'],
             'rate': this.priceToPrecision (symbol, price),
@@ -719,7 +717,6 @@ module.exports = class poloniex extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         if (typeof amount !== 'undefined') {
-            amount = parseFloat (amount);
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         let response = await this.privatePostMoveOrder (this.extend (request, params));

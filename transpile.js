@@ -103,7 +103,6 @@ const commonRegexes = [
     [ /\.decimalToPrecision\s/g, '.decimal_to_precision'],
     [ /\.priceToPrecision\s/g, '.price_to_precision'],
     [ /\.amountToPrecision\s/g, '.amount_to_precision'],
-    [ /\.amountToString\s/g, '.amount_to_string'],
     [ /\.amountToLots\s/g, '.amount_to_lots'],
     [ /\.feeToPrecision\s/g, '.fee_to_precision'],
     [ /\.currencyToPrecision\s/g, '.currency_to_precision'],

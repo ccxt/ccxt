@@ -26,7 +26,8 @@ const {
     , sleep
     , timeout
     , TimedOut
-    , buildOHLCVC } = functions
+    , buildOHLCVC
+    , decimalToPrecision } = functions
 
 const {
     ExchangeError
@@ -37,7 +38,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const { DECIMAL_PLACES, ROUND } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -1162,23 +1163,19 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     priceToPrecision (symbol, price) {
-        return parseFloat (price).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return this.truncate (amount, this.markets[symbol].precision.amount)
-    }
-
-    amountToString (symbol, amount) {
-        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     currencyToPrecision (currency, fee) {

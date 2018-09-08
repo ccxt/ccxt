@@ -772,7 +772,7 @@ module.exports = class bitz extends Exchange {
             'symbol': market['id'],
             'type': orderType,
             'price': this.priceToPrecision (symbol, price),
-            'number': this.amountToString (symbol, amount),
+            'number': this.amountToPrecision (symbol, amount),
             'tradePwd': this.password,
         };
         let response = await this.tradePostAddEntrustSheet (this.extend (request, params));

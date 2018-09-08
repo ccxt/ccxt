@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -205,11 +206,11 @@ module.exports = class kraken extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMinOrderSizes () {
