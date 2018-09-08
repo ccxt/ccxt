@@ -196,7 +196,7 @@ const pythonRegexes = [
     [ /\!([^\=])/g, 'not $1'],
     [ /([^\s]+)\.length/g, 'len($1)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
-    [ /^\s*}\s*$/gm, '' ],
+    [ /^(\s*}\s*$)+/gm, '' ],
     [ /;/g, '' ],
     [ /\.toUpperCase\s*/g, '.upper' ],
     [ /\.toLowerCase\s*/g, '.lower' ],
