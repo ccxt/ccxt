@@ -883,7 +883,7 @@ module.exports = class binance extends Exchange {
                 '4': 'pending',
                 '5': 'error',
                 '6': 'ok',
-            }
+            },
         };
         return (status in statuses[type]) ? statuses[type][status] : status;
     }
