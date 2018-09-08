@@ -877,16 +877,6 @@ module.exports = class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    findBroadlyMatchedKey (map, broadString) {
-        const partialKeys = Object.keys (map);
-        for (let i = 0; i < partialKeys.length; i++) {
-            const partialKey = partialKeys[i];
-            if (broadString.indexOf (partialKey) >= 0)
-                return partialKey;
-        }
-        return undefined;
-    }
-
     handleErrors (code, reason, url, method, headers, body) {
         if (body.length < 2)
             return;
@@ -895,19 +885,22 @@ module.exports = class bitfinex extends Exchange {
                 const response = JSON.parse (body);
                 const feedback = this.id + ' ' + this.json (response);
                 let message = undefined;
-                if ('message' in response)
+                if ('message' in response) {
                     message = response['message'];
-                else if ('error' in response)
+                } else if ('error' in response) {
                     message = response['error'];
-                else
+                } else {
                     throw new ExchangeError (feedback); // malformed (to our knowledge) response
+                }
                 const exact = this.exceptions['exact'];
-                if (message in exact)
+                if (message in exact) {
                     throw new exact[message] (feedback);
+                }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (typeof broadKey !== 'undefined')
+                if (typeof broadKey !== 'undefined') {
                     throw new broad[broadKey] (feedback);
+                }
                 throw new ExchangeError (feedback); // unknown message
             }
         }
