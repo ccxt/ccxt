@@ -164,9 +164,10 @@ class poloniex extends Exchange {
                     'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
                     'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
                     'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+                    'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array ("error":"Rate must be greater than zero.")
                 ),
                 'broad' => array (
-                    'Total must be at least' => '\\ccxt\\InvalidOrder',
+                    'Total must be at least' => '\\ccxt\\InvalidOrder', // array ("error":"Total must be at least 0.0001.")
                     'This account is frozen.' => '\\ccxt\\AccountSuspended',
                     'Not enough' => '\\ccxt\\InsufficientFunds',
                     'Nonce must be greater' => '\\ccxt\\InvalidNonce',
@@ -234,28 +235,29 @@ class poloniex extends Exchange {
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $minCost = $this->safe_float($this->options['limits']['cost']['min'], $quote, 0.0);
+            $precision = array (
+                'amount' => 6,
+                'price' => 8,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
-                'precision' => array (
-                    'amount' => 8,
-                    'price' => 8,
-                ),
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => 0.00000001,
-                        'max' => 1000000000,
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array (
-                        'min' => 0.00000001,
-                        'max' => 1000000000,
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
                     ),
                     'cost' => array (
                         'min' => $minCost,
-                        'max' => 1000000000,
+                        'max' => null,
                     ),
                 ),
                 'info' => $market,

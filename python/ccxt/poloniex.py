@@ -179,9 +179,10 @@ class poloniex (Exchange):
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
+                    'Rate must be greater than zero.': InvalidOrder,  # {"error":"Rate must be greater than zero."}
                 },
                 'broad': {
-                    'Total must be at least': InvalidOrder,
+                    'Total must be at least': InvalidOrder,  # {"error":"Total must be at least 0.0001."}
                     'This account is frozen.': AccountSuspended,
                     'Not enough': InsufficientFunds,
                     'Nonce must be greater': InvalidNonce,
@@ -244,28 +245,29 @@ class poloniex (Exchange):
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             minCost = self.safe_float(self.options['limits']['cost']['min'], quote, 0.0)
+            precision = {
+                'amount': 6,
+                'price': 8,
+            }
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': True,
-                'precision': {
-                    'amount': 8,
-                    'price': 8,
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': math.pow(10, -precision['amount']),
+                        'max': None,
                     },
                     'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
                     },
                     'cost': {
                         'min': minCost,
-                        'max': 1000000000,
+                        'max': None,
                     },
                 },
                 'info': market,
