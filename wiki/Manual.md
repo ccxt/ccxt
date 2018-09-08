@@ -2170,7 +2170,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'amount':      1.5,           // ordered amount of base currency
     'filled':      1.1,           // filled amount of base currency
     'remaining':   0.4,           // remaining amount to fill
-    'cost':        0.076094524,   // 'filled' * 'price'
+    'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
     'trades':    [ ... ],         // a list of order trades/executions
     'fee': {                      // fee info, if available
         'currency': 'BTC',        // which currency the fee is (usually quote)
