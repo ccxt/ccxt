@@ -609,10 +609,6 @@ class gdax extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $datetime = null;
-        if ($timestamp !== null) {
-            $datetime = $this->iso8601 ($timestamp);
-        }
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
         if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
@@ -621,22 +617,20 @@ class gdax extends Exchange {
         if ($currency !== null) {
             $code = $currency['code'];
         }
+        $fee = null;
         return array (
             'info' => $transaction,
             'id' => $this->safe_string($transaction, 'id'),
             'txid' => $this->safe_string($transaction['details'], 'crypto_transaction_hash'),
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'address' => null, // or is it defined?
             'type' => $this->safe_string($transaction, 'type'), // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status ($transaction),
             'updated' => null,
-            'fee' => array (
-                'cost' => null,
-                'rate' => null,
-            ),
+            'fee' => $fee,
         );
     }
 

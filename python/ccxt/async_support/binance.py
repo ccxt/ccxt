@@ -39,6 +39,9 @@ class binance (Exchange):
                 'fetchClosedOrders': True,
                 'withdraw': True,
                 'fetchFundingFees': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': False,
             },
             'timeframes': {
                 '1m': '1m',
@@ -780,6 +783,94 @@ class binance (Exchange):
         response = await self.privateGetMyTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code arguemnt')
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        response = await self.wapiGetDepositHistory(self.extend(request, params))
+        return self.parseTransactions(response['depositList'], currency, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        if code is None:
+            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code arguemnt')
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+        }
+        if since is not None:
+            request['startTime'] = since
+        response = await self.wapiGetWithdrawHistory(self.extend(request, params))
+        return self.parseTransactions(response['withdrawList'], currency, since, limit)
+
+    def parse_transaction_status_by_type(self, status, type=None):
+        if type is None:
+            return status
+        statuses = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending',
+                '1': 'canceled',  # different from 1 = ok in deposits
+                '2': 'pending',
+                '3': 'error',
+                '4': 'pending',
+                '5': 'error',
+                '6': 'ok',
+            },
+        }
+        return statuses[type][status] if (status in list(statuses[type].keys())) else status
+
+    def parse_transaction(self, transaction, currency=None):
+        # addressTag = self.safe_string(transaction, 'addressTag')  # set but unused
+        address = self.safe_string(transaction, 'address')
+        txid = self.safe_value(transaction, 'txId')
+        code = None
+        if currency is None:
+            currencyId = self.safe_string(transaction, 'currency')
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+            else:
+                code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        timestamp = None
+        insertTime = self.safe_integer(transaction, 'insertTime')
+        applyTime = self.safe_integer(transaction, 'applyTime')
+        type = self.safe_string(transaction, 'type')
+        if type is None:
+            if (insertTime is not None) and(applyTime is None):
+                type = 'deposit'
+                timestamp = insertTime
+            elif (insertTime is None) and(applyTime is not None):
+                type = 'withdrawal'
+                timestamp = applyTime
+        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
+        amount = self.safe_float(transaction, 'amount')
+        fee = None
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': address,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': fee,
+        }
+
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
@@ -891,11 +982,16 @@ class binance (Exchange):
                 # response in format {'msg': 'The coin does not exist.', 'success': True/false}
                 success = self.safe_value(response, 'success', True)
                 if not success:
-                    if 'msg' in response:
+                    message = self.safe_string(response, 'msg')
+                    parsedMessage = None
+                    if message is not None:
                         try:
-                            response = json.loads(response['msg'])
+                            parsedMessage = json.loads(message)
                         except Exception as e:
-                            response = {}
+                            # do nothing
+                            parsedMessage = None
+                        if parsedMessage is not None:
+                            response = parsedMessage
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:

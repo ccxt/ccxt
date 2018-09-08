@@ -30,6 +30,9 @@ class binance extends Exchange {
                 'fetchClosedOrders' => true,
                 'withdraw' => true,
                 'fetchFundingFees' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => false,
             ),
             'timeframes' => array (
                 '1m' => '1m',
@@ -832,6 +835,108 @@ class binance extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code arguemnt');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->wapiGetDepositHistory (array_merge ($request, $params));
+        return $this->parseTransactions ($response['depositList'], $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code arguemnt');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $response = $this->wapiGetWithdrawHistory (array_merge ($request, $params));
+        return $this->parseTransactions ($response['withdrawList'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction_status_by_type ($status, $type = null) {
+        if ($type === null) {
+            return $status;
+        }
+        $statuses = array (
+            'deposit' => array (
+                '0' => 'pending',
+                '1' => 'ok',
+            ),
+            'withdrawal' => array (
+                '0' => 'pending',
+                '1' => 'canceled', // different from 1 = ok in deposits
+                '2' => 'pending',
+                '3' => 'error',
+                '4' => 'pending',
+                '5' => 'error',
+                '6' => 'ok',
+            ),
+        );
+        return (is_array ($statuses[$type]) && array_key_exists ($status, $statuses[$type])) ? $statuses[$type][$status] : $status;
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        // $addressTag = $this->safe_string($transaction, 'addressTag'); // set but unused
+        $address = $this->safe_string($transaction, 'address');
+        $txid = $this->safe_value($transaction, 'txId');
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $timestamp = null;
+        $insertTime = $this->safe_integer($transaction, 'insertTime');
+        $applyTime = $this->safe_integer($transaction, 'applyTime');
+        $type = $this->safe_string($transaction, 'type');
+        if ($type === null) {
+            if (($insertTime !== null) && ($applyTime === null)) {
+                $type = 'deposit';
+                $timestamp = $insertTime;
+            } else if (($insertTime === null) && ($applyTime !== null)) {
+                $type = 'withdrawal';
+                $timestamp = $applyTime;
+            }
+        }
+        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
+        $amount = $this->safe_float($transaction, 'amount');
+        $fee = null;
+        return array (
+            'info' => $transaction,
+            'id' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'fee' => $fee,
+        );
+    }
+
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -953,12 +1058,19 @@ class binance extends Exchange {
                 // $response in format array ('msg' => 'The coin does not exist.', 'success' => true/false)
                 $success = $this->safe_value($response, 'success', true);
                 if (!$success) {
-                    if (is_array ($response) && array_key_exists ('msg', $response))
+                    $message = $this->safe_string($response, 'msg');
+                    $parsedMessage = null;
+                    if ($message !== null) {
                         try {
-                            $response = json_decode ($response['msg'], $as_associative_array = true);
+                            $parsedMessage = json_decode ($message, $as_associative_array = true);
                         } catch (Exception $e) {
-                            $response = array ();
+                            // do nothing
+                            $parsedMessage = null;
                         }
+                        if ($parsedMessage !== null) {
+                            $response = $parsedMessage;
+                        }
+                    }
                 }
                 // checks against $error codes
                 $error = $this->safe_string($response, 'code');
