@@ -570,31 +570,26 @@ class gdax (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
-        datetime = None
-        if timestamp is not None:
-            datetime = self.iso8601(timestamp)
         code = None
         currencyId = self.safe_string(transaction, 'currency')
         if currencyId in self.currencies_by_id:
             currency = self.currencies_by_id[currencyId]
         if currency is not None:
             code = currency['code']
+        fee = None
         return {
             'info': transaction,
             'id': self.safe_string(transaction, 'id'),
             'txid': self.safe_string(transaction['details'], 'crypto_transaction_hash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'address': None,  # or is it defined?
             'type': self.safe_string(transaction, 'type'),  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(transaction),
             'updated': None,
-            'fee': {
-                'cost': None,
-                'rate': None,
-            },
+            'fee': fee,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
