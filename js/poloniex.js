@@ -163,9 +163,10 @@ module.exports = class poloniex extends Exchange {
                     'Order not found, or you are not the person who placed it.': OrderNotFound,
                     'Invalid API key/secret pair.': AuthenticationError,
                     'Please do not make more than 8 API calls per second.': DDoSProtection,
+                    'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
                 },
                 'broad': {
-                    'Total must be at least': InvalidOrder,
+                    'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
                     'This account is frozen.': AccountSuspended,
                     'Not enough': InsufficientFunds,
                     'Nonce must be greater': InvalidNonce,
@@ -233,28 +234,29 @@ module.exports = class poloniex extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let minCost = this.safeFloat (this.options['limits']['cost']['min'], quote, 0.0);
+            let precision = {
+                'amount': 6,
+                'price': 8,
+            };
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'active': true,
-                'precision': {
-                    'amount': 8,
-                    'price': 8,
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': 0.00000001,
-                        'max': 1000000000,
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
                     },
                     'cost': {
                         'min': minCost,
-                        'max': 1000000000,
+                        'max': undefined,
                     },
                 },
                 'info': market,
