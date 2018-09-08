@@ -29,6 +29,9 @@ module.exports = class binance extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': true,
                 'fetchFundingFees': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -829,6 +832,104 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+        }
+        let para = {};
+        const asset = this.currency (code);
+        para['asset'] = asset['id'];
+        if (typeof since !== 'undefined')
+            para['startTime'] = since;
+        let response = await this.wapiGetDepositHistory (this.extend (para, params));
+        if ('success' in response) {
+            if (response['success']) {
+                return this.parseTransactions (response['depositList'], asset, since, limit, 'deposit');
+            }
+        }
+        throw new ExchangeError (this.id + ' depositHistory failed: ' + this.last_http_response);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let para = {};
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+        }
+        const asset = this.currency (code);
+        para['asset'] = asset['id'];
+        if (typeof since !== 'undefined')
+            para['startTime'] = since;
+        let response = await this.wapiGetWithdrawHistory (this.extend (para, params));
+        if ('success' in response) {
+            if (response['success']) {
+                return this.parseTransactions (response['withdrawList'], asset, since, limit, 'withdrawal');
+            }
+        }
+        throw new ExchangeError (this.id + ' withdrawHistory failed: ' + this.last_http_response);
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            '0': 'pending',
+            '1': 'ok',
+            '2': 'pending',
+            '3': 'error',
+            '4': 'pending',
+            '5': 'error',
+            '6': 'ok',
+        };
+        let statusString = status.toString ();
+        return (statusString in statuses) ? statuses[statusString] : statusString;
+    }
+
+    parseTransaction (transaction, currency = undefined, side = undefined) {
+        // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
+        let address = this.safeString (transaction, 'address');
+        let txId = this.safeValue (transaction, 'txId');
+        let status = this.parseTransactionStatus (parseInt (transaction['status']));
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let timestamp = undefined;
+        if ('insertTime' in transaction) {
+            timestamp = transaction['insertTime'];
+        } else if ('applyTime' in transaction) {
+            timestamp = transaction['applyTime'];
+        } else {
+            throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
+        }
+        let amount = parseFloat (transaction['amount']);
+        let result = {
+            'info': transaction,
+            'id': undefined,
+            'txid': txId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'type': side,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'cost': undefined, // The fee is not provided in the response, workaround?
+                'rate': undefined,
+            },
+        };
+        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
