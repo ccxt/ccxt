@@ -21,6 +21,7 @@ module.exports = class bitstamp extends Exchange {
                 'fetchOrder': 'emulated',
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
+                'fetchTransactions': true,
                 'withdraw': true,
             },
             'urls': {
@@ -285,14 +286,6 @@ module.exports = class bitstamp extends Exchange {
         // only if overrided externally
         let side = this.safeString (trade, 'side');
         let orderId = this.safeString (trade, 'order_id');
-        if (typeof orderId === 'undefined')
-            if (typeof side === 'undefined') {
-                side = this.safeInteger (trade, 'type');
-                if (side === 0)
-                    side = 'buy';
-                else
-                    side = 'sell';
-            }
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let id = this.safeString (trade, 'tid');
@@ -318,11 +311,19 @@ module.exports = class bitstamp extends Exchange {
             amount = this.safeFloat (trade, market['baseId'], amount);
             feeCurrency = market['quote'];
             symbol = market['symbol'];
+            if (amount < 0)
+                side = 'sell';
+            else
+                side = 'buy';
         }
         let cost = undefined;
         if (typeof price !== 'undefined')
             if (typeof amount !== 'undefined')
                 cost = price * amount;
+        if (amount !== undefined)
+            amount = Math.abs (amount);
+        if (cost !== undefined)
+            cost = Math.abs (cost);
         return {
             'id': id,
             'info': trade,
@@ -423,19 +424,95 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchMyTradesAndTransactions ('myTrades', symbol, since, limit, params);
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchMyTradesAndTransactions ('transactions', code, since, limit, params);
+    }
+
+    async fetchMyTradesAndTransactions (type = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.options['fetchMyTradesAndTransactionsWarning'] === undefined) {
+            const warning = this.id + ' '
+            + 'fetchMyTrades / fetchTransactions will return all trades and transactions '
+            + "mixed in the same array. Make sure you add proper handling and set this.options['fetchMyTradesAndTransactionsWarning'] = false "
+            + "or add { 'options': { 'fetchMyTradesAndTransactionsWarning': false }} to exchange constructor "
+            + 'to acknowledge this message and turn off this warning.';
+            throw new ExchangeError (warning);
+        }
         await this.loadMarkets ();
         let request = {};
         let method = 'privatePostUserTransactions';
         let market = undefined;
         if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-            method += 'Pair';
+            if (type === 'myTrades') {
+                market = this.market (symbol);
+                request['pair'] = market['id'];
+                method += 'Pair';
+            }
         }
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
         let response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        if (type === 'myTrades') {
+            let result = this.filterBy (response, 'type', '2');
+            return this.parseTrades (result, market, since, limit);
+        } else {
+            let currency = undefined;
+            if (symbol !== undefined)
+                currency = this.currency (symbol);
+            let deposits = this.filterBy (response, 'type', '0');
+            let withdrawals = this.filterBy (response, 'type', '1');
+            let result = this.arrayConcat (deposits, withdrawals);
+            return this.parseTransactions (result, currency, since, limit);
+        }
+    }
+
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            result.push (this.parseTransaction (transactions[i], undefined));
+        }
+        result = this.sortBy (result, 'timestamp');
+        let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // Parsing common properties (most of them) using parseTrade, then parsing what's missing
+        let result = this.parseTrade (transaction);
+        let keys = Object.keys (this.currencies);
+        let code = undefined;
+        let amount = undefined;
+        for (let i = 0; i < keys.length; i++) {
+            let currencyToCheck = keys[i].toLowerCase ();
+            try {
+                amount = parseFloat (transaction[currencyToCheck]);
+                if (amount !== 0) {
+                    code = currencyToCheck.toUpperCase ();
+                    break;
+                }
+            } catch (e) {
+                continue;
+            }
+        }
+        return {
+            'info': transaction,
+            'id': result['id'],
+            'txid': undefined,
+            'timestamp': result['timestamp'],
+            'datetime': result['datetime'],
+            'address': undefined,
+            'type': (transaction['type'] === '0') ? 'deposit' : 'withdrawal',
+            'amount': Math.abs (amount),
+            'currency': code,
+            'status': undefined,
+            'updated': undefined,
+            'fee': {
+                'cost': this.safeFloat (transaction, 'fee'),
+                'rate': undefined,
+            },
+        };
     }
 
     parseOrder (order, market = undefined) {
