@@ -818,9 +818,9 @@ class binance (Exchange):
                 '0': 'pending',
                 '1': 'canceled',  # different from 1 = ok in deposits
                 '2': 'pending',
-                '3': 'error',
+                '3': 'failed',
                 '4': 'pending',
-                '5': 'error',
+                '5': 'failed',
                 '6': 'ok',
             },
         }

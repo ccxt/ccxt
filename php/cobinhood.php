@@ -661,9 +661,9 @@ class cobinhood extends Exchange {
             'tx_pending' => 'pending',
             'tx_sent' => 'pending',
             'tx_cancelled' => 'canceled',
-            'tx_timeout' => 'error',
-            'tx_invalid' => 'error',
-            'tx_rejected' => 'error',
+            'tx_timeout' => 'failed',
+            'tx_invalid' => 'failed',
+            'tx_rejected' => 'failed',
             'tx_confirmed' => 'ok',
         );
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : strtolower ($status);

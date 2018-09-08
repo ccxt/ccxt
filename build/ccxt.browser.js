@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.247'
+const version = '1.17.248'
 
 Exchange.ccxtVersion = version
 
@@ -7000,9 +7000,9 @@ module.exports = class binance extends Exchange {
                 '0': 'pending',
                 '1': 'canceled', // different from 1 = ok in deposits
                 '2': 'pending',
-                '3': 'error',
+                '3': 'failed',
                 '4': 'pending',
-                '5': 'error',
+                '5': 'failed',
                 '6': 'ok',
             },
         };
@@ -21744,9 +21744,9 @@ module.exports = class cobinhood extends Exchange {
             'tx_pending': 'pending',
             'tx_sent': 'pending',
             'tx_cancelled': 'canceled',
-            'tx_timeout': 'error',
-            'tx_invalid': 'error',
-            'tx_rejected': 'error',
+            'tx_timeout': 'failed',
+            'tx_invalid': 'failed',
+            'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         };
         return (status in statuses) ? statuses[status] : status.toLowerCase ();
