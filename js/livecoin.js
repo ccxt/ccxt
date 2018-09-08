@@ -408,7 +408,6 @@ module.exports = class livecoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = undefined;
-        let datetime = undefined;
         if ('lastModificationTime' in order) {
             timestamp = this.safeString (order, 'lastModificationTime');
             if (typeof timestamp !== 'undefined') {
@@ -418,9 +417,6 @@ module.exports = class livecoin extends Exchange {
                     timestamp = this.safeInteger (order, 'lastModificationTime');
                 }
             }
-        }
-        if (timestamp) {
-            datetime = this.iso8601 (timestamp);
         }
         // TODO currently not supported by livecoin
         // let trades = this.parseTrades (order['trades'], market, since, limit);
@@ -470,7 +466,7 @@ module.exports = class livecoin extends Exchange {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,

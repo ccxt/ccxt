@@ -468,7 +468,6 @@ module.exports = class bitz extends Exchange {
         //
         let tickers = response['data'];
         let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
-        let iso8601 = this.iso8601 (timestamp);
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -495,7 +494,7 @@ module.exports = class bitz extends Exchange {
             if (typeof symbol !== 'undefined') {
                 result[symbol] = this.extend (ticker, {
                     'timestamp': timestamp,
-                    'datetime': iso8601,
+                    'datetime': this.iso8601 (timestamp),
                 });
             }
         }

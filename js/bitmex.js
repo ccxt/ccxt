@@ -445,14 +445,12 @@ module.exports = class bitmex extends Exchange {
         }
         let datetime_value = undefined;
         let timestamp = undefined;
-        let iso8601 = undefined;
         if ('timestamp' in order)
             datetime_value = order['timestamp'];
         else if ('transactTime' in order)
             datetime_value = order['transactTime'];
         if (typeof datetime_value !== 'undefined') {
             timestamp = this.parse8601 (datetime_value);
-            iso8601 = this.iso8601 (timestamp);
         }
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQty');
@@ -471,7 +469,7 @@ module.exports = class bitmex extends Exchange {
             'info': order,
             'id': order['orderID'].toString (),
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),

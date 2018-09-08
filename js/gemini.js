@@ -361,9 +361,6 @@ module.exports = class gemini extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'timestampms');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined')
-            datetime = this.iso8601 (timestamp);
         let code = undefined;
         if (typeof currency === 'undefined') {
             let currencyId = this.safeString (transaction, 'currency');
@@ -387,7 +384,7 @@ module.exports = class gemini extends Exchange {
             'id': this.safeString (transaction, 'eid'),
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),

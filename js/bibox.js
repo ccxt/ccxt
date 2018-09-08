@@ -168,9 +168,6 @@ module.exports = class bibox extends Exchange {
         let open = undefined;
         if ((typeof last !== 'undefined') && (typeof change !== 'undefined'))
             open = last - change;
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let percentage = this.safeString (ticker, 'percent');
         if (typeof percentage !== 'undefined') {
             percentage = percentage.replace ('%', '');
@@ -179,7 +176,7 @@ module.exports = class bibox extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),

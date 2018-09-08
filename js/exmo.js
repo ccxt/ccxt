@@ -684,8 +684,9 @@ module.exports = class exmo extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'order_id');
         let timestamp = this.safeInteger (order, 'created');
-        if (typeof timestamp !== 'undefined')
+        if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
+        }
         let iso8601 = undefined;
         let symbol = undefined;
         let side = this.safeString (order, 'type');
@@ -717,35 +718,41 @@ module.exports = class exmo extends Exchange {
             if (Array.isArray (transactions)) {
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (transactions[i], market);
-                    if (typeof id === 'undefined')
+                    if (typeof id === 'undefined') {
                         id = trade['order'];
-                    if (typeof timestamp === 'undefined')
+                    }
+                    if (typeof timestamp === 'undefined') {
                         timestamp = trade['timestamp'];
-                    if (timestamp > trade['timestamp'])
+                    }
+                    if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
+                    }
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
+                    if (typeof feeCost === 'undefined') {
                         feeCost = 0.0;
+                    }
                     feeCost += trade['fee']['cost'];
-                    if (typeof cost === 'undefined')
+                    if (typeof cost === 'undefined') {
                         cost = 0.0;
+                    }
                     cost += trade['cost'];
                     trades.push (trade);
                 }
             }
         }
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let remaining = undefined;
-        if (typeof amount !== 'undefined')
+        if (typeof amount !== 'undefined') {
             remaining = amount - filled;
+        }
         let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled >= amount)
+        if (filled >= amount) {
             status = 'closed';
-        else
+        } else {
             status = 'open';
-        if (typeof market === 'undefined')
+        }
+        if (typeof market === 'undefined') {
             market = this.getMarketFromTrades (trades);
+        }
         let feeCurrency = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
@@ -764,7 +771,7 @@ module.exports = class exmo extends Exchange {
         };
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,

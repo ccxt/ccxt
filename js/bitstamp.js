@@ -441,14 +441,12 @@ module.exports = class bitstamp extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
         let timestamp = undefined;
-        let iso8601 = undefined;
         let side = this.safeString (order, 'type');
         if (typeof side !== 'undefined')
             side = (side === '1') ? 'sell' : 'buy';
         let datetimeString = this.safeString (order, 'datetime');
         if (typeof datetimeString !== 'undefined') {
             timestamp = this.parse8601 (datetimeString);
-            iso8601 = this.iso8601 (timestamp);
         }
         let symbol = undefined;
         if (typeof market === 'undefined') {
@@ -513,7 +511,7 @@ module.exports = class bitstamp extends Exchange {
         };
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,

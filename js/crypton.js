@@ -269,7 +269,6 @@ module.exports = class crypton extends Exchange {
             symbol = this.parseSymbol (marketId);
         }
         let timestamp = this.parse8601 (order['createdAt']);
-        let iso8601 = this.iso8601 (timestamp);
         let fee = undefined;
         if ('fee' in order) {
             fee = {
@@ -286,7 +285,7 @@ module.exports = class crypton extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,

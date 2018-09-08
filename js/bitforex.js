@@ -413,7 +413,6 @@ module.exports = class bitforex extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'orderId');
         let timestamp = this.safeFloat2 (order, 'createTime');
-        let iso8601 = this.iso8601 (timestamp);
         let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
         let symbol = market['symbol'];
         let sideId = this.safeInteger (order, 'tradeType');
@@ -432,7 +431,7 @@ module.exports = class bitforex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,

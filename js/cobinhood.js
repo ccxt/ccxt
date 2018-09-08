@@ -670,10 +670,6 @@ module.exports = class cobinhood extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined') {
-            datetime = this.iso8601 (timestamp);
-        }
         let code = undefined;
         if (typeof currency === 'undefined') {
             let currencyId = this.safeString (transaction, 'currency');
@@ -696,7 +692,7 @@ module.exports = class cobinhood extends Exchange {
             'id': this.safeString (transaction, 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txhash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdrawal')
             'amount': this.safeFloat (transaction, 'amount'),

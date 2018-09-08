@@ -235,10 +235,8 @@ module.exports = class cex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = undefined;
-        let iso8601 = undefined;
         if ('timestamp' in ticker) {
             timestamp = parseInt (ticker['timestamp']) * 1000;
-            iso8601 = this.iso8601 (timestamp);
         }
         let volume = this.safeFloat (ticker, 'volume');
         let high = this.safeFloat (ticker, 'high');
@@ -252,7 +250,7 @@ module.exports = class cex extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,

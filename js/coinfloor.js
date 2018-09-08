@@ -190,7 +190,6 @@ module.exports = class coinfloor extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['datetime']);
-        let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let cost = price * amount;
@@ -207,7 +206,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,

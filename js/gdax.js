@@ -250,9 +250,6 @@ module.exports = class gdax extends Exchange {
         } else if ('created_at' in trade) {
             timestamp = this.parse8601 (trade['created_at']);
         }
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('product_id' in trade) {
@@ -294,7 +291,7 @@ module.exports = class gdax extends Exchange {
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,

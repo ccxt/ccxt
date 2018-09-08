@@ -536,7 +536,6 @@ module.exports = class bcex extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
         let timestamp = this.safeInteger (order, 'datetime') * 1000;
-        let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
         let type = undefined;
         let side = this.safeString (order, 'type');
@@ -555,7 +554,7 @@ module.exports = class bcex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
