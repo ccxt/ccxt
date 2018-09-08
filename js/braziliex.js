@@ -322,7 +322,7 @@ module.exports = class braziliex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filledPercentage = this.safeFloat (order, 'progress');
         let filled = amount * filledPercentage;
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let info = order;
         if ('info' in info)
             info = order['info'];

@@ -4,7 +4,6 @@
 
 const huobipro = require ('./huobipro.js');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -692,18 +691,6 @@ module.exports = class cointiger extends huobipro {
         return result;
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (!this.password)
@@ -722,7 +709,7 @@ module.exports = class cointiger extends huobipro {
             if (typeof price === 'undefined') {
                 throw new InvalidOrder (this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
             }
-            order['volume'] = this.amountToPrecision (symbol, amount * price);
+            order['volume'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
         }
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);

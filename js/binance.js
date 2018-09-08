@@ -711,7 +711,7 @@ module.exports = class binance extends Exchange {
         let uppercaseType = type.toUpperCase ();
         let order = {
             'symbol': market['id'],
-            'quantity': this.amountToString (symbol, amount),
+            'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
             'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills

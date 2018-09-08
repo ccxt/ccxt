@@ -263,7 +263,7 @@ module.exports = class exx extends Exchange {
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -284,7 +284,7 @@ module.exports = class exx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],

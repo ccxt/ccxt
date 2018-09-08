@@ -318,7 +318,7 @@ module.exports = class bitbank extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
             'pair': market['id'],
-            'amount': this.amountToString (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': type,
