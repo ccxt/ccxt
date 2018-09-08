@@ -342,6 +342,15 @@ class Exchange(object):
                 return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
         return text
 
+    def find_broadly_matched_key(self, broad, string):
+        """A helper method for matching error strings exactly vs broadly"""
+        keys = list(broad.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if string.find(key) >= 0:
+                return key
+        return None
+
     def handle_errors(self, code, reason, url, method, headers, body):
         pass
 
