@@ -687,7 +687,6 @@ module.exports = class exmo extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
         }
-        let iso8601 = undefined;
         let symbol = undefined;
         let side = this.safeString (order, 'type');
         if (typeof market === 'undefined') {
