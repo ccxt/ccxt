@@ -155,13 +155,23 @@ module.exports = class poloniex extends Exchange {
                 },
             },
             'exceptions': {
-                'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
-                'Permission denied': PermissionDenied,
-                'Connection timed out. Please try again.': RequestTimeout,
-                'Internal error. Please try again.': ExchangeNotAvailable,
-                'Order not found, or you are not the person who placed it.': OrderNotFound,
-                'Invalid API key/secret pair.': AuthenticationError,
-                'Please do not make more than 8 API calls per second.': DDoSProtection,
+                'exact': {
+                    'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
+                    'Permission denied': PermissionDenied,
+                    'Connection timed out. Please try again.': RequestTimeout,
+                    'Internal error. Please try again.': ExchangeNotAvailable,
+                    'Order not found, or you are not the person who placed it.': OrderNotFound,
+                    'Invalid API key/secret pair.': AuthenticationError,
+                    'Please do not make more than 8 API calls per second.': DDoSProtection,
+                },
+                'broad': {
+                    'Total must be at least': InvalidOrder,
+                    'This account is frozen.': AccountSuspended,
+                    'Not enough': InsufficientFunds,
+                    'Nonce must be greater': InvalidNonce,
+                    'You have already called cancelOrder or moveOrder on this order.': CancelPending,
+                    'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
+                },
             },
         });
     }
@@ -690,11 +700,12 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let market = this.market (symbol);
-        let response = await this[method] (this.extend ({
+        let request = {
             'currencyPair': market['id'],
             'rate': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
-        }, params));
+        };
+        let response = await this[method] (this.extend (request, params));
         let timestamp = this.milliseconds ();
         let order = this.parseOrder (this.extend ({
             'timestamp': timestamp,
@@ -871,22 +882,16 @@ module.exports = class poloniex extends Exchange {
         if ('error' in response) {
             const message = response['error'];
             const feedback = this.id + ' ' + this.json (response);
-            let exceptions = this.exceptions;
-            if (message in exceptions) {
-                throw new exceptions[message] (feedback);
-            } else if (message.indexOf ('Total must be at least') >= 0) {
-                throw new InvalidOrder (feedback);
-            } else if (message.indexOf ('This account is frozen.') >= 0) {
-                throw new AccountSuspended (feedback);
-            } else if (message.indexOf ('Not enough') >= 0) {
-                throw new InsufficientFunds (feedback);
-            } else if (message.indexOf ('Nonce must be greater') >= 0) {
-                throw new InvalidNonce (feedback);
-            } else if (message.indexOf ('You have already called cancelOrder or moveOrder on this order.') >= 0) {
-                throw new CancelPending (feedback);
-            } else {
-                throw new ExchangeError (this.id + ' unknown error ' + this.json (response));
+            let exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
             }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (typeof broadKey !== 'undefined') {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
