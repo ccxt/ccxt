@@ -963,6 +963,20 @@ class Exchange {
         return $this->fetch2 ($path, $api, $method, $params, $headers, $body);
     }
 
+    public function findBroadlyMatchedKey ($broad, $string) {
+        return $this->find_broadly_matched_key ($broad, $string);
+    }
+
+    public function find_broadly_matched_key ($broad, $string) {
+        $keys = is_array ($broad) ? array_keys ($broad) : array ();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            if (mb_strpos ($string, $key) !== false)
+                return $key;
+        }
+        return null;
+    }
+
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         // it's a stub function, does nothing in base code
     }
