@@ -839,27 +839,31 @@ module.exports = class binance extends Exchange {
         if (typeof code === 'undefined') {
             throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
         }
-        let para = {};
-        const asset = this.currency (code);
-        para['asset'] = asset['id'];
-        if (typeof since !== 'undefined')
-            para['startTime'] = since;
-        let response = await this.wapiGetDepositHistory (this.extend (para, params));
-        return this.parseTransactions (response['depositList'], asset, since, limit);
+        const currency = this.currency (code);
+        let request = {
+            'asset': currency['id'];
+        };
+        if (typeof since !== 'undefined') {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetDepositHistory (this.extend (request, params));
+        return this.parseTransactions (response['depositList'], currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let para = {};
         if (typeof code === 'undefined') {
             throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
         }
-        const asset = this.currency (code);
-        para['asset'] = asset['id'];
-        if (typeof since !== 'undefined')
-            para['startTime'] = since;
-        let response = await this.wapiGetWithdrawHistory (this.extend (para, params));
-        return this.parseTransactions (response['withdrawList'], asset, since, limit);
+        const currency = this.currency (code);
+        let request = {
+            'asset': currency['id'];
+        };
+        if (typeof since !== 'undefined') {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
+        return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
     parseTransactionStatus (status) {
