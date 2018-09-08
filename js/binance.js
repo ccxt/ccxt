@@ -845,12 +845,7 @@ module.exports = class binance extends Exchange {
         if (typeof since !== 'undefined')
             para['startTime'] = since;
         let response = await this.wapiGetDepositHistory (this.extend (para, params));
-        if ('success' in response) {
-            if (response['success']) {
-                return this.parseTransactions (response['depositList'], asset, since, limit, 'deposit');
-            }
-        }
-        throw new ExchangeError (this.id + ' depositHistory failed: ' + this.last_http_response);
+        return this.parseTransactions (response['depositList'], asset, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -864,12 +859,7 @@ module.exports = class binance extends Exchange {
         if (typeof since !== 'undefined')
             para['startTime'] = since;
         let response = await this.wapiGetWithdrawHistory (this.extend (para, params));
-        if ('success' in response) {
-            if (response['success']) {
-                return this.parseTransactions (response['withdrawList'], asset, since, limit, 'withdrawal');
-            }
-        }
-        throw new ExchangeError (this.id + ' withdrawHistory failed: ' + this.last_http_response);
+        return this.parseTransactions (response['withdrawList'], asset, since, limit);
     }
 
     parseTransactionStatus (status) {
@@ -1053,12 +1043,19 @@ module.exports = class binance extends Exchange {
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);
                 if (!success) {
-                    if ('msg' in response)
+                    let message = this.safeString (response, 'msg');
+                    let parsedMessage = undefined;
+                    if (typeof message !== 'undefined') {
                         try {
-                            response = JSON.parse (response['msg']);
+                            parsedMessage = JSON.parse (message);
                         } catch (e) {
-                            response = {};
+                            // do nothing
+                            parsedMessage = undefined;
                         }
+                        if (typeof parsedMessage !== 'undefined') {
+                            response = parsedMessage;
+                        }
+                    }
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
