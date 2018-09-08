@@ -400,6 +400,7 @@ module.exports = class exx extends Exchange {
                 } else if (code === '308') {
                     // this is returned by the exchange when there are no open orders
                     // {"code":308,"message":"Not Found Transaction Record"}
+                    return;
                 } else {
                     throw new ExchangeError (feedback);
                 }
