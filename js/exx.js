@@ -347,6 +347,9 @@ module.exports = class exx extends Exchange {
         let orders = await this.privateGetGetOpenOrders (this.extend ({
             'currency': market['id'],
         }, params));
+        if (!Array.isArray (orders)) {
+            return [];
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -394,8 +397,12 @@ module.exports = class exx extends Exchange {
                 const exceptions = this.exceptions;
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
+                } else if (code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // {"code":308,"message":"Not Found Transaction Record"}
+                } else {
+                    throw new ExchangeError (feedback);
                 }
-                throw new ExchangeError (feedback);
             }
             let result = this.safeValue (response, 'result');
             if (typeof result !== 'undefined') {
