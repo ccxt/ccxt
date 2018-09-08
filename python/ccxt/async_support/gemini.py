@@ -334,9 +334,6 @@ class gemini (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
-        datetime = None
-        if timestamp is not None:
-            datetime = self.iso8601(timestamp)
         code = None
         if currency is None:
             currencyId = self.safe_string(transaction, 'currency')
@@ -356,7 +353,7 @@ class gemini (Exchange):
             'id': self.safe_string(transaction, 'eid'),
             'txid': self.safe_string(transaction, 'txHash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'address': None,  # or is it defined?
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_float(transaction, 'amount'),

@@ -181,9 +181,6 @@ class bibox (Exchange):
         open = None
         if (last is not None) and(change is not None):
             open = last - change
-        iso8601 = None
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
@@ -191,7 +188,7 @@ class bibox (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),

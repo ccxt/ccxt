@@ -181,7 +181,6 @@ class coinfloor (Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['datetime'])
-        datetime = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         cost = price * amount
@@ -198,7 +197,7 @@ class coinfloor (Exchange):
         return {
             'info': order,
             'id': id,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,

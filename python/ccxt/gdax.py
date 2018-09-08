@@ -251,9 +251,6 @@ class gdax (Exchange):
             timestamp = self.parse8601(trade['time'])
         elif 'created_at' in trade:
             timestamp = self.parse8601(trade['created_at'])
-        iso8601 = None
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         symbol = None
         if market is None:
             if 'product_id' in trade:
@@ -291,7 +288,7 @@ class gdax (Exchange):
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.246'
+const version = '1.17.247'
 
 Exchange.ccxtVersion = version
 
@@ -4551,7 +4551,6 @@ module.exports = class bcex extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
         let timestamp = this.safeInteger (order, 'datetime') * 1000;
-        let iso8601 = this.iso8601 (timestamp);
         let symbol = market['symbol'];
         let type = undefined;
         let side = this.safeString (order, 'type');
@@ -4570,7 +4569,7 @@ module.exports = class bcex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -4887,9 +4886,6 @@ module.exports = class bibox extends Exchange {
         let open = undefined;
         if ((typeof last !== 'undefined') && (typeof change !== 'undefined'))
             open = last - change;
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let percentage = this.safeString (ticker, 'percent');
         if (typeof percentage !== 'undefined') {
             percentage = percentage.replace ('%', '');
@@ -4898,7 +4894,7 @@ module.exports = class bibox extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
@@ -6744,9 +6740,6 @@ module.exports = class binance extends Exchange {
             timestamp = order['time'];
         else if ('transactTime' in order)
             timestamp = order['transactTime'];
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'origQty');
         let filled = this.safeFloat (order, 'executedQty');
@@ -6812,7 +6805,7 @@ module.exports = class binance extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -10701,7 +10694,6 @@ module.exports = class bitforex extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'orderId');
         let timestamp = this.safeFloat2 (order, 'createTime');
-        let iso8601 = this.iso8601 (timestamp);
         let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
         let symbol = market['symbol'];
         let sideId = this.safeInteger (order, 'tradeType');
@@ -10720,7 +10712,7 @@ module.exports = class bitforex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
@@ -12436,14 +12428,12 @@ module.exports = class bitmex extends Exchange {
         }
         let datetime_value = undefined;
         let timestamp = undefined;
-        let iso8601 = undefined;
         if ('timestamp' in order)
             datetime_value = order['timestamp'];
         else if ('transactTime' in order)
             datetime_value = order['transactTime'];
         if (typeof datetime_value !== 'undefined') {
             timestamp = this.parse8601 (datetime_value);
-            iso8601 = this.iso8601 (timestamp);
         }
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'orderQty');
@@ -12462,7 +12452,7 @@ module.exports = class bitmex extends Exchange {
             'info': order,
             'id': order['orderID'].toString (),
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': order['ordType'].toLowerCase (),
@@ -14045,14 +14035,12 @@ module.exports = class bitstamp extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
         let timestamp = undefined;
-        let iso8601 = undefined;
         let side = this.safeString (order, 'type');
         if (typeof side !== 'undefined')
             side = (side === '1') ? 'sell' : 'buy';
         let datetimeString = this.safeString (order, 'datetime');
         if (typeof datetimeString !== 'undefined') {
             timestamp = this.parse8601 (datetimeString);
-            iso8601 = this.iso8601 (timestamp);
         }
         let symbol = undefined;
         if (typeof market === 'undefined') {
@@ -14117,7 +14105,7 @@ module.exports = class bitstamp extends Exchange {
         };
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
@@ -14793,11 +14781,9 @@ module.exports = class bittrex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeString (ticker, 'TimeStamp');
-        let iso8601 = undefined;
         if (typeof timestamp === 'string') {
             if (timestamp.length > 0) {
                 timestamp = this.parse8601 (timestamp);
-                iso8601 = this.iso8601 (timestamp);
             }
         }
         let symbol = undefined;
@@ -14816,7 +14802,7 @@ module.exports = class bittrex extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'High'),
             'low': this.safeFloat (ticker, 'Low'),
             'bid': this.safeFloat (ticker, 'Bid'),
@@ -15088,7 +15074,6 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
         if (typeof timestamp === 'undefined')
             timestamp = lastTradeTimestamp;
-        let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
@@ -15135,7 +15120,7 @@ module.exports = class bittrex extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
@@ -15813,7 +15798,6 @@ module.exports = class bitz extends Exchange {
         //
         let tickers = response['data'];
         let timestamp = this.parseMicrotime (this.safeString (response, 'microtime'));
-        let iso8601 = this.iso8601 (timestamp);
         let result = {};
         let ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -15840,7 +15824,7 @@ module.exports = class bitz extends Exchange {
             if (typeof symbol !== 'undefined') {
                 result[symbol] = this.extend (ticker, {
                     'timestamp': timestamp,
-                    'datetime': iso8601,
+                    'datetime': this.iso8601 (timestamp),
                 });
             }
         }
@@ -20683,10 +20667,8 @@ module.exports = class cex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = undefined;
-        let iso8601 = undefined;
         if ('timestamp' in ticker) {
             timestamp = parseInt (ticker['timestamp']) * 1000;
-            iso8601 = this.iso8601 (timestamp);
         }
         let volume = this.safeFloat (ticker, 'volume');
         let high = this.safeFloat (ticker, 'high');
@@ -20700,7 +20682,7 @@ module.exports = class cex extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,
@@ -21772,10 +21754,6 @@ module.exports = class cobinhood extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined') {
-            datetime = this.iso8601 (timestamp);
-        }
         let code = undefined;
         if (typeof currency === 'undefined') {
             let currencyId = this.safeString (transaction, 'currency');
@@ -21798,7 +21776,7 @@ module.exports = class cobinhood extends Exchange {
             'id': this.safeString (transaction, 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txhash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdrawal')
             'amount': this.safeFloat (transaction, 'amount'),
@@ -24918,7 +24896,6 @@ module.exports = class coinfloor extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = this.parse8601 (order['datetime']);
-        let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
         let cost = price * amount;
@@ -24935,7 +24912,7 @@ module.exports = class coinfloor extends Exchange {
         return {
             'info': order,
             'id': id,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
@@ -28450,7 +28427,6 @@ module.exports = class crypton extends Exchange {
             symbol = this.parseSymbol (marketId);
         }
         let timestamp = this.parse8601 (order['createdAt']);
-        let iso8601 = this.iso8601 (timestamp);
         let fee = undefined;
         if ('fee' in order) {
             fee = {
@@ -28467,7 +28443,7 @@ module.exports = class crypton extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -29174,10 +29150,6 @@ module.exports = class cryptopia extends Exchange {
         if (typeof timestamp !== 'undefined') {
             timestamp = this.parse8601 (order['TimeStamp']);
         }
-        let datetime = undefined;
-        if (timestamp) {
-            datetime = this.iso8601 (timestamp);
-        }
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = undefined;
@@ -29196,7 +29168,7 @@ module.exports = class cryptopia extends Exchange {
             'id': id,
             'info': this.omit (order, 'status'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': this.safeString (order, 'status'),
             'symbol': symbol,
@@ -30752,9 +30724,9 @@ module.exports = class exmo extends Exchange {
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'order_id');
         let timestamp = this.safeInteger (order, 'created');
-        if (typeof timestamp !== 'undefined')
+        if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
-        let iso8601 = undefined;
+        }
         let symbol = undefined;
         let side = this.safeString (order, 'type');
         if (typeof market === 'undefined') {
@@ -30785,35 +30757,41 @@ module.exports = class exmo extends Exchange {
             if (Array.isArray (transactions)) {
                 for (let i = 0; i < transactions.length; i++) {
                     let trade = this.parseTrade (transactions[i], market);
-                    if (typeof id === 'undefined')
+                    if (typeof id === 'undefined') {
                         id = trade['order'];
-                    if (typeof timestamp === 'undefined')
+                    }
+                    if (typeof timestamp === 'undefined') {
                         timestamp = trade['timestamp'];
-                    if (timestamp > trade['timestamp'])
+                    }
+                    if (timestamp > trade['timestamp']) {
                         timestamp = trade['timestamp'];
+                    }
                     filled += trade['amount'];
-                    if (typeof feeCost === 'undefined')
+                    if (typeof feeCost === 'undefined') {
                         feeCost = 0.0;
+                    }
                     feeCost += trade['fee']['cost'];
-                    if (typeof cost === 'undefined')
+                    if (typeof cost === 'undefined') {
                         cost = 0.0;
+                    }
                     cost += trade['cost'];
                     trades.push (trade);
                 }
             }
         }
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let remaining = undefined;
-        if (typeof amount !== 'undefined')
+        if (typeof amount !== 'undefined') {
             remaining = amount - filled;
+        }
         let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (filled >= amount)
+        if (filled >= amount) {
             status = 'closed';
-        else
+        } else {
             status = 'open';
-        if (typeof market === 'undefined')
+        }
+        if (typeof market === 'undefined') {
             market = this.getMarketFromTrades (trades);
+        }
         let feeCurrency = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
@@ -30832,7 +30810,7 @@ module.exports = class exmo extends Exchange {
         };
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
@@ -33813,8 +33791,9 @@ module.exports = class gateio extends Exchange {
         let timestamp = this.safeInteger (trade, 'timestamp');
         // private fetchMyTrades
         timestamp = this.safeInteger (trade, 'time_unix', timestamp);
-        if (typeof timestamp !== 'undefined')
+        if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
+        }
         let id = this.safeString (trade, 'tradeID');
         id = this.safeString (trade, 'id', id);
         // take either of orderid or orderId
@@ -33905,11 +33884,9 @@ module.exports = class gateio extends Exchange {
         }
         if (typeof market !== 'undefined')
             symbol = market['symbol'];
-        let datetime = undefined;
         let timestamp = this.safeInteger (order, 'timestamp');
         if (typeof timestamp !== 'undefined') {
             timestamp *= 1000;
-            datetime = this.iso8601 (timestamp);
         }
         let status = this.safeString (order, 'status');
         if (typeof status !== 'undefined')
@@ -33936,7 +33913,7 @@ module.exports = class gateio extends Exchange {
         }
         return {
             'id': id,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
@@ -34358,9 +34335,6 @@ module.exports = class gdax extends Exchange {
         } else if ('created_at' in trade) {
             timestamp = this.parse8601 (trade['created_at']);
         }
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('product_id' in trade) {
@@ -34402,7 +34376,7 @@ module.exports = class gdax extends Exchange {
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -35200,9 +35174,6 @@ module.exports = class gemini extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'timestampms');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined')
-            datetime = this.iso8601 (timestamp);
         let code = undefined;
         if (typeof currency === 'undefined') {
             let currencyId = this.safeString (transaction, 'currency');
@@ -35226,7 +35197,7 @@ module.exports = class gemini extends Exchange {
             'id': this.safeString (transaction, 'eid'),
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
@@ -42145,14 +42116,11 @@ module.exports = class kucoin extends Exchange {
         let response = await this.privatePostOrder (this.extend (request, params));
         let orderId = this.safeString (response['data'], 'orderOid');
         let timestamp = this.safeInteger (response, 'timestamp');
-        let iso8601 = undefined;
-        if (typeof timestamp !== 'undefined')
-            iso8601 = this.iso8601 (timestamp);
         let order = {
             'info': response,
             'id': orderId,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
             'type': type,
@@ -44753,7 +44721,6 @@ module.exports = class livecoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = undefined;
-        let datetime = undefined;
         if ('lastModificationTime' in order) {
             timestamp = this.safeString (order, 'lastModificationTime');
             if (typeof timestamp !== 'undefined') {
@@ -44763,9 +44730,6 @@ module.exports = class livecoin extends Exchange {
                     timestamp = this.safeInteger (order, 'lastModificationTime');
                 }
             }
-        }
-        if (timestamp) {
-            datetime = this.iso8601 (timestamp);
         }
         // TODO currently not supported by livecoin
         // let trades = this.parseTrades (order['trades'], market, since, limit);
@@ -44815,7 +44779,7 @@ module.exports = class livecoin extends Exchange {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,

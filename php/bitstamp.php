@@ -442,14 +442,12 @@ class bitstamp extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $timestamp = null;
-        $iso8601 = null;
         $side = $this->safe_string($order, 'type');
         if ($side !== null)
             $side = ($side === '1') ? 'sell' : 'buy';
         $datetimeString = $this->safe_string($order, 'datetime');
         if ($datetimeString !== null) {
             $timestamp = $this->parse8601 ($datetimeString);
-            $iso8601 = $this->iso8601 ($timestamp);
         }
         $symbol = null;
         if ($market === null) {
@@ -514,7 +512,7 @@ class bitstamp extends Exchange {
         );
         return array (
             'id' => $id,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,

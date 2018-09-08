@@ -521,7 +521,6 @@ class bcex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'datetime') * 1000
-        iso8601 = self.iso8601(timestamp)
         symbol = market['symbol']
         type = None
         side = self.safe_string(order, 'type')
@@ -540,7 +539,7 @@ class bcex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,

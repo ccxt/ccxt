@@ -818,14 +818,11 @@ class kucoin extends Exchange {
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $orderId = $this->safe_string($response['data'], 'orderOid');
         $timestamp = $this->safe_integer($response, 'timestamp');
-        $iso8601 = null;
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $order = array (
             'info' => $response,
             'id' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,

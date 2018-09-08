@@ -595,9 +595,6 @@ class binance (Exchange):
             timestamp = order['time']
         elif 'transactTime' in order:
             timestamp = order['transactTime']
-        iso8601 = None
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty')
@@ -648,7 +645,7 @@ class binance (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,

@@ -652,7 +652,6 @@ class exmo (Exchange):
         timestamp = self.safe_integer(order, 'created')
         if timestamp is not None:
             timestamp *= 1000
-        iso8601 = None
         symbol = None
         side = self.safe_string(order, 'type')
         if market is None:
@@ -694,8 +693,6 @@ class exmo (Exchange):
                         cost = 0.0
                     cost += trade['cost']
                     trades.append(trade)
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         remaining = None
         if amount is not None:
             remaining = amount - filled
@@ -722,7 +719,7 @@ class exmo (Exchange):
         }
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
