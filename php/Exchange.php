@@ -2083,36 +2083,51 @@ class Exchange {
         $result = '';
         if ($roundingMode === ROUND) {
             if ($countingMode === DECIMAL_PLACES) {
-                $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_EVEN);
+                $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_UP);
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log (abs ($x), 10) % 10;
                 if ($significantPosition > 0) {
                     $significantPosition += 1;
                 }
-                $result = (string) round ($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_EVEN);
+                $result = (string) round ($x, $numPrecisionDigits - $significantPosition, PHP_ROUND_HALF_UP);
             }
         } elseif ($roundingMode === TRUNCATE) {
-            $dotPosition = strpos ($x, '.') ?: 0;
+            $dotIndex = strpos ($x, '.');
+            $dotPosition = $dotIndex ?: 0;
             if ($countingMode === DECIMAL_PLACES) {
-                $result = substr ($x, 0, ($dotPosition ? $dotPosition + 1 : 0) + $numPrecisionDigits);
+                if ($dotIndex) {
+                    list ($before, $after) = explode ('.', $x);
+                    $result = $before . '.' . substr ($after, 0, $numPrecisionDigits);
+                } else {
+                    $result = $x;
+                }
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
+                if ($numPrecisionDigits === 0) {
+                    return '0';
+                }
                 $significantPosition = log (abs ($x), 10) % 10;
                 $start = $dotPosition - $significantPosition;
                 $end   = $start + $numPrecisionDigits;
                 if ($dotPosition >= $end) {
                     $end -= 1;
                 }
-                if ($significantPosition < 0) {
-                    $end += 1;
+                if ($numPrecisionDigits >= (strlen ($x) - ($dotPosition ? 1 : 0))) {
+                    $result = (string) $x;
+                } else {
+                    if ($significantPosition < 0) {
+                        $end += 1;
+                    }
+                    $result = str_pad (substr ($x, 0, $end), $dotPosition, '0');
                 }
-                $result = str_pad (substr ($x, 0, $end), $dotPosition, '0');
             }
+            $result = rtrim ($result, '.');
         }
 
         $hasDot = strpos ($result, '.') !== false;
         if ($paddingMode === NO_PADDING) {
-            if ($result === '' && $numPrecisionDigits === 0)
+            if ($result === '' && $numPrecisionDigits === 0) {
                 return '0';
+            }
             if ($hasDot) {
                 $result = rtrim ($result, '0.');
             }
