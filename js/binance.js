@@ -29,6 +29,9 @@ module.exports = class binance extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': true,
                 'fetchFundingFees': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -831,6 +834,108 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+        }
+        const currency = this.currency (code);
+        let request = {
+            'asset': currency['id'],
+        };
+        if (typeof since !== 'undefined') {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetDepositHistory (this.extend (request, params));
+        return this.parseTransactions (response['depositList'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+        }
+        const currency = this.currency (code);
+        let request = {
+            'asset': currency['id'],
+        };
+        if (typeof since !== 'undefined') {
+            request['startTime'] = since;
+        }
+        let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
+        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        if (typeof type === 'undefined') {
+            return status;
+        }
+        let statuses = {
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending',
+                '1': 'canceled', // different from 1 = ok in deposits
+                '2': 'pending',
+                '3': 'error',
+                '4': 'pending',
+                '5': 'error',
+                '6': 'ok',
+            },
+        };
+        return (status in statuses[type]) ? statuses[type][status] : status;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
+        let address = this.safeString (transaction, 'address');
+        let txid = this.safeValue (transaction, 'txId');
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let timestamp = undefined;
+        let insertTime = this.safeInteger (transaction, 'insertTime');
+        let applyTime = this.safeInteger (transaction, 'applyTime');
+        let type = this.safeString (transaction, 'type');
+        if (typeof type === 'undefined') {
+            if ((typeof insertTime !== 'undefined') && (typeof applyTime === 'undefined')) {
+                type = 'deposit';
+                timestamp = insertTime;
+            } else if ((typeof insertTime === 'undefined') && (typeof applyTime !== 'undefined')) {
+                type = 'withdrawal';
+                timestamp = applyTime;
+            }
+        }
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        let amount = this.safeFloat (transaction, 'amount');
+        let fee = undefined;
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': fee,
+        };
+    }
+
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
@@ -952,12 +1057,19 @@ module.exports = class binance extends Exchange {
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 let success = this.safeValue (response, 'success', true);
                 if (!success) {
-                    if ('msg' in response)
+                    let message = this.safeString (response, 'msg');
+                    let parsedMessage = undefined;
+                    if (typeof message !== 'undefined') {
                         try {
-                            response = JSON.parse (response['msg']);
+                            parsedMessage = JSON.parse (message);
                         } catch (e) {
-                            response = {};
+                            // do nothing
+                            parsedMessage = undefined;
                         }
+                        if (typeof parsedMessage !== 'undefined') {
+                            response = parsedMessage;
+                        }
+                    }
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');

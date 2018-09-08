@@ -1076,7 +1076,7 @@ module.exports = class Exchange {
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
         result = this.sortBy (result, 'timestamp');
         let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);

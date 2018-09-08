@@ -608,10 +608,6 @@ module.exports = class gdax extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined') {
-            datetime = this.iso8601 (timestamp);
-        }
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
         if (currencyId in this.currencies_by_id) {
@@ -620,22 +616,20 @@ module.exports = class gdax extends Exchange {
         if (typeof currency !== 'undefined') {
             code = currency['code'];
         }
+        let fee = undefined;
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
             'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (transaction),
             'updated': undefined,
-            'fee': {
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
