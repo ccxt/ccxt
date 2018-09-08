@@ -1146,16 +1146,6 @@ module.exports = class theocean extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    findBroadlyMatchedKey (map, broadString) {
-        const partialKeys = Object.keys (map);
-        for (let i = 0; i < partialKeys.length; i++) {
-            const partialKey = partialKeys[i];
-            if (broadString.indexOf (partialKey) >= 0)
-                return partialKey;
-        }
-        return undefined;
-    }
-
     handleErrors (httpCode, reason, url, method, headers, body) {
         if (typeof body !== 'string')
             return; // fallback to default error handler
