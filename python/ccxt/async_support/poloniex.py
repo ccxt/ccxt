@@ -650,8 +650,6 @@ class poloniex (Exchange):
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
-        price = float(price)
-        amount = float(amount)
         response = await getattr(self, method)(self.extend({
             'currencyPair': market['id'],
             'rate': self.price_to_precision(symbol, price),
@@ -678,7 +676,6 @@ class poloniex (Exchange):
             'rate': self.price_to_precision(symbol, price),
         }
         if amount is not None:
-            amount = float(amount)
             request['amount'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostMoveOrder(self.extend(request, params))
         result = None

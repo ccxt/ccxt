@@ -19,8 +19,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class uex (Exchange):
@@ -158,15 +156,6 @@ class uex (Exchange):
                 },
             },
         })
-
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -551,7 +540,6 @@ class uex (Exchange):
         if type == 'limit':
             priceToPrecision = self.price_to_precision(symbol, price)
             request['price'] = priceToPrecision
-            priceToPrecision = float(priceToPrecision)
         response = self.privatePostCreateOrder(self.extend(request, params))
         #
         #     {code: '0',
@@ -565,7 +553,7 @@ class uex (Exchange):
             'type': type,
             'side': side,
             'status': 'open',
-            'price': priceToPrecision,
+            'price': float(priceToPrecision),
             'amount': float(amountToPrecision),
         })
 

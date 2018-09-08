@@ -546,7 +546,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate ($fee, 8);
+        return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     public function fetch_markets () {
@@ -888,7 +888,7 @@ class hitbtc2 extends hitbtc {
             'requestClientId' => $requestClientId,
         );
         if ($amount !== null)
-            $request['quantity'] = $this->amount_to_precision($symbol, floatval ($amount));
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null)
             $request['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePatchOrderClientOrderId (array_merge ($request, $params));

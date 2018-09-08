@@ -587,7 +587,7 @@ class livecoin extends Exchange {
         if ($tag !== null)
             $wallet .= '::' . $tag;
         $withdrawal = array (
-            'amount' => $this->truncate ($amount, $this->currencies[$currency]['precision']), // throws an error when $amount is too precise
+            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$currency]['precision'], DECIMAL_PLACES),
             'currency' => $this->common_currency_code($currency),
             'wallet' => $wallet,
         );

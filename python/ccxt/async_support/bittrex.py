@@ -23,6 +23,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class bittrex (Exchange):
@@ -186,10 +188,10 @@ class bittrex (Exchange):
         })
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
+        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     async def fetch_markets(self):
         response = await self.v2GetMarketsGetMarketSummaries()

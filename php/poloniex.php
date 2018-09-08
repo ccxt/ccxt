@@ -691,8 +691,6 @@ class poloniex extends Exchange {
         $this->load_markets();
         $method = 'privatePost' . $this->capitalize ($side);
         $market = $this->market ($symbol);
-        $price = floatval ($price);
-        $amount = floatval ($amount);
         $response = $this->$method (array_merge (array (
             'currencyPair' => $market['id'],
             'rate' => $this->price_to_precision($symbol, $price),
@@ -720,7 +718,6 @@ class poloniex extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
         );
         if ($amount !== null) {
-            $amount = floatval ($amount);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = $this->privatePostMoveOrder (array_merge ($request, $params));

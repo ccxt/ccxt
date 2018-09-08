@@ -264,7 +264,7 @@ class exx extends Exchange {
         $cost = $this->safe_float($order, 'trade_money');
         $amount = $this->safe_float($order, 'total_amount');
         $filled = $this->safe_float($order, 'trade_amount', 0.0);
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
+        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';
@@ -285,7 +285,7 @@ class exx extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $order['type'],

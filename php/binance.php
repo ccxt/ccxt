@@ -712,7 +712,7 @@ class binance extends Exchange {
         $uppercaseType = strtoupper ($type);
         $order = array (
             'symbol' => $market['id'],
-            'quantity' => $this->amount_to_string($symbol, $amount),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $uppercaseType,
             'side' => strtoupper ($side),
             'newOrderRespType' => $this->options['newOrderRespType'], // 'ACK' for $order id, 'RESULT' for full $order or 'FULL' for $order with fills

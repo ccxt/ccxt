@@ -549,7 +549,7 @@ class exmo extends Exchange {
         }
         $request = array (
             'pair' => $market['id'],
-            'quantity' => $this->amount_to_string($symbol, $amount),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $prefix . $side,
             'price' => $this->price_to_precision($symbol, $price),
         );

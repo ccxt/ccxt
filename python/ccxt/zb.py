@@ -383,7 +383,7 @@ class zb (Exchange):
         self.load_markets()
         order = {
             'price': self.price_to_precision(symbol, price),
-            'amount': self.amount_to_string(symbol, amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'tradeType': '1' if (side == 'buy') else '0',
             'currency': self.market_id(symbol),
         }

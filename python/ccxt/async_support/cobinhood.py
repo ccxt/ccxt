@@ -489,7 +489,7 @@ class cobinhood (Exchange):
             'trading_pair_id': market['id'],
             'type': type,  # market, limit, stop, stop_limit
             'side': side,
-            'size': self.amount_to_string(symbol, amount),
+            'size': self.amount_to_precision(symbol, amount),
         }
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
@@ -503,7 +503,7 @@ class cobinhood (Exchange):
         response = await self.privatePutTradingOrdersOrderId(self.extend({
             'order_id': id,
             'price': self.price_to_precision(symbol, price),
-            'size': self.amount_to_string(symbol, amount),
+            'size': self.amountToString(symbol, amount),
         }, params))
         return self.parse_order(self.extend(response, {
             'id': id,

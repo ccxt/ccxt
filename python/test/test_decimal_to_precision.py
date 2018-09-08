@@ -42,6 +42,12 @@ assert(decimal_to_precision('12.3456', TRUNCATE, 2, DECIMAL_PLACES) == '12.34')
 assert(decimal_to_precision('12.3456', TRUNCATE, 1, DECIMAL_PLACES) == '12.3')
 assert(decimal_to_precision('12.3456', TRUNCATE, 0, DECIMAL_PLACES) == '12')
 
+assert(decimal_to_precision('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) == '0.0000001')
+assert(decimal_to_precision('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) == '0.00000001')
+
+assert(decimal_to_precision('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) == '0.000000000')
+assert(decimal_to_precision('0.000000001', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) == '0.000000001')
+
 # assert(decimal_to_precision('12.3456', TRUNCATE, -1, DECIMAL_PLACES) == '10')  # not yet supported
 # assert(decimal_to_precision('123.456', TRUNCATE, -2, DECIMAL_PLACES) == '120')  # not yet supported
 # assert(decimal_to_precision('123.456', TRUNCATE, -3, DECIMAL_PLACES) == '100')  # not yet supported

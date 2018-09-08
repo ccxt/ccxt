@@ -19,6 +19,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class hitbtc2 (hitbtc):
@@ -559,7 +561,7 @@ class hitbtc2 (hitbtc):
         })
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(fee, 8)
+        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
     async def fetch_markets(self):
         markets = await self.publicGetSymbol()
@@ -879,7 +881,7 @@ class hitbtc2 (hitbtc):
             'requestClientId': requestClientId,
         }
         if amount is not None:
-            request['quantity'] = self.amount_to_precision(symbol, float(amount))
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePatchOrderClientOrderId(self.extend(request, params))

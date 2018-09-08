@@ -673,7 +673,7 @@ class binance (Exchange):
         uppercaseType = type.upper()
         order = {
             'symbol': market['id'],
-            'quantity': self.amount_to_string(symbol, amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
             'side': side.upper(),
             'newOrderRespType': self.options['newOrderRespType'],  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills

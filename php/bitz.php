@@ -773,7 +773,7 @@ class bitz extends Exchange {
             'symbol' => $market['id'],
             'type' => $orderType,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_string($symbol, $amount),
+            'number' => $this->amount_to_precision($symbol, $amount),
             'tradePwd' => $this->password,
         );
         $response = $this->tradePostAddEntrustSheet (array_merge ($request, $params));

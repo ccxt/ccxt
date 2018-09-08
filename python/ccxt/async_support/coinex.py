@@ -9,8 +9,6 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class coinex (Exchange):
@@ -125,15 +123,6 @@ class coinex (Exchange):
                 'createMarketBuyOrderRequiresPrice': True,
             },
         })
-
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
 
     async def fetch_markets(self):
         response = await self.webGetResMarket()
@@ -369,7 +358,7 @@ class coinex (Exchange):
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
         symbol = market['symbol']
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
         status = self.parse_order_status(order['status'])
         return {
             'id': self.safe_string(order, 'id'),

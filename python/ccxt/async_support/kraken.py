@@ -24,6 +24,8 @@ from ccxt.base.errors import CancelPending
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class kraken (Exchange):
@@ -224,10 +226,10 @@ class kraken (Exchange):
         })
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(float(fee), self.markets[symbol]['precision']['amount'])
+        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     async def fetch_min_order_sizes(self):
         html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize()

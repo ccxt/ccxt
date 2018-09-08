@@ -692,18 +692,6 @@ class cointiger extends huobipro {
         return $result;
     }
 
-    public function cost_to_precision ($symbol, $cost) {
-        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
-    }
-
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
-    }
-
-    public function amount_to_precision ($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
-    }
-
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if (!$this->password)
@@ -722,7 +710,7 @@ class cointiger extends huobipro {
             if ($price === null) {
                 throw new InvalidOrder ($this->id . ' createOrder requires $price argument for $market buy orders to calculate total cost according to exchange rules');
             }
-            $order['volume'] = $this->amount_to_precision($symbol, $amount * $price);
+            $order['volume'] = $this->amount_to_precision($symbol, floatval ($amount) * floatval ($price));
         }
         if ($type === 'limit') {
             $order['price'] = $this->price_to_precision($symbol, $price);

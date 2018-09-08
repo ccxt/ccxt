@@ -530,7 +530,7 @@ class exmo (Exchange):
             price = 0
         request = {
             'pair': market['id'],
-            'quantity': self.amount_to_string(symbol, amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': prefix + side,
             'price': self.price_to_precision(symbol, price),
         }

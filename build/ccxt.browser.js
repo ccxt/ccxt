@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.244'
+const version = '1.17.245'
 
 Exchange.ccxtVersion = version
 
@@ -1622,7 +1622,8 @@ const {
     , sleep
     , timeout
     , TimedOut
-    , buildOHLCVC } = functions
+    , buildOHLCVC
+    , decimalToPrecision } = functions
 
 const {
     ExchangeError
@@ -1633,7 +1634,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const { DECIMAL_PLACES, ROUND } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -2758,23 +2759,19 @@ module.exports = class Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     priceToPrecision (symbol, price) {
-        return parseFloat (price).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return this.truncate (amount, this.markets[symbol].precision.amount)
-    }
-
-    amountToString (symbol, amount) {
-        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     currencyToPrecision (currency, fee) {
@@ -6842,7 +6839,7 @@ module.exports = class binance extends Exchange {
         let uppercaseType = type.toUpperCase ();
         let order = {
             'symbol': market['id'],
-            'quantity': this.amountToString (symbol, amount),
+            'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
             'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -7780,7 +7777,7 @@ module.exports = class bitbank extends Exchange {
             throw new InvalidOrder (this.id + ' createOrder requires a price argument for both market and limit orders');
         let request = {
             'pair': market['id'],
-            'amount': this.amountToString (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
             'side': side,
             'type': type,
@@ -8350,7 +8347,7 @@ module.exports = class bitbay extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
-const { ROUND, TRUNCATE, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -8790,18 +8787,6 @@ module.exports = class bitfinex extends Exchange {
             });
         }
         return result;
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -14432,6 +14417,7 @@ module.exports = class bitstamp1 extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -14596,11 +14582,11 @@ module.exports = class bittrex extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     async fetchMarkets () {
@@ -15244,7 +15230,7 @@ module.exports = class bittrex extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11}],44:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],44:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -16019,7 +16005,7 @@ module.exports = class bitz extends Exchange {
             'symbol': market['id'],
             'type': orderType,
             'price': this.priceToPrecision (symbol, price),
-            'number': this.amountToString (symbol, amount),
+            'number': this.amountToPrecision (symbol, amount),
             'tradePwd': this.password,
         };
         let response = await this.tradePostAddEntrustSheet (this.extend (request, params));
@@ -17057,7 +17043,7 @@ module.exports = class braziliex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filledPercentage = this.safeFloat (order, 'progress');
         let filled = amount * filledPercentage;
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let info = order;
         if ('info' in info)
             info = order['info'];
@@ -21512,7 +21498,7 @@ module.exports = class cobinhood extends Exchange {
             'trading_pair_id': market['id'],
             'type': type, // market, limit, stop, stop_limit
             'side': side,
-            'size': this.amountToString (symbol, amount),
+            'size': this.amountToPrecision (symbol, amount),
         };
         if (type !== 'market')
             request['price'] = this.priceToPrecision (symbol, price);
@@ -22972,7 +22958,6 @@ module.exports = class coinegg extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -23087,18 +23072,6 @@ module.exports = class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
             },
         });
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
     }
 
     async fetchMarkets () {
@@ -23350,7 +23323,7 @@ module.exports = class coinex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.parseOrderStatus (order['status']);
         return {
             'id': this.safeString (order, 'id'),
@@ -23547,7 +23520,7 @@ module.exports = class coinex extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],69:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11}],69:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -24506,11 +24479,11 @@ module.exports = class coinfalcon extends Exchange {
             symbol = market['symbol'];
         }
         let timestamp = this.parse8601 (order['created_at']);
-        let price = parseFloat (order['price']);
+        let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'size_filled');
-        let remaining = this.amountToPrecision (symbol, amount - filled);
-        let cost = this.priceToPrecision (symbol, amount * price);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        let cost = parseFloat (this.priceToPrecision (symbol, amount * price));
         // pending, open, partially_filled, fullfilled, canceled
         let status = order['status'];
         if (status === 'fulfilled') {
@@ -24544,14 +24517,14 @@ module.exports = class coinfalcon extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         // price/size must be string
-        amount = this.amountToPrecision (symbol, parseFloat (amount));
+        amount = this.amountToPrecision (symbol, amount);
         let request = {
             'market': market['id'],
-            'size': amount.toString (),
+            'size': amount,
             'order_type': side,
         };
         if (type === 'limit') {
-            price = this.priceToPrecision (symbol, parseFloat (price));
+            price = this.priceToPrecision (symbol, price);
             request['price'] = price.toString ();
         }
         request['operation_type'] = type + '_order';
@@ -27150,7 +27123,6 @@ module.exports = class coinspot extends Exchange {
 
 const huobipro = require ('./huobipro.js');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -27838,18 +27810,6 @@ module.exports = class cointiger extends huobipro {
         return result;
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         if (!this.password)
@@ -27868,7 +27828,7 @@ module.exports = class cointiger extends huobipro {
             if (typeof price === 'undefined') {
                 throw new InvalidOrder (this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
             }
-            order['volume'] = this.amountToPrecision (symbol, amount * price);
+            order['volume'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
         }
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
@@ -28038,7 +27998,7 @@ module.exports = class cointiger extends huobipro {
     }
 };
 
-},{"./base/errors":11,"./base/functions/number":17,"./huobipro.js":103}],80:[function(require,module,exports){
+},{"./base/errors":11,"./huobipro.js":103}],80:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -30544,7 +30504,7 @@ module.exports = class exmo extends Exchange {
         }
         let request = {
             'pair': market['id'],
-            'quantity': this.amountToString (symbol, amount),
+            'quantity': this.amountToPrecision (symbol, amount),
             'type': prefix + side,
             'price': this.priceToPrecision (symbol, price),
         };
@@ -31302,7 +31262,7 @@ module.exports = class exx extends Exchange {
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -31323,7 +31283,7 @@ module.exports = class exx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -36313,6 +36273,7 @@ module.exports = class hitbtc extends Exchange {
 
 const hitbtc = require ('./hitbtc');
 const { ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
 
@@ -36854,7 +36815,7 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (fee, 8);
+        return this.decimalToPrecision (fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     async fetchMarkets () {
@@ -37196,7 +37157,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'requestClientId': requestClientId,
         };
         if (typeof amount !== 'undefined')
-            request['quantity'] = this.amountToPrecision (symbol, parseFloat (amount));
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         if (typeof price !== 'undefined')
             request['price'] = this.priceToPrecision (symbol, price);
         let response = await this.privatePatchOrderClientOrderId (this.extend (request, params));
@@ -37475,7 +37436,7 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 };
 
-},{"./base/errors":11,"./hitbtc":99}],101:[function(require,module,exports){
+},{"./base/errors":11,"./base/functions/number":17,"./hitbtc":99}],101:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -40328,6 +40289,7 @@ module.exports = class jubi extends btcbox {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -40529,11 +40491,11 @@ module.exports = class kraken extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['amount']);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     async fetchMinOrderSizes () {
@@ -41256,7 +41218,7 @@ module.exports = class kraken extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11}],110:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],110:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -44281,6 +44243,7 @@ module.exports = class liqui extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -44863,7 +44826,7 @@ module.exports = class livecoin extends Exchange {
         if (typeof tag !== 'undefined')
             wallet += '::' + tag;
         let withdrawal = {
-            'amount': this.truncate (amount, this.currencies[currency]['precision']), // throws an error when amount is too precise
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
             'currency': this.commonCurrencyCode (currency),
             'wallet': wallet,
         };
@@ -44955,7 +44918,7 @@ module.exports = class livecoin extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11}],116:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],116:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -48919,8 +48882,6 @@ module.exports = class poloniex extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePost' + this.capitalize (side);
         let market = this.market (symbol);
-        price = parseFloat (price);
-        amount = parseFloat (amount);
         let response = await this[method] (this.extend ({
             'currencyPair': market['id'],
             'rate': this.priceToPrecision (symbol, price),
@@ -48948,7 +48909,6 @@ module.exports = class poloniex extends Exchange {
             'rate': this.priceToPrecision (symbol, price),
         };
         if (typeof amount !== 'undefined') {
-            amount = parseFloat (amount);
             request['amount'] = this.amountToPrecision (symbol, amount);
         }
         let response = await this.privatePostMoveOrder (this.extend (request, params));
@@ -53300,7 +53260,6 @@ module.exports = class tidex extends liqui {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -53438,18 +53397,6 @@ module.exports = class uex extends Exchange {
                 },
             },
         });
-    }
-
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
@@ -53865,7 +53812,6 @@ module.exports = class uex extends Exchange {
         if (type === 'limit') {
             priceToPrecision = this.priceToPrecision (symbol, price);
             request['price'] = priceToPrecision;
-            priceToPrecision = parseFloat (priceToPrecision);
         }
         let response = await this.privatePostCreateOrder (this.extend (request, params));
         //
@@ -53880,7 +53826,7 @@ module.exports = class uex extends Exchange {
             'type': type,
             'side': side,
             'status': 'open',
-            'price': priceToPrecision,
+            'price': parseFloat (priceToPrecision),
             'amount': parseFloat (amountToPrecision),
         });
     }
@@ -54284,7 +54230,7 @@ module.exports = class uex extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],138:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11}],138:[function(require,module,exports){
 'use strict';
 
 // ---------------------------------------------------------------------------
@@ -56508,7 +56454,7 @@ module.exports = class zb extends Exchange {
         await this.loadMarkets ();
         let order = {
             'price': this.priceToPrecision (symbol, price),
-            'amount': this.amountToString (symbol, amount),
+            'amount': this.amountToPrecision (symbol, amount),
             'tradeType': (side === 'buy') ? '1' : '0',
             'currency': this.marketId (symbol),
         };

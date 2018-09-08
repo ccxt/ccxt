@@ -509,7 +509,7 @@ class cobinhood extends Exchange {
             'trading_pair_id' => $market['id'],
             'type' => $type, // $market, limit, stop, stop_limit
             'side' => $side,
-            'size' => $this->amount_to_string($symbol, $amount),
+            'size' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type !== 'market')
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -524,7 +524,7 @@ class cobinhood extends Exchange {
         $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
             'price' => $this->price_to_precision($symbol, $price),
-            'size' => $this->amount_to_string($symbol, $amount),
+            'size' => $this->amountToString ($symbol, $amount),
         ), $params));
         return $this->parse_order(array_merge ($response, array (
             'id' => $id,

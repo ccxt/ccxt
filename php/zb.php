@@ -385,7 +385,7 @@ class zb extends Exchange {
         $this->load_markets();
         $order = array (
             'price' => $this->price_to_precision($symbol, $price),
-            'amount' => $this->amount_to_string($symbol, $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'tradeType' => ($side === 'buy') ? '1' : '0',
             'currency' => $this->market_id($symbol),
         );

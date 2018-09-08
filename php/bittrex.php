@@ -169,11 +169,11 @@ class bittrex extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fetch_markets () {

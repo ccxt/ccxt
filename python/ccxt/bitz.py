@@ -748,7 +748,7 @@ class bitz (Exchange):
             'symbol': market['id'],
             'type': orderType,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_string(symbol, amount),
+            'number': self.amount_to_precision(symbol, amount),
             'tradePwd': self.password,
         }
         response = self.tradePostAddEntrustSheet(self.extend(request, params))

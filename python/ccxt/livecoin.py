@@ -22,6 +22,8 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class livecoin (Exchange):
@@ -562,7 +564,7 @@ class livecoin (Exchange):
         if tag is not None:
             wallet += '::' + tag
         withdrawal = {
-            'amount': self.truncate(amount, self.currencies[currency]['precision']),  # throws an error when amount is too precise
+            'amount': self.decimal_to_precision(amount, TRUNCATE, self.currencies[currency]['precision'], DECIMAL_PLACES),
             'currency': self.common_currency_code(currency),
             'wallet': wallet,
         }
