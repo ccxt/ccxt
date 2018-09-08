@@ -171,13 +171,23 @@ class poloniex (Exchange):
                 },
             },
             'exceptions': {
-                'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
-                'Permission denied': PermissionDenied,
-                'Connection timed out. Please try again.': RequestTimeout,
-                'Internal error. Please try again.': ExchangeNotAvailable,
-                'Order not found, or you are not the person who placed it.': OrderNotFound,
-                'Invalid API key/secret pair.': AuthenticationError,
-                'Please do not make more than 8 API calls per second.': DDoSProtection,
+                'exact': {
+                    'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
+                    'Permission denied': PermissionDenied,
+                    'Connection timed out. Please try again.': RequestTimeout,
+                    'Internal error. Please try again.': ExchangeNotAvailable,
+                    'Order not found, or you are not the person who placed it.': OrderNotFound,
+                    'Invalid API key/secret pair.': AuthenticationError,
+                    'Please do not make more than 8 API calls per second.': DDoSProtection,
+                },
+                'broad': {
+                    'Total must be at least': InvalidOrder,
+                    'This account is frozen.': AccountSuspended,
+                    'Not enough': InsufficientFunds,
+                    'Nonce must be greater': InvalidNonce,
+                    'You have already called cancelOrder or moveOrder on self order.': CancelPending,
+                    'Amount must be at least': InvalidOrder,  # {"error":"Amount must be at least 0.000001."}
+                },
             },
         })
 
@@ -650,11 +660,12 @@ class poloniex (Exchange):
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
-        response = getattr(self, method)(self.extend({
+        request = {
             'currencyPair': market['id'],
             'rate': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
-        }, params))
+        }
+        response = getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
         order = self.parse_order(self.extend({
             'timestamp': timestamp,
@@ -815,18 +826,11 @@ class poloniex (Exchange):
         if 'error' in response:
             message = response['error']
             feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if message in exceptions:
-                raise exceptions[message](feedback)
-            elif message.find('Total must be at least') >= 0:
-                raise InvalidOrder(feedback)
-            elif message.find('This account is frozen.') >= 0:
-                raise AccountSuspended(feedback)
-            elif message.find('Not enough') >= 0:
-                raise InsufficientFunds(feedback)
-            elif message.find('Nonce must be greater') >= 0:
-                raise InvalidNonce(feedback)
-            elif message.find('You have already called cancelOrder or moveOrder on self order.') >= 0:
-                raise CancelPending(feedback)
-            else:
-                raise ExchangeError(self.id + ' unknown error ' + self.json(response))
+            exact = self.exceptions['exact']
+            if message in exact:
+                raise exact[message](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message

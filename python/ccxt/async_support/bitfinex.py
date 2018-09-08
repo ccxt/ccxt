@@ -794,7 +794,7 @@ class bitfinex (Exchange):
         response = responses[0]
         id = response['withdrawal_id']
         message = response['message']
-        errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
+        errorMessage = self.findBroadlyMatchedKey(self.exceptions['broad'], message)
         if id == 0:
             if errorMessage is not None:
                 ExceptionClass = self.exceptions['broad'][errorMessage]
@@ -840,14 +840,6 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def find_broadly_matched_key(self, map, broadString):
-        partialKeys = list(map.keys())
-        for i in range(0, len(partialKeys)):
-            partialKey = partialKeys[i]
-            if broadString.find(partialKey) >= 0:
-                return partialKey
-        return None
-
     def handle_errors(self, code, reason, url, method, headers, body):
         if len(body) < 2:
             return
@@ -866,7 +858,7 @@ class bitfinex (Exchange):
                 if message in exact:
                     raise exact[message](feedback)
                 broad = self.exceptions['broad']
-                broadKey = self.find_broadly_matched_key(broad, message)
+                broadKey = self.findBroadlyMatchedKey(broad, message)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)  # unknown message

@@ -1086,14 +1086,6 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def find_broadly_matched_key(self, map, broadString):
-        partialKeys = list(map.keys())
-        for i in range(0, len(partialKeys)):
-            partialKey = partialKeys[i]
-            if broadString.find(partialKey) >= 0:
-                return partialKey
-        return None
-
     def handle_errors(self, httpCode, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
@@ -1120,7 +1112,7 @@ class theocean (Exchange):
                 if message in exact:
                     raise exact[message](feedback)
                 broad = self.exceptions['broad']
-                broadKey = self.find_broadly_matched_key(broad, body)
+                broadKey = self.findBroadlyMatchedKey(broad, body)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)  # unknown message
