@@ -358,7 +358,9 @@ class bcex (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        side = self.safe_string(trade, 'type')
+        side = self.safe_string(trade, 'side')
+        if side == 'sale':
+            side = 'sell'
         return {
             'info': trade,
             'id': id,
