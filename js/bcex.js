@@ -358,7 +358,9 @@ module.exports = class bcex extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.safeString (trade, 'type');
+        let side = this.safeString (trade, 'side');
+        if (side === 'sale')
+            side = 'sell';
         return {
             'info': trade,
             'id': id,

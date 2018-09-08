@@ -223,8 +223,10 @@ class bibox (Exchange):
     def parse_tickers(self, rawTickers, symbols=None):
         tickers = []
         for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
+            ticker = self.parse_ticker(rawTickers[i])
+            if (symbols is None) or (self.in_array(ticker['symbol'], symbols)):
+                tickers.append(ticker)
+        return tickers
 
     def fetch_tickers(self, symbols=None, params={}):
         response = self.publicGetMdata(self.extend({

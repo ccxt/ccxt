@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.241'
+const version = '1.17.243'
 
 Exchange.ccxtVersion = version
 
@@ -4376,7 +4376,9 @@ module.exports = class bcex extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.safeString (trade, 'type');
+        let side = this.safeString (trade, 'side');
+        if (side === 'sale')
+            side = 'sell';
         return {
             'info': trade,
             'id': id,
@@ -4933,9 +4935,12 @@ module.exports = class bibox extends Exchange {
     parseTickers (rawTickers, symbols = undefined) {
         let tickers = [];
         for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
+            let ticker = this.parseTicker (rawTickers[i]);
+            if ((typeof symbols === 'undefined') || (this.inArray (ticker['symbol'], symbols))) {
+                tickers.push (ticker);
+            }
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return tickers;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

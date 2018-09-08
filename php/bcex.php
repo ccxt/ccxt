@@ -359,7 +359,9 @@ class bcex extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $side = $this->safe_string($trade, 'type');
+        $side = $this->safe_string($trade, 'side');
+        if ($side === 'sale')
+            $side = 'sell';
         return array (
             'info' => $trade,
             'id' => $id,
