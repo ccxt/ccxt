@@ -1150,16 +1150,6 @@ class theocean extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function find_broadly_matched_key ($map, $broadString) {
-        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
-        for ($i = 0; $i < count ($partialKeys); $i++) {
-            $partialKey = $partialKeys[$i];
-            if (mb_strpos ($broadString, $partialKey) !== false)
-                return $partialKey;
-        }
-        return null;
-    }
-
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
@@ -1187,7 +1177,7 @@ class theocean extends Exchange {
                 if (is_array ($exact) && array_key_exists ($message, $exact))
                     throw new $exact[$message] ($feedback);
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->find_broadly_matched_key ($broad, $body);
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
                 if ($broadKey !== null)
                     throw new $broad[$broadKey] ($feedback);
                 throw new ExchangeError ($feedback); // unknown $message

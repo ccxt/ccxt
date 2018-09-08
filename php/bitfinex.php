@@ -822,7 +822,7 @@ class bitfinex extends Exchange {
         $response = $responses[0];
         $id = $response['withdrawal_id'];
         $message = $response['message'];
-        $errorMessage = $this->find_broadly_matched_key ($this->exceptions['broad'], $message);
+        $errorMessage = $this->findBroadlyMatchedKey ($this->exceptions['broad'], $message);
         if ($id === 0) {
             if ($errorMessage !== null) {
                 $ExceptionClass = $this->exceptions['broad'][$errorMessage];
@@ -877,16 +877,6 @@ class bitfinex extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function find_broadly_matched_key ($map, $broadString) {
-        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
-        for ($i = 0; $i < count ($partialKeys); $i++) {
-            $partialKey = $partialKeys[$i];
-            if (mb_strpos ($broadString, $partialKey) !== false)
-                return $partialKey;
-        }
-        return null;
-    }
-
     public function handle_errors ($code, $reason, $url, $method, $headers, $body) {
         if (strlen ($body) < 2)
             return;
@@ -895,19 +885,22 @@ class bitfinex extends Exchange {
                 $response = json_decode ($body, $as_associative_array = true);
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $message = null;
-                if (is_array ($response) && array_key_exists ('message', $response))
+                if (is_array ($response) && array_key_exists ('message', $response)) {
                     $message = $response['message'];
-                else if (is_array ($response) && array_key_exists ('error', $response))
+                } else if (is_array ($response) && array_key_exists ('error', $response)) {
                     $message = $response['error'];
-                else
+                } else {
                     throw new ExchangeError ($feedback); // malformed (to our knowledge) $response
+                }
                 $exact = $this->exceptions['exact'];
-                if (is_array ($exact) && array_key_exists ($message, $exact))
+                if (is_array ($exact) && array_key_exists ($message, $exact)) {
                     throw new $exact[$message] ($feedback);
+                }
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->find_broadly_matched_key ($broad, $message);
-                if ($broadKey !== null)
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
                     throw new $broad[$broadKey] ($feedback);
+                }
                 throw new ExchangeError ($feedback); // unknown $message
             }
         }
