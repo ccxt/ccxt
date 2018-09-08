@@ -841,7 +841,7 @@ module.exports = class binance extends Exchange {
         }
         const currency = this.currency (code);
         let request = {
-            'asset': currency['id'];
+            'asset': currency['id'],
         };
         if (typeof since !== 'undefined') {
             request['startTime'] = since;
@@ -857,7 +857,7 @@ module.exports = class binance extends Exchange {
         }
         const currency = this.currency (code);
         let request = {
-            'asset': currency['id'];
+            'asset': currency['id'],
         };
         if (typeof since !== 'undefined') {
             request['startTime'] = since;
@@ -866,32 +866,32 @@ module.exports = class binance extends Exchange {
         return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
-    parseDepositStatus (status) {
+    parseTransactionStatusByType (status, type = undefined) {
+        if (typeof type === 'undefined') {
+            return status;
+        }
         let statuses = {
-            '0': 'pending',
-            '1': 'ok',
+            'deposit': {
+                '0': 'pending',
+                '1': 'ok',
+            },
+            'withdrawal': {
+                '0': 'pending',
+                '1': 'canceled', // different from 1 = ok in deposits
+                '2': 'pending',
+                '3': 'error',
+                '4': 'pending',
+                '5': 'error',
+                '6': 'ok',
+            }
         };
-        return (status in statuses) ? statuses[status] : status;
+        return (status in statuses[type]) ? statuses[type][status] : status;
     }
 
-    parseWithdrawalStatus (status) {
-        let statuses = {
-            '0': 'pending',
-            '1': 'canceled', // different from 1 = ok in deposits
-            '2': 'pending',
-            '3': 'error',
-            '4': 'pending',
-            '5': 'error',
-            '6': 'ok',
-        };
-        return (status in statuses) ? statuses[status] : status;
-    }
-
-    parseTransaction (transaction, currency = undefined, side = undefined) {
+    parseTransaction (transaction, currency = undefined) {
         // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
         let address = this.safeString (transaction, 'address');
-        let txId = this.safeValue (transaction, 'txId');
-        let status = this.parseTransactionStatus (parseInt (transaction['status']));
+        let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
         if (typeof currency === 'undefined') {
             let currencyId = this.safeString (transaction, 'currency');
@@ -905,32 +905,35 @@ module.exports = class binance extends Exchange {
             code = currency['code'];
         }
         let timestamp = undefined;
-        if ('insertTime' in transaction) {
-            timestamp = transaction['insertTime'];
-        } else if ('applyTime' in transaction) {
-            timestamp = transaction['applyTime'];
-        } else {
-            throw new ExchangeError (this.id + ' insertTime/applyTime missing: ' + this.json (transaction));
+        let insertTime = this.safeInteger (transaction, 'insertTime');
+        let applyTime = this.safeInteger (transaction, 'applyTime');
+        let type = this.safeString (transaction, 'type');
+        if (typeof type === 'undefined') {
+            if ((typeof insertTime !== 'undefined') && (typeof applyTime === 'undefined')) {
+                type = 'deposit';
+                timestamp = insertTime;
+            } else if ((typeof insertTime === 'undefined') && (typeof applyTime !== 'undefined')) {
+                type = 'withdrawal';
+                timestamp = applyTime;
+            }
         }
-        let amount = parseFloat (transaction['amount']);
-        let result = {
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        let amount = this.safeFloat (transaction, 'amount');
+        let fee = undefined;
+        return {
             'info': transaction,
             'id': undefined,
-            'txid': txId,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'type': side,
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': {
-                'cost': undefined, // The fee is not provided in the response, workaround?
-                'rate': undefined,
-            },
+            'fee': fee,
         };
-        return result;
     }
 
     async fetchDepositAddress (code, params = {}) {
