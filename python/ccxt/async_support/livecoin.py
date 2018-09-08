@@ -407,7 +407,6 @@ class livecoin (Exchange):
 
     def parse_order(self, order, market=None):
         timestamp = None
-        datetime = None
         if 'lastModificationTime' in order:
             timestamp = self.safe_string(order, 'lastModificationTime')
             if timestamp is not None:
@@ -415,8 +414,6 @@ class livecoin (Exchange):
                     timestamp = self.parse8601(timestamp)
                 else:
                     timestamp = self.safe_integer(order, 'lastModificationTime')
-        if timestamp:
-            datetime = self.iso8601(timestamp)
         # TODO currently not supported by livecoin
         # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
@@ -459,7 +456,7 @@ class livecoin (Exchange):
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,

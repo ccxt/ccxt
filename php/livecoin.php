@@ -408,7 +408,6 @@ class livecoin extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $timestamp = null;
-        $datetime = null;
         if (is_array ($order) && array_key_exists ('lastModificationTime', $order)) {
             $timestamp = $this->safe_string($order, 'lastModificationTime');
             if ($timestamp !== null) {
@@ -418,9 +417,6 @@ class livecoin extends Exchange {
                     $timestamp = $this->safe_integer($order, 'lastModificationTime');
                 }
             }
-        }
-        if ($timestamp) {
-            $datetime = $this->iso8601 ($timestamp);
         }
         // TODO currently not supported by livecoin
         // $trades = $this->parse_trades($order['trades'], $market, since, limit);
@@ -470,7 +466,7 @@ class livecoin extends Exchange {
             'info' => $order,
             'id' => $order['id'],
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,

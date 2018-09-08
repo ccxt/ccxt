@@ -325,8 +325,9 @@ class gateio extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         // private fetchMyTrades
         $timestamp = $this->safe_integer($trade, 'time_unix', $timestamp);
-        if ($timestamp !== null)
+        if ($timestamp !== null) {
             $timestamp *= 1000;
+        }
         $id = $this->safe_string($trade, 'tradeID');
         $id = $this->safe_string($trade, 'id', $id);
         // take either of orderid or $orderId
@@ -417,11 +418,9 @@ class gateio extends Exchange {
         }
         if ($market !== null)
             $symbol = $market['symbol'];
-        $datetime = null;
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp !== null) {
             $timestamp *= 1000;
-            $datetime = $this->iso8601 ($timestamp);
         }
         $status = $this->safe_string($order, 'status');
         if ($status !== null)
@@ -448,7 +447,7 @@ class gateio extends Exchange {
         }
         return array (
             'id' => $id,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,

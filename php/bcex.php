@@ -537,7 +537,6 @@ class bcex extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->safe_integer($order, 'datetime') * 1000;
-        $iso8601 = $this->iso8601 ($timestamp);
         $symbol = $market['symbol'];
         $type = null;
         $side = $this->safe_string($order, 'type');
@@ -556,7 +555,7 @@ class bcex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,

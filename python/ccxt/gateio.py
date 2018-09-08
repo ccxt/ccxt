@@ -402,11 +402,9 @@ class gateio (Exchange):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        datetime = None
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
-            datetime = self.iso8601(timestamp)
         status = self.safe_string(order, 'status')
         if status is not None:
             status = self.parse_order_status(status)
@@ -428,7 +426,7 @@ class gateio (Exchange):
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,

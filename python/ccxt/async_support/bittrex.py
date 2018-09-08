@@ -278,11 +278,9 @@ class bittrex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_string(ticker, 'TimeStamp')
-        iso8601 = None
         if isinstance(timestamp, basestring):
             if len(timestamp) > 0:
                 timestamp = self.parse8601(timestamp)
-                iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']
@@ -298,7 +296,7 @@ class bittrex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'High'),
             'low': self.safe_float(ticker, 'Low'),
             'bid': self.safe_float(ticker, 'Bid'),
@@ -545,7 +543,6 @@ class bittrex (Exchange):
             lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
         if timestamp is None:
             timestamp = lastTradeTimestamp
-        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
         fee = None
         commission = None
         if 'Commission' in order:
@@ -586,7 +583,7 @@ class bittrex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',

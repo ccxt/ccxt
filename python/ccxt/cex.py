@@ -234,10 +234,8 @@ class cex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = None
-        iso8601 = None
         if 'timestamp' in ticker:
             timestamp = int(ticker['timestamp']) * 1000
-            iso8601 = self.iso8601(timestamp)
         volume = self.safe_float(ticker, 'volume')
         high = self.safe_float(ticker, 'high')
         low = self.safe_float(ticker, 'low')
@@ -250,7 +248,7 @@ class cex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,

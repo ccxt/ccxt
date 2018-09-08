@@ -671,10 +671,6 @@ class cobinhood extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $datetime = null;
-        if ($timestamp !== null) {
-            $datetime = $this->iso8601 ($timestamp);
-        }
         $code = null;
         if ($currency === null) {
             $currencyId = $this->safe_string($transaction, 'currency');
@@ -697,7 +693,7 @@ class cobinhood extends Exchange {
             'id' => $this->safe_string($transaction, 'withdrawal_id'),
             'txid' => $this->safe_string($transaction, 'txhash'),
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'address' => null, // or is it defined?
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdrawal')
             'amount' => $this->safe_float($transaction, 'amount'),

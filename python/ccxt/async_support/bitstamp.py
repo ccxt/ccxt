@@ -429,14 +429,12 @@ class bitstamp (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         timestamp = None
-        iso8601 = None
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
         datetimeString = self.safe_string(order, 'datetime')
         if datetimeString is not None:
             timestamp = self.parse8601(datetimeString)
-            iso8601 = self.iso8601(timestamp)
         symbol = None
         if market is None:
             if 'currency_pair' in order:
@@ -492,7 +490,7 @@ class bitstamp (Exchange):
         }
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,

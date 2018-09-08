@@ -617,9 +617,6 @@ class binance extends Exchange {
             $timestamp = $order['time'];
         else if (is_array ($order) && array_key_exists ('transactTime', $order))
             $timestamp = $order['transactTime'];
-        $iso8601 = null;
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'origQty');
         $filled = $this->safe_float($order, 'executedQty');
@@ -685,7 +682,7 @@ class binance extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,

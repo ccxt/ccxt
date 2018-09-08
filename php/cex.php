@@ -236,10 +236,8 @@ class cex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = null;
-        $iso8601 = null;
         if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
             $timestamp = intval ($ticker['timestamp']) * 1000;
-            $iso8601 = $this->iso8601 ($timestamp);
         }
         $volume = $this->safe_float($ticker, 'volume');
         $high = $this->safe_float($ticker, 'high');
@@ -253,7 +251,7 @@ class cex extends Exchange {
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $high,
             'low' => $low,
             'bid' => $bid,

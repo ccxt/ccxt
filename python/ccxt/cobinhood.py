@@ -634,9 +634,6 @@ class cobinhood (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
-        datetime = None
-        if timestamp is not None:
-            datetime = self.iso8601(timestamp)
         code = None
         if currency is None:
             currencyId = self.safe_string(transaction, 'currency')
@@ -655,7 +652,7 @@ class cobinhood (Exchange):
             'id': self.safe_string(transaction, 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txhash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'address': None,  # or is it defined?
             'type': type,  # direction of the transaction,('deposit' | 'withdrawal')
             'amount': self.safe_float(transaction, 'amount'),

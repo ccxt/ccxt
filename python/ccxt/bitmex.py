@@ -427,14 +427,12 @@ class bitmex (Exchange):
                 symbol = market['symbol']
         datetime_value = None
         timestamp = None
-        iso8601 = None
         if 'timestamp' in order:
             datetime_value = order['timestamp']
         elif 'transactTime' in order:
             datetime_value = order['transactTime']
         if datetime_value is not None:
             timestamp = self.parse8601(datetime_value)
-            iso8601 = self.iso8601(timestamp)
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
@@ -450,7 +448,7 @@ class bitmex (Exchange):
             'info': order,
             'id': str(order['orderID']),
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': order['ordType'].lower(),

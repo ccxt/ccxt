@@ -407,7 +407,6 @@ class bitforex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_float_2(order, 'createTime')
-        iso8601 = self.iso8601(timestamp)
         lastTradeTimestamp = self.safe_float_2(order, 'lastTime')
         symbol = market['symbol']
         sideId = self.safe_integer(order, 'tradeType')
@@ -426,7 +425,7 @@ class bitforex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
