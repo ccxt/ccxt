@@ -506,7 +506,7 @@ class Exchange(object):
 
     @staticmethod
     def truncate(num, precision=0):
-        """Deprecated, use decimalToPrecision instead"""
+        """Deprecated, use decimal_to_precision instead"""
         if precision > 0:
             decimal_precision = math.pow(10, precision)
             return math.trunc(num * decimal_precision) / decimal_precision
@@ -932,16 +932,16 @@ class Exchange(object):
         return len(parts[1]) if len(parts) > 1 else 0
 
     def cost_to_precision(self, symbol, cost):
-        return self.decimalToPrecision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def price_to_precision(self, symbol, price):
-        return self.decimalToPrecision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimalToPrecision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
+        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], self.precisionMode)
 
     def fee_to_precision(self, symbol, fee):
-        return self.decimalToPrecision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
+        return self.decimal_to_precision(fee, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'], self.precisionMode)
