@@ -34,7 +34,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
     context = decimal.getcontext()
 
-    orig_precision = precision
     precision = min(context.prec - 2, precision)
 
     # all default except decimal.Underflow (raised when a number is rounded to zero)
@@ -47,14 +46,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
     def power_of_10(x):
         return decimal.Decimal('10') ** (-x)
-
-    # if the given string has scientific notation, return it in standard notation
-    def force_standard_notation(numStr):
-        expSplit = numStr.split('E-')
-        if len(expSplit) == 2:
-            return '0.' + ''.join(((int(expSplit[1]) - 1) * '0' + expSplit[0]).split('.'))
-
-        return numStr
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
@@ -74,8 +65,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     elif rounding_mode == TRUNCATE:
         # Slice a string
         if counting_mode == DECIMAL_PLACES:
-            quanter = dec.to_integral() + power_of_10(orig_precision)
-            precise = force_standard_notation(str(dec.quantize(quanter, rounding=decimal.ROUND_DOWN)))
+            before, after = string.split('.') if '.' in string else (string, '')
+            precise = before + '.' + after[:precision]
         elif counting_mode == SIGNIFICANT_DIGITS:
             if precision == 0:
                 return '0'
