@@ -302,7 +302,7 @@ module.exports = class exx extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.privateGetGetOrder (this.extend ({
+        let response = await this.privateGetOrder (this.extend ({
             'currency': market['id'],
             'type': side,
             'price': price,
