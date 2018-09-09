@@ -11,9 +11,9 @@ module.exports = class dragonex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'dragonex',
             'name': 'DragonEX',
-            'countries': ['SG'], // Hong Kong
+            'countries': ['SG'], // Singapore
             'version': 'v1',
-            'rateLimit': 2000,
+            'rateLimit': 2000,  // NOT THE ACTUAL RATE LIMIT
             'accessToken': undefined,
             'has': {},
             'urls': {

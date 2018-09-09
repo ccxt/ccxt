@@ -128,7 +128,7 @@ from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
-#from ccxt.dragonex import dragonex                          # noqa: F401
+from ccxt.dragonex import dragonex                          # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
