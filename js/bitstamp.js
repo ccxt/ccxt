@@ -424,7 +424,6 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        this.throwFetchMyTradesAndTransactionsWarning ();
         await this.loadMarkets ();
         let request = {};
         let method = 'privatePostUserTransactions';
@@ -443,62 +442,15 @@ module.exports = class bitstamp extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchMyTradesAndTransactions ('transactions', code, since, limit, params);
-        } else {
-            let currency = undefined;
-            if (symbol !== undefined)
-                currency = this.currency (symbol);
-            let deposits = this.filterBy (response, 'type', '0');
-            let withdrawals = this.filterBy (response, 'type', '1');
-            let result = this.arrayConcat (deposits, withdrawals);
-            return this.parseTransactions (result, currency, since, limit);
-        }
-        return await this.fetchMyTradesAndTransactions ('myTrades', symbol, since, limit, params);
-    }
-
-    throwFetchMyTradesAndTransactionsWarning () {
-        if (this.options['fetchMyTradesAndTransactionsWarning'] === undefined) {
-            throw new ExchangeError (this.id + " fetchMyTrades / fetchTransactions will return all trades and transactions mixed in the same array. Make sure you add proper handling and set this.options['fetchMyTradesAndTransactionsWarning'] = false or add { 'options': { 'fetchMyTradesAndTransactionsWarning': false }} to exchange constructor to acknowledge this message and turn off this warning.");
-        }
-    }
-
-    async fetchMyTradesAndTransactions (type = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
         let method = 'privatePostUserTransactions';
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            if (type === 'myTrades') {
-                market = this.market (symbol);
-                request['pair'] = market['id'];
-                method += 'Pair';
-            }
-        }
-        if (typeof limit !== 'undefined')
+        if (typeof limit !== 'undefined') {
             request['limit'] = limit;
+        }
         let response = await this[method] (this.extend (request, params));
-        if (type === 'myTrades') {
-            let result = this.filterBy (response, 'type', '2');
-            return this.parseTrades (result, market, since, limit);
-        } else {
-            let currency = undefined;
-            if (symbol !== undefined)
-                currency = this.currency (symbol);
-            let deposits = this.filterBy (response, 'type', '0');
-            let withdrawals = this.filterBy (response, 'type', '1');
-            let result = this.arrayConcat (deposits, withdrawals);
-            return this.parseTransactions (result, currency, since, limit);
-        }
-    }
-
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            result.push (this.parseTransaction (transactions[i], undefined));
-        }
-        result = this.sortBy (result, 'timestamp');
-        let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        let result = this.filterByArray (response, 'type', [ '0', '1' ]);
+        return this.parseTransactions (result, undefined, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
