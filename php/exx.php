@@ -303,7 +303,7 @@ class exx extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetGetOrder (array_merge (array (
+        $response = $this->privateGetOrder (array_merge (array (
             'currency' => $market['id'],
             'type' => $side,
             'price' => $price,
@@ -369,8 +369,8 @@ class exx extends Exchange {
                 'accesskey' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params)));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
-            $url .= '?' . $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
+            $url .= '?' . $query . '&signature=' . $signed;
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );

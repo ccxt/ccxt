@@ -300,7 +300,7 @@ class exx (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetGetOrder(self.extend({
+        response = await self.privateGetOrder(self.extend({
             'currency': market['id'],
             'type': side,
             'price': price,
@@ -360,8 +360,8 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
-            url += '?' + query + '&signature=' + signature
+            signed = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
+            url += '?' + query + '&signature=' + signed
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
