@@ -253,8 +253,9 @@ module.exports = class bitstamp extends Exchange {
         ]);
         let currencyIds = Object.keys (trade);
         let numCurrencyIds = currencyIds.length;
-        if (numCurrencyIds > 2)
+        if (numCurrencyIds > 2) {
             throw new ExchangeError (this.id + ' getMarketFromTrade too many keys: ' + this.json (currencyIds) + ' in the trade: ' + this.json (trade));
+        }
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
             if (marketId in this.markets_by_id)
@@ -270,8 +271,9 @@ module.exports = class bitstamp extends Exchange {
         let tradesBySymbol = this.indexBy (trades, 'symbol');
         let symbols = Object.keys (tradesBySymbol);
         let numSymbols = symbols.length;
-        if (numSymbols === 1)
+        if (numSymbols === 1) {
             return this.markets[symbols[0]];
+        }
         return undefined;
     }
 
@@ -313,18 +315,22 @@ module.exports = class bitstamp extends Exchange {
             symbol = market['symbol'];
         }
         if (amount !== undefined) {
-            if (amount < 0)
+            if (amount < 0) {
                 side = 'sell';
-            else
+            } else {
                 side = 'buy';
+            }
             amount = Math.abs (amount);
         }
         let cost = undefined;
-        if (typeof price !== 'undefined')
-            if (typeof amount !== 'undefined')
+        if (typeof price !== 'undefined') {
+            if (typeof amount !== 'undefined') {
                 cost = price * amount;
-        if (cost !== undefined)
+            }
+        }
+        if (cost !== undefined) {
             cost = Math.abs (cost);
+        }
         return {
             'id': id,
             'info': trade,
@@ -384,10 +390,11 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
             'amount': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'market')
+        if (type === 'market') {
             method += 'Market';
-        else
+        } else {
             order['price'] = this.priceToPrecision (symbol, price);
+        }
         method += 'Pair';
         let response = await this[method] (this.extend (order, params));
         return {
@@ -401,25 +408,27 @@ module.exports = class bitstamp extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
-    parseOrderStatus (order) {
-        if ((order['status'] === 'Queue') || (order['status'] === 'Open'))
-            return 'open';
-        if (order['status'] === 'Finished')
-            return 'closed';
-        return order['status'];
+    parseOrderStatus (status) {
+        let statuses = {
+            'In Queue': 'open',
+            'Open': 'open',
+            'Finished': 'closed',
+        }
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
-        return this.parseOrderStatus (response);
+        return this.parseOrderStatus (this.safeString (response, 'status'));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (typeof symbol !== 'undefined') {
             market = this.market (symbol);
+        }
         let response = await this.privatePostOrderStatus (this.extend ({ 'id': id }, params));
         return this.parseOrder (response, market);
     }
@@ -455,88 +464,40 @@ module.exports = class bitstamp extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        let symbol = undefined;
-        // only if overrided externally
-        let amount = this.safeFloat (transaction, 'amount');
+        let code = undefined;
         let id = this.safeString (transaction, 'id');
         if (typeof currency === 'undefined') {
             currency = this.getCurrencyFromTransaction (transaction);
-            for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf ('_') >= 0) {
-                    let marketId = keys[i].replace ('_', '');
-                    if (marketId in this.markets_by_id)
-                        market = this.markets_by_id[marketId];
-                }
-            }
         }
-        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
+        let amount = undefined;
         if (typeof currency !== 'undefined') {
             amount = this.safeFloat (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
+            code = currency['code'];
         }
-        if (amount !== undefined) {
-            if (amount < 0)
-                side = 'sell';
-            else
-                side = 'buy';
-            amount = Math.abs (amount);
-        }
-        let cost = undefined;
-        if (typeof price !== 'undefined')
-            if (typeof amount !== 'undefined')
-                cost = price * amount;
-        if (cost !== undefined)
-            cost = Math.abs (cost);
-        return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            },
-        };
-        // --------------------------------------------------------------------
-        // Parsing common properties (most of them) using parseTrade, then parsing what's missing
-        let result = this.parseTrade (transaction);
-        let keys = Object.keys (this.currencies);
-        let code = undefined;
-        let amount = undefined;
-        for (let i = 0; i < keys.length; i++) {
-            let currencyToCheck = keys[i].toLowerCase ();
-            try {
-                amount = parseFloat (transaction[currencyToCheck]);
-                if (amount !== 0) {
-                    code = currencyToCheck.toUpperCase ();
-                    break;
-                }
-            } catch (e) {
-                continue;
-            }
+        let type = this.safeString (transaction, 'type');
+        if (type === '0') {
+            type = 'deposit';
+        } else if (type === '1') {
+            type = 'withdrawal';
         }
         return {
             'info': transaction,
-            'id': result['id'],
-            'txid': undefined,
-            'timestamp': result['timestamp'],
-            'datetime': result['datetime'],
+            'id': id,
+            'txid': undefined, // ?
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined,
-            'type': (transaction['type'] === '0') ? 'deposit' : 'withdrawal',
-            'amount': Math.abs (amount),
+            'type': type,
+            'amount': amount,
             'currency': code,
             'status': undefined,
             'updated': undefined,
             'fee': {
-                'cost': this.safeFloat (transaction, 'fee'),
+                'currency': feeCurrency,
+                'cost': feeCost,
                 'rate': undefined,
             },
         };
@@ -544,20 +505,18 @@ module.exports = class bitstamp extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'id');
-        let timestamp = undefined;
         let side = this.safeString (order, 'type');
-        if (typeof side !== 'undefined')
+        if (typeof side !== 'undefined') {
             side = (side === '1') ? 'sell' : 'buy';
-        let datetimeString = this.safeString (order, 'datetime');
-        if (typeof datetimeString !== 'undefined') {
-            timestamp = this.parse8601 (datetimeString);
         }
+        let timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if ('currency_pair' in order) {
                 let marketId = order['currency_pair'];
-                if (marketId in this.markets_by_id)
+                if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
+                }
             }
         }
         let amount = this.safeFloat (order, 'amount');
@@ -583,31 +542,31 @@ module.exports = class bitstamp extends Exchange {
                 }
             }
         }
-        let status = this.safeString (order, 'status');
-        if ((status === 'In Queue') || (status === 'Open'))
-            status = 'open';
-        else if (status === 'Finished') {
-            status = 'closed';
-            if (typeof amount === 'undefined')
-                amount = filled;
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if ((status === 'closed') && (typeof amount === 'undefined')) {
+            amount = filled;
         }
         let remaining = undefined;
-        if (typeof amount !== 'undefined')
+        if (typeof amount !== 'undefined') {
             remaining = amount - filled;
+        }
         let price = this.safeFloat (order, 'price');
-        if (typeof market === 'undefined')
+        if (typeof market === 'undefined') {
             market = this.getMarketFromTrades (trades);
+        }
         let feeCurrency = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
         if (typeof cost === 'undefined') {
-            if (typeof price !== 'undefined')
+            if (typeof price !== 'undefined') {
                 cost = price * filled;
+            }
         } else if (typeof price === 'undefined') {
-            if (filled > 0)
+            if (filled > 0) {
                 price = cost / filled;
+            }
         }
         let fee = {
             'cost': feeCost,
