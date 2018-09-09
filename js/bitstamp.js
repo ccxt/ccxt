@@ -241,6 +241,40 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
+    getCurrencyIdFromTransaction (transaction) {
+        //
+        //     {
+        //         "fee": "0.00000000",
+        //         "btc_usd": "0.00",
+        //         "datetime": XXX,
+        //         "usd": 0.0,
+        //         "btc": 0.0,
+        //         "eth": "0.05000000",
+        //         "type": "0",
+        //         "id": XXX,
+        //         "eur": 0.0
+        //     }
+        //
+        transaction = this.omit (transaction, [
+            'fee',
+            'price',
+            'datetime',
+            'type',
+            'id',
+        ]);
+        let ids = Object.keys (transaction);
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            if (id.indexOf ('_') < 0) {
+                let value = this.safeFloat (transaction, id);
+                if ((typeof value !== 'undefined') && (value > 0)) {
+                    return id;
+                }
+            }
+        }
+        return undefined;
+    }
+
     getMarketFromTrade (trade) {
         trade = this.omit (trade, [
             'fee',
@@ -413,7 +447,7 @@ module.exports = class bitstamp extends Exchange {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
-        }
+        };
         return (status in statuses) ? statuses[status] : status;
     }
 
@@ -459,15 +493,50 @@ module.exports = class bitstamp extends Exchange {
         }
         let response = await this.privatePostUserTransactions (this.extend (request, params));
         let result = this.filterByArray (response, 'type', [ '0', '1' ]);
+        //
+        //     [
+        //         {
+        //             "fee": "0.00000000",
+        //             "btc_usd": "0.00",
+        //             "datetime": '2018-01-01T00:00:00',
+        //             "usd": 0.0,
+        //             "btc": 0.0,
+        //             "eth": "0.05000000",
+        //             "type": "0",
+        //             "id": '123456789',
+        //             "eur": 0.0,
+        //         },
+        //     ]
+        //
         return this.parseTransactions (result, undefined, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "fee": "0.00000000",
+        //         "btc_usd": "0.00",
+        //         "datetime": XXX,
+        //         "usd": 0.0,
+        //         "btc": 0.0,
+        //         "eth": "0.05000000",
+        //         "type": "0",
+        //         "id": XXX,
+        //         "eur": 0.0,
+        //     }
+        //
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         let code = undefined;
         let id = this.safeString (transaction, 'id');
+        let currencyId = undefined;
         if (typeof currency === 'undefined') {
-            currency = this.getCurrencyFromTransaction (transaction);
+            currencyId = this.getCurrencyIdFromTransaction (transaction);
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else if (typeof currencyId !== 'undefined') {
+                code = currencyId.toUpperCase ();
+                code = this.commonCurrencyCode (code);
+            }
         }
         let feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
@@ -476,6 +545,9 @@ module.exports = class bitstamp extends Exchange {
             amount = this.safeFloat (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
             code = currency['code'];
+        } else if ((typeof code !== 'undefined') && (typeof currencyId !== 'undefined')) {
+            amount = this.safeFloat (transaction, currencyId, amount);
+            feeCurrency = code;
         }
         let type = this.safeString (transaction, 'type');
         if (type === '0') {
