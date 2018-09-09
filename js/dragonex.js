@@ -33,15 +33,15 @@ module.exports = class dragonex extends Exchange {
                         'coin/all/',
                         'user/own/',
                         'symbol/all/',
-                        'market/kline/'
+                        'market/kline/',
                     ],
                     'post': [
-                        'token/new/'
+                        'token/new/',
                     ],
                 },
             },
         })
-    };
+    }
 
     async authenticate () {
         let response = await this.privatePostTokenNew ();
@@ -57,7 +57,7 @@ module.exports = class dragonex extends Exchange {
         let contentType = 'application/json';
         let date = this.emailGMT (this.milliseconds ());
         let canonicalizedDragonExHeaders = '';  // not sure what this is
-        let string = [method, shaContent, contentType, date, canonicalizedDragonExHeaders].join('\n');
+        let string = [method, shaContent, contentType, date, canonicalizedDragonExHeaders].join ('\n');
         string = string + '/api' + signablePath;
         let signed = this.hmac (string, this.secret, 'sha1', 'base64');
         headers = {
@@ -69,6 +69,6 @@ module.exports = class dragonex extends Exchange {
         if (typeof this.accessToken !== 'undefined') {
             headers['token'] = this.accessToken;
         }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-    };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers }
+    }
 };
