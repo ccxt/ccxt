@@ -288,8 +288,7 @@ module.exports = class bitstamp extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let id = this.safeString (trade, 'tid');
-        id = this.safeString (trade, 'id', id);
+        let id = this.safeString2 (trade, 'tid', 'id');
         if (typeof market === 'undefined') {
             let keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
@@ -301,8 +300,9 @@ module.exports = class bitstamp extends Exchange {
             }
             // if the market is still not defined
             // try to deduce it from used keys
-            if (typeof market === 'undefined')
+            if (typeof market === 'undefined') {
                 market = this.getMarketFromTrade (trade);
+            }
         }
         let feeCost = this.safeFloat (trade, 'fee');
         let feeCurrency = undefined;
@@ -311,17 +311,18 @@ module.exports = class bitstamp extends Exchange {
             amount = this.safeFloat (trade, market['baseId'], amount);
             feeCurrency = market['quote'];
             symbol = market['symbol'];
+        }
+        if (amount !== undefined) {
             if (amount < 0)
                 side = 'sell';
             else
                 side = 'buy';
+            amount = Math.abs (amount);
         }
         let cost = undefined;
         if (typeof price !== 'undefined')
             if (typeof amount !== 'undefined')
                 cost = price * amount;
-        if (amount !== undefined)
-            amount = Math.abs (amount);
         if (cost !== undefined)
             cost = Math.abs (cost);
         return {
@@ -444,16 +445,67 @@ module.exports = class bitstamp extends Exchange {
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        let method = 'privatePostUserTransactions';
         if (typeof limit !== 'undefined') {
             request['limit'] = limit;
         }
-        let response = await this[method] (this.extend (request, params));
+        let response = await this.privatePostUserTransactions (this.extend (request, params));
         let result = this.filterByArray (response, 'type', [ '0', '1' ]);
         return this.parseTransactions (result, undefined, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
+        let symbol = undefined;
+        // only if overrided externally
+        let amount = this.safeFloat (transaction, 'amount');
+        let id = this.safeString (transaction, 'id');
+        if (typeof currency === 'undefined') {
+            currency = this.getCurrencyFromTransaction (transaction);
+            for (let i = 0; i < keys.length; i++) {
+                if (keys[i].indexOf ('_') >= 0) {
+                    let marketId = keys[i].replace ('_', '');
+                    if (marketId in this.markets_by_id)
+                        market = this.markets_by_id[marketId];
+                }
+            }
+        }
+        let feeCost = this.safeFloat (trade, 'fee');
+        let feeCurrency = undefined;
+        if (typeof currency !== 'undefined') {
+            amount = this.safeFloat (transaction, currency['id'], amount);
+            feeCurrency = currency['code'];
+        }
+        if (amount !== undefined) {
+            if (amount < 0)
+                side = 'sell';
+            else
+                side = 'buy';
+            amount = Math.abs (amount);
+        }
+        let cost = undefined;
+        if (typeof price !== 'undefined')
+            if (typeof amount !== 'undefined')
+                cost = price * amount;
+        if (cost !== undefined)
+            cost = Math.abs (cost);
+        return {
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': orderId,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            },
+        };
+        // --------------------------------------------------------------------
         // Parsing common properties (most of them) using parseTrade, then parsing what's missing
         let result = this.parseTrade (transaction);
         let keys = Object.keys (this.currencies);
