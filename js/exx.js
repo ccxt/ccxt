@@ -368,8 +368,8 @@ module.exports = class exx extends Exchange {
                 'accesskey': this.apiKey,
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
-            url += '?' + query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
+            url += '?' + query + '&signature=' + signed;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
