@@ -1205,6 +1205,10 @@ module.exports = class Exchange {
         }
     }
 
+    emailGMT (timestamp) {
+        return new Date(timestamp).toUTCString()
+    }
+
     mdy (timestamp, infix = '-') {
         infix = infix || ''
         let date = new Date (timestamp)

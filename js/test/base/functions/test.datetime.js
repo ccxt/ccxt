@@ -44,3 +44,8 @@ assert (typeof exchange.parse8601 (33) === 'undefined');
 assert (exchange.parseDate ('1986-04-26 00:00:00') === 514857600000);
 assert (exchange.parseDate ('1986-04-26T01:23:47.000Z') === 514862627000);
 assert (typeof exchange.parseDate ('1986-13-13 00:00:00') === 'undefined');
+
+// ----------------------------------------------------------------------------
+
+assert (exchange.emailGMT (696969696) === 'Sat, 01 Feb 1992 18:41:36 -0000');
+assert (exchange.emailGMT (6969696969) === 'Wed, 10 Nov 2190 18:56:09 -0000');

@@ -111,6 +111,7 @@ const exchanges = {
     'crypton':                 require ('./js/crypton.js'),
     'cryptopia':               require ('./js/cryptopia.js'),
     'deribit':                 require ('./js/deribit.js'),
+    'dragonex':                require ('./js/dragonex.js'),
     'dsx':                     require ('./js/dsx.js'),
     'ethfinex':                require ('./js/ethfinex.js'),
     'exmo':                    require ('./js/exmo.js'),
@@ -174,7 +175,7 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'yunbi':                   require ('./js/yunbi.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------

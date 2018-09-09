@@ -35,7 +35,7 @@ import base64
 import calendar
 import collections
 import datetime
-from email.utils import parsedate
+import email.utils
 import functools
 import gzip
 import hashlib
@@ -746,6 +746,11 @@ class Exchange(object):
             return None
 
     @staticmethod
+    def emailGMT(timestamp):
+        utc_time = datetime.datetime.utcfromtimestamp(timestamp)
+        return email.utils.format_datetime(utc_time)
+
+    @staticmethod
     def dmy(timestamp, infix='-'):
         utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
         return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
@@ -768,7 +773,7 @@ class Exchange(object):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                string = ''.join([str(value) for value in email.utils.parsedate(timestamp)[:6]]) + '.000Z'
                 dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
                 return calendar.timegm(dt.utctimetuple()) * 1000
             except (TypeError, OverflowError, OSError):

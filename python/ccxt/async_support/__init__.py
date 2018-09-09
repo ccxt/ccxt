@@ -110,6 +110,7 @@ from ccxt.async_support.coolcoin import coolcoin                          # noqa
 from ccxt.async_support.crypton import crypton                            # noqa: F401
 from ccxt.async_support.cryptopia import cryptopia                        # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
+from ccxt.async_support.dragonex import dragonex                          # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.ethfinex import ethfinex                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
