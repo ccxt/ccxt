@@ -34,6 +34,7 @@ class bitstamp (Exchange):
                 'fetchOrder': 'emulated',
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
+                'fetchTransactions': True,
                 'withdraw': True,
             },
             'urls': {
@@ -248,6 +249,36 @@ class bitstamp (Exchange):
             'info': ticker,
         }
 
+    def get_currency_id_from_transaction(self, transaction):
+        #
+        #     {
+        #         "fee": "0.00000000",
+        #         "btc_usd": "0.00",
+        #         "datetime": XXX,
+        #         "usd": 0.0,
+        #         "btc": 0.0,
+        #         "eth": "0.05000000",
+        #         "type": "0",
+        #         "id": XXX,
+        #         "eur": 0.0
+        #     }
+        #
+        transaction = self.omit(transaction, [
+            'fee',
+            'price',
+            'datetime',
+            'type',
+            'id',
+        ])
+        ids = list(transaction.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            if id.find('_') < 0:
+                value = self.safe_float(transaction, id)
+                if (value is not None) and(value > 0):
+                    return id
+        return None
+
     def get_market_from_trade(self, trade):
         trade = self.omit(trade, [
             'fee',
@@ -289,17 +320,9 @@ class bitstamp (Exchange):
         # only if overrided externally
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'order_id')
-        if orderId is None:
-            if side is None:
-                side = self.safe_integer(trade, 'type')
-                if side == 0:
-                    side = 'buy'
-                else:
-                    side = 'sell'
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        id = self.safe_string(trade, 'tid')
-        id = self.safe_string(trade, 'id', id)
+        id = self.safe_string_2(trade, 'tid', 'id')
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
@@ -318,10 +341,18 @@ class bitstamp (Exchange):
             amount = self.safe_float(trade, market['baseId'], amount)
             feeCurrency = market['quote']
             symbol = market['symbol']
+        if amount is not None:
+            if amount < 0:
+                side = 'sell'
+            else:
+                side = 'buy'
+            amount = abs(amount)
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        if cost is not None:
+            cost = abs(cost)
         return {
             'id': id,
             'info': trade,
@@ -392,17 +423,18 @@ class bitstamp (Exchange):
         self.load_markets()
         return self.privatePostCancelOrder({'id': id})
 
-    def parse_order_status(self, order):
-        if (order['status'] == 'Queue') or (order['status'] == 'Open'):
-            return 'open'
-        if order['status'] == 'Finished':
-            return 'closed'
-        return order['status']
+    def parse_order_status(self, status):
+        statuses = {
+            'In Queue': 'open',
+            'Open': 'open',
+            'Finished': 'closed',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
         response = self.privatePostOrderStatus(self.extend({'id': id}, params))
-        return self.parse_order_status(response)
+        return self.parse_order_status(self.safe_string(response, 'status'))
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -424,17 +456,98 @@ class bitstamp (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        result = self.filter_by(response, 'type', '2')
+        return self.parse_trades(result, market, since, limit)
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privatePostUserTransactions(self.extend(request, params))
+        result = self.filter_by_array(response, 'type', ['0', '1'])
+        #
+        #     [
+        #         {
+        #             "fee": "0.00000000",
+        #             "btc_usd": "0.00",
+        #             "datetime": '2018-01-01T00:00:00',
+        #             "usd": 0.0,
+        #             "btc": 0.0,
+        #             "eth": "0.05000000",
+        #             "type": "0",
+        #             "id": '123456789',
+        #             "eur": 0.0,
+        #         },
+        #     ]
+        #
+        return self.parseTransactions(result, None, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "fee": "0.00000000",
+        #         "btc_usd": "0.00",
+        #         "datetime": XXX,
+        #         "usd": 0.0,
+        #         "btc": 0.0,
+        #         "eth": "0.05000000",
+        #         "type": "0",
+        #         "id": XXX,
+        #         "eur": 0.0,
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
+        code = None
+        id = self.safe_string(transaction, 'id')
+        currencyId = None
+        if currency is None:
+            currencyId = self.get_currency_id_from_transaction(transaction)
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+            elif currencyId is not None:
+                code = currencyId.upper()
+                code = self.common_currency_code(code)
+        feeCost = self.safe_float(transaction, 'fee')
+        feeCurrency = None
+        amount = None
+        if currency is not None:
+            amount = self.safe_float(transaction, currency['id'], amount)
+            feeCurrency = currency['code']
+            code = currency['code']
+        elif (code is not None) and(currencyId is not None):
+            amount = self.safe_float(transaction, currencyId, amount)
+            feeCurrency = code
+        type = self.safe_string(transaction, 'type')
+        if type == '0':
+            type = 'deposit'
+        elif type == '1':
+            type = 'withdrawal'
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': None,  # ?
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': None,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': None,
+            'updated': None,
+            'fee': {
+                'currency': feeCurrency,
+                'cost': feeCost,
+                'rate': None,
+            },
+        }
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
-        timestamp = None
         side = self.safe_string(order, 'type')
         if side is not None:
             side = 'sell' if (side == '1') else 'buy'
-        datetimeString = self.safe_string(order, 'datetime')
-        if datetimeString is not None:
-            timestamp = self.parse8601(datetimeString)
+        timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         symbol = None
         if market is None:
             if 'currency_pair' in order:
@@ -461,13 +574,9 @@ class bitstamp (Exchange):
                         cost = 0.0
                     cost += trade['cost']
                     trades.append(trade)
-        status = self.safe_string(order, 'status')
-        if (status == 'In Queue') or (status == 'Open'):
-            status = 'open'
-        elif status == 'Finished':
-            status = 'closed'
-            if amount is None:
-                amount = filled
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        if (status == 'closed') and(amount is None):
+            amount = filled
         remaining = None
         if amount is not None:
             remaining = amount - filled
