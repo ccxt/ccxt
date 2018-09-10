@@ -104,12 +104,12 @@ module.exports = class changelly extends Exchange {
         return out.result;
     }
 
-    async startInstantTransaction(input, output, amount = undefined, address, params = {}) {
+    async startInstantTransaction(input, output, depositAmount = undefined, address, params = {}) {
         const request = {
             'from': input.toLowerCase(),
             'to': output.toLowerCase(),
             address,
-            amount,
+            'amount': depositAmount,
             'extraId': null,
             'refundAddress': address,
         };
