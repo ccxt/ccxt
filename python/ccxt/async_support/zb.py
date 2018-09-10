@@ -412,6 +412,19 @@ class zb (Exchange):
         }
         order = self.extend(order, params)
         response = await self.privateGetGetOrder(order)
+        #
+        #     {
+        #         'total_amount': 0.01,
+        #         'id': '20180910244276459',
+        #         'price': 180.0,
+        #         'trade_date': 1536576744960,
+        #         'status': 2,
+        #         'trade_money': '1.96742',
+        #         'trade_amount': 0.01,
+        #         'type': 0,
+        #         'currency': 'eth_usdt'
+        #     }
+        #
         return self.parse_order(response, None)
 
     async def fetch_orders(self, symbol=None, since=None, limit=50, params={}):
@@ -461,6 +474,21 @@ class zb (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def parse_order(self, order, market=None):
+        #
+        # fetchOrder
+        #
+        #     {
+        #         'total_amount': 0.01,
+        #         'id': '20180910244276459',
+        #         'price': 180.0,
+        #         'trade_date': 1536576744960,
+        #         'status': 2,
+        #         'trade_money': '1.96742',
+        #         'trade_amount': 0.01,
+        #         'type': 0,
+        #         'currency': 'eth_usdt'
+        #     }
+        #
         side = 'buy' if (order['type'] == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
@@ -474,14 +502,14 @@ class zb (Exchange):
         if market:
             symbol = market['symbol']
         price = order['price']
-        average = None
         filled = order['trade_amount']
         amount = order['total_amount']
         remaining = amount - filled
-        cost = order['trade_money']
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        cost = self.safe_float(order, 'trade_money')
+        average = None
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        if (cost is not None) and(filled is not None) and(filled > 0):
+            average = cost / filled
         result = {
             'info': order,
             'id': order['id'],
