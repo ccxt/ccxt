@@ -27,9 +27,7 @@ const ccxt         = require ('../../ccxt.js')
         title: x => String (x).lightGray,
         dash: '-'.lightGray.dim,
         print: x => {
-            if ((typeof x === 'string') && x.startsWith ('2018-')) {
-                return new Date (x).toLocaleString ()
-            } else if (typeof x === 'object') {
+            if (typeof x === 'object') {
                 const j = JSON.stringify (x).trim ()
                 if (j.length < 100) return j
             }
