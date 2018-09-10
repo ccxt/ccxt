@@ -444,15 +444,8 @@ class bitmex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $datetime_value = null;
-        $timestamp = null;
-        if (is_array ($order) && array_key_exists ('timestamp', $order))
-            $datetime_value = $order['timestamp'];
-        else if (is_array ($order) && array_key_exists ('transactTime', $order))
-            $datetime_value = $order['transactTime'];
-        if ($datetime_value !== null) {
-            $timestamp = $this->parse8601 ($datetime_value);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'transactTime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
@@ -471,7 +464,7 @@ class bitmex extends Exchange {
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
