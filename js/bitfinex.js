@@ -834,16 +834,39 @@ module.exports = class bitfinex extends Exchange {
         let request = {
             'currency': currency['id'],
         };
+        if (typeof since !== 'undefined') {
+            request['since'] = parseInt (since / 1000);
+        }
         let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":581183,
+        //             "txid": 123456,
+        //             "currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created": "1443833327.1",
+        //             "fee": 0.1,
+        //         }
+        //     ]
+        //
         return this.parseTransactions (response, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = parseInt (this.safeFloat (transaction, 'timestamp_created')) * 1000;
-        let updated = parseInt (this.safeFloat (transaction, 'timestamp')) * 1000;
-        let datetime = undefined;
+        let timestamp = this.safeFloat (transaction, 'timestamp_created');
         if (typeof timestamp !== 'undefined') {
-            datetime = this.iso8601 (timestamp);
+            timestamp = parseInt (timestamp * 1000);
+        }
+        let updated = this.safeFloat (transaction, 'timestamp');
+        if (typeof updated !== 'undefined') {
+            updated = parseInt (updated * 1000);
         }
         let code = undefined;
         if (typeof currency === 'undefined') {
@@ -862,12 +885,16 @@ module.exports = class bitfinex extends Exchange {
             type = type.toLowerCase ();
         }
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            feeCost = Math.abs (feeCost);
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'address'),
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
@@ -875,8 +902,9 @@ module.exports = class bitfinex extends Exchange {
             'status': status,
             'updated': updated,
             'fee': {
-                'cost': Math.abs (this.safeFloat (transaction, 'fee')),
-                'rate': code,
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
             },
         };
     }
