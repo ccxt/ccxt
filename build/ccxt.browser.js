@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.259'
+const version = '1.17.260'
 
 Exchange.ccxtVersion = version
 
@@ -56784,6 +56784,19 @@ module.exports = class zb extends Exchange {
         };
         order = this.extend (order, params);
         let response = await this.privateGetGetOrder (order);
+        //
+        //     {
+        //         'total_amount': 0.01,
+        //         'id': '20180910244276459',
+        //         'price': 180.0,
+        //         'trade_date': 1536576744960,
+        //         'status': 2,
+        //         'trade_money': '1.96742',
+        //         'trade_amount': 0.01,
+        //         'type': 0,
+        //         'currency': 'eth_usdt'
+        //     }
+        //
         return this.parseOrder (response, undefined);
     }
 
@@ -56840,6 +56853,21 @@ module.exports = class zb extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOrder
+        //
+        //     {
+        //         'total_amount': 0.01,
+        //         'id': '20180910244276459',
+        //         'price': 180.0,
+        //         'trade_date': 1536576744960,
+        //         'status': 2,
+        //         'trade_money': '1.96742',
+        //         'trade_amount': 0.01,
+        //         'type': 0,
+        //         'currency': 'eth_usdt'
+        //     }
+        //
         let side = (order['type'] === 1) ? 'buy' : 'sell';
         let type = 'limit'; // market order is not availalbe in ZB
         let timestamp = undefined;
@@ -56851,17 +56879,19 @@ module.exports = class zb extends Exchange {
             // get symbol from currency
             market = this.marketsById[order['currency']];
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
         let price = order['price'];
-        let average = undefined;
         let filled = order['trade_amount'];
         let amount = order['total_amount'];
         let remaining = amount - filled;
-        let cost = order['trade_money'];
-        let status = this.safeString (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let cost = this.safeFloat (order, 'trade_money');
+        let average = undefined;
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        if ((cost !== undefined) && (filled !== undefined) && (filled > 0)) {
+            average = cost / filled;
+        }
         let result = {
             'info': order,
             'id': order['id'],
