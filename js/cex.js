@@ -136,8 +136,8 @@ module.exports = class cex extends Exchange {
                 'base': base,
                 'quote': quote,
                 'precision': {
-                    'price': this.precisionFromString (market['minPrice']),
-                    'amount': this.precisionFromString (market['minLotSize'].toString()),
+                    'price': this.precisionFromString (this.safeString (market, 'minPrice')),
+                    'amount': this.precisionFromString (this.safeString (market, 'minLotSize')),
                 },
                 'limits': {
                     'amount': {
