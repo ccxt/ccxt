@@ -31,6 +31,9 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -805,6 +808,99 @@ module.exports = class bitfinex extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (typeof code === 'undefined') {
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        if (typeof since !== 'undefined') {
+            request['since'] = parseInt (since / 1000);
+        }
+        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":581183,
+        //             "txid": 123456,
+        //             "currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created": "1443833327.1",
+        //             "fee": 0.1,
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeFloat (transaction, 'timestamp_created');
+        if (typeof timestamp !== 'undefined') {
+            timestamp = parseInt (timestamp * 1000);
+        }
+        let updated = this.safeFloat (transaction, 'timestamp');
+        if (typeof updated !== 'undefined') {
+            updated = parseInt (updated * 1000);
+        }
+        let code = undefined;
+        if (typeof currency === 'undefined') {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (typeof currency !== 'undefined') {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if (typeof type !== 'undefined') {
+            type = type.toLowerCase ();
+        }
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (typeof feeCost !== 'undefined') {
+            feeCost = Math.abs (feeCost);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'CANCELED': 'canceled',
+            'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
