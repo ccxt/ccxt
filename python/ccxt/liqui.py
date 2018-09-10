@@ -428,9 +428,7 @@ class liqui (Exchange):
 
     def parse_order(self, order, market=None):
         id = str(order['id'])
-        status = self.safe_string(order, 'status')
-        if status != 'None':
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = int(order['timestamp_created']) * 1000
         symbol = None
         if market is None:

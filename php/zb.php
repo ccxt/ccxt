@@ -308,7 +308,7 @@ class zb extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market !== 'null') {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');

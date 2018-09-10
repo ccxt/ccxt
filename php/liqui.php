@@ -458,10 +458,7 @@ class liqui extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $id = (string) $order['id'];
-        $status = $this->safe_string($order, 'status');
-        if ($status !== 'null') {
-            $status = $this->parse_order_status($status);
-        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = intval ($order['timestamp_created']) * 1000;
         $symbol = null;
         if ($market === null) {
