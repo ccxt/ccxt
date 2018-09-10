@@ -40,7 +40,7 @@ module.exports = class dragonex extends Exchange {
                     ],
                 },
             },
-        })
+        });
     }
 
     async authenticate () {
@@ -69,6 +69,6 @@ module.exports = class dragonex extends Exchange {
         if (typeof this.accessToken !== 'undefined') {
             headers['token'] = this.accessToken;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
