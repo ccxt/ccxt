@@ -563,54 +563,52 @@ module.exports = class buda extends Exchange {
         };
     }
 
+    parseTransactionStatus (status) {
+        let statuses = {
+            'rejected': 'failed',
+            'confirmed': 'ok',
+            'anulled': 'canceled',
+            'retained': 'canceled',
+            'pending_confirmation': 'pending',
+        };
+        return (status in statuses) ? statuses[status] : status;
+    }
+
     parseTransaction (transaction, currency = undefined) {
-        let id = transaction['id'];
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        let createdAt = transaction['created_at'];
-        if (typeof createdAt !== 'undefined') {
-            timestamp = this.parse8601 (createdAt);
-            iso8601 = this.iso8601 (timestamp);
+        let id = this.safeString (transaction, 'id');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        let code = undefined;
+        let currencyId = undefined;
+        if (currency === undefined) {
+            currencyId = this.safeString (transaction, 'currency');
+            currency = this.safeValue (this.currencies_by_id, currencyId);
         }
-        if (typeof currency === 'undefined')
-            currency = this.currency (transaction['currency']);
-        let code = currency['id'];
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
         let amount = parseFloat (transaction['amount'][0]);
         let fee = parseFloat (transaction['fee'][0]);
         let feeCurrency = transaction['fee'][1];
-        let status = transaction['state'];
-        if (status === 'rejected')
-            status = 'failed';
-        else if (status === 'confirmed')
-            status = 'ok';
-        else if (status === 'anulled' || status === 'retained')
-            status = 'canceled';
-        else
-            status = 'pending';
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         let type = ('deposit_data' in transaction) ? 'deposit' : 'withdrawal';
-        let data = transaction[type + '_data'];
-        let address = undefined;
-        let txid = undefined;
-        let updatedTimestamp = undefined;
-        if (typeof data !== 'undefined') {
-            address = this.safeValue (data, 'target_address');
-            txid = this.safeValue (data, 'tx_hash');
-            let updatedAt = this.safeValue (data, 'updated_at');
-            if (typeof updatedAt !== 'undefined')
-                updatedTimestamp = this.parse8601 (createdAt);
-        }
+        let data = this.safeValue (transaction, type + '_data', {});
+        let address = this.safeValue (data, 'target_address');
+        let txid = this.safeString (data, 'tx_hash');
+        let updated = this.parse8601 (this.safeString (data, 'updated_at'));
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updatedTimestamp,
+            'updated': updated,
             'fee': {
                 'cost': fee,
                 'rate': feeCurrency,
