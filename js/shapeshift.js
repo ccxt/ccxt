@@ -83,7 +83,7 @@ module.exports = class shapeshift extends Exchange {
         return this.publicGetTxStatAddress({ 'address': transactionId });
     }
 
-    async startInstantTransaction(input, output, amount = undefined, address, params = {}) {
+    async startInstantTransaction(input, output, depositAmount = undefined, address, params = {}) {
         await this.loadMarkets();
         const marketFrom = `${input.toUpperCase()}/${output.toUpperCase()}`;
         const marketTo = `${output.toUpperCase()}/${input.toUpperCase()}`;
