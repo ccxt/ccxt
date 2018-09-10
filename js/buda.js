@@ -447,30 +447,30 @@ module.exports = class buda extends Exchange {
         return this.parseOrder (order);
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'traded': 'closed',
+            'received': 'open',
+            'canceling': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
+    }
+
     parseOrder (order, market = undefined) {
         let id = order['id'];
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        let createdAt = order['created_at'];
-        if (typeof createdAt !== 'undefined') {
-            timestamp = this.parse8601 (createdAt);
-            iso8601 = this.iso8601 (timestamp);
-        }
+        let timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = order['market_id'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let type = order['price_type'];
         let side = order['type'].toLowerCase ();
-        let status = order['state'];
-        if (status === 'traded')
-            status = 'closed';
-        else if (status !== 'closed')
-            status = 'open';
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let amount = parseFloat (order['original_amount'][0]);
         let remaining = parseFloat (order['amount'][0]);
         let filled = parseFloat (order['traded_amount'][0]);
@@ -486,7 +486,7 @@ module.exports = class buda extends Exchange {
         };
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
