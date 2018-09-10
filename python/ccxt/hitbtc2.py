@@ -897,12 +897,8 @@ class hitbtc2 (hitbtc):
         return self.parse_order(response)
 
     def parse_order(self, order, market=None):
-        created = None
-        if 'createdAt' in order:
-            created = self.parse8601(order['createdAt'])
-        updated = None
-        if 'updatedAt' in order:
-            updated = self.parse8601(order['updatedAt'])
+        created = self.parse8601(self.safe_string(order, 'createdAt'))
+        updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']

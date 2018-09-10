@@ -85,10 +85,10 @@ class itbit (Exchange):
         ticker = self.publicGetMarketsSymbolTicker(self.extend({
             'symbol': self.market_id(symbol),
         }, params))
-        serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
+        serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
-        timestamp = self.parse8601(ticker['serverTimeUTC'])
+        timestamp = self.parse8601(serverTimeUTC)
         vwap = self.safe_float(ticker, 'vwap24h')
         baseVolume = self.safe_float(ticker, 'volume24h')
         quoteVolume = None

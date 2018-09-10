@@ -293,9 +293,7 @@ class rightbtc extends Exchange {
         //
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp === null) {
-            if (is_array ($trade) && array_key_exists ('created_at', $trade)) {
-                $timestamp = $this->parse8601 ($trade['created_at']);
-            }
+            $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $id = $this->safe_string($trade, 'tid');
         $id = $this->safe_string($trade, 'trade_id', $id);

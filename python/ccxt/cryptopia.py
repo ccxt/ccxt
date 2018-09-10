@@ -545,9 +545,7 @@ class cryptopia (Exchange):
                 if id in self.options['marketsByLabel']:
                     market = self.options['marketsByLabel'][id]
                     symbol = market['symbol']
-        timestamp = self.safe_string(order, 'TimeStamp')
-        if timestamp is not None:
-            timestamp = self.parse8601(order['TimeStamp'])
+        timestamp = self.parse8601(self.safe_string(order, 'TimeStamp'))
         amount = self.safe_float(order, 'Amount')
         remaining = self.safe_float(order, 'Remaining')
         filled = None

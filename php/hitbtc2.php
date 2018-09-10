@@ -906,12 +906,8 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $created = null;
-        if (is_array ($order) && array_key_exists ('createdAt', $order))
-            $created = $this->parse8601 ($order['createdAt']);
-        $updated = null;
-        if (is_array ($order) && array_key_exists ('updatedAt', $order))
-            $updated = $this->parse8601 ($order['updatedAt']);
+        $created = $this->parse8601 ($this->safe_string($order, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($order, 'updatedAt'));
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];

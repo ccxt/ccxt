@@ -293,8 +293,7 @@ class rightbtc (Exchange):
         #
         timestamp = self.safe_integer(trade, 'date')
         if timestamp is None:
-            if 'created_at' in trade:
-                timestamp = self.parse8601(trade['created_at'])
+            timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'tid')
         id = self.safe_string(trade, 'trade_id', id)
         orderId = self.safe_string(trade, 'order_id')
