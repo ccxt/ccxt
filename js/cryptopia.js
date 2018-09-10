@@ -575,10 +575,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.safeString (order, 'TimeStamp');
-        if (typeof timestamp !== 'undefined') {
-            timestamp = this.parse8601 (order['TimeStamp']);
-        }
+        let timestamp = this.parse8601 (this.safeString (order, 'TimeStamp'));
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = undefined;

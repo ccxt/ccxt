@@ -906,12 +906,8 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseOrder (order, market = undefined) {
-        let created = undefined;
-        if ('createdAt' in order)
-            created = this.parse8601 (order['createdAt']);
-        let updated = undefined;
-        if ('updatedAt' in order)
-            updated = this.parse8601 (order['updatedAt']);
+        let created = this.parse8601 (this.safeString (order, 'createdAt'));
+        let updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];

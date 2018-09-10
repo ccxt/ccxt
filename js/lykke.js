@@ -265,16 +265,14 @@ module.exports = class lykke extends Exchange {
         let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('AssetPairId' in order)
-                if (order['AssetPairId'] in this.markets_by_id)
-                    market = this.markets_by_id[order['AssetPairId']];
+            let marketId = this.safeString (order, 'AssetPairId');
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market)
             symbol = market['symbol'];
+        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
         let timestamp = undefined;
-        if (('LastMatchTime' in order) && (order['LastMatchTime'])) {
-            timestamp = this.parse8601 (order['LastMatchTime']);
-        } else if (('Registered' in order) && (order['Registered'])) {
+        if (('Registered' in order) && (order['Registered'])) {
             timestamp = this.parse8601 (order['Registered']);
         } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
@@ -289,7 +287,7 @@ module.exports = class lykke extends Exchange {
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,

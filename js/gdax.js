@@ -244,19 +244,11 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = undefined;
-        if ('time' in trade) {
-            timestamp = this.parse8601 (trade['time']);
-        } else if ('created_at' in trade) {
-            timestamp = this.parse8601 (trade['created_at']);
-        }
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('product_id' in trade) {
-                let marketId = trade['product_id'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-            }
+            let marketId = this.safeString (trade, 'product_id');
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market)
             symbol = market['symbol'];
