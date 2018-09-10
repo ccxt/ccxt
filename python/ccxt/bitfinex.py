@@ -44,6 +44,9 @@ class bitfinex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchTickers': True,
+                'fetchTransactions': True,
+                'fetchDeposits': False,
+                'fetchWithdrawals': False,
                 'withdraw': True,
             },
             'timeframes': {
@@ -778,6 +781,87 @@ class bitfinex (Exchange):
             'tag': tag,
             'info': response,
         }
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        if since is not None:
+            request['since'] = int(since / 1000)
+        response = self.privatePostHistoryMovements(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id":581183,
+        #             "txid": 123456,
+        #             "currency":"BTC",
+        #             "method":"BITCOIN",
+        #             "type":"WITHDRAWAL",
+        #             "amount":".01",
+        #             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        #             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        #             "status":"COMPLETED",
+        #             "timestamp":"1443833327.0",
+        #             "timestamp_created": "1443833327.1",
+        #             "fee": 0.1,
+        #         }
+        #     ]
+        #
+        return self.parseTransactions(response, currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_float(transaction, 'timestamp_created')
+        if timestamp is not None:
+            timestamp = int(timestamp * 1000)
+        updated = self.safe_float(transaction, 'timestamp')
+        if updated is not None:
+            updated = int(updated * 1000)
+        code = None
+        if currency is None:
+            currencyId = self.safe_string(transaction, 'currency')
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+            else:
+                code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        type = self.safe_string(transaction, 'type')  # DEPOSIT or WITHDRAWAL
+        if type is not None:
+            type = type.lower()
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is not None:
+            feeCost = abs(feeCost)
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': self.safe_string(transaction, 'address'),
+            'type': type,
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': None,
+            },
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'CANCELED': 'canceled',
+            'ZEROCONFIRMED': 'failed',  # ZEROCONFIRMED happens e.g. in a double spend attempt(I had one in my movementsnot )
+            'COMPLETED': 'ok',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def withdraw(self, currency, amount, address, tag=None, params={}):
         self.check_address(address)

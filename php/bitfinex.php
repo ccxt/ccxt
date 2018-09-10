@@ -31,6 +31,9 @@ class bitfinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -805,6 +808,99 @@ class bitfinex extends Exchange {
             'tag' => $tag,
             'info' => $response,
         );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ExchangeError ($this->id . ' fetchTransactions() requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['since'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostHistoryMovements (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "id":581183,
+        //             "txid" => 123456,
+        //             "$currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created" => "1443833327.1",
+        //             "fee" => 0.1,
+        //         }
+        //     )
+        //
+        return $this->parseTransactions ($response, $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_float($transaction, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp = intval ($timestamp * 1000);
+        }
+        $updated = $this->safe_float($transaction, 'timestamp');
+        if ($updated !== null) {
+            $updated = intval ($updated * 1000);
+        }
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = abs ($feeCost);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'address'),
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+                'rate' => null,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'CANCELED' => 'canceled',
+            'ZEROCONFIRMED' => 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
