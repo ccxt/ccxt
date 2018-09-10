@@ -61,13 +61,23 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobi.pro',
+                'api': {
+                    'market': 'https://api.huobi.pro',
+                    'public': 'https://api.huobi.pro',
+                    'private': 'https://api.huobi.pro',
+                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
+                'zendesk': {
+                    'get': [
+                        '360000400491-Trade-Limits',
+                    ],
+                },
                 'market': {
                     'get': [
                         'history/kline',  # 获取K线数据
@@ -761,7 +771,7 @@ class huobipro (Exchange):
         url = '/'
         if api == 'market':
             url += api
-        else:
+        elif (api == 'public') or (api == 'private'):
             url += self.version
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -793,7 +803,7 @@ class huobipro (Exchange):
         else:
             if params:
                 url += '?' + self.urlencode(params)
-        url = self.urls['api'] + url
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):

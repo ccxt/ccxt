@@ -46,13 +46,23 @@ class huobipro extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api' => 'https://api.huobi.pro',
+                'api' => array (
+                    'market' => 'https://api.huobi.pro',
+                    'public' => 'https://api.huobi.pro',
+                    'private' => 'https://api.huobi.pro',
+                    'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
+                'zendesk' => array (
+                    'get' => array (
+                        '360000400491-Trade-Limits',
+                    ),
+                ),
                 'market' => array (
                     'get' => array (
                         'history/kline', // 获取K线数据
@@ -817,10 +827,11 @@ class huobipro extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api === 'market')
+        if ($api === 'market') {
             $url .= $api;
-        else
+        } else if (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
+        }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -853,7 +864,7 @@ class huobipro extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
