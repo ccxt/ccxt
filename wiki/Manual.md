@@ -1976,7 +1976,7 @@ console.log (exchange.has)
 # Python
 import ccxt
 id = 'cryptopia'
-exchange = getattr(ccxt, 'id') ()
+exchange = getattr(ccxt, id) ()
 print(exchange.has)
 ```
 
