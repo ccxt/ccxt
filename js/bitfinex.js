@@ -826,10 +826,10 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
         if (typeof code === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code arguemnt');
+            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
         }
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'currency': currency['id'],
@@ -857,7 +857,10 @@ module.exports = class bitfinex extends Exchange {
         if (typeof currency !== 'undefined') {
             code = currency['code'];
         }
-        let type = this.safeString (transaction, 'type').toLowerCase (); // DEPOSIT or WITHDRAWAL
+        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if (typeof type !== 'undefined') {
+            type = type.toLowerCase ();
+        }
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'info': transaction,
@@ -884,7 +887,7 @@ module.exports = class bitfinex extends Exchange {
             'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
             'COMPLETED': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async withdraw (currency, amount, address, tag = undefined, params = {}) {
