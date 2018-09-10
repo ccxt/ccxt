@@ -675,20 +675,14 @@ module.exports = class buda extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            let components = [method, '/api/' + this.version + '/' + request];
+            let components = [ method, '/api/' + this.version + '/' + request ];
             if (body) {
                 let base64_body = this.stringToBase64 (this.encode (body));
                 components.push (this.decode (base64_body));
             }
             components.push (nonce);
-            let message = components[0];
-            for (let i = 1; i < components.length; i++) {
-                let component = components[i];
-                message = message + ' ' + component;
-            }
-            message = this.encode (message);
-            let secret = this.encode (this.secret);
-            let signature = this.hmac (message, secret, 'sha384');
+            let message = components.join (' ');
+            let signature = this.hmac (this.encode (message), this.encode (this.secret), 'sha384');
             headers = {
                 'X-SBTC-APIKEY': this.apiKey,
                 'X-SBTC-SIGNATURE': signature,
