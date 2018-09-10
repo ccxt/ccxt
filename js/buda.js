@@ -1,0 +1,726 @@
+'use strict';
+
+//  ---------------------------------------------------------------------------
+
+const Exchange = require ('./base/Exchange');
+const { AddressPending, AuthenticationError, ExchangeError, NotSupported, PermissionDenied } = require ('./base/errors');
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class buda extends Exchange {
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'id': 'buda',
+            'name': 'Buda.com',
+            'countries': [ 'AR', 'CL', 'CO', 'PE' ],
+            'rateLimit': 1000,
+            'version': 'v2',
+            'has': {
+                'CORS': false,
+                'createDepositAddress': true,
+                'fetchClosedOrders': true,
+                'fetchCurrencies': true,
+                'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchFundingFees': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrders': true,
+                'fetchTrades': false,
+                'fetchWithdrawals': true,
+                'withdraw': true,
+            },
+            'urls': {
+                'logo': 'https://user-images.githubusercontent.com/4157289/45259478-582aab80-b3a4-11e8-83a5-baa995f53e4d.jpg',
+                'api': 'https://www.buda.com/api',
+                'www': 'https://www.buda.com',
+                'doc': 'https://api.buda.com',
+                'fees': 'https://www.buda.com/comisiones',
+            },
+            'api': {
+                'public': {
+                    'get': [
+                        'pairs',
+                        'markets',
+                        'currencies',
+                        'markets/{market}',
+                        'markets/{market}/ticker',
+                        'markets/{market}/volume',
+                        'markets/{market}/order_book',
+                        'markets/{market}/trades',
+                        'currencies/{currency}/fees/deposit',
+                        'currencies/{currency}/fees/withdrawal',
+                        'tv/history',
+                    ],
+                    'post': [
+                        'markets/{market}/quotations',
+                    ],
+                },
+                'private': {
+                    'get': [
+                        'balances',
+                        'balances/{currency}',
+                        'currencies/{currency}/balances',
+                        'orders',
+                        'orders/{id}',
+                        'markets/{market}/orders',
+                        'deposits',
+                        'currencies/{currency}/deposits',
+                        'withdrawals',
+                        'currencies/{currency}/withdrawals',
+                        'currencies/{currency}/receive_addresses',
+                        'currencies/{currency}/receive_addresses/{id}',
+                    ],
+                    'post': [
+                        'markets/{market}/orders',
+                        'currencies/{currency}/deposits',
+                        'currencies/{currency}/withdrawals',
+                        'currencies/{currency}/simulated_withdrawals',
+                        'currencies/{currency}/receive_addresses',
+                    ],
+                    'put': [
+                        'orders/{id}',
+                    ],
+                },
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '1d': 'D',
+                '1w': 'W',
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': 0.008,  // 0.8%
+                    'maker': 0.004,  // 0.4%
+                    'tiers': {
+                        'taker': [
+                            [0, 0.008],  // 0.8%
+                            [2000, 0.007],  // 0.7%
+                            [20000, 0.006],  // 0.6%
+                            [100000, 0.005],  // 0.5%
+                            [500000, 0.004],  // 0.4%
+                            [2500000, 0.003],  // 0.3%
+                            [12500000, 0.002],  // 0.2%
+                        ],
+                        'maker': [
+                            [0, 0.004],  // 0.4%
+                            [2000, 0.0035],  // 0.35%
+                            [20000, 0.003],  // 0.3%
+                            [100000, 0.0025],  // 0.25%
+                            [500000, 0.002],  // 0.2%
+                            [2500000, 0.0015],  // 0.15%
+                            [12500000, 0.001],  // 0.1%
+                        ],
+                    },
+                },
+            },
+            'exceptions': {
+                'not_authorized': AuthenticationError,  // { message: 'Invalid credentials', code: 'not_authorized' }
+                'forbidden': PermissionDenied,  // { message: 'You dont have access to this resource', code: 'forbidden' }
+                'invalid_record': ExchangeError,  // { message: 'Validation Failed', code: 'invalid_record', errors: [] }
+                'not_found': ExchangeError,  // { message: 'Not found', code: 'not_found' }
+                'parameter_missing': ExchangeError,  // { message: 'Parameter missing', code: 'parameter_missing' }
+                'bad_parameter': ExchangeError,  // { message: 'Bad Parameter format', code: 'bad_parameter' }
+            },
+        });
+    }
+
+    async fetchCurrencyInfo (currency, currencies = undefined) {
+        if (!currencies) {
+            let response = await this.publicGetCurrencies ();
+            currencies = response['currencies'];
+        }
+        for (let i = 0; i < currencies.length; i++) {
+            let currencyInfo = currencies[i];
+            if (currencyInfo['id'] === currency) {
+                return currencyInfo;
+            }
+        }
+        return undefined;
+    }
+
+    async fetchMarkets () {
+        let marketsResponse = await this.publicGetMarkets ();
+        let markets = marketsResponse['markets'];
+        let currenciesResponse = await this.publicGetCurrencies ();
+        let currencies = currenciesResponse['currencies'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['id'];
+            let baseId = market['base_currency'];
+            let quoteId = market['quote_currency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
+            let quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': baseInfo['input_decimals'],
+                'price': quoteInfo['input_decimals'],
+            };
+            let limits = {
+                'amount': {
+                    'min': parseFloat (market['minimum_order_amount'][0]),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': undefined,
+                },
+            };
+            limits['cost'] = {
+                'min': limits['amount']['min'] * limits['price']['min'],
+                'max': undefined,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies ();
+        let currencies = response['currencies'];
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            if (!currency['managed'])
+                continue;
+            let id = currency['id'];
+            let code = this.commonCurrencyCode (id);
+            let precision = currency['input_decimals'];
+            let minimum = Math.pow (10, -precision);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': undefined,
+                'active': true,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': minimum,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minimum,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': parseFloat (currency['deposit_minimum'][0]),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': parseFloat (currency['withdrawal_minimum'][0]),
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
+    async fetchFundingFees (codes = undefined, params = {}) {
+        //  by default it will try load withdrawal fees of all currencies (with separate requests)
+        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        let withdrawFees = {};
+        let depositFees = {};
+        let info = {};
+        if (typeof codes === 'undefined')
+            codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = this.currency (code);
+            let request = { 'currency': currency['id'] };
+            let withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            let depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
+            withdrawFees[code] = this.parseFundingFee (withdrawResponse['fee']);
+            depositFees[code] = this.parseFundingFee (depositResponse['fee']);
+            info[code] = {
+                'withdraw': withdrawResponse,
+                'deposit': depositResponse,
+            };
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': info,
+        };
+    }
+
+    parseFundingFee (fee, type = undefined) {
+        if (typeof type === 'undefined')
+            type = fee['name'];
+        if (type === 'withdrawal')
+            type = 'withdraw';
+        return {
+            'type': type,
+            'currency': fee['base'][1],
+            'rate': fee['percent'],
+            'cost': parseFloat (fee['base'][0]),
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketsMarketTicker (this.extend ({
+            'market': market['id'],
+        }, params));
+        let ticker = response['ticker'];
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        let timestamp = this.milliseconds ();
+        let symbol = undefined;
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let last = parseFloat (ticker['last_price'][0]);
+        let percentage = parseFloat (ticker['price_variation_24h']);
+        let open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
+        let change = last - open;
+        let average = (last + open) / 2;
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': parseFloat (ticker['max_bid'][0]),
+            'bidVolume': undefined,
+            'ask': parseFloat (ticker['min_ask'][0]),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': open,
+            'change': change,
+            'percentage': percentage * 100,
+            'average': average,
+            'baseVolume': parseFloat (ticker['volume'][0]),
+            'quoteVolume': undefined,
+            'info': ticker,
+        };
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketsMarketOrderBook (this.extend ({
+            'market': market['id'],
+        }, params));
+        let orderBook = response['order_book'];
+        return this.parseOrderBook (orderBook);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (typeof since === 'undefined')
+            since = this.milliseconds () - 86400000;
+        let request = {
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+            'from': since / 1000,
+            'to': this.seconds (),
+        };
+        let response = await this.publicGetTvHistory (this.extend (request, params));
+        let ohlcvs = [];
+        for (let i = 0; i < response['t'].length; i++) {
+            ohlcvs.push ([
+                response['t'][i] * 1000,
+                response['o'][i],
+                response['h'][i],
+                response['l'][i],
+                response['c'][i],
+                response['v'][i],
+            ]);
+        }
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetBalances ();
+        let result = { 'info': response };
+        let balances = response['balances'];
+        for (let i = 0; i < balances.length; i++) {
+            let balance = balances[i];
+            let id = balance['id'];
+            let currency = this.commonCurrencyCode (id);
+            let total = parseFloat (balance['amount'][0]);
+            let free = parseFloat (balance['available_amount'][0]);
+            let account = {
+                'free': free,
+                'used': total - free,
+                'total': total,
+            };
+            result[currency] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetOrdersId (this.extend ({
+            'id': parseInt (id),
+        }, params));
+        let order = response['order'];
+        return this.parseOrder (order);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (typeof symbol !== 'undefined')
+            market = this.market (symbol);
+        let response = await this.privateGetMarketsMarketOrders (this.extend ({
+            'market': market['id'],
+            'per': limit,
+        }, params));
+        let orders = response['orders'];
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
+            'state': 'pending',
+        }, params));
+        return orders;
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let orders = await this.fetchOrders (symbol, since, limit, this.extend ({
+            'state': 'traded',
+        }, params));
+        return orders;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        side = (side === 'buy') ? 'Bid' : 'Ask';
+        let request = {
+            'market': this.marketId (symbol),
+            'price_type': type,
+            'type': side,
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        if (type === 'limit')
+            request['limit'] = this.priceToPrecision (symbol, price);
+        let response = await this.privatePostMarketsMarketOrders (this.extend (request, params));
+        let order = response['order'];
+        return this.parseOrder (order);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePutOrdersId (this.extend ({
+            'id': parseInt (id),
+            'state': 'canceling',
+        }, params));
+        let order = response['order'];
+        return this.parseOrder (order);
+    }
+
+    parseOrder (order, market = undefined) {
+        let id = order['id'];
+        let timestamp = undefined;
+        let iso8601 = undefined;
+        let createdAt = order['created_at'];
+        if (typeof createdAt !== 'undefined') {
+            timestamp = this.parse8601 (createdAt);
+            iso8601 = this.iso8601 (timestamp);
+        }
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            let marketId = order['market_id'];
+            if (marketId in this.markets_by_id)
+                market = this.markets_by_id[marketId];
+        }
+        if (typeof market !== 'undefined')
+            symbol = market['symbol'];
+        let type = order['price_type'];
+        let side = order['type'].toLowerCase ();
+        let status = order['state'];
+        if (status === 'traded')
+            status = 'closed';
+        else if (status !== 'closed')
+            status = 'open';
+        let amount = parseFloat (order['original_amount'][0]);
+        let remaining = parseFloat (order['amount'][0]);
+        let filled = parseFloat (order['traded_amount'][0]);
+        let cost = parseFloat (order['total_exchanged'][0]);
+        let price = order['limit'];
+        if (typeof price !== 'undefined')
+            price = parseFloat (price[0]);
+        if (cost > 0 && filled > 0)
+            price = this.priceToPrecision (symbol, cost / filled);
+        let fee = {
+            'cost': parseFloat (order['paid_fee'][0]),
+            'currency': order['paid_fee'][1],
+        };
+        return {
+            'id': id,
+            'datetime': iso8601,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': [],
+            'fee': fee,
+            'info': order,
+        };
+    }
+
+    isFiat (code) {
+        if (code === 'ARS')
+            return true;
+        if (code === 'CLP')
+            return true;
+        if (code === 'COP')
+            return true;
+        if (code === 'PEN')
+            return true;
+        return false;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currencyId (code);
+        if (this.isFiat (currency))
+            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend ({
+            'currency': currency,
+        }, params));
+        let receiveAddresses = response['receive_addresses'];
+        let addressPool = [];
+        for (let i = 1; i < receiveAddresses.length; i++) {
+            let receiveAddress = receiveAddresses[i];
+            if (receiveAddress['ready']) {
+                let address = receiveAddress['address'];
+                this.checkAddress (address);
+                addressPool.push (address);
+            }
+        }
+        if (addressPool.length === 0)
+            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + currency + ', retry again later)');
+        let address = addressPool[0];
+        return {
+            'currency': currency,
+            'address': address,
+            'tag': undefined,
+            'info': receiveAddresses,
+        };
+    }
+
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currencyId (code);
+        if (this.isFiat (currency))
+            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
+            'currency': currency,
+        }, params));
+        let receiveAddress = response['receive_address'];
+        let address = receiveAddress['address'];  // the creation is async and returns a null address, returns only the id
+        return {
+            'currency': currency,
+            'address': address,
+            'tag': undefined,
+            'info': receiveAddress,
+        };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let id = transaction['id'];
+        let timestamp = undefined;
+        let iso8601 = undefined;
+        let createdAt = transaction['created_at'];
+        if (typeof createdAt !== 'undefined') {
+            timestamp = this.parse8601 (createdAt);
+            iso8601 = this.iso8601 (timestamp);
+        }
+        if (typeof currency === 'undefined')
+            currency = this.currency (transaction['currency']);
+        let code = currency['id'];
+        let amount = parseFloat (transaction['amount'][0]);
+        let fee = parseFloat (transaction['fee'][0]);
+        let feeCurrency = transaction['fee'][1];
+        let status = transaction['state'];
+        if (status === 'rejected')
+            status = 'failed';
+        else if (status === 'confirmed')
+            status = 'ok';
+        else if (status === 'anulled' || status === 'retained')
+            status = 'canceled';
+        else
+            status = 'pending';
+        let type = ('deposit_data' in transaction) ? 'deposit' : 'withdrawal';
+        let data = transaction[type + '_data'];
+        let address = undefined;
+        let txid = undefined;
+        let updatedTimestamp = undefined;
+        if (typeof data !== 'undefined') {
+            address = this.safeValue (data, 'target_address');
+            txid = this.safeValue (data, 'tx_hash');
+            let updatedAt = this.safeValue (data, 'updated_at');
+            if (typeof updatedAt !== 'undefined')
+                updatedTimestamp = this.parse8601 (createdAt);
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': iso8601,
+            'address': address,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updatedTimestamp,
+            'fee': {
+                'cost': fee,
+                'rate': feeCurrency,
+            },
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined')
+            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+        let currency = this.currency (code);
+        let response = await this.privateGetCurrenciesCurrencyDeposits (this.extend ({
+            'currency': currency['id'],
+            'per': limit,
+        }, params));
+        let deposits = response['deposits'];
+        return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (typeof code === 'undefined')
+            throw new ExchangeError (this.name + ': fetchDeposits() requires a currency code argument');
+        let currency = this.currency (code);
+        let response = await this.privateGetCurrenciesCurrencyWithdrawals (this.extend ({
+            'currency': currency['id'],
+            'per': limit,
+        }, params));
+        let withdrawals = response['withdrawals'];
+        return this.parseTransactions (withdrawals, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostCurrenciesCurrencyWithdrawals (this.extend ({
+            'currency': currency['id'],
+            'amount': amount,
+            'withdrawal_data': {
+                'target_address': address,
+            },
+        }, params));
+        let withdrawal = response['withdrawal'];
+        return this.parseTransaction (withdrawal);
+    }
+
+    nonce () {
+        return this.microseconds ();
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let request = this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
+            if (method === 'GET') {
+                request += '?' + this.urlencode (query);
+            } else {
+                body = this.json (query);
+            }
+        }
+        let url = this.urls['api'] + '/' + this.version + '/' + request;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ().toString ();
+            let components = [method, '/api/' + this.version + '/' + request];
+            if (body) {
+                let base64_body = this.stringToBase64 (this.encode (body));
+                components.push (this.decode (base64_body));
+            }
+            components.push (nonce);
+            let message = components[0];
+            for (let i = 1; i < components.length; i++) {
+                let component = components[i];
+                message = message + ' ' + component;
+            }
+            message = this.encode (message);
+            let secret = this.encode (this.secret);
+            let signature = this.hmac (message, secret, 'sha384');
+            headers = {
+                'X-SBTC-APIKEY': this.apiKey,
+                'X-SBTC-SIGNATURE': signature,
+                'X-SBTC-NONCE': nonce,
+                'Content-Type': 'application/json',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body) {
+        if (typeof body !== 'string')
+            return;  // fallback to default error handler
+        if (body.length < 2)
+            return;  // fallback to default error handler
+        if (code >= 400) {
+            if (body[0] === '{') {
+                const response = JSON.parse (body);
+                let errorCode = this.safeString (response, 'code');
+                let message = this.safeString (response, 'message', body);
+                let feedback = this.name + ': ' + message;
+                let exceptions = this.exceptions;
+                if (typeof errorCode !== 'undefined') {
+                    if (errorCode in exceptions) {
+                        throw new exceptions[errorCode] (feedback);
+                    } else {
+                        throw new ExchangeError (feedback);
+                    }
+                }
+            }
+        }
+    }
+};
