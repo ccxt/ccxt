@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.255'
+const version = '1.17.256'
 
 Exchange.ccxtVersion = version
 
@@ -29374,10 +29374,7 @@ module.exports = class cryptopia extends Exchange {
                 }
             }
         }
-        let timestamp = this.safeString (order, 'TimeStamp');
-        if (typeof timestamp !== 'undefined') {
-            timestamp = this.parse8601 (order['TimeStamp']);
-        }
+        let timestamp = this.parse8601 (this.safeString (order, 'TimeStamp'));
         let amount = this.safeFloat (order, 'Amount');
         let remaining = this.safeFloat (order, 'Remaining');
         let filled = undefined;
@@ -34565,19 +34562,11 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = undefined;
-        if ('time' in trade) {
-            timestamp = this.parse8601 (trade['time']);
-        } else if ('created_at' in trade) {
-            timestamp = this.parse8601 (trade['created_at']);
-        }
+        let timestamp = this.parse8601 (this.safeString2 (trade, 'time', 'created_at'));
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('product_id' in trade) {
-                let marketId = trade['product_id'];
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
-            }
+            let marketId = this.safeString (trade, 'product_id');
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market)
             symbol = market['symbol'];
@@ -37491,12 +37480,8 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseOrder (order, market = undefined) {
-        let created = undefined;
-        if ('createdAt' in order)
-            created = this.parse8601 (order['createdAt']);
-        let updated = undefined;
-        if ('updatedAt' in order)
-            updated = this.parse8601 (order['updatedAt']);
+        let created = this.parse8601 (this.safeString (order, 'createdAt'));
+        let updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         if (!market)
             market = this.markets_by_id[order['symbol']];
         let symbol = market['symbol'];
@@ -38030,7 +38015,11 @@ module.exports = class huobicny extends huobipro {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://be.huobi.com',
+                'api': {
+                    'public': 'https://be.huobi.com',
+                    'private': 'https://be.huobi.com',
+                    'market': 'https://be.huobi.com',
+                },
                 'www': 'https://www.huobi.com',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
             },
@@ -40325,10 +40314,10 @@ module.exports = class itbit extends Exchange {
         let ticker = await this.publicGetMarketsSymbolTicker (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
-        let serverTimeUTC = ('serverTimeUTC' in ticker);
+        let serverTimeUTC = this.safeString (ticker, 'serverTimeUTC');
         if (!serverTimeUTC)
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
-        let timestamp = this.parse8601 (ticker['serverTimeUTC']);
+        let timestamp = this.parse8601 (serverTimeUTC);
         let vwap = this.safeFloat (ticker, 'vwap24h');
         let baseVolume = this.safeFloat (ticker, 'volume24h');
         let quoteVolume = undefined;
@@ -45937,16 +45926,14 @@ module.exports = class lykke extends Exchange {
         let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
         if (typeof market === 'undefined') {
-            if ('AssetPairId' in order)
-                if (order['AssetPairId'] in this.markets_by_id)
-                    market = this.markets_by_id[order['AssetPairId']];
+            let marketId = this.safeString (order, 'AssetPairId');
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market)
             symbol = market['symbol'];
+        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
         let timestamp = undefined;
-        if (('LastMatchTime' in order) && (order['LastMatchTime'])) {
-            timestamp = this.parse8601 (order['LastMatchTime']);
-        } else if (('Registered' in order) && (order['Registered'])) {
+        if (('Registered' in order) && (order['Registered'])) {
             timestamp = this.parse8601 (order['Registered']);
         } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
@@ -45961,7 +45948,7 @@ module.exports = class lykke extends Exchange {
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
@@ -50585,9 +50572,7 @@ module.exports = class rightbtc extends Exchange {
         //
         let timestamp = this.safeInteger (trade, 'date');
         if (typeof timestamp === 'undefined') {
-            if ('created_at' in trade) {
-                timestamp = this.parse8601 (trade['created_at']);
-            }
+            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);

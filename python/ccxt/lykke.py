@@ -255,15 +255,13 @@ class lykke (Exchange):
         status = self.parse_order_status(order['Status'])
         symbol = None
         if market is None:
-            if 'AssetPairId' in order:
-                if order['AssetPairId'] in self.markets_by_id:
-                    market = self.markets_by_id[order['AssetPairId']]
+            marketId = self.safe_string(order, 'AssetPairId')
+            market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
+        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
-        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
-            timestamp = self.parse8601(order['LastMatchTime'])
-        elif ('Registered' in list(order.keys())) and(order['Registered']):
+        if ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
         elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
@@ -277,7 +275,7 @@ class lykke (Exchange):
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
             'side': None,

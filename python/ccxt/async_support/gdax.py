@@ -246,17 +246,11 @@ class gdax (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = None
-        if 'time' in trade:
-            timestamp = self.parse8601(trade['time'])
-        elif 'created_at' in trade:
-            timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         symbol = None
         if market is None:
-            if 'product_id' in trade:
-                marketId = trade['product_id']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+            marketId = self.safe_string(trade, 'product_id')
+            market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
         feeRate = None

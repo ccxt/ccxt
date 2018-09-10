@@ -245,19 +245,11 @@ class gdax extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = null;
-        if (is_array ($trade) && array_key_exists ('time', $trade)) {
-            $timestamp = $this->parse8601 ($trade['time']);
-        } else if (is_array ($trade) && array_key_exists ('created_at', $trade)) {
-            $timestamp = $this->parse8601 ($trade['created_at']);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'time', 'created_at'));
         $symbol = null;
         if ($market === null) {
-            if (is_array ($trade) && array_key_exists ('product_id', $trade)) {
-                $marketId = $trade['product_id'];
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
-            }
+            $marketId = $this->safe_string($trade, 'product_id');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
         }
         if ($market)
             $symbol = $market['symbol'];

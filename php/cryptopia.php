@@ -576,10 +576,7 @@ class cryptopia extends Exchange {
                 }
             }
         }
-        $timestamp = $this->safe_string($order, 'TimeStamp');
-        if ($timestamp !== null) {
-            $timestamp = $this->parse8601 ($order['TimeStamp']);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'TimeStamp'));
         $amount = $this->safe_float($order, 'Amount');
         $remaining = $this->safe_float($order, 'Remaining');
         $filled = null;

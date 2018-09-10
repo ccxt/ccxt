@@ -267,16 +267,14 @@ class lykke extends Exchange {
         $status = $this->parse_order_status($order['Status']);
         $symbol = null;
         if ($market === null) {
-            if (is_array ($order) && array_key_exists ('AssetPairId', $order))
-                if (is_array ($this->markets_by_id) && array_key_exists ($order['AssetPairId'], $this->markets_by_id))
-                    $market = $this->markets_by_id[$order['AssetPairId']];
+            $marketId = $this->safe_string($order, 'AssetPairId');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
         }
         if ($market)
             $symbol = $market['symbol'];
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
-        if ((is_array ($order) && array_key_exists ('LastMatchTime', $order)) && ($order['LastMatchTime'])) {
-            $timestamp = $this->parse8601 ($order['LastMatchTime']);
-        } else if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
+        if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
             $timestamp = $this->parse8601 ($order['Registered']);
         } else if ((is_array ($order) && array_key_exists ('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601 ($order['CreatedAt']);
@@ -291,7 +289,7 @@ class lykke extends Exchange {
             'id' => $order['Id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
