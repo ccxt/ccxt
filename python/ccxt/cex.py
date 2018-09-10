@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NullResponse
@@ -148,8 +147,8 @@ class cex (Exchange):
                 'base': base,
                 'quote': quote,
                 'precision': {
-                    'price': self.precision_from_string(market['minPrice']),
-                    'amount': -math.log10(market['minLotSize']),
+                    'price': self.precision_from_string(self.safe_string(market, 'minPrice')),
+                    'amount': self.precision_from_string(self.safe_string(market, 'minLotSize')),
                 },
                 'limits': {
                     'amount': {

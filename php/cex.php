@@ -137,8 +137,8 @@ class cex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'precision' => array (
-                    'price' => $this->precision_from_string($market['minPrice']),
-                    'amount' => -log10 ($market['minLotSize']),
+                    'price' => $this->precision_from_string($this->safe_string($market, 'minPrice')),
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'minLotSize')),
                 ),
                 'limits' => array (
                     'amount' => array (
