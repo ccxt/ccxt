@@ -113,7 +113,7 @@ module.exports = class dsx extends liqui {
         if (market)
             symbol = market['symbol'];
         let average = this.safeFloat (ticker, 'avg');
-        if (typeof average !== 'undefined')
+        if (average !== undefined)
             if (average > 0)
                 average = 1 / average;
         let last = this.safeFloat (ticker, 'last');

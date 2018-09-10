@@ -401,7 +401,7 @@ module.exports = class kraken extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['count'] = limit; // 100
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = response['result'][market['id']];
@@ -499,7 +499,7 @@ module.exports = class kraken extends Exchange {
             'pair': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
         let response = await this.publicGetOHLC (this.extend (request, params));
         let ohlcvs = response['result'][market['id']];
@@ -585,7 +585,7 @@ module.exports = class kraken extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostBalance (params);
         let balances = this.safeValue (response, 'result');
-        if (typeof balances === 'undefined')
+        if (balances === undefined)
             throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
         let result = { 'info': balances };
         let currencies = Object.keys (balances);
@@ -623,7 +623,7 @@ module.exports = class kraken extends Exchange {
             'ordertype': type,
             'volume': this.amountToPrecision (symbol, amount),
         };
-        let priceIsDefined = (typeof price !== 'undefined');
+        let priceIsDefined = (price !== undefined);
         let marketOrder = (type === 'market');
         let limitOrder = (type === 'limit');
         let shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
@@ -632,7 +632,7 @@ module.exports = class kraken extends Exchange {
         }
         let response = await this.privatePostAddOrder (this.extend (order, params));
         let id = this.safeValue (response['result'], 'txid');
-        if (typeof id !== 'undefined') {
+        if (id !== undefined) {
             if (Array.isArray (id)) {
                 let length = id.length;
                 id = (length > 1) ? id : id[0];
@@ -658,7 +658,7 @@ module.exports = class kraken extends Exchange {
         let side = description['type'];
         let type = description['ordertype'];
         let symbol = undefined;
-        if (typeof market === 'undefined')
+        if (market === undefined)
             market = this.findMarketByAltnameOrId (description['pair']);
         let timestamp = parseInt (order['opentm'] * 1000);
         let amount = this.safeFloat (order, 'vol');
@@ -667,11 +667,11 @@ module.exports = class kraken extends Exchange {
         let fee = undefined;
         let cost = this.safeFloat (order, 'cost');
         let price = this.safeFloat (description, 'price');
-        if ((typeof price === 'undefined') || (price === 0))
+        if ((price === undefined) || (price === 0))
             price = this.safeFloat (description, 'price2');
-        if ((typeof price === 'undefined') || (price === 0))
+        if ((price === undefined) || (price === 0))
             price = this.safeFloat (order, 'price', price);
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
                 let flags = order['oflags'];
@@ -739,7 +739,7 @@ module.exports = class kraken extends Exchange {
             // 'end': 1234567890, // ending unix timestamp or trade tx id of results (inclusive)
             // 'ofs' = result offset
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostTradesHistory (this.extend (request, params));
         let trades = response['result']['trades'];
@@ -748,7 +748,7 @@ module.exports = class kraken extends Exchange {
             trades[ids[i]]['id'] = ids[i];
         }
         let result = this.parseTrades (trades, undefined, since, limit);
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             return result;
         return this.filterBySymbol (result, symbol);
     }
@@ -772,11 +772,11 @@ module.exports = class kraken extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostOpenOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['open'], undefined, since, limit);
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             return orders;
         return this.filterBySymbol (orders, symbol);
     }
@@ -784,11 +784,11 @@ module.exports = class kraken extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostClosedOrders (this.extend (request, params));
         let orders = this.parseOrders (response['result']['closed'], undefined, since, limit);
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             return orders;
         return this.filterBySymbol (orders, symbol);
     }
@@ -821,7 +821,7 @@ module.exports = class kraken extends Exchange {
         let currency = this.currency (code);
         // eslint-disable-next-line quotes
         let method = this.safeString (params, 'method');
-        if (typeof method === 'undefined') {
+        if (method === undefined) {
             if (this.options['cacheDepositMethodsOnFetchDepositAddress']) {
                 // cache depositMethods
                 if (!(code in this.options['depositMethods']))

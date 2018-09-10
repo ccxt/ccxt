@@ -181,14 +181,14 @@ module.exports = class bigone extends Exchange {
         //         }
         //     ]
         //
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.milliseconds ();
@@ -262,14 +262,14 @@ module.exports = class bigone extends Exchange {
         let timestamp = this.parse8601 (node['inserted_at']);
         let price = this.safeFloat (node, 'price');
         let amount = this.safeFloat (node, 'amount');
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (node, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = this.costToPrecision (symbol, price * amount);
@@ -301,7 +301,7 @@ module.exports = class bigone extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['first'] = limit;
         }
         let response = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
@@ -367,7 +367,7 @@ module.exports = class bigone extends Exchange {
             let total = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked_balance');
             let free = undefined;
-            if (typeof total !== 'undefined' && typeof used !== 'undefined') {
+            if (total !== undefined && used !== undefined) {
                 free = total - used;
             }
             let account = {
@@ -396,7 +396,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'id');
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -408,7 +408,7 @@ module.exports = class bigone extends Exchange {
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.parse8601 (this.safeString (order, 'inserted_at'));
@@ -546,7 +546,7 @@ module.exports = class bigone extends Exchange {
         // last      slicing count                                         20              false
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -554,7 +554,7 @@ module.exports = class bigone extends Exchange {
         let request = {
             'market_id': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['first'] = limit;
         }
         let response = await this.privateGetOrders (this.extend (request, params));
@@ -657,14 +657,14 @@ module.exports = class bigone extends Exchange {
             const error = this.safeValue (response, 'error');
             const errors = this.safeValue (response, 'errors');
             const data = this.safeValue (response, 'data');
-            if (typeof error !== 'undefined' || typeof errors !== 'undefined' || typeof data === 'undefined') {
+            if (error !== undefined || errors !== undefined || data === undefined) {
                 const feedback = this.id + ' ' + this.json (response);
                 let code = undefined;
-                if (typeof error !== 'undefined') {
+                if (error !== undefined) {
                     code = this.safeInteger (error, 'code');
                 }
                 let exceptions = this.exceptions['codes'];
-                if (typeof errors !== 'undefined') {
+                if (errors !== undefined) {
                     code = this.safeString (errors, 'detail');
                     exceptions = this.exceptions['detail'];
                 }

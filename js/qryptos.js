@@ -133,16 +133,16 @@ module.exports = class qryptos extends Exchange {
                 'price': { 'min': minPrice },
                 'cost': { 'min': undefined },
             };
-            if (typeof minPrice !== 'undefined')
-                if (typeof minAmount !== 'undefined')
+            if (minPrice !== undefined)
+                if (minAmount !== undefined)
                     limits['cost']['min'] = minPrice * minAmount;
             let precision = {
                 'amount': undefined,
                 'price': undefined,
             };
-            if (typeof minAmount !== 'undefined')
+            if (minAmount !== undefined)
                 precision['amount'] = -Math.log10 (minAmount);
-            if (typeof minPrice !== 'undefined')
+            if (minPrice !== undefined)
                 precision['price'] = -Math.log10 (minPrice);
             result.push ({
                 'id': id,
@@ -203,7 +203,7 @@ module.exports = class qryptos extends Exchange {
             }
         }
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -219,13 +219,13 @@ module.exports = class qryptos extends Exchange {
                 }
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
         let open = this.safeFloat (ticker, 'last_price_24h');
-        if (typeof open !== 'undefined' && typeof last !== 'undefined') {
+        if (open !== undefined && last !== undefined) {
             change = last - open;
             average = this.sum (last, open) / 2;
             if (open > 0) {
@@ -292,9 +292,9 @@ module.exports = class qryptos extends Exchange {
         let takerSide = this.safeString (trade, 'taker_side');
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
         let mySide = this.safeString (trade, 'my_side');
-        let side = (typeof mySide !== 'undefined') ? mySide : takerSide;
+        let side = (mySide !== undefined) ? mySide : takerSide;
         let takerOrMaker = undefined;
-        if (typeof mySide !== 'undefined')
+        if (mySide !== undefined)
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         return {
             'info': trade,
@@ -317,14 +317,14 @@ module.exports = class qryptos extends Exchange {
         let request = {
             'product_id': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
             request['timestamp'] = parseInt (since / 1000);
         }
         let response = await this.publicGetExecutions (this.extend (request, params));
-        let result = (typeof since !== 'undefined') ? response : response['models'];
+        let result = (since !== undefined) ? response : response['models'];
         return this.parseTrades (result, market, since, limit);
     }
 
@@ -334,7 +334,7 @@ module.exports = class qryptos extends Exchange {
         let request = {
             'product_id': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetExecutionsMe (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
@@ -368,7 +368,7 @@ module.exports = class qryptos extends Exchange {
     parseOrder (order, market = undefined) {
         let timestamp = order['created_at'] * 1000;
         let marketId = this.safeString (order, 'product_id');
-        if (typeof marketId !== 'undefined') {
+        if (marketId !== undefined) {
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
@@ -386,7 +386,7 @@ module.exports = class qryptos extends Exchange {
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         return {
@@ -423,7 +423,7 @@ module.exports = class qryptos extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['product_id'] = market['id'];
         }
@@ -438,7 +438,7 @@ module.exports = class qryptos extends Exchange {
                 request['status'] = 'cancelled';
             }
         }
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let result = await this.privateGetOrders (this.extend (request, params));
         let orders = result['models'];
@@ -499,7 +499,7 @@ module.exports = class qryptos extends Exchange {
             else
                 return;
         }
-        if (typeof response === 'undefined')
+        if (response === undefined)
             if ((body[0] === '{') || (body[0] === '['))
                 response = JSON.parse (body);
             else

@@ -148,7 +148,7 @@ module.exports = class huobipro extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        if (typeof symbols === 'undefined') {
+        if (symbols === undefined) {
             symbols = this.symbols;
         }
         let result = {};
@@ -293,16 +293,16 @@ module.exports = class huobipro extends Exchange {
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        if ((typeof open !== 'undefined') && (typeof close !== 'undefined')) {
+        if ((open !== undefined) && (close !== undefined)) {
             change = close - open;
             average = this.sum (open, close) / 2;
-            if ((typeof close !== 'undefined') && (close > 0))
+            if ((close !== undefined) && (close > 0))
                 percentage = (change / open) * 100;
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (typeof baseVolume !== 'undefined' && typeof quoteVolume !== 'undefined' && baseVolume > 0)
+        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0)
             vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
@@ -358,19 +358,19 @@ module.exports = class huobipro extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (trade, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger2 (trade, 'ts', 'created-at');
         let order = this.safeString (trade, 'order-id');
         let side = this.safeString (trade, 'direction');
         let type = this.safeString (trade, 'type');
-        if (typeof type !== 'undefined') {
+        if (type !== undefined) {
             let typeParts = type.split ('-');
             side = typeParts[0];
             type = typeParts[1];
@@ -378,25 +378,25 @@ module.exports = class huobipro extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
         let cost = undefined;
-        if (typeof price !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (price !== undefined) {
+            if (amount !== undefined) {
                 cost = amount * price;
             }
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'filled-fees');
         let feeCurrency = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
         }
         let filledPoints = this.safeFloat (trade, 'filled-points');
-        if (typeof filledPoints !== 'undefined') {
-            if ((typeof feeCost === 'undefined') || (feeCost === 0.0)) {
+        if (filledPoints !== undefined) {
+            if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
                 feeCurrency = this.commonCurrencyCode ('HBPOINT');
             }
         }
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -422,7 +422,7 @@ module.exports = class huobipro extends Exchange {
         await this.loadMarkets ();
         let response = await this.privateGetOrderMatchresults (params);
         let trades = this.parseTrades (response['data'], undefined, since, limit);
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             let market = this.market (symbol);
             trades = this.filterBySymbol (trades, market['symbol']);
         }
@@ -435,7 +435,7 @@ module.exports = class huobipro extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['size'] = limit;
         let response = await this.marketGetHistoryTrade (this.extend (request, params));
         let data = response['data'];
@@ -469,7 +469,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let response = await this.marketGetHistoryKline (this.extend (request, params));
@@ -602,7 +602,7 @@ module.exports = class huobipro extends Exchange {
             'states': states,
         };
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
@@ -657,7 +657,7 @@ module.exports = class huobipro extends Exchange {
             status = this.parseOrderStatus (this.safeString (order, 'state'));
         }
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             if ('symbol' in order) {
                 if (order['symbol'] in this.markets_by_id) {
                     let marketId = order['symbol'];
@@ -665,7 +665,7 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (order, 'created-at');
@@ -675,13 +675,13 @@ module.exports = class huobipro extends Exchange {
         let cost = this.safeFloat (order, 'field-cash-amount'); // same typo
         let remaining = undefined;
         let average = undefined;
-        if (typeof filled !== 'undefined') {
+        if (filled !== undefined) {
             average = 0;
-            if (typeof amount !== 'undefined') {
+            if (amount !== undefined) {
                 remaining = amount - filled;
             }
             // if cost is defined and filled is not zero
-            if ((typeof cost !== 'undefined') && (filled > 0)) {
+            if ((cost !== undefined) && (filled > 0)) {
                 average = cost / filled;
             }
         }
@@ -718,7 +718,7 @@ module.exports = class huobipro extends Exchange {
         };
         if (this.options['createMarketBuyOrderRequiresPrice']) {
             if ((type === 'market') && (side === 'buy')) {
-                if (typeof price === 'undefined') {
+                if (price === undefined) {
                     throw new InvalidOrder (this.id + " market buy order requires price argument to calculate cost (total amount of quote currency to spend for buying, amount * price). To switch off this warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = false. Make sure you know what you're doing.");
                 } else {
                     request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
@@ -811,7 +811,7 @@ module.exports = class huobipro extends Exchange {
             'amount': amount,
             'currency': currency['id'].toLowerCase (),
         };
-        if (typeof tag !== 'undefined')
+        if (tag !== undefined)
             request['addr-tag'] = tag; // only for XRP?
         let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         let id = undefined;

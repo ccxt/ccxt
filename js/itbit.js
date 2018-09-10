@@ -92,7 +92,7 @@ module.exports = class itbit extends Exchange {
         let vwap = this.safeFloat (ticker, 'vwap24h');
         let baseVolume = this.safeFloat (ticker, 'volume24h');
         let quoteVolume = undefined;
-        if (typeof baseVolume !== 'undefined' && typeof vwap !== 'undefined')
+        if (baseVolume !== undefined && vwap !== undefined)
             quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'lastPrice');
         return {

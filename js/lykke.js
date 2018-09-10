@@ -264,7 +264,7 @@ module.exports = class lykke extends Exchange {
     parseOrder (order, market = undefined) {
         let status = this.parseOrderStatus (order['Status']);
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'AssetPairId');
             market = this.safeValue (this.markets_by_id, marketId);
         }
@@ -352,7 +352,7 @@ module.exports = class lykke extends Exchange {
                 orderbook['asks'] = this.arrayConcat (orderbook['asks'], side['Prices']);
             }
             let sideTimestamp = this.parse8601 (side['Timestamp']);
-            timestamp = (typeof timestamp === 'undefined') ? sideTimestamp : Math.max (timestamp, sideTimestamp);
+            timestamp = (timestamp === undefined) ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }

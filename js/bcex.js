@@ -224,7 +224,7 @@ module.exports = class bcex extends Exchange {
         // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
         // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
         await this.loadMarkets ();
-        if (typeof symbols === 'undefined') {
+        if (symbols === undefined) {
             symbols = this.symbols;
         }
         let result = {};
@@ -341,11 +341,11 @@ module.exports = class bcex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger2 (trade, 'date', 'created');
-        if (typeof timestamp !== 'undefined') {
+        if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
         let id = this.safeString (trade, 'tid');
@@ -353,8 +353,8 @@ module.exports = class bcex extends Exchange {
         let amount = this.safeFloat2 (trade, 'number', 'amount');
         let price = this.safeFloat (trade, 'price');
         let cost = undefined;
-        if (typeof price !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (price !== undefined) {
+            if (amount !== undefined) {
                 cost = amount * price;
             }
         }
@@ -382,7 +382,7 @@ module.exports = class bcex extends Exchange {
         let request = {
             'symbol': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
         let market = this.market (symbol);
@@ -497,7 +497,7 @@ module.exports = class bcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {
@@ -577,7 +577,7 @@ module.exports = class bcex extends Exchange {
             'type': type,
         };
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
@@ -618,14 +618,14 @@ module.exports = class bcex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        if (typeof id !== 'undefined') {
+        if (id !== undefined) {
             request['order_id'] = id;
         }
         let response = await this.privatePostApiOrderCancel (this.extend (request, params));
@@ -663,7 +663,7 @@ module.exports = class bcex extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let code = this.safeValue (response, 'code');
-            if (typeof code !== 'undefined') {
+            if (code !== undefined) {
                 if (code !== 0) {
                     //
                     // { code: 1, msg: "该币不存在,非法操作" } - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)

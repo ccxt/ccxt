@@ -202,7 +202,7 @@ module.exports = class theocean extends Exchange {
             'interval': this.timeframes[timeframe],
             // 'endTime': endTime, // (optional) Snapshot end time
         };
-        if (typeof since === 'undefined') {
+        if (since === undefined) {
             throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
         }
         request['startTime'] = parseInt (since / 1000);
@@ -260,7 +260,7 @@ module.exports = class theocean extends Exchange {
             throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         const codes = this.safeValue (params, 'codes');
-        if ((typeof codes === 'undefined') || (!Array.isArray (codes))) {
+        if ((codes === undefined) || (!Array.isArray (codes))) {
             throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
         await this.loadMarkets ();
@@ -286,7 +286,7 @@ module.exports = class theocean extends Exchange {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['depth'] = limit;
         }
         let response = await this.publicGetOrderBook (this.extend (request, params));
@@ -327,7 +327,7 @@ module.exports = class theocean extends Exchange {
         //
         let timestamp = parseInt (this.safeFloat (ticker, 'timestamp') / 1000);
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
@@ -423,10 +423,10 @@ module.exports = class theocean extends Exchange {
         //         timestamp: "1532261686"                                                          }
         //
         let timestamp = this.safeInteger (trade, 'lastUpdated');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'timestamp');
         }
-        if (typeof timestamp !== 'undefined') {
+        if (timestamp !== undefined) {
             // their timestamps are in seconds, mostly
             timestamp = timestamp * 1000;
         }
@@ -434,13 +434,13 @@ module.exports = class theocean extends Exchange {
         let orderId = this.safeString (trade, 'order');
         let id = this.safeString2 (trade, 'transactionHash', 'txHash');
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let amount = this.fromWei (this.safeString (trade, 'amount'));
         let cost = undefined;
-        if (typeof amount !== 'undefined') {
-            if (typeof price !== 'undefined') {
+        if (amount !== undefined) {
+            if (price !== undefined) {
                 cost = amount * price;
             }
         }
@@ -502,7 +502,7 @@ module.exports = class theocean extends Exchange {
         await this.loadMarkets ();
         const makerOrTaker = this.safeString (params, 'makerOrTaker');
         const isMarket = (type === 'market');
-        const isMakerOrTakerUndefined = (typeof makerOrTaker === 'undefined');
+        const isMakerOrTakerUndefined = (makerOrTaker === undefined);
         const isTaker = (makerOrTaker === 'taker');
         const isMaker = (makerOrTaker === 'maker');
         if (isMarket && !isMakerOrTakerUndefined && !isTaker) {
@@ -620,8 +620,8 @@ module.exports = class theocean extends Exchange {
         // --------------------------------------------------------------------
         let unsignedMatchingOrder = this.safeValue (reserveResponse, 'unsignedMatchingOrder');
         let unsignedTargetOrder = this.safeValue (reserveResponse, 'unsignedTargetOrder');
-        const isUnsignedMatchingOrderDefined = (typeof unsignedMatchingOrder !== 'undefined');
-        const isUnsignedTargetOrderDefined = (typeof unsignedTargetOrder !== 'undefined');
+        const isUnsignedMatchingOrderDefined = (unsignedMatchingOrder !== undefined);
+        const isUnsignedTargetOrderDefined = (unsignedTargetOrder !== undefined);
         const makerAddress = {
             'maker': this.walletAddress.toLowerCase (),
         };
@@ -704,7 +704,7 @@ module.exports = class theocean extends Exchange {
         };
         let taker = undefined;
         let maker = undefined;
-        if (typeof matchingOrder !== 'undefined') {
+        if (matchingOrder !== undefined) {
             matchingOrder = this.extend (signedMatchingOrder, matchingOrder);
             taker = this.parseOrder (matchingOrder, market);
             taker = this.extend (taker, {
@@ -714,7 +714,7 @@ module.exports = class theocean extends Exchange {
             if (isTaker)
                 return taker;
         }
-        if (typeof targetOrder !== 'undefined') {
+        if (targetOrder !== undefined) {
             targetOrder = this.extend (signedTargetOrder, targetOrder);
             maker = this.parseOrder (targetOrder, market);
             maker = this.extend (maker, {
@@ -746,7 +746,7 @@ module.exports = class theocean extends Exchange {
         //     }
         //
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
         }
         return this.extend (this.parseOrder (response['canceledOrder'], market), {
@@ -860,15 +860,15 @@ module.exports = class theocean extends Exchange {
         //
         let zeroExOrder = this.safeValue (order, 'zeroExOrder');
         let id = this.safeString (order, 'orderHash');
-        if ((typeof id === 'undefined') && (typeof zeroExOrder !== 'undefined')) {
+        if ((id === undefined) && (zeroExOrder !== undefined)) {
             id = this.safeString (zeroExOrder, 'orderHash');
         }
         let side = this.safeString (order, 'side');
         let type = 'limit';
         let timestamp = this.safeInteger (order, 'created');
-        timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let baseId = this.safeString (order, 'baseTokenAddress');
             let quoteId = this.safeString (order, 'quoteTokenAddress');
             let marketId = baseId + '/' + quoteId;
@@ -876,7 +876,7 @@ module.exports = class theocean extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let price = this.safeFloat (order, 'price');
@@ -889,7 +889,7 @@ module.exports = class theocean extends Exchange {
         let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'));
         let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'));
         let amount = this.fromWei (this.safeString (order, 'amount'));
-        if (typeof amount === 'undefined') {
+        if (amount === undefined) {
             amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
         }
         let filled = this.sum (filledAmount, settledAmount, confirmedAmount);
@@ -898,7 +898,7 @@ module.exports = class theocean extends Exchange {
         let timeline = this.safeValue (order, 'timeline');
         let trades = undefined;
         let status = 'open';
-        if (typeof timeline !== 'undefined') {
+        if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
                 status = this.safeString (timeline[numEvents - 1], 'action');
@@ -906,27 +906,27 @@ module.exports = class theocean extends Exchange {
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
-                    if (typeof amount === 'undefined') {
+                    if (amount === undefined) {
                         amount = this.fromWei (this.safeString (placeEvents[0], 'amount'));
                     }
                     timestamp = this.safeInteger (placeEvents[0], 'timestamp');
-                    timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                    timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
                 } else {
                     if ('filled' in timelineEventsGroupedByAction) {
                         timestamp = this.safeInteger (timelineEventsGroupedByAction['filled'][0], 'timestamp');
-                        timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
                     }
                     type = 'market';
                 }
                 if ('filled' in timelineEventsGroupedByAction) {
                     let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
                     let numFillEvents = fillEvents.length;
-                    if (typeof timestamp === 'undefined') {
+                    if (timestamp === undefined) {
                         timestamp = this.safeInteger (fillEvents[0], 'timestamp');
-                        timestamp = (typeof timestamp !== 'undefined') ? timestamp * 1000 : timestamp;
+                        timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
                     }
                     lastTradeTimestamp = this.safeInteger (fillEvents[numFillEvents - 1], 'timestamp');
-                    lastTradeTimestamp = (typeof lastTradeTimestamp !== 'undefined') ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
+                    lastTradeTimestamp = (lastTradeTimestamp !== undefined) ? lastTradeTimestamp * 1000 : lastTradeTimestamp;
                     trades = [];
                     for (let i = 0; i < numFillEvents; i++) {
                         let trade = this.parseTrade (this.extend (fillEvents[i], {
@@ -942,23 +942,23 @@ module.exports = class theocean extends Exchange {
             }
         }
         let cost = undefined;
-        if (typeof filled !== 'undefined') {
-            if (typeof remaining === 'undefined') {
-                if (typeof amount !== 'undefined') {
+        if (filled !== undefined) {
+            if (remaining === undefined) {
+                if (amount !== undefined) {
                     remaining = amount - filled;
                 }
             }
-            if (typeof price !== 'undefined') {
+            if (price !== undefined) {
                 cost = filled * price;
             }
         }
         let fee = undefined;
         let feeCost = this.fromWei (this.safeString (order, 'feeAmount'));
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeOption = this.safeString (order, 'feeOption');
             let feeCurrency = undefined;
             if (feeOption === 'feeInNative') {
-                if (typeof market !== 'undefined') {
+                if (market !== undefined) {
                     feeCurrency = market['base'];
                 }
             } else if (feeOption === 'feeInZRX') {
@@ -1066,12 +1066,12 @@ module.exports = class theocean extends Exchange {
             // quoteTokenAddress (optional) Return orders with a quoteTokenAddress equal to this value
         };
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['baseTokenAddress'] = market['baseId'];
             request['quoteTokenAddress'] = market['quoteId'];
         }
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             // request['start'] = 0; // the number of orders to offset from the end
             request['limit'] = limit;
         }
@@ -1159,7 +1159,7 @@ module.exports = class theocean extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             const message = this.safeString (response, 'message');
-            if (typeof message !== 'undefined') {
+            if (message !== undefined) {
                 //
                 // {"message":"Schema validation failed for 'query'","errors":[{"name":"required","argument":"startTime","message":"requires property \"startTime\"","instance":{"baseTokenAddress":"0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570","quoteTokenAddress":"0xd0a1e359811322d97991e03f863a0c30c2cf029c","interval":"300"},"property":"instance"}]}
                 // {"message":"Logic validation failed for 'query'","errors":[{"message":"startTime should be between 0 and current date","type":"startTime"}]}
@@ -1174,7 +1174,7 @@ module.exports = class theocean extends Exchange {
                     throw new exact[message] (feedback);
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, body);
-                if (typeof broadKey !== 'undefined')
+                if (broadKey !== undefined)
                     throw new broad[broadKey] (feedback);
                 throw new ExchangeError (feedback); // unknown message
             }

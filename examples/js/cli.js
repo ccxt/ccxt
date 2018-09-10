@@ -278,7 +278,7 @@ async function main () {
                     break;
             }
 
-        } else if (typeof exchange[methodName] === 'undefined') {
+        } else if (exchange[methodName] === undefined) {
 
             log.red (exchange.id + '.' + methodName + ': no such property')
 

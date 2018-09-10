@@ -318,7 +318,7 @@ module.exports = class cointiger extends huobipro {
         let orderType = this.safeString (trade, 'type');
         let type = undefined;
         let side = undefined;
-        if (typeof orderType !== 'undefined') {
+        if (orderType !== undefined) {
             let parts = orderType.split ('-');
             side = parts[0];
             type = parts[1];
@@ -327,7 +327,7 @@ module.exports = class cointiger extends huobipro {
         let amount = undefined;
         let price = undefined;
         let cost = undefined;
-        if (typeof side === 'undefined') {
+        if (side === undefined) {
             price = this.safeFloat (trade['price'], 'amount');
             amount = this.safeFloat (trade['volume'], 'amount');
             cost = this.safeFloat (trade['deal_price'], 'amount');
@@ -338,9 +338,9 @@ module.exports = class cointiger extends huobipro {
         }
         let fee = undefined;
         let feeCost = this.safeFloat (trade, 'fee');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (typeof market !== 'undefined') {
+            if (market !== undefined) {
                 feeCurrency = market['base'];
             }
             fee = {
@@ -348,14 +348,14 @@ module.exports = class cointiger extends huobipro {
                 'currency': feeCurrency,
             };
         }
-        if (typeof amount !== 'undefined')
-            if (typeof price !== 'undefined')
-                if (typeof cost === 'undefined')
+        if (amount !== undefined)
+            if (price !== undefined)
+                if (cost === undefined)
                     cost = amount * price;
         let timestamp = this.safeInteger2 (trade, 'created_at', 'ts');
         timestamp = this.safeInteger2 (trade, 'created', 'mtime', timestamp);
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         return {
             'info': trade,
@@ -379,18 +379,18 @@ module.exports = class cointiger extends huobipro {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['size'] = limit;
         let response = await this.publicGetHistoryTrade (this.extend (request, params));
         return this.parseTrades (response['data']['trade_data'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 100;
         let response = await this.privateGetOrderTrade (this.extend ({
             'symbol': market['id'],
@@ -407,7 +407,7 @@ module.exports = class cointiger extends huobipro {
             'symbol': market['id'],
             'period': this.timeframes[timeframe],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let response = await this.publicGetHistoryKline (this.extend (request, params));
@@ -452,7 +452,7 @@ module.exports = class cointiger extends huobipro {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrderTrades requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -482,11 +482,11 @@ module.exports = class cointiger extends huobipro {
     }
 
     async fetchOrdersByStatus (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 100;
         let method = (status === 'open') ? 'privateGetOrderNew' : 'privateGetOrderHistory';
         let response = await this[method] (this.extend ({
@@ -532,7 +532,7 @@ module.exports = class cointiger extends huobipro {
         //                deal_money: "0.00013727",
         //                    status:  2              } }
         //
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -604,13 +604,13 @@ module.exports = class cointiger extends huobipro {
         timestamp = this.safeInteger (order, 'ctime', timestamp);
         let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let remaining = undefined;
@@ -620,7 +620,7 @@ module.exports = class cointiger extends huobipro {
         let cost = undefined;
         let fee = undefined;
         let average = undefined;
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             side = side.toLowerCase ();
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
@@ -628,7 +628,7 @@ module.exports = class cointiger extends huobipro {
             price = ('price' in order) ? this.safeFloat (order['price'], 'amount') : undefined;
             average = ('age_price' in order) ? this.safeFloat (order['age_price'], 'amount') : undefined;
         } else {
-            if (typeof orderType !== 'undefined') {
+            if (orderType !== undefined) {
                 let parts = orderType.split ('-');
                 side = parts[0];
                 type = parts[1];
@@ -638,9 +638,9 @@ module.exports = class cointiger extends huobipro {
                 amount = this.safeFloat2 (order, 'amount', 'volume');
                 filled = this.safeFloat (order, 'deal_volume');
                 let feeCost = this.safeFloat (order, 'fee');
-                if (typeof feeCost !== 'undefined') {
+                if (feeCost !== undefined) {
                     let feeCurrency = undefined;
-                    if (typeof market !== 'undefined') {
+                    if (market !== undefined) {
                         if (side === 'buy') {
                             feeCurrency = market['base'];
                         } else if (side === 'sell') {
@@ -655,18 +655,18 @@ module.exports = class cointiger extends huobipro {
             }
             status = this.parseOrderStatus (status);
         }
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
-                if (typeof filled === 'undefined')
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                if (filled === undefined)
                     filled = Math.max (0, amount - remaining);
-            } else if (typeof filled !== 'undefined') {
+            } else if (filled !== undefined) {
                 cost = filled * price;
-                if (typeof remaining === 'undefined')
+                if (remaining === undefined)
                     remaining = Math.max (0, amount - filled);
             }
         }
-        if (typeof status === 'undefined') {
-            if ((typeof remaining !== 'undefined') && (remaining > 0))
+        if (status === undefined) {
+            if ((remaining !== undefined) && (remaining > 0))
                 status = 'open';
         }
         let result = {
@@ -706,7 +706,7 @@ module.exports = class cointiger extends huobipro {
             'capital_password': this.password,
         };
         if ((type === 'market') && (side === 'buy')) {
-            if (typeof price === 'undefined') {
+            if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules');
             }
             order['volume'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
@@ -714,7 +714,7 @@ module.exports = class cointiger extends huobipro {
         if (type === 'limit') {
             order['price'] = this.priceToPrecision (symbol, price);
         } else {
-            if (typeof price === 'undefined') {
+            if (price === undefined) {
                 order['price'] = this.priceToPrecision (symbol, 0);
             } else {
                 order['price'] = this.priceToPrecision (symbol, price);
@@ -747,7 +747,7 @@ module.exports = class cointiger extends huobipro {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
@@ -763,7 +763,7 @@ module.exports = class cointiger extends huobipro {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
         let market = this.market (symbol);
         let marketId = market['id'];
@@ -828,7 +828,7 @@ module.exports = class cointiger extends huobipro {
                 //     { "code": "100005", "msg": "request sign illegal", "data": null }
                 //
                 let code = this.safeString (response, 'code');
-                if (typeof code !== 'undefined') {
+                if (code !== undefined) {
                     const message = this.safeString (response, 'msg');
                     const feedback = this.id + ' ' + this.json (response);
                     if (code !== '0') {

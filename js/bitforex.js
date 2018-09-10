@@ -267,7 +267,7 @@ module.exports = class bitforex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (trade, 'time');
@@ -276,8 +276,8 @@ module.exports = class bitforex extends Exchange {
         let amount = this.safeFloat (trade, 'amount');
         let price = this.safeFloat (trade, 'price');
         let cost = undefined;
-        if (typeof price !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (price !== undefined) {
+            if (amount !== undefined) {
                 cost = amount * price;
             }
         }
@@ -304,7 +304,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let market = this.market (symbol);
@@ -374,7 +374,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol': marketId,
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
@@ -509,7 +509,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'orderId': id,
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
         let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
@@ -551,7 +551,7 @@ module.exports = class bitforex extends Exchange {
             let response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
-            if (typeof success !== 'undefined') {
+            if (success !== undefined) {
                 if (!success) {
                     let code = this.safeString (response, 'code');
                     if (code in this.exceptions) {

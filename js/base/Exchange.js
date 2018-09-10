@@ -356,7 +356,7 @@ module.exports = class Exchange {
 
     checkAddress (address) {
 
-        if (typeof address === 'undefined')
+        if (address === undefined)
             throw new InvalidAddress (this.id + ' address is undefined')
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
@@ -637,7 +637,7 @@ module.exports = class Exchange {
                 values.filter (market => 'base' in market)
                     .map (market => ({
                         id: market.baseId || market.base,
-                        numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
+                        numericId: (market.baseNumericId !== undefined) ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
@@ -645,7 +645,7 @@ module.exports = class Exchange {
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
-                        numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
+                        numericId: (market.quoteNumericId !== undefined) ? market.quoteNumericId : undefined,
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
@@ -816,7 +816,7 @@ module.exports = class Exchange {
 
     currencyId (commonCode) {
 
-        if (typeof this.currencies === 'undefined') {
+        if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
         }
 
@@ -836,7 +836,7 @@ module.exports = class Exchange {
 
     currency (code) {
 
-        if (typeof this.currencies === 'undefined')
+        if (this.currencies === undefined)
             throw new ExchangeError (this.id + ' currencies not loaded')
 
         if ((typeof code === 'string') && (code in this.currencies))
@@ -847,7 +847,7 @@ module.exports = class Exchange {
 
     findMarket (string) {
 
-        if (typeof this.markets === 'undefined')
+        if (this.markets === undefined)
             throw new ExchangeError (this.id + ' markets not loaded')
 
         if (typeof string === 'string') {
@@ -864,7 +864,7 @@ module.exports = class Exchange {
 
     findSymbol (string, market = undefined) {
 
-        if (typeof market === 'undefined')
+        if (market === undefined)
             market = this.findMarket (string)
 
         if (typeof market === 'object')
@@ -875,7 +875,7 @@ module.exports = class Exchange {
 
     market (symbol) {
 
-        if (typeof this.markets === 'undefined')
+        if (this.markets === undefined)
             throw new ExchangeError (this.id + ' markets not loaded')
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
@@ -886,7 +886,7 @@ module.exports = class Exchange {
 
     marketId (symbol) {
         let market = this.market (symbol)
-        return (typeof market !== 'undefined' ? market['id'] : symbol)
+        return (market !== undefined ? market['id'] : symbol)
     }
 
     marketIds (symbols) {
@@ -945,7 +945,7 @@ module.exports = class Exchange {
             'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
+            'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         }
     }
@@ -971,7 +971,7 @@ module.exports = class Exchange {
 
         currencies.forEach ((currency) => {
 
-            if (typeof balance[currency].used === 'undefined') {
+            if (balance[currency].used === undefined) {
                 // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
 
                 if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
@@ -1030,17 +1030,17 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (typeof since !== 'undefined' && since !== null)
+        if (since !== undefined && since !== null)
             array = array.filter (entry => entry.timestamp >= since)
-        if (typeof limit !== 'undefined' && limit !== null)
+        if (limit !== undefined && limit !== null)
             array = array.slice (0, limit)
         return array
     }
 
     filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined) {
 
-        const valueIsDefined = typeof value !== 'undefined' && value !== null
-        const sinceIsDefined = typeof since !== 'undefined' && since !== null
+        const valueIsDefined = value !== undefined && value !== null
+        const sinceIsDefined = since !== undefined && since !== null
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined)
@@ -1048,7 +1048,7 @@ module.exports = class Exchange {
                 ((valueIsDefined ? (entry[field] === value)   : true) &&
                  (sinceIsDefined ? (entry.timestamp >= since) : true)))
 
-        if (typeof limit !== 'undefined' && limit !== null)
+        if (limit !== undefined && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
@@ -1067,7 +1067,7 @@ module.exports = class Exchange {
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (typeof values === 'undefined' || values === null)
+        if (values === undefined || values === null)
             return indexed ? indexBy (objects, key) : objects
 
         let result = []
@@ -1082,26 +1082,26 @@ module.exports = class Exchange {
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
+        let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
         let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
         result = this.sortBy (result, 'timestamp');
-        let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
+        let code = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp')
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
+        let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
     filterBySymbol (array, symbol = undefined) {
-        return ((typeof symbol !== 'undefined') ? array.filter (entry => entry.symbol === symbol) : array)
+        return ((symbol !== undefined) ? array.filter (entry => entry.symbol === symbol) : array)
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -1166,11 +1166,11 @@ module.exports = class Exchange {
     }
 
     fromWei (amount, unit = 'ether') {
-        return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+        return (amount === undefined) ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
     }
 
     toWei (amount, unit = 'ether') {
-        return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
+        return (amount === undefined) ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
     }
 
     costToPrecision (symbol, cost) {

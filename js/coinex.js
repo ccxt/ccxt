@@ -228,7 +228,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
         await this.loadMarkets ();
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 20; // default
         const request = {
             'market': this.marketId (symbol),
@@ -242,7 +242,7 @@ module.exports = class coinex extends Exchange {
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
         let timestamp = this.safeInteger (trade, 'create_time');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date_ms');
         } else {
             timestamp = timestamp * 1000;
@@ -400,7 +400,7 @@ module.exports = class coinex extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
                 if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (typeof price === 'undefined') {
+                    if (price === undefined) {
                         throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                     } else {
                         price = parseFloat (price); // this line is deprecated
@@ -439,7 +439,7 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -452,7 +452,7 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -460,7 +460,7 @@ module.exports = class coinex extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let method = 'privateGetOrder' + this.capitalize (status);
         let response = await this[method] (this.extend (request, params));
@@ -476,7 +476,7 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();

@@ -202,13 +202,13 @@ module.exports = class btcbox extends Exchange {
         const amount = this.safeFloat (order, 'amount_original');
         const remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = undefined;
-        if (typeof amount !== 'undefined')
-            if (typeof remaining !== 'undefined')
+        if (amount !== undefined)
+            if (remaining !== undefined)
                 filled = amount - remaining;
         const price = this.safeFloat (order, 'price');
         let cost = undefined;
-        if (typeof price !== 'undefined')
-            if (typeof filled !== 'undefined')
+        if (price !== undefined)
+            if (filled !== undefined)
                 cost = filled * price;
         // status is set by fetchOrder method only
         const statuses = {
@@ -222,8 +222,8 @@ module.exports = class btcbox extends Exchange {
         if (order['status'] in statuses)
             status = statuses[order['status']];
         // fetchOrders do not return status, use heuristic
-        if (typeof status === 'undefined')
-            if (typeof remaining !== 'undefined' && remaining === 0)
+        if (status === undefined)
+            if (remaining !== undefined && remaining === 0)
                 status = 'closed';
         let trades = undefined; // todo: this.parseTrades (order['trades']);
         return {
@@ -312,7 +312,7 @@ module.exports = class btcbox extends Exchange {
             return; // not json, resort to defaultErrorHandler
         const response = JSON.parse (body);
         const result = this.safeValue (response, 'result');
-        if (typeof result === 'undefined' || result === true)
+        if (result === undefined || result === true)
             return; // either public API (no error codes expected) or success
         const errorCode = this.safeValue (response, 'code');
         const feedback = this.id + ' ' + this.json (response);

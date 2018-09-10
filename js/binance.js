@@ -419,7 +419,7 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit; // default = maximum = 100
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
@@ -429,7 +429,7 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
+        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
@@ -503,10 +503,10 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = since;
         }
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
         let response = await this.publicGetKlines (this.extend (request, params));
@@ -543,11 +543,11 @@ module.exports = class binance extends Exchange {
         if ('isMaker' in trade)
             takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (trade, 'symbol');
             market = this.safeValue (this.markets_by_id, marketId);
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         return {
@@ -573,11 +573,11 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = since;
             request['endTime'] = since + 3600000;
         }
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
         // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -608,7 +608,7 @@ module.exports = class binance extends Exchange {
 
     parseOrder (order, market = undefined) {
         let status = this.safeValue (order, 'status');
-        if (typeof status !== 'undefined')
+        if (status !== undefined)
             status = this.parseOrderStatus (status);
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
@@ -621,27 +621,27 @@ module.exports = class binance extends Exchange {
         let filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
         let cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (filled !== undefined) {
+            if (amount !== undefined) {
                 remaining = amount - filled;
                 if (this.options['parseOrderToPrecision']) {
                     remaining = parseFloat (this.amountToPrecision (symbol, remaining));
                 }
                 remaining = Math.max (remaining, 0.0);
             }
-            if (typeof price !== 'undefined') {
-                if (typeof cost === 'undefined') {
+            if (price !== undefined) {
+                if (cost === undefined) {
                     cost = price * filled;
                 }
             }
         }
         let id = this.safeString (order, 'orderId');
         let type = this.safeString (order, 'type');
-        if (typeof type !== 'undefined') {
+        if (type !== undefined) {
             type = type.toLowerCase ();
             if (type === 'market') {
                 if (price === 0.0) {
-                    if ((typeof cost !== 'undefined') && (typeof filled !== 'undefined')) {
+                    if ((cost !== undefined) && (filled !== undefined)) {
                         if ((cost > 0) && (filled > 0)) {
                             price = cost / filled;
                         }
@@ -650,12 +650,12 @@ module.exports = class binance extends Exchange {
             }
         }
         let side = this.safeString (order, 'side');
-        if (typeof side !== 'undefined')
+        if (side !== undefined)
             side = side.toLowerCase ();
         let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');
-        if (typeof fills !== 'undefined') {
+        if (fills !== undefined) {
             trades = this.parseTrades (fills, market);
             let numTrades = trades.length;
             if (numTrades > 0) {
@@ -672,7 +672,7 @@ module.exports = class binance extends Exchange {
                     price = cost / filled;
             }
         }
-        if (typeof cost !== 'undefined') {
+        if (cost !== undefined) {
             if (this.options['parseOrderToPrecision']) {
                 cost = parseFloat (this.costToPrecision (symbol, cost));
             }
@@ -732,7 +732,7 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
-            if (typeof price === 'undefined')
+            if (price === undefined)
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             order['price'] = this.priceToPrecision (symbol, price);
         }
@@ -741,7 +741,7 @@ module.exports = class binance extends Exchange {
         }
         if (stopPriceIsRequired) {
             let stopPrice = this.safeFloat (params, 'stopPrice');
-            if (typeof stopPrice === 'undefined') {
+            if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
@@ -752,7 +752,7 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -760,7 +760,7 @@ module.exports = class binance extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof origClientOrderId !== 'undefined')
+        if (origClientOrderId !== undefined)
             request['origClientOrderId'] = origClientOrderId;
         else
             request['orderId'] = parseInt (id);
@@ -769,14 +769,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetAllOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
@@ -786,7 +786,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
@@ -805,7 +805,7 @@ module.exports = class binance extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -818,14 +818,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetMyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -833,14 +833,14 @@ module.exports = class binance extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined') {
+        if (code === undefined) {
             throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
         }
         const currency = this.currency (code);
         let request = {
             'asset': currency['id'],
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = since;
         }
         let response = await this.wapiGetDepositHistory (this.extend (request, params));
@@ -849,14 +849,14 @@ module.exports = class binance extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined') {
+        if (code === undefined) {
             throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
         }
         const currency = this.currency (code);
         let request = {
             'asset': currency['id'],
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = since;
         }
         let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
@@ -864,7 +864,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        if (typeof type === 'undefined') {
+        if (type === undefined) {
             return status;
         }
         let statuses = {
@@ -890,7 +890,7 @@ module.exports = class binance extends Exchange {
         let address = this.safeString (transaction, 'address');
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
-        if (typeof currency === 'undefined') {
+        if (currency === undefined) {
             let currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
@@ -898,18 +898,18 @@ module.exports = class binance extends Exchange {
                 code = this.commonCurrencyCode (currencyId);
             }
         }
-        if (typeof currency !== 'undefined') {
+        if (currency !== undefined) {
             code = currency['code'];
         }
         let timestamp = undefined;
         let insertTime = this.safeInteger (transaction, 'insertTime');
         let applyTime = this.safeInteger (transaction, 'applyTime');
         let type = this.safeString (transaction, 'type');
-        if (typeof type === 'undefined') {
-            if ((typeof insertTime !== 'undefined') && (typeof applyTime === 'undefined')) {
+        if (type === undefined) {
+            if ((insertTime !== undefined) && (applyTime === undefined)) {
                 type = 'deposit';
                 timestamp = insertTime;
-            } else if ((typeof insertTime === 'undefined') && (typeof applyTime !== 'undefined')) {
+            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
                 type = 'withdrawal';
                 timestamp = applyTime;
             }
@@ -959,7 +959,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
-        if (typeof codes === 'undefined')
+        if (codes === undefined)
             codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
@@ -1056,21 +1056,21 @@ module.exports = class binance extends Exchange {
                 if (!success) {
                     let message = this.safeString (response, 'msg');
                     let parsedMessage = undefined;
-                    if (typeof message !== 'undefined') {
+                    if (message !== undefined) {
                         try {
                             parsedMessage = JSON.parse (message);
                         } catch (e) {
                             // do nothing
                             parsedMessage = undefined;
                         }
-                        if (typeof parsedMessage !== 'undefined') {
+                        if (parsedMessage !== undefined) {
                             response = parsedMessage;
                         }
                     }
                 }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
-                if (typeof error !== 'undefined') {
+                if (error !== undefined) {
                     const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}

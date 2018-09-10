@@ -175,7 +175,7 @@ module.exports = class coincheck extends Exchange {
         }, params));
         if ('success' in response)
             if (response['success'])
-                if (typeof response['data'] !== 'undefined')
+                if (response['data'] !== undefined)
                     return this.parseTrades (response['data'], market, since, limit);
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }

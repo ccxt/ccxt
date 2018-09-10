@@ -123,7 +123,7 @@ for (let id in exchanges) {
 // console.log (Object.values (ccxt).length)
 
 var countryName = function (code) {
-    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
+    return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))

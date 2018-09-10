@@ -307,7 +307,7 @@ module.exports = class zb extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
@@ -338,14 +338,14 @@ module.exports = class zb extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 1000;
         let request = {
             'market': market['id'],
             'type': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = since;
         let response = await this.publicGetKline (this.extend (request, params));
         let data = this.safeValue (response, 'data', []);
@@ -406,7 +406,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
         await this.loadMarkets ();
         let order = {
@@ -419,7 +419,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + 'fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -445,7 +445,7 @@ module.exports = class zb extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 10, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + 'fetchOpenOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -491,7 +491,7 @@ module.exports = class zb extends Exchange {
         let remaining = amount - filled;
         let cost = order['trade_money'];
         let status = this.safeString (order, 'status');
-        if (typeof status !== 'undefined')
+        if (status !== undefined)
             status = this.parseOrderStatus (status);
         let result = {
             'info': order,
@@ -575,7 +575,7 @@ module.exports = class zb extends Exchange {
             }
             // special case for {"result":false,"message":"服务端忙碌"} (a "Busy Server" reply)
             let result = this.safeValue (response, 'result');
-            if (typeof result !== 'undefined') {
+            if (result !== undefined) {
                 if (!result) {
                     let message = this.safeString (response, 'message');
                     if (message === '服务端忙碌') {

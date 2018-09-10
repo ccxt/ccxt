@@ -138,7 +138,7 @@ module.exports = class virwox extends Exchange {
         let request = {
             'symbols': [ symbol ],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['buyDepth'] = limit; // 100
             request['sellDepth'] = limit; // 100
         }
