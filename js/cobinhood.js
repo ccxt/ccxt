@@ -665,7 +665,7 @@ module.exports = class cobinhood extends Exchange {
             'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseTransaction (transaction, currency = undefined) {

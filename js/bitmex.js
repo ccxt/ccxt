@@ -426,7 +426,7 @@ module.exports = class bitmex extends Exchange {
             'rejected': 'rejected',
             'expired': 'expired',
         };
-        return this.safeString (statuses, status.toLowerCase ());
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {

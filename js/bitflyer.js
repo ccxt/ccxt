@@ -272,7 +272,7 @@ module.exports = class bitflyer extends Exchange {
         };
         if (status in statuses)
             return statuses[status];
-        return status.toLowerCase ();
+        return status;
     }
 
     parseOrder (order, market = undefined) {

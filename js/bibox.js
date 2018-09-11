@@ -529,7 +529,7 @@ module.exports = class bibox extends Exchange {
             '5': 'canceled', // canceled
             '6': 'canceled', // canceling
         };
-        return this.safeString (statuses, status, status.toLowerCase ());
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
