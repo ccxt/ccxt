@@ -682,19 +682,24 @@ module.exports = class cobinhood extends Exchange {
         if (currency !== undefined) {
             code = currency['code'];
         }
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined) {
-            let typeParts = type.split ('_');
-            type = typeParts[0];
+        let withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        let depositId = this.safeString (transaction, 'deposit_id');
+        let type = undefined;
+        if (withdrawalId !== undefined) {
+            type = 'withdrawal';
+        } else if (depositId !== undefined) {
+            type = 'deposit';
         }
+        let toAddress = this.safeString (transaction, 'to_address');
+        let fromAddress = this.safeString (transaction, 'from_address');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'withdrawal_id'),
+            'id': withdrawalId || depositId,
             'txid': this.safeString (transaction, 'txhash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined, // or is it defined?
-            'type': type, // direction of the transaction, ('deposit' | 'withdrawal')
+            'address': toAddress || fromAddress,
+            'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (transaction['status']),
