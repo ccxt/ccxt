@@ -267,7 +267,7 @@ module.exports = class bitstamp extends Exchange {
             let id = ids[i];
             if (id.indexOf ('_') < 0) {
                 let value = this.safeFloat (transaction, id);
-                if ((value !== undefined) && (value > 0)) {
+                if ((value !== undefined) && (value !== 0)) {
                     return id;
                 }
             }
@@ -492,7 +492,9 @@ module.exports = class bitstamp extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.privatePostUserTransactions (this.extend (request, params));
-        let result = this.filterByArray (response, 'type', [ '0', '1' ]);
+        let deposits = this.filterBy (response, 'type', '0');
+        let withdrawals = this.filterBy (response, 'type', '1');
+        let transactions = this.arrayConcat (deposits, withdrawals);
         //
         //     [
         //         {
@@ -508,7 +510,12 @@ module.exports = class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTransactions (result, undefined, since, limit);
+        let parsedTransactions = this.parseTransactions (transactions, undefined, since, limit);
+        if (code !== undefined) {
+            // parseTransactions determines the currency, so we can filter by currency after parsing
+            return this.filterBy (parsedTransactions, 'currency', code.toUpperCase ());
+        }
+        return parsedTransactions;
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -548,6 +555,10 @@ module.exports = class bitstamp extends Exchange {
         } else if ((code !== undefined) && (currencyId !== undefined)) {
             amount = this.safeFloat (transaction, currencyId, amount);
             feeCurrency = code;
+        }
+        if (amount !== undefined) {
+            // Withdrawals have a negative amount
+            amount = Math.abs (amount);
         }
         let type = this.safeString (transaction, 'type');
         if (type === '0') {
