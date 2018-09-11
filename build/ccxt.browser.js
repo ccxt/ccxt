@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.271'
+const version = '1.17.272'
 
 Exchange.ccxtVersion = version
 
@@ -6971,6 +6971,16 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         let response = await this.wapiGetDepositHistory (this.extend (request, params));
+        //
+        //     {     success:    true,
+        //       depositList: [ { insertTime:  1517425007000,
+        //                            amount:  0.3,
+        //                           address: "0x0123456789abcdef",
+        //                        addressTag: "",
+        //                              txId: "0x0123456789abcdef",
+        //                             asset: "ETH",
+        //                            status:  1                                                                    } ] }
+        //
         return this.parseTransactions (response['depositList'], currency, since, limit);
     }
 
@@ -6986,6 +6996,27 @@ module.exports = class binance extends Exchange {
             request['startTime'] = since;
         }
         let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
+        //
+        //     { withdrawList: [ {      amount:  14,
+        //                             address: "0x0123456789abcdef...",
+        //                         successTime:  1514489710000,
+        //                          addressTag: "",
+        //                                txId: "0x0123456789abcdef...",
+        //                                  id: "0123456789abcdef...",
+        //                               asset: "ETH",
+        //                           applyTime:  1514488724000,
+        //                              status:  6                       },
+        //                       {      amount:  7600,
+        //                             address: "0x0123456789abcdef...",
+        //                         successTime:  1515323226000,
+        //                          addressTag: "",
+        //                                txId: "0x0123456789abcdef...",
+        //                                  id: "0123456789abcdef...",
+        //                               asset: "ICN",
+        //                           applyTime:  1515322539000,
+        //                              status:  6                       }  ],
+        //            success:    true                                         }
+        //
         return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
@@ -7012,7 +7043,30 @@ module.exports = class binance extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //      { insertTime:  1517425007000,
+        //            amount:  0.3,
+        //           address: "0x0123456789abcdef",
+        //        addressTag: "",
+        //              txId: "0x0123456789abcdef",
+        //             asset: "ETH",
+        //            status:  1                                                                    }
+        //
+        // fetchWithdrawals
+        //
+        //       {      amount:  14,
+        //             address: "0x0123456789abcdef...",
+        //         successTime:  1514489710000,
+        //          addressTag: "",
+        //                txId: "0x0123456789abcdef...",
+        //                  id: "0123456789abcdef...",
+        //               asset: "ETH",
+        //           applyTime:  1514488724000,
+        //              status:  6                       }
+        //
         // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
+        let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
@@ -7043,7 +7097,7 @@ module.exports = class binance extends Exchange {
         let fee = undefined;
         return {
             'info': transaction,
-            'id': undefined,
+            'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

@@ -788,6 +788,16 @@ class binance (Exchange):
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetDepositHistory(self.extend(request, params))
+        #
+        #     {    success:    True,
+        #       depositList: [{insertTime:  1517425007000,
+        #                            amount:  0.3,
+        #                           address: "0x0123456789abcdef",
+        #                        addressTag: "",
+        #                              txId: "0x0123456789abcdef",
+        #                             asset: "ETH",
+        #                            status:  1                                                                    }]}
+        #
         return self.parseTransactions(response['depositList'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -800,6 +810,27 @@ class binance (Exchange):
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetWithdrawHistory(self.extend(request, params))
+        #
+        #     {withdrawList: [{     amount:  14,
+        #                             address: "0x0123456789abcdef...",
+        #                         successTime:  1514489710000,
+        #                          addressTag: "",
+        #                                txId: "0x0123456789abcdef...",
+        #                                  id: "0123456789abcdef...",
+        #                               asset: "ETH",
+        #                           applyTime:  1514488724000,
+        #                              status:  6                       },
+        #                       {     amount:  7600,
+        #                             address: "0x0123456789abcdef...",
+        #                         successTime:  1515323226000,
+        #                          addressTag: "",
+        #                                txId: "0x0123456789abcdef...",
+        #                                  id: "0123456789abcdef...",
+        #                               asset: "ICN",
+        #                           applyTime:  1515322539000,
+        #                              status:  6                       }  ],
+        #            success:    True                                         }
+        #
         return self.parseTransactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -823,7 +854,30 @@ class binance (Exchange):
         return statuses[type][status] if (status in list(statuses[type].keys())) else status
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #      {insertTime:  1517425007000,
+        #            amount:  0.3,
+        #           address: "0x0123456789abcdef",
+        #        addressTag: "",
+        #              txId: "0x0123456789abcdef",
+        #             asset: "ETH",
+        #            status:  1                                                                    }
+        #
+        # fetchWithdrawals
+        #
+        #       {     amount:  14,
+        #             address: "0x0123456789abcdef...",
+        #         successTime:  1514489710000,
+        #          addressTag: "",
+        #                txId: "0x0123456789abcdef...",
+        #                  id: "0123456789abcdef...",
+        #               asset: "ETH",
+        #           applyTime:  1514488724000,
+        #              status:  6                       }
+        #
         # addressTag = self.safe_string(transaction, 'addressTag')  # set but unused
+        id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_value(transaction, 'txId')
         code = None
@@ -850,7 +904,7 @@ class binance (Exchange):
         fee = None
         return {
             'info': transaction,
-            'id': None,
+            'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
