@@ -603,7 +603,7 @@ module.exports = class binance extends Exchange {
             'FILLED': 'closed',
             'CANCELED': 'canceled',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseOrder (order, market = undefined) {
