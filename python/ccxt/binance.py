@@ -583,7 +583,7 @@ class binance (Exchange):
             'FILLED': 'closed',
             'CANCELED': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status.lower()
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'status'))

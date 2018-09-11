@@ -508,7 +508,7 @@ class bibox (Exchange):
             '5': 'canceled',  # canceled
             '6': 'canceled',  # canceling
         }
-        return self.safe_string(statuses, status, status.lower())
+        return self.safe_string(statuses, status, status)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None

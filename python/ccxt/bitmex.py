@@ -411,7 +411,7 @@ class bitmex (Exchange):
             'rejected': 'rejected',
             'expired': 'expired',
         }
-        return self.safe_string(statuses, status.lower())
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))

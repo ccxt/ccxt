@@ -273,7 +273,7 @@ class bitflyer extends Exchange {
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses))
             return $statuses[$status];
-        return strtolower ($status);
+        return $status;
     }
 
     public function parse_order ($order, $market = null) {

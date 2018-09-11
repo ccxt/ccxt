@@ -258,7 +258,7 @@ class bitflyer (Exchange):
         }
         if status in statuses:
             return statuses[status]
-        return status.lower()
+        return status
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['child_order_date'])

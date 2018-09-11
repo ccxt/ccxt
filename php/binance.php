@@ -604,7 +604,7 @@ class binance extends Exchange {
             'FILLED' => 'closed',
             'CANCELED' => 'canceled',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : strtolower ($status);
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_order ($order, $market = null) {

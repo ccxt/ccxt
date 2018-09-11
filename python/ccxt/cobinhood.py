@@ -630,7 +630,7 @@ class cobinhood (Exchange):
             'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status.lower()
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')

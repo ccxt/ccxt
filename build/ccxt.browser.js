@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.267'
+const version = '1.17.268'
 
 Exchange.ccxtVersion = version
 
@@ -5255,7 +5255,7 @@ module.exports = class bibox extends Exchange {
             '5': 'canceled', // canceled
             '6': 'canceled', // canceling
         };
-        return this.safeString (statuses, status, status.toLowerCase ());
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6733,7 +6733,7 @@ module.exports = class binance extends Exchange {
             'FILLED': 'closed',
             'CANCELED': 'canceled',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseOrder (order, market = undefined) {
@@ -10218,7 +10218,7 @@ module.exports = class bitflyer extends Exchange {
         };
         if (status in statuses)
             return statuses[status];
-        return status.toLowerCase ();
+        return status;
     }
 
     parseOrder (order, market = undefined) {
@@ -12500,7 +12500,7 @@ module.exports = class bitmex extends Exchange {
             'rejected': 'rejected',
             'expired': 'expired',
         };
-        return this.safeString (statuses, status.toLowerCase ());
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -21966,7 +21966,7 @@ module.exports = class cobinhood extends Exchange {
             'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseTransaction (transaction, currency = undefined) {

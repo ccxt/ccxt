@@ -427,7 +427,7 @@ class bitmex extends Exchange {
             'rejected' => 'rejected',
             'expired' => 'expired',
         );
-        return $this->safe_string($statuses, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
