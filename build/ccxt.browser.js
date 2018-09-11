@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.261'
+const version = '1.17.262'
 
 Exchange.ccxtVersion = version
 
@@ -36314,7 +36314,7 @@ module.exports = class hitbtc extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetSymbolTrades (this.extend ({
+        const request = {
             'symbol': market['id'],
             // 'from': 0,
             // 'till': 100,
@@ -36328,8 +36328,16 @@ module.exports = class hitbtc extends Exchange {
             // 'format_tid': 'string',
             // 'format_timestamp': 'millisecond',
             // 'format_wrap': false,
-            'side': 'true',
-        }, params));
+            // 'side': 'true',
+        };
+        if (since !== undefined) {
+            request['by'] = 'ts';
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['max_results'] = limit;
+        }
+        let response = await this.publicGetSymbolTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
@@ -36389,9 +36397,7 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
-        let status = this.safeString (order, 'orderStatus');
-        if (status)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let price = this.safeFloat (order, 'orderPrice');
         price = this.safeFloat (order, 'price', price);
         price = this.safeFloat (order, 'avgPrice', price);
@@ -37414,8 +37420,10 @@ module.exports = class hitbtc2 extends hitbtc {
         };
         if (limit !== undefined)
             request['limit'] = limit;
-        if (since !== undefined)
+        if (since !== undefined) {
+            request['sort'] = 'ASC';
             request['from'] = this.iso8601 (since);
+        }
         let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }

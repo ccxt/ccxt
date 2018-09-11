@@ -697,7 +697,7 @@ class hitbtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetSymbolTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             // 'from' => 0,
             // 'till' => 100,
@@ -711,8 +711,16 @@ class hitbtc extends Exchange {
             // 'format_tid' => 'string',
             // 'format_timestamp' => 'millisecond',
             // 'format_wrap' => false,
-            'side' => 'true',
-        ), $params));
+            // 'side' => 'true',
+        );
+        if ($since !== null) {
+            $request['by'] = 'ts';
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['max_results'] = $limit;
+        }
+        $response = $this->publicGetSymbolTrades (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
@@ -772,9 +780,7 @@ class hitbtc extends Exchange {
         $symbol = null;
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
-        $status = $this->safe_string($order, 'orderStatus');
-        if ($status)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $price = $this->safe_float($order, 'orderPrice');
         $price = $this->safe_float($order, 'price', $price);
         $price = $this->safe_float($order, 'avgPrice', $price);
