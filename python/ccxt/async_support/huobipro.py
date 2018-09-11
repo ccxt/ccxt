@@ -597,17 +597,14 @@ class huobipro (Exchange):
         return self.parse_order(response['data'])
 
     def parse_order_status(self, status):
-        if status == 'partial-filled':
-            return 'open'
-        elif status == 'partial-canceled':
-            return 'canceled'
-        elif status == 'filled':
-            return 'closed'
-        elif status == 'canceled':
-            return 'canceled'
-        elif status == 'submitted':
-            return 'open'
-        return status
+        statuses = {
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'submitted': 'open',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')

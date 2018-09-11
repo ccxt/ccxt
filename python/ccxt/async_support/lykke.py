@@ -231,25 +231,14 @@ class lykke (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):
-        if status == 'Pending':
-            return 'open'
-        elif status == 'InOrderBook':
-            return 'open'
-        elif status == 'Processing':
-            return 'open'
-        elif status == 'Matched':
-            return 'closed'
-        elif status == 'Cancelled':
-            return 'canceled'
-        elif status == 'NotEnoughFunds':
-            return 'NotEnoughFunds'
-        elif status == 'NoLiquidity':
-            return 'NoLiquidity'
-        elif status == 'UnknownAsset':
-            return 'UnknownAsset'
-        elif status == 'LeadToNegativeSpread':
-            return 'LeadToNegativeSpread'
-        return status
+        statuses = {
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'Status'))

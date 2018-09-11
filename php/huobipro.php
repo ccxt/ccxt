@@ -632,18 +632,14 @@ class huobipro extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === 'partial-filled') {
-            return 'open';
-        } else if ($status === 'partial-canceled') {
-            return 'canceled';
-        } else if ($status === 'filled') {
-            return 'closed';
-        } else if ($status === 'canceled') {
-            return 'canceled';
-        } else if ($status === 'submitted') {
-            return 'open';
-        }
-        return $status;
+        $statuses = array (
+            'partial-filled' => 'open',
+            'partial-canceled' => 'canceled',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'submitted' => 'open',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
