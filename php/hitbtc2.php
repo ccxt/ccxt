@@ -565,8 +565,8 @@ class hitbtc2 extends hitbtc {
             $precision = array (
                 'price' => $this->precision_from_string($market['tickSize']),
                 // FIXME => for lots > 1 the following line returns 0
-                // 'amount' => -1 * intval (log10 ($lot)),
-                'amount' => $this->precision_from_string($market['quantityIncrement']),
+                // 'amount' => $this->precision_from_string($market['quantityIncrement']),
+                'amount' => -1 * intval (log10 ($lot)),
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
