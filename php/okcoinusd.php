@@ -749,7 +749,7 @@ class okcoinusd extends Exchange {
                     $type = 'margin';
             }
         }
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');

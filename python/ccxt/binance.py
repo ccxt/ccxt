@@ -586,9 +586,7 @@ class binance (Exchange):
         return statuses[status] if (status in list(statuses.keys())) else status.lower()
 
     def parse_order(self, order, market=None):
-        status = self.safe_value(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
         timestamp = None
         if 'time' in order:

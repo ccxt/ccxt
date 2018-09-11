@@ -488,9 +488,7 @@ class rightbtc extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $status = $this->safe_value($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'trading_pair');
         if ($market === null) {
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {

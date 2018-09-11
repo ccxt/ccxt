@@ -417,9 +417,7 @@ class livecoin (Exchange):
         # TODO currently not supported by livecoin
         # trades = self.parse_trades(order['trades'], market, since, limit)
         trades = None
-        status = self.safe_string(order, 'status')
-        status = self.safe_string(order, 'orderStatus', status)
-        status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string_2(order, 'status', 'orderStatus'))
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'currencyPair')

@@ -534,7 +534,7 @@ class bittrex extends Exchange {
         if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
             $status = 'canceled';
         if ((is_array ($order) && array_key_exists ('Status', $order)) && $this->options['parseOrderStatus'])
-            $status = $this->parse_order_status($order['Status']);
+            $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $symbol = null;
         if (is_array ($order) && array_key_exists ('Exchange', $order)) {
             $marketId = $order['Exchange'];

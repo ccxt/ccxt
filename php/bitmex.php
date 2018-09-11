@@ -431,9 +431,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->safe_value($order, 'ordStatus');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

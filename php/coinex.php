@@ -371,7 +371,7 @@ class coinex extends Exchange {
         $filled = $this->safe_float($order, 'deal_amount');
         $symbol = $market['symbol'];
         $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),

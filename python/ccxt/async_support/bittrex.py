@@ -519,7 +519,7 @@ class bittrex (Exchange):
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
         if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
-            status = self.parse_order_status(order['Status'])
+            status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if 'Exchange' in order:
             marketId = order['Exchange']

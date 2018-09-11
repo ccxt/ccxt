@@ -718,7 +718,7 @@ class okcoinusd (Exchange):
                 side = self.parse_order_side(order['type'])
                 if ('contract_name' in list(order.keys())) or ('lever_rate' in list(order.keys())):
                     type = 'margin'
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'symbol')

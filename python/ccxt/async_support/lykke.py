@@ -252,7 +252,7 @@ class lykke (Exchange):
         return status
 
     def parse_order(self, order, market=None):
-        status = self.parse_order_status(order['Status'])
+        status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'AssetPairId')

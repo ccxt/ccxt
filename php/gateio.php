@@ -422,9 +422,7 @@ class gateio extends Exchange {
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $price = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float($order, 'initialAmount');

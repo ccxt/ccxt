@@ -871,8 +871,7 @@ class theocean (Exchange):
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
-                status = self.safe_string(timeline[numEvents - 1], 'action')
-                status = self.parse_order_status(status)
+                status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')

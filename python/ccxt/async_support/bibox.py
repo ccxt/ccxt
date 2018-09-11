@@ -477,9 +477,7 @@ class bibox (Exchange):
             if cost is None:
                 cost = price * filled
         side = 'buy' if (order['order_side'] == 1) else 'sell'
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         result = {
             'info': order,
             'id': self.safe_string(order, 'id'),

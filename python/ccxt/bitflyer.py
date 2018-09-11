@@ -267,7 +267,7 @@ class bitflyer (Exchange):
         filled = self.safe_float(order, 'executed_size')
         price = self.safe_float(order, 'price')
         cost = price * filled
-        status = self.parse_order_status(order['child_order_state'])
+        status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = order['child_order_type'].lower()
         side = order['side'].lower()
         symbol = None

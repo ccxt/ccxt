@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.262'
+const version = '1.17.263'
 
 Exchange.ccxtVersion = version
 
@@ -4533,7 +4533,7 @@ module.exports = class bcex extends Exchange {
         let response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         let order = response['data'];
         let timestamp = this.safeInteger (order, 'created') * 1000;
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'flag');
         if (side === 'sale')
             side = 'sell';
@@ -4572,8 +4572,7 @@ module.exports = class bcex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let remaining = this.safeFloat (order, 'amount_outstanding');
         let filled = amount - remaining;
-        let status = this.safeString (order, 'status');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = filled * price;
         let fee = undefined;
         let result = {
@@ -5226,9 +5225,7 @@ module.exports = class bibox extends Exchange {
                 cost = price * filled;
         }
         let side = (order['order_side'] === 1) ? 'buy' : 'sell';
-        let status = this.safeString (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let result = {
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -6742,9 +6739,7 @@ module.exports = class binance extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.safeValue (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
         if ('time' in order)
@@ -10235,7 +10230,7 @@ module.exports = class bitflyer extends Exchange {
         let filled = this.safeFloat (order, 'executed_size');
         let price = this.safeFloat (order, 'price');
         let cost = price * filled;
-        let status = this.parseOrderStatus (order['child_order_state']);
+        let status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         let type = order['child_order_type'].toLowerCase ();
         let side = order['side'].toLowerCase ();
         let symbol = undefined;
@@ -10769,16 +10764,15 @@ module.exports = class bitforex extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (orderStatusId) {
-        if (orderStatusId === 0 || orderStatusId === 1) {
-            return 'open';
-        } else if (orderStatusId === 2) {
-            return 'closed';
-        } else if (orderStatusId === 3 || orderStatusId === 4) {
-            return 'canceled';
-        } else {
-            return undefined;
-        }
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'canceled',
+            '4': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseSide (sideId) {
@@ -10804,8 +10798,7 @@ module.exports = class bitforex extends Exchange {
         let amount = this.safeFloat (order, 'orderAmount');
         let filled = this.safeFloat (order, 'dealAmount');
         let remaining = amount - filled;
-        let statusId = this.safeInteger (order, 'orderState');
-        let status = this.parseOrderStatus (statusId);
+        let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
         let fee = this.safeFloat (order, 'tradeFee');
         let result = {
@@ -12513,9 +12506,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.safeValue (order, 'ordStatus');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -13479,7 +13470,7 @@ module.exports = class bitso extends Exchange {
 
     parseOrder (order, market = undefined) {
         let side = order['side'];
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = order['book'];
@@ -15275,7 +15266,7 @@ module.exports = class bittrex extends Exchange {
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
         if (('Status' in order) && this.options['parseOrderStatus'])
-            status = this.parseOrderStatus (order['Status']);
+            status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         if ('Exchange' in order) {
             let marketId = order['Exchange'];
@@ -23642,7 +23633,7 @@ module.exports = class coinex extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
         let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -26778,8 +26769,7 @@ module.exports = class coinone extends Exchange {
             id = id.toUpperCase ();
         }
         let timestamp = parseInt (info['timestamp']) * 1000;
-        let status = this.safeString (order, 'status');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');
         if (side.indexOf ('ask') >= 0) {
@@ -28035,9 +28025,8 @@ module.exports = class cointiger extends huobipro {
         let side = this.safeString (order, 'side');
         let type = undefined;
         let orderType = this.safeString (order, 'type');
-        let status = this.safeString (order, 'status');
-        let timestamp = this.safeInteger (order, 'created_at');
-        timestamp = this.safeInteger (order, 'ctime', timestamp);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let timestamp = this.safeInteger2 (order, 'created_at', 'ctime');
         let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (market === undefined) {
@@ -28089,7 +28078,6 @@ module.exports = class cointiger extends huobipro {
                     };
                 }
             }
-            status = this.parseOrderStatus (status);
         }
         if (amount !== undefined) {
             if (remaining !== undefined) {
@@ -29899,8 +29887,7 @@ module.exports = class deribit extends Exchange {
                 cost = price * filled;
             }
         }
-        let status = this.safeString (order, 'state');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'direction');
         if (side !== undefined) {
             side = side.toLowerCase ();
@@ -34121,9 +34108,7 @@ module.exports = class gateio extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let status = this.safeString (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'type');
         let price = this.safeFloat (order, 'filledRate');
         let amount = this.safeFloat (order, 'initialAmount');
@@ -34691,7 +34676,7 @@ module.exports = class gdax extends Exchange {
             if (order['product_id'] in this.markets_by_id)
                 market = this.markets_by_id[order['product_id']];
         }
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         if (amount === undefined)
@@ -39595,7 +39580,7 @@ module.exports = class independentreserve extends Exchange {
             'currency': feeCurrency,
         };
         let id = order['OrderGuid'];
-        let status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let cost = this.safeFloat (order, 'Value');
         let average = this.safeFloat (order, 'AvgPrice');
         let price = this.safeFloat (order, 'Price', average);
@@ -44978,9 +44963,7 @@ module.exports = class livecoin extends Exchange {
         // TODO currently not supported by livecoin
         // let trades = this.parseTrades (order['trades'], market, since, limit);
         let trades = undefined;
-        let status = this.safeString (order, 'status');
-        status = this.safeString (order, 'orderStatus', status);
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'currencyPair');
@@ -45928,7 +45911,7 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'AssetPairId');
@@ -47934,7 +47917,7 @@ module.exports = class okcoinusd extends Exchange {
                     type = 'margin';
             }
         }
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
@@ -50772,9 +50755,7 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'id');
-        let status = this.safeValue (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let marketId = this.safeString (order, 'trading_pair');
         if (market === undefined) {
             if (marketId in this.markets_by_id) {
@@ -52330,8 +52311,7 @@ module.exports = class theocean extends Exchange {
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
-                status = this.safeString (timeline[numEvents - 1], 'action');
-                status = this.parseOrderStatus (status);
+                status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
@@ -53621,6 +53601,7 @@ module.exports = class uex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'deposit_list',
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',

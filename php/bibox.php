@@ -498,9 +498,7 @@ class bibox extends Exchange {
                 $cost = $price * $filled;
         }
         $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
