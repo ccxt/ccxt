@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.264'
+const version = '1.17.265'
 
 Exchange.ccxtVersion = version
 
@@ -3003,6 +3003,7 @@ module.exports = subclass (
                     'PermissionDenied': {},
                     'AccountSuspended': {},
                 },
+                'BadRequest': {},
                 'BadResponse': {
                     'NullResponse': {},
                 },
@@ -27429,7 +27430,7 @@ module.exports = class coinspot extends Exchange {
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -27529,7 +27530,7 @@ module.exports = class cointiger extends huobipro {
                 //    {"code":"1","msg":"系统错误","data":null}
                 //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
-                '2': ExchangeError,
+                '2': BadRequest, // {"code":"2","msg":"Parameter error","data":null}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -28270,7 +28271,7 @@ module.exports = class cointiger extends huobipro {
                                 if (message === 'offsetNot Null') {
                                     throw new ExchangeError (feedback);
                                 } else if (message === 'Parameter error') {
-                                    throw new ExchangeError (feedback);
+                                    throw new BadRequest (feedback);
                                 }
                             }
                             throw new exceptions[code] (feedback);
@@ -51411,7 +51412,7 @@ module.exports = class surbitcoin extends foxbit {
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
@@ -51490,6 +51491,7 @@ module.exports = class theocean extends Exchange {
                     'Orderbook exhausted for intent': OrderNotFillable, // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                     'Fillable amount under minimum': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder, // {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
+                    "Schema validation failed for 'params'": BadRequest, // // {"message":"Schema validation failed for 'params'"}
                 },
             },
             'options': {
@@ -52576,6 +52578,7 @@ module.exports = class theocean extends Exchange {
                 // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 // {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 // {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
+                // {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
                 //
                 const feedback = this.id + ' ' + this.json (response);
                 const exact = this.exceptions['exact'];
