@@ -840,8 +840,10 @@ module.exports = class hitbtc2 extends hitbtc {
         };
         if (limit !== undefined)
             request['limit'] = limit;
-        if (since !== undefined)
+        if (since !== undefined) {
+            request['sort'] = 'ASC';
             request['from'] = this.iso8601 (since);
+        }
         let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
