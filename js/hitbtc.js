@@ -700,7 +700,7 @@ module.exports = class hitbtc extends Exchange {
             'symbol': market['id'],
             // 'from': 0,
             // 'till': 100,
-            'by': 'ts', // or by trade_id
+            // 'by': 'ts', // or by trade_id
             // 'sort': 'desc', // or asc
             // 'start_index': 0,
             // 'max_results': 1000,
@@ -713,6 +713,7 @@ module.exports = class hitbtc extends Exchange {
             // 'side': 'true',
         };
         if (since !== undefined) {
+            request['by'] = 'ts';
             request['from'] = since;
         }
         if (limit !== undefined) {
