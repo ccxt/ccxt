@@ -359,7 +359,7 @@ class coinex (Exchange):
         filled = self.safe_float(order, 'deal_amount')
         symbol = market['symbol']
         remaining = float(self.amount_to_precision(symbol, amount - filled))
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),

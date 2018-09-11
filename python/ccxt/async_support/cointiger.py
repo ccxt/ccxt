@@ -582,9 +582,8 @@ class cointiger (huobipro):
         side = self.safe_string(order, 'side')
         type = None
         orderType = self.safe_string(order, 'type')
-        status = self.safe_string(order, 'status')
-        timestamp = self.safe_integer(order, 'created_at')
-        timestamp = self.safe_integer(order, 'ctime', timestamp)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        timestamp = self.safe_integer_2(order, 'created_at', 'ctime')
         lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
         if market is None:
@@ -629,7 +628,6 @@ class cointiger (huobipro):
                         'cost': feeCost,
                         'currency': feeCurrency,
                     }
-            status = self.parse_order_status(status)
         if amount is not None:
             if remaining is not None:
                 if filled is None:

@@ -59,6 +59,7 @@ class uex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'deposit_list',
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',

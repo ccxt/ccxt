@@ -470,9 +470,7 @@ class rightbtc (Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        status = self.safe_value(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         marketId = self.safe_string(order, 'trading_pair')
         if market is None:
             if marketId in self.markets_by_id:

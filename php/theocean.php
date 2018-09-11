@@ -905,8 +905,7 @@ class theocean extends Exchange {
         if ($timeline !== null) {
             $numEvents = is_array ($timeline) ? count ($timeline) : 0;
             if ($numEvents > 0) {
-                $status = $this->safe_string($timeline[$numEvents - 1], 'action');
-                $status = $this->parse_order_status($status);
+                $status = $this->parse_order_status($this->safe_string($timeline[$numEvents - 1], 'action'));
                 $timelineEventsGroupedByAction = $this->group_by($timeline, 'action');
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('placed', $timelineEventsGroupedByAction)) {
                     $placeEvents = $this->safe_value($timelineEventsGroupedByAction, 'placed');

@@ -290,8 +290,7 @@ class deribit extends Exchange {
                 $cost = $price * $filled;
             }
         }
-        $status = $this->safe_string($order, 'state');
-        $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'direction');
         if ($side !== null) {
             $side = strtolower ($side);

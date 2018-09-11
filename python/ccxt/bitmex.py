@@ -414,9 +414,7 @@ class bitmex (Exchange):
         return self.safe_string(statuses, status.lower())
 
     def parse_order(self, order, market=None):
-        status = self.safe_value(order, 'ordStatus')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         symbol = None
         if market is not None:
             symbol = market['symbol']

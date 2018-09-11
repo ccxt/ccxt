@@ -508,7 +508,7 @@ class bcex extends Exchange {
         $response = $this->privatePostApiOrderOrderInfo (array_merge ($request, $params));
         $order = $response['data'];
         $timestamp = $this->safe_integer($order, 'created') * 1000;
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'flag');
         if ($side === 'sale')
             $side = 'sell';
@@ -547,8 +547,7 @@ class bcex extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $remaining = $this->safe_float($order, 'amount_outstanding');
         $filled = $amount - $remaining;
-        $status = $this->safe_string($order, 'status');
-        $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = $filled * $price;
         $fee = null;
         $result = array (

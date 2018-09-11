@@ -264,7 +264,7 @@ class lykke extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->parse_order_status($order['Status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'AssetPairId');

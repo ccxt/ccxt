@@ -421,9 +421,7 @@ class livecoin extends Exchange {
         // TODO currently not supported by livecoin
         // $trades = $this->parse_trades($order['trades'], $market, since, limit);
         $trades = null;
-        $status = $this->safe_string($order, 'status');
-        $status = $this->safe_string($order, 'orderStatus', $status);
-        $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string_2($order, 'status', 'orderStatus'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'currencyPair');

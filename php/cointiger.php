@@ -600,9 +600,8 @@ class cointiger extends huobipro {
         $side = $this->safe_string($order, 'side');
         $type = null;
         $orderType = $this->safe_string($order, 'type');
-        $status = $this->safe_string($order, 'status');
-        $timestamp = $this->safe_integer($order, 'created_at');
-        $timestamp = $this->safe_integer($order, 'ctime', $timestamp);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $timestamp = $this->safe_integer_2($order, 'created_at', 'ctime');
         $lastTradeTimestamp = $this->safe_integer_2($order, 'mtime', 'finished-at');
         $symbol = null;
         if ($market === null) {
@@ -654,7 +653,6 @@ class cointiger extends huobipro {
                     );
                 }
             }
-            $status = $this->parse_order_status($status);
         }
         if ($amount !== null) {
             if ($remaining !== null) {

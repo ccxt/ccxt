@@ -493,7 +493,7 @@ class bcex (Exchange):
         response = await self.privatePostApiOrderOrderInfo(self.extend(request, params))
         order = response['data']
         timestamp = self.safe_integer(order, 'created') * 1000
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'flag')
         if side == 'sale':
             side = 'sell'
@@ -531,8 +531,7 @@ class bcex (Exchange):
         amount = self.safe_float(order, 'amount')
         remaining = self.safe_float(order, 'amount_outstanding')
         filled = amount - remaining
-        status = self.safe_string(order, 'status')
-        status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = filled * price
         fee = None
         result = {

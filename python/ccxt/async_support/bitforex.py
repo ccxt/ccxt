@@ -386,15 +386,15 @@ class bitforex (Exchange):
         orderbook = self.parse_order_book(data, timestamp, bidsKey, asksKey, priceKey, amountKey)
         return orderbook
 
-    def parse_order_status(self, orderStatusId):
-        if orderStatusId == 0 or orderStatusId == 1:
-            return 'open'
-        elif orderStatusId == 2:
-            return 'closed'
-        elif orderStatusId == 3 or orderStatusId == 4:
-            return 'canceled'
-        else:
-            return None
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'canceled',
+            '4': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_side(self, sideId):
         if sideId == 1:
@@ -417,8 +417,7 @@ class bitforex (Exchange):
         amount = self.safe_float(order, 'orderAmount')
         filled = self.safe_float(order, 'dealAmount')
         remaining = amount - filled
-        statusId = self.safe_integer(order, 'orderState')
-        status = self.parse_order_status(statusId)
+        status = self.parse_order_status(self.safe_string(order, 'orderState'))
         cost = filled * price
         fee = self.safe_float(order, 'tradeFee')
         result = {

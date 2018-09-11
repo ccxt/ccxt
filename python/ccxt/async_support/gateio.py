@@ -405,9 +405,7 @@ class gateio (Exchange):
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         price = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
