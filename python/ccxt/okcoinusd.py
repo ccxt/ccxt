@@ -676,19 +676,15 @@ class okcoinusd (Exchange):
         return response
 
     def parse_order_status(self, status):
-        if status == -1:
-            return 'canceled'
-        if status == 0:
-            return 'open'
-        if status == 1:
-            return 'open'
-        if status == 2:
-            return 'closed'
-        if status == 3:
-            return 'open'
-        if status == 4:
-            return 'canceled'
-        return status
+        statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        }
+        return self.safe_value(statuses, status, status)
 
     def parse_order_side(self, side):
         if side == 1:
