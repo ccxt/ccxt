@@ -780,12 +780,11 @@ class binance (Exchange):
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if code is None:
-            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code arguemnt')
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetDepositHistory(self.extend(request, params))
@@ -793,12 +792,11 @@ class binance (Exchange):
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if code is None:
-            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code arguemnt')
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetWithdrawHistory(self.extend(request, params))
@@ -813,13 +811,13 @@ class binance (Exchange):
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',  # different from 1 = ok in deposits
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
-                '6': 'ok',
+                '0': 'pending',  # Email Sent
+                '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+                '2': 'pending',  # Awaiting Approval
+                '3': 'failed',  # Rejected
+                '4': 'pending',  # Processing
+                '5': 'failed',  # Failure
+                '6': 'ok',  # Completed
             },
         }
         return statuses[type][status] if (status in list(statuses[type].keys())) else status
@@ -829,12 +827,11 @@ class binance (Exchange):
         address = self.safe_string(transaction, 'address')
         txid = self.safe_value(transaction, 'txId')
         code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
+        currencyId = self.safe_string(transaction, 'currency')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        else:
+            code = self.common_currency_code(currencyId)
         if currency is not None:
             code = currency['code']
         timestamp = None

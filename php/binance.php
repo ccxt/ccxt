@@ -832,13 +832,12 @@ class binance extends Exchange {
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code arguemnt');
+        $currency = null;
+        $request = array ();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
         }
-        $currency = $this->currency ($code);
-        $request = array (
-            'asset' => $currency['id'],
-        );
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -848,13 +847,12 @@ class binance extends Exchange {
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code arguemnt');
+        $currency = null;
+        $request = array ();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['asset'] = $currency['id'];
         }
-        $currency = $this->currency ($code);
-        $request = array (
-            'asset' => $currency['id'],
-        );
         if ($since !== null) {
             $request['startTime'] = $since;
         }
@@ -872,13 +870,13 @@ class binance extends Exchange {
                 '1' => 'ok',
             ),
             'withdrawal' => array (
-                '0' => 'pending',
-                '1' => 'canceled', // different from 1 = ok in deposits
-                '2' => 'pending',
-                '3' => 'failed',
-                '4' => 'pending',
-                '5' => 'failed',
-                '6' => 'ok',
+                '0' => 'pending', // Email Sent
+                '1' => 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2' => 'pending', // Awaiting Approval
+                '3' => 'failed', // Rejected
+                '4' => 'pending', // Processing
+                '5' => 'failed', // Failure
+                '6' => 'ok', // Completed
             ),
         );
         return (is_array ($statuses[$type]) && array_key_exists ($status, $statuses[$type])) ? $statuses[$type][$status] : $status;
@@ -889,13 +887,11 @@ class binance extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$currencyId];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $currency = $this->currencies_by_id[$currencyId];
+        } else {
+            $code = $this->common_currency_code($currencyId);
         }
         if ($currency !== null) {
             $code = $currency['code'];
