@@ -104,7 +104,7 @@ class cointiger extends huobipro {
                 //    array ("code":"1","msg":"系统错误","data":null)
                 //    array ("code":"1","msg":"Balance insufficient,余额不足","data":null)
                 '1' => '\\ccxt\\ExchangeError',
-                '2' => '\\ccxt\\ExchangeError',
+                '2' => '\\ccxt\\BadRequest', // array ("code":"2","msg":"Parameter error","data":null)
                 '5' => '\\ccxt\\InvalidOrder',
                 '6' => '\\ccxt\\InvalidOrder',
                 '8' => '\\ccxt\\OrderNotFound',
@@ -845,7 +845,7 @@ class cointiger extends huobipro {
                                 if ($message === 'offsetNot Null') {
                                     throw new ExchangeError ($feedback);
                                 } else if ($message === 'Parameter error') {
-                                    throw new ExchangeError ($feedback);
+                                    throw new BadRequest ($feedback);
                                 }
                             }
                             throw new $exceptions[$code] ($feedback);

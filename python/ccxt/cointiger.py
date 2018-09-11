@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -119,7 +120,7 @@ class cointiger (huobipro):
                 #    {"code":"1","msg":"系统错误","data":null}
                 #    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
-                '2': ExchangeError,
+                '2': BadRequest,  # {"code":"2","msg":"Parameter error","data":null}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -803,7 +804,7 @@ class cointiger (huobipro):
                                 if message == 'offsetNot Null':
                                     raise ExchangeError(feedback)
                                 elif message == 'Parameter error':
-                                    raise ExchangeError(feedback)
+                                    raise BadRequest(feedback)
                             raise exceptions[code](feedback)
                         else:
                             raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
