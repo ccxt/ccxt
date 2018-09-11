@@ -631,13 +631,13 @@ class Exchange {
     }
 
     public static function parse_if_json_encoded_object ($input) {
-        if ((gettype ($body) !== 'string') || (strlen ($body) < 2)) {
+        if ((gettype ($input) !== 'string') || (strlen ($input) < 2)) {
             return $input;
         }
-        if ($body[0] === '{') {
-            return json_decode ($result, $as_associative_array = true);
-        } else if ($body[1] === '[') {
-            return json_decode ($result);
+        if ($input[0] === '{') {
+            return json_decode ($input, $as_associative_array = true);
+        } else if ($input[1] === '[') {
+            return json_decode ($input);
         }
         return $input;
     }
