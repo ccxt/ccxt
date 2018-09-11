@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ module.exports = class cointiger extends huobipro {
                 //    {"code":"1","msg":"系统错误","data":null}
                 //    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
-                '2': ExchangeError,
+                '2': BadRequest, // {"code":"2","msg":"Parameter error","data":null}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -844,7 +844,7 @@ module.exports = class cointiger extends huobipro {
                                 if (message === 'offsetNot Null') {
                                     throw new ExchangeError (feedback);
                                 } else if (message === 'Parameter error') {
-                                    throw new ExchangeError (feedback);
+                                    throw new BadRequest (feedback);
                                 }
                             }
                             throw new exceptions[code] (feedback);
