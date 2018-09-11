@@ -631,18 +631,14 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'partial-filled') {
-            return 'open';
-        } else if (status === 'partial-canceled') {
-            return 'canceled';
-        } else if (status === 'filled') {
-            return 'closed';
-        } else if (status === 'canceled') {
-            return 'canceled';
-        } else if (status === 'submitted') {
-            return 'open';
-        }
-        return status;
+        let statuses = {
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'submitted': 'open',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {

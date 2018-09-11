@@ -239,26 +239,14 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'Pending') {
-            return 'open';
-        } else if (status === 'InOrderBook') {
-            return 'open';
-        } else if (status === 'Processing') {
-            return 'open';
-        } else if (status === 'Matched') {
-            return 'closed';
-        } else if (status === 'Cancelled') {
-            return 'canceled';
-        } else if (status === 'NotEnoughFunds') {
-            return 'NotEnoughFunds';
-        } else if (status === 'NoLiquidity') {
-            return 'NoLiquidity';
-        } else if (status === 'UnknownAsset') {
-            return 'UnknownAsset';
-        } else if (status === 'LeadToNegativeSpread') {
-            return 'LeadToNegativeSpread';
-        }
-        return status;
+        let statuses = {
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
