@@ -530,7 +530,7 @@ class bibox extends Exchange {
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
         );
-        return $this->safe_string($statuses, $status, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
