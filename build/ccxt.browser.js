@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.263'
+const version = '1.17.264'
 
 Exchange.ccxtVersion = version
 
@@ -37130,8 +37130,8 @@ module.exports = class hitbtc2 extends hitbtc {
             let precision = {
                 'price': this.precisionFromString (market['tickSize']),
                 // FIXME: for lots > 1 the following line returns 0
-                // 'amount': this.precisionFromString (market['quantityIncrement']),
-                'amount': -1 * Math.log10 (lot),
+                // 'amount': -1 * parseInt (Math.log10 (lot)),
+                'amount': this.precisionFromString (market['quantityIncrement']),
             };
             let taker = this.safeFloat (market, 'takeLiquidityRate');
             let maker = this.safeFloat (market, 'provideLiquidityRate');

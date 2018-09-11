@@ -579,8 +579,8 @@ class hitbtc2 (hitbtc):
             precision = {
                 'price': self.precision_from_string(market['tickSize']),
                 # FIXME: for lots > 1 the following line returns 0
-                # 'amount': self.precision_from_string(market['quantityIncrement']),
-                'amount': -1 * math.log10(lot),
+                # 'amount': -1 * int(math.log10(lot)),
+                'amount': self.precision_from_string(market['quantityIncrement']),
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
