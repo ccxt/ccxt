@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.270'
+const version = '1.17.271'
 
 Exchange.ccxtVersion = version
 
@@ -6961,13 +6961,12 @@ module.exports = class binance extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
         }
-        const currency = this.currency (code);
-        let request = {
-            'asset': currency['id'],
-        };
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -6977,13 +6976,12 @@ module.exports = class binance extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
         }
-        const currency = this.currency (code);
-        let request = {
-            'asset': currency['id'],
-        };
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -7001,13 +6999,13 @@ module.exports = class binance extends Exchange {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled', // different from 1 = ok in deposits
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
-                '6': 'ok',
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
+                '6': 'ok', // Completed
             },
         };
         return (status in statuses[type]) ? statuses[type][status] : status;
@@ -7018,13 +7016,11 @@ module.exports = class binance extends Exchange {
         let address = this.safeString (transaction, 'address');
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
-        if (currency === undefined) {
-            let currencyId = this.safeString (transaction, 'currency');
-            if (currencyId in this.currencies_by_id) {
-                currency = this.currencies_by_id[currencyId];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
         }
         if (currency !== undefined) {
             code = currency['code'];
