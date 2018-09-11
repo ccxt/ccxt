@@ -703,19 +703,15 @@ class okcoinusd extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === -1)
-            return 'canceled';
-        if ($status === 0)
-            return 'open';
-        if ($status === 1)
-            return 'open';
-        if ($status === 2)
-            return 'closed';
-        if ($status === 3)
-            return 'open';
-        if ($status === 4)
-            return 'canceled';
-        return $status;
+        $statuses = array (
+            '-1' => 'canceled',
+            '0' => 'open',
+            '1' => 'open',
+            '2' => 'closed',
+            '3' => 'open',
+            '4' => 'canceled',
+        );
+        return $this->safe_value($statuses, $status, $status);
     }
 
     public function parse_order_side ($side) {
