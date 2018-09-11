@@ -338,8 +338,7 @@ module.exports = class coinone extends Exchange {
             id = id.toUpperCase ();
         }
         let timestamp = parseInt (info['timestamp']) * 1000;
-        let status = this.safeString (order, 'status');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');
         if (side.indexOf ('ask') >= 0) {

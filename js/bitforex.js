@@ -388,16 +388,15 @@ module.exports = class bitforex extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (orderStatusId) {
-        if (orderStatusId === 0 || orderStatusId === 1) {
-            return 'open';
-        } else if (orderStatusId === 2) {
-            return 'closed';
-        } else if (orderStatusId === 3 || orderStatusId === 4) {
-            return 'canceled';
-        } else {
-            return undefined;
-        }
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'canceled',
+            '4': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseSide (sideId) {
@@ -423,8 +422,7 @@ module.exports = class bitforex extends Exchange {
         let amount = this.safeFloat (order, 'orderAmount');
         let filled = this.safeFloat (order, 'dealAmount');
         let remaining = amount - filled;
-        let statusId = this.safeInteger (order, 'orderState');
-        let status = this.parseOrderStatus (statusId);
+        let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
         let fee = this.safeFloat (order, 'tradeFee');
         let result = {

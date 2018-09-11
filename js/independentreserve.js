@@ -212,7 +212,7 @@ module.exports = class independentreserve extends Exchange {
             'currency': feeCurrency,
         };
         let id = order['OrderGuid'];
-        let status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let cost = this.safeFloat (order, 'Value');
         let average = this.safeFloat (order, 'AvgPrice');
         let price = this.safeFloat (order, 'Price', average);

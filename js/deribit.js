@@ -289,8 +289,7 @@ module.exports = class deribit extends Exchange {
                 cost = price * filled;
             }
         }
-        let status = this.safeString (order, 'state');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'direction');
         if (side !== undefined) {
             side = side.toLowerCase ();

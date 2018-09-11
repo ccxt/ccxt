@@ -497,9 +497,7 @@ module.exports = class bibox extends Exchange {
                 cost = price * filled;
         }
         let side = (order['order_side'] === 1) ? 'buy' : 'sell';
-        let status = this.safeString (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let result = {
             'info': order,
             'id': this.safeString (order, 'id'),

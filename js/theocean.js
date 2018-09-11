@@ -901,8 +901,7 @@ module.exports = class theocean extends Exchange {
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
-                status = this.safeString (timeline[numEvents - 1], 'action');
-                status = this.parseOrderStatus (status);
+                status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');

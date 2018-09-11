@@ -373,7 +373,7 @@ module.exports = class gdax extends Exchange {
             if (order['product_id'] in this.markets_by_id)
                 market = this.markets_by_id[order['product_id']];
         }
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         if (amount === undefined)

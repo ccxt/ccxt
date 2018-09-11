@@ -483,9 +483,7 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'id');
-        let status = this.safeValue (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let marketId = this.safeString (order, 'trading_pair');
         if (market === undefined) {
             if (marketId in this.markets_by_id) {

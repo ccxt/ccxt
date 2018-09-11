@@ -311,7 +311,7 @@ module.exports = class bitso extends Exchange {
 
     parseOrder (order, market = undefined) {
         let side = order['side'];
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = order['book'];

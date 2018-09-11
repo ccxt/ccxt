@@ -430,9 +430,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.safeValue (order, 'ordStatus');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

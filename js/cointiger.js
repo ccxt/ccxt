@@ -599,9 +599,8 @@ module.exports = class cointiger extends huobipro {
         let side = this.safeString (order, 'side');
         let type = undefined;
         let orderType = this.safeString (order, 'type');
-        let status = this.safeString (order, 'status');
-        let timestamp = this.safeInteger (order, 'created_at');
-        timestamp = this.safeInteger (order, 'ctime', timestamp);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let timestamp = this.safeInteger2 (order, 'created_at', 'ctime');
         let lastTradeTimestamp = this.safeInteger2 (order, 'mtime', 'finished-at');
         let symbol = undefined;
         if (market === undefined) {
@@ -653,7 +652,6 @@ module.exports = class cointiger extends huobipro {
                     };
                 }
             }
-            status = this.parseOrderStatus (status);
         }
         if (amount !== undefined) {
             if (remaining !== undefined) {

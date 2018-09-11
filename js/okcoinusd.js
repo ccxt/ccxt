@@ -748,7 +748,7 @@ module.exports = class okcoinusd extends Exchange {
                     type = 'margin';
             }
         }
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');

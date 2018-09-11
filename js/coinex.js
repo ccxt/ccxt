@@ -370,7 +370,7 @@ module.exports = class coinex extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = market['symbol'];
         let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),

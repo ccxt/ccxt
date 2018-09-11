@@ -421,9 +421,7 @@ module.exports = class livecoin extends Exchange {
         // TODO currently not supported by livecoin
         // let trades = this.parseTrades (order['trades'], market, since, limit);
         let trades = undefined;
-        let status = this.safeString (order, 'status');
-        status = this.safeString (order, 'orderStatus', status);
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'currencyPair');

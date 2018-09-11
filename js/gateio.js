@@ -421,9 +421,7 @@ module.exports = class gateio extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let status = this.safeString (order, 'status');
-        if (status !== undefined)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'type');
         let price = this.safeFloat (order, 'filledRate');
         let amount = this.safeFloat (order, 'initialAmount');
