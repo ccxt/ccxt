@@ -696,11 +696,11 @@ module.exports = class hitbtc extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetSymbolTrades (this.extend ({
+        const request = {
             'symbol': market['id'],
             // 'from': 0,
             // 'till': 100,
-            // 'by': 'ts', // or by trade_id
+            'by': 'ts', // or by trade_id
             // 'sort': 'desc', // or asc
             // 'start_index': 0,
             // 'max_results': 1000,
@@ -710,8 +710,15 @@ module.exports = class hitbtc extends Exchange {
             // 'format_tid': 'string',
             // 'format_timestamp': 'millisecond',
             // 'format_wrap': false,
-            'side': 'true',
-        }, params));
+            // 'side': 'true',
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['max_results'] = limit;
+        }
+        let response = await this.publicGetSymbolTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
@@ -771,9 +778,7 @@ module.exports = class hitbtc extends Exchange {
         let symbol = undefined;
         if (!market)
             market = this.markets_by_id[order['symbol']];
-        let status = this.safeString (order, 'orderStatus');
-        if (status)
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let price = this.safeFloat (order, 'orderPrice');
         price = this.safeFloat (order, 'price', price);
         price = this.safeFloat (order, 'avgPrice', price);
