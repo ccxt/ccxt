@@ -842,6 +842,16 @@ class binance extends Exchange {
             $request['startTime'] = $since;
         }
         $response = $this->wapiGetDepositHistory (array_merge ($request, $params));
+        //
+        //     {     success =>    true,
+        //       depositList => array ( { insertTime =>  1517425007000,
+        //                            amount =>  0.3,
+        //                           address => "0x0123456789abcdef",
+        //                        addressTag => "",
+        //                              txId => "0x0123456789abcdef",
+        //                             asset => "ETH",
+        //                            status =>  1                                                                    } ) }
+        //
         return $this->parseTransactions ($response['depositList'], $currency, $since, $limit);
     }
 
@@ -857,6 +867,27 @@ class binance extends Exchange {
             $request['startTime'] = $since;
         }
         $response = $this->wapiGetWithdrawHistory (array_merge ($request, $params));
+        //
+        //     { withdrawList => array ( array (      amount =>  14,
+        //                             address => "0x0123456789abcdef...",
+        //                         successTime =>  1514489710000,
+        //                          addressTag => "",
+        //                                txId => "0x0123456789abcdef...",
+        //                                  id => "0123456789abcdef...",
+        //                               asset => "ETH",
+        //                           applyTime =>  1514488724000,
+        //                              status =>  6                       ),
+        //                       {      amount =>  7600,
+        //                             address => "0x0123456789abcdef...",
+        //                         successTime =>  1515323226000,
+        //                          addressTag => "",
+        //                                txId => "0x0123456789abcdef...",
+        //                                  id => "0123456789abcdef...",
+        //                               asset => "ICN",
+        //                           applyTime =>  1515322539000,
+        //                              status =>  6                       }  ),
+        //            success =>    true                                         }
+        //
         return $this->parseTransactions ($response['withdrawList'], $currency, $since, $limit);
     }
 
@@ -883,7 +914,30 @@ class binance extends Exchange {
     }
 
     public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //      { $insertTime =>  1517425007000,
+        //            $amount =>  0.3,
+        //           $address => "0x0123456789abcdef",
+        //        $addressTag => "",
+        //              txId => "0x0123456789abcdef",
+        //             asset => "ETH",
+        //            $status =>  1                                                                    }
+        //
+        // fetchWithdrawals
+        //
+        //       {      $amount =>  14,
+        //             $address => "0x0123456789abcdef...",
+        //         successTime =>  1514489710000,
+        //          $addressTag => "",
+        //                txId => "0x0123456789abcdef...",
+        //                  $id => "0123456789abcdef...",
+        //               asset => "ETH",
+        //           $applyTime =>  1514488724000,
+        //              $status =>  6                       }
+        //
         // $addressTag = $this->safe_string($transaction, 'addressTag'); // set but unused
+        $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
@@ -914,7 +968,7 @@ class binance extends Exchange {
         $fee = null;
         return array (
             'info' => $transaction,
-            'id' => null,
+            'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
