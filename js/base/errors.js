@@ -17,6 +17,7 @@ module.exports = subclass (
                     'PermissionDenied': {},
                     'AccountSuspended': {},
                 },
+                'BadRequest': {},
                 'BadResponse': {
                     'NullResponse': {},
                 },

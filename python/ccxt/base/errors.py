@@ -38,6 +38,7 @@ __all__ = [
     'InvalidNonce',
     'InvalidAddress',
     'AddressPending',
+    'BadRequest',
     'BadResponse',
     'NullResponse',
     'OrderNotFillable',
@@ -59,6 +60,11 @@ class ExchangeError(BaseError):
 
 class NotSupported(ExchangeError):
     """Raised if the endpoint is not offered/not yet supported by the exchange API"""
+    pass
+
+
+class BadRequest(ExchangeError):
+    """A generic exception raised by the exchange if all or some of required parameters are invalid or missing in URL query or in request body"""
     pass
 
 
