@@ -241,26 +241,14 @@ class lykke extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === 'Pending') {
-            return 'open';
-        } else if ($status === 'InOrderBook') {
-            return 'open';
-        } else if ($status === 'Processing') {
-            return 'open';
-        } else if ($status === 'Matched') {
-            return 'closed';
-        } else if ($status === 'Cancelled') {
-            return 'canceled';
-        } else if ($status === 'NotEnoughFunds') {
-            return 'NotEnoughFunds';
-        } else if ($status === 'NoLiquidity') {
-            return 'NoLiquidity';
-        } else if ($status === 'UnknownAsset') {
-            return 'UnknownAsset';
-        } else if ($status === 'LeadToNegativeSpread') {
-            return 'LeadToNegativeSpread';
-        }
-        return $status;
+        $statuses = array (
+            'Pending' => 'open',
+            'InOrderBook' => 'open',
+            'Processing' => 'open',
+            'Matched' => 'closed',
+            'Cancelled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {

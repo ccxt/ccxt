@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.266'
+const version = '1.17.267'
 
 Exchange.ccxtVersion = version
 
@@ -1266,17 +1266,14 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     parseOrderStatus (status) {
-        if (status === -1)
-            return 'canceled';
-        if (status === 0)
-            return 'open';
-        if (status === 1)
-            return 'open'; // partially filled
-        if (status === 2)
-            return 'closed';
-        if (status === 10)
-            return 'canceled';
-        return status;
+        let statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '10': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     getCreateDateField () {
@@ -38655,18 +38652,14 @@ module.exports = class huobipro extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'partial-filled') {
-            return 'open';
-        } else if (status === 'partial-canceled') {
-            return 'canceled';
-        } else if (status === 'filled') {
-            return 'closed';
-        } else if (status === 'canceled') {
-            return 'canceled';
-        } else if (status === 'submitted') {
-            return 'open';
-        }
-        return status;
+        let statuses = {
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'submitted': 'open',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -45889,26 +45882,14 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'Pending') {
-            return 'open';
-        } else if (status === 'InOrderBook') {
-            return 'open';
-        } else if (status === 'Processing') {
-            return 'open';
-        } else if (status === 'Matched') {
-            return 'closed';
-        } else if (status === 'Cancelled') {
-            return 'canceled';
-        } else if (status === 'NotEnoughFunds') {
-            return 'NotEnoughFunds';
-        } else if (status === 'NoLiquidity') {
-            return 'NoLiquidity';
-        } else if (status === 'UnknownAsset') {
-            return 'UnknownAsset';
-        } else if (status === 'LeadToNegativeSpread') {
-            return 'LeadToNegativeSpread';
-        }
-        return status;
+        let statuses = {
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
