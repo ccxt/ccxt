@@ -696,8 +696,6 @@ module.exports = class cobinhood extends Exchange {
             id = depositId;
             address = this.safeString (transaction, 'from_address');
         }
-        let toAddress = this.safeString (transaction, 'to_address');
-        let fromAddress = this.safeString (transaction, 'from_address');
         return {
             'info': transaction,
             'id': id,
