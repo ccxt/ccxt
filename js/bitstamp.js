@@ -562,6 +562,7 @@ module.exports = class bitstamp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
+            'tag': undefined,
             'type': type,
             'amount': amount,
             'currency': code,

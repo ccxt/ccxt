@@ -386,6 +386,7 @@ module.exports = class gemini extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
+            'tag': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,

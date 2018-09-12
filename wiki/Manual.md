@@ -2539,6 +2539,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'timestamp': 1534081184515,             // timestamp in milliseconds
     'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
     'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
+    'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
     'type':     'deposit',   // or 'withdrawal', string
     'amount':    1.2345,     // float
     'currency': 'ETH',       // a common unified currency code, string
@@ -2556,6 +2557,8 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 - The `updated` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it `withdrawal` or `deposit`. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports `created_at` and `confirmed_at` for a transaction, then the `updated` field will take the value of `Math.max (created_at, confirmed_at)`, that is, the timestamp of the most recent change of the status.
 - The `updated` field may be undefined in certain exchange-specific cases.
 - The `fee` substructure may be missing, if not supplied within the reply coming from the exchange.
+- Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
 
 #### Deposits
 

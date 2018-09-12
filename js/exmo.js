@@ -922,17 +922,19 @@ module.exports = class exmo extends Exchange {
             }
         }
         return {
+            'info': transaction,
             'id': undefined,
             'currency': code,
             'amount': amount,
             'address': address,
+            'tag': undefined, // refix it properly
             'status': status,
             'type': type,
             'updated': undefined,
             'txid': txid,
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fee': fee,
-            'info': transaction,
         };
     }
 

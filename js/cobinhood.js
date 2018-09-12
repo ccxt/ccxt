@@ -696,6 +696,8 @@ module.exports = class cobinhood extends Exchange {
             id = depositId;
             address = this.safeString (transaction, 'from_address');
         }
+        const additionalInfo = this.safeValue (transactions, 'additional_info', {});
+        const tag = this.safeString (additionalInfo, 'memo');
         return {
             'info': transaction,
             'id': id,
@@ -703,6 +705,7 @@ module.exports = class cobinhood extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'tag': tag, // refix it properly
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,

@@ -935,9 +935,9 @@ module.exports = class binance extends Exchange {
         //           applyTime:  1514488724000,
         //              status:  6                       }
         //
-        // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
@@ -972,6 +972,7 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
