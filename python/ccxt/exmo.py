@@ -854,17 +854,19 @@ class exmo (Exchange):
                     'rate': None,
                 }
         return {
+            'info': transaction,
             'id': None,
             'currency': code,
             'amount': amount,
             'address': address,
+            'tag': None,  # refix it properly
             'status': status,
             'type': type,
             'updated': None,
             'txid': txid,
             'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fee': fee,
-            'info': transaction,
         }
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):

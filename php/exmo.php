@@ -923,17 +923,19 @@ class exmo extends Exchange {
             }
         }
         return array (
+            'info' => $transaction,
             'id' => null,
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
+            'tag' => null, // refix it properly
             'status' => $status,
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
-            'info' => $transaction,
         );
     }
 

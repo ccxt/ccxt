@@ -919,7 +919,7 @@ class binance extends Exchange {
         //      { $insertTime =>  1517425007000,
         //            $amount =>  0.3,
         //           $address => "0x0123456789abcdef",
-        //        $addressTag => "",
+        //        addressTag => "",
         //              txId => "0x0123456789abcdef",
         //             asset => "ETH",
         //            $status =>  1                                                                    }
@@ -929,16 +929,16 @@ class binance extends Exchange {
         //       {      $amount =>  14,
         //             $address => "0x0123456789abcdef...",
         //         successTime =>  1514489710000,
-        //          $addressTag => "",
+        //          addressTag => "",
         //                txId => "0x0123456789abcdef...",
         //                  $id => "0123456789abcdef...",
         //               asset => "ETH",
         //           $applyTime =>  1514488724000,
         //              $status =>  6                       }
         //
-        // $addressTag = $this->safe_string($transaction, 'addressTag'); // set but unused
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
+        $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
@@ -973,6 +973,7 @@ class binance extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $address,
+            'tag' => $tag,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

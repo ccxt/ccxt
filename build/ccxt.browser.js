@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.277'
+const version = '1.17.278'
 
 Exchange.ccxtVersion = version
 
@@ -7065,9 +7065,9 @@ module.exports = class binance extends Exchange {
         //           applyTime:  1514488724000,
         //              status:  6                       }
         //
-        // let addressTag = this.safeString (transaction, 'addressTag'); // set but unused
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
+        let tag = this.safeString (transaction, 'addressTag'); // set but unused
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
@@ -7102,6 +7102,7 @@ module.exports = class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -9383,6 +9384,7 @@ module.exports = class bitfinex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'address'),
+            'tag': this.safeString (transaction, 'description'), // refix it properly for the tag
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
@@ -14288,6 +14290,7 @@ module.exports = class bitstamp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
+            'tag': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -22047,6 +22050,8 @@ module.exports = class cobinhood extends Exchange {
             id = depositId;
             address = this.safeString (transaction, 'from_address');
         }
+        const additionalInfo = this.safeValue (transaction, 'additional_info', {});
+        const tag = this.safeString (additionalInfo, 'memo');
         return {
             'info': transaction,
             'id': id,
@@ -22054,6 +22059,7 @@ module.exports = class cobinhood extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
+            'tag': tag, // refix it properly
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
@@ -31233,17 +31239,19 @@ module.exports = class exmo extends Exchange {
             }
         }
         return {
+            'info': transaction,
             'id': undefined,
             'currency': code,
             'amount': amount,
             'address': address,
+            'tag': undefined, // refix it properly
             'status': status,
             'type': type,
             'updated': undefined,
             'txid': txid,
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fee': fee,
-            'info': transaction,
         };
     }
 
@@ -34976,6 +34984,7 @@ module.exports = class gdax extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
+            'tag': undefined, // or is it defined?
             'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
@@ -35469,6 +35478,7 @@ module.exports = class gemini extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
+            'tag': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,

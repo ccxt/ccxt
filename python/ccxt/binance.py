@@ -876,9 +876,9 @@ class binance (Exchange):
         #           applyTime:  1514488724000,
         #              status:  6                       }
         #
-        # addressTag = self.safe_string(transaction, 'addressTag')  # set but unused
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'addressTag')  # set but unused
         txid = self.safe_value(transaction, 'txId')
         code = None
         currencyId = self.safe_string(transaction, 'currency')
@@ -909,6 +909,7 @@ class binance (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,

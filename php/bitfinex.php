@@ -881,6 +881,7 @@ class bitfinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $this->safe_string($transaction, 'address'),
+            'tag' => $this->safe_string($transaction, 'description'), // refix it properly for the tag
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,

@@ -614,6 +614,7 @@ class gdax extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => null, // or is it defined?
+            'tag' => null, // or is it defined?
             'type' => $this->safe_string($transaction, 'type'), // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,

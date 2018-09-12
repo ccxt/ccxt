@@ -656,6 +656,8 @@ class cobinhood (Exchange):
             type = 'deposit'
             id = depositId
             address = self.safe_string(transaction, 'from_address')
+        additionalInfo = self.safe_value(transaction, 'additional_info', {})
+        tag = self.safe_string(additionalInfo, 'memo')
         return {
             'info': transaction,
             'id': id,
@@ -663,6 +665,7 @@ class cobinhood (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'tag': tag,  # refix it properly
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
