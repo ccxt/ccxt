@@ -643,18 +643,27 @@ class cobinhood (Exchange):
                 code = self.common_currency_code(currencyId)
         if currency is not None:
             code = currency['code']
-        type = self.safe_string(transaction, 'type')
-        if type is not None:
-            typeParts = type.split('_')
-            type = typeParts[0]
+        id = None
+        withdrawalId = self.safe_string(transaction, 'withdrawal_id')
+        depositId = self.safe_string(transaction, 'deposit_id')
+        type = None
+        address = None
+        if withdrawalId is not None:
+            type = 'withdrawal'
+            id = withdrawalId
+            address = self.safe_string(transaction, 'to_address')
+        elif depositId is not None:
+            type = 'deposit'
+            id = depositId
+            address = self.safe_string(transaction, 'from_address')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'withdrawal_id'),
+            'id': id,
             'txid': self.safe_string(transaction, 'txhash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # or is it defined?
-            'type': type,  # direction of the transaction,('deposit' | 'withdrawal')
+            'address': address,
+            'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(transaction['status']),

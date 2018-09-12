@@ -46,6 +46,7 @@ class exmo (Exchange):
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',

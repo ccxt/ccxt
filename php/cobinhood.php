@@ -683,19 +683,28 @@ class cobinhood extends Exchange {
         if ($currency !== null) {
             $code = $currency['code'];
         }
-        $type = $this->safe_string($transaction, 'type');
-        if ($type !== null) {
-            $typeParts = explode ('_', $type);
-            $type = $typeParts[0];
+        $id = null;
+        $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
+        $depositId = $this->safe_string($transaction, 'deposit_id');
+        $type = null;
+        $address = null;
+        if ($withdrawalId !== null) {
+            $type = 'withdrawal';
+            $id = $withdrawalId;
+            $address = $this->safe_string($transaction, 'to_address');
+        } else if ($depositId !== null) {
+            $type = 'deposit';
+            $id = $depositId;
+            $address = $this->safe_string($transaction, 'from_address');
         }
         return array (
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'withdrawal_id'),
+            'id' => $id,
             'txid' => $this->safe_string($transaction, 'txhash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'address' => null, // or is it defined?
-            'type' => $type, // direction of the $transaction, ('deposit' | 'withdrawal')
+            'address' => $address,
+            'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status ($transaction['status']),
