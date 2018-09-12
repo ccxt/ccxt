@@ -569,14 +569,26 @@ class cobinhood (Exchange):
         response = self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
+        #
+        #     {success:    True,
+        #        result: {deposit_addresses: [{      address: "abcdefg",
+        #                                         blockchain_id: "eosio",
+        #                                            created_at:  1536768050235,
+        #                                              currency: "EOS",
+        #                                                  memo: "12345678",
+        #                                                  type: "exchange"      }]} }
+        #
         addresses = self.safe_value(response['result'], 'deposit_addresses', [])
         address = None
+        tag = None
         if len(addresses) > 0:
             address = self.safe_string(addresses[0], 'address')
+            tag = self.safe_string_2(addresses[0], 'memo', 'tag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 

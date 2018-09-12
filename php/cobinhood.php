@@ -598,15 +598,27 @@ class cobinhood extends Exchange {
         $response = $this->privateGetWalletDepositAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
+        //
+        //     { success =>    true,
+        //        result => { deposit_addresses => array ( {       $address => "abcdefg",
+        //                                         blockchain_id => "eosio",
+        //                                            created_at =>  1536768050235,
+        //                                              $currency => "EOS",
+        //                                                  memo => "12345678",
+        //                                                  type => "exchange"      } ) } }
+        //
         $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
         $address = null;
+        $tag = null;
         if (strlen ($addresses) > 0) {
             $address = $this->safe_string($addresses[0], 'address');
+            $tag = $this->safe_string_2($addresses[0], 'memo', 'tag');
         }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }

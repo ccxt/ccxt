@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.278'
+const version = '1.17.279'
 
 Exchange.ccxtVersion = version
 
@@ -21951,15 +21951,27 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
+        //
+        //     { success:    true,
+        //        result: { deposit_addresses: [ {       address: "abcdefg",
+        //                                         blockchain_id: "eosio",
+        //                                            created_at:  1536768050235,
+        //                                              currency: "EOS",
+        //                                                  memo: "12345678",
+        //                                                  type: "exchange"      } ] } }
+        //
         let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
         let address = undefined;
+        let tag = undefined;
         if (addresses.length > 0) {
             address = this.safeString (addresses[0], 'address');
+            tag = this.safeString2 (addresses[0], 'memo', 'tag');
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
