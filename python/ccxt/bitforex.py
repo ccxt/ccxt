@@ -288,7 +288,7 @@ class bitforex (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        sideId = self.safe_string(trade, 'direction')
+        sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
         return {
             'info': trade,

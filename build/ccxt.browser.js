@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.275'
+const version = '1.17.276'
 
 Exchange.ccxtVersion = version
 
@@ -10705,7 +10705,7 @@ module.exports = class bitforex extends Exchange {
                 cost = amount * price;
             }
         }
-        let sideId = this.safeString (trade, 'direction');
+        let sideId = this.safeInteger (trade, 'direction');
         let side = this.parseSide (sideId);
         return {
             'info': trade,
