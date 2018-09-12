@@ -281,7 +281,7 @@ module.exports = class bitforex extends Exchange {
                 cost = amount * price;
             }
         }
-        let sideId = this.safeString (trade, 'direction');
+        let sideId = this.safeInteger (trade, 'direction');
         let side = this.parseSide (sideId);
         return {
             'info': trade,
