@@ -341,7 +341,7 @@ module.exports = class fcoin extends Exchange {
         let orderType = type;
         let request = {
             'symbol': this.marketId (symbol),
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': this.amountToString (symbol, amount),
             'side': side,
             'type': orderType,
         };
