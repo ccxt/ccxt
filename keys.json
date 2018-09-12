@@ -54,6 +54,7 @@
     "fybse":         { "skip": true, "apiKey": "gY7y57RlYqKN5ZI50O5C", "secret": "1qm63Ojf5a" },
     "gateio":        { "skip": true },
     "gemini":        { "skip": true },
+    "hadax":         { "skip": true },
     "hitbtc":        { "skip": true },
     "hitbtc2":       { "skip": true },
     "huobi":         { "skip": true },
