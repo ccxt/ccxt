@@ -148,6 +148,7 @@ class huobipro (Exchange):
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
                 'api-signature-check-failed': AuthenticationError,
+                'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
