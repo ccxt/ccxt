@@ -18,6 +18,7 @@ class hadax extends huobipro {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',
                 'api' => array (
+                    'market' => 'https://api.hadax.com',
                     'public' => 'https://api.hadax.com',
                     'private' => 'https://api.hadax.com',
                 ),

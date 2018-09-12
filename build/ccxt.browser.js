@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.276'
+const version = '1.17.277'
 
 Exchange.ccxtVersion = version
 
@@ -35593,6 +35593,7 @@ module.exports = class hadax extends huobipro {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg',
                 'api': {
+                    'market': 'https://api.hadax.com',
                     'public': 'https://api.hadax.com',
                     'private': 'https://api.hadax.com',
                 },
@@ -38215,6 +38216,7 @@ module.exports = class huobipro extends Exchange {
                 'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
                 'order-update-error': ExchangeNotAvailable, // undocumented error
                 'api-signature-check-failed': AuthenticationError,
+                'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
