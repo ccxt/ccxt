@@ -355,6 +355,7 @@ class gemini (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,  # or is it defined?
+            'tag': None,  # or is it defined?
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,

@@ -530,6 +530,7 @@ class bitstamp (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
+            'tag': None,
             'type': type,
             'amount': amount,
             'currency': code,

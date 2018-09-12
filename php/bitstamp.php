@@ -563,6 +563,7 @@ class bitstamp extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => null,
+            'tag' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,

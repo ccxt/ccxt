@@ -697,6 +697,8 @@ class cobinhood extends Exchange {
             $id = $depositId;
             $address = $this->safe_string($transaction, 'from_address');
         }
+        $additionalInfo = $this->safe_value($transaction, 'additional_info', array ());
+        $tag = $this->safe_string($additionalInfo, 'memo');
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -704,6 +706,7 @@ class cobinhood extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $address,
+            'tag' => $tag, // refix it properly
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
