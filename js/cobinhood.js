@@ -696,7 +696,7 @@ module.exports = class cobinhood extends Exchange {
             id = depositId;
             address = this.safeString (transaction, 'from_address');
         }
-        const additionalInfo = this.safeValue (transactions, 'additional_info', {});
+        const additionalInfo = this.safeValue (transaction, 'additional_info', {});
         const tag = this.safeString (additionalInfo, 'memo');
         return {
             'info': transaction,
