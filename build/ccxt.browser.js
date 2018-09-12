@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.274'
+const version = '1.17.275'
 
 Exchange.ccxtVersion = version
 
@@ -28326,6 +28326,8 @@ module.exports = class cointiger extends huobipro {
                             } else if (code === '2') {
                                 if (message === 'offsetNot Null') {
                                     throw new ExchangeError (feedback);
+                                } else if (message === 'api_keyNot EXIST') {
+                                    throw new AuthenticationError (feedback);
                                 } else if (message === 'Parameter error') {
                                     throw new BadRequest (feedback);
                                 }

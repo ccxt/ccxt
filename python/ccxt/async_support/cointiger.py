@@ -803,6 +803,8 @@ class cointiger (huobipro):
                             elif code == '2':
                                 if message == 'offsetNot Null':
                                     raise ExchangeError(feedback)
+                                elif message == 'api_keyNot EXIST':
+                                    raise AuthenticationError(feedback)
                                 elif message == 'Parameter error':
                                     raise BadRequest(feedback)
                             raise exceptions[code](feedback)
