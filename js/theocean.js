@@ -52,6 +52,7 @@ module.exports = class theocean extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'balance',
                         'available_balance',
                         'user_history',
                     ],
