@@ -492,9 +492,6 @@ module.exports = class bitstamp extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.privatePostUserTransactions (this.extend (request, params));
-        let deposits = this.filterBy (response, 'type', '0');
-        let withdrawals = this.filterBy (response, 'type', '1');
-        let transactions = this.arrayConcat (deposits, withdrawals);
         //
         //     [
         //         {
@@ -510,12 +507,12 @@ module.exports = class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        let parsedTransactions = this.parseTransactions (transactions, undefined, since, limit);
+        let currency = undefined;
         if (code !== undefined) {
-            // parseTransactions determines the currency, so we can filter by currency after parsing
-            return this.filterBy (parsedTransactions, 'currency', code.toUpperCase ());
+            currency = this.currency (code);
         }
-        return parsedTransactions;
+        let transactions = this.filterByArray (response, 'type', [ '0', '1' ], false);
+        return this.parseTransactions (transactions, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -535,15 +532,12 @@ module.exports = class bitstamp extends Exchange {
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         let code = undefined;
         let id = this.safeString (transaction, 'id');
-        let currencyId = undefined;
-        if (currency === undefined) {
-            currencyId = this.getCurrencyIdFromTransaction (transaction);
-            if (currencyId in this.currencies_by_id) {
-                currency = this.currencies_by_id[currencyId];
-            } else if (currencyId !== undefined) {
-                code = currencyId.toUpperCase ();
-                code = this.commonCurrencyCode (code);
-            }
+        let currencyId = this.getCurrencyIdFromTransaction (transaction);
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+        } else if (currencyId !== undefined) {
+            code = currencyId.toUpperCase ();
+            code = this.commonCurrencyCode (code);
         }
         let feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
@@ -557,7 +551,7 @@ module.exports = class bitstamp extends Exchange {
             feeCurrency = code;
         }
         if (amount !== undefined) {
-            // Withdrawals have a negative amount
+            // withdrawals have a negative amount
             amount = Math.abs (amount);
         }
         let type = this.safeString (transaction, 'type');
