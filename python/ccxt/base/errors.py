@@ -38,6 +38,7 @@ __all__ = [
     'InvalidNonce',
     'InvalidAddress',
     'AddressPending',
+    'ArgumentsRequired',
     'BadRequest',
     'BadResponse',
     'NullResponse',
@@ -60,6 +61,11 @@ class ExchangeError(BaseError):
 
 class NotSupported(ExchangeError):
     """Raised if the endpoint is not offered/not yet supported by the exchange API"""
+    pass
+
+
+class ArgumentsRequired(ExchangeError):
+    """A generic exception raised by unified methods when required arguments are missing."""
     pass
 
 
