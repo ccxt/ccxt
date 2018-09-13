@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.284'
+const version = '1.17.285'
 
 Exchange.ccxtVersion = version
 
@@ -34431,6 +34431,7 @@ module.exports = class gdax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 60,
@@ -34978,9 +34979,11 @@ module.exports = class gdax extends Exchange {
             throw new ExchangeError (this.id + ' fetchTransactions() could not find account id for ' + code);
         }
         let request = {
-            'limit': limit,
             'id': accountId,
         };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         let response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
         for (let i = 0; i < response.length; i++) {
             response[i]['currency'] = code;
@@ -35001,29 +35004,42 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.safeInteger (transaction, 'created_at');
+        const details = this.safeValue (transaction, 'details', {});
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (details, 'crypto_transaction_hash');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
-        }
-        if (currency !== undefined) {
             code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
         }
         let fee = undefined;
+        const status = this.parseTransactionStatus (transaction);
+        const amount = this.safeFloat (transaction, 'amount');
+        let type = this.safeString (transaction, 'type');
+        let address = this.safeString (details, 'crypto_address');
+        address = this.safeString (transaction, 'crypto_address', address);
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+            address = this.safeString (details, 'sent_to_address', address);
+        }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined, // or is it defined?
-            'tag': undefined, // or is it defined?
-            'type': this.safeString (transaction, 'type'), // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeFloat (transaction, 'amount'),
+            'address': address,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': this.parseTransactionStatus (transaction),
-            'updated': undefined,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         };
     }

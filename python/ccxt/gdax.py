@@ -36,6 +36,7 @@ class gdax (Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchTransactions': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -541,9 +542,10 @@ class gdax (Exchange):
         if accountId is None:
             raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
         request = {
-            'limit': limit,
             'id': accountId,
         }
+        if limit is not None:
+            request['limit'] = limit
         response = self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
@@ -560,27 +562,40 @@ class gdax (Exchange):
             return 'failed'
 
     def parse_transaction(self, transaction, currency=None):
-        timestamp = self.safe_integer(transaction, 'created_at')
+        details = self.safe_value(transaction, 'details', {})
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(details, 'crypto_transaction_hash')
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
+        updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         code = None
         currencyId = self.safe_string(transaction, 'currency')
         if currencyId in self.currencies_by_id:
             currency = self.currencies_by_id[currencyId]
-        if currency is not None:
             code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
         fee = None
+        status = self.parse_transaction_status(transaction)
+        amount = self.safe_float(transaction, 'amount')
+        type = self.safe_string(transaction, 'type')
+        address = self.safe_string(details, 'crypto_address')
+        address = self.safe_string(transaction, 'crypto_address', address)
+        if type == 'withdraw':
+            type = 'withdrawal'
+            address = self.safe_string(details, 'sent_to_address', address)
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
-            'txid': self.safe_string(transaction['details'], 'crypto_transaction_hash'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # or is it defined?
-            'tag': None,  # or is it defined?
-            'type': self.safe_string(transaction, 'type'),  # direction of the transaction,('deposit' | 'withdraw')
-            'amount': self.safe_float(transaction, 'amount'),
+            'address': address,
+            'tag': None,
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': self.parse_transaction_status(transaction),
-            'updated': None,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         }
 
