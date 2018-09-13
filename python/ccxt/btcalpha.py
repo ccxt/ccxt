@@ -237,13 +237,17 @@ class btcalpha (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currency = self.common_currency_code(balance['currency'])
-            account = {
-                'free': float(balance['balance']),
-                'used': float(balance['reserve']),
-                'total': 0.0,
+            used = self.safe_float(balance, 'reserve')
+            total = self.safe_float(balance, 'balance')
+            free = None
+            if used is not None:
+                if total is not None:
+                    free = total - used
+            result[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
             }
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
