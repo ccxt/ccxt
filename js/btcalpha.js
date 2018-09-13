@@ -235,7 +235,7 @@ module.exports = class btcalpha extends Exchange {
             let balance = balances[i];
             let currency = this.commonCurrencyCode (balance['currency']);
             let account = {
-                'free': 0.0
+                'free': 0.0,
                 'used': parseFloat (balance['reserve']),
                 'total': parseFloat (balance['balance']),
             };
