@@ -497,13 +497,24 @@ module.exports = class bitstamp extends Exchange {
         //         {
         //             "fee": "0.00000000",
         //             "btc_usd": "0.00",
-        //             "datetime": '2018-01-01T00:00:00',
-        //             "usd": 0.0,
-        //             "btc": 0.0,
-        //             "eth": "0.05000000",
+        //             "id": 1234567894,
+        //             "usd": 0,
+        //             "btc": 0,
+        //             "datetime": "2018-09-08 09:00:31",
+        //             "type": "1",
+        //             "xrp": "-20.00000000",
+        //             "eur": 0,
+        //         },
+        //         {
+        //             "fee": "0.00000000",
+        //             "btc_usd": "0.00",
+        //             "id": 1134567891,
+        //             "usd": 0,
+        //             "btc": 0,
+        //             "datetime": "2018-09-07 18:47:52",
         //             "type": "0",
-        //             "id": '123456789',
-        //             "eur": 0.0,
+        //             "xrp": "20.00000000",
+        //             "eur": 0,
         //         },
         //     ]
         //
@@ -520,14 +531,14 @@ module.exports = class bitstamp extends Exchange {
         //     {
         //         "fee": "0.00000000",
         //         "btc_usd": "0.00",
-        //         "datetime": XXX,
-        //         "usd": 0.0,
-        //         "btc": 0.0,
-        //         "eth": "0.05000000",
-        //         "type": "0",
-        //         "id": XXX,
-        //         "eur": 0.0,
-        //     }
+        //         "id": 1234567894,
+        //         "usd": 0,
+        //         "btc": 0,
+        //         "datetime": "2018-09-08 09:00:31",
+        //         "type": "1",
+        //         "xrp": "-20.00000000",
+        //         "eur": 0,
+        //     },
         //
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         let code = undefined;
