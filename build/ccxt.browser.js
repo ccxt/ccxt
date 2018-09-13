@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.285'
+const version = '1.17.286'
 
 Exchange.ccxtVersion = version
 
@@ -3000,6 +3000,7 @@ module.exports = subclass (
                     'PermissionDenied': {},
                     'AccountSuspended': {},
                 },
+                'ArgumentsRequired': {},
                 'BadRequest': {},
                 'BadResponse': {
                     'NullResponse': {},
