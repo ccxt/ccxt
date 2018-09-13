@@ -881,7 +881,7 @@ class binance (Exchange):
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
         txid = self.safe_value(transaction, 'txId')
         code = None
-        currencyId = self.safe_string(transaction, 'currency')
+        currencyId = self.safe_string(transaction, 'asset')
         if currencyId in self.currencies_by_id:
             currency = self.currencies_by_id[currencyId]
         else:

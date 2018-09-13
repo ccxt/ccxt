@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.283'
+const version = '1.17.284'
 
 Exchange.ccxtVersion = version
 
@@ -7070,7 +7070,7 @@ module.exports = class binance extends Exchange {
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'currency');
+        let currencyId = this.safeString (transaction, 'asset');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
         } else {

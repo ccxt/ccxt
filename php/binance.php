@@ -941,7 +941,7 @@ class binance extends Exchange {
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
-        $currencyId = $this->safe_string($transaction, 'currency');
+        $currencyId = $this->safe_string($transaction, 'asset');
         if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
             $currency = $this->currencies_by_id[$currencyId];
         } else {
