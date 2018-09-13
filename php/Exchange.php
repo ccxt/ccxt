@@ -834,6 +834,9 @@ class Exchange {
         $this->restRequestQueue         = null;
         $this->restPollerLoopIsRunning  = false;
         $this->enableRateLimit          = false;
+        $this->enableLastJsonResponse = true;
+        $this->enableLastHttpResponse = true;
+        $this->enableLastResponseHeaders = true;
         $this->last_http_response = null;
         $this->last_json_response = null;
         $this->last_response_headers = null;
@@ -1101,17 +1104,27 @@ class Exchange {
         $result = curl_exec ($this->curl);
 
         $this->lastRestRequestTimestamp = $this->milliseconds ();
-        $this->last_http_response = $result;
-        $this->last_response_headers = $response_headers;
+
+        if ($this->enableLastHttpResponse) {
+            $this->last_http_response = $result;
+        }
+
+        if ($this->enableLastResponseHeaders) {
+            $this->last_response_headers = $response_headers;
+        }
+
+        $json_response = null;
 
         if ($this->parseJsonResponse) {
 
-            $this->last_json_response =
+            $json_response =
                 ((gettype ($result) == 'string') &&  (strlen ($result) > 1)) ?
                     json_decode ($result, $as_associative_array = true) : null;
 
+            if ($this->enableLastJsonResponse) {
+                $this->last_json_response = $json_response;
+            }
         }
-
 
         $curl_errno = curl_errno ($this->curl);
         $curl_error = curl_error ($this->curl);
@@ -1201,7 +1214,7 @@ class Exchange {
         }
 
 
-        if ($this->parseJsonResponse && !$this->last_json_response) {
+        if ($this->parseJsonResponse && !$json_response) {
 
             if (preg_match ('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
 
@@ -1222,7 +1235,7 @@ class Exchange {
             }
         }
 
-        return $this->parseJsonResponse ? $this->last_json_response : $result;
+        return $this->parseJsonResponse ? $json_response : $result;
     }
 
     public function set_markets ($markets, $currencies = null) {

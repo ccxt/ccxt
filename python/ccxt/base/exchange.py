@@ -205,6 +205,9 @@ class Exchange(object):
     rateLimitTokens = 16
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
+    enableLastHttpResponse = True
+    enableLastJsonResponse = True
+    enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None
     last_response_headers = None
@@ -384,6 +387,7 @@ class Exchange(object):
         self.session.cookies.clear()
 
         response = None
+        http_response = None
         try:
             response = self.session.request(
                 method,
@@ -393,11 +397,15 @@ class Exchange(object):
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies
             )
-            self.last_http_response = response.text
-            self.last_response_headers = response.headers
+            http_response = response.text
+            if self.enableLastHttpResponse:
+                self.last_http_response = http_response
+            headers = response.headers
+            if self.enableLastResponseHeaders:
+                self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, str(response.status_code), str(response.headers), self.last_http_response)
-            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, response.headers, self.last_http_response)
+                print("\nResponse:", method, url, str(response.status_code), str(headers), http_response)
+            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, headers, http_response)
             response.raise_for_status()
 
         except Timeout as e:
@@ -410,9 +418,9 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, self.last_http_response)
-            self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
-            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+            self.handle_errors(response.status_code, response.reason, url, method, headers, http_response)
+            self.handle_rest_errors(e, response.status_code, http_response, url, method)
+            self.raise_error(ExchangeError, url, method, e, http_response)
 
         except RequestException as e:  # base exception class
             error_string = str(e)
@@ -421,8 +429,8 @@ class Exchange(object):
             else:
                 self.raise_error(ExchangeError, url, method, e)
 
-        self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
-        return self.handle_rest_response(self.last_http_response, url, method, headers, body)
+        self.handle_errors(response.status_code, response.reason, url, method, None, http_response)
+        return self.handle_rest_response(http_response, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
@@ -449,9 +457,10 @@ class Exchange(object):
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                last_json_response = json.loads(response) if len(response) > 1 else None
-                self.last_json_response = last_json_response
-                return last_json_response
+                json_response = json.loads(response) if len(response) > 1 else None
+                if self.enableLastJsonResponse:
+                    self.last_json_response = json_response
+                return json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError

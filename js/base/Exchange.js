@@ -286,6 +286,9 @@ module.exports = class Exchange {
         this.trades      = {}
         this.transactions = {}
 
+        this.enableLastJsonResponse = true
+        this.enableLastHttpResponse = true
+        this.enableLastResponseHeaders = true
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
@@ -605,9 +608,17 @@ module.exports = class Exchange {
 
             let responseHeaders = this.getResponseHeaders (response)
 
-            this.last_response_headers = responseHeaders
-            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
-            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            if (this.enableLastResponseHeaders) {
+                this.last_response_headers = responseHeaders
+            }
+
+            if (this.enableLastHttpResponse) {
+                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            }
+
+            if (this.enableLastJsonResponse) {
+                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            }
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
