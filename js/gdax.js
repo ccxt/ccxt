@@ -599,39 +599,42 @@ module.exports = class gdax extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.parse8601 (transaction['created_at']);
-        let processed = this.parse8601 (transaction['processed_at']);
+        const details = this.safeValue (transaction, 'details', {});
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (details, 'crypto_transaction_hash');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
+        const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
-        }
-        if (currency !== undefined) {
             code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
         }
         let fee = undefined;
-        let details = transaction['details'];
-        let fromAddress = undefined;
-        let toAddress = undefined;
-        if (details !== undefined) {
-            if ('crypto_address' in details)
-                fromAddress = details['crypto_address'];
-            if ('sent_to_address' in details)
-                toAddress = details['sent_to_address'];
+        const status = this.parseTransactionStatus (transaction);
+        const amount = this.safeFloat (transaction, 'amount');
+        let type = this.safeString (transaction, 'type');
+        let address = this.safeString (details, 'crypto_address');
+        address = this.safeString (transaction ,'crypto_address', address);
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+            address = this.safeString (details, 'sent_to_address', address);
         }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction['details'], 'crypto_transaction_hash'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': toAddress || fromAddress,
+            'address': address,
             'tag': undefined,
-            'type': this.safeString (transaction, 'type'),
-            'amount': this.safeFloat (transaction, 'amount'),
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': this.parseTransactionStatus (transaction),
-            'updated': processed,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         };
     }
