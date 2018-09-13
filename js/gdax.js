@@ -617,7 +617,7 @@ module.exports = class gdax extends Exchange {
         const amount = this.safeFloat (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
-        address = this.safeString (transaction ,'crypto_address', address);
+        address = this.safeString (transaction, 'crypto_address', address);
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
