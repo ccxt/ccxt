@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.286'
+const version = '1.17.287'
 
 Exchange.ccxtVersion = version
 
@@ -7225,7 +7225,7 @@ module.exports = class binance extends Exchange {
             if (body.indexOf ('LOT_SIZE') >= 0)
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
             if (body.indexOf ('PRICE_FILTER') >= 0)
-                throw new InvalidOrder (this.id + ' order price exceeds allowed price precision or invalid, use this.priceToPrecision (symbol, amount) ' + body);
+                throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
         }
         if (body.length > 0) {
             if (body[0] === '{') {
