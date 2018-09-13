@@ -275,7 +275,7 @@ class bitstamp (Exchange):
             id = ids[i]
             if id.find('_') < 0:
                 value = self.safe_float(transaction, id)
-                if (value is not None) and(value > 0):
+                if (value is not None) and(value != 0):
                     return id
         return None
 
@@ -465,49 +465,61 @@ class bitstamp (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.privatePostUserTransactions(self.extend(request, params))
-        result = self.filter_by_array(response, 'type', ['0', '1'])
         #
         #     [
         #         {
         #             "fee": "0.00000000",
         #             "btc_usd": "0.00",
-        #             "datetime": '2018-01-01T00:00:00',
-        #             "usd": 0.0,
-        #             "btc": 0.0,
-        #             "eth": "0.05000000",
+        #             "id": 1234567894,
+        #             "usd": 0,
+        #             "btc": 0,
+        #             "datetime": "2018-09-08 09:00:31",
+        #             "type": "1",
+        #             "xrp": "-20.00000000",
+        #             "eur": 0,
+        #         },
+        #         {
+        #             "fee": "0.00000000",
+        #             "btc_usd": "0.00",
+        #             "id": 1134567891,
+        #             "usd": 0,
+        #             "btc": 0,
+        #             "datetime": "2018-09-07 18:47:52",
         #             "type": "0",
-        #             "id": '123456789',
-        #             "eur": 0.0,
+        #             "xrp": "20.00000000",
+        #             "eur": 0,
         #         },
         #     ]
         #
-        return self.parseTransactions(result, None, since, limit)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
+        return self.parseTransactions(transactions, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
         #     {
         #         "fee": "0.00000000",
         #         "btc_usd": "0.00",
-        #         "datetime": XXX,
-        #         "usd": 0.0,
-        #         "btc": 0.0,
-        #         "eth": "0.05000000",
-        #         "type": "0",
-        #         "id": XXX,
-        #         "eur": 0.0,
-        #     }
+        #         "id": 1234567894,
+        #         "usd": 0,
+        #         "btc": 0,
+        #         "datetime": "2018-09-08 09:00:31",
+        #         "type": "1",
+        #         "xrp": "-20.00000000",
+        #         "eur": 0,
+        #     },
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
         code = None
         id = self.safe_string(transaction, 'id')
-        currencyId = None
-        if currency is None:
-            currencyId = self.get_currency_id_from_transaction(transaction)
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            elif currencyId is not None:
-                code = currencyId.upper()
-                code = self.common_currency_code(code)
+        currencyId = self.get_currency_id_from_transaction(transaction)
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        elif currencyId is not None:
+            code = currencyId.upper()
+            code = self.common_currency_code(code)
         feeCost = self.safe_float(transaction, 'fee')
         feeCurrency = None
         amount = None
@@ -518,6 +530,9 @@ class bitstamp (Exchange):
         elif (code is not None) and(currencyId is not None):
             amount = self.safe_float(transaction, currencyId, amount)
             feeCurrency = code
+        if amount is not None:
+            # withdrawals have a negative amount
+            amount = abs(amount)
         type = self.safe_string(transaction, 'type')
         if type == '0':
             type = 'deposit'
