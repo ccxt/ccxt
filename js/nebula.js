@@ -64,6 +64,12 @@ module.exports = class nebula extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'coins',
+                        'symbols',
+                        'exchanges',
+                        'tradehistory',
+                        'orderbook',
+                        'orderbookL3',
                         'orders',
                         'orders/closed',
                         'orders/canceled',
@@ -142,7 +148,8 @@ module.exports = class nebula extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetCoins ();
+        let signed = this.safeValue (params, 'signed', false);
+        let currencies = signed ? await this.privateGetCoins () : await this.publicGetCoins ();
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
@@ -220,7 +227,8 @@ module.exports = class nebula extends Exchange {
         request['endpoint'] = this.marketId (symbol);
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        let orderbook = await this.publicGetOrderbook (request);
+        let signed = this.safeValue (params, 'signed', false);
+        let orderbook = signed ? await this.privateGetOrderbook (request) : await this.publicGetOrderbook (request);
         if (typeof orderbook === 'undefined')
             return undefined;
         return this.parseOrderBook (orderbook, orderbook['timestamp'], 'bids', 'asks', 'price', 'amount');
@@ -362,7 +370,8 @@ module.exports = class nebula extends Exchange {
             params['token'] = market['base'];
             params['against'] = market['quote'];
         }
-        let tickers = await this.publicGetExchanges (params);
+        let signed = this.safeValue (params, 'signed', false);
+        let tickers = signed ? await this.privateGetExchanges (params) : await this.publicGetExchanges (params);
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
@@ -432,7 +441,9 @@ module.exports = class nebula extends Exchange {
         }
         if (typeof limit !== 'undefined')
             request['limit'] = limit;
-        let response = await this.publicGetTradehistory (this.extend (request));
+        let signed = this.safeValue (params, 'signed', false);
+        let response = signed ? await this.privateGetTradehistory (this.extend (request)) :
+            await this.publicGetTradehistory (this.extend (request));
         return this.parseTrades (response, market);
     }
 
@@ -578,6 +589,8 @@ module.exports = class nebula extends Exchange {
                     throw new ExchangeError (feedback);
                 } else if (message.indexOf ('country is restricted') >= 0) {
                     throw new ExchangeError (feedback);
+                } else if (message.indexOf ('ValidationError') >= 0) {
+                    throw new ExchangeError (feedback);
                 }
                 throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
             }
@@ -590,12 +603,12 @@ module.exports = class nebula extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '';
-        let parameters = params;
+        let parameters = this.omit (params, ['signed']);
         if (Object.keys (params).length) {
             endpoint = this.safeValue (params, 'endpoint', '');
             if (endpoint !== '') {
                 endpoint = '/' + endpoint;
-                parameters = this.omit (params, ['endpoint']);
+                parameters = this.omit (params, ['endpoint', 'signed']);
             }
         }
         let query = '/' + this.version + '/' + path + endpoint;
