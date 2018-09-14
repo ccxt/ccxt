@@ -261,7 +261,9 @@ module.exports = class theocean extends Exchange {
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
             throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
-        const codes = this.safeValue (params, 'codes');
+        let codes = this.safeValue (this.options, 'fetchBalanceCurrencies');
+        if (codes === undefined)
+            codes = this.safeValue (params, 'codes');
         if ((codes === undefined) || (!Array.isArray (codes))) {
             throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
