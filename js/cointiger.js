@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const huobipro = require ('./huobipro.js');
-const { ExchangeError, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -481,7 +481,7 @@ module.exports = class cointiger extends huobipro {
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchOrdersByStatus (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatusV1 (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
@@ -505,12 +505,51 @@ module.exports = class cointiger extends huobipro {
         return result;
     }
 
+    async fetchOpenOrdersV1 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatusV1 ('open', symbol, since, limit, params);
+    }
+
+    async fetchOrdersV1 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatusV1 (undefined, symbol, since, limit, params);
+    }
+
+    async fetchOrdersByStatesV2 (states, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (limit === undefined)
+            limit = 50;
+        let response = await this.v2GetOrderOrders (this.extend ({
+            'symbol': market['id'],
+            // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            'states': states, // 'new,part_filled,filled,canceled,expired'
+            // 'from': '0', // id
+            'direct': 'next', // or 'next'
+            'size': limit,
+        }, params));
+        return this.parseOrders (response['data'], market, since, limit);
+        // let orders = ;
+        // let result = [];
+        // for (let i = 0; i < orders.length; i++) {
+        //     let order = this.extend (orders[i], {
+        //         'status': status,
+        //     });
+        //     result.push (this.parseOrder (order, market));
+        // }
+        // return result;
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatesV2 ('new,part_filled,filled,canceled,expired', symbol, since, limit, params);
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+        return await this.fetchOrdersByStatesV2 ('new,part_filled', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+        return await this.fetchOrdersByStatesV2 ('filled,canceled', symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -664,8 +703,11 @@ module.exports = class cointiger extends huobipro {
             }
         }
         if (status === undefined) {
-            if ((remaining !== undefined) && (remaining > 0))
-                status = 'open';
+            if (remaining !== undefined) {
+                if (remaining === 0) {
+                    status = 'closed';
+                }
+            }
         }
         let result = {
             'info': order,
@@ -691,8 +733,9 @@ module.exports = class cointiger extends huobipro {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (!this.password)
+        if (!this.password) {
             throw new AuthenticationError (this.id + ' createOrder requires exchange.password to be set to user trading password (not login password!)');
+        }
         this.checkRequiredCredentials ();
         let market = this.market (symbol);
         let orderType = (type === 'limit') ? 1 : 2;
