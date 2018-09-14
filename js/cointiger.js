@@ -525,19 +525,10 @@ module.exports = class cointiger extends huobipro {
             // 'types': 'buy-market,sell-market,buy-limit,sell-limit',
             'states': states, // 'new,part_filled,filled,canceled,expired'
             // 'from': '0', // id
-            'direct': 'next', // or 'next'
+            'direct': 'next', // or 'prev'
             'size': limit,
         }, params));
         return this.parseOrders (response['data'], market, since, limit);
-        // let orders = ;
-        // let result = [];
-        // for (let i = 0; i < orders.length; i++) {
-        //     let order = this.extend (orders[i], {
-        //         'status': status,
-        //     });
-        //     result.push (this.parseOrder (order, market));
-        // }
-        // return result;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
