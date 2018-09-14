@@ -27,6 +27,7 @@ class gdax extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchTransactions' => true,
             ),
             'timeframes' => array (
                 '1m' => 60,
@@ -574,9 +575,11 @@ class gdax extends Exchange {
             throw new ExchangeError ($this->id . ' fetchTransactions() could not find $account id for ' . $code);
         }
         $request = array (
-            'limit' => $limit,
             'id' => $accountId,
         );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
         $response = $this->privateGetAccountsIdTransfers (array_merge ($request, $params));
         for ($i = 0; $i < count ($response); $i++) {
             $response[$i]['currency'] = $code;
@@ -597,29 +600,42 @@ class gdax extends Exchange {
     }
 
     public function parse_transaction ($transaction, $currency = null) {
-        $timestamp = $this->safe_integer($transaction, 'created_at');
+        $details = $this->safe_value($transaction, 'details', array ());
+        $id = $this->safe_string($transaction, 'id');
+        $txid = $this->safe_string($details, 'crypto_transaction_hash');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
+        $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
         if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
             $currency = $this->currencies_by_id[$currencyId];
-        }
-        if ($currency !== null) {
             $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
         }
         $fee = null;
+        $status = $this->parse_transaction_status ($transaction);
+        $amount = $this->safe_float($transaction, 'amount');
+        $type = $this->safe_string($transaction, 'type');
+        $address = $this->safe_string($details, 'crypto_address');
+        $address = $this->safe_string($transaction, 'crypto_address', $address);
+        if ($type === 'withdraw') {
+            $type = 'withdrawal';
+            $address = $this->safe_string($details, 'sent_to_address', $address);
+        }
         return array (
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'id'),
-            'txid' => $this->safe_string($transaction['details'], 'crypto_transaction_hash'),
+            'id' => $id,
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'address' => null, // or is it defined?
-            'tag' => null, // or is it defined?
-            'type' => $this->safe_string($transaction, 'type'), // direction of the $transaction, ('deposit' | 'withdraw')
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'address' => $address,
+            'tag' => null,
+            'type' => $type,
+            'amount' => $amount,
             'currency' => $code,
-            'status' => $this->parse_transaction_status ($transaction),
-            'updated' => null,
+            'status' => $status,
+            'updated' => $updated,
             'fee' => $fee,
         );
     }
