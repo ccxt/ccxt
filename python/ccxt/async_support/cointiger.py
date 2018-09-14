@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -472,7 +473,7 @@ class cointiger (huobipro):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    async def fetch_orders_by_status(self, status=None, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_status_v1(self, status=None, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
@@ -494,11 +495,37 @@ class cointiger (huobipro):
             result.append(self.parse_order(order, market))
         return result
 
+    async def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_status_v1('open', symbol, since, limit, params)
+
+    async def fetch_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_status_v1(None, symbol, since, limit, params)
+
+    async def fetch_orders_by_states_v2(self, states, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 50
+        response = await self.v2GetOrderOrders(self.extend({
+            'symbol': market['id'],
+            # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            'states': states,  # 'new,part_filled,filled,canceled,expired'
+            # 'from': '0',  # id
+            'direct': 'next',  # or 'prev'
+            'size': limit,
+        }, params))
+        return self.parse_orders(response['data'], market, since, limit)
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_states_v2('new,part_filled,filled,canceled,expired', symbol, since, limit, params)
+
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
+        return await self.fetch_orders_by_states_v2('new,part_filled', symbol, since, limit, params)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        return await self.fetch_orders_by_states_v2('filled,canceled', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         #
@@ -638,8 +665,9 @@ class cointiger (huobipro):
                 if remaining is None:
                     remaining = max(0, amount - filled)
         if status is None:
-            if (remaining is not None) and(remaining > 0):
-                status = 'open'
+            if remaining is not None:
+                if remaining == 0:
+                    status = 'closed'
         result = {
             'info': order,
             'id': id,

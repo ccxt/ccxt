@@ -482,7 +482,7 @@ class cointiger extends huobipro {
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status ($status = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status_v1 ($status = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
             throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
@@ -506,12 +506,42 @@ class cointiger extends huobipro {
         return $result;
     }
 
+    public function fetch_open_orders_v1 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_status_v1 ('open', $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_orders_v1 ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_status_v1 (null, $symbol, $since, $limit, $params);
+    }
+
+    public function fetch_orders_by_states_v2 ($states, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        if ($limit === null)
+            $limit = 50;
+        $response = $this->v2GetOrderOrders (array_merge (array (
+            'symbol' => $market['id'],
+            // 'types' => 'buy-$market,sell-$market,buy-$limit,sell-limit',
+            'states' => $states, // 'new,part_filled,filled,canceled,expired'
+            // 'from' => '0', // id
+            'direct' => 'next', // or 'prev'
+            'size' => $limit,
+        ), $params));
+        return $this->parse_orders($response['data'], $market, $since, $limit);
+    }
+
+    public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_states_v2 ('new,part_filled,filled,canceled,expired', $symbol, $since, $limit, $params);
+    }
+
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('open', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states_v2 ('new,part_filled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_status ('closed', $symbol, $since, $limit, $params);
+        return $this->fetch_orders_by_states_v2 ('filled,canceled', $symbol, $since, $limit, $params);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -665,8 +695,11 @@ class cointiger extends huobipro {
             }
         }
         if ($status === null) {
-            if (($remaining !== null) && ($remaining > 0))
-                $status = 'open';
+            if ($remaining !== null) {
+                if ($remaining === 0) {
+                    $status = 'closed';
+                }
+            }
         }
         $result = array (
             'info' => $order,
@@ -692,8 +725,9 @@ class cointiger extends huobipro {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if (!$this->password)
+        if (!$this->password) {
             throw new AuthenticationError ($this->id . ' createOrder requires exchange.password to be set to user trading password (not login password!)');
+        }
         $this->check_required_credentials();
         $market = $this->market ($symbol);
         $orderType = ($type === 'limit') ? 1 : 2;
