@@ -178,28 +178,77 @@ class mercado (Exchange):
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        return await self.privatePostCancelOrder(self.extend({
+        response = await self.privatePostCancelOrder(self.extend({
             'coin_pair': market['id'],
             'order_id': id,
         }, params))
+        #
+        #     {        response_data: {order: {          order_id:    2176769,
+        #                                                  coin_pair:   "BRLBCH",
+        #                                                 order_type:    2,
+        #                                                     status:    3,
+        #                                                  has_fills:    False,
+        #                                                   quantity:   "0.10000000",
+        #                                                limit_price:   "1996.15999",
+        #                                          executed_quantity:   "0.00000000",
+        #                                         executed_price_avg:   "0.00000",
+        #                                                        fee:   "0.00000000",
+        #                                          created_timestamp:   "1536956488",
+        #                                          updated_timestamp:   "1536956499",
+        #                                                 operations: []              }},
+        #                 status_code:    100,
+        #       server_unix_timestamp:   "1536956499"                                      }
+        #
+        return self.parse_order(response['response_data']['order'], market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            '2': 'open',
+            '3': 'canceled',
+            '4': 'closed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "order_id": 4,
+        #         "coin_pair": "BRLBTC",
+        #         "order_type": 1,
+        #         "status": 2,
+        #         "has_fills": True,
+        #         "quantity": "2.00000000",
+        #         "limit_price": "900.00000",
+        #         "executed_quantity": "1.00000000",
+        #         "executed_price_avg": "900.00000",
+        #         "fee": "0.00300000",
+        #         "created_timestamp": "1453838494",
+        #         "updated_timestamp": "1453838494",
+        #         "operations": [
+        #             {
+        #                 "operation_id": 1,
+        #                 "quantity": "1.00000000",
+        #                 "price": "900.00000",
+        #                 "fee_rate": "0.30",
+        #                 "executed_timestamp": "1453838494",
+        #             },
+        #         ],
+        #     }
+        #
+        id = self.safe_string(order, 'order_id')
         side = None
         if 'order_type' in order:
             side = 'buy' if (order['order_type'] == 1) else 'sell'
-        status = order['status']
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
-            if 'coin_pair' in order:
-                if order['coin_pair'] in self.markets_by_id:
-                    market = self.markets_by_id[order['coin_pair']]
-        if market:
+            marketId = self.safe_string(order, 'coin_pair')
+            market = self.safe_value(self.markets_by_id, marketId)
+        if market is not None:
             symbol = market['symbol']
-        timestamp = None
-        if 'created_timestamp' in order:
-            timestamp = int(order['created_timestamp']) * 1000
-        if 'updated_timestamp' in order:
-            timestamp = int(order['updated_timestamp']) * 1000
+        timestamp = self.safeIneteger(order, 'created_timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         fee = {
             'cost': self.safe_float(order, 'fee'),
             'currency': market['quote'],
@@ -211,12 +260,15 @@ class mercado (Exchange):
         filled = self.safe_float(order, 'executed_quantity')
         remaining = amount - filled
         cost = amount * average
+        lastTradeTimestamp = self.safe_integer(order, 'updated_timestamp')
+        if lastTradeTimestamp is not None:
+            lastTradeTimestamp = lastTradeTimestamp * 1000
         result = {
             'info': order,
-            'id': str(order['order_id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
             'side': side,
@@ -228,6 +280,7 @@ class mercado (Exchange):
             'remaining': remaining,
             'status': status,
             'fee': fee,
+            'trades': None,  # todo parse trades(operations)
         }
         return result
 
