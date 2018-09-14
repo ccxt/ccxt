@@ -186,27 +186,26 @@ module.exports = class mercado extends Exchange {
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        // let response = await this.privatePostCancelOrder (this.extend ({
-        //     'coin_pair': market['id'],
-        //     'order_id': id,
-        // }, params));
-        const response =
+        let response = await this.privatePostCancelOrder (this.extend ({
+            'coin_pair': market['id'],
+            'order_id': id,
+        }, params));
         //
-            {         response_data: { order: {           order_id:    2176769,
-                                                         coin_pair:   "BRLBCH",
-                                                        order_type:    2,
-                                                            status:    3,
-                                                         has_fills:    false,
-                                                          quantity:   "0.10000000",
-                                                       limit_price:   "1996.15999",
-                                                 executed_quantity:   "0.00000000",
-                                                executed_price_avg:   "0.00000",
-                                                               fee:   "0.00000000",
-                                                 created_timestamp:   "1536956488",
-                                                 updated_timestamp:   "1536956499",
-                                                        operations: []              } },
-                        status_code:    100,
-              server_unix_timestamp:   "1536956499"                                      }
+        //     {         response_data: { order: {           order_id:    2176769,
+        //                                                  coin_pair:   "BRLBCH",
+        //                                                 order_type:    2,
+        //                                                     status:    3,
+        //                                                  has_fills:    false,
+        //                                                   quantity:   "0.10000000",
+        //                                                limit_price:   "1996.15999",
+        //                                          executed_quantity:   "0.00000000",
+        //                                         executed_price_avg:   "0.00000",
+        //                                                        fee:   "0.00000000",
+        //                                          created_timestamp:   "1536956488",
+        //                                          updated_timestamp:   "1536956499",
+        //                                                 operations: []              } },
+        //                 status_code:    100,
+        //       server_unix_timestamp:   "1536956499"                                      }
         //
         return this.parseOrder (response['response_data']['order'], market);
     }
