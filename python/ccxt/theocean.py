@@ -75,6 +75,7 @@ class theocean (Exchange):
                 },
                 'private': {
                     'get': [
+                        'balance',
                         'available_balance',
                         'user_history',
                     ],
@@ -256,17 +257,17 @@ class theocean (Exchange):
             'walletAddress': self.walletAddress.lower(),
             'tokenAddress': currency['id'],
         }
-        response = self.privateGetAvailableBalance(self.extend(request, params))
+        response = self.privateGetBalance(self.extend(request, params))
         #
-        #     {
-        #       "availableBalance": "1001006594219628829207"
-        #     }
+        #     {"available":"0","committed":"0","total":"0"}
         #
-        balance = self.fromWei(self.safe_string(response, 'availableBalance'))
+        free = self.fromWei(self.safe_string(response, 'available'))
+        used = self.fromWei(self.safe_string(response, 'committed'))
+        total = self.fromWei(self.safe_string(response, 'total'))
         return {
-            'free': balance,
-            'used': 0,
-            'total': None,
+            'free': free,
+            'used': used,
+            'total': total,
         }
 
     def fetch_balance(self, params={}):

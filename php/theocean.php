@@ -56,6 +56,7 @@ class theocean extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'balance',
                         'available_balance',
                         'user_history',
                     ),
@@ -246,17 +247,17 @@ class theocean extends Exchange {
             'walletAddress' => strtolower ($this->walletAddress),
             'tokenAddress' => $currency['id'],
         );
-        $response = $this->privateGetAvailableBalance (array_merge ($request, $params));
+        $response = $this->privateGetBalance (array_merge ($request, $params));
         //
-        //     {
-        //       "availableBalance" => "1001006594219628829207"
-        //     }
+        //     array ("available":"0","committed":"0","$total":"0")
         //
-        $balance = $this->fromWei ($this->safe_string($response, 'availableBalance'));
+        $free = $this->fromWei ($this->safe_string($response, 'available'));
+        $used = $this->fromWei ($this->safe_string($response, 'committed'));
+        $total = $this->fromWei ($this->safe_string($response, 'total'));
         return array (
-            'free' => $balance,
-            'used' => 0,
-            'total' => null,
+            'free' => $free,
+            'used' => $used,
+            'total' => $total,
         );
     }
 

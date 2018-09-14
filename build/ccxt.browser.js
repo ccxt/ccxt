@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.289'
+const version = '1.17.290'
 
 Exchange.ccxtVersion = version
 
@@ -51576,6 +51576,7 @@ module.exports = class theocean extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'balance',
                         'available_balance',
                         'user_history',
                     ],
@@ -51766,17 +51767,17 @@ module.exports = class theocean extends Exchange {
             'walletAddress': this.walletAddress.toLowerCase (),
             'tokenAddress': currency['id'],
         };
-        let response = await this.privateGetAvailableBalance (this.extend (request, params));
+        let response = await this.privateGetBalance (this.extend (request, params));
         //
-        //     {
-        //       "availableBalance": "1001006594219628829207"
-        //     }
+        //     {"available":"0","committed":"0","total":"0"}
         //
-        let balance = this.fromWei (this.safeString (response, 'availableBalance'));
+        let free = this.fromWei (this.safeString (response, 'available'));
+        let used = this.fromWei (this.safeString (response, 'committed'));
+        let total = this.fromWei (this.safeString (response, 'total'));
         return {
-            'free': balance,
-            'used': 0,
-            'total': undefined,
+            'free': free,
+            'used': used,
+            'total': total,
         };
     }
 
