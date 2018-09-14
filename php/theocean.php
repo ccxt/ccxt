@@ -265,7 +265,9 @@ class theocean extends Exchange {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress ($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
-        $codes = $this->safe_value($params, 'codes');
+        $codes = $this->safe_value($this->options, 'fetchBalanceCurrencies');
+        if ($codes === null)
+            $codes = $this->safe_value($params, 'codes');
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
             throw new ExchangeError ($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }

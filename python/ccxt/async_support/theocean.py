@@ -273,7 +273,9 @@ class theocean (Exchange):
     async def fetch_balance(self, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):
             raise InvalidAddress(self.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
-        codes = self.safe_value(params, 'codes')
+        codes = self.safe_value(self.options, 'fetchBalanceCurrencies')
+        if codes is None:
+            codes = self.safe_value(params, 'codes')
         if (codes is None) or (not isinstance(codes, list)):
             raise ExchangeError(self.id + ' fetchBalance() requires a `codes` parameter(an array of currency codes)')
         await self.load_markets()
