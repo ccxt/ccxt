@@ -258,7 +258,7 @@ module.exports = class mercado extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeIneteger (order, 'created_timestamp');
+        let timestamp = this.safeInteger (order, 'created_timestamp');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
