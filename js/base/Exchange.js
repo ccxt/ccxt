@@ -1084,7 +1084,7 @@ module.exports = class Exchange {
             function(trade){
                 let tradeMarket = market
                 if (tradeMarket === undefined) {
-                    tradeMarket = this.findMarket(this.safeString(trade, 'market'));
+                    tradeMarket = this.findMarket (this.safeString (trade, 'market'));
                 }
                 return this.parseTrade (trade, tradeMarket)
             }
@@ -1106,9 +1106,9 @@ module.exports = class Exchange {
             function(order){
                 let orderMarket = market
                 if (orderMarket === undefined) {
-                    orderMarket = this.findMarket(this.safeString(order, 'market'));
+                    orderMarket = this.findMarket (this.safeString (order, 'market'));
                 }
-                return this.parseTrade (order, orderMarket)
+                return this.parseOrder (order, orderMarket)
             }
         )
         result = sortBy (result, 'timestamp')
