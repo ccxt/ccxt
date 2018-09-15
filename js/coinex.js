@@ -251,6 +251,9 @@ module.exports = class coinex extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
+        if (market === undefined) {
+            market = this.findMarket (this.safeString (trade, 'market'));
+        }
         let symbol = market['symbol'];
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost)
@@ -368,6 +371,9 @@ module.exports = class coinex extends Exchange {
         let cost = this.safeFloat (order, 'deal_money');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
+        if (market === undefined) {
+            market = this.findMarket (this.safeString (order, 'market'));
+        }
         let symbol = market['symbol'];
         let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
