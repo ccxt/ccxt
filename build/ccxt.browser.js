@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.294'
+const version = '1.17.295'
 
 Exchange.ccxtVersion = version
 
@@ -27554,7 +27554,7 @@ module.exports = class cointiger extends huobipro {
                 'fetchTickers': true,
                 'fetchTradingLimits': false,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': false, // not tested yet
