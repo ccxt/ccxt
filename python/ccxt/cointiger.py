@@ -37,7 +37,7 @@ class cointiger (huobipro):
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
                 'fetchOrder': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': False,  # not tested yet
