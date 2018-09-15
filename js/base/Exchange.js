@@ -1082,7 +1082,7 @@ module.exports = class Exchange {
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (trades || []).map (
             function(trade){
-                tradeMarket = market
+                let tradeMarket = market
                 if (tradeMarket === undefined) {
                     tradeMarket = this.findMarket(this.safeString(trade, 'market'));
                 }
@@ -1104,7 +1104,7 @@ module.exports = class Exchange {
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders || []).map (
             function(order){
-                orderMarket = market
+                let orderMarket = market
                 if (orderMarket === undefined) {
                     orderMarket = this.findMarket(this.safeString(order, 'market'));
                 }
