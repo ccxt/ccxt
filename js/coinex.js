@@ -452,14 +452,13 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        let request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            request['market'] = market['id'];
         }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'market': market['id'],
-        };
         if (limit !== undefined)
             request['limit'] = limit;
         let method = 'privateGetOrder' + this.capitalize (status);
@@ -476,16 +475,17 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderUserDeals (this.extend ({
-            'market': market['id'],
+        let request = {
             'page': 1,
             'limit': 100,
-        }, params));
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let response = await this.privateGetOrderUserDeals (this.extend (request, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
     }
 

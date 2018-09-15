@@ -1080,7 +1080,15 @@ module.exports = class Exchange {
     }
 
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
+        let result = Object.values (trades || []).map (
+            function(trade){
+                tradeMarket = market
+                if (tradeMarket === undefined) {
+                    tradeMarket = this.findMarket(this.safeString(trade, 'market'));
+                }
+                return this.parseTrade (trade, tradeMarket)
+            }
+        )
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
@@ -1094,7 +1102,15 @@ module.exports = class Exchange {
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (orders).map (order => this.parseOrder (order, market))
+        let result = Object.values (orders || []).map (
+            function(order){
+                orderMarket = market
+                if (orderMarket === undefined) {
+                    orderMarket = this.findMarket(this.safeString(order, 'market'));
+                }
+                return this.parseTrade (order, orderMarket)
+            }
+        )
         result = sortBy (result, 'timestamp')
         let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
