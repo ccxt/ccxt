@@ -453,13 +453,14 @@ class coinex extends Exchange {
     }
 
     public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array ();
-        $market = null;
-        if ($symbol !== null) {
-            $this->load_markets();
-            $market = $this->market ($symbol);
-            $request['market'] = $market['id'];
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
         }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'market' => $market['id'],
+        );
         if ($limit !== null)
             $request['limit'] = $limit;
         $method = 'privateGetOrder' . $this->capitalize ($status);
@@ -476,17 +477,16 @@ class coinex extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        if ($symbol === null) {
+            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $response = $this->privateGetOrderUserDeals (array_merge (array (
+            'market' => $market['id'],
             'page' => 1,
             'limit' => 100,
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $this->load_markets();
-            $market = $this->market ($symbol);
-            $request['market'] = $market['id'];
-        }
-        $response = $this->privateGetOrderUserDeals (array_merge ($request, $params));
+        ), $params));
         return $this->parse_trades($response['data']['data'], $market, $since, $limit);
     }
 
