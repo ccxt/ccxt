@@ -26,6 +26,7 @@ class coinmarketcap extends Exchange {
                 'editOrder' => false,
                 'fetchBalance' => false,
                 'fetchOrderBook' => false,
+                'fetchL2OrderBook' => false,
                 'fetchOHLCV' => false,
                 'fetchTrades' => false,
                 'fetchTickers' => true,

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.299'
+const version = '1.17.300'
 
 Exchange.ccxtVersion = version
 
@@ -25662,6 +25662,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,

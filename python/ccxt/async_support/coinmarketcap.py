@@ -27,6 +27,7 @@ class coinmarketcap (Exchange):
                 'editOrder': False,
                 'fetchBalance': False,
                 'fetchOrderBook': False,
+                'fetchL2OrderBook': False,
                 'fetchOHLCV': False,
                 'fetchTrades': False,
                 'fetchTickers': True,
