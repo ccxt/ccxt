@@ -247,7 +247,11 @@ class coinex (Exchange):
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
+        marketId = self.safe_string(trade, 'market')
+        market = self.safe_value(self.markets_by_id, marketId)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
             cost = float(self.cost_to_precision(symbol, price * amount))
@@ -357,9 +361,17 @@ class coinex (Exchange):
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
-        symbol = market['symbol']
+        symbol = None
+        marketId = self.safe_string(order, 'market')
+        market = self.safe_value(self.markets_by_id, marketId)
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
         remaining = float(self.amount_to_precision(symbol, amount - filled))
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.safe_string(order, 'order_type')
+        side = self.safe_string(order, 'type')
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
@@ -367,8 +379,8 @@ class coinex (Exchange):
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['order_type'],
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -376,7 +388,7 @@ class coinex (Exchange):
             'remaining': remaining,
             'trades': None,
             'fee': {
-                'currency': market['quote'],
+                'currency': feeCurrency,
                 'cost': self.safe_float(order, 'deal_fee'),
             },
             'info': order,
@@ -431,18 +443,20 @@ class coinex (Exchange):
         return self.parse_order(response['data'], market)
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
+        if limit is None:
+            limit = 100
         request = {
-            'market': market['id'],
+            'page': 1,
+            'limit': limit,
         }
-        if limit is not None:
-            request['limit'] = limit
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
         method = 'privateGetOrder' + self.capitalize(status)
         response = getattr(self, method)(self.extend(request, params))
-        return self.parse_orders(response['data']['data'], market)
+        return self.parse_orders(response['data']['data'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_status('pending', symbol, since, limit, params)
@@ -451,15 +465,18 @@ class coinex (Exchange):
         return self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        response = self.privateGetOrderUserDeals(self.extend({
-            'market': market['id'],
+        if limit is None:
+            limit = 100
+        request = {
             'page': 1,
-            'limit': 100,
-        }, params))
+            'limit': limit,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        response = self.privateGetOrderUserDeals(self.extend(request, params))
         return self.parse_trades(response['data']['data'], market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
