@@ -731,6 +731,7 @@ class Exchange {
         $this->proxy     = '';
         $this->origin    = '*'; // CORS origin
         $this->headers   = array ();
+        $this->hostname  = null; // in case of inaccessibility of the "main" domain
 
         $this->options   = array (); // exchange-specific options if any
 

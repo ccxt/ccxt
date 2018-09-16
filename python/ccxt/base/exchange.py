@@ -124,6 +124,7 @@ class Exchange(object):
     proxy = ''
     origin = '*'  # CORS origin
     proxies = None
+    hostname = None  # in case of inaccessibility of the "main" domain
     apiKey = ''
     secret = ''
     password = ''
