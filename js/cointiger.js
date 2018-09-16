@@ -13,7 +13,7 @@ module.exports = class cointiger extends huobipro {
             'id': 'cointiger',
             'name': 'CoinTiger',
             'countries': [ 'CN' ],
-            'hostname': 'api.cointiger.pro',
+            'hostname': 'cointiger.pro',
             'has': {
                 'fetchCurrencies': false,
                 'fetchTickers': true,
@@ -31,11 +31,11 @@ module.exports = class cointiger extends huobipro {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api': {
-                    'public': 'https://api.cointiger.pro/exchange/trading/api/market',
-                    'private': 'https://api.cointiger.pro/exchange/trading/api',
-                    'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'public': 'https://api.{hostname}/exchange/trading/api/market',
+                    'private': 'https://api.{hostname}/exchange/trading/api',
+                    'exchange': 'https://www.{hostname}/exchange',
+                    'v2public': 'https://api.{hostname}/exchange/trading/api/v2',
+                    'v2': 'https://api.{hostname}/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -812,7 +812,10 @@ module.exports = class cointiger extends huobipro {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+        let url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        });
+        url += '/' + this.implodeParams (path, params);
         if (api === 'private' || api === 'v2') {
             let timestamp = this.milliseconds ().toString ();
             let query = this.keysort (this.extend ({
