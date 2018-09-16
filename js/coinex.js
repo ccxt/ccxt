@@ -251,10 +251,12 @@ module.exports = class coinex extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        if (market === undefined) {
-            market = this.findMarket (this.safeString (trade, 'market'));
+        let marketId = this.safeString (trade, 'market');
+        market = this.safeValue (this.markets_by_id, marketId);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
         }
-        let symbol = market['symbol'];
         let cost = this.safeFloat (trade, 'deal_money');
         if (!cost)
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
@@ -372,16 +374,13 @@ module.exports = class coinex extends Exchange {
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'market');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
+        let marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId);
         let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let symbol = market['symbol'];
         let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'order_type');
