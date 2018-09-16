@@ -77,7 +77,7 @@ class Exchange(BaseExchange):
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=True)
 
     async def close(self):
         if self.session is not None:
