@@ -1544,7 +1544,7 @@ class Exchange {
     }
 
     public function filter_by_currency_since_limit ($array, $code = null, $since = null, $limit = null) {
-        return $this->filter_by_currency_since_limit ($array, 'currency', $code, $since, $limit);
+        return $this->filter_by_value_since_limit ($array, 'currency', $code, $since, $limit);
     }
 
     public function filterByCurrencySinceLimit ($array, $code = null, $since = null, $limit = null) {
