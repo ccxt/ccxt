@@ -371,12 +371,21 @@ module.exports = class coinex extends Exchange {
         let cost = this.safeFloat (order, 'deal_money');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
+        let symbol = undefined;
         if (market === undefined) {
-            market = this.findMarket (this.safeString (order, 'market'));
+            let marketId = this.safeString (order, 'market');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        let feeCurrency = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            feeCurrency = market['quote'];
         }
         let symbol = market['symbol'];
         let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let type = this.safeString (order, 'order_type');
+        let side = this.safeString (order, 'type');
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -384,8 +393,8 @@ module.exports = class coinex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['order_type'],
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -393,7 +402,7 @@ module.exports = class coinex extends Exchange {
             'remaining': remaining,
             'trades': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'deal_fee'),
             },
             'info': order,
@@ -458,18 +467,22 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let request = {};
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 100;
+        }
+        let request = {
+            'page': 1,
+            'limit': limit,
+        };
         let market = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        if (limit !== undefined)
-            request['limit'] = limit;
         let method = 'privateGetOrder' + this.capitalize (status);
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['data']['data'], market);
+        return this.parseOrders (response['data']['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -481,13 +494,16 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 100;
+        }
         let request = {
             'page': 1,
-            'limit': 100,
+            'limit': limit,
         };
         let market = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
             request['market'] = market['id'];
         }
