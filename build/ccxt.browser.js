@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.295'
+const version = '1.17.296'
 
 Exchange.ccxtVersion = version
 
@@ -46451,7 +46451,7 @@ module.exports = class mercado extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeIneteger (order, 'created_timestamp');
+        let timestamp = this.safeInteger (order, 'created_timestamp');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }

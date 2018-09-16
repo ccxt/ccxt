@@ -259,7 +259,7 @@ class mercado extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safeIneteger ($order, 'created_timestamp');
+        $timestamp = $this->safe_integer($order, 'created_timestamp');
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
         }

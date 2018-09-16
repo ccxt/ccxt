@@ -246,7 +246,7 @@ class mercado (Exchange):
             market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safeIneteger(order, 'created_timestamp')
+        timestamp = self.safe_integer(order, 'created_timestamp')
         if timestamp is not None:
             timestamp = timestamp * 1000
         fee = {
