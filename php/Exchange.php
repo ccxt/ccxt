@@ -2097,7 +2097,9 @@ class Exchange {
         $result = '';
         if ($roundingMode === ROUND) {
             if ($countingMode === DECIMAL_PLACES) {
-                $result = (string) round ($x, $numPrecisionDigits, PHP_ROUND_HALF_UP);
+                // Requested precision of 100 digits was truncated to PHP maximum of 53 digits
+                $numPrecisionDigits = min (14, $numPrecisionDigits);
+                $result = number_format (round ($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
                 $significantPosition = log (abs ($x), 10) % 10;
                 if ($significantPosition > 0) {
@@ -2143,7 +2145,8 @@ class Exchange {
                 return '0';
             }
             if ($hasDot) {
-                $result = rtrim ($result, '0.');
+                $result = rtrim ($result, '0');
+                $result = rtrim ($result, '.');
             }
         } elseif ($paddingMode === PAD_WITH_ZERO) {
             if ($hasDot) {
