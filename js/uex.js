@@ -112,7 +112,7 @@ module.exports = class uex extends Exchange {
                 '110033': ExchangeError, // fail to recharge
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
-                '-1000': ExchangeNotAvailable, // {"msg":"System maintenance!","code":"-1000","data":null}
+                '-1000': ExchangeNotAvailable,
             },
             'requiredCredentials': {
                 'apiKey': true,
