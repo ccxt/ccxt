@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
     describe () {
