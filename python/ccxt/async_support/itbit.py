@@ -158,10 +158,10 @@ class itbit (Exchange):
         return self.parse_balance(result)
 
     async def fetch_wallets(self, params={}):
-        if not self.userId:
-            raise AuthenticationError(self.id + ' fetchWallets requires userId in API settings')
+        if not self.uid:
+            raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
         request = {
-            'userId': self.userId,
+            'userId': self.uid,
         }
         return self.privateGetWallets(self.extend(request, params))
 
