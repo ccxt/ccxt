@@ -80,13 +80,14 @@ module.exports = class binance extends Exchange {
                         'withdraw',
                     ],
                     'get': [
-                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ],
                 },
                 'v3': {
@@ -938,6 +939,9 @@ module.exports = class binance extends Exchange {
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        if (tag.length < 1) {
+            tag = undefined;
+        }
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
         let currencyId = this.safeString (transaction, 'asset');
@@ -964,7 +968,10 @@ module.exports = class binance extends Exchange {
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
-        let fee = undefined;
+        const feeCost = undefined;
+        let fee = {
+            'cost': feeCost,
+        };
         return {
             'info': transaction,
             'id': id,
