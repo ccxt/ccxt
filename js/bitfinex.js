@@ -881,7 +881,7 @@ module.exports = class bitfinex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'address'),
-            'tag': this.safeString (transaction, 'description'), // refix it properly for the tag
+            'tag': undefined, // refix it properly for the tag from description
             'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
