@@ -156,6 +156,29 @@ module.exports = class Exchange {
             'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
+            'httpExceptions': {
+                '422': ExchangeError,
+                '418': DDoSProtection,
+                '429': DDoSProtection,
+                '404': ExchangeNotAvailable,
+                '409': ExchangeNotAvailable,
+                '500': ExchangeNotAvailable,
+                '501': ExchangeNotAvailable,
+                '502': ExchangeNotAvailable,
+                '520': ExchangeNotAvailable,
+                '521': ExchangeNotAvailable,
+                '522': ExchangeNotAvailable,
+                '525': ExchangeNotAvailable,
+                '400': ExchangeNotAvailable,
+                '403': ExchangeNotAvailable,
+                '405': ExchangeNotAvailable,
+                '503': ExchangeNotAvailable,
+                '530': ExchangeNotAvailable,
+                '408': RequestTimeout,
+                '504': RequestTimeout,
+                '401': AuthenticationError,
+                '511': AuthenticationError,
+            },
             // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
             // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
             // still, some exchanges report number of open orders together with balance
@@ -543,7 +566,7 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (response, responseBody, url, method) {
-        const { status: code, statusText: reason } = response
+        let { status: code, statusText: reason } = response
         if ((code >= 200) && (code <= 299))
             return
         let error = undefined
@@ -551,16 +574,11 @@ module.exports = class Exchange {
         let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
-        if ([ 418, 429 ].includes (code)) {
-            error = DDoSProtection
-        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
-            error = ExchangeNotAvailable
-        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
-            if (ddosProtection) {
+        error = this.httpExceptions[code.toString ()] || ExchangeError
+        if (error === ExchangeNotAvailable) {
+            if (responseBody.match (/cloudflare|incapsula|overload|ddos/i)) {
                 error = DDoSProtection
             } else {
-                error = ExchangeNotAvailable
                 details += ' (possible reasons: ' + [
                     'invalid API keys',
                     'bad or old nonce',
@@ -570,12 +588,6 @@ module.exports = class Exchange {
                     'rate-limiting',
                 ].join (', ') + ')'
             }
-        } else if ([ 408, 504 ].includes (code)) {
-            error = RequestTimeout
-        } else if ([ 401, 511 ].includes (code)) {
-            error = AuthenticationError
-        } else {
-            error = ExchangeError
         }
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
     }

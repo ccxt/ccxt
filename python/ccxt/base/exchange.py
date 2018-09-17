@@ -138,6 +138,29 @@ class Exchange(object):
     precision = None
     limits = None
     exceptions = None
+    httpExceptions = {
+        '422': ExchangeError,
+        '418': DDoSProtection,
+        '429': DDoSProtection,
+        '404': ExchangeNotAvailable,
+        '409': ExchangeNotAvailable,
+        '500': ExchangeNotAvailable,
+        '501': ExchangeNotAvailable,
+        '502': ExchangeNotAvailable,
+        '520': ExchangeNotAvailable,
+        '521': ExchangeNotAvailable,
+        '522': ExchangeNotAvailable,
+        '525': ExchangeNotAvailable,
+        '400': ExchangeNotAvailable,
+        '403': ExchangeNotAvailable,
+        '405': ExchangeNotAvailable,
+        '503': ExchangeNotAvailable,
+        '530': ExchangeNotAvailable,
+        '408': RequestTimeout,
+        '504': RequestTimeout,
+        '401': AuthenticationError,
+        '511': AuthenticationError,
+    }
     headers = None
     balance = None
     orderbooks = None
@@ -435,23 +458,12 @@ class Exchange(object):
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
-        if http_status_code in [418, 429]:
-            error = DDoSProtection
-        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
-            error = ExchangeNotAvailable
-        elif http_status_code in [422]:
-            error = ExchangeError
-        elif http_status_code in [400, 403, 405, 503, 530]:
-            # special case to detect ddos protection
-            error = ExchangeNotAvailable
-            if response:
-                ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
-                if ddos_protection:
+        string_code = str(http_status_code)
+        if string_code in self.httpExceptions:
+            error = self.httpExceptions[string_code]
+            if error == ExchangeNotAvailable:
+                if re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE):
                     error = DDoSProtection
-        elif http_status_code in [408, 504]:
-            error = RequestTimeout
-        elif http_status_code in [401, 511]:
-            error = AuthenticationError
         if error:
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
