@@ -83,7 +83,6 @@ module.exports = class uex extends Exchange {
             'exceptions': {
                 // descriptions from ↓ exchange
                 // '0': 'no error', // succeed
-
                 '4': InsufficientFunds, // {"code":"4","msg":"余额不足:0E-16","data":null}
                 '5': InvalidOrder, // fail to order {"code":"5","msg":"Price fluctuates more than1000.0%","data":null}
                 '6': InvalidOrder, // the quantity value less than the minimum one {"code":"6","msg":"数量小于最小值:0.001","data":null}
@@ -112,7 +111,7 @@ module.exports = class uex extends Exchange {
                 '110033': ExchangeError, // fail to recharge
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
-                '-1000': ExchangeNotAvailable,
+                '-1000': ExchangeNotAvailable, // {"msg":"System maintenance!","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': true,
