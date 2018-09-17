@@ -438,6 +438,7 @@ Below is a detailed description of each of the base exchange properties:
         'fetchBidsAsks': false,
         'fetchTrades': true,
         'withdraw': false,
+        ...
     }
     ```
 
