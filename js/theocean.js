@@ -491,10 +491,6 @@ module.exports = class theocean extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const errorMessage = this.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!this.walletAddress || (this.walletAddress.indexOf ('0x') !== 0)) {
