@@ -843,7 +843,7 @@ class bitfinex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': self.safe_string(transaction, 'address'),
-            'tag': self.safe_string(transaction, 'description'),  # refix it properly for the tag
+            'tag': None,  # refix it properly for the tag from description
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
