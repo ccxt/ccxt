@@ -368,7 +368,7 @@ class coinex (Exchange):
         if market is not None:
             symbol = market['symbol']
             feeCurrency = market['quote']
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
+        remaining = self.safe_float(order, 'left')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
         side = self.safe_string(order, 'type')

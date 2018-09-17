@@ -382,7 +382,7 @@ class coinex extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $remaining = $this->safe_float($order, 'left');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $type = $this->safe_string($order, 'order_type');
         $side = $this->safe_string($order, 'type');

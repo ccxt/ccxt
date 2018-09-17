@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.299'
+const version = '1.17.301'
 
 Exchange.ccxtVersion = version
 
@@ -23753,7 +23753,7 @@ module.exports = class coinex extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        let remaining = this.safeFloat (order, 'left');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let type = this.safeString (order, 'order_type');
         let side = this.safeString (order, 'type');
@@ -25662,6 +25662,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,
