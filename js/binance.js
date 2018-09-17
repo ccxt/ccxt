@@ -964,7 +964,10 @@ module.exports = class binance extends Exchange {
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
-        let fee = undefined;
+        const feeCost = undefined;
+        let fee = {
+            'cost': feeCost,
+        };
         return {
             'info': transaction,
             'id': id,
