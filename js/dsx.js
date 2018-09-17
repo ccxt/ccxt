@@ -63,6 +63,7 @@ module.exports = class dsx extends liqui {
                         'orders',
                         'Trade',
                         'CancelOrder',
+                        'order/status',
                     ],
                 },
                 // deposit / withdraw (private)
@@ -258,6 +259,18 @@ module.exports = class dsx extends liqui {
         }
         // trades = Object.keys (trades || []).map (trade => trades[trade].concat ({'trade_id':trade}));
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderStatus (this.extend ({
+            'orderId': parseInt (id),
+        }, params));
+        id = id.toString ();
+        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        let oldOrder = (id in this.orders) ? this.orders[id] : {};
+        this.orders[id] = this.extend (oldOrder, newOrder);
+        return this.orders[id];
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
