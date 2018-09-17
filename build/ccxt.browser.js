@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.304'
+const version = '1.17.305'
 
 Exchange.ccxtVersion = version
 
@@ -7118,7 +7118,10 @@ module.exports = class binance extends Exchange {
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
-        let fee = undefined;
+        const feeCost = undefined;
+        let fee = {
+            'cost': feeCost,
+        };
         return {
             'info': transaction,
             'id': id,
@@ -53902,6 +53905,7 @@ module.exports = class uex extends Exchange {
                 '110033': ExchangeError, // fail to recharge
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
+                '-1000': ExchangeNotAvailable, // {"msg":"System maintenance!","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': true,

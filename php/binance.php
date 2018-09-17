@@ -965,7 +965,10 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
-        $fee = null;
+        $feeCost = null;
+        $fee = array (
+            'cost' => $feeCost,
+        );
         return array (
             'info' => $transaction,
             'id' => $id,

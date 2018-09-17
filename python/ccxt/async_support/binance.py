@@ -901,7 +901,10 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        fee = None
+        feeCost = None
+        fee = {
+            'cost': feeCost,
+        }
         return {
             'info': transaction,
             'id': id,
