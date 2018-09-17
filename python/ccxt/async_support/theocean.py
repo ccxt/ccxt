@@ -23,7 +23,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class theocean (Exchange):
@@ -483,9 +482,6 @@ class theocean (Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         errorMessage = self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".'

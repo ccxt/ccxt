@@ -14,8 +14,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class kucoin (Exchange):
@@ -771,18 +771,26 @@ class kucoin (Exchange):
         #
         return self.parse_orders_by_status(orders, market, since, limit, 'closed')
 
+    def price_to_precision(self, symbol, price):
+        market = self.market(symbol)
+        code = market['quote']
+        return self.decimal_to_precision(price, ROUND, self.currencies[code]['precision'], self.precisionMode)
+
+    def amount_to_precision(self, symbol, amount):
+        market = self.market(symbol)
+        code = market['base']
+        return self.decimal_to_precision(amount, TRUNCATE, self.currencies[code]['precision'], self.precisionMode)
+
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        quote = market['quote']
-        base = market['base']
         request = {
             'symbol': market['id'],
             'type': side.upper(),
-            'price': self.decimal_to_precision(price, TRUNCATE, self.currencies[quote]['precision'], DECIMAL_PLACES),
-            'amount': self.decimal_to_precision(amount, TRUNCATE, self.currencies[base]['precision'], DECIMAL_PLACES),
+            'price': self.price_to_precision(symbol, price),
+            'amount': self.amount_to_precision(symbol, amount),
         }
         price = float(price)
         amount = float(amount)

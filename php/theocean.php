@@ -495,10 +495,6 @@ class theocean extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
-    }
-
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $errorMessage = $this->id . ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".';
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
