@@ -14,7 +14,7 @@ class cointiger extends huobipro {
             'id' => 'cointiger',
             'name' => 'CoinTiger',
             'countries' => array ( 'CN' ),
-            'hostname' => 'api.cointiger.pro',
+            'hostname' => 'cointiger.pro',
             'has' => array (
                 'fetchCurrencies' => false,
                 'fetchTickers' => true,
@@ -32,11 +32,11 @@ class cointiger extends huobipro {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api' => array (
-                    'public' => 'https://api.cointiger.pro/exchange/trading/api/market',
-                    'private' => 'https://api.cointiger.pro/exchange/trading/api',
-                    'exchange' => 'https://www.cointiger.pro/exchange',
-                    'v2public' => 'https://api.cointiger.pro/exchange/trading/api/v2',
-                    'v2' => 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'public' => 'https://api.{hostname}/exchange/trading/api/market',
+                    'private' => 'https://api.{hostname}/exchange/trading/api',
+                    'exchange' => 'https://www.{hostname}/exchange',
+                    'v2public' => 'https://api.{hostname}/exchange/trading/api/v2',
+                    'v2' => 'https://api.{hostname}/exchange/trading/api/v2',
                 ),
                 'www' => 'https://www.cointiger.pro',
                 'referral' => 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -813,7 +813,10 @@ class cointiger extends huobipro {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $this->check_required_credentials();
-        $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
+        $url = $this->implode_params($this->urls['api'][$api], array (
+            'hostname' => $this->hostname,
+        ));
+        $url .= '/' . $this->implode_params($path, $params);
         if ($api === 'private' || $api === 'v2') {
             $timestamp = (string) $this->milliseconds ();
             $query = $this->keysort (array_merge (array (

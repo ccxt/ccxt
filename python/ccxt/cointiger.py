@@ -31,7 +31,7 @@ class cointiger (huobipro):
             'id': 'cointiger',
             'name': 'CoinTiger',
             'countries': ['CN'],
-            'hostname': 'api.cointiger.pro',
+            'hostname': 'cointiger.pro',
             'has': {
                 'fetchCurrencies': False,
                 'fetchTickers': True,
@@ -49,11 +49,11 @@ class cointiger (huobipro):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api': {
-                    'public': 'https://api.cointiger.pro/exchange/trading/api/market',
-                    'private': 'https://api.cointiger.pro/exchange/trading/api',
-                    'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'public': 'https://api.{hostname}/exchange/trading/api/market',
+                    'private': 'https://api.{hostname}/exchange/trading/api',
+                    'exchange': 'https://www.{hostname}/exchange',
+                    'v2public': 'https://api.{hostname}/exchange/trading/api/v2',
+                    'v2': 'https://api.{hostname}/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -771,7 +771,10 @@ class cointiger (huobipro):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        })
+        url += '/' + self.implode_params(path, params)
         if api == 'private' or api == 'v2':
             timestamp = str(self.milliseconds())
             query = self.keysort(self.extend({

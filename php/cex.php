@@ -36,6 +36,7 @@ class cex extends Exchange {
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
                 ),
+                'referral' => 'https://cex.io/r/0/up105393824/0/',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
