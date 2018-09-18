@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.309'
+const version = '1.17.310'
 
 Exchange.ccxtVersion = version
 
@@ -38318,7 +38318,6 @@ module.exports = class huobipro extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'points/actions',
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
                         'order/orders/{id}', // 查询某个订单详情
@@ -38330,6 +38329,8 @@ module.exports = class huobipro extends Exchange {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)

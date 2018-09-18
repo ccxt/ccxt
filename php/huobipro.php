@@ -84,7 +84,6 @@ class huobipro extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'points/actions',
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
                         'order/orders/{id}', // 查询某个订单详情
@@ -96,6 +95,8 @@ class huobipro extends Exchange {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
