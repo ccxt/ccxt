@@ -157,7 +157,14 @@ class bithumb (Exchange):
             symbol = market['symbol']
         open = self.safe_float(ticker, 'opening_price')
         close = self.safe_float(ticker, 'closing_price')
-        change = close - open
+        change = None
+        percentage = None
+        average = None
+        if (close is not None) and(open is not None):
+            change = close - open
+            if open > 0:
+                percentage = change / open * 100
+            average = self.sum(open, close) / 2
         vwap = self.safe_float(ticker, 'average_price')
         baseVolume = self.safe_float(ticker, 'volume_1day')
         return {
@@ -176,8 +183,8 @@ class bithumb (Exchange):
             'last': close,
             'previousClose': None,
             'change': change,
-            'percentage': change / open * 100,
-            'average': self.sum(open, close) / 2,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,
