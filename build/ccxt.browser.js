@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.305'
+const version = '1.17.306'
 
 Exchange.ccxtVersion = version
 
@@ -32484,7 +32484,6 @@ module.exports = class fcoin extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -32677,10 +32676,6 @@ module.exports = class flowbtc extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let orderType = (type === 'market') ? 1 : 0;
@@ -32740,7 +32735,7 @@ module.exports = class flowbtc extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],90:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11}],90:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
@@ -41739,7 +41734,7 @@ module.exports = class kraken extends Exchange {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -42534,18 +42529,28 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrdersByStatus (orders, market, since, limit, 'closed');
     }
 
+    priceToPrecision (symbol, price) {
+        const market = this.market (symbol);
+        const code = market['quote'];
+        return this.decimalToPrecision (price, ROUND, this.currencies[code]['precision'], this.precisionMode);
+    }
+
+    amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        const code = market['base'];
+        return this.decimalToPrecision (amount, TRUNCATE, this.currencies[code]['precision'], this.precisionMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let quote = market['quote'];
-        let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.decimalToPrecision (price, TRUNCATE, this.currencies[quote]['precision'], DECIMAL_PLACES),
-            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[base]['precision'], DECIMAL_PLACES),
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
@@ -51658,7 +51663,6 @@ module.exports = class surbitcoin extends foxbit {
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -52145,10 +52149,6 @@ module.exports = class theocean extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -52853,7 +52853,7 @@ module.exports = class theocean extends Exchange {
     }
 };
 
-},{"./base/Exchange":9,"./base/errors":11,"./base/functions/number":17}],134:[function(require,module,exports){
+},{"./base/Exchange":9,"./base/errors":11}],134:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
