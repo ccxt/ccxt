@@ -57,13 +57,14 @@ module.exports = class dsx extends liqui {
                 'private': {
                     'post': [
                         'info/account',
-                        'TransHistory',
+                        'history/transactions',
                         'history/trades',
-                        'OrderHistory',
+                        'history/orders',
                         'orders',
                         'Trade',
-                        'CancelOrder',
+                        'order/cancel',
                         'order/status',
+                        'order/new',
                     ],
                 },
                 // deposit / withdraw (private)
@@ -267,7 +268,7 @@ module.exports = class dsx extends liqui {
             'orderId': parseInt (id),
         }, params));
         id = id.toString ();
-        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return']));
         let oldOrder = (id in this.orders) ? this.orders[id] : {};
         this.orders[id] = this.extend (oldOrder, newOrder);
         return this.orders[id];
@@ -293,5 +294,115 @@ module.exports = class dsx extends liqui {
         let allOrders = this.updateCachedOrders (openOrders, symbol);
         let result = this.filterBySymbol (allOrders, symbol);
         return this.filterBySinceLimit (result, since, limit);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === 'market') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'pair': market['id'],
+            'type': side,
+            'volume': this.amountToPrecision (symbol, amount),
+            'rate': this.priceToPrecision (symbol, price),
+            'orderType': type,
+        };
+        price = parseFloat (price);
+        amount = parseFloat (amount);
+        let response = await this.privatePostOrderNew (this.extend (request, params));
+        let id = undefined;
+        let status = 'open';
+        let filled = 0.0;
+        let remaining = amount;
+        if ('return' in response) {
+            id = this.safeString (response['return'], 'orderId');
+            if (id === '0') {
+                id = this.safeString (response['return'], 'init_order_id');
+                status = 'closed';
+            }
+            filled = this.safeFloat (response['return'], 'received', 0.0);
+            remaining = this.safeFloat (response['return'], 'remains', amount);
+        }
+        let timestamp = this.milliseconds ();
+        let order = {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': price * filled,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'fee': undefined,
+            // 'trades': this.parseTrades (order['trades'], market),
+        };
+        this.orders[id] = order;
+        return this.extend ({ 'info': response }, order);
+    }
+
+    parseOrder (order, market = undefined) {
+        let id = order['id'].toString ();
+        let status = this.safeString (order, 'status');
+        if (status !== 'undefined') {
+            status = this.parseOrderStatus (status);
+        }
+        let timestamp = parseInt (order['timestampCreated']) * 1000;
+        let symbol = undefined;
+        if (typeof market === 'undefined') {
+            market = this.markets_by_id[order['pair']];
+        }
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let remaining = undefined;
+        let amount = undefined;
+        let price = this.safeFloat (order, 'rate');
+        let filled = undefined;
+        let cost = undefined;
+        remaining = this.safeFloat (order, 'remainingVolume');
+        amount = this.safeFloat (order, 'volume');
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
+        }
+        let fee = undefined;
+        let result = {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': 'limit',
+            'side': order['type'],
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': fee,
+        };
+        return result;
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        request['orderId'] = id;
+        let response = await this.privatePostOrderCancel (this.extend (request, params));
+        if (id in this.orders) {
+            this.orders[id]['status'] = 'canceled';
+        }
+        return response;
     }
 };
