@@ -96,6 +96,7 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    aiohttp_trust_env = False
     session = None  # Session () by default
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
