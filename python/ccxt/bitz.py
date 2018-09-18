@@ -472,7 +472,6 @@ class bitz (Exchange):
         #
         tickers = response['data']
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
-        iso8601 = self.iso8601(timestamp)
         result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -496,7 +495,7 @@ class bitz (Exchange):
             if symbol is not None:
                 result[symbol] = self.extend(ticker, {
                     'timestamp': timestamp,
-                    'datetime': iso8601,
+                    'datetime': self.iso8601(timestamp),
                 })
         return result
 
@@ -748,7 +747,7 @@ class bitz (Exchange):
             'symbol': market['id'],
             'type': orderType,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_string(symbol, amount),
+            'number': self.amount_to_precision(symbol, amount),
             'tradePwd': self.password,
         }
         response = self.tradePostAddEntrustSheet(self.extend(request, params))

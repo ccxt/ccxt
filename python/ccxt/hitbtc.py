@@ -688,7 +688,7 @@ class hitbtc (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetSymbolTrades(self.extend({
+        request = {
             'symbol': market['id'],
             # 'from': 0,
             # 'till': 100,
@@ -702,8 +702,14 @@ class hitbtc (Exchange):
             # 'format_tid': 'string',
             # 'format_timestamp': 'millisecond',
             # 'format_wrap': False,
-            'side': 'true',
-        }, params))
+            # 'side': 'true',
+        }
+        if since is not None:
+            request['by'] = 'ts'
+            request['from'] = since
+        if limit is not None:
+            request['max_results'] = limit
+        response = self.publicGetSymbolTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -758,9 +764,7 @@ class hitbtc (Exchange):
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
-        status = self.safe_string(order, 'orderStatus')
-        if status:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         price = self.safe_float(order, 'orderPrice')
         price = self.safe_float(order, 'price', price)
         price = self.safe_float(order, 'avgPrice', price)

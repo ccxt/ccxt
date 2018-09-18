@@ -19,8 +19,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class uex (Exchange):
@@ -75,6 +73,7 @@ class uex (Exchange):
                 },
                 'private': {
                     'get': [
+                        'deposit_list',
                         'user/account',
                         'market',  # an assoc array of market ids to corresponding prices traded most recently(prices of last trades per market)
                         'order_info',
@@ -92,8 +91,8 @@ class uex (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -127,6 +126,7 @@ class uex (Exchange):
                 '110033': ExchangeError,  # fail to recharge
                 '110034': ExchangeError,  # fail to withdraw
                 '-100': ExchangeError,  # {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
+                '-1000': ExchangeNotAvailable,  # {"msg":"System maintenancenot ","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -159,18 +159,6 @@ class uex (Exchange):
             },
         })
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
-
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
-
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         key = 'quote'
@@ -184,7 +172,7 @@ class uex (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], cost)),
+            'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
     async def fetch_markets(self):
@@ -554,7 +542,6 @@ class uex (Exchange):
         if type == 'limit':
             priceToPrecision = self.price_to_precision(symbol, price)
             request['price'] = priceToPrecision
-            priceToPrecision = float(priceToPrecision)
         response = await self.privatePostCreateOrder(self.extend(request, params))
         #
         #     {code: '0',
@@ -568,7 +555,7 @@ class uex (Exchange):
             'type': type,
             'side': side,
             'status': 'open',
-            'price': priceToPrecision,
+            'price': float(priceToPrecision),
             'amount': float(amountToPrecision),
         })
 

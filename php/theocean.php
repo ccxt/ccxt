@@ -56,6 +56,7 @@ class theocean extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'balance',
                         'available_balance',
                         'user_history',
                     ),
@@ -84,6 +85,7 @@ class theocean extends Exchange {
                     'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
                     'Fillable amount under minimum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
                     'Fillable amount over maximum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount")
+                    "Schema validation failed for 'params'" => '\\ccxt\\BadRequest', // // array ("message":"Schema validation failed for 'params'")
                 ),
             ),
             'options' => array (
@@ -245,17 +247,17 @@ class theocean extends Exchange {
             'walletAddress' => strtolower ($this->walletAddress),
             'tokenAddress' => $currency['id'],
         );
-        $response = $this->privateGetAvailableBalance (array_merge ($request, $params));
+        $response = $this->privateGetBalance (array_merge ($request, $params));
         //
-        //     {
-        //       "availableBalance" => "1001006594219628829207"
-        //     }
+        //     array ("available":"0","committed":"0","$total":"0")
         //
-        $balance = $this->fromWei ($this->safe_string($response, 'availableBalance'));
+        $free = $this->fromWei ($this->safe_string($response, 'available'));
+        $used = $this->fromWei ($this->safe_string($response, 'committed'));
+        $total = $this->fromWei ($this->safe_string($response, 'total'));
         return array (
-            'free' => $balance,
-            'used' => 0,
-            'total' => null,
+            'free' => $free,
+            'used' => $used,
+            'total' => $total,
         );
     }
 
@@ -263,7 +265,9 @@ class theocean extends Exchange {
         if (!$this->walletAddress || (mb_strpos ($this->walletAddress, '0x') !== 0)) {
             throw new InvalidAddress ($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
-        $codes = $this->safe_value($params, 'codes');
+        $codes = $this->safe_value($this->options, 'fetchBalanceCurrencies');
+        if ($codes === null)
+            $codes = $this->safe_value($params, 'codes');
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
             throw new ExchangeError ($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
@@ -489,10 +493,6 @@ class theocean extends Exchange {
         //     )
         //
         return $this->parse_trades($response, $market, $since, $limit);
-    }
-
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -905,8 +905,7 @@ class theocean extends Exchange {
         if ($timeline !== null) {
             $numEvents = is_array ($timeline) ? count ($timeline) : 0;
             if ($numEvents > 0) {
-                $status = $this->safe_string($timeline[$numEvents - 1], 'action');
-                $status = $this->parse_order_status($status);
+                $status = $this->parse_order_status($this->safe_string($timeline[$numEvents - 1], 'action'));
                 $timelineEventsGroupedByAction = $this->group_by($timeline, 'action');
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('placed', $timelineEventsGroupedByAction)) {
                     $placeEvents = $this->safe_value($timelineEventsGroupedByAction, 'placed');
@@ -1150,16 +1149,6 @@ class theocean extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function find_broadly_matched_key ($map, $broadString) {
-        $partialKeys = is_array ($map) ? array_keys ($map) : array ();
-        for ($i = 0; $i < count ($partialKeys); $i++) {
-            $partialKey = $partialKeys[$i];
-            if (mb_strpos ($broadString, $partialKey) !== false)
-                return $partialKey;
-        }
-        return null;
-    }
-
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
         if (gettype ($body) !== 'string')
             return; // fallback to default error handler
@@ -1181,13 +1170,14 @@ class theocean extends Exchange {
                 // array ("$message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")
                 // array ("$message":"Intent validation failed.","errors":[{"$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]}
                 // array ("$message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"$message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":array ("signedTargetOrder":array ("error":array ("$message":"Unsigned target order validation failed.","errors":[array ("$message":"Greater than available wallet balance.","type":"walletBaseTokenAmount")]),"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":array ("v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"))),"property":"instance")]}
+                // array ("$message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","$message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash")]}
                 //
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exact = $this->exceptions['exact'];
                 if (is_array ($exact) && array_key_exists ($message, $exact))
                     throw new $exact[$message] ($feedback);
                 $broad = $this->exceptions['broad'];
-                $broadKey = $this->find_broadly_matched_key ($broad, $body);
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
                 if ($broadKey !== null)
                     throw new $broad[$broadKey] ($feedback);
                 throw new ExchangeError ($feedback); // unknown $message

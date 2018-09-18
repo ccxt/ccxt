@@ -192,7 +192,7 @@ module.exports = class liqui extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
         }
         let response = await this.publicGetDepthPair (this.extend (request, params));
@@ -207,7 +207,7 @@ module.exports = class liqui extends Exchange {
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (typeof symbols === 'undefined') {
+        if (symbols === undefined) {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
@@ -238,7 +238,7 @@ module.exports = class liqui extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
@@ -269,7 +269,7 @@ module.exports = class liqui extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (typeof symbols === 'undefined') {
+        if (symbols === undefined) {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
@@ -325,14 +325,14 @@ module.exports = class liqui extends Exchange {
             market = this.markets_by_id[marketId];
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let amount = trade['amount'];
         let type = 'limit'; // all trades are still limit trades
         let isYourOrder = this.safeValue (trade, 'is_your_order');
         let takerOrMaker = 'taker';
-        if (typeof isYourOrder !== 'undefined') {
+        if (isYourOrder !== undefined) {
             if (isYourOrder) {
                 takerOrMaker = 'maker';
             }
@@ -359,7 +359,7 @@ module.exports = class liqui extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
         let response = await this.publicGetTradesPair (this.extend (request, params));
@@ -453,16 +453,13 @@ module.exports = class liqui extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeString (order, 'status');
-        if (status !== 'undefined') {
-            status = this.parseOrderStatus (status);
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             market = this.markets_by_id[order['pair']];
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let remaining = undefined;
@@ -478,8 +475,8 @@ module.exports = class liqui extends Exchange {
             if (id in this.orders)
                 amount = this.orders[id]['amount'];
         }
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
                 filled = amount - remaining;
                 cost = price * filled;
             }
@@ -548,7 +545,7 @@ module.exports = class liqui extends Exchange {
             if (!(cachedOrderId in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (typeof symbol !== 'undefined' && symbol !== cachedOrder['symbol'])
+                if (symbol !== undefined && symbol !== cachedOrder['symbol'])
                     continue;
                 // cached order is absent from the list of open orders -> mark the cached order as closed
                 if (cachedOrder['status'] === 'open') {
@@ -558,8 +555,8 @@ module.exports = class liqui extends Exchange {
                         'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     });
-                    if (typeof cachedOrder['cost'] === 'undefined') {
-                        if (typeof cachedOrder['filled'] !== 'undefined') {
+                    if (cachedOrder['cost'] === undefined) {
+                        if (cachedOrder['filled'] !== undefined) {
                             cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
                         }
                     }
@@ -573,12 +570,12 @@ module.exports = class liqui extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if ('fetchOrdersRequiresSymbol' in this.options)
             if (this.options['fetchOrdersRequiresSymbol'])
-                if (typeof symbol === 'undefined')
+                if (symbol === undefined)
                     throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             let market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -615,14 +612,14 @@ module.exports = class liqui extends Exchange {
             // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
             // 'pair': 'eth_btc', // default = all markets
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['count'] = parseInt (limit);
         }
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
         let response = await this.privatePostTradeHistory (this.extend (request, params));

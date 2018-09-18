@@ -11,7 +11,6 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NullResponse
@@ -48,6 +47,7 @@ class cex (Exchange):
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
                 ],
+                'referral': 'https://cex.io/r/0/up105393824/0/',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -148,8 +148,8 @@ class cex (Exchange):
                 'base': base,
                 'quote': quote,
                 'precision': {
-                    'price': self.precision_from_string(market['minPrice']),
-                    'amount': -math.log10(market['minLotSize']),
+                    'price': self.precision_from_string(self.safe_string(market, 'minPrice')),
+                    'amount': self.precision_from_string(self.safe_string(market, 'minLotSize')),
                 },
                 'limits': {
                     'amount': {
@@ -234,10 +234,8 @@ class cex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = None
-        iso8601 = None
         if 'timestamp' in ticker:
             timestamp = int(ticker['timestamp']) * 1000
-            iso8601 = self.iso8601(timestamp)
         volume = self.safe_float(ticker, 'volume')
         high = self.safe_float(ticker, 'high')
         low = self.safe_float(ticker, 'low')
@@ -250,7 +248,7 @@ class cex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,

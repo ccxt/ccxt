@@ -99,7 +99,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 |![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                                             |                                                                                                                             | 1     | [API](https://btc-x.is/custom/api-document.html)                                                 | Iceland, US, EU                         |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                                                         |                                                                                                                             | *     | [API](https://bx.in.th/info/api)                                                                 | Thailand                                |
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                           |                                                                                                                             | *     | [API](https://c-cex.com/?id=api)                                                                 | Germany, EU                             |
-|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                                             |                                                                                                                             | *     | [API](https://cex.io/cex-api)                                                                    | UK, EU, Cyprus, Russia                  |
+|![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                          |                                                                                                                             | *     | [API](https://cex.io/cex-api)                                                                    | UK, EU, Cyprus, Russia                  |
 |![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://vip.zb.com/user/register?recommendCode=bn070u)                       |                                                                                                                             | 1     | [API](https://www.chbtc.com/i/developer)                                                         | China                                   |
 |![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                                                     |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Chile                                   |
 |![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                                                   |                                                                                                                             | 1     | [API](https://cobinhood.github.io/api-public)                                                    | Taiwan                                  |
@@ -404,6 +404,8 @@ Below is a detailed description of each of the base exchange properties:
 
 - `uid`: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don't.
 
+#### Exchange Metadata
+
 - `has`: An assoc-array containing flags for exchange capabilities, including the following:
 
     ```JavaScript
@@ -436,6 +438,7 @@ Below is a detailed description of each of the base exchange properties:
         'fetchBidsAsks': false,
         'fetchTrades': true,
         'withdraw': false,
+        ...
     }
     ```
 
@@ -1974,7 +1977,7 @@ console.log (exchange.has)
 # Python
 import ccxt
 id = 'cryptopia'
-exchange = getattr(ccxt, 'id') ()
+exchange = getattr(ccxt, id) ()
 print(exchange.has)
 ```
 
@@ -2168,7 +2171,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
     'amount':      1.5,           // ordered amount of base currency
     'filled':      1.1,           // filled amount of base currency
     'remaining':   0.4,           // remaining amount to fill
-    'cost':        0.076094524,   // 'filled' * 'price'
+    'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
     'trades':    [ ... ],         // a list of order trades/executions
     'fee': {                      // fee info, if available
         'currency': 'BTC',        // which currency the fee is (usually quote)
@@ -2537,6 +2540,7 @@ In some cases you can also use the withdrawal id to check withdrawal status late
     'timestamp': 1534081184515,             // timestamp in milliseconds
     'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
     'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
+    'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
     'type':     'deposit',   // or 'withdrawal', string
     'amount':    1.2345,     // float
     'currency': 'ETH',       // a common unified currency code, string
@@ -2554,6 +2558,8 @@ In some cases you can also use the withdrawal id to check withdrawal status late
 - The `updated` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it `withdrawal` or `deposit`. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports `created_at` and `confirmed_at` for a transaction, then the `updated` field will take the value of `Math.max (created_at, confirmed_at)`, that is, the timestamp of the most recent change of the status.
 - The `updated` field may be undefined in certain exchange-specific cases.
 - The `fee` substructure may be missing, if not supplied within the reply coming from the exchange.
+- Be careful when handling the `tag` and the `address`. The `tag` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the `tag`. The purpose of the `tag` field is to address your wallet properly, so it must be correct. You should only use the `tag` received from the exchange you're working with, otherwise your transaction might never arrive to its destination.
+
 
 #### Deposits
 

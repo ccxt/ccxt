@@ -191,9 +191,9 @@ module.exports = class coinone extends Exchange {
         let last = this.safeFloat (ticker, 'last');
         let previousClose = this.safeFloat (ticker, 'yesterday_last');
         let change = undefined;
-        if (typeof last !== 'undefined' && typeof previousClose !== 'undefined')
+        if (last !== undefined && previousClose !== undefined)
             change = previousClose - last;
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -220,7 +220,7 @@ module.exports = class coinone extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let timestamp = parseInt (trade['timestamp']) * 1000;
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -258,7 +258,7 @@ module.exports = class coinone extends Exchange {
         let method = 'privatePostOrder' + this.capitalize (type) + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
         let id = this.safeString (response, 'orderId');
-        if (typeof id !== 'undefined') {
+        if (id !== undefined) {
             id = id.toUpperCase ();
         }
         let timestamp = this.milliseconds ();
@@ -289,7 +289,7 @@ module.exports = class coinone extends Exchange {
         await this.loadMarkets ();
         let result = undefined;
         let market = undefined;
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             if (id in this.orders) {
                 market = this.market (this.orders[id]['symbol']);
             } else {
@@ -334,12 +334,11 @@ module.exports = class coinone extends Exchange {
     parseOrder (order, market = undefined) {
         let info = this.safeValue (order, 'info');
         let id = this.safeString (info, 'orderId');
-        if (typeof id !== 'undefined') {
+        if (id !== undefined) {
             id = id.toUpperCase ();
         }
         let timestamp = parseInt (info['timestamp']) * 1000;
-        let status = this.safeString (order, 'status');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');
         if (side.indexOf ('ask') >= 0) {
@@ -351,11 +350,11 @@ module.exports = class coinone extends Exchange {
         let amount = this.safeFloat (info, 'qty');
         let remaining = this.safeFloat (info, 'remainQty');
         let filled = undefined;
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
                 filled = amount - remaining;
             }
-            if (typeof price !== 'undefined') {
+            if (price !== undefined) {
                 cost = price * amount;
             }
         }
@@ -366,12 +365,12 @@ module.exports = class coinone extends Exchange {
             'rate': this.safeFloat (info, 'feeRate'),
         };
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = currency.toLowerCase ();
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let result = {
             'info': order,
@@ -398,23 +397,23 @@ module.exports = class coinone extends Exchange {
         let amount = undefined;
         let price = undefined;
         let side = undefined;
-        if (typeof order === 'undefined') {
-            if (typeof symbol === 'undefined') {
+        if (order === undefined) {
+            if (symbol === undefined) {
                 // eslint-disable-next-line quotes
                 throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `symbol` argument is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             price = this.safeFloat (params, 'price');
-            if (typeof price === 'undefined') {
+            if (price === undefined) {
                 // eslint-disable-next-line quotes
                 throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `price` parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             amount = this.safeFloat (params, 'qty');
-            if (typeof amount === 'undefined') {
+            if (amount === undefined) {
                 // eslint-disable-next-line quotes
                 throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `qty` (amount) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }
             side = this.safeFloat (params, 'is_ask');
-            if (typeof side === 'undefined') {
+            if (side === undefined) {
                 // eslint-disable-next-line quotes
                 throw new InvalidOrder (this.id + " cancelOrder could not find the order id " + id + " in orders cache. The order was probably created with a different instance of this class earlier. The `is_ask` (side) parameter is missing. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
             }

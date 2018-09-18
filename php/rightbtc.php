@@ -293,9 +293,7 @@ class rightbtc extends Exchange {
         //
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp === null) {
-            if (is_array ($trade) && array_key_exists ('created_at', $trade)) {
-                $timestamp = $this->parse8601 ($trade['created_at']);
-            }
+            $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $id = $this->safe_string($trade, 'tid');
         $id = $this->safe_string($trade, 'trade_id', $id);
@@ -490,9 +488,7 @@ class rightbtc extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'id');
-        $status = $this->safe_value($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $marketId = $this->safe_string($order, 'trading_pair');
         if ($market === null) {
             if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {

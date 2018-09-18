@@ -4,6 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
+    , debug = process.argv.includes ('--verbose')
     , cloudscrape = process.argv.includes ('--cloudscrape')
     , cfscrape = process.argv.includes ('--cfscrape')
     , poll = process.argv.includes ('--poll')
@@ -26,9 +27,7 @@ const ccxt         = require ('../../ccxt.js')
         title: x => String (x).lightGray,
         dash: '-'.lightGray.dim,
         print: x => {
-            if ((typeof x === 'string') && x.startsWith ('2018-')) {
-                return new Date (x).toLocaleString ()
-            } else if (typeof x === 'object') {
+            if (typeof x === 'object') {
                 const j = JSON.stringify (x).trim ()
                 if (j.length < 100) return j
             }
@@ -131,6 +130,7 @@ function printSupportedExchanges () {
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
+    log ('--debug           Print debugging output')
     log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
     log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
@@ -202,19 +202,9 @@ async function main () {
 
     } else {
 
-        let args = params.map (param => {
-            if (param === 'undefined')
-                return undefined
-            if (param[0] === '{' || param[0] === '[')
-                return JSON.parse (param)
-            if (param.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g))
-                return exchange.parse8601 (param)
-            if (param.match (/[a-zA-Z-]/g))
-                return param
-            if (param.match (/^[+0-9\.-]+$/))
-                return parseFloat (param)
-            return param
-        })
+        let args = params
+            .map (s => s.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
@@ -225,6 +215,10 @@ async function main () {
             exchange.headers = cfscrapeCookies (www)
 
         no_load_markets = no_send ? true : no_load_markets
+
+        if (debug) {
+            exchange.verbose = verbose
+        }
 
         if (!no_load_markets) {
             await exchange.loadMarkets ()
@@ -282,7 +276,7 @@ async function main () {
                     break;
             }
 
-        } else if (typeof exchange[methodName] === 'undefined') {
+        } else if (exchange[methodName] === undefined) {
 
             log.red (exchange.id + '.' + methodName + ': no such property')
 

@@ -799,18 +799,28 @@ class kucoin extends Exchange {
         return $this->parse_orders_by_status ($orders, $market, $since, $limit, 'closed');
     }
 
+    public function price_to_precision ($symbol, $price) {
+        $market = $this->market ($symbol);
+        $code = $market['quote'];
+        return $this->decimal_to_precision($price, ROUND, $this->currencies[$code]['precision'], $this->precisionMode);
+    }
+
+    public function amount_to_precision ($symbol, $amount) {
+        $market = $this->market ($symbol);
+        $code = $market['base'];
+        return $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$code]['precision'], $this->precisionMode);
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type !== 'limit')
             throw new ExchangeError ($this->id . ' allows limit orders only');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $quote = $market['quote'];
-        $base = $market['base'];
         $request = array (
             'symbol' => $market['id'],
             'type' => strtoupper ($side),
-            'price' => $this->decimal_to_precision($price, TRUNCATE, $this->currencies[$quote]['precision'], DECIMAL_PLACES),
-            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$base]['precision'], DECIMAL_PLACES),
+            'price' => $this->price_to_precision($symbol, $price),
+            'amount' => $this->amount_to_precision($symbol, $amount),
         );
         $price = floatval ($price);
         $amount = floatval ($amount);
@@ -818,14 +828,11 @@ class kucoin extends Exchange {
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $orderId = $this->safe_string($response['data'], 'orderOid');
         $timestamp = $this->safe_integer($response, 'timestamp');
-        $iso8601 = null;
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $order = array (
             'info' => $response,
             'id' => $orderId,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,

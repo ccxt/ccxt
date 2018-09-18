@@ -222,11 +222,11 @@ class coinfalcon (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.parse8601(order['created_at'])
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'size_filled')
-        remaining = self.amount_to_precision(symbol, amount - filled)
-        cost = self.price_to_precision(symbol, amount * price)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
+        cost = float(self.price_to_precision(symbol, amount * price))
         # pending, open, partially_filled, fullfilled, canceled
         status = order['status']
         if status == 'fulfilled':
@@ -258,14 +258,14 @@ class coinfalcon (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         # price/size must be string
-        amount = self.amount_to_precision(symbol, float(amount))
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'market': market['id'],
-            'size': str(amount),
+            'size': amount,
             'order_type': side,
         }
         if type == 'limit':
-            price = self.price_to_precision(symbol, float(price))
+            price = self.price_to_precision(symbol, price)
             request['price'] = str(price)
         request['operation_type'] = type + '_order'
         response = await self.privatePostUserOrders(self.extend(request, params))

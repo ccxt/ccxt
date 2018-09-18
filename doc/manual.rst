@@ -144,7 +144,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |ccex|               | ccex               | `C-CEX <https://c-cex.com>`__                                                           |                                                                      | \*    | `API <https://c-cex.com/?id=api>`__                                                                 | Germany, EU                              |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |cex|                | cex                | `CEX.IO <https://cex.io>`__                                                             |                                                                      | \*    | `API <https://cex.io/cex-api>`__                                                                    | UK, EU, Cyprus, Russia                   |
+| |cex|                | cex                | `CEX.IO <https://cex.io/r/0/up105393824/0/>`__                                          |                                                                      | \*    | `API <https://cex.io/cex-api>`__                                                                    | UK, EU, Cyprus, Russia                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |chbtc|              | chbtc              | `CHBTC <https://vip.zb.com/user/register?recommendCode=bn070u>`__                       |                                                                      | 1     | `API <https://www.chbtc.com/i/developer>`__                                                         | China                                    |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -542,6 +542,9 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``uid``: A unique id of your account. This can be a string literal or a number. Some exchanges also require this for trading, but most of them don’t.
 
+Exchange Metadata
+^^^^^^^^^^^^^^^^^
+
 -  ``has``: An assoc-array containing flags for exchange capabilities, including the following:
 
    .. code:: javascript
@@ -575,6 +578,7 @@ Below is a detailed description of each of the base exchange properties:
           'fetchBidsAsks': false,
           'fetchTrades': true,
           'withdraw': false,
+          ...
       }
 
    The meaning of each flag showing availability of this or that method is:
@@ -2181,7 +2185,7 @@ To check if any of the above methods are available, look into the ``.has`` prope
    # Python
    import ccxt
    id = 'cryptopia'
-   exchange = getattr(ccxt, 'id') ()
+   exchange = getattr(ccxt, id) ()
    print(exchange.has)
 
 .. code:: php
@@ -2381,7 +2385,7 @@ Most of methods returning orders within ccxt unified API will usually yield an o
        'amount':      1.5,           // ordered amount of base currency
        'filled':      1.1,           // filled amount of base currency
        'remaining':   0.4,           // remaining amount to fill
-       'cost':        0.076094524,   // 'filled' * 'price'
+       'cost':        0.076094524,   // 'filled' * 'price' (filling price used where available)
        'trades':    [ ... ],         // a list of order trades/executions
        'fee': {                      // fee info, if available
            'currency': 'BTC',        // which currency the fee is (usually quote)
@@ -2766,6 +2770,7 @@ Transaction Structure
        'timestamp': 1534081184515,             // timestamp in milliseconds
        'datetime': '2018-08-12T13:39:44.515Z', // ISO8601 string of the timestamp
        'address':  '0x02b0a9b7b4cDe774af0f8e47cb4f1c2ccdEa0806', // "from" or "to"
+       'tag':      '0x0123456789' // "tag" or "memo" or "payment_id" associated with the address
        'type':     'deposit',   // or 'withdrawal', string
        'amount':    1.2345,     // float
        'currency': 'ETH',       // a common unified currency code, string
@@ -2783,6 +2788,7 @@ Notes On Transaction Structure
 -  The ``updated`` field is the UTC timestamp in milliseconds of the most recent change of status of that funding operation, be it ``withdrawal`` or ``deposit``. It is necessary if you want to track your changes in time, beyond a static snapshot. For example, if the exchange in question reports ``created_at`` and ``confirmed_at`` for a transaction, then the ``updated`` field will take the value of ``Math.max (created_at, confirmed_at)``, that is, the timestamp of the most recent change of the status.
 -  The ``updated`` field may be undefined in certain exchange-specific cases.
 -  The ``fee`` substructure may be missing, if not supplied within the reply coming from the exchange.
+-  Be careful when handling the ``tag`` and the ``address``. The ``tag`` is **NOT an arbitrary user-defined string** of your choice! You cannot send user messages and comments in the ``tag``. The purpose of the ``tag`` field is to address your wallet properly, so it must be correct. You should only use the ``tag`` received from the exchange you’re working with, otherwise your transaction might never arrive to its destination.
 
 Deposits
 ^^^^^^^^

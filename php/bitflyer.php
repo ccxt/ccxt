@@ -273,7 +273,7 @@ class bitflyer extends Exchange {
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses))
             return $statuses[$status];
-        return strtolower ($status);
+        return $status;
     }
 
     public function parse_order ($order, $market = null) {
@@ -283,7 +283,7 @@ class bitflyer extends Exchange {
         $filled = $this->safe_float($order, 'executed_size');
         $price = $this->safe_float($order, 'price');
         $cost = $price * $filled;
-        $status = $this->parse_order_status($order['child_order_state']);
+        $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = strtolower ($order['child_order_type']);
         $side = strtolower ($order['side']);
         $symbol = null;

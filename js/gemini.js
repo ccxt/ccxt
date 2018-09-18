@@ -154,9 +154,9 @@ module.exports = class gemini extends Exchange {
         if ('order_id' in trade)
             order = trade['order_id'].toString ();
         let fee = this.safeFloat (trade, 'fee_amount');
-        if (typeof fee !== 'undefined') {
+        if (fee !== undefined) {
             let currency = this.safeString (trade, 'fee_currency');
-            if (typeof currency !== 'undefined') {
+            if (currency !== undefined) {
                 if (currency in this.currencies_by_id)
                     currency = this.currencies_by_id[currency]['code'];
                 currency = this.commonCurrencyCode (currency);
@@ -229,8 +229,8 @@ module.exports = class gemini extends Exchange {
             price = average; // prefer filling (execution) price over the submitted price
         }
         let cost = undefined;
-        if (typeof filled !== 'undefined') {
-            if (typeof average !== 'undefined') {
+        if (filled !== undefined) {
+            if (average !== undefined) {
                 cost = filled * average;
             }
         }
@@ -244,13 +244,13 @@ module.exports = class gemini extends Exchange {
         }
         let fee = undefined;
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         return {
@@ -285,7 +285,7 @@ module.exports = class gemini extends Exchange {
         await this.loadMarkets ();
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             let market = this.market (symbol); // throws on non-existent symbol
             orders = this.filterBySymbol (orders, market['symbol']);
         }
@@ -318,16 +318,16 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit_trades'] = limit;
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['timestamp'] = parseInt (since / 1000);
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -361,21 +361,18 @@ module.exports = class gemini extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'timestampms');
-        let datetime = undefined;
-        if (typeof timestamp !== 'undefined')
-            datetime = this.iso8601 (timestamp);
         let code = undefined;
-        if (typeof currency === 'undefined') {
+        if (currency === undefined) {
             let currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
             }
         }
-        if (typeof currency !== 'undefined') {
+        if (currency !== undefined) {
             code = currency['code'];
         }
         let type = this.safeString (transaction, 'type');
-        if (typeof type !== 'undefined') {
+        if (type !== undefined) {
             type = type.toLowerCase ();
         }
         let status = 'pending';
@@ -387,8 +384,9 @@ module.exports = class gemini extends Exchange {
             'id': this.safeString (transaction, 'eid'),
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'address': undefined, // or is it defined?
+            'tag': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,

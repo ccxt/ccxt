@@ -258,7 +258,7 @@ class bitflyer (Exchange):
         }
         if status in statuses:
             return statuses[status]
-        return status.lower()
+        return status
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['child_order_date'])
@@ -267,7 +267,7 @@ class bitflyer (Exchange):
         filled = self.safe_float(order, 'executed_size')
         price = self.safe_float(order, 'price')
         cost = price * filled
-        status = self.parse_order_status(order['child_order_state'])
+        status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = order['child_order_type'].lower()
         side = order['side'].lower()
         symbol = None

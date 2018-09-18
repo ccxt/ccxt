@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -168,11 +169,11 @@ module.exports = class bittrex extends Exchange {
     }
 
     costToPrecision (symbol, cost) {
-        return this.truncate (parseFloat (cost), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     feeToPrecision (symbol, fee) {
-        return this.truncate (parseFloat (fee), this.markets[symbol]['precision']['price']);
+        return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     async fetchMarkets () {
@@ -267,11 +268,9 @@ module.exports = class bittrex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeString (ticker, 'TimeStamp');
-        let iso8601 = undefined;
         if (typeof timestamp === 'string') {
             if (timestamp.length > 0) {
                 timestamp = this.parse8601 (timestamp);
-                iso8601 = this.iso8601 (timestamp);
             }
         }
         let symbol = undefined;
@@ -281,8 +280,8 @@ module.exports = class bittrex extends Exchange {
         let last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
-        if (typeof last !== 'undefined')
-            if (typeof previous !== 'undefined') {
+        if (last !== undefined)
+            if (previous !== undefined) {
                 change = last - previous;
                 if (previous > 0)
                     percentage = (change / previous) * 100;
@@ -290,7 +289,7 @@ module.exports = class bittrex extends Exchange {
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'High'),
             'low': this.safeFloat (ticker, 'Low'),
             'bid': this.safeFloat (ticker, 'Bid'),
@@ -419,7 +418,7 @@ module.exports = class bittrex extends Exchange {
             'market': market['id'],
         }, params));
         if ('result' in response) {
-            if (typeof response['result'] !== 'undefined')
+            if (response['result'] !== undefined)
                 return this.parseTrades (response['result'], market, since, limit);
         }
         throw new ExchangeError (this.id + ' fetchTrades() returned undefined response');
@@ -456,7 +455,7 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
@@ -515,7 +514,7 @@ module.exports = class bittrex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let side = this.safeString (order, 'OrderType');
-        if (typeof side === 'undefined')
+        if (side === undefined)
             side = this.safeString (order, 'Type');
         let isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         let isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
@@ -535,7 +534,7 @@ module.exports = class bittrex extends Exchange {
         if (('CancelInitiated' in order) && order['CancelInitiated'])
             status = 'canceled';
         if (('Status' in order) && this.options['parseOrderStatus'])
-            status = this.parseOrderStatus (order['Status']);
+            status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         if ('Exchange' in order) {
             let marketId = order['Exchange'];
@@ -546,7 +545,7 @@ module.exports = class bittrex extends Exchange {
                 symbol = this.parseSymbol (marketId);
             }
         } else {
-            if (typeof market !== 'undefined') {
+            if (market !== undefined) {
                 symbol = market['symbol'];
             }
         }
@@ -556,13 +555,12 @@ module.exports = class bittrex extends Exchange {
         if ('Created' in order)
             timestamp = this.parse8601 (order['Created'] + '+00:00');
         let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (typeof order['TimeStamp'] !== 'undefined'))
+        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined))
             lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
-        if (('Closed' in order) && (typeof order['Closed'] !== 'undefined'))
+        if (('Closed' in order) && (order['Closed'] !== undefined))
             lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
-        if (typeof timestamp === 'undefined')
+        if (timestamp === undefined)
             timestamp = lastTradeTimestamp;
-        let iso8601 = (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined;
         let fee = undefined;
         let commission = undefined;
         if ('Commission' in order) {
@@ -574,9 +572,9 @@ module.exports = class bittrex extends Exchange {
             fee = {
                 'cost': parseFloat (order[commission]),
             };
-            if (typeof market !== 'undefined') {
+            if (market !== undefined) {
                 fee['currency'] = market['quote'];
-            } else if (typeof symbol !== 'undefined') {
+            } else if (symbol !== undefined) {
                 let currencyIds = symbol.split ('/');
                 let quoteCurrencyId = currencyIds[1];
                 if (quoteCurrencyId in this.currencies_by_id)
@@ -590,7 +588,7 @@ module.exports = class bittrex extends Exchange {
         let amount = this.safeFloat (order, 'Quantity');
         let remaining = this.safeFloat (order, 'QuantityRemaining');
         let filled = undefined;
-        if (typeof amount !== 'undefined' && typeof remaining !== 'undefined') {
+        if (amount !== undefined && remaining !== undefined) {
             filled = amount - remaining;
         }
         if (!cost) {
@@ -603,13 +601,13 @@ module.exports = class bittrex extends Exchange {
         }
         let average = this.safeFloat (order, 'PricePerUnit');
         let id = this.safeString (order, 'OrderUuid');
-        if (typeof id === 'undefined')
+        if (id === undefined)
             id = this.safeString (order, 'OrderId');
         let result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
@@ -652,13 +650,13 @@ module.exports = class bittrex extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
         let response = await this.accountGetOrderhistory (this.extend (request, params));
         let orders = this.parseOrders (response['result'], market, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
@@ -743,7 +741,7 @@ module.exports = class bittrex extends Exchange {
             let response = JSON.parse (body);
             // { success: false, message: "message" }
             let success = this.safeValue (response, 'success');
-            if (typeof success === 'undefined')
+            if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             if (typeof success === 'string')
                 // bleutrade uses string instead of boolean
@@ -779,7 +777,7 @@ module.exports = class bittrex extends Exchange {
                                 break;
                             }
                         }
-                        if (typeof orderId !== 'undefined')
+                        if (orderId !== undefined)
                             throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
                         else
                             throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
@@ -787,7 +785,7 @@ module.exports = class bittrex extends Exchange {
                 }
                 if (message in exceptions)
                     throw new exceptions[message] (feedback);
-                if (typeof message !== 'undefined') {
+                if (message !== undefined) {
                     if (message.indexOf ('throttled. Try again') >= 0)
                         throw new DDoSProtection (feedback);
                     if (message.indexOf ('problem') >= 0)

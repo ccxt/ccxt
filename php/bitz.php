@@ -469,7 +469,6 @@ class bitz extends Exchange {
         //
         $tickers = $response['data'];
         $timestamp = $this->parse_microtime ($this->safe_string($response, 'microtime'));
-        $iso8601 = $this->iso8601 ($timestamp);
         $result = array ();
         $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -496,7 +495,7 @@ class bitz extends Exchange {
             if ($symbol !== null) {
                 $result[$symbol] = array_merge ($ticker, array (
                     'timestamp' => $timestamp,
-                    'datetime' => $iso8601,
+                    'datetime' => $this->iso8601 ($timestamp),
                 ));
             }
         }
@@ -773,7 +772,7 @@ class bitz extends Exchange {
             'symbol' => $market['id'],
             'type' => $orderType,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_string($symbol, $amount),
+            'number' => $this->amount_to_precision($symbol, $amount),
             'tradePwd' => $this->password,
         );
         $response = $this->tradePostAddEntrustSheet (array_merge ($request, $params));

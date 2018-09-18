@@ -324,8 +324,7 @@ class coinone (Exchange):
         if id is not None:
             id = id.upper()
         timestamp = int(info['timestamp']) * 1000
-        status = self.safe_string(order, 'status')
-        status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = None
         side = self.safe_string(info, 'type')
         if side.find('ask') >= 0:

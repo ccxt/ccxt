@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
-const { ROUND, TRUNCATE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -59,6 +58,7 @@ module.exports = class uex extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'deposit_list',
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',
@@ -76,8 +76,8 @@ module.exports = class uex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0001,
-                    'taker': 0.0005,
+                    'maker': 0.0010,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -111,6 +111,7 @@ module.exports = class uex extends Exchange {
                 '110033': ExchangeError, // fail to recharge
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
+                '-1000': ExchangeNotAvailable, // {"msg":"System maintenance!","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -144,22 +145,6 @@ module.exports = class uex extends Exchange {
         });
     }
 
-    costToPrecision (symbol, cost) {
-        return this.decimalToPrecision (cost, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price']);
-    }
-
-    amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount']);
-    }
-
-    feeToPrecision (currency, fee) {
-        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision']);
-    }
-
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         let market = this.markets[symbol];
         let key = 'quote';
@@ -174,7 +159,7 @@ module.exports = class uex extends Exchange {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (market[key], cost)),
+            'cost': parseFloat (this.currencyToPrecision (market[key], cost)),
         };
     }
 
@@ -333,14 +318,14 @@ module.exports = class uex extends Exchange {
         //
         let timestamp = this.safeInteger (ticker, 'time');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'symbol');
             marketId = marketId.toLowerCase ();
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
@@ -418,34 +403,34 @@ module.exports = class uex extends Exchange {
         //   }
         //
         let timestamp = this.safeInteger2 (trade, 'create_time', 'ctime');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             let timestring = this.safeString (trade, 'created_at');
-            if (typeof timestring !== 'undefined') {
+            if (timestring !== undefined) {
                 timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
             }
         }
         let side = this.safeString2 (trade, 'side', 'type');
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             side = side.toLowerCase ();
         }
         let id = this.safeString (trade, 'id');
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let price = this.safeFloat2 (trade, 'deal_price', 'price');
         let amount = this.safeFloat2 (trade, 'volume', 'amount');
         let cost = undefined;
-        if (typeof amount !== 'undefined') {
-            if (typeof price !== 'undefined') {
+        if (amount !== undefined) {
+            if (price !== undefined) {
                 cost = amount * price;
             }
         }
         let fee = undefined;
         let feeCost = this.safeFloat2 (trade, 'fee', 'deal_fee');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeCurrency = this.safeString (trade, 'feeCoin');
-            if (typeof feeCurrency !== 'undefined') {
+            if (feeCurrency !== undefined) {
                 let currencyId = feeCurrency.toLowerCase ();
                 if (currencyId in this.currencies_by_id) {
                     feeCurrency = this.currencies_by_id[currencyId]['code'];
@@ -537,7 +522,7 @@ module.exports = class uex extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
                 if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (typeof price === 'undefined') {
+                    if (price === undefined) {
                         throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                     } else {
                         amount = amount * price;
@@ -573,7 +558,6 @@ module.exports = class uex extends Exchange {
         if (type === 'limit') {
             priceToPrecision = this.priceToPrecision (symbol, price);
             request['price'] = priceToPrecision;
-            priceToPrecision = parseFloat (priceToPrecision);
         }
         let response = await this.privatePostCreateOrder (this.extend (request, params));
         //
@@ -588,7 +572,7 @@ module.exports = class uex extends Exchange {
             'type': type,
             'side': side,
             'status': 'open',
-            'price': priceToPrecision,
+            'price': parseFloat (priceToPrecision),
             'amount': parseFloat (amountToPrecision),
         });
     }
@@ -696,18 +680,18 @@ module.exports = class uex extends Exchange {
         //                             status:    2                                 } }
         //
         let side = this.safeString (order, 'side');
-        if (typeof side !== 'undefined')
+        if (side !== undefined)
             side = side.toLowerCase ();
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let baseId = this.safeString (order, 'baseCoin');
             let quoteId = this.safeString (order, 'countCoin');
             let marketId = baseId + quoteId;
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined')) {
+                if ((baseId !== undefined) && (quoteId !== undefined)) {
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);
@@ -716,13 +700,13 @@ module.exports = class uex extends Exchange {
                 }
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (order, 'created_at');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             let timestring = this.safeString (order, 'created_at');
-            if (typeof timestring !== 'undefined') {
+            if (timestring !== undefined) {
                 timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
             }
         }
@@ -744,13 +728,13 @@ module.exports = class uex extends Exchange {
         let feeCost = undefined;
         for (let i = 0; i < tradeList.length; i++) {
             let trade = this.parseTrade (tradeList[i], market);
-            if (typeof feeCost === 'undefined') {
+            if (feeCost === undefined) {
                 feeCost = 0;
             }
             feeCost = feeCost + trade['fee']['cost'];
             let tradeFeeCurrency = trade['fee']['currency'];
             feeCurrencies[tradeFeeCurrency] = trade['fee']['cost'];
-            if (typeof trades === 'undefined') {
+            if (trades === undefined) {
                 trades = [];
             }
             lastTradeTimestamp = trade['timestamp'];
@@ -758,7 +742,7 @@ module.exports = class uex extends Exchange {
                 'order': id,
             }));
         }
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeCurrency = undefined;
             let keys = Object.keys (feeCurrencies);
             let numCurrencies = keys.length;
@@ -793,7 +777,7 @@ module.exports = class uex extends Exchange {
     }
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -803,7 +787,7 @@ module.exports = class uex extends Exchange {
             // page optional page number
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['pageSize'] = limit;
         }
         let response = await this[method] (this.extend (request, params));
@@ -899,7 +883,7 @@ module.exports = class uex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
+        if (symbol === undefined) {
             throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -909,7 +893,7 @@ module.exports = class uex extends Exchange {
             // page optional page number
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['pageSize'] = limit;
         }
         let response = await this.privateGetAllTrade (this.extend (request, params));

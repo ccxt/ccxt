@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -22,7 +23,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class theocean (Exchange):
@@ -74,6 +74,7 @@ class theocean (Exchange):
                 },
                 'private': {
                     'get': [
+                        'balance',
                         'available_balance',
                         'user_history',
                     ],
@@ -102,6 +103,7 @@ class theocean (Exchange):
                     'Orderbook exhausted for intent': OrderNotFillable,  # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                     'Fillable amount under minimum': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder,  # {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
+                    "Schema validation failed for 'params'": BadRequest,  # # {"message":"Schema validation failed for 'params'"}
                 },
             },
             'options': {
@@ -254,23 +256,25 @@ class theocean (Exchange):
             'walletAddress': self.walletAddress.lower(),
             'tokenAddress': currency['id'],
         }
-        response = await self.privateGetAvailableBalance(self.extend(request, params))
+        response = await self.privateGetBalance(self.extend(request, params))
         #
-        #     {
-        #       "availableBalance": "1001006594219628829207"
-        #     }
+        #     {"available":"0","committed":"0","total":"0"}
         #
-        balance = self.fromWei(self.safe_string(response, 'availableBalance'))
+        free = self.fromWei(self.safe_string(response, 'available'))
+        used = self.fromWei(self.safe_string(response, 'committed'))
+        total = self.fromWei(self.safe_string(response, 'total'))
         return {
-            'free': balance,
-            'used': 0,
-            'total': None,
+            'free': free,
+            'used': used,
+            'total': total,
         }
 
     async def fetch_balance(self, params={}):
         if not self.walletAddress or (self.walletAddress.find('0x') != 0):
             raise InvalidAddress(self.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"')
-        codes = self.safe_value(params, 'codes')
+        codes = self.safe_value(self.options, 'fetchBalanceCurrencies')
+        if codes is None:
+            codes = self.safe_value(params, 'codes')
         if (codes is None) or (not isinstance(codes, list)):
             raise ExchangeError(self.id + ' fetchBalance() requires a `codes` parameter(an array of currency codes)')
         await self.load_markets()
@@ -478,9 +482,6 @@ class theocean (Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         errorMessage = self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".'
@@ -871,8 +872,7 @@ class theocean (Exchange):
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
-                status = self.safe_string(timeline[numEvents - 1], 'action')
-                status = self.parse_order_status(status)
+                status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
@@ -1086,14 +1086,6 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def find_broadly_matched_key(self, map, broadString):
-        partialKeys = list(map.keys())
-        for i in range(0, len(partialKeys)):
-            partialKey = partialKeys[i]
-            if broadString.find(partialKey) >= 0:
-                return partialKey
-        return None
-
     def handle_errors(self, httpCode, reason, url, method, headers, body):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
@@ -1114,13 +1106,14 @@ class theocean (Exchange):
                 # {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
                 # {"message":"Intent validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]}
                 # {"message":"Schema validation failed for 'body'","errors":[{"name":"anyOf","argument":["[subschema 0]","[subschema 1]","[subschema 2]"],"message":"is not any of [subschema 0],[subschema 1],[subschema 2]","instance":{"signedTargetOrder":{"error":{"message":"Unsigned target order validation failed.","errors":[{"message":"Greater than available wallet balance.","type":"walletBaseTokenAmount"}]},"maker":"0x1709c02cd7327d391a39a7671af8a91a1ef8a47b","orderHash":"0xda007ea8b5eca71ac96fe4072f7c1209bb151d898a9cc89bbeaa594f0491ee49","ecSignature":{"v":27,"r":"0xb23ce6c4a7b5d51d77e2d00f6d1d472a3b2e72d5b2be1510cfeb122f9366b79e","s":"0x07d274e6d7a00b65fc3026c2f9019215b1e47a5ac4d1f05e03f90550d27109be"}}},"property":"instance"}]}
+                # {"message":"Schema validation failed for 'params'","errors":[{"name":"pattern","argument":"^0x[0-9a-fA-F]{64}$","message":"does not match pattern \"^0x[0-9a-fA-F]{64}$\"","instance":"1","property":"instance.orderHash"}]}
                 #
                 feedback = self.id + ' ' + self.json(response)
                 exact = self.exceptions['exact']
                 if message in exact:
                     raise exact[message](feedback)
                 broad = self.exceptions['broad']
-                broadKey = self.find_broadly_matched_key(broad, body)
+                broadKey = self.findBroadlyMatchedKey(broad, body)
                 if broadKey is not None:
                     raise broad[broadKey](feedback)
                 raise ExchangeError(feedback)  # unknown message

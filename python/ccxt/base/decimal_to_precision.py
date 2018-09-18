@@ -40,8 +40,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
     context.traps[decimal.Underflow] = True
     context.rounding = decimal.ROUND_HALF_UP  # rounds 0.5 away from zero
 
-    dec = decimal.Decimal(n)
-    string = str(dec)
+    dec = decimal.Decimal(str(n))
+    string = '{:f}'.format(dec)  # convert to string using .format to avoid engineering notation
     precise = None
 
     def power_of_10(x):
@@ -49,7 +49,7 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
     if rounding_mode == ROUND:
         if counting_mode == DECIMAL_PLACES:
-            precise = str(dec.quantize(power_of_10(precision)))  # ROUND_HALF_EVEN is default context
+            precise = '{:f}'.format(dec.quantize(power_of_10(precision)))  # ROUND_HALF_EVEN is default context
         elif counting_mode == SIGNIFICANT_DIGITS:
             q = precision - dec.adjusted() - 1
             sigfig = power_of_10(q)
@@ -58,9 +58,9 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
                 # string_to_precision is '' when we have zero precision
                 below = sigfig * decimal.Decimal(string_to_precision if string_to_precision else '0')
                 above = below + sigfig
-                precise = str(min((below, above), key=lambda x: abs(x - dec)))
+                precise = '{:f}'.format(min((below, above), key=lambda x: abs(x - dec)))
             else:
-                precise = str(dec.quantize(sigfig))
+                precise = '{:f}'.format(dec.quantize(sigfig))
 
     elif rounding_mode == TRUNCATE:
         # Slice a string

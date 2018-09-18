@@ -288,7 +288,7 @@ class bitforex (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        sideId = self.safe_string(trade, 'direction')
+        sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
         return {
             'info': trade,
@@ -386,15 +386,15 @@ class bitforex (Exchange):
         orderbook = self.parse_order_book(data, timestamp, bidsKey, asksKey, priceKey, amountKey)
         return orderbook
 
-    def parse_order_status(self, orderStatusId):
-        if orderStatusId == 0 or orderStatusId == 1:
-            return 'open'
-        elif orderStatusId == 2:
-            return 'closed'
-        elif orderStatusId == 3 or orderStatusId == 4:
-            return 'canceled'
-        else:
-            return None
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'canceled',
+            '4': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_side(self, sideId):
         if sideId == 1:
@@ -407,7 +407,6 @@ class bitforex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_float_2(order, 'createTime')
-        iso8601 = self.iso8601(timestamp)
         lastTradeTimestamp = self.safe_float_2(order, 'lastTime')
         symbol = market['symbol']
         sideId = self.safe_integer(order, 'tradeType')
@@ -418,15 +417,14 @@ class bitforex (Exchange):
         amount = self.safe_float(order, 'orderAmount')
         filled = self.safe_float(order, 'dealAmount')
         remaining = amount - filled
-        statusId = self.safe_integer(order, 'orderState')
-        status = self.parse_order_status(statusId)
+        status = self.parse_order_status(self.safe_string(order, 'orderState'))
         cost = filled * price
         fee = self.safe_float(order, 'tradeFee')
         result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,

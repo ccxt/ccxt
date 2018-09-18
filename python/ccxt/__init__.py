@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.229'
+__version__ = '1.17.308'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,8 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
 from ccxt.base.errors import AddressPending                 # noqa: F401
+from ccxt.base.errors import ArgumentsRequired              # noqa: F401
+from ccxt.base.errors import BadRequest                     # noqa: F401
 from ccxt.base.errors import BadResponse                    # noqa: F401
 from ccxt.base.errors import NullResponse                   # noqa: F401
 from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401

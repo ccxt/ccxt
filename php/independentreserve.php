@@ -214,7 +214,7 @@ class independentreserve extends Exchange {
             'currency' => $feeCurrency,
         );
         $id = $order['OrderGuid'];
-        $status = $this->parse_order_status($order['Status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $cost = $this->safe_float($order, 'Value');
         $average = $this->safe_float($order, 'AvgPrice');
         $price = $this->safe_float($order, 'Price', $average);

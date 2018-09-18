@@ -362,9 +362,6 @@ class gemini extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'timestampms');
-        $datetime = null;
-        if ($timestamp !== null)
-            $datetime = $this->iso8601 ($timestamp);
         $code = null;
         if ($currency === null) {
             $currencyId = $this->safe_string($transaction, 'currency');
@@ -388,8 +385,9 @@ class gemini extends Exchange {
             'id' => $this->safe_string($transaction, 'eid'),
             'txid' => $this->safe_string($transaction, 'txHash'),
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'address' => null, // or is it defined?
+            'tag' => null, // or is it defined?
             'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,

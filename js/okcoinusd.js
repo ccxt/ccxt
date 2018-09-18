@@ -404,7 +404,7 @@ module.exports = class okcoinusd extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['size'] = limit;
         if (market['future']) {
             method += 'Future';
@@ -440,7 +440,7 @@ module.exports = class okcoinusd extends Exchange {
         //
         let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             if ('symbol' in ticker) {
                 let marketId = ticker['symbol'];
                 if (marketId in this.markets_by_id) {
@@ -455,7 +455,7 @@ module.exports = class okcoinusd extends Exchange {
                 }
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'last');
@@ -500,10 +500,10 @@ module.exports = class okcoinusd extends Exchange {
         method += 'Ticker';
         let response = await this[method] (this.extend (request, params));
         let ticker = this.safeValue (response, 'ticker');
-        if (typeof ticker === 'undefined')
+        if (ticker === undefined)
             throw new ExchangeError (this.id + ' fetchTicker returned an empty response: ' + this.json (response));
         let timestamp = this.safeInteger (response, 'date');
-        if (typeof timestamp !== 'undefined') {
+        if (timestamp !== undefined) {
             timestamp *= 1000;
             ticker = this.extend (ticker, { 'timestamp': timestamp });
         }
@@ -572,12 +572,12 @@ module.exports = class okcoinusd extends Exchange {
             request['contract_type'] = this.options['defaultContractType']; // this_week, next_week, quarter
         }
         method += 'Kline';
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             if (this.options['warnOnFetchOHLCVLimitArgument'])
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["warnOnFetchOHLCVLimitArgument"] = false to suppress this warning message.');
             request['size'] = parseInt (limit); // max is 1440 candles
         }
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = since;
         else
             request['since'] = this.milliseconds () - 86400000; // last 24 hours
@@ -640,7 +640,7 @@ module.exports = class okcoinusd extends Exchange {
                 order['type'] += '_market';
                 if (side === 'buy') {
                     if (this.options['marketBuyPrice']) {
-                        if (typeof price === 'undefined') {
+                        if (price === undefined) {
                             // eslint-disable-next-line quotes
                             throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
                         }
@@ -682,7 +682,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -702,19 +702,15 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === -1)
-            return 'canceled';
-        if (status === 0)
-            return 'open';
-        if (status === 1)
-            return 'open';
-        if (status === 2)
-            return 'closed';
-        if (status === 3)
-            return 'open';
-        if (status === 4)
-            return 'canceled';
-        return status;
+        let statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        };
+        return this.safeValue (statuses, status, status);
     }
 
     parseOrderSide (side) {
@@ -748,9 +744,9 @@ module.exports = class okcoinusd extends Exchange {
                     type = 'margin';
             }
         }
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -807,7 +803,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -833,7 +829,7 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol parameter');
         await this.loadMarkets ();
         let market = this.market (symbol);
