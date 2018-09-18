@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -812,7 +812,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
