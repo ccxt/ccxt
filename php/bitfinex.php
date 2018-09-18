@@ -812,7 +812,7 @@ class bitfinex extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchTransactions() requires a $currency $code argument');
+            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency ($code);

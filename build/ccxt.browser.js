@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.313'
+const version = '1.17.314'
 
 Exchange.ccxtVersion = version
 
@@ -8533,7 +8533,7 @@ module.exports = class bitbay extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -9342,7 +9342,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ExchangeError (this.id + ' fetchTransactions() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
         }
         await this.loadMarkets ();
         let currency = this.currency (code);
