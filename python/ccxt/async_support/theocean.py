@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -843,12 +844,10 @@ class theocean (Exchange):
         timestamp = self.safe_integer(order, 'created')
         timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
         symbol = None
-        if market is None:
-            baseId = self.safe_string(order, 'baseTokenAddress')
-            quoteId = self.safe_string(order, 'quoteTokenAddress')
-            marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        baseId = self.safe_string(order, 'baseTokenAddress')
+        quoteId = self.safe_string(order, 'quoteTokenAddress')
+        marketId = baseId + '/' + quoteId
+        market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
@@ -868,11 +867,10 @@ class theocean (Exchange):
         lastTradeTimestamp = None
         timeline = self.safe_value(order, 'timeline')
         trades = None
-        status = 'open'
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
-                status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
+                # status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
@@ -926,6 +924,13 @@ class theocean (Exchange):
                 'сost': feeCost,
                 'сurrency': feeCurrency,
             }
+        status = None
+        amountPrecision = market['precision']['amount'] if market else 8
+        if remaining is not None:
+            status = 'open'
+            rest = remaining - failedAmount - deadAmount - prunedAmount
+            if rest < math.pow(10, -amountPrecision):
+                status = 'canceled' if (filled < amount) else 'closed'
         result = {
             'info': order,
             'id': id,
