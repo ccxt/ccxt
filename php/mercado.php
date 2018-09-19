@@ -184,7 +184,7 @@ class mercado extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostCancelOrder (array_merge (array (
@@ -302,7 +302,7 @@ class mercado extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = null;

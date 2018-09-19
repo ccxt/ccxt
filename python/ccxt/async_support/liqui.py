@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -530,7 +531,7 @@ class liqui (Exchange):
         if 'fetchOrdersRequiresSymbol' in self.options:
             if self.options['fetchOrdersRequiresSymbol']:
                 if symbol is None:
-                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+                    raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None

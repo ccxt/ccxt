@@ -294,7 +294,7 @@ class coinone extends Exchange {
             if (is_array ($this->orders) && array_key_exists ($id, $this->orders)) {
                 $market = $this->market ($this->orders[$id]['symbol']);
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrder() requires a $symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
+                throw new ArgumentsRequired ($this->id . ' fetchOrder() requires a $symbol argument for order ids missing in the .orders cache (the order was created with a different instance of this class or within a different run of this code).');
             }
         } else {
             $market = $this->market ($symbol);

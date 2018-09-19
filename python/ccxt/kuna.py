@@ -4,7 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.acx import acx
-from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class kuna (acx):
@@ -118,7 +118,7 @@ class kuna (acx):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         orders = self.privateGetOrders(self.extend({
@@ -167,7 +167,7 @@ class kuna (acx):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privateGetTradesMy({'market': market['id']})

@@ -15,6 +15,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import ExchangeNotAvailable
 
 
@@ -527,7 +528,7 @@ class bigone (Exchange):
         # side      order side one of                                     "ASK"/"BID"     False
         # state     order state one of                      "CANCELED"/"FILLED"/"PENDING" False
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
