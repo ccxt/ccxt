@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.317'
+const version = '1.17.318'
 
 Exchange.ccxtVersion = version
 
@@ -51026,14 +51026,18 @@ module.exports = class rightbtc extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
-            let total = this.divideSafeFloat (balance, 'balance', 1e8);
+            let free = this.divideSafeFloat (balance, 'balance', 1e8);
             let used = this.divideSafeFloat (balance, 'frozen', 1e8);
-            let free = undefined;
-            if (total !== undefined) {
-                if (used !== undefined) {
-                    free = total - used;
-                }
-            }
+            let total = this.sum (free, used);
+            //
+            // https://github.com/ccxt/ccxt/issues/3873
+            //
+            //     if (total !== undefined) {
+            //         if (used !== undefined) {
+            //             free = total - used;
+            //         }
+            //     }
+            //
             let account = {
                 'free': free,
                 'used': used,

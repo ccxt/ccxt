@@ -393,12 +393,18 @@ class rightbtc (Exchange):
             code = self.common_currency_code(currencyId)
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            total = self.divide_safe_float(balance, 'balance', 1e8)
+            free = self.divide_safe_float(balance, 'balance', 1e8)
             used = self.divide_safe_float(balance, 'frozen', 1e8)
-            free = None
-            if total is not None:
-                if used is not None:
-                    free = total - used
+            total = self.sum(free, used)
+            #
+            # https://github.com/ccxt/ccxt/issues/3873
+            #
+            #     if total is not None:
+            #         if used is not None:
+            #             free = total - used
+            #         }
+            #     }
+            #
             account = {
                 'free': free,
                 'used': used,
