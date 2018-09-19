@@ -410,7 +410,7 @@ module.exports = class coinex extends Exchange {
             symbol = market['symbol'];
             if (feeCurrency === undefined) {
                 feeCurrency = market['quote'];
-            };
+            }
         }
         let remaining = this.safeFloat (order, 'left');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
