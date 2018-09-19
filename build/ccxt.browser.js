@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.315'
+const version = '1.17.316'
 
 Exchange.ccxtVersion = version
 
@@ -23674,18 +23674,29 @@ module.exports = class coinex extends Exchange {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
         let marketId = this.safeString (trade, 'market');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = this.safeFloat (trade, 'deal_money');
-        if (!cost)
+        if (!cost) {
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        let fee = {
-            'cost': this.safeFloat (trade, 'fee'),
-            'currency': this.safeString (trade, 'fee_asset'),
-        };
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'fee_asset');
+            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         let takerOrMaker = this.safeString (trade, 'role');
         let side = this.safeString (trade, 'type');
         return {

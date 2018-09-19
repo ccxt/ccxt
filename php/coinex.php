@@ -253,18 +253,29 @@ class coinex extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $cost = $this->safe_float($trade, 'deal_money');
-        if (!$cost)
+        if (!$cost) {
             $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-        $fee = array (
-            'cost' => $this->safe_float($trade, 'fee'),
-            'currency' => $this->safe_string($trade, 'fee_asset'),
-        );
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
+            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+            $feeCurrencyCode = null;
+            if ($feeCurrency !== null) {
+                $feeCurrencyCode = $feeCurrency['code'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $side = $this->safe_string($trade, 'type');
         return array (

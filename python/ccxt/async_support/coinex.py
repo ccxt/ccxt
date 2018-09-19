@@ -248,17 +248,25 @@ class coinex (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         marketId = self.safe_string(trade, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
+        market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
         if market is not None:
             symbol = market['symbol']
         cost = self.safe_float(trade, 'deal_money')
         if not cost:
             cost = float(self.cost_to_precision(symbol, price * amount))
-        fee = {
-            'cost': self.safe_float(trade, 'fee'),
-            'currency': self.safe_string(trade, 'fee_asset'),
-        }
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'fee_asset')
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         takerOrMaker = self.safe_string(trade, 'role')
         side = self.safe_string(trade, 'type')
         return {
