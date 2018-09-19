@@ -355,19 +355,48 @@ class coinex (Exchange):
         return status
 
     def parse_order(self, order, market=None):
-        # TODO: check if it's actually milliseconds, since examples were in seconds
+        #
+        # fetchOrder
+        #
+        #     {
+        #         "amount": "0.1",
+        #         "asset_fee": "0.22736197736197736197",
+        #         "avg_price": "196.85000000000000000000",
+        #         "create_time": 1537270135,
+        #         "deal_amount": "0.1",
+        #         "deal_fee": "0",
+        #         "deal_money": "19.685",
+        #         "fee_asset": "CET",
+        #         "fee_discount": "0.5",
+        #         "id": 1788259447,
+        #         "left": "0",
+        #         "maker_fee_rate": "0",
+        #         "market": "ETHUSDT",
+        #         "order_type": "limit",
+        #         "price": "170.00000000",
+        #         "status": "done",
+        #         "taker_fee_rate": "0.0005",
+        #         "type": "sell",
+        #     }
+        #
         timestamp = self.safe_integer(order, 'create_time') * 1000
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
+        average = self.safe_float(order, 'avg_price')
         symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_value(self.markets_by_id, marketId)
         feeCurrency = None
+        feeCurrencyId = self.safe_string(order, 'fee_asset')
+        currency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+        if currency is not None:
+            feeCurrency = currency['code']
         if market is not None:
             symbol = market['symbol']
-            feeCurrency = market['quote']
+            if feeCurrency is None:
+                feeCurrency = market['quote']
         remaining = self.safe_float(order, 'left')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'order_type')
@@ -383,6 +412,7 @@ class coinex (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -440,6 +470,32 @@ class coinex (Exchange):
             'id': id,
             'market': market['id'],
         }, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "amount": "0.1",
+        #             "asset_fee": "0.22736197736197736197",
+        #             "avg_price": "196.85000000000000000000",
+        #             "create_time": 1537270135,
+        #             "deal_amount": "0.1",
+        #             "deal_fee": "0",
+        #             "deal_money": "19.685",
+        #             "fee_asset": "CET",
+        #             "fee_discount": "0.5",
+        #             "id": 1788259447,
+        #             "left": "0",
+        #             "maker_fee_rate": "0",
+        #             "market": "ETHUSDT",
+        #             "order_type": "limit",
+        #             "price": "170.00000000",
+        #             "status": "done",
+        #             "taker_fee_rate": "0.0005",
+        #             "type": "sell",
+        #         },
+        #         "message": "Ok"
+        #     }
+        #
         return self.parse_order(response['data'], market)
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
