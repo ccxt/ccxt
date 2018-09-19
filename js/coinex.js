@@ -273,7 +273,7 @@ module.exports = class coinex extends Exchange {
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
-            }
+            };
         }
         let takerOrMaker = this.safeString (trade, 'role');
         let side = this.safeString (trade, 'type');
