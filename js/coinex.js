@@ -367,19 +367,50 @@ module.exports = class coinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // TODO: check if it's actually milliseconds, since examples were in seconds
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "amount": "0.1",
+        //         "asset_fee": "0.22736197736197736197",
+        //         "avg_price": "196.85000000000000000000",
+        //         "create_time": 1537270135,
+        //         "deal_amount": "0.1",
+        //         "deal_fee": "0",
+        //         "deal_money": "19.685",
+        //         "fee_asset": "CET",
+        //         "fee_discount": "0.5",
+        //         "id": 1788259447,
+        //         "left": "0",
+        //         "maker_fee_rate": "0",
+        //         "market": "ETHUSDT",
+        //         "order_type": "limit",
+        //         "price": "170.00000000",
+        //         "status": "done",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "sell",
+        //     }
+        //
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
         let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'deal_money');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
+        const average = this.safeFloat (order, 'avg_price');
         let symbol = undefined;
         let marketId = this.safeString (order, 'market');
         market = this.safeValue (this.markets_by_id, marketId);
         let feeCurrency = undefined;
+        let feeCurrencyId = this.safeString (order, 'fee_asset');
+        let currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+        if (currency !== undefined) {
+            feeCurrency = currency['code'];
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
-            feeCurrency = market['quote'];
+            if (feeCurrency === undefined) {
+                feeCurrency = market['quote'];
+            };
         }
         let remaining = this.safeFloat (order, 'left');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -396,6 +427,7 @@ module.exports = class coinex extends Exchange {
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -462,6 +494,32 @@ module.exports = class coinex extends Exchange {
             'id': id,
             'market': market['id'],
         }, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.1",
+        //             "asset_fee": "0.22736197736197736197",
+        //             "avg_price": "196.85000000000000000000",
+        //             "create_time": 1537270135,
+        //             "deal_amount": "0.1",
+        //             "deal_fee": "0",
+        //             "deal_money": "19.685",
+        //             "fee_asset": "CET",
+        //             "fee_discount": "0.5",
+        //             "id": 1788259447,
+        //             "left": "0",
+        //             "maker_fee_rate": "0",
+        //             "market": "ETHUSDT",
+        //             "order_type": "limit",
+        //             "price": "170.00000000",
+        //             "status": "done",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "sell",
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
         return this.parseOrder (response['data'], market);
     }
 
