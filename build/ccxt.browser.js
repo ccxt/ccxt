@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.319'
+const version = '1.17.320'
 
 Exchange.ccxtVersion = version
 
@@ -41570,6 +41570,7 @@ module.exports = class kraken extends Exchange {
             price = this.safeFloat (description, 'price2');
         if ((price === undefined) || (price === 0))
             price = this.safeFloat (order, 'price', price);
+        let average = this.safeFloat (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
@@ -41600,6 +41601,7 @@ module.exports = class kraken extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
+            'average': average,
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),
