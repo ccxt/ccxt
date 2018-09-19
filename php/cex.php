@@ -471,7 +471,7 @@ class cex extends Exchange {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new NotSupported ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array ( 'pair' => $market['id'] );

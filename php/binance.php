@@ -755,7 +755,7 @@ class binance extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -772,7 +772,7 @@ class binance extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -830,7 +830,7 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateDeleteOrder (array_merge (array (
@@ -843,7 +843,7 @@ class binance extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (

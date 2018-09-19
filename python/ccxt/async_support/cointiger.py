@@ -387,7 +387,7 @@ class cointiger (huobipro):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -447,7 +447,7 @@ class cointiger (huobipro):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -475,7 +475,7 @@ class cointiger (huobipro):
 
     async def fetch_orders_by_status_v1(self, status=None, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -547,7 +547,7 @@ class cointiger (huobipro):
         #                    status:  2              }}
         #
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -741,7 +741,7 @@ class cointiger (huobipro):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
         response = await self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
@@ -756,7 +756,7 @@ class cointiger (huobipro):
     async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument')
         market = self.market(symbol)
         marketId = market['id']
         orderIdList = {}

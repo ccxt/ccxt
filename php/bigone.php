@@ -548,7 +548,7 @@ class bigone extends Exchange {
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

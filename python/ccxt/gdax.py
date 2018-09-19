@@ -9,6 +9,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -296,7 +297,7 @@ class gdax (Exchange):
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # as of 2018-08-23
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -529,7 +530,7 @@ class gdax (Exchange):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
         currency = self.currency(code)
         accountId = None
         accounts = self.privateGetAccounts()

@@ -15,6 +15,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -421,7 +422,7 @@ class rightbtc (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.traderDeleteOrderTradingPairIds(self.extend({
@@ -480,7 +481,7 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created')
         if timestamp is None:
-            timestamp = self.parse8601(order['created_at'])
+            timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         if 'time' in order:
             timestamp = order['time']
         elif 'transactTime' in order:
@@ -539,7 +540,7 @@ class rightbtc (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -574,7 +575,7 @@ class rightbtc (Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -645,7 +646,7 @@ class rightbtc (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.traderGetHistorysTradingPairPage(self.extend({

@@ -15,6 +15,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -744,7 +745,7 @@ class uex (Exchange):
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -844,7 +845,7 @@ class uex (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

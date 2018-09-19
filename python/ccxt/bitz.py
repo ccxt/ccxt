@@ -16,6 +16,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -883,7 +884,7 @@ class bitz (Exchange):
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         request = {
             'coinFrom': market['baseId'],

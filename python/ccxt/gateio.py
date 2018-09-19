@@ -15,6 +15,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
@@ -464,7 +465,7 @@ class gateio (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
         self.load_markets()
         return self.privatePostCancelOrder({
             'orderNumber': id,
@@ -509,7 +510,7 @@ class gateio (Exchange):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privatePostTradeHistory(self.extend({
