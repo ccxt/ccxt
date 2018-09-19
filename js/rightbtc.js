@@ -495,7 +495,7 @@ module.exports = class rightbtc extends Exchange {
             symbol = market['symbol'];
         let timestamp = this.safeInteger (order, 'created');
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (order['created_at']);
+            timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
         if ('time' in order)
             timestamp = order['time'];
