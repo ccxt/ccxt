@@ -615,6 +615,10 @@ module.exports = class bigone extends Exchange {
         }, params));
     }
 
+    nonce () {
+        return this.microseconds () * 1000;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -623,7 +627,7 @@ module.exports = class bigone extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce () * 1000000000;
+            let nonce = this.nonce ();
             let request = {
                 'type': 'OpenAPI',
                 'sub': this.apiKey,
