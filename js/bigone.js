@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -88,6 +88,7 @@ module.exports = class bigone extends Exchange {
             'exceptions': {
                 'codes': {
                     '401': AuthenticationError,
+                    '10030': InvalidNonce, // {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
                 },
                 'detail': {
                     'Internal server error': ExchangeNotAvailable,
@@ -657,6 +658,7 @@ module.exports = class bigone extends Exchange {
             let response = JSON.parse (body);
             //
             //      {"errors":{"detail":"Internal server error"}}
+            //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
             //
             const error = this.safeValue (response, 'error');
             const errors = this.safeValue (response, 'errors');
@@ -669,8 +671,12 @@ module.exports = class bigone extends Exchange {
                 }
                 let exceptions = this.exceptions['codes'];
                 if (errors !== undefined) {
-                    code = this.safeString (errors, 'detail');
-                    exceptions = this.exceptions['detail'];
+                    if (this.isArray (errors)) {
+                        code = this.safeString (errors[0], 'code');
+                    } else {
+                        code = this.safeString (errors, 'detail');
+                        exceptions = this.exceptions['detail'];
+                    }
                 }
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
