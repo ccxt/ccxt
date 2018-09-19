@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);

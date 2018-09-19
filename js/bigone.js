@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -547,7 +547,7 @@ module.exports = class bigone extends Exchange {
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);

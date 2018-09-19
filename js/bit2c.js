@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ module.exports = class bit2c extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOpenOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateGetOrderMyOrders (this.extend ({
             'pair': market['id'],

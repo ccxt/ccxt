@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ module.exports = class okcoinusd extends Exchange {
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
+                        'spot/user-level',
                     ],
                 },
                 'public': {
@@ -683,7 +684,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

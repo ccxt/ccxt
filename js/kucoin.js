@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 const { TRUNCATE, ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -688,7 +688,7 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         let orderType = this.safeValue (params, 'type');
         if (orderType === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a type parameter ("BUY" or "SELL")');
@@ -1071,7 +1071,7 @@ module.exports = class kucoin extends Exchange {
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

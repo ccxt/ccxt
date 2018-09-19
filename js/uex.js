@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -778,7 +778,7 @@ module.exports = class uex extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -884,7 +884,7 @@ module.exports = class uex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);

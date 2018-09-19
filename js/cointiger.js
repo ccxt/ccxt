@@ -387,7 +387,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (limit === undefined)
@@ -453,7 +453,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrderTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -483,7 +483,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchOrdersByStatusV1 (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (limit === undefined)
@@ -563,7 +563,7 @@ module.exports = class cointiger extends huobipro {
         //                    status:  2              } }
         //
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -780,7 +780,7 @@ module.exports = class cointiger extends huobipro {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
@@ -796,7 +796,7 @@ module.exports = class cointiger extends huobipro {
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
         let market = this.market (symbol);
         let marketId = market['id'];
         let orderIdList = {};

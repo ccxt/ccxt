@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -754,7 +754,7 @@ module.exports = class binance extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let origClientOrderId = this.safeValue (params, 'origClientOrderId');
@@ -771,7 +771,7 @@ module.exports = class binance extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -829,7 +829,7 @@ module.exports = class binance extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
@@ -842,7 +842,7 @@ module.exports = class binance extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
