@@ -17,6 +17,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 
 
 class bigone (Exchange):
@@ -101,6 +102,7 @@ class bigone (Exchange):
             'exceptions': {
                 'codes': {
                     '401': AuthenticationError,
+                    '10030': InvalidNonce,  # {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
                 },
                 'detail': {
                     'Internal server error': ExchangeNotAvailable,
@@ -589,6 +591,9 @@ class bigone (Exchange):
             'state': 'FILLED',
         }, params))
 
+    def nonce(self):
+        return self.microseconds() * 1000
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
@@ -597,7 +602,7 @@ class bigone (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            nonce = self.nonce() * 1000000000
+            nonce = self.nonce()
             request = {
                 'type': 'OpenAPI',
                 'sub': self.apiKey,
@@ -624,6 +629,7 @@ class bigone (Exchange):
             response = json.loads(body)
             #
             #      {"errors":{"detail":"Internal server error"}}
+            #      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
             #
             error = self.safe_value(response, 'error')
             errors = self.safe_value(response, 'errors')
@@ -635,8 +641,11 @@ class bigone (Exchange):
                     code = self.safe_integer(error, 'code')
                 exceptions = self.exceptions['codes']
                 if errors is not None:
-                    code = self.safe_string(errors, 'detail')
-                    exceptions = self.exceptions['detail']
+                    if self.isArray(errors):
+                        code = self.safe_string(errors[0], 'code')
+                    else:
+                        code = self.safe_string(errors, 'detail')
+                        exceptions = self.exceptions['detail']
                 if code in exceptions:
                     raise exceptions[code](feedback)
                 else:

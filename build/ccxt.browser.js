@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.320'
+const version = '1.17.321'
 
 Exchange.ccxtVersion = version
 
@@ -5476,7 +5476,7 @@ module.exports = class bibox extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -5561,6 +5561,7 @@ module.exports = class bigone extends Exchange {
             'exceptions': {
                 'codes': {
                     '401': AuthenticationError,
+                    '10030': InvalidNonce, // {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
                 },
                 'detail': {
                     'Internal server error': ExchangeNotAvailable,
@@ -6088,6 +6089,10 @@ module.exports = class bigone extends Exchange {
         }, params));
     }
 
+    nonce () {
+        return this.microseconds () * 1000;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -6096,7 +6101,7 @@ module.exports = class bigone extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce () * 1000000000;
+            let nonce = this.nonce ();
             let request = {
                 'type': 'OpenAPI',
                 'sub': this.apiKey,
@@ -6126,6 +6131,7 @@ module.exports = class bigone extends Exchange {
             let response = JSON.parse (body);
             //
             //      {"errors":{"detail":"Internal server error"}}
+            //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
             //
             const error = this.safeValue (response, 'error');
             const errors = this.safeValue (response, 'errors');
@@ -6138,8 +6144,12 @@ module.exports = class bigone extends Exchange {
                 }
                 let exceptions = this.exceptions['codes'];
                 if (errors !== undefined) {
-                    code = this.safeString (errors, 'detail');
-                    exceptions = this.exceptions['detail'];
+                    if (this.isArray (errors)) {
+                        code = this.safeString (errors[0], 'code');
+                    } else {
+                        code = this.safeString (errors, 'detail');
+                        exceptions = this.exceptions['detail'];
+                    }
                 }
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
