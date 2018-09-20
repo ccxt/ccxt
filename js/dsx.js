@@ -14,6 +14,7 @@ module.exports = class dsx extends liqui {
             'name': 'DSX',
             'countries': [ 'UK' ],
             'rateLimit': 1500,
+            'version': 'v2',
             'has': {
                 'CORS': false,
                 'fetchOrder': true,
@@ -150,44 +151,12 @@ module.exports = class dsx extends liqui {
         return this.decode (this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'));
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
-        if (api === 'private') {
-            url += '/v2/' + this.implodeParams (path, params);
-            this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            body = this.urlencode (this.extend ({
-                'nonce': nonce,
-                'method': path,
-            }, query));
-            let signature = this.signBodyWithSecret (body);
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Key': this.apiKey,
-                'Sign': signature,
-            };
-        } else if (api === 'public') {
-            url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
-            url += this.implodeParams (path, params);
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else {
-                if (Object.keys (query).length) {
-                    body = this.json (query);
-                    headers = {
-                        'Content-Type': 'application/json',
-                    };
-                }
-            }
-        }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    getVersionString () {
+        return '';
+    }
+
+    getPrivatePath (path, params) {
+        return '/' + this.version + '/' + this.implodeParams (path, params);
     }
 
     parseTrade (trade, market = undefined) {
