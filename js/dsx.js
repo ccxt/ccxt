@@ -80,6 +80,7 @@ module.exports = class dsx extends liqui {
                 },
             },
             'options': {
+                'fetchOrderMethod': 'privatePostOrderStatus',
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
                 'cancelOrderMethod': 'privatePostOrderCancel',
             },
@@ -193,18 +194,6 @@ module.exports = class dsx extends liqui {
 
     getOrderIdKey () {
         return 'orderId';
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus (this.extend ({
-            'orderId': parseInt (id),
-        }, params));
-        id = id.toString ();
-        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return']));
-        let oldOrder = (id in this.orders) ? this.orders[id] : {};
-        this.orders[id] = this.extend (oldOrder, newOrder);
-        return this.orders[id];
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

@@ -84,6 +84,7 @@ module.exports = class liqui extends Exchange {
                 '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
             },
             'options': {
+                'fetchOrderMethod': 'privatePostOrderInfo',
                 'fetchMyTradesMethod': 'privatePostTradeHistory',
                 'cancelOrderMethod': 'privatePostCancelOrder',
             },
@@ -519,9 +520,11 @@ module.exports = class liqui extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
+        let request = {};
+        let idKey = this.getOrderIdKey ();
+        request[idKey] = parseInt (id);
+        let method = this.options['fetchOrderMethod'];
+        let response = await this[method] (this.extend (request, params));
         id = id.toString ();
         let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
         let oldOrder = (id in this.orders) ? this.orders[id] : {};
