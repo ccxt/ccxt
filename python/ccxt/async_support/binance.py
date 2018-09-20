@@ -91,13 +91,14 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
-                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ],
                 },
                 'v3': {
@@ -904,6 +905,8 @@ class binance (Exchange):
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
+        if len(tag) < 1:
+            tag = None
         txid = self.safe_value(transaction, 'txId')
         code = None
         currencyId = self.safe_string(transaction, 'asset')
@@ -964,25 +967,38 @@ class binance (Exchange):
                 }
 
     async def fetch_funding_fees(self, codes=None, params={}):
-        # by default it will try load withdrawal fees of all currencies(with separate requests)
-        # however if you define codes = ['ETH', 'BTC'] in args it will only load those
-        await self.load_markets()
+        response = await self.wapiGetAssetDetail()
+        #
+        #     {
+        #         "success": True,
+        #         "assetDetail": {
+        #             "CTR": {
+        #                 "minWithdrawAmount": "70.00000000",  #min withdraw amount
+        #                 "depositStatus": False,//deposit status
+        #                 "withdrawFee": 35,  # withdraw fee
+        #                 "withdrawStatus": True,  #withdraw status
+        #                 "depositTip": "Delisted, Deposit Suspended"  #reason
+        #             },
+        #             "SKY": {
+        #                 "minWithdrawAmount": "0.02000000",
+        #                 "depositStatus": True,
+        #                 "withdrawFee": 0.01,
+        #                 "withdrawStatus": True
+        #             }
+        #         }
+        #     }
+        #
+        detail = self.safe_value(response, 'assetDetail')
+        ids = list(detail.keys())
         withdrawFees = {}
-        info = {}
-        if codes is None:
-            codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            response = await self.wapiGetWithdrawFee({
-                'asset': currency['id'],
-            })
-            withdrawFees[code] = self.safe_float(response, 'withdrawFee')
-            info[code] = response
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.common_currency_code(id)
+            withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
             'deposit': {},
-            'info': info,
+            'info': response,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

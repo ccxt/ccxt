@@ -81,13 +81,14 @@ class binance extends Exchange {
                         'withdraw',
                     ),
                     'get' => array (
-                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ),
                 ),
                 'v3' => array (
@@ -964,6 +965,9 @@ class binance extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
+        if (strlen ($tag) < 1) {
+            $tag = null;
+        }
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
         $currencyId = $this->safe_string($transaction, 'asset');
@@ -1032,26 +1036,39 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
-        $this->load_markets();
+        $response = $this->wapiGetAssetDetail ();
+        //
+        //     {
+        //         "success" => true,
+        //         "assetDetail" => {
+        //             "CTR" => array (
+        //                 "minWithdrawAmount" => "70.00000000", //min withdraw amount
+        //                 "depositStatus" => false,//deposit status
+        //                 "withdrawFee" => 35, // withdraw fee
+        //                 "withdrawStatus" => true, //withdraw status
+        //                 "depositTip" => "Delisted, Deposit Suspended" //reason
+        //             ),
+        //             "SKY" => {
+        //                 "minWithdrawAmount" => "0.02000000",
+        //                 "depositStatus" => true,
+        //                 "withdrawFee" => 0.01,
+        //                 "withdrawStatus" => true
+        //             }
+        //         }
+        //     }
+        //
+        $detail = $this->safe_value($response, 'assetDetail');
+        $ids = is_array ($detail) ? array_keys ($detail) : array ();
         $withdrawFees = array ();
-        $info = array ();
-        if ($codes === null)
-            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currency ($code);
-            $response = $this->wapiGetWithdrawFee (array (
-                'asset' => $currency['id'],
-            ));
-            $withdrawFees[$code] = $this->safe_float($response, 'withdrawFee');
-            $info[$code] = $response;
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->common_currency_code($id);
+            $withdrawFees[$code] = $this->safe_float($detail[$id], 'withdrawFee');
         }
         return array (
             'withdraw' => $withdrawFees,
             'deposit' => array (),
-            'info' => $info,
+            'info' => $response,
         );
     }
 
