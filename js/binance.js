@@ -1035,26 +1035,39 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
-        await this.loadMarkets ();
+        let response = await this.wapiGetAssetDetail ();
+        //
+        //     {
+        //         "success": true,
+        //         "assetDetail": {
+        //             "CTR": {
+        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
+        //                 "depositStatus": false,//deposit status
+        //                 "withdrawFee": 35, // withdraw fee
+        //                 "withdrawStatus": true, //withdraw status
+        //                 "depositTip": "Delisted, Deposit Suspended" //reason
+        //             },
+        //             "SKY": {
+        //                 "minWithdrawAmount": "0.02000000",
+        //                 "depositStatus": true,
+        //                 "withdrawFee": 0.01,
+        //                 "withdrawStatus": true
+        //             }
+        //         }
+        //     }
+        //
+        let detail = this.safeValue (response, 'assetDetail');
+        let ids = Object.keys (detail);
         let withdrawFees = {};
-        let info = {};
-        if (codes === undefined)
-            codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            let code = codes[i];
-            let currency = this.currency (code);
-            let response = await this.wapiGetWithdrawFee ({
-                'asset': currency['id'],
-            });
-            withdrawFees[code] = this.safeFloat (response, 'withdrawFee');
-            info[code] = response;
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let code = this.commonCurrencyCode (id);
+            withdrawFees[code] = this.safeFloat (detail[id], 'withdrawFee');
         }
         return {
             'withdraw': withdrawFees,
             'deposit': {},
-            'info': info,
+            'info': response,
         };
     }
 
