@@ -210,12 +210,10 @@ module.exports = class liquid extends Exchange {
             } else {
                 let baseId = this.safeString (ticker, 'base_currency');
                 let quoteId = this.safeString (ticker, 'quoted_currency');
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
                 if (symbol in this.markets) {
                     market = this.markets[symbol];
                 } else {
-                    symbol = base + '/' + quote;
+                    symbol = this.commonCurrencyCode (baseId) + '/' + this.commonCurrencyCode (quoteId);
                 }
             }
         }
@@ -261,12 +259,9 @@ module.exports = class liquid extends Exchange {
         let tickers = await this.publicGetProducts (params);
         let result = {};
         for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let base = ticker['base_currency'];
-            let quote = ticker['quoted_currency'];
-            let symbol = base + '/' + quote;
-            let market = this.markets[symbol];
-            result[symbol] = this.parseTicker (ticker, market);
+            let ticker = this.parseTicker (tickers[t]);
+            let symbol = ticker['symbol'];
+            result[symbol] = ticker;
         }
         return result;
     }
