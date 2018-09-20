@@ -194,29 +194,6 @@ module.exports = class dsx extends liqui {
         return 'orderId';
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
-        let request = {};
-        if (typeof symbol !== 'undefined') {
-            market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        if (typeof limit !== 'undefined') {
-            request['count'] = parseInt (limit);
-        }
-        if (typeof since !== 'undefined') {
-            request['since'] = parseInt (since / 1000);
-        }
-        let response = await this.privatePostHistoryTrades (this.extend (request, params));
-        let trades = [];
-        if ('return' in response) {
-            trades = response['return'];
-        }
-        // trades = Object.keys (trades || []).map (trade => trades[trade].concat ({'trade_id':trade}));
-        return this.parseTrades (trades, market, since, limit);
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrderStatus (this.extend ({
