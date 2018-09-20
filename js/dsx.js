@@ -81,6 +81,7 @@ module.exports = class dsx extends liqui {
             },
             'options': {
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
+                'cancelOrderMethod': 'privatePostOrderCancel',
             },
         });
     }
@@ -325,16 +326,5 @@ module.exports = class dsx extends liqui {
             'fee': fee,
         };
         return result;
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        request['orderId'] = id;
-        let response = await this.privatePostOrderCancel (this.extend (request, params));
-        if (id in this.orders) {
-            this.orders[id]['status'] = 'canceled';
-        }
-        return response;
     }
 };
