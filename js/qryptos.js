@@ -6,11 +6,11 @@ const liquid = require ('./liquid');
 
 // ---------------------------------------------------------------------------
 
-module.exports = class quoinex extends liquid {
+module.exports = class qryptos extends liquid {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'quoinex',
-            'name': 'QUOINEX',
+            'id': 'qryptos',
+            'name': 'QRYPTOS',
         });
     }
 };
