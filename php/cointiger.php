@@ -342,7 +342,11 @@ class cointiger extends huobipro {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
-                $feeCurrency = $market['base'];
+                if ($side === 'buy') {
+                    $feeCurrency = $market['base'];
+                } else if ($side === 'sell') {
+                    $feeCurrency = $market['quote'];
+                }
             }
             $fee = array (
                 'cost' => $feeCost,

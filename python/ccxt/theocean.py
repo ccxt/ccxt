@@ -847,7 +847,7 @@ class theocean (Exchange):
         baseId = self.safe_string(order, 'baseTokenAddress')
         quoteId = self.safe_string(order, 'quoteTokenAddress')
         marketId = baseId + '/' + quoteId
-        market = self.safe_value(self.markets_by_id, marketId)
+        market = self.safe_value(self.markets_by_id, marketId, market)
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')

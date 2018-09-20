@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.323'
+const version = '1.17.327'
 
 Exchange.ccxtVersion = version
 
@@ -6145,7 +6145,7 @@ module.exports = class bigone extends Exchange {
                 }
                 let exceptions = this.exceptions['codes'];
                 if (errors !== undefined) {
-                    if (this.isArray (errors)) {
+                    if (Array.isArray (errors)) {
                         code = this.safeString (errors[0], 'code');
                     } else {
                         code = this.safeString (errors, 'detail');
@@ -28045,7 +28045,11 @@ module.exports = class cointiger extends huobipro {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
-                feeCurrency = market['base'];
+                if (side === 'buy') {
+                    feeCurrency = market['base'];
+                } else if (side === 'sell') {
+                    feeCurrency = market['quote'];
+                }
             }
             fee = {
                 'cost': feeCost,
@@ -48643,13 +48647,13 @@ module.exports = class okcoinusd extends Exchange {
         let volumeIndex = (numElements > 6) ? 6 : 5;
         return [
             ohlcv[0], // timestamp
-            ohlcv[1], // Open
-            ohlcv[2], // High
-            ohlcv[3], // Low
-            ohlcv[4], // Close
-            // ohlcv[5], // quote volume
-            // ohlcv[6], // base volume
-            ohlcv[volumeIndex], // okex will return base volume in the 7th element for future markets
+            parseFloat (ohlcv[1]), // Open
+            parseFloat (ohlcv[2]), // High
+            parseFloat (ohlcv[3]), // Low
+            parseFloat (ohlcv[4]), // Close
+            // parseFloat (ohlcv[5]), // quote volume
+            // parseFloat (ohlcv[6]), // base volume
+            parseFloat (ohlcv[volumeIndex]), // okex will return base volume in the 7th element for future markets
         ];
     }
 
@@ -52670,7 +52674,7 @@ module.exports = class theocean extends Exchange {
         let baseId = this.safeString (order, 'baseTokenAddress');
         let quoteId = this.safeString (order, 'quoteTokenAddress');
         let marketId = baseId + '/' + quoteId;
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeValue (this.markets_by_id, marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -54355,12 +54359,14 @@ module.exports = class uex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeFloat2 (trade, 'deal_price', 'price');
+        let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'volume', 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
+        let cost = this.safeFloat (trade, 'deal_price');
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
             }
         }
         let fee = undefined;

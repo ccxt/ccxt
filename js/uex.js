@@ -418,12 +418,14 @@ module.exports = class uex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeFloat2 (trade, 'deal_price', 'price');
+        let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat2 (trade, 'volume', 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = amount * price;
+        let cost = this.safeFloat (trade, 'deal_price');
+        if (cost === undefined) {
+            if (amount !== undefined) {
+                if (price !== undefined) {
+                    cost = amount * price;
+                }
             }
         }
         let fee = undefined;

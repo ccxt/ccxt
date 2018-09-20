@@ -671,7 +671,7 @@ module.exports = class bigone extends Exchange {
                 }
                 let exceptions = this.exceptions['codes'];
                 if (errors !== undefined) {
-                    if (this.isArray (errors)) {
+                    if (Array.isArray (errors)) {
                         code = this.safeString (errors[0], 'code');
                     } else {
                         code = this.safeString (errors, 'detail');

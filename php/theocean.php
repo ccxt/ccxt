@@ -875,7 +875,7 @@ class theocean extends Exchange {
         $baseId = $this->safe_string($order, 'baseTokenAddress');
         $quoteId = $this->safe_string($order, 'quoteTokenAddress');
         $marketId = $baseId . '/' . $quoteId;
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }

@@ -672,7 +672,7 @@ class bigone extends Exchange {
                 }
                 $exceptions = $this->exceptions['codes'];
                 if ($errors !== null) {
-                    if ($this->isArray ($errors)) {
+                    if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
                         $code = $this->safe_string($errors[0], 'code');
                     } else {
                         $code = $this->safe_string($errors, 'detail');
