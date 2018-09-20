@@ -12,6 +12,7 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -23,7 +24,6 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class theocean (Exchange):
@@ -166,8 +166,8 @@ class theocean (Exchange):
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             precision = {
-                'amount': self.safe_integer(baseToken, 'precision'),
-                'price': self.safe_integer(quoteToken, 'precision'),
+                'amount': -self.safe_integer(baseToken, 'precision'),
+                'price': -self.safe_integer(quoteToken, 'precision'),
             }
             amountLimits = {
                 'min': self.fromWei(self.safe_string(baseToken, 'minAmount')),
@@ -483,9 +483,6 @@ class theocean (Exchange):
         #     ]
         #
         return self.parse_trades(response, market, since, limit)
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         errorMessage = self.id + ' createOrder() requires `exchange.walletAddress` and `exchange.privateKey`. The .walletAddress should be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377". The .privateKey for that wallet should be a "0x"-prefixed hexstring like "0xe4f40d465efa94c98aec1a51f574329344c772c1bce33be07fa20a56795fdd09".'
@@ -847,12 +844,10 @@ class theocean (Exchange):
         timestamp = self.safe_integer(order, 'created')
         timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
         symbol = None
-        if market is None:
-            baseId = self.safe_string(order, 'baseTokenAddress')
-            quoteId = self.safe_string(order, 'quoteTokenAddress')
-            marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        baseId = self.safe_string(order, 'baseTokenAddress')
+        quoteId = self.safe_string(order, 'quoteTokenAddress')
+        marketId = baseId + '/' + quoteId
+        market = self.safe_value(self.markets_by_id, marketId)
         if market is not None:
             symbol = market['symbol']
         price = self.safe_float(order, 'price')
@@ -872,11 +867,10 @@ class theocean (Exchange):
         lastTradeTimestamp = None
         timeline = self.safe_value(order, 'timeline')
         trades = None
-        status = 'open'
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
-                status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
+                # status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
@@ -930,6 +924,13 @@ class theocean (Exchange):
                 'сost': feeCost,
                 'сurrency': feeCurrency,
             }
+        status = None
+        amountPrecision = market['precision']['amount'] if market else 8
+        if remaining is not None:
+            status = 'open'
+            rest = remaining - failedAmount - deadAmount - prunedAmount
+            if rest < math.pow(10, -amountPrecision):
+                status = 'canceled' if (filled < amount) else 'closed'
         result = {
             'info': order,
             'id': id,

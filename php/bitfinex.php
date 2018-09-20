@@ -617,7 +617,7 @@ class bitfinex extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
@@ -812,7 +812,7 @@ class bitfinex extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchTransactions() requires a $currency $code argument');
+            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
         }
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -881,7 +881,7 @@ class bitfinex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => $this->safe_string($transaction, 'address'),
-            'tag' => $this->safe_string($transaction, 'description'), // refix it properly for the tag
+            'tag' => null, // refix it properly for the tag from description
             'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,

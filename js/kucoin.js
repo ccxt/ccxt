@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { TRUNCATE, ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -688,7 +688,7 @@ module.exports = class kucoin extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         let orderType = this.safeValue (params, 'type');
         if (orderType === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a type parameter ("BUY" or "SELL")');
@@ -799,18 +799,28 @@ module.exports = class kucoin extends Exchange {
         return this.parseOrdersByStatus (orders, market, since, limit, 'closed');
     }
 
+    priceToPrecision (symbol, price) {
+        const market = this.market (symbol);
+        const code = market['quote'];
+        return this.decimalToPrecision (price, ROUND, this.currencies[code]['precision'], this.precisionMode);
+    }
+
+    amountToPrecision (symbol, amount) {
+        const market = this.market (symbol);
+        const code = market['base'];
+        return this.decimalToPrecision (amount, TRUNCATE, this.currencies[code]['precision'], this.precisionMode);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (type !== 'limit')
             throw new ExchangeError (this.id + ' allows limit orders only');
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let quote = market['quote'];
-        let base = market['base'];
         let request = {
             'symbol': market['id'],
             'type': side.toUpperCase (),
-            'price': this.decimalToPrecision (price, TRUNCATE, this.currencies[quote]['precision'], DECIMAL_PLACES),
-            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[base]['precision'], DECIMAL_PLACES),
+            'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
         };
         price = parseFloat (price);
         amount = parseFloat (amount);
@@ -1008,17 +1018,20 @@ module.exports = class kucoin extends Exchange {
             amount = this.safeFloat (trade, 'amount');
             cost = this.safeFloat (trade, 'dealValue');
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
-            } else {
-                let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
-                let feeCurrency = this.safeString (order, feeCurrencyField);
-                if (feeCurrency !== undefined) {
-                    if (feeCurrency in this.currencies_by_id)
-                        feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+            if (side !== undefined) {
+                if (market !== undefined) {
+                    feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+                } else {
+                    let feeCurrencyField = (side === 'sell') ? 'coinTypePair' : 'coinType';
+                    let feeCurrency = this.safeString (order, feeCurrencyField);
+                    if (feeCurrency !== undefined) {
+                        if (feeCurrency in this.currencies_by_id)
+                            feeCurrency = this.currencies_by_id[feeCurrency]['code'];
+                    }
                 }
             }
             fee = {
+                'rate': this.safeFloat (trade, 'feeRate'),
                 'cost': this.safeFloat (trade, 'fee'),
                 'currency': feeCurrency,
             };
@@ -1061,7 +1074,7 @@ module.exports = class kucoin extends Exchange {
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades is deprecated and requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

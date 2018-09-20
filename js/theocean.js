@@ -2,7 +2,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -146,8 +145,8 @@ module.exports = class theocean extends Exchange {
             let symbol = base + '/' + quote;
             let id = baseId + '/' + quoteId;
             let precision = {
-                'amount': this.safeInteger (baseToken, 'precision'),
-                'price': this.safeInteger (quoteToken, 'precision'),
+                'amount': -this.safeInteger (baseToken, 'precision'),
+                'price': -this.safeInteger (quoteToken, 'precision'),
             };
             let amountLimits = {
                 'min': this.fromWei (this.safeString (baseToken, 'minAmount')),
@@ -489,10 +488,6 @@ module.exports = class theocean extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -872,14 +867,10 @@ module.exports = class theocean extends Exchange {
         let timestamp = this.safeInteger (order, 'created');
         timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
-        if (market === undefined) {
-            let baseId = this.safeString (order, 'baseTokenAddress');
-            let quoteId = this.safeString (order, 'quoteTokenAddress');
-            let marketId = baseId + '/' + quoteId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        let baseId = this.safeString (order, 'baseTokenAddress');
+        let quoteId = this.safeString (order, 'quoteTokenAddress');
+        let marketId = baseId + '/' + quoteId;
+        market = this.safeValue (this.markets_by_id, marketId);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -901,11 +892,10 @@ module.exports = class theocean extends Exchange {
         let lastTradeTimestamp = undefined;
         let timeline = this.safeValue (order, 'timeline');
         let trades = undefined;
-        let status = 'open';
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
-                status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
+                // status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
@@ -973,6 +963,15 @@ module.exports = class theocean extends Exchange {
                 'сost': feeCost,
                 'сurrency': feeCurrency,
             };
+        }
+        let status = undefined;
+        let amountPrecision = market ? market['precision']['amount'] : 8;
+        if (remaining !== undefined) {
+            status = 'open';
+            const rest = remaining - failedAmount - deadAmount - prunedAmount;
+            if (rest < Math.pow (10, -amountPrecision)) {
+                status = (filled < amount) ? 'canceled' : 'closed';
+            }
         }
         let result = {
             'info': order,

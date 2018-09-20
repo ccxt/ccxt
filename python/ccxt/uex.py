@@ -15,6 +15,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -126,6 +127,7 @@ class uex (Exchange):
                 '110033': ExchangeError,  # fail to recharge
                 '110034': ExchangeError,  # fail to withdraw
                 '-100': ExchangeError,  # {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
+                '-1000': ExchangeNotAvailable,  # {"msg":"System maintenancenot ","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -743,7 +745,7 @@ class uex (Exchange):
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -843,7 +845,7 @@ class uex (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

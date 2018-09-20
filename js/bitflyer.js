@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -254,7 +254,7 @@ module.exports = class bitflyer extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelchildorder (this.extend ({
             'product_code': this.marketId (symbol),
@@ -325,7 +325,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -355,7 +355,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         let orders = await this.fetchOrders (symbol);
         let ordersById = this.indexBy (orders, 'id');
         if (id in ordersById)
@@ -365,7 +365,7 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

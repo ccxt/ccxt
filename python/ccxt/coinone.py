@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
@@ -287,7 +288,7 @@ class coinone (Exchange):
             if id in self.orders:
                 market = self.market(self.orders[id]['symbol'])
             else:
-                raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache(the order was created with a different instance of self class or within a different run of self code).')
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for order ids missing in the .orders cache(the order was created with a different instance of self class or within a different run of self code).')
         else:
             market = self.market(symbol)
         try:

@@ -15,6 +15,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -392,12 +393,18 @@ class rightbtc (Exchange):
             code = self.common_currency_code(currencyId)
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            total = self.divide_safe_float(balance, 'balance', 1e8)
+            free = self.divide_safe_float(balance, 'balance', 1e8)
             used = self.divide_safe_float(balance, 'frozen', 1e8)
-            free = None
-            if total is not None:
-                if used is not None:
-                    free = total - used
+            total = self.sum(free, used)
+            #
+            # https://github.com/ccxt/ccxt/issues/3873
+            #
+            #     if total is not None:
+            #         if used is not None:
+            #             free = total - used
+            #         }
+            #     }
+            #
             account = {
                 'free': free,
                 'used': used,
@@ -421,7 +428,7 @@ class rightbtc (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.traderDeleteOrderTradingPairIds(self.extend({
@@ -480,7 +487,7 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created')
         if timestamp is None:
-            timestamp = self.parse8601(order['created_at'])
+            timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         if 'time' in order:
             timestamp = order['time']
         elif 'transactTime' in order:
@@ -539,7 +546,7 @@ class rightbtc (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -574,7 +581,7 @@ class rightbtc (Exchange):
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -645,7 +652,7 @@ class rightbtc (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.traderGetHistorysTradingPairPage(self.extend({

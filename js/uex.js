@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -111,6 +111,7 @@ module.exports = class uex extends Exchange {
                 '110033': ExchangeError, // fail to recharge
                 '110034': ExchangeError, // fail to withdraw
                 '-100': ExchangeError, // {"code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null}
+                '-1000': ExchangeNotAvailable, // {"msg":"System maintenance!","code":"-1000","data":null}
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -777,7 +778,7 @@ module.exports = class uex extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -883,7 +884,7 @@ module.exports = class uex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);

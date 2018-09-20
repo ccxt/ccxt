@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidAddress, OrderNotFound, NotSupported, DDoSProtection, InsufficientFunds } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -486,7 +486,7 @@ module.exports = class gateio extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder requires symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelOrder ({
             'orderNumber': id,
@@ -538,7 +538,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);

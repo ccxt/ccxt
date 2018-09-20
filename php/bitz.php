@@ -912,7 +912,7 @@ class bitz extends Exchange {
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array (

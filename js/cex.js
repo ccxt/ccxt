@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, NullResponse, InvalidOrder, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, NullResponse, InvalidOrder, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -470,7 +470,7 @@ module.exports = class cex extends Exchange {
         await this.loadMarkets ();
         let method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
-            throw new NotSupported (this.id + ' fetchClosedOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
         }
         let market = this.market (symbol);
         let request = { 'pair': market['id'] };

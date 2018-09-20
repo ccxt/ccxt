@@ -654,6 +654,7 @@ class kraken (Exchange):
             price = self.safe_float(description, 'price2')
         if (price is None) or (price == 0):
             price = self.safe_float(order, 'price', price)
+        average = self.safe_float(order, 'price')
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
@@ -681,6 +682,7 @@ class kraken (Exchange):
             'cost': cost,
             'amount': amount,
             'filled': filled,
+            'average': average,
             'remaining': remaining,
             'fee': fee,
             # 'trades': self.parse_trades(order['trades'], market),

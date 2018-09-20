@@ -576,7 +576,7 @@ class liqui extends Exchange {
         if (is_array ($this->options) && array_key_exists ('fetchOrdersRequiresSymbol', $this->options))
             if ($this->options['fetchOrdersRequiresSymbol'])
                 if ($symbol === null)
-                    throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+                    throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $request = array ();
         $market = null;

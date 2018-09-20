@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
     describe () {
@@ -571,7 +571,7 @@ module.exports = class liqui extends Exchange {
         if ('fetchOrdersRequiresSymbol' in this.options)
             if (this.options['fetchOrdersRequiresSymbol'])
                 if (symbol === undefined)
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;

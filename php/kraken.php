@@ -671,6 +671,7 @@ class kraken extends Exchange {
             $price = $this->safe_float($description, 'price2');
         if (($price === null) || ($price === 0))
             $price = $this->safe_float($order, 'price', $price);
+        $average = $this->safe_float($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
@@ -701,6 +702,7 @@ class kraken extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
+            'average' => $average,
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),

@@ -8,6 +8,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -634,9 +635,10 @@ class binance (Exchange):
                 for i in range(1, len(trades)):
                     cost = self.sum(cost, trades[i]['cost'])
                     fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
-                if cost and filled:
-                    price = cost / filled
+        average = None
         if cost is not None:
+            if filled:
+                average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         result = {
@@ -651,6 +653,7 @@ class binance (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -707,7 +710,7 @@ class binance (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -723,7 +726,7 @@ class binance (Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -732,6 +735,28 @@ class binance (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "LTCBTC",
+        #             "orderId": 1,
+        #             "clientOrderId": "myOrder1",
+        #             "price": "0.1",
+        #             "origQty": "1.0",
+        #             "executedQty": "0.0",
+        #             "cummulativeQuoteQty": "0.0",
+        #             "status": "NEW",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "side": "BUY",
+        #             "stopPrice": "0.0",
+        #             "icebergQty": "0.0",
+        #             "time": 1499827319559,
+        #             "updateTime": 1499827319559,
+        #             "isWorking": True
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -755,7 +780,7 @@ class binance (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privateDeleteOrder(self.extend({
@@ -767,7 +792,7 @@ class binance (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -901,7 +926,10 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        fee = None
+        feeCost = None
+        fee = {
+            'cost': feeCost,
+        }
         return {
             'info': transaction,
             'id': id,

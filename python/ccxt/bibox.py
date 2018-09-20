@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -532,7 +533,7 @@ class bibox (Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privatePostOrderpending({
@@ -549,7 +550,7 @@ class bibox (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         size = limit if (limit) else 200

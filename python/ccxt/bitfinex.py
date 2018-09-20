@@ -10,6 +10,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -607,7 +608,7 @@ class bitfinex (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {'symbol': market['id']}
@@ -784,7 +785,7 @@ class bitfinex (Exchange):
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
         self.load_markets()
         currency = self.currency(code)
         request = {
@@ -843,7 +844,7 @@ class bitfinex (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': self.safe_string(transaction, 'address'),
-            'tag': self.safe_string(transaction, 'description'),  # refix it properly for the tag
+            'tag': None,  # refix it properly for the tag from description
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,

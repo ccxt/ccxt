@@ -95,6 +95,8 @@ class huobipro extends Exchange {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)

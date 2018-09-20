@@ -667,11 +667,13 @@ class binance extends Exchange {
                     $cost = $this->sum ($cost, $trades[$i]['cost']);
                     $fee['cost'] = $this->sum ($fee['cost'], $trades[$i]['fee']['cost']);
                 }
-                if ($cost && $filled)
-                    $price = $cost / $filled;
             }
         }
+        $average = null;
         if ($cost !== null) {
+            if ($filled) {
+                $average = $cost / $filled;
+            }
             if ($this->options['parseOrderToPrecision']) {
                 $cost = floatval ($this->cost_to_precision($symbol, $cost));
             }
@@ -688,6 +690,7 @@ class binance extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -752,7 +755,7 @@ class binance extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -769,7 +772,7 @@ class binance extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -778,6 +781,28 @@ class binance extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetAllOrders (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "$symbol" => "LTCBTC",
+        //             "orderId" => 1,
+        //             "clientOrderId" => "myOrder1",
+        //             "price" => "0.1",
+        //             "origQty" => "1.0",
+        //             "executedQty" => "0.0",
+        //             "cummulativeQuoteQty" => "0.0",
+        //             "status" => "NEW",
+        //             "timeInForce" => "GTC",
+        //             "type" => "LIMIT",
+        //             "side" => "BUY",
+        //             "stopPrice" => "0.0",
+        //             "icebergQty" => "0.0",
+        //             "time" => 1499827319559,
+        //             "updateTime" => 1499827319559,
+        //             "isWorking" => true
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -805,7 +830,7 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateDeleteOrder (array_merge (array (
@@ -818,7 +843,7 @@ class binance extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -965,7 +990,10 @@ class binance extends Exchange {
         }
         $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_float($transaction, 'amount');
-        $fee = null;
+        $feeCost = null;
+        $fee = array (
+            'cost' => $feeCost,
+        );
         return array (
             'info' => $transaction,
             'id' => $id,
