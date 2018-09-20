@@ -975,15 +975,17 @@ class kucoin (Exchange):
             amount = self.safe_float(trade, 'amount')
             cost = self.safe_float(trade, 'dealValue')
             feeCurrency = None
-            if market is not None:
-                feeCurrency = market['quote'] if (side == 'sell') else market['base']
-            else:
-                feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
-                feeCurrency = self.safe_string(order, feeCurrencyField)
-                if feeCurrency is not None:
-                    if feeCurrency in self.currencies_by_id:
-                        feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            if side is not None:
+                if market is not None:
+                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                else:
+                    feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
+                    feeCurrency = self.safe_string(order, feeCurrencyField)
+                    if feeCurrency is not None:
+                        if feeCurrency in self.currencies_by_id:
+                            feeCurrency = self.currencies_by_id[feeCurrency]['code']
             fee = {
+                'rate': self.safe_float(trade, 'feeRate'),
                 'cost': self.safe_float(trade, 'fee'),
                 'currency': feeCurrency,
             }

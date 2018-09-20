@@ -11,8 +11,8 @@ class liquid extends Exchange {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
-            'id' => 'qryptos',
-            'name' => 'QRYPTOS',
+            'id' => 'liquid',
+            'name' => 'Liquid',
             'countries' => array ( 'JP', 'CN', 'TW' ),
             'version' => '2',
             'rateLimit' => 1000,
@@ -211,12 +211,10 @@ class liquid extends Exchange {
             } else {
                 $baseId = $this->safe_string($ticker, 'base_currency');
                 $quoteId = $this->safe_string($ticker, 'quoted_currency');
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
                 if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets)) {
                     $market = $this->markets[$symbol];
                 } else {
-                    $symbol = $base . '/' . $quote;
+                    $symbol = $this->common_currency_code($baseId) . '/' . $this->common_currency_code($quoteId);
                 }
             }
         }
@@ -262,12 +260,9 @@ class liquid extends Exchange {
         $tickers = $this->publicGetProducts ($params);
         $result = array ();
         for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = $tickers[$t];
-            $base = $ticker['base_currency'];
-            $quote = $ticker['quoted_currency'];
-            $symbol = $base . '/' . $quote;
-            $market = $this->markets[$symbol];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $ticker = $this->parse_ticker($tickers[$t]);
+            $symbol = $ticker['symbol'];
+            $result[$symbol] = $ticker;
         }
         return $result;
     }

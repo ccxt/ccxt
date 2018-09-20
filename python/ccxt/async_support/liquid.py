@@ -17,8 +17,8 @@ class liquid (Exchange):
 
     def describe(self):
         return self.deep_extend(super(liquid, self).describe(), {
-            'id': 'qryptos',
-            'name': 'QRYPTOS',
+            'id': 'liquid',
+            'name': 'Liquid',
             'countries': ['JP', 'CN', 'TW'],
             'version': '2',
             'rateLimit': 1000,
@@ -206,12 +206,10 @@ class liquid (Exchange):
             else:
                 baseId = self.safe_string(ticker, 'base_currency')
                 quoteId = self.safe_string(ticker, 'quoted_currency')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
                 if symbol in self.markets:
                     market = self.markets[symbol]
                 else:
-                    symbol = base + '/' + quote
+                    symbol = self.common_currency_code(baseId) + '/' + self.common_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
         change = None
@@ -251,12 +249,9 @@ class liquid (Exchange):
         tickers = await self.publicGetProducts(params)
         result = {}
         for t in range(0, len(tickers)):
-            ticker = tickers[t]
-            base = ticker['base_currency']
-            quote = ticker['quoted_currency']
-            symbol = base + '/' + quote
-            market = self.markets[symbol]
-            result[symbol] = self.parse_ticker(ticker, market)
+            ticker = self.parse_ticker(tickers[t])
+            symbol = ticker['symbol']
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):

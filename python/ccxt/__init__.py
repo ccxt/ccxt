@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.321'
+__version__ = '1.17.322'
 
 # ----------------------------------------------------------------------------
 
@@ -161,6 +161,7 @@ from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
+from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
@@ -294,6 +295,7 @@ exchanges = [
     'lakebtc',
     'lbank',
     'liqui',
+    'liquid',
     'livecoin',
     'luno',
     'lykke',
