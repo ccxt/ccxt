@@ -83,6 +83,9 @@ module.exports = class liqui extends Exchange {
                 '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
                 '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
             },
+            'options': {
+                'fetchMyTradesMethod': 'privatePostTradeHistory',
+            },
         });
     }
 
@@ -305,20 +308,18 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
-        let side = trade['type'];
-        if (side === 'ask')
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let side = this.safeString (trade, 'type');
+        if (side === 'ask') {
             side = 'sell';
-        if (side === 'bid')
+        } else if (side === 'bid') {
             side = 'buy';
-        let price = this.safeFloat (trade, 'price');
-        if ('rate' in trade) {
-            price = this.safeFloat (trade, 'rate');
         }
-        let id = this.safeString (trade, 'tid');
-        if ('trade_id' in trade) {
-            id = this.safeString (trade, 'trade_id');
-        }
+        let price = this.safeFloat2 (trade, 'rate', 'price');
+        let id = this.safeString2 (trade, 'trade_id', 'tid');
         let order = this.safeString (trade, this.getOrderIdKey ());
         if ('pair' in trade) {
             let marketId = trade['pair'];
@@ -328,7 +329,7 @@ module.exports = class liqui extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let amount = trade['amount'];
+        let amount = this.safeFloat (trade, 'amount');
         let type = 'limit'; // all trades are still limit trades
         let isYourOrder = this.safeValue (trade, 'is_your_order');
         let takerOrMaker = 'taker';
@@ -602,6 +603,7 @@ module.exports = class liqui extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        // some derived classes use camelcase notation for request fields
         let request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
@@ -622,7 +624,8 @@ module.exports = class liqui extends Exchange {
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
-        let response = await this.privatePostTradeHistory (this.extend (request, params));
+        let method = this.options['fetchMyTradesMethod'];
+        let response = await this[method] (this.extend (request, params));
         let trades = [];
         if ('return' in response) {
             trades = response['return'];

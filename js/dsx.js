@@ -79,6 +79,9 @@ module.exports = class dsx extends liqui {
                     ],
                 },
             },
+            'options': {
+                'fetchMyTradesMethod': 'privatePostHistoryTrades',
+            },
         });
     }
 
@@ -187,53 +190,8 @@ module.exports = class dsx extends liqui {
         return '/' + this.version + '/' + this.implodeParams (path, params);
     }
 
-    parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
-        let side = trade['type'];
-        if (side === 'ask')
-            side = 'sell';
-        if (side === 'bid')
-            side = 'buy';
-        let price = this.safeFloat (trade, 'price');
-        if ('rate' in trade) {
-            price = this.safeFloat (trade, 'rate');
-        }
-        let id = this.safeString (trade, 'trade_id');
-        let order = this.safeString (trade, 'orderId');
-        if ('pair' in trade) {
-            let marketId = trade['pair'];
-            market = this.markets_by_id[marketId];
-        }
-        let symbol = undefined;
-        if (typeof market !== 'undefined') {
-            symbol = market['symbol'];
-        }
-        let amount = this.safeFloat (trade, 'amount');
-        if ('volume' in trade) {
-            amount = this.safeFloat (trade, 'volume');
-        }
-        let type = 'limit'; // all trades are still limit trades
-        let isYourOrder = this.safeValue (trade, 'is_your_order');
-        let takerOrMaker = 'taker';
-        if (typeof isYourOrder !== 'undefined') {
-            if (isYourOrder) {
-                takerOrMaker = 'maker';
-            }
-        }
-        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
-        return {
-            'id': id,
-            'order': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'fee': fee,
-            'info': trade,
-        };
+    getOrderIdKey () {
+        return 'orderId';
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
