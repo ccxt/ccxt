@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.324'
+const version = '1.17.325'
 
 Exchange.ccxtVersion = version
 
@@ -6145,7 +6145,7 @@ module.exports = class bigone extends Exchange {
                 }
                 let exceptions = this.exceptions['codes'];
                 if (errors !== undefined) {
-                    if (this.isArray (errors)) {
+                    if (Array.isArray (errors)) {
                         code = this.safeString (errors[0], 'code');
                     } else {
                         code = this.safeString (errors, 'detail');
@@ -52670,7 +52670,7 @@ module.exports = class theocean extends Exchange {
         let baseId = this.safeString (order, 'baseTokenAddress');
         let quoteId = this.safeString (order, 'quoteTokenAddress');
         let marketId = baseId + '/' + quoteId;
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeValue (this.markets_by_id, marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
