@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -221,6 +221,9 @@ module.exports = class dsx extends liqui {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        if (type === 'market' && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument even for market orders, that is the worst price that you agree to fill your order for');
+        }
         let request = {
             'pair': market['id'],
             'type': side,
@@ -231,21 +234,49 @@ module.exports = class dsx extends liqui {
         price = parseFloat (price);
         amount = parseFloat (amount);
         let response = await this.privatePostOrderNew (this.extend (request, params));
+        //
+        //     {
+        //       "success": 1,
+        //       "return": {
+        //         "received": 0,
+        //         "remains": 10,
+        //         "funds": {
+        //           "BTC": {
+        //             "total": 100,
+        //             "available": 95
+        //           },
+        //           "USD": {
+        //             "total": 10000,
+        //             "available": 9995
+        //           },
+        //           "EUR": {
+        //             "total": 1000,
+        //             "available": 995
+        //           },
+        //           "LTC": {
+        //             "total": 1000,
+        //             "available": 995
+        //           }
+        //         },
+        //         "orderId": 0, // https://github.com/ccxt/ccxt/issues/3677
+        //       }
+        //     }
+        //
         let id = undefined;
         let status = 'open';
         let filled = 0.0;
         let remaining = amount;
-        if ('return' in response) {
-            id = this.safeString (response['return'], 'orderId');
-            if (id === '0') {
-                id = this.safeString (response['return'], 'init_order_id');
-                status = 'closed';
-            }
-            filled = this.safeFloat (response['return'], 'received', 0.0);
-            remaining = this.safeFloat (response['return'], 'remains', amount);
+        let responseReturn = this.safeValue (response, 'return');
+        let id = this.safeString2 (responseReturn, 'orderId', 'order_id');
+        if (id === '0') {
+            id = this.safeString (responseReturn, 'initOrderId', 'init_order_id');
+            status = 'closed';
         }
+        filled = this.safeFloat (responseReturn, 'received', 0.0);
+        remaining = this.safeFloat (responseReturn, 'remains', amount);
         let timestamp = this.milliseconds ();
-        let order = {
+        return {
+            'info': response,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -262,16 +293,22 @@ module.exports = class dsx extends liqui {
             'fee': undefined,
             // 'trades': this.parseTrades (order['trades'], market),
         };
-        this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open', // Active
+            '1': 'closed', // Filled
+            '2': 'canceled', // Killed
+            '3': 'canceling', // Killing
+            '7': 'canceled', // Rejected
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
         let id = order['id'].toString ();
-        let status = this.safeString (order, 'status');
-        if (status !== 'undefined') {
-            status = this.parseOrderStatus (status);
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let timestamp = parseInt (order['timestampCreated']) * 1000;
         let symbol = undefined;
         if (typeof market === 'undefined') {
