@@ -442,14 +442,16 @@ module.exports = class hibtc extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 1000, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'pair': market['id'],
         };
-        if (limit !== undefined)
-            request['last'] = limit;
+        if (limit === undefined) {
+            limit = 10;
+        }
+        request['last'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
         let data = response['data'];
         let result = [];
@@ -610,7 +612,7 @@ module.exports = class hibtc extends Exchange {
                 // {"code":-1,"msg":"fail"}
                 let code = response['code'];
                 if (code < 0 || code === 5000) {
-                    throw new ExchangeError (this.safeString (response, 'msg'));
+                    throw new ExchangeError (this.safeString (response, 'msg_code', 'fail'));
                 }
             }
             if ('data' in response) {
