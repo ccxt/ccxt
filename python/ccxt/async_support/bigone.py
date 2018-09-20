@@ -641,7 +641,7 @@ class bigone (Exchange):
                     code = self.safe_integer(error, 'code')
                 exceptions = self.exceptions['codes']
                 if errors is not None:
-                    if self.isArray(errors):
+                    if isinstance(errors, list):
                         code = self.safe_string(errors[0], 'code')
                     else:
                         code = self.safe_string(errors, 'detail')
