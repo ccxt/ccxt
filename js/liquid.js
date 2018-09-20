@@ -7,12 +7,12 @@ const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, Authentica
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class qryptos extends Exchange {
+module.exports = class liquid extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'qryptos',
             'name': 'QRYPTOS',
-            'countries': [ 'CN', 'TW' ],
+            'countries': [ 'JP', 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
             'has': {
@@ -26,13 +26,13 @@ module.exports = class qryptos extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
-                'api': 'https://api.qryptos.com',
-                'www': 'https://www.qryptos.com',
+                'api': 'https://api.liquid.com',
+                'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.quoine.com',
                     'https://developers.quoine.com/v2',
                 ],
-                'fees': 'https://qryptos.zendesk.com/hc/en-us/articles/115007858167-Fees',
+                'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
             },
             'api': {
                 'public': {
