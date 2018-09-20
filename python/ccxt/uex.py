@@ -416,12 +416,13 @@ class uex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float_2(trade, 'deal_price', 'price')
+        price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'volume', 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        cost = self.safe_float(trade, 'deal_price')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = amount * price
         fee = None
         feeCost = self.safe_float_2(trade, 'fee', 'deal_fee')
         if feeCost is not None:

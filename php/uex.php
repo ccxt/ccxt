@@ -419,12 +419,14 @@ class uex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float_2($trade, 'deal_price', 'price');
+        $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'volume', 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
+        $cost = $this->safe_float($trade, 'deal_price');
+        if ($cost === null) {
+            if ($amount !== null) {
+                if ($price !== null) {
+                    $cost = $amount * $price;
+                }
             }
         }
         $fee = null;
