@@ -345,7 +345,10 @@ class cointiger (huobipro):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = market['base']
+                if side == 'buy':
+                    feeCurrency = market['base']
+                elif side == 'sell':
+                    feeCurrency = market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
