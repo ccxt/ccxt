@@ -551,13 +551,13 @@ class okcoinusd extends Exchange {
         $volumeIndex = ($numElements > 6) ? 6 : 5;
         return [
             $ohlcv[0], // timestamp
-            $ohlcv[1], // Open
-            $ohlcv[2], // High
-            $ohlcv[3], // Low
-            $ohlcv[4], // Close
-            // $ohlcv[5], // quote volume
-            // $ohlcv[6], // base volume
-            $ohlcv[$volumeIndex], // okex will return base volume in the 7th element for future markets
+            floatval ($ohlcv[1]), // Open
+            floatval ($ohlcv[2]), // High
+            floatval ($ohlcv[3]), // Low
+            floatval ($ohlcv[4]), // Close
+            // floatval ($ohlcv[5]), // quote volume
+            // floatval ($ohlcv[6]), // base volume
+            floatval ($ohlcv[$volumeIndex]), // okex will return base volume in the 7th element for future markets
         ];
     }
 

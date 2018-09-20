@@ -541,13 +541,13 @@ class okcoinusd (Exchange):
         volumeIndex = 6 if (numElements > 6) else 5
         return [
             ohlcv[0],  # timestamp
-            ohlcv[1],  # Open
-            ohlcv[2],  # High
-            ohlcv[3],  # Low
-            ohlcv[4],  # Close
-            # ohlcv[5],  # quote volume
-            # ohlcv[6],  # base volume
-            ohlcv[volumeIndex],  # okex will return base volume in the 7th element for future markets
+            float(ohlcv[1]),  # Open
+            float(ohlcv[2]),  # High
+            float(ohlcv[3]),  # Low
+            float(ohlcv[4]),  # Close
+            # float(ohlcv[5]),  # quote volume
+            # float(ohlcv[6]),  # base volume
+            float(ohlcv[volumeIndex]),  # okex will return base volume in the 7th element for future markets
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
