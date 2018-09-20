@@ -94,6 +94,34 @@ module.exports = class dsx extends liqui {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostInfoAccount ();
+        //
+        //     {
+        //       "success" : 1,
+        //       "return" : {
+        //         "funds" : {
+        //           "BTC" : {
+        //             "total" : 0,
+        //             "available" : 0
+        //           },
+        //           "USD" : {
+        //             "total" : 0,
+        //             "available" : 0
+        //           },
+        //           "USDT" : {
+        //             "total" : 0,
+        //             "available" : 0
+        //           }
+        //         },
+        //         "rights" : {
+        //           "info" : 1,
+        //           "trade" : 1
+        //         },
+        //         "transactionCount" : 0,
+        //         "openOrders" : 0,
+        //         "serverTime" : 1537451465
+        //       }
+        //     }
+        //
         let balances = response['return'];
         let result = { 'info': balances };
         let funds = balances['funds'];
