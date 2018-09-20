@@ -550,13 +550,13 @@ module.exports = class okcoinusd extends Exchange {
         let volumeIndex = (numElements > 6) ? 6 : 5;
         return [
             ohlcv[0], // timestamp
-            ohlcv[1], // Open
-            ohlcv[2], // High
-            ohlcv[3], // Low
-            ohlcv[4], // Close
-            // ohlcv[5], // quote volume
-            // ohlcv[6], // base volume
-            ohlcv[volumeIndex], // okex will return base volume in the 7th element for future markets
+            parseFloat (ohlcv[1]), // Open
+            parseFloat (ohlcv[2]), // High
+            parseFloat (ohlcv[3]), // Low
+            parseFloat (ohlcv[4]), // Close
+            // parseFloat (ohlcv[5]), // quote volume
+            // parseFloat (ohlcv[6]), // base volume
+            parseFloat (ohlcv[volumeIndex]), // okex will return base volume in the 7th element for future markets
         ];
     }
 
