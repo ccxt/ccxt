@@ -10,8 +10,8 @@ const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, Authentica
 module.exports = class liquid extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'qryptos',
-            'name': 'QRYPTOS',
+            'id': 'liquid',
+            'name': 'Liquid',
             'countries': [ 'JP', 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
