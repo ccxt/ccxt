@@ -41,8 +41,8 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
 // cloudscraper helper
@@ -91,7 +91,17 @@ const enableRateLimit = true
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({ timeout, enableRateLimit })
+    const { Agent } = require ('https')
+
+    const agent = new Agent ({
+        ecdhCurve: 'auto',
+    })
+
+    exchange = new (ccxt)[exchangeId] ({
+        timeout,
+        enableRateLimit,
+        agent,
+    })
 
 } catch (e) {
 
