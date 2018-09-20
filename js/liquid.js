@@ -25,7 +25,7 @@ module.exports = class liquid extends Exchange {
                 'fetchMyTrades': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30953915-b1611dc0-a436-11e7-8947-c95bd5a42086.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
                 'api': 'https://api.liquid.com',
                 'www': 'https://www.liquid.com',
                 'doc': [
