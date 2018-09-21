@@ -150,8 +150,8 @@ class theocean extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $precision = array (
-                'amount' => -$this->safe_integer($baseToken, 'precision'),
-                'price' => -$this->safe_integer($quoteToken, 'precision'),
+                'amount' => -intval ($baseToken['precision']),
+                'price' => -intval ($quoteToken['precision']),
             );
             $amountLimits = array (
                 'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount')),

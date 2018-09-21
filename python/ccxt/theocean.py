@@ -166,8 +166,8 @@ class theocean (Exchange):
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             precision = {
-                'amount': -self.safe_integer(baseToken, 'precision'),
-                'price': -self.safe_integer(quoteToken, 'precision'),
+                'amount': -int(baseToken['precision']),
+                'price': -int(quoteToken['precision']),
             }
             amountLimits = {
                 'min': self.fromWei(self.safe_string(baseToken, 'minAmount')),
