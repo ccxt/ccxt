@@ -1189,11 +1189,21 @@ module.exports = class Exchange {
     }
 
     fromWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+        if (amount === undefined) {
+            return amount
+        }
+        if (typeof unit === 'string') {
+            return parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+        }
     }
 
     toWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
+        if (amount === undefined) {
+            return amount
+        }
+        if (typeof unit === 'string') {
+            return this.web3.utils.toWei (this.numberToString (amount), unit)
+        }
     }
 
     costToPrecision (symbol, cost) {
