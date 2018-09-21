@@ -109,14 +109,6 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    getBaseQuoteFromMarketId (id) {
-        let uppercase = id.toUpperCase ();
-        let [ base, quote ] = uppercase.split ('_');
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
-    }
-
     async fetchMarkets () {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
@@ -125,7 +117,11 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
-            let [ base, quote ] = this.getBaseQuoteFromMarketId (id);
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': this.safeInteger (market, 'decimal_places'),
@@ -154,6 +150,8 @@ module.exports = class liqui extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': market['fee'] / 100,
                 'precision': precision,
@@ -241,6 +239,17 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //   {    high: 0.03497582,
+        //         low: 0.03248474,
+        //         avg: 0.03373028,
+        //         vol: 120.11485715062999,
+        //     vol_cur: 3572.24914074,
+        //        last: 0.0337611,
+        //         buy: 0.0337442,
+        //        sell: 0.03377798,
+        //     updated: 1537522009          }
+        //
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market !== undefined) {
@@ -324,8 +333,8 @@ module.exports = class liqui extends Exchange {
         let id = this.safeString2 (trade, 'trade_id', 'tid');
         let order = this.safeString (trade, this.getOrderIdKey ());
         if ('pair' in trade) {
-            let marketId = trade['pair'];
-            market = this.markets_by_id[marketId];
+            let marketId = this.safeString (trade, 'pair');
+            market = this.safeValue (this.markets_by_id, marketId, market);
         }
         let symbol = undefined;
         if (market !== undefined) {
@@ -333,14 +342,31 @@ module.exports = class liqui extends Exchange {
         }
         let amount = this.safeFloat (trade, 'amount');
         let type = 'limit'; // all trades are still limit trades
+        let takerOrMaker = undefined;
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         let isYourOrder = this.safeValue (trade, 'is_your_order');
-        let takerOrMaker = 'taker';
         if (isYourOrder !== undefined) {
+            takerOrMaker = 'taker';
             if (isYourOrder) {
                 takerOrMaker = 'maker';
             }
+            if (fee === undefined) {
+                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+            }
         }
-        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,
@@ -349,6 +375,7 @@ module.exports = class liqui extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
