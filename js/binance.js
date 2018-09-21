@@ -967,6 +967,7 @@ module.exports = class binance extends Exchange {
         const feeCost = undefined;
         let fee = {
             'cost': feeCost,
+            'currency': code,
         };
         return {
             'info': transaction,
