@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -301,7 +301,6 @@ module.exports = class dsx extends liqui {
         //       }
         //     }
         //
-        let id = undefined;
         let status = 'open';
         let filled = 0.0;
         let remaining = amount;
@@ -447,34 +446,33 @@ module.exports = class dsx extends liqui {
         const request = {
             'orderId': parseInt (id),
         };
-        // const response = await this.privatePostOrderStatus (this.extend (request, params));
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         //
-        const response =
-            {
-              "success": 1,
-              "return": {
-                "pair": "btcusd",
-                "type": "buy",
-                "remainingVolume": 10,
-                "volume": 10,
-                "rate": 1000.0,
-                "timestampCreated": 1496670,
-                "status": 0,
-                "orderType": "limit",
-                "deals": [
-                  {
-                    "pair": "btcusd",
-                    "type": "buy",
-                    "amount": 1,
-                    "rate": 1000.0,
-                    "orderId": 1,
-                    "timestamp": 1496672724,
-                    "commission": 0.001,
-                    "commissionCurrency": "btc"
-                  }
-                ]
-              }
-            }
+        //     {
+        //       "success": 1,
+        //       "return": {
+        //         "pair": "btcusd",
+        //         "type": "buy",
+        //         "remainingVolume": 10,
+        //         "volume": 10,
+        //         "rate": 1000.0,
+        //         "timestampCreated": 1496670,
+        //         "status": 0,
+        //         "orderType": "limit",
+        //         "deals": [
+        //           {
+        //             "pair": "btcusd",
+        //             "type": "buy",
+        //             "amount": 1,
+        //             "rate": 1000.0,
+        //             "orderId": 1,
+        //             "timestamp": 1496672724,
+        //             "commission": 0.001,
+        //             "commissionCurrency": "btc"
+        //           }
+        //         ]
+        //       }
+        //     }
         //
         return this.parseOrder (this.extend ({
             'id': id,
