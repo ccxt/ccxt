@@ -55,7 +55,7 @@ from ssl import SSLError
 import time
 import uuid
 import zlib
-from decimal import Decimal
+from decimal import Decimal, getcontext
 
 # -----------------------------------------------------------------------------
 
@@ -950,13 +950,32 @@ class Exchange(object):
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
 
+    def get_eth_unit_from_decimals(self, decimals=18):
+        eth_units = {
+            0: 'wei',      # 1000000000000000000
+            3: 'kwei',     # 1000000000000000
+            6: 'mwei',     # 1000000000000
+            9: 'gwei',     # 1000000000
+            12: 'szabo',   # 1000000
+            15: 'finney',  # 1000
+            18: 'ether',   # 1
+            21: 'kether',  # 0.001
+            24: 'mether',  # 0.000001
+            27: 'gether',  # 0.000000001
+            30: 'tether',  # 0.000000000001
+        }
+        return eth_units.get(decimals, 'ether')
+
     def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
             return amount
         if decimals != 18:
-            amount = int(amount) * (10 ** (18 - decimals))
+            if decimals % 3:
+                amount = int(amount) * (10 ** (18 - decimals))
+            else:
+                unit = self.get_eth_unit_from_decimals(decimals)
         return float(Web3.fromWei(int(amount), unit))
 
     def toWei(self, amount, unit='ether', decimals=18):
@@ -965,7 +984,14 @@ class Exchange(object):
         if amount is None:
             return amount
         if decimals != 18:
-            amount = float(amount) / (10 ** (18 - decimals))
+            if decimals % 3:
+                # this case has known yet unsolved problems:
+                #     toWei(1.999, 'ether', 17) == '199900000000000011'
+                #     toWei(1.999, 'ether', 19) == '19989999999999999991'
+                # the best solution should not involve additional dependencies
+                amount = Decimal(amount) / Decimal(10 ** (18 - decimals))
+            else:
+                unit = self.get_eth_unit_from_decimals(decimals)
         return str(Web3.toWei(amount, unit))
 
     def precision_from_string(self, string):
