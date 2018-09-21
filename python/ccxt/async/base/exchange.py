@@ -37,6 +37,9 @@ from ccxt.base.exchange import Exchange as BaseExchange
 
 from ccxt.async.websocket.websocket_connection import WebsocketConnection
 from pyee import EventEmitter
+import zlib
+import gzip
+import io
 
 # -----------------------------------------------------------------------------
 
@@ -834,3 +837,15 @@ class Exchange(BaseExchange, EventEmitter):
         periodic.delegate = loop.call_at(start + interval, run, periodic)
         # return the 'wrapper'
         return periodic
+
+    def gunzip (self, data):
+        # return data.decode('zlib_codec').decode('utf8')
+        # return zlib.decompress(data, 16+zlib.MAX_WBITS)
+        return "{}"
+        # return gzip.GzipFile(fileobj=StringIO(data)).read()
+        #in_ = io.BytesIO()
+        #in_.write(data)
+        #in_.seek(0)
+        #with gzip.GzipFile(fileobj=in_, mode='rb') as fo:
+        #    gunzipped_bytes_obj = fo.read()
+        #return gunzipped_bytes_obj.decode()

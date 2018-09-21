@@ -2619,6 +2619,10 @@ abstract class Exchange extends CcxtEventEmitter {
         throw new NotSupported ('You must implement _get_current_websocket_orderbook method for exchange ' . $this->id);
     }
 
+    public function gunzip($data) {
+        return gzdecode($data);
+    }
+
 }
 
 

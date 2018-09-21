@@ -46,6 +46,7 @@ const journal = undefined // isNode && require ('./journal') // stub until we ge
 
 const EventEmitter = require('events')
 const WebsocketConnection = require ('./websocket/websocket_connection')
+var zlib = require('zlib');
 
 /*  ------------------------------------------------------------------------ */
 
@@ -1800,5 +1801,9 @@ module.exports = class Exchange extends EventEmitter{
 
     _getCurrentWebsocketOrderbook (contextId, symbol, limit) {
         throw new NotSupported ('You must implement _getCurrentWebsocketOrderbook method for exchange ' + this.id);
+    }
+
+    gunzip (data) {
+        return zlib.gunzipSync (data).toString ();
     }
 }

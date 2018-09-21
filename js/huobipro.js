@@ -787,15 +787,20 @@ module.exports = class huobipro extends Exchange {
 
     _websocketOnMessage (contextId, data) {
         // TODO: pako function in Exchange.js/.py/.php
-        // let text = pako.inflate (data, { 'to': 'string', });
-        let msg = JSON.parse (data);
-        if (msg.ping) {
+        // console.log(data);
+        let text = this.gunzip(data);
+        // text = pako.inflate (data, { 'to': 'string', });
+        console.log(text);
+        let msg = JSON.parse (text);
+        let ping = this.safeValue (msg, 'ping');
+        let tick = this.safeValue (msg, 'tick');
+        if (typeof ping !== 'undefined') {
             // heartbeat ping-pong
             const sendJson = {
-                'pong': msg.ping,
+                'pong': msg['ping'],
             };
             this.websocketSendJson (sendJson);
-        } else if (msg.tick) {
+        } else if (typeof tick !== 'undefined') {
             // console.log(msg);
             this._websocketDispatch (contextId, msg);
         }

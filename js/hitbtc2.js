@@ -540,6 +540,23 @@ module.exports = class hitbtc2 extends hitbtc {
                 '20002': OrderNotFound, // canceling non-existent order
                 '20001': InsufficientFunds,
             },
+            'wsconf': {
+                'conx-tpls': {
+                    'default': {
+                        'type': 'ws',
+                        'baseurl': 'wss://api.hitbtc.com/api/2/ws',
+                    },
+                },
+                'events': {
+                    'ob': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -650,23 +667,6 @@ module.exports = class hitbtc2 extends hitbtc {
                     'withdraw': {
                         'min': undefined,
                         'max': Math.pow (10, precision),
-                    },
-                },
-                'wsconf': {
-                    'conx-tpls': {
-                        'default': {
-                            'type': 'ws',
-                            'baseurl': 'wss://api.hitbtc.com/api/2/ws',
-                        },
-                    },
-                    'events': {
-                        'ob': {
-                            'conx-tpl': 'default',
-                            'conx-param': {
-                                'url': '{baseurl}',
-                                'id': '{id}',
-                            },
-                        },
                     },
                 },
             };
