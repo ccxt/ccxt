@@ -299,7 +299,7 @@ class gdax extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         // as of 2018-08-23
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -558,7 +558,7 @@ class gdax extends Exchange {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchTransactions() requires a $currency $code argument');
+            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $accountId = null;

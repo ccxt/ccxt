@@ -153,6 +153,9 @@ class bitz extends Exchange {
                 'lastNonceTimestamp' => 0,
             ),
             'commonCurrencies' => array (
+                // https://github.com/ccxt/ccxt/issues/3881
+                // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX' => 'BOX Token',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
             ),
@@ -912,7 +915,7 @@ class bitz extends Exchange {
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array (

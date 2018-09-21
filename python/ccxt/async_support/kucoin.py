@@ -10,6 +10,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -667,7 +668,7 @@ class kucoin (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         orderType = self.safe_value(params, 'type')
         if orderType is None:
             raise ExchangeError(self.id + ' fetchOrder requires a type parameter("BUY" or "SELL")')
@@ -974,15 +975,17 @@ class kucoin (Exchange):
             amount = self.safe_float(trade, 'amount')
             cost = self.safe_float(trade, 'dealValue')
             feeCurrency = None
-            if market is not None:
-                feeCurrency = market['quote'] if (side == 'sell') else market['base']
-            else:
-                feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
-                feeCurrency = self.safe_string(order, feeCurrencyField)
-                if feeCurrency is not None:
-                    if feeCurrency in self.currencies_by_id:
-                        feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            if side is not None:
+                if market is not None:
+                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+                else:
+                    feeCurrencyField = 'coinTypePair' if (side == 'sell') else 'coinType'
+                    feeCurrency = self.safe_string(order, feeCurrencyField)
+                    if feeCurrency is not None:
+                        if feeCurrency in self.currencies_by_id:
+                            feeCurrency = self.currencies_by_id[feeCurrency]['code']
             fee = {
+                'rate': self.safe_float(trade, 'feeRate'),
                 'cost': self.safe_float(trade, 'fee'),
                 'currency': feeCurrency,
             }
@@ -1021,7 +1024,7 @@ class kucoin (Exchange):
         # kucoin does not have any means of fetching personal trades at all
         # self will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades is deprecated and requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

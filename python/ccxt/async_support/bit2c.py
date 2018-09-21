@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
-from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class bit2c (Exchange):
@@ -185,7 +185,7 @@ class bit2c (Exchange):
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         market = self.market(symbol)
         response = await self.privateGetOrderMyOrders(self.extend({
             'pair': market['id'],

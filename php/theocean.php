@@ -150,8 +150,8 @@ class theocean extends Exchange {
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $precision = array (
-                'amount' => -$this->safe_integer($baseToken, 'precision'),
-                'price' => -$this->safe_integer($quoteToken, 'precision'),
+                'amount' => -intval ($baseToken['precision']),
+                'price' => -intval ($quoteToken['precision']),
             );
             $amountLimits = array (
                 'min' => $this->fromWei ($this->safe_string($baseToken, 'minAmount')),
@@ -874,8 +874,11 @@ class theocean extends Exchange {
         $symbol = null;
         $baseId = $this->safe_string($order, 'baseTokenAddress');
         $quoteId = $this->safe_string($order, 'quoteTokenAddress');
-        $marketId = $baseId . '/' . $quoteId;
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $marketId = null;
+        if ($baseId !== null && $quoteId !== null) {
+            $marketId = $baseId . '/' . $quoteId;
+        }
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }

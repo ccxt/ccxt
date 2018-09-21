@@ -688,7 +688,7 @@ class kucoin extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         $orderType = $this->safe_value($params, 'type');
         if ($orderType === null)
             throw new ExchangeError ($this->id . ' fetchOrder requires a type parameter ("BUY" or "SELL")');
@@ -1018,17 +1018,20 @@ class kucoin extends Exchange {
             $amount = $this->safe_float($trade, 'amount');
             $cost = $this->safe_float($trade, 'dealValue');
             $feeCurrency = null;
-            if ($market !== null) {
-                $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
-            } else {
-                $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
-                $feeCurrency = $this->safe_string($order, $feeCurrencyField);
-                if ($feeCurrency !== null) {
-                    if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
-                        $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+            if ($side !== null) {
+                if ($market !== null) {
+                    $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
+                } else {
+                    $feeCurrencyField = ($side === 'sell') ? 'coinTypePair' : 'coinType';
+                    $feeCurrency = $this->safe_string($order, $feeCurrencyField);
+                    if ($feeCurrency !== null) {
+                        if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+                            $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
+                    }
                 }
             }
             $fee = array (
+                'rate' => $this->safe_float($trade, 'feeRate'),
                 'cost' => $this->safe_float($trade, 'fee'),
                 'currency' => $feeCurrency,
             );
@@ -1071,7 +1074,7 @@ class kucoin extends Exchange {
         // kucoin does not have any means of fetching personal trades at all
         // this will effectively simplify current convoluted implementations of parseOrder and parseTrade
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades is deprecated and requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (

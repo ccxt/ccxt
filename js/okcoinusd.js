@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, DDoSProtection, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ module.exports = class okcoinusd extends Exchange {
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
+                        'spot/user-level',
                     ],
                 },
                 'public': {
@@ -549,13 +550,13 @@ module.exports = class okcoinusd extends Exchange {
         let volumeIndex = (numElements > 6) ? 6 : 5;
         return [
             ohlcv[0], // timestamp
-            ohlcv[1], // Open
-            ohlcv[2], // High
-            ohlcv[3], // Low
-            ohlcv[4], // Close
-            // ohlcv[5], // quote volume
-            // ohlcv[6], // base volume
-            ohlcv[volumeIndex], // okex will return base volume in the 7th element for future markets
+            parseFloat (ohlcv[1]), // Open
+            parseFloat (ohlcv[2]), // High
+            parseFloat (ohlcv[3]), // Low
+            parseFloat (ohlcv[4]), // Close
+            // parseFloat (ohlcv[5]), // quote volume
+            // parseFloat (ohlcv[6]), // base volume
+            parseFloat (ohlcv[volumeIndex]), // okex will return base volume in the 7th element for future markets
         ];
     }
 
@@ -683,7 +684,7 @@ module.exports = class okcoinusd extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {

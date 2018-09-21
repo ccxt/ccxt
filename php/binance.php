@@ -81,13 +81,14 @@ class binance extends Exchange {
                         'withdraw',
                     ),
                     'get' => array (
-                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ),
                 ),
                 'v3' => array (
@@ -667,11 +668,13 @@ class binance extends Exchange {
                     $cost = $this->sum ($cost, $trades[$i]['cost']);
                     $fee['cost'] = $this->sum ($fee['cost'], $trades[$i]['fee']['cost']);
                 }
-                if ($cost && $filled)
-                    $price = $cost / $filled;
             }
         }
+        $average = null;
         if ($cost !== null) {
+            if ($filled) {
+                $average = $cost / $filled;
+            }
             if ($this->options['parseOrderToPrecision']) {
                 $cost = floatval ($this->cost_to_precision($symbol, $cost));
             }
@@ -688,6 +691,7 @@ class binance extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -752,7 +756,7 @@ class binance extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $origClientOrderId = $this->safe_value($params, 'origClientOrderId');
@@ -769,7 +773,7 @@ class binance extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -778,6 +782,28 @@ class binance extends Exchange {
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetAllOrders (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "$symbol" => "LTCBTC",
+        //             "orderId" => 1,
+        //             "clientOrderId" => "myOrder1",
+        //             "price" => "0.1",
+        //             "origQty" => "1.0",
+        //             "executedQty" => "0.0",
+        //             "cummulativeQuoteQty" => "0.0",
+        //             "status" => "NEW",
+        //             "timeInForce" => "GTC",
+        //             "type" => "LIMIT",
+        //             "side" => "BUY",
+        //             "stopPrice" => "0.0",
+        //             "icebergQty" => "0.0",
+        //             "time" => 1499827319559,
+        //             "updateTime" => 1499827319559,
+        //             "isWorking" => true
+        //         }
+        //     )
+        //
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -805,7 +831,7 @@ class binance extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateDeleteOrder (array_merge (array (
@@ -818,7 +844,7 @@ class binance extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -939,6 +965,9 @@ class binance extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
+        if (strlen ($tag) < 1) {
+            $tag = null;
+        }
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;
         $currencyId = $this->safe_string($transaction, 'asset');
@@ -1007,26 +1036,39 @@ class binance extends Exchange {
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
-        $this->load_markets();
+        $response = $this->wapiGetAssetDetail ();
+        //
+        //     {
+        //         "success" => true,
+        //         "assetDetail" => {
+        //             "CTR" => array (
+        //                 "minWithdrawAmount" => "70.00000000", //min withdraw amount
+        //                 "depositStatus" => false,//deposit status
+        //                 "withdrawFee" => 35, // withdraw fee
+        //                 "withdrawStatus" => true, //withdraw status
+        //                 "depositTip" => "Delisted, Deposit Suspended" //reason
+        //             ),
+        //             "SKY" => {
+        //                 "minWithdrawAmount" => "0.02000000",
+        //                 "depositStatus" => true,
+        //                 "withdrawFee" => 0.01,
+        //                 "withdrawStatus" => true
+        //             }
+        //         }
+        //     }
+        //
+        $detail = $this->safe_value($response, 'assetDetail');
+        $ids = is_array ($detail) ? array_keys ($detail) : array ();
         $withdrawFees = array ();
-        $info = array ();
-        if ($codes === null)
-            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currency ($code);
-            $response = $this->wapiGetWithdrawFee (array (
-                'asset' => $currency['id'],
-            ));
-            $withdrawFees[$code] = $this->safe_float($response, 'withdrawFee');
-            $info[$code] = $response;
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->common_currency_code($id);
+            $withdrawFees[$code] = $this->safe_float($detail[$id], 'withdrawFee');
         }
         return array (
             'withdraw' => $withdrawFees,
             'deposit' => array (),
-            'info' => $info,
+            'info' => $response,
         );
     }
 
