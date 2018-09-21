@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.328'
+const version = '1.17.329'
 
 Exchange.ccxtVersion = version
 
@@ -15857,6 +15857,9 @@ module.exports = class bitz extends Exchange {
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                // https://github.com/ccxt/ccxt/issues/3881
+                // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
