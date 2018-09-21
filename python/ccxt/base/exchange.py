@@ -962,7 +962,7 @@ class Exchange(object):
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
             return amount
-        return str(Web3.toWei(int(amount), unit))
+        return str(Web3.toWei(float(amount), unit))
 
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
