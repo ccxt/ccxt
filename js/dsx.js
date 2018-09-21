@@ -18,13 +18,10 @@ module.exports = class dsx extends liqui {
             'has': {
                 'CORS': false,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
-                'fetchTickers': true,
-                'fetchMyTrades': true,
                 'fetchOrderBooks': false,
-                'fetchL2OrderBook': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27990275-1413158a-645a-11e7-931c-94717f7510e3.jpg',
@@ -63,18 +60,22 @@ module.exports = class dsx extends liqui {
                         'history/orders',
                         'orders',
                         'order/cancel',
+                        'order/cancel/all',
                         'order/status',
                         'order/new',
+                        'volume',
+                        'fees', // trading fee schedule
                     ],
                 },
                 // deposit / withdraw (private)
                 'dwapi': {
                     'post': [
-                        'getCryptoDepositAddress',
-                        'cryptoWithdraw',
-                        'fiatWithdraw',
-                        'getTransactionStatus',
-                        'getTransactions',
+                        'deposit/cryptoaddress',
+                        'withdraw/crypto',
+                        'withdraw/fiat',
+                        'withdraw/submit',
+                        'withdraw/cancel',
+                        'transaction/status', // see 'history/transactions' in private tapi above
                     ],
                 },
             },
@@ -86,13 +87,56 @@ module.exports = class dsx extends liqui {
         });
     }
 
-    getBaseQuoteFromMarketId (id) {
-        let uppercase = id.toUpperCase ();
-        let base = uppercase.slice (0, 3);
-        let quote = uppercase.slice (3, 6);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
+    async fetchMarkets () {
+        let response = await this.publicGetInfo ();
+        let markets = response['pairs'];
+        let keys = Object.keys (markets);
+        let result = [];
+        for (let i = 0; i < keys.length; i++) {
+            let id = keys[i];
+            let market = markets[id];
+            let baseId = this.safeString (market, 'base_currency');
+            let quoteId = this.safeString (market, 'quoted_currency');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': this.safeInteger (market, 'decimal_places'),
+                'price': this.safeInteger (market, 'decimal_places'),
+            };
+            let amountLimits = {
+                'min': this.safeFloat (market, 'min_amount'),
+                'max': this.safeFloat (market, 'max_amount'),
+            };
+            let priceLimits = {
+                'min': this.safeFloat (market, 'min_price'),
+                'max': this.safeFloat (market, 'max_price'),
+            };
+            let costLimits = {
+                'min': this.safeFloat (market, 'min_total'),
+            };
+            let limits = {
+                'amount': amountLimits,
+                'price': priceLimits,
+                'cost': costLimits,
+            };
+            let hidden = this.safeInteger (market, 'hidden');
+            let active = (hidden === 0);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'taker': market['fee'] / 100,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -129,30 +173,43 @@ module.exports = class dsx extends liqui {
         let balances = response['return'];
         let result = { 'info': balances };
         let funds = balances['funds'];
-        let currencies = Object.keys (funds);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
+        let ids = Object.keys (funds);
+        for (let c = 0; c < ids.length; c++) {
+            let id = ids[c];
+            let code = this.commonCurrencyCode (id);
             let account = {
-                'free': funds[currency]['available'],
+                'free': funds[id]['available'],
                 'used': 0.0,
-                'total': funds[currency]['total'],
+                'total': funds[id]['total'],
             };
             account['used'] = account['total'] - account['free'];
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //   {    high:  0.03492,
+        //         low:  0.03245,
+        //         avg:  29.46133,
+        //         vol:  500.8661,
+        //     vol_cur:  17.000797104,
+        //        last:  0.03364,
+        //         buy:  0.03362,
+        //        sell:  0.03381,
+        //     updated:  1537521993,
+        //        pair: "ethbtc"       }
+        //
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
+        // dsx has 'pair' in the ticker, liqui does not have it
         let marketId = this.safeString (ticker, 'pair');
         market = this.safeValue (this.markets_by_id, marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        // dsx average is inverted, liqui average is not
         let average = this.safeFloat (ticker, 'avg');
         if (average !== undefined) {
             if (average > 0) {
@@ -178,8 +235,8 @@ module.exports = class dsx extends liqui {
             'change': undefined,
             'percentage': undefined,
             'average': average,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'vol_cur'),
+            'baseVolume': this.safeFloat (ticker, 'vol'), // dsx shows baseVolume in 'vol', liqui shows baseVolume in 'vol_cur'
+            'quoteVolume': this.safeFloat (ticker, 'vol_cur'), // dsx shows baseVolume in 'vol_cur', liqui shows baseVolume in 'vol'
             'info': ticker,
         };
     }
@@ -198,28 +255,6 @@ module.exports = class dsx extends liqui {
 
     getOrderIdKey () {
         return 'orderId';
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (typeof symbol === 'undefined')
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
-        await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            let market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privatePostOrders (this.extend (request, params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
-        let openOrders = [];
-        if ('return' in response)
-            openOrders = this.parseOrders (response['return'], market);
-        let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -311,39 +346,91 @@ module.exports = class dsx extends liqui {
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
+        //
+        // fetchOrder
+        //
+        //   {
+        //     "pair": "btcusd",
+        //     "type": "buy",
+        //     "remainingVolume": 10,
+        //     "volume": 10,
+        //     "rate": 1000.0,
+        //     "timestampCreated": 1496670,
+        //     "status": 0,
+        //     "orderType": "limit",
+        //     "deals": [
+        //       {
+        //         "pair": "btcusd",
+        //         "type": "buy",
+        //         "amount": 1,
+        //         "rate": 1000.0,
+        //         "orderId": 1,
+        //         "timestamp": 1496672724,
+        //         "commission": 0.001,
+        //         "commissionCurrency": "btc"
+        //       }
+        //     ]
+        //   }
+        //
+        let id = this.safeString (order, 'id');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let timestamp = parseInt (order['timestampCreated']) * 1000;
-        let symbol = undefined;
-        if (typeof market === 'undefined') {
-            market = this.markets_by_id[order['pair']];
+        let timestamp = this.safeInteger (order, 'timestampCreated');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
         }
+        let marketId = this.safeString (order, 'pair');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let remaining = undefined;
-        let amount = undefined;
+        let remaining = this.safeFloat (order, 'remainingVolume');
+        let amount = this.safeFloat (order, 'volume');
         let price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
-        remaining = this.safeFloat (order, 'remainingVolume');
-        amount = this.safeFloat (order, 'volume');
         if (typeof amount !== 'undefined') {
             if (typeof remaining !== 'undefined') {
                 filled = amount - remaining;
                 cost = price * filled;
             }
         }
+        let orderType = this.safeString (order, 'orderType');
+        let side = this.safeString (order, 'type');
         let fee = undefined;
-        let result = {
+        let deals = this.safeValue (order, 'deals', []);
+        let numDeals = deals.length;
+        let trades = undefined;
+        let lastTradeTimestamp = undefined;
+        if (numDeals > 0) {
+            trades = this.parseTrades (deals);
+            let feeCost = undefined;
+            let feeCurrency = undefined;
+            for (let i = 0; i < trades.length; i++) {
+                let trade = trades[i];
+                if (feeCost === undefined) {
+                    feeCost = 0;
+                }
+                feeCost += trade['fee']['cost'];
+                feeCurrency = trade['fee']['currency'];
+                lastTradeTimestamp = trade['timestamp'];
+            }
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
+        return {
             'info': order,
             'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'type': 'limit',
-            'side': order['type'],
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': orderType,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -351,7 +438,109 @@ module.exports = class dsx extends liqui {
             'filled': filled,
             'status': status,
             'fee': fee,
+            'trades': trades,
         };
-        return result;
     }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'orderId': parseInt (id),
+        };
+        // const response = await this.privatePostOrderStatus (this.extend (request, params));
+        //
+        const response =
+            {
+              "success": 1,
+              "return": {
+                "pair": "btcusd",
+                "type": "buy",
+                "remainingVolume": 10,
+                "volume": 10,
+                "rate": 1000.0,
+                "timestampCreated": 1496670,
+                "status": 0,
+                "orderType": "limit",
+                "deals": [
+                  {
+                    "pair": "btcusd",
+                    "type": "buy",
+                    "amount": 1,
+                    "rate": 1000.0,
+                    "orderId": 1,
+                    "timestamp": 1496672724,
+                    "commission": 0.001,
+                    "commissionCurrency": "btc"
+                  }
+                ]
+              }
+            }
+        //
+        return this.parseOrder (this.extend ({
+            'id': id,
+        }, response['return']));
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        //     {
+        //       "success": 1,
+        //       "return": {
+        //         "0": {
+        //           "pair": "btcusd",
+        //           "type": "buy",
+        //           "remainingVolume": 10,
+        //           "volume": 10,
+        //           "rate": 1000.0,
+        //           "timestampCreated": 1496670,
+        //           "status": 0,
+        //           "orderType": "limit"
+        //         }
+        //       }
+        //     }
+        //
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        //     {
+        //       "success": 1,
+        //       "return": {
+        //         "0": {
+        //           "pair": "btcusd",
+        //           "type": "buy",
+        //           "remainingVolume": 10,
+        //           "volume": 10,
+        //           "rate": 1000.0,
+        //           "timestampCreated": 1496670,
+        //           "status": 0,
+        //           "orderType": "limit"
+        //         }
+        //       }
+        //     }
+        //
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if ('fetchOrdersRequiresSymbol' in this.options)
+            if (this.options['fetchOrdersRequiresSymbol'])
+                if (typeof symbol === 'undefined')
+                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        await this.loadMarkets ();
+        let request = {};
+        let market = undefined;
+        if (typeof symbol !== 'undefined') {
+            let market = this.market (symbol);
+            request['pair'] = market['id'];
+        }
+        let response = await this.privatePostOrders (this.extend (request, params));
+        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        let openOrders = [];
+        if ('return' in response)
+            openOrders = this.parseOrders (response['return'], market);
+        let allOrders = this.updateCachedOrders (openOrders, symbol);
+        let result = this.filterBySymbol (allOrders, symbol);
+        return this.filterBySinceLimit (result, since, limit);
+    }
+
 };
