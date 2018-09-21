@@ -18,9 +18,9 @@ module.exports = class dsx extends liqui {
             'has': {
                 'CORS': false,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchOrderBooks': false,
             },
             'urls': {
@@ -481,27 +481,28 @@ module.exports = class dsx extends liqui {
         }, response['return']));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        //
-        //     {
-        //       "success": 1,
-        //       "return": {
-        //         "0": {
-        //           "pair": "btcusd",
-        //           "type": "buy",
-        //           "remainingVolume": 10,
-        //           "volume": 10,
-        //           "rate": 1000.0,
-        //           "timestampCreated": 1496670,
-        //           "status": 0,
-        //           "orderType": "limit"
-        //         }
-        //       }
-        //     }
-        //
+    parseOrdersById (orders, symbol = undefined, since = undefined, limit = undefined) {
+        let ids = Object.keys (orders);
+        let result = [];
+        for (let i = 0; i < ids.length; i++) {
+            let id = ids[i];
+            let order = this.parseOrder (this.extend ({
+                'id': id.toString (),
+            }, orders[i]));
+            result.push (order);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'count': 10, // Decimal, The maximum number of orders to return
+            // 'fromId': 123, // Decimal, ID of the first order of the selection
+            // 'endId': 321, // Decimal, ID of the last order of the selection
+            // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
+        };
+        const response = await this.privatePostHistoryOrders (this.extend (request, params));
         //
         //     {
         //       "success": 1,
@@ -519,28 +520,35 @@ module.exports = class dsx extends liqui {
         //       }
         //     }
         //
+        return this.parseOrdersById (this.safeValue (response, 'return', {}));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (typeof symbol === 'undefined')
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (typeof symbol !== 'undefined') {
-            let market = this.market (symbol);
-            request['pair'] = market['id'];
-        }
-        let response = await this.privatePostOrders (this.extend (request, params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
-        let openOrders = [];
-        if ('return' in response)
-            openOrders = this.parseOrders (response['return'], market);
-        let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterBySymbol (allOrders, symbol);
-        return this.filterBySinceLimit (result, since, limit);
+        const request = {
+            // 'count': 10, // Decimal, The maximum number of orders to return
+            // 'fromId': 123, // Decimal, ID of the first order of the selection
+            // 'endId': 321, // Decimal, ID of the last order of the selection
+            // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
+        };
+        const response = await this.privatePostHistoryOrders (this.extend (request, params));
+        //
+        //     {
+        //       "success": 1,
+        //       "return": {
+        //         "0": {
+        //           "pair": "btcusd",
+        //           "type": "buy",
+        //           "remainingVolume": 10,
+        //           "volume": 10,
+        //           "rate": 1000.0,
+        //           "timestampCreated": 1496670,
+        //           "status": 0,
+        //           "orderType": "limit"
+        //         }
+        //       }
+        //     }
+        //
+        return this.parseOrdersById (this.safeValue (response, 'return', {}));
     }
-
 };
