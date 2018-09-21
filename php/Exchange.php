@@ -2241,9 +2241,9 @@ class Exchange {
         return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
     }
 
-    public function signZeroExOrder ($order) {
+    public function signZeroExOrder ($order, $privateKey) {
         $orderHash = $this->getZeroExOrderHash ($order);
-        $signature = $this->signMessage ($orderHash, $this->privateKey);
+        $signature = $this->signMessage ($orderHash, privateKey);
         return array_merge ($order, array (
             'orderHash' => $orderHash,
             'ecSignature' => $signature, // todo fix v if needed

@@ -950,14 +950,14 @@ class Exchange(object):
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
 
-    def fromWei(self, amount, unit='ether'):
+    def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
             return amount
         return float(Web3.fromWei(int(amount), unit))
 
-    def toWei(self, amount, unit='ether'):
+    def toWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
             self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
@@ -1547,9 +1547,9 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
-    def signZeroExOrder(self, order):
+    def signZeroExOrder(self, order, privateKey):
         orderHash = self.getZeroExOrderHash(order)
-        signature = self.signMessage(orderHash[-64:], self.privateKey)
+        signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
             'ecSignature': signature,  # todo fix v if needed
