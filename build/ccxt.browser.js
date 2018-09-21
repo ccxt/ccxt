@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.330'
+const version = '1.17.331'
 
 Exchange.ccxtVersion = version
 
@@ -2782,12 +2782,28 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    fromWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+    fromWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (amount).times (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = new BigNumber (amount).toFixed ()
+        }
+        return parseFloat (this.web3.utils.fromWei (amount, unit))
     }
 
-    toWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
+    toWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (this.numberToString (amount)).div (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = this.numberToString (amount)
+        }
+        return this.web3.utils.toWei (amount, unit)
     }
 
     costToPrecision (symbol, cost) {
