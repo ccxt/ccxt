@@ -997,6 +997,7 @@ class binance extends Exchange {
         $feeCost = null;
         $fee = array (
             'cost' => $feeCost,
+            'currency' => $code,
         );
         return array (
             'info' => $transaction,
