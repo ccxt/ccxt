@@ -62,7 +62,6 @@ module.exports = class dsx extends liqui {
                         'history/trades',
                         'history/orders',
                         'orders',
-                        'Trade',
                         'order/cancel',
                         'order/status',
                         'order/new',
@@ -149,12 +148,17 @@ module.exports = class dsx extends liqui {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (market)
+        let marketId = this.safeString (ticker, 'pair');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let average = this.safeFloat (ticker, 'avg');
-        if (average !== undefined)
-            if (average > 0)
+        if (average !== undefined) {
+            if (average > 0) {
                 average = 1 / average;
+            }
+        }
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
