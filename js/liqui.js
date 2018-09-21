@@ -347,10 +347,13 @@ module.exports = class liqui extends Exchange {
         let feeCost = this.safeFloat (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            feeCurrencyId = feeCurrencyId.toUpperCase ();
             let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
             let feeCurrencyCode = undefined;
             if (feeCurrency !== undefined) {
                 feeCurrencyCode = feeCurrency['code'];
+            } else {
+                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
             }
             fee = {
                 'cost': feeCost,
