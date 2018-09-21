@@ -155,7 +155,7 @@ module.exports = class theocean extends Exchange {
             };
             let amountLimits = {
                 'min': this.fromWei (this.safeString (baseToken, 'minAmount'), 'ether', baseDecimals),
-                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), 'ether', baseDecimasl),
+                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), 'ether', baseDecimals),
             };
             let priceLimits = {
                 'min': undefined,
@@ -502,10 +502,6 @@ module.exports = class theocean extends Exchange {
         //     ]
         //
         return this.parseTrades (response, market, since, limit);
-    }
-
-    toWeiMarket (amount, market) {
-        let
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
