@@ -932,6 +932,7 @@ class binance (Exchange):
         feeCost = None
         fee = {
             'cost': feeCost,
+            'currency': code,
         }
         return {
             'info': transaction,
