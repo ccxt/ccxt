@@ -950,8 +950,36 @@ class Exchange(object):
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
 
-    def get_eth_unit_from_decimals(self, decimals=18):
-        eth_units = {
+    def eth_decimals(self, unit='ether'):
+        units = {
+            'wei': 0,          # 1
+            'kwei': 3,         # 1000
+            'babbage': 3,      # 1000
+            'femtoether': 3,   # 1000
+            'mwei': 6,         # 1000000
+            'lovelace': 6,     # 1000000
+            'picoether': 6,    # 1000000
+            'gwei': 9,         # 1000000000
+            'shannon': 9,      # 1000000000
+            'nanoether': 9,    # 1000000000
+            'nano': 9,         # 1000000000
+            'szabo': 12,       # 1000000000000
+            'microether': 12,  # 1000000000000
+            'micro': 12,       # 1000000000000
+            'finney': 15,      # 1000000000000000
+            'milliether': 15,  # 1000000000000000
+            'milli': 15,       # 1000000000000000
+            'ether': 18,       # 1000000000000000000
+            'kether': 21,      # 1000000000000000000000
+            'grand': 21,       # 1000000000000000000000
+            'mether': 24,      # 1000000000000000000000000
+            'gether': 27,      # 1000000000000000000000000000
+            'tether': 30,      # 1000000000000000000000000000000
+        }
+        return self.safe_value(units, unit)
+
+    def eth_unit(self, decimals=18):
+        units = {
             0: 'wei',      # 1000000000000000000
             3: 'kwei',     # 1000000000000000
             6: 'mwei',     # 1000000000000
@@ -964,7 +992,7 @@ class Exchange(object):
             27: 'gether',  # 0.000000001
             30: 'tether',  # 0.000000000001
         }
-        return eth_units.get(decimals, 'ether')
+        return self.safe_value(units, decimals)
 
     def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
@@ -975,7 +1003,7 @@ class Exchange(object):
             if decimals % 3:
                 amount = int(amount) * (10 ** (18 - decimals))
             else:
-                unit = self.get_eth_unit_from_decimals(decimals)
+                unit = self.eth_unit(decimals)
         return float(Web3.fromWei(int(amount), unit))
 
     def toWei(self, amount, unit='ether', decimals=18):
@@ -991,7 +1019,7 @@ class Exchange(object):
                 # the best solution should not involve additional dependencies
                 amount = Decimal(amount) / Decimal(10 ** (18 - decimals))
             else:
-                unit = self.get_eth_unit_from_decimals(decimals)
+                unit = self.eth_unit(decimals)
         return str(Web3.toWei(amount, unit))
 
     def precision_from_string(self, string):

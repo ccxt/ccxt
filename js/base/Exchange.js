@@ -1189,7 +1189,7 @@ module.exports = class Exchange {
     }
 
     ethDecimals (unit = 'ether') {
-        const ethUnits = {
+        const units = {
             'wei': 0,          // 1
             'kwei': 3,         // 1000
             'babbage': 3,      // 1000
@@ -1214,11 +1214,11 @@ module.exports = class Exchange {
             'gether': 27,      // 1000000000000000000000000000
             'tether': 30,      // 1000000000000000000000000000000
         }
-        return this.safeValue(ethUnits, unit)
+        return this.safeValue (units, unit)
     }
 
     ethUnit (decimals = 18) {
-        const ethUnits = {
+        const units = {
             0: 'wei',      // 1000000000000000000
             3: 'kwei',     // 1000000000000000
             6: 'mwei',     // 1000000000000
@@ -1231,7 +1231,7 @@ module.exports = class Exchange {
             27: 'gether',  // 0.000000001
             30: 'tether',  // 0.000000000001
         }
-        return this.safeValue(ethUnits, decimals)
+        return this.safeValue (units, decimals)
     }
 
     fromWei (amount, unit = 'ether', decimals = 18) {
