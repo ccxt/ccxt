@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.338'
+const version = '1.17.339'
 
 Exchange.ccxtVersion = version
 
@@ -49610,7 +49610,7 @@ module.exports = class okex extends okcoinusd {
                 },
                 'www': 'https://www.okex.com',
                 'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
-                'fees': 'https://www.okex.com/fees.html',
+                'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
                 'FAIR': 'FairGame',
