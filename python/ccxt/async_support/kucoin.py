@@ -964,6 +964,7 @@ class kucoin (Exchange):
                 side = 'sell'
             price = trade[2]
             amount = trade[3]
+            id = trade[5]
         else:
             timestamp = self.safe_value(trade, 'createdAt')
             order = self.safe_string(trade, 'orderOid')
