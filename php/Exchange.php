@@ -1949,7 +1949,7 @@ class Exchange {
         return $this->eth_unit ($decimals);
     }
 
-    public function fromWei ($amount, $unit = 'ether') {
+    public function fromWei ($amount, $unit = 'ether', $decimals = 18) {
         if (!isset (Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
         }
@@ -1957,7 +1957,7 @@ class Exchange {
         return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
     }
 
-    public function toWei ($amount, $unit = 'ether') {
+    public function toWei ($amount, $unit = 'ether', $decimals = 18) {
         if (!isset (Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
         }
