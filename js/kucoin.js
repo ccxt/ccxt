@@ -1007,6 +1007,7 @@ module.exports = class kucoin extends Exchange {
             }
             price = trade[2];
             amount = trade[3];
+            id = trade[5];
         } else {
             timestamp = this.safeValue (trade, 'createdAt');
             order = this.safeString (trade, 'orderOid');
