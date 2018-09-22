@@ -282,11 +282,33 @@ module.exports = class theocean extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseMarketBidAsk (market, bidask, priceKey = 0, amountKey = 1) {
         let price = parseFloat (bidask[priceKey]);
-        let amount = this.fromWei (bidask[amountKey]);
+        let amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
+        let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
         // return [ price, amount, bidask ];
         return [ price, amount ];
+    }
+
+    parseMarketOrderBook (market, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+        let result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        let sides = [ bidsKey, asksKey ];
+        for (let i = 0; i < sides.length; i++) {
+            let side = sides[i];
+            let orders = [];
+            let bidasks = this.safeValue (orderbook, side);
+            for (let k = 0; k < bidasks.length; k++) {
+                orders.push (this.parseMarketBidAsk (market, bidasks[k], priceKey, amountKey));
+            }
+            result[side] = orders;
+        }
+        result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
+        result[asksKey] = this.sortBy (result[asksKey], 0);
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -322,7 +344,7 @@ module.exports = class theocean extends Exchange {
         //       ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount');
+        return this.parseMarketOrderBook (market, response, undefined, 'bids', 'asks', 'price', 'availableAmount');
     }
 
     parseTicker (ticker, market = undefined) {
