@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.336'
+const version = '1.17.338'
 
 Exchange.ccxtVersion = version
 
@@ -6290,10 +6290,7 @@ module.exports = class binance extends Exchange {
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                'fees': [
-                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
-                    'https://support.binance.com/hc/en-us/articles/115000583311',
-                ],
+                'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
                 'web': {
