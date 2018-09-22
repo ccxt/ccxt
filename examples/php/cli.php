@@ -49,7 +49,7 @@ if (count ($argv) > 2) {
 
                 $result = call_user_func_array (array ($exchange, $member), $args);
 
-                print_r ($result);
+                echo print_r ($result, true) . "\n";
 
             } catch (\ccxt\NetworkError $e) {
 
