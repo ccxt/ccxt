@@ -55,7 +55,7 @@ from ssl import SSLError
 import time
 import uuid
 import zlib
-from decimal import Decimal, getcontext
+from decimal import Decimal
 
 # -----------------------------------------------------------------------------
 
