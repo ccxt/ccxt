@@ -1007,6 +1007,7 @@ class kucoin extends Exchange {
             }
             $price = $trade[2];
             $amount = $trade[3];
+            $id = $trade[5];
         } else {
             $timestamp = $this->safe_value($trade, 'createdAt');
             $order = $this->safe_string($trade, 'orderOid');
