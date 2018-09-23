@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.340'
+const version = '1.17.341'
 
 Exchange.ccxtVersion = version
 
@@ -17997,6 +17997,7 @@ module.exports = class btcalpha extends Exchange {
         let trades = this.safeValue (order, 'trades');
         if (trades)
             trades = this.parseTrades (trades, market);
+        const side = this.safeString2 (order, 'my_side', 'type');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -18004,7 +18005,7 @@ module.exports = class btcalpha extends Exchange {
             'status': this.safeString (statuses, status),
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,

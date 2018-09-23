@@ -271,6 +271,7 @@ class btcalpha (Exchange):
         trades = self.safe_value(order, 'trades')
         if trades:
             trades = self.parse_trades(trades, market)
+        side = self.safe_string_2(order, 'my_side', 'type')
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -278,7 +279,7 @@ class btcalpha (Exchange):
             'status': self.safe_string(statuses, status),
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': None,
             'amount': amount,
