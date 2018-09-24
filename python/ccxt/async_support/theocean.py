@@ -352,7 +352,7 @@ class theocean (Exchange):
         #       ]
         #     }
         #
-        return self.parseMarketOrderBook(response, None, 'bids', 'asks', 'price', 'availableAmount', market)
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'availableAmount', market)
 
     def parse_ticker(self, ticker, market=None):
         #
