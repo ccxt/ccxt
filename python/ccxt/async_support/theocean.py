@@ -16,6 +16,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -292,14 +293,16 @@ class theocean (Exchange):
             result[code] = await self.fetch_balance_by_code(code)
         return self.parse_balance(result)
 
-    def parse_market_bid_ask(self, market, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
+        if market is None:
+            raise ArgumentsRequired(self.id + ' parseBidAsk requires a market argument')
         price = float(bidask[priceKey])
         amountDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
         amount = self.fromWei(bidask[amountKey], 'ether', amountDecimals)
         # return [price, amount, bidask]
         return [price, amount]
 
-    def parse_market_order_book(self, market, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1):
+    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
         result = {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -311,7 +314,7 @@ class theocean (Exchange):
             orders = []
             bidasks = self.safe_value(orderbook, side)
             for k in range(0, len(bidasks)):
-                orders.append(self.parse_market_bid_ask(market, bidasks[k], priceKey, amountKey))
+                orders.append(self.parse_bid_ask(market, bidasks[k], priceKey, amountKey, market))
             result[side] = orders
         result[bidsKey] = self.sort_by(result[bidsKey], 0, True)
         result[asksKey] = self.sort_by(result[asksKey], 0)
@@ -349,7 +352,7 @@ class theocean (Exchange):
         #       ]
         #     }
         #
-        return self.parse_market_order_book(market, response, None, 'bids', 'asks', 'price', 'availableAmount')
+        return self.parseMarketOrderBook(response, None, 'bids', 'asks', 'price', 'availableAmount', market)
 
     def parse_ticker(self, ticker, market=None):
         #
