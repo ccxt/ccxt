@@ -574,7 +574,7 @@ class binance extends Exchange {
         );
         if ($since !== null) {
             $request['startTime'] = $since;
-            $request['endTime'] = $since . 3600000;
+            $request['endTime'] = $this->sum ($since, 3600000);
         }
         if ($limit !== null)
             $request['limit'] = $limit;

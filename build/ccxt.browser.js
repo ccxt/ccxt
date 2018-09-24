@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.348'
+const version = '1.17.349'
 
 Exchange.ccxtVersion = version
 
@@ -6800,7 +6800,7 @@ module.exports = class binance extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = since + 3600000;
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined)
             request['limit'] = limit;
