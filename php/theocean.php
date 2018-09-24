@@ -30,6 +30,7 @@ class theocean extends Exchange {
                 'CORS' => false, // ?
                 'fetchTickers' => true,
                 'fetchOHLCV' => false,
+                'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
             ),

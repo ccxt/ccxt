@@ -50,6 +50,7 @@ class theocean (Exchange):
                 'CORS': False,  # ?
                 'fetchTickers': True,
                 'fetchOHLCV': False,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },
