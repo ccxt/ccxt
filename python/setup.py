@@ -81,7 +81,7 @@ setup(
             'flake8==3.5.0'
         ],
         'doc': [
-            'Sphinx==1.7.0'
+            'Sphinx==1.8.1'
         ]
     }
 )
