@@ -347,7 +347,7 @@ module.exports = class theocean extends Exchange {
         //       ]
         //     }
         //
-        return this.parseMarketOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount', market);
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount', market);
     }
 
     parseTicker (ticker, market = undefined) {
