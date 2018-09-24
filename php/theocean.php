@@ -352,7 +352,7 @@ class theocean extends Exchange {
         //       )
         //     }
         //
-        return $this->parseMarketOrderBook ($response, null, 'bids', 'asks', 'price', 'availableAmount', $market);
+        return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'availableAmount', $market);
     }
 
     public function parse_ticker ($ticker, $market = null) {
