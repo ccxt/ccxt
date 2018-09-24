@@ -573,7 +573,7 @@ module.exports = class binance extends Exchange {
         };
         if (since !== undefined) {
             request['startTime'] = since;
-            request['endTime'] = since + 3600000;
+            request['endTime'] = this.sum (since, 3600000);
         }
         if (limit !== undefined)
             request['limit'] = limit;
