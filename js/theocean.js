@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 
 module.exports = class theocean extends Exchange {
     describe () {
@@ -282,7 +282,10 @@ module.exports = class theocean extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseMarketBidAsk (market, bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
+        }
         let price = parseFloat (bidask[priceKey]);
         let amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
@@ -290,7 +293,7 @@ module.exports = class theocean extends Exchange {
         return [ price, amount ];
     }
 
-    parseMarketOrderBook (market, orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         let result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -302,7 +305,7 @@ module.exports = class theocean extends Exchange {
             let orders = [];
             let bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.parseMarketBidAsk (market, bidasks[k], priceKey, amountKey));
+                orders.push (this.parseBidAsk (market, bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
@@ -344,7 +347,7 @@ module.exports = class theocean extends Exchange {
         //       ]
         //     }
         //
-        return this.parseMarketOrderBook (market, response, undefined, 'bids', 'asks', 'price', 'availableAmount');
+        return this.parseMarketOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount', market);
     }
 
     parseTicker (ticker, market = undefined) {
