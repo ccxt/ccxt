@@ -300,7 +300,6 @@ module.exports = class theocean extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        console.log (market)
         let sides = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
             let side = sides[i];
