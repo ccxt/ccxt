@@ -311,7 +311,7 @@ class theocean extends Exchange {
             $orders = array ();
             $bidasks = $this->safe_value($orderbook, $side);
             for ($k = 0; $k < count ($bidasks); $k++) {
-                $orders[] = $this->parse_bid_ask($market, $bidasks[$k], $priceKey, $amountKey, $market);
+                $orders[] = $this->parse_bid_ask($bidasks[$k], $priceKey, $amountKey, $market);
             }
             $result[$side] = $orders;
         }

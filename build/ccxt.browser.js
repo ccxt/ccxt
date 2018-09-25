@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.349'
+const version = '1.17.350'
 
 Exchange.ccxtVersion = version
 
@@ -52749,7 +52749,7 @@ module.exports = class theocean extends Exchange {
             let orders = [];
             let bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.parseBidAsk (market, bidasks[k], priceKey, amountKey, market));
+                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
