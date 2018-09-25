@@ -300,13 +300,14 @@ module.exports = class theocean extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
+        console.log (market)
         let sides = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
             let side = sides[i];
             let orders = [];
             let bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
-                orders.push (this.parseBidAsk (market, bidasks[k], priceKey, amountKey, market));
+                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
             result[side] = orders;
         }
