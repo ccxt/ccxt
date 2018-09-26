@@ -412,8 +412,8 @@ class bitforex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'orderId');
-        $timestamp = $this->safe_float_2($order, 'createTime');
-        $lastTradeTimestamp = $this->safe_float_2($order, 'lastTime');
+        $timestamp = $this->safe_float($order, 'createTime');
+        $lastTradeTimestamp = $this->safe_float($order, 'lastTime');
         $symbol = $market['symbol'];
         $sideId = $this->safe_integer($order, 'tradeType');
         $side = $this->parse_side ($sideId);
