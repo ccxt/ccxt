@@ -173,7 +173,8 @@ class crypton (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(params)
+        response = self.publicGetTickers(params)
+        tickers = response['result']
         keys = list(tickers.keys())
         result = {}
         for i in range(0, len(keys)):
