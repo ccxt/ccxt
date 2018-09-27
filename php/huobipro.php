@@ -344,9 +344,9 @@ class huobipro extends Exchange {
                 throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
             $orderbook = $response['tick'];
-            $timestamp = $orderbook['ts'];
-            $orderbook['nonce'] = $orderbook['version'];
-            return $this->parse_order_book($orderbook, $timestamp);
+            $result = $this->parse_order_book($orderbook, $orderbook['ts']);
+            $result['nonce'] = $orderbook['version'];
+            return $result;
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
