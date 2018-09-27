@@ -171,8 +171,8 @@ class indodax (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker[baseVolume]),
-            'quoteVolume': float(ticker[quoteVolume]),
+            'baseVolume': self.safe_float(ticker, baseVolume),
+            'quoteVolume': self.safe_float(ticker, quoteVolume),
             'info': ticker,
         }
 

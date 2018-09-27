@@ -161,8 +161,8 @@ class indodax extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker[$baseVolume]),
-            'quoteVolume' => floatval ($ticker[$quoteVolume]),
+            'baseVolume' => $this->safe_float($ticker, $baseVolume),
+            'quoteVolume' => $this->safe_float($ticker, $quoteVolume),
             'info' => $ticker,
         );
     }
