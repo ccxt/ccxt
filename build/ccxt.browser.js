@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.351'
+const version = '1.17.352'
 
 Exchange.ccxtVersion = version
 
@@ -10977,8 +10977,8 @@ module.exports = class bitforex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'orderId');
-        let timestamp = this.safeFloat2 (order, 'createTime');
-        let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
+        let timestamp = this.safeFloat (order, 'createTime');
+        let lastTradeTimestamp = this.safeFloat (order, 'lastTime');
         let symbol = market['symbol'];
         let sideId = this.safeInteger (order, 'tradeType');
         let side = this.parseSide (sideId);
