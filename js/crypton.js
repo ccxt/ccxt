@@ -177,7 +177,8 @@ module.exports = class crypton extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
+        let response = await this.publicGetTickers (params);
+        let tickers = response['result'];
         let keys = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < keys.length; i++) {
