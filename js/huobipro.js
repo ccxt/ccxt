@@ -343,9 +343,9 @@ module.exports = class huobipro extends Exchange {
                 throw new ExchangeError (this.id + ' fetchOrderBook() returned empty response: ' + this.json (response));
             }
             let orderbook = response['tick'];
-            let timestamp = orderbook['ts'];
-            orderbook['nonce'] = orderbook['version'];
-            return this.parseOrderBook (orderbook, timestamp);
+            let result = this.parseOrderBook (orderbook, orderbook['ts']);
+            result['nonce'] = orderbook['version'];
+            return result;
         }
         throw new ExchangeError (this.id + ' fetchOrderBook() returned unrecognized response: ' + this.json (response));
     }
