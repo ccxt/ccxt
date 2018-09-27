@@ -160,8 +160,8 @@ module.exports = class indodax extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker[baseVolume]),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
+            'baseVolume': this.safeFloat (ticker, baseVolume),
+            'quoteVolume': this.safeFloat (ticker, quoteVolume),
             'info': ticker,
         };
     }
