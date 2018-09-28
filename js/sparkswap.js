@@ -69,8 +69,18 @@ module.exports = class sparkswap extends Exchange {
                     'get': [],
                 },
                 'private': {
-                    'get': [],
-                    'post': [],
+                    'get': [
+                        'v1/order/{id}', // grab a single order
+                        'v1/wallet/balances', // get balances for a specified wallet
+                        'v1/trades', // get all trades for a specific market
+                    ],
+                    'post': [
+                        'v1/order', // create an order
+                        'v1/order/cancel', // cancel an order
+                        'v1/wallet/address', // generate a wallet address
+                        'v1/wallet/commit',
+                        'v1/wallet/',
+                    ],
                     'put': [],
                     'delete': [],
                 },
@@ -81,7 +91,22 @@ module.exports = class sparkswap extends Exchange {
         });
     }
 
-    async cancelOrder (orderId, symbol = undefined, params = {}) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            // Once authentication is enabled for CCXT w/ the grpc proxy, we can
+            // add the base64 basic auth header to these params.
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
         throw new ExchangeError ('Not Implemented');
     }
 
@@ -105,8 +130,8 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async fetchOrder (orderId, symbol = undefined, params = {}) {
-        throw new ExchangeError ('Not Implemented');
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        return this.privateGetV1OrderId ({ id });
     }
 
     async fetchOrderBook () {

@@ -7,7 +7,7 @@ require ('ansicolor').nice
 
 const SPARKSWAP_UID = process.env_SPARKSWAP_UID || 'sparkswap'
 const SPARKSWAP_PASSWORD = process.env.SPARKSWAP_PASSWORD || 'sparkswap'
-const SPARKSWAP_HOST = process.env.SPARKSWAP_HOST || 'localhost:27492'
+const SPARKSWAP_HOST = process.env.SPARKSWAP_HOST || 'https://localhost:27492'
 
 ;(async () => {
 
@@ -26,7 +26,7 @@ const SPARKSWAP_HOST = process.env.SPARKSWAP_HOST || 'localhost:27492'
   });
 
   try {
-    var balances = await exchange.fetchBalance()
+    var balances = await exchange.fetchOrder('1234')
     log(balances)
   } catch(e) {
     log.bright.yellow('Failed to fetchBalance: ' + e.message)
