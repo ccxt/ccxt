@@ -16,7 +16,7 @@ exchange = ccxt.bitmex({
 })
 
 symbol = 'XBTM18'  # bitcoin contract according to https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
-type = 'StopLimit'  # or 'market', or 'Stop' or 'StopLimit'
+type = 'StopLimit'  # or 'Market', or 'Stop' or 'StopLimit'
 side = 'sell'  # or 'buy'
 amount = 1.0
 price = 6500.0  # or None
