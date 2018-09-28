@@ -26,7 +26,6 @@ const SPARKSWAP_HOST = process.env.SPARKSWAP_HOST || 'localhost:27492'
   });
 
   try {
-    log(exchange.urls.api)
     var balances = await exchange.fetchBalance()
     log(balances)
   } catch(e) {
