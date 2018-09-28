@@ -123,7 +123,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        throw new ExchangeError ('Not Implemented');
+        return this.privateGetV1WalletBalance ();
     }
 
     async fetchMarkets () {
