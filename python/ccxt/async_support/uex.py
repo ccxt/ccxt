@@ -93,7 +93,7 @@ class uex (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.0010,
-                    'taker': 0.0015,
+                    'taker': 0.0010,
                 },
             },
             'exceptions': {

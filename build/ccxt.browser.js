@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.357'
+const version = '1.17.358'
 
 Exchange.ccxtVersion = version
 
@@ -54706,7 +54706,7 @@ module.exports = class uex extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.0010,
-                    'taker': 0.0015,
+                    'taker': 0.0010,
                 },
             },
             'exceptions': {
