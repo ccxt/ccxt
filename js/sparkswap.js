@@ -123,7 +123,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        return this.privateGetV1WalletBalance ();
+        return this.privateGetV1WalletBalances ();
     }
 
     async fetchMarkets () {
