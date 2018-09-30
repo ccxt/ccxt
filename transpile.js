@@ -77,6 +77,7 @@ const commonRegexes = [
     [ /\.filterBy\s/g, '.filter_by'],
     [ /\.groupBy\s/g, '.group_by'],
     [ /\.findMarket\s/g, '.find_market'],
+    [ /\.setMarkets\s/g, '.set_markets'],
     [ /\.findSymbol\s/g, '.find_symbol'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
