@@ -95,14 +95,28 @@ class liqui (Exchange):
                 'DSH': 'DASH',
             },
             'exceptions': {
-                '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
-                '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
-                '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
-                '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
-                '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
-                '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
-                '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
-                '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                    '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                    '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                    '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                    '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                    '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                    '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                    '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError,  # {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'fetchOrderMethod': 'privatePostOrderInfo',
@@ -717,28 +731,11 @@ class liqui (Exchange):
                     code = self.safe_string(response, 'code')
                     message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    # need a second error map for these messages, apparently...
-                    # in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if message == 'invalid api key':
-                        raise AuthenticationError(feedback)
-                    elif message == 'invalid sign':
-                        raise AuthenticationError(feedback)
-                    elif message == 'api key dont have trade permission':
-                        raise AuthenticationError(feedback)
-                    elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
-                        raise InvalidOrder(feedback)
-                    elif message == 'invalid order':
-                        raise InvalidOrder(feedback)
-                    elif message == 'Requests too often':
-                        raise DDoSProtection(feedback)
-                    elif message == 'not available':
-                        raise ExchangeNotAvailable(feedback)
-                    elif message == 'data unavailable':
-                        raise ExchangeNotAvailable(feedback)
-                    elif message == 'external service unavailable':
-                        raise ExchangeNotAvailable(feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    exact = self.exceptions['exact']
+                    if code in exact:
+                        raise exact[code](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    raise ExchangeError(feedback)  # unknown message
