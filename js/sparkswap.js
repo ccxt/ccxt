@@ -70,19 +70,26 @@ module.exports = class sparkswap extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'v1/admin/healthcheck',
+                        'v1/markets', // get supported markets
+                        'v1/markets_stats', // get market stats for a specific market
                         'v1/order/{id}', // grab a single order
-                        'v1/wallet/balances', // get balances for a specified wallet
+                        'v1/orderbook', // get orderbook by market
+                        'v1/orders', // get orders by market
                         'v1/trades', // get all trades for a specific market
+                        'v1/wallet/balances', // get balances for a specified wallet
                     ],
                     'post': [
-                        'v1/order', // create an order
-                        'v1/order/cancel', // cancel an order
+                        'v1/orders/{id}', // create an order
                         'v1/wallet/address', // generate a wallet address
-                        'v1/wallet/commit',
-                        'v1/wallet/',
+                        'v1/wallet/commit', // commit a balance to the exchange
+                        'v1/wallet/release', // release your balance from the exchange
+                        'v1/wallet/withdraw', // withdraw funds to an external address
                     ],
                     'put': [],
-                    'delete': [],
+                    'delete': [
+                        'v1/orders/{id}', // cancel an order
+                    ],
                 },
             },
             'exceptions': {},
@@ -101,7 +108,7 @@ module.exports = class sparkswap extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             // Once authentication is enabled for CCXT w/ the grpc proxy, we can
-            // add the base64 basic auth header to these params.
+            // add the basic auth header to these params.
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -123,6 +130,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        // TODO: Need to modify what information is changed here.
         return this.privateGetV1WalletBalances ();
     }
 
