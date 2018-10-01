@@ -839,6 +839,8 @@ class cointiger (huobipro):
                                     raise ExchangeError(feedback)
                                 elif message == 'api_keyNot EXIST':
                                     raise AuthenticationError(feedback)
+                                elif message == 'price precision exceed the limit':
+                                    raise InvalidOrder(feedback)
                                 elif message == 'Parameter error':
                                     raise BadRequest(feedback)
                             raise exceptions[code](feedback)
