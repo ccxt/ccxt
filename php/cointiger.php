@@ -887,6 +887,8 @@ class cointiger extends huobipro {
                                     throw new ExchangeError ($feedback);
                                 } else if ($message === 'api_keyNot EXIST') {
                                     throw new AuthenticationError ($feedback);
+                                } else if ($message === 'price precision exceed the limit') {
+                                    throw new InvalidOrder ($feedback);
                                 } else if ($message === 'Parameter error') {
                                     throw new BadRequest ($feedback);
                                 }
