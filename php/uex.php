@@ -78,7 +78,7 @@ class uex extends Exchange {
                     'tierBased' => false,
                     'percentage' => true,
                     'maker' => 0.0010,
-                    'taker' => 0.0015,
+                    'taker' => 0.0010,
                 ),
             ),
             'exceptions' => array (

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.356'
+const version = '1.17.363'
 
 Exchange.ccxtVersion = version
 
@@ -28654,6 +28654,8 @@ module.exports = class cointiger extends huobipro {
                                     throw new ExchangeError (feedback);
                                 } else if (message === 'api_keyNot EXIST') {
                                     throw new AuthenticationError (feedback);
+                                } else if (message === 'price precision exceed the limit') {
+                                    throw new InvalidOrder (feedback);
                                 } else if (message === 'Parameter error') {
                                     throw new BadRequest (feedback);
                                 }
@@ -41608,21 +41610,26 @@ module.exports = class kraken extends Exchange {
 
     async fetchMinOrderSizes () {
         let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-        let parts = html.split ('ul>');
-        let ul = parts[1];
-        let listItems = ul.split ('</li');
+        let parts = html.split ('<td class="wysiwyg-text-align-right">');
+        let numParts = parts.length;
+        if (numParts < 3) {
+            throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+        }
         let result = {};
-        const separator = '):' + ' ';
-        for (let l = 0; l < listItems.length; l++) {
-            let listItem = listItems[l];
-            let chunks = listItem.split (separator);
-            let numChunks = chunks.length;
-            if (numChunks > 1) {
-                let limit = parseFloat (chunks[1]);
-                let name = chunks[0];
-                chunks = name.split ('(');
-                let currency = chunks[1];
-                result[currency] = limit;
+        // skip the part before the header and the header itself
+        for (let i = 2; i < parts.length; i++) {
+            let part = parts[i];
+            let chunks = part.split ('</td>');
+            let amountAndCode = chunks[0];
+            if (amountAndCode !== 'to be announced') {
+                let pieces = amountAndCode.split (' ');
+                let numPieces = pieces.length;
+                if (numPieces !== 2) {
+                    throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+                }
+                let amount = parseFloat (pieces[0]);
+                let code = this.commonCurrencyCode (pieces[1]);
+                result[code] = amount;
             }
         }
         return result;
@@ -44793,14 +44800,28 @@ module.exports = class liqui extends Exchange {
                 'DSH': 'DASH',
             },
             'exceptions': {
-                '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                    '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                    '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                    '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                    '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                    '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                    '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                    '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'fetchOrderMethod': 'privatePostOrderInfo',
@@ -45498,33 +45519,16 @@ module.exports = class liqui extends Exchange {
                     const code = this.safeString (response, 'code');
                     const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
+                    const exact = this.exceptions['exact'];
+                    if (code in exact) {
+                        throw new exact[code] (feedback);
                     }
-                    // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if (message === 'invalid api key') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'invalid sign') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'api key dont have trade permission') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'invalid order') {
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'Requests too often') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'not available') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'data unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'external service unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
+                    const broad = this.exceptions['broad'];
+                    const broadKey = this.findBroadlyMatchedKey (broad, message);
+                    if (broadKey !== undefined) {
+                        throw new broad[broadKey] (feedback);
                     }
+                    throw new ExchangeError (feedback); // unknown message
                 }
             }
         }
@@ -54706,7 +54710,7 @@ module.exports = class uex extends Exchange {
                     'tierBased': false,
                     'percentage': true,
                     'maker': 0.0010,
-                    'taker': 0.0015,
+                    'taker': 0.0010,
                 },
             },
             'exceptions': {
