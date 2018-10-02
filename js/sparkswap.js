@@ -131,7 +131,39 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchBalance (params = {}) {
         // TODO: Need to modify what information is changed here.
-        return this.privateGetV1WalletBalances ();
+        const balances = await this.privateGetV1WalletBalances ();
+        //
+        const free = balances.balances.map (b => ({ [b.symbol]: parseFloat (b.uncommitted_balance) }));
+        const used = balances.balances.map (b => ({ [b.symbol]: parseFloat (b.total_channel_balance) }));
+        const total = balances.balances.map ((b) => {
+            const balanceTotal = (
+                parseFloat (b.total_channel_balance) +
+                parseFloat (b.uncommitted_balance) +
+                parseFloat (b.total_pending_channel_balance) +
+                parseFloat (b.uncommitted_pending_balance)
+            );
+            return { [b.symbol]: balanceTotal };
+        });
+        const byCurrency = balances.balances.reduce ((acc, b) => {
+            const balanceTotal = (
+                parseFloat (b.total_channel_balance) +
+                parseFloat (b.uncommitted_balance) +
+                parseFloat (b.total_pending_channel_balance) +
+                parseFloat (b.uncommitted_pending_balance)
+            );
+            acc[b.symbol] = {
+                'free': parseFloat (b.uncommitted_balance),
+                'used': parseFloat (b.total_channel_balance),
+                'total': balanceTotal,
+            };
+            return acc;
+        }, {});
+        return Object.assign ({
+            'info': balances,
+            free,
+            used,
+            total,
+        }, byCurrency);
     }
 
     async fetchMarkets () {
