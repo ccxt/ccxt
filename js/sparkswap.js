@@ -130,40 +130,34 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // TODO: Need to modify what information is changed here.
-        const balances = await this.privateGetV1WalletBalances ();
-        //
-        const free = balances.balances.map (b => ({ [b.symbol]: parseFloat (b.uncommitted_balance) }));
-        const used = balances.balances.map (b => ({ [b.symbol]: parseFloat (b.total_channel_balance) }));
-        const total = balances.balances.map ((b) => {
+        let balances = await this.privateGetV1WalletBalances ();
+        balances = balances.balances;
+        let free = {};
+        let used = {};
+        let total = {};
+        let response = {
+            'info': { balances },
+            'free': free,
+            'used': used,
+            'total': total,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            response.free[balances[i].symbol] = this.safeFloat (balances[i], 'uncommitted_balance');
+            response.used[balances[i].symbol] = this.safeFloat (balances[i], 'total_channel_balance');
             const balanceTotal = (
-                parseFloat (b.total_channel_balance) +
-                parseFloat (b.uncommitted_balance) +
-                parseFloat (b.total_pending_channel_balance) +
-                parseFloat (b.uncommitted_pending_balance)
+                this.safeFloat (balances[i], 'total_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_balance') +
+                this.safeFloat (balances[i], 'total_pending_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_pending_balance')
             );
-            return { [b.symbol]: balanceTotal };
-        });
-        const byCurrency = balances.balances.reduce ((acc, b) => {
-            const balanceTotal = (
-                parseFloat (b.total_channel_balance) +
-                parseFloat (b.uncommitted_balance) +
-                parseFloat (b.total_pending_channel_balance) +
-                parseFloat (b.uncommitted_pending_balance)
-            );
-            acc[b.symbol] = {
-                'free': parseFloat (b.uncommitted_balance),
-                'used': parseFloat (b.total_channel_balance),
+            response.total[balances[i].symbol] = balanceTotal;
+            response[balances[i].symbol] = {
+                'free': this.safeFloat (balances[i], 'uncommitted_balance'),
+                'used': this.safeFloat (balances[i], 'total_channel_balance'),
                 'total': balanceTotal,
             };
-            return acc;
-        }, {});
-        return Object.assign ({
-            'info': balances,
-            free,
-            used,
-            total,
-        }, byCurrency);
+        }
+        return response;
     }
 
     async fetchMarkets () {
