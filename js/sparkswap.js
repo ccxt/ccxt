@@ -130,8 +130,43 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        // TODO: Need to modify what information is changed here.
-        return this.privateGetV1WalletBalances ();
+        let res = await this.privateGetV1WalletBalances ();
+        let balances = (res) ? res.balances : [];
+        // The format that is returned from the sparkswap API does not match what
+        // needs to be returned from ccxt. We modify the sparkswap response to
+        // fit: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
+        let free = {};
+        let used = {};
+        let total = {};
+        let response = {
+            'info': { balances },
+            'free': free,
+            'used': used,
+            'total': total,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balanceTotal = (
+                this.safeFloat (balances[i], 'total_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_balance') +
+                this.safeFloat (balances[i], 'total_pending_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_pending_balance')
+            );
+            const usedTotal = (
+                this.safeFloat (balances[i], 'total_channel_balance') +
+                this.safeFloat (balances[i], 'total_pending_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_pending_balance')
+            );
+            const freeTotal = this.safeFloat (balances[i], 'uncommitted_balance');
+            response.free[balances[i].symbol] = freeTotal;
+            response.used[balances[i].symbol] = usedTotal;
+            response.total[balances[i].symbol] = balanceTotal;
+            response[balances[i].symbol] = {
+                'free': freeTotal,
+                'used': usedTotal,
+                'total': balanceTotal,
+            };
+        }
+        return response;
     }
 
     async fetchMarkets () {
