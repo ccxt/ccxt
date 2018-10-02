@@ -91,11 +91,11 @@ module.exports = class shapeshift extends Exchange {
             throw new ExchangeError(`Market ${input} to ${output} does not exist.`);
         const pair = `${input.toLowerCase()}_${output.toLowerCase()}`;
         const request = {
-            'withdrawal': address,
+            'withdrawal': address.toLowerCase(),
             'pair': pair,
-            'returnAddress': address,
+            'returnAddress': address.toLowerCase(),
         };
-        const response = await this.publicPostShift(this.extend(request, params));
+        const response = await this.publicPostShift(this.extend(params, request));
         if (response.error) throw new ExchangeError(response.error);
         return {
             'transactionId': response.deposit,
