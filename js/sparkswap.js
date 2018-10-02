@@ -143,7 +143,11 @@ module.exports = class sparkswap extends Exchange {
         };
         for (let i = 0; i < balances.length; i++) {
             response.free[balances[i].symbol] = this.safeFloat (balances[i], 'uncommitted_balance');
-            response.used[balances[i].symbol] = this.safeFloat (balances[i], 'total_channel_balance');
+            response.used[balances[i].symbol] = (
+                this.safeFloat (balances[i], 'total_channel_balance') +
+                this.safeFloat (balances[i], 'total_pending_channel_balance') +
+                this.safeFloat (balances[i], 'uncommitted_pending_balance')
+            );
             const balanceTotal = (
                 this.safeFloat (balances[i], 'total_channel_balance') +
                 this.safeFloat (balances[i], 'uncommitted_balance') +
