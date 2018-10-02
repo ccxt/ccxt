@@ -113,8 +113,8 @@ class cointiger (huobipro):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.0008,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
