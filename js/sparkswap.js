@@ -24,6 +24,8 @@ module.exports = class sparkswap extends Exchange {
             'requiredCredentials': {
                 'uid': true,
                 'password': true,
+                'apiKey': false,
+                'secret': false,
             },
             'has': {
                 // We do not support CORS w/ headers
@@ -117,8 +119,9 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async createDepositAddress () {
-        throw new ExchangeError ('Not Implemented');
+    async createDepositAddress (symbol, params = {}) {
+        let res = await this.privatePostV1WalletAddress ({ symbol });
+        return res.address;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
