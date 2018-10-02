@@ -130,8 +130,8 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let balances = await this.privateGetV1WalletBalances ();
-        balances = balances.balances;
+        let res = await this.privateGetV1WalletBalances ();
+        let balances = (res) ? res.balances : [];
         let free = {};
         let used = {};
         let total = {};
