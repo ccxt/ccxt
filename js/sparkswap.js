@@ -72,7 +72,7 @@ module.exports = class sparkswap extends Exchange {
                     'get': [
                         'v1/admin/healthcheck',
                         'v1/markets', // get supported markets
-                        'v1/markets_stats', // get market stats for a specific market
+                        'v1/market_stats', // get market stats for a specific market
                         'v1/order/{id}', // grab a single order
                         'v1/orderbook', // get orderbook by market
                         'v1/orders', // get orders by market
