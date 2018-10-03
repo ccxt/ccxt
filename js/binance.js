@@ -961,7 +961,7 @@ module.exports = class binance extends Exchange {
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
-        if (tag.length < 1) {
+        if ((tag !== undefined) && (tag.length < 1)) {
             tag = undefined;
         }
         let txid = this.safeValue (transaction, 'txId');
