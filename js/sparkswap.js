@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -97,6 +97,12 @@ module.exports = class sparkswap extends Exchange {
             'exceptions': {},
             'markets': {},
             'options': {},
+            // While sparkswap is still in alpha, we will have payment network channel
+            // limits specified for each currency
+            'channelLimits': {
+                'BTC': '0.16777215',
+                'LTC': '10.06632900',
+            },
         });
     }
 
@@ -109,6 +115,10 @@ module.exports = class sparkswap extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            body = this.json (query);
+            headers = {
+                'Content-Type': 'application/json',
+            };
             // Once authentication is enabled for CCXT w/ the grpc proxy, we can
             // add the basic auth header to these params.
         }
@@ -243,8 +253,16 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async commit () {
-        throw new ExchangeError ('Not Implemented');
+    async commit (code = '', balance = '', market = '', params = {}) {
+        let limit = this.safeFloat (this.channelLimits, code);
+        if (limit < parseFloat (balance)) {
+            throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
+        }
+        return await this.privatePostV1WalletCommit ({
+            'symbol': code.toString (),
+            'balance': balance.toString (),
+            'market': market.toString (),
+        });
     }
 
     async release () {
