@@ -962,7 +962,7 @@ class binance extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
-        if (strlen ($tag) < 1) {
+        if (($tag !== null) && (strlen ($tag) < 1)) {
             $tag = null;
         }
         $txid = $this->safe_value($transaction, 'txId');
