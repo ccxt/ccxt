@@ -4,16 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
-const CONSTANTS = {
-    'orderTypes': {
-        'buy': 'buy',
-        'sell': 'sell',
-    },
-    'sides': {
-        'bid': 'BID',
-        'ask': 'ASK',
-    },
-}
 
 // ----------------------------------------------------------------------------
 
@@ -146,20 +136,32 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const CONSTANTS = {
+            'ORDER_TYPES': {
+                'LIMIT': 'limit',
+                'MARKET': 'market',
+            },
+            'SIDES': {
+                'BUY': 'buy',
+                'SELL': 'sell',
+                'BID': 'BID',
+                'ASK': 'ASK',
+            },
+        };
         await this.loadMarkets ();
         let orderType = undefined;
-        if (side === CONSTANTS.orderTypes.buy) {
-            orderType = CONSTANTS.sides.bid;
-        } else if (side === CONSTANTS.orderTypes.sell) {
-            orderType = CONSTANTS.sides.ask;
+        if (side === CONSTANTS.SIDES.BUY) {
+            orderType = CONSTANTS.SIDES.BID;
+        } else if (side === CONSTANTS.SIDES.SELL) {
+            orderType = CONSTANTS.SIDES.ASK;
         }
         const order = {
             'market': this.marketId (symbol),
             'amount': amount.toString (),
             'side': orderType,
         };
-        const marketOrder = (type === 'market');
-        const limitOrder = (type === 'limit');
+        const marketOrder = (type === CONSTANTS.ORDER_TYPES.MARKET);
+        const limitOrder = (type === CONSTANTS.ORDER_TYPES.LIMIT);
         if (limitOrder) {
             if (price === undefined) {
                 throw new BadRequest (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
