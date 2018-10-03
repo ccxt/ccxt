@@ -182,12 +182,12 @@ module.exports = class sparkswap extends Exchange {
             const symbolParts = id.split ('/');
             const baseId = symbolParts[0];
             const quoteId = symbolParts[1];
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
             const active = true;
             const precision = {
-                'amount': market['amountPrecision'],
-                'price': market['pricePrecision'],
+                'amount': this.safeInteger (market, 'amountPrecision'),
+                'price': this.safeInteger (market, 'amountPrecision'),
             };
             const limits = {
                 'amount': {
@@ -251,4 +251,3 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 };
-
