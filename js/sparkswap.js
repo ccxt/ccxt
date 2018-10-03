@@ -274,8 +274,24 @@ module.exports = class sparkswap extends Exchange {
         return this.privateGetV1OrderId ({ id });
     }
 
-    async fetchOrderBook () {
-        throw new ExchangeError ('Not Implemented');
+    async fetchOrderBook (symbol, params = {}) {
+        await this.loadMarkets ();
+        // This call will return the correct information that CCXT will expect, however
+        // we need to modify the payload to convert nanosecond timestamps to miliseconds
+        //
+        const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (symbol) });
+        // We remove the nanoseconds from the millisecond timestamp to fit the CCXT
+        // format
+        const millisecondTimestamp = res.timestamp.substring (0, res.timestamp.length - 6);
+        // We remove the nanoseconds (4 characters) from the ISO nanosecond timestamp to fit
+        // the ccxt format
+        const millisecondDatetime = res.datetime.substring (0, res.datetime.length - 5) + 'Z';
+        return {
+            'asks': res.asks,
+            'bids': res.bids,
+            'timestamp': millisecondTimestamp,
+            'datetime': millisecondDatetime,
+        };
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -299,7 +315,7 @@ module.exports = class sparkswap extends Exchange {
         if (limit < parseFloat (balance)) {
             throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
         }
-        return await this.privatePostV1WalletCommit ({
+        return this.privatePostV1WalletCommit ({
             'symbol': code.toString (),
             'balance': balance.toString (),
             'market': market.toString (),
