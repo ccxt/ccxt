@@ -95,7 +95,6 @@ module.exports = class sparkswap extends Exchange {
                 },
             },
             'exceptions': {},
-            'markets': {},
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
