@@ -110,10 +110,13 @@ class coinfalcon extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         if ($market === null) {
-            $marketId = $ticker['name'];
-            $market = $this->marketsById[$marketId];
+            $marketId = $this->safe_string($ticker, 'name');
+            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->milliseconds ();
         $last = floatval ($ticker['last_price']);
         return array (

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.365'
+const version = '1.17.366'
 
 Exchange.ccxtVersion = version
 
@@ -25003,10 +25003,13 @@ module.exports = class coinfalcon extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         if (market === undefined) {
-            let marketId = ticker['name'];
-            market = this.marketsById[marketId];
+            let marketId = this.safeString (ticker, 'name');
+            market = this.safeValue (this.markets_by_id, marketId, market);
         }
-        let symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let timestamp = this.milliseconds ();
         let last = parseFloat (ticker['last_price']);
         return {

@@ -110,9 +110,11 @@ class coinfalcon (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         if market is None:
-            marketId = ticker['name']
-            market = self.marketsById[marketId]
-        symbol = market['symbol']
+            marketId = self.safe_string(ticker, 'name')
+            market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.milliseconds()
         last = float(ticker['last_price'])
         return {
