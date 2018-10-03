@@ -273,7 +273,7 @@ module.exports = class sparkswap extends Exchange {
         if (limit < parseFloat (balance)) {
             throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
         }
-        return await this.privatePostV1WalletCommit ({
+        return this.privatePostV1WalletCommit ({
             'symbol': code.toString (),
             'balance': balance.toString (),
             'market': market.toString (),
