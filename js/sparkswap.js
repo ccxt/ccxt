@@ -267,7 +267,7 @@ module.exports = class sparkswap extends Exchange {
 
     async release (symbol) {
         await this.loadMarkets ();
-        return await this.privatePostV1WalletRelease ({
+        return this.privatePostV1WalletRelease ({
             'market': this.marketId (symbol),
         });
     }
