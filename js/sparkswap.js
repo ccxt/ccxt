@@ -213,6 +213,12 @@ module.exports = class sparkswap extends Exchange {
     async commit (symbol = '', balance = '', market = '', params = {}) {
         let limit = this.safeFloat (this.channelLimits, symbol);
         if (limit < parseFloat (balance)) {
+            // We automatically set the limit as the balance, if the balance is greater
+            // than the allowed channel limit specified by currency. This is so that
+            // the user will not have to implement logic themselves to handle if the commit
+            // has failed due to limits.
+            //
+            // This functionality will be removed once sparkswap is on MainNet
             balance = limit;
         }
         return this.privatePostV1WalletCommit ({
