@@ -232,12 +232,12 @@ module.exports = class sparkswap extends Exchange {
         return this.privateGetV1OrderId ({ id });
     }
 
-    async fetchOrderBook (market, params = {}) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         // This call will return the correct information that CCXT will expect, however
         // we need to modify the payload to convert nanosecond timestamps to miliseconds
         //
-        const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (market) });
+        const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (symbol) });
         // We remove the nanoseconds from the millisecond timestamp to fit the CCXT
         // format
         const millisecondTimestamp = res.timestamp.substring (0, res.timestamp.length - 6);
