@@ -95,7 +95,6 @@ module.exports = class sparkswap extends Exchange {
                 },
             },
             'exceptions': {},
-            'markets': {},
             'options': {},
             // While sparkswap is still in alpha, we will have payment network channel
             // limits specified for each currency
@@ -233,8 +232,24 @@ module.exports = class sparkswap extends Exchange {
         return this.privateGetV1OrderId ({ id });
     }
 
-    async fetchOrderBook () {
-        throw new ExchangeError ('Not Implemented');
+    async fetchOrderBook (market, params = {}) {
+        await this.loadMarkets ();
+        // This call will return the correct information that CCXT will expect, however
+        // we need to modify the payload to convert nanosecond timestamps to miliseconds
+        //
+        const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (market) });
+        // We remove the nanoseconds from the millisecond timestamp to fit the CCXT
+        // format
+        const millisecondTimestamp = res.timestamp.substring (0, res.timestamp.length - 6);
+        // We remove the nanoseconds (4 characters) from the ISO nanosecond timestamp to fit
+        // the ccxt format
+        const millisecondDatetime = res.datetime.substring (0, res.datetime.length - 5) + 'Z';
+        return {
+            'asks': res.asks,
+            'bids': res.bids,
+            'timestamp': millisecondTimestamp,
+            'datetime': millisecondDatetime,
+        };
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
