@@ -310,6 +310,7 @@ module.exports = class therock extends Exchange {
         await this.loadMarkets ();
         return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
             'id': id,
+            'fund_id': this.marketId (symbol),
         }, params));
     }
 
