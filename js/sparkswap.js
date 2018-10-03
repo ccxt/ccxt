@@ -133,19 +133,18 @@ module.exports = class sparkswap extends Exchange {
         } else if (side === 'sell') {
             orderType = 'ASK';
         }
-        let order = {
+        const order = {
             'market': this.marketId (symbol),
             'amount': amount.toString (),
             'side': orderType,
         };
-        let priceIsDefined = (price !== undefined);
-        let marketOrder = (type === 'market');
-        let limitOrder = (type === 'limit');
+        const marketOrder = (type === 'market');
+        const limitOrder = (type === 'limit');
         let timeInForceIsRequired = false;
-        let shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
-        if (shouldIncludePrice) {
-            if (price === undefined)
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+        if (limitOrder) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');  
+            }
             order['limit_price'] = price.toString ();
             timeInForceIsRequired = true;
         }
@@ -155,7 +154,7 @@ module.exports = class sparkswap extends Exchange {
         if (timeInForceIsRequired) {
             order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        let response = await this.privatePostV1Orders (this.extend (order, params));
+        let response = await this.privatePostV1Orders (order, params);
         return {
             'info': response,
             'id': response['block_order_id'],
