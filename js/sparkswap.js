@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -82,7 +82,7 @@ module.exports = class sparkswap extends Exchange {
                         'v1/wallet/balances', // get balances for a specified wallet
                     ],
                     'post': [
-                        'v1/orders/{id}', // create an order
+                        'v1/orders', // create an order
                         'v1/wallet/address', // generate a wallet address
                         'v1/wallet/commit', // commit a balance to the exchange
                         'v1/wallet/release', // release your balance from the exchange
@@ -96,7 +96,9 @@ module.exports = class sparkswap extends Exchange {
             },
             'exceptions': {},
             'markets': {},
-            'options': {},
+            'options': {
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            },
         });
     }
 
@@ -125,7 +127,40 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new ExchangeError ('Not Implemented');
+        await this.loadMarkets ();
+        let orderType = undefined;
+        if (side === 'buy') {
+            orderType = 'BID';
+        } else if (side === 'sell') {
+            orderType = 'ASK';
+        }
+        let order = {
+            'market': this.marketId (symbol),
+            'amount': amount.toString (),
+            'side': orderType,
+        };
+        let priceIsDefined = (price !== undefined);
+        let marketOrder = (type === 'market');
+        let limitOrder = (type === 'limit');
+        let timeInForceIsRequired = false;
+        let shouldIncludePrice = limitOrder || (!marketOrder && priceIsDefined);
+        if (shouldIncludePrice) {
+            if (price === undefined)
+                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            order['limit_price'] = price.toString ();
+            timeInForceIsRequired = true;
+        }
+        if (marketOrder) {
+            order['is_market_order'] = true;
+        }
+        if (timeInForceIsRequired) {
+            order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        let response = await this.privatePostV1Orders (this.extend (order, params));
+        return {
+            'info': response,
+            'id': response['block_order_id'],
+        };
     }
 
     async deposit () {
@@ -208,4 +243,3 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 };
-
