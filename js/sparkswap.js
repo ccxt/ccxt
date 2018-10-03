@@ -3,7 +3,17 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
+const CONSTANTS = {
+    'orderTypes': {
+        'buy': 'buy',
+        'sell': 'sell',
+    },
+    'sides': {
+        'bid': 'BID',
+        'ask': 'ASK',
+    },
+}
 
 // ----------------------------------------------------------------------------
 
@@ -98,6 +108,12 @@ module.exports = class sparkswap extends Exchange {
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
+            // While sparkswap is still in alpha, we will have payment network channel
+            // limits specified for each currency
+            'channelLimits': {
+                'BTC': '0.16777215',
+                'LTC': '10.06632900',
+            },
         });
     }
 
@@ -110,6 +126,10 @@ module.exports = class sparkswap extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            body = this.json (query);
+            headers = {
+                'Content-Type': 'application/json',
+            };
             // Once authentication is enabled for CCXT w/ the grpc proxy, we can
             // add the basic auth header to these params.
         }
@@ -128,10 +148,10 @@ module.exports = class sparkswap extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let orderType = undefined;
-        if (side === 'buy') {
-            orderType = 'BID';
-        } else if (side === 'sell') {
-            orderType = 'ASK';
+        if (side === CONSTANTS.orderTypes.buy) {
+            orderType = CONSTANTS.sides.bid;
+        } else if (side === CONSTANTS.orderTypes.sell) {
+            orderType = CONSTANTS.sides.ask;
         }
         const order = {
             'market': this.marketId (symbol),
@@ -140,21 +160,17 @@ module.exports = class sparkswap extends Exchange {
         };
         const marketOrder = (type === 'market');
         const limitOrder = (type === 'limit');
-        let timeInForceIsRequired = false;
         if (limitOrder) {
             if (price === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');  
+                throw new BadRequest (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
             order['limit_price'] = price.toString ();
-            timeInForceIsRequired = true;
+            order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (marketOrder) {
             order['is_market_order'] = true;
         }
-        if (timeInForceIsRequired) {
-            order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        }
-        let response = await this.privatePostV1Orders (order, params);
+        const response = await this.privatePostV1Orders (order, params);
         return {
             'info': response,
             'id': response['block_order_id'],
@@ -206,7 +222,50 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchMarkets () {
-        throw new ExchangeError ('Not Implemented');
+        let response = await this.privateGetV1Markets ();
+        let markets = response['supported_markets'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = market['id'];
+            const symbolParts = id.split ('/');
+            const baseId = symbolParts[0];
+            const quoteId = symbolParts[1];
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
+            const active = true;
+            const precision = {
+                'amount': this.safeInteger (market, 'amountPrecision'),
+                'price': this.safeInteger (market, 'amountPrecision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'id': id,
+                'symbol': id,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -233,8 +292,16 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async commit () {
-        throw new ExchangeError ('Not Implemented');
+    async commit (code = '', balance = '', market = '', params = {}) {
+        let limit = this.safeFloat (this.channelLimits, code);
+        if (limit < parseFloat (balance)) {
+            throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
+        }
+        return await this.privatePostV1WalletCommit ({
+            'symbol': code.toString (),
+            'balance': balance.toString (),
+            'market': market.toString (),
+        });
     }
 
     async release () {
