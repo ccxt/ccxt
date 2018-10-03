@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -210,19 +210,13 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async commit (symbol = '', balance = '', market = '', params = {}) {
-        let limit = this.safeFloat (this.channelLimits, symbol);
+    async commit (code = '', balance = '', market = '', params = {}) {
+        let limit = this.safeFloat (this.channelLimits, code);
         if (limit < parseFloat (balance)) {
-            // We automatically set the limit as the balance, if the balance is greater
-            // than the allowed channel limit specified by currency. This is so that
-            // the user will not have to implement logic themselves to handle if the commit
-            // has failed due to limits.
-            //
-            // This functionality will be removed once sparkswap is on MainNet
-            balance = limit;
+            throw new BadRequest ('Balance does not meet limit for currency code: ' + code + ' balance: ' + balance + ' limit: ' + limit);
         }
-        return this.privatePostV1WalletCommit ({
-            'symbol': symbol.toString (),
+        return await this.privatePostV1WalletCommit ({
+            'symbol': code.toString (),
             'balance': balance.toString (),
             'market': market.toString (),
         });
