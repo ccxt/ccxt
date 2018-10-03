@@ -173,7 +173,50 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchMarkets () {
-        throw new ExchangeError ('Not Implemented');
+        let response = await this.privateGetV1Markets ();
+        let markets = response['supported_markets'];
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = market['id'];
+            const symbolParts = id.split ('/');
+            const baseId = symbolParts[0];
+            const quoteId = symbolParts[1];
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
+            const active = true;
+            const precision = {
+                'amount': this.safeInteger (market, 'amountPrecision'),
+                'price': this.safeInteger (market, 'amountPrecision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            result.push ({
+                'id': id,
+                'symbol': id,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -208,4 +251,3 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 };
-
