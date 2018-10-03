@@ -282,8 +282,9 @@ module.exports = class sparkswap extends Exchange {
         throw new ExchangeError ('Not Implemented');
     }
 
-    async fetchTicker () {
-        throw new ExchangeError ('Not Implemented');
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        return this.privateGetV1MarketStats ({ 'market': this.marketId (symbol) });
     }
 
     async fetchTrades () {
