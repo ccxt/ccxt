@@ -265,7 +265,10 @@ module.exports = class sparkswap extends Exchange {
         });
     }
 
-    async release () {
-        throw new ExchangeError ('Not Implemented');
+    async release (symbol) {
+        await this.loadMarkets ();
+        return this.privatePostV1WalletRelease ({
+            'market': this.marketId (symbol),
+        });
     }
 };
