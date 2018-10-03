@@ -82,7 +82,7 @@ module.exports = class sparkswap extends Exchange {
                         'v1/wallet/balances', // get balances for a specified wallet
                     ],
                     'post': [
-                        'v1/orders/{id}', // create an order
+                        'v1/orders', // create an order
                         'v1/wallet/address', // generate a wallet address
                         'v1/wallet/commit', // commit a balance to the exchange
                         'v1/wallet/release', // release your balance from the exchange
@@ -95,8 +95,9 @@ module.exports = class sparkswap extends Exchange {
                 },
             },
             'exceptions': {},
-            'markets': {},
-            'options': {},
+            'options': {
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            },
             // While sparkswap is still in alpha, we will have payment network channel
             // limits specified for each currency
             'channelLimits': {
@@ -135,7 +136,47 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new ExchangeError ('Not Implemented');
+        const CONSTANTS = {
+            'ORDER_TYPES': {
+                'LIMIT': 'limit',
+                'MARKET': 'market',
+            },
+            'SIDES': {
+                'BUY': 'buy',
+                'SELL': 'sell',
+                'BID': 'BID',
+                'ASK': 'ASK',
+            },
+        };
+        await this.loadMarkets ();
+        let orderType = undefined;
+        if (side === CONSTANTS.SIDES.BUY) {
+            orderType = CONSTANTS.SIDES.BID;
+        } else if (side === CONSTANTS.SIDES.SELL) {
+            orderType = CONSTANTS.SIDES.ASK;
+        }
+        const order = {
+            'market': this.marketId (symbol),
+            'amount': amount.toString (),
+            'side': orderType,
+        };
+        const marketOrder = (type === CONSTANTS.ORDER_TYPES.MARKET);
+        const limitOrder = (type === CONSTANTS.ORDER_TYPES.LIMIT);
+        if (limitOrder) {
+            if (price === undefined) {
+                throw new BadRequest (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
+            order['limit_price'] = price.toString ();
+            order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (marketOrder) {
+            order['is_market_order'] = true;
+        }
+        const response = await this.privatePostV1Orders (order, params);
+        return {
+            'info': response,
+            'id': response['block_order_id'],
+        };
     }
 
     async deposit () {
