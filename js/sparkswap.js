@@ -276,9 +276,9 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        // This call will return the correct information that CCXT will expect, however
-        // we need to modify the payload to convert nanosecond timestamps to miliseconds
-        //
+        // The call to v1/orderbook will return the correct information that CCXT will
+        // expect, however we need to modify the payload to convert nanosecond timestamps
+        // to miliseconds
         const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (symbol) });
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
@@ -296,9 +296,9 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        // This call will return the correct information that CCXT will expect, however
-        // we need to modify the payload to convert nanosecond timestamps to miliseconds
-        //
+        // The call to v1/market_stats will return the correct information that CCXT will
+        // expect, however we need to modify the payload to convert nanosecond timestamps
+        // to miliseconds
         const res = await this.privateGetV1MarketStats ({ 'market': this.marketId (symbol) });
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
