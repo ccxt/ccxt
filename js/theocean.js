@@ -5,6 +5,7 @@ const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, Inval
 
 module.exports = class theocean extends Exchange {
     describe () {
+        this.checkRequiredDependencies ();
         return this.deepExtend (super.describe (), {
             'id': 'theocean',
             'name': 'The Ocean',
