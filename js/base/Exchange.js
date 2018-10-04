@@ -1271,7 +1271,7 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
-            throw new ExchangeError (this.id + ' requires these npm modules installed: ' + [
+            throw new ExchangeError ('The following npm modules are required: ' + [
                 'https://github.com/ethereum/web3.js/',
                 'https://github.com/ethereumjs/ethereumjs-util/',
                 'https://github.com/ethereumjs/ethereumjs-abi',
