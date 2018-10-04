@@ -365,8 +365,7 @@ for id in ccxt.exchanges:
         exchange_config.update({'enableRateLimit': True})
     if id in config:
         exchange_config.update(config[id])
-    if 'skip' not in exchange_config or not exchange_config['skip']:
-        exchanges[id] = exchange(exchange_config)
+    exchanges[id] = exchange(exchange_config)
 
 # ------------------------------------------------------------------------------
 
@@ -375,17 +374,19 @@ def main():
 
     if argv.exchange:
 
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
+        if argv.exchange != 'theocean':
 
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        else:
-            if symbol:
-                load_exchange(exchange)
-                test_symbol(exchange, symbol)
+            exchange = exchanges[argv.exchange]
+            symbol = argv.symbol
+
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
             else:
-                try_all_proxies(exchange, proxies)
+                if symbol:
+                    load_exchange(exchange)
+                    test_symbol(exchange, symbol)
+                else:
+                    try_all_proxies(exchange, proxies)
 
     else:
         for exchange in sorted(exchanges.values(), key=lambda x: x.id):
