@@ -386,7 +386,7 @@ with open(keys_file) as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'etherscan':
+    if id == 'theocean':
         continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
