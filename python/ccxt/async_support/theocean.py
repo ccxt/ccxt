@@ -25,11 +25,13 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class theocean (Exchange):
 
     def describe(self):
+        self.check_required_dependencies()
         return self.deep_extend(super(theocean, self).describe(), {
             'id': 'theocean',
             'name': 'The Ocean',
@@ -107,6 +109,7 @@ class theocean (Exchange):
                     'Fillable amount under minimum': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder,  # {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
                     "Schema validation failed for 'params'": BadRequest,  # # {"message":"Schema validation failed for 'params'"}
+                    'Service Temporarily Unavailable': ExchangeNotAvailable,
                 },
             },
             'options': {

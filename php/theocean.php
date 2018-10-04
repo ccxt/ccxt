@@ -10,6 +10,7 @@ use Exception as Exception; // a common import
 class theocean extends Exchange {
 
     public function describe () {
+        $this->check_required_dependencies();
         return array_replace_recursive (parent::describe (), array (
             'id' => 'theocean',
             'name' => 'The Ocean',
@@ -87,6 +88,7 @@ class theocean extends Exchange {
                     'Fillable amount under minimum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount")
                     'Fillable amount over maximum' => '\\ccxt\\InvalidOrder', // array ("message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount")
                     "Schema validation failed for 'params'" => '\\ccxt\\BadRequest', // // array ("message":"Schema validation failed for 'params'")
+                    'Service Temporarily Unavailable' => '\\ccxt\\ExchangeNotAvailable',
                 ),
             ),
             'options' => array (
