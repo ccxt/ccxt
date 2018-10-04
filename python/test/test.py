@@ -363,7 +363,7 @@ for id in ccxt.exchanges:
         exchange_config.update({'enableRateLimit': True})
     if id in config:
         exchange_config.update(config[id])
-    if 'skip' not exchange_config or not exchange_config['skip']:
+    if 'skip' not in exchange_config or not exchange_config['skip']:
         exchanges[id] = exchange(exchange_config)
 
 # ------------------------------------------------------------------------------
