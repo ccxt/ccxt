@@ -318,8 +318,34 @@ module.exports = class sparkswap extends Exchange {
         };
     }
 
-    async fetchTrades () {
-        throw new ExchangeError ('Not Implemented');
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'market': symbol,
+        };
+        if (since) {
+            request['since'] = since;
+        }
+        if (limit) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetV1Trades (request);
+        let trades = response['trades'];
+        let formattedTrades = [];
+        for (let i = 0; i < trades.length; i++) {
+            formattedTrades.push ({
+                'id': trades[i].id,
+                'timestamp': this.nanoToMillisecondTimestamp (trades[i].timestamp),
+                'datetime': this.nanoToMillisecondDatetime (trades[i].datetime),
+                'order': trades[i].order,
+                'symbol': trades[i].symbol,
+                'type': trades[i].type,
+                'side': trades[i].side,
+                'price': trades[i].price,
+                'amount': trades[i].amount,
+                'info': trades[i],
+            });
+        }
+        return formattedTrades;
     }
 
     async withdraw () {
