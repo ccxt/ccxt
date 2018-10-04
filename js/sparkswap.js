@@ -287,11 +287,12 @@ module.exports = class sparkswap extends Exchange {
         if (order.side === 'ASK') {
             side = 'sell';
         }
+        const millisecondTimestamp = this.nanoToMillisecondTimestamp (order.timestamp);
+        const millisecondDatetime = this.nanoToMillisecondDatetime (order.datetime);
         const response = {
             'id': id,
-            'datetime': undefined, // Not currently available in sparkswap
-            'timestamp': undefined, // Not currently available in sparkswap
-            'lastTradeTimestamp': undefined, // Not currently available in sparkswap
+            'datetime': millisecondDatetime,
+            'timestamp': millisecondTimestamp,
             'status': status,
             'symbol': order.market,
             'type': type,
