@@ -298,6 +298,7 @@ class therock (Exchange):
         await self.load_markets()
         return await self.privateDeleteFundsFundIdOrdersId(self.extend({
             'id': id,
+            'fund_id': self.market_id(symbol),
         }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
