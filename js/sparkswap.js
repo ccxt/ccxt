@@ -307,7 +307,15 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async withdraw () {
-        throw new ExchangeError ('Not Implemented');
+        const response = await this.privatePostV1WalletWithdraw ({
+            'symbol': code.toString (),
+            'amount': amount.toString (),
+            'address': address.toString (),
+        });
+        return {
+            'info': response,
+            'id': response['txid'],
+        };
     }
 
     async commit (code = '', balance = '', market = '', params = {}) {
