@@ -403,17 +403,19 @@ async def main():
 
     if argv.exchange:
 
-        exchange = exchanges[argv.exchange]
-        symbol = argv.symbol
+        if argv.exchange != 'theocean':
 
-        if hasattr(exchange, 'skip') and exchange.skip:
-            dump(green(exchange.id), 'skipped')
-        else:
-            if symbol:
-                await load_exchange(exchange)
-                await test_symbol(exchange, symbol)
+            exchange = exchanges[argv.exchange]
+            symbol = argv.symbol
+
+            if hasattr(exchange, 'skip') and exchange.skip:
+                dump(green(exchange.id), 'skipped')
             else:
-                await try_all_proxies(exchange, proxies)
+                if symbol:
+                    await load_exchange(exchange)
+                    await test_symbol(exchange, symbol)
+                else:
+                    await try_all_proxies(exchange, proxies)
 
     else:
         for exchange in sorted(exchanges.values(), key=lambda x: x.id):
