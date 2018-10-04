@@ -253,6 +253,18 @@ class Exchange(object):
     def describe(self):
         return {}
 
+    def set_sandbox_mode(self, enabled):
+        if enabled:
+            if 'test' in self.urls:
+                self.urls['api_bak'] = self.urls['api']
+                self.urls['api'] = self.urls['test']
+            else:
+                raise Exception('No sandbox URLs available')
+        else:
+            if 'api_bak' in self.urls:
+                self.urls['api'] = self.urls['api_bak']
+                del self.urls['api_bak']
+
     def define_rest_api(self, api, method_name, options={}):
         delimiters = re.compile('[^a-zA-Z0-9]')
         for api_type, methods in api.items():
