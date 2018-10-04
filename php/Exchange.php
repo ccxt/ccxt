@@ -719,6 +719,21 @@ abstract class Exchange {
             $this->set_markets ($this->markets);
     }
 
+    public function set_sandbox_mode ($enabled) {
+        if ($enabled)
+            if (array_key_exists('test', $this->urls)) {
+                $this->urls['api_bak'] = $this->urls['api'];
+                $this->urls['api'] = $this->urls['test'];
+            } else {
+                throw new Exception("No Sandbox URLs available", 1);
+            }
+        else
+            if (array_key_exists('api_bak', $this->urls)) {
+                $this->urls['api'] = $this->urls['api_bak'];
+                unset($this->urls['api_bak']);
+            }
+    }
+
     public function define_rest_api ($api, $method_name, $options = array ()) {
         foreach ($api as $type => $methods)
             foreach ($methods as $http_method => $paths)
