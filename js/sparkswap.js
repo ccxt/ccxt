@@ -75,7 +75,7 @@ module.exports = class sparkswap extends Exchange {
                         'v1/admin/healthcheck',
                         'v1/markets', // get supported markets
                         'v1/market_stats', // get market stats for a specific market
-                        'v1/order/{id}', // grab a single order
+                        'v1/orders/{id}', // grab a single order
                         'v1/orderbook', // get orderbook by market
                         'v1/orders', // get orders by market
                         'v1/trades', // get all trades for a specific market
@@ -271,7 +271,45 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        return this.privateGetV1OrderId ({ id });
+        const order = await this.privateGetV1OrdersId ({ id });
+        let status = 'open';
+        if (order.status === 'CANCELLED') {
+            status = 'cancelled';
+        }
+        if (order.status === 'COMPLETED') {
+            status = 'closed';
+        }
+        let type = 'limit';
+        if (order.is_market_order) {
+            type = 'market';
+        }
+        let side = 'buy';
+        if (order.side === 'ASK') {
+            side = 'sell';
+        }
+        const response = {
+            'id': id,
+            'datetime': undefined, // Not currently available in sparkswap
+            'timestamp': undefined, // Not currently available in sparkswap
+            'lastTradeTimestamp': undefined, // Not currently available in sparkswap
+            'status': status,
+            'symbol': order.market,
+            'type': type,
+            'side': side,
+            'price': (this.safeFloat (order, 'amount') * this.safeFloat (order, 'limit_price')).toFixed (16),
+            'amount': this.safeFloat (order, 'amount'),
+            'filled': this.safeFloat (order, 'fill_amount') || 0,
+            'cost': this.safeFloat (order, 'fill_amount') * this.safeFloat (order, 'price') || 0,
+            'trades': [],
+            'info': order,
+        };
+        for (let i = 0; i < order.open_orders.length; i++) {
+            response.trades.push (order.open_orders[i]);
+        }
+        for (let y = 0; y < order.fills.length; y++) {
+            response.trades.push (order.fills[y]);
+        }
+        return response;
     }
 
     async fetchOrderBook (symbol, params = {}) {
