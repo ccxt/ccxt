@@ -280,12 +280,8 @@ module.exports = class sparkswap extends Exchange {
         // we need to modify the payload to convert nanosecond timestamps to miliseconds
         //
         const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (symbol) });
-        // We remove the nanoseconds from the millisecond timestamp to fit the CCXT
-        // format
-        const millisecondTimestamp = res.timestamp.substring (0, res.timestamp.length - 6);
-        // We remove the nanoseconds (4 characters) from the ISO nanosecond timestamp to fit
-        // the ccxt format
-        const millisecondDatetime = res.datetime.substring (0, res.datetime.length - 5) + 'Z';
+        const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
+        const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
         return {
             'asks': res.asks,
             'bids': res.bids,
@@ -300,7 +296,26 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        return this.privateGetV1MarketStats ({ 'market': this.marketId (symbol) });
+        // This call will return the correct information that CCXT will expect, however
+        // we need to modify the payload to convert nanosecond timestamps to miliseconds
+        //
+        const res = await this.privateGetV1MarketStats ({ 'market': this.marketId (symbol) });
+        const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
+        const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
+        return {
+            'symbol': res.symbol,
+            'timestamp': millisecondTimestamp,
+            'datetime': millisecondDatetime,
+            'high': res.high,
+            'low': res.low,
+            'bid': res.bid,
+            'bidVolume': res.bidVolume,
+            'ask': res.ask,
+            'askVolume': res.askVolume,
+            'vwap': res.vwap,
+            'baseVolume': res.baseVolume,
+            'counterVolume': res.counterVolume,
+        };
     }
 
     async fetchTrades () {
@@ -328,5 +343,24 @@ module.exports = class sparkswap extends Exchange {
         return this.privatePostV1WalletRelease ({
             'market': this.marketId (symbol),
         });
+    }
+
+    nanoToMillisecondTimestamp (nano) {
+        if (!nano) {
+            return undefined;
+        }
+        // We remove the nanoseconds from the millisecond timestamp to fit the CCXT
+        // format
+        return nano.substring (0, nano.length - 6);
+    }
+
+    nanoToMillisecondDatetime (nanoISO8601) {
+        if (!nanoISO8601) {
+            return undefined;
+        }
+        const ZERO_OFFSET = 'Z';
+        // We remove the nanoseconds (4 characters + Z) from the ISO nanosecond timestamp to fit
+        // the ccxt format
+        return nanoISO8601.substring (0, nanoISO8601.length - 5) + ZERO_OFFSET;
     }
 };
