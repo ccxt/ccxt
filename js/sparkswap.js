@@ -126,8 +126,10 @@ module.exports = class sparkswap extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new ExchangeError ('Not Implemented');
+    async cancelOrder (id, params = {}) {
+        return this.privateDeleteV1Orders ({
+            'block_order_id': id,
+        });
     }
 
     async createDepositAddress (symbol, params = {}) {
