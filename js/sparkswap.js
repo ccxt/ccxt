@@ -272,21 +272,21 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         const CONSTANTS = {
-            'ORDER_STATUS': {
+            'STATUSES': {
                 'ACTIVE': 'ACTIVE',
                 'CANCELLED': 'CANCELLED',
                 'COMPLETED': 'COMPLETED',
                 'FAILED': 'FAILED',
                 'NONE': 'NONE',
             },
-            'ORDER_SIDES': {
+            'SIDES': {
                 'ASK': 'ASK',
                 'BID': 'BID',
                 'BUY': 'buy',
                 'SELL': 'sell',
                 'NONE': 'none',
             },
-            'ORDER_TYPE': {
+            'TYPES': {
                 'LIMIT': 'limit',
                 'MARKET': 'market',
             },
@@ -294,28 +294,28 @@ module.exports = class sparkswap extends Exchange {
         const order = await this.privateGetV1OrdersId ({ id });
         // CCXT requires declaration (defaults) of variables, so we set status to
         // `NONE` is there is an un-identified order status returned
-        let status = CONSTANTS.ORDER_STATUS.NONE;
-        if (order.status === CONSTANTS.ORDER_STATUS.CANCELLED || order.status === CONSTANTS.ORDER_STATUS.FAILED) {
+        let status = CONSTANTS.STATUSES.NONE;
+        if (order.status === CONSTANTS.STATUSES.CANCELLED || order.status === CONSTANTS.STATUSES.FAILED) {
             status = 'cancelled';
         }
-        if (order.status === CONSTANTS.ORDER_STATUS.COMPLETED) {
+        if (order.status === CONSTANTS.STATUSES.COMPLETED) {
             status = 'closed';
         }
-        if (order.status === CONSTANTS.ORDER_STATUS.ACTIVE) {
+        if (order.status === CONSTANTS.STATUSES.ACTIVE) {
             status = 'open';
         }
         // An order can either be market or limit
-        let type = CONSTANTS.ORDER_TYPE.LIMIT;
+        let type = CONSTANTS.TYPES.LIMIT;
         if (order.is_market_order) {
-            type = CONSTANTS.ORDER_TYPE.MARKET;
+            type = CONSTANTS.TYPES.MARKET;
         }
         // CCXT requires declaration (defaults) of variables, so we set status to
         // `NONE` if there is an un-identified order side returned
-        let side = CONSTANTS.ORDER_SIDE.NONE;
-        if (order.side === CONSTANTS.ORDER_SIDE.ASK) {
-            side = CONSTANTS.ORDER_SIDE.SELL;
-        } else if (order.side === CONSTANTS.ORDER_SIDE.BID) {
-            side = CONSTANTS.ORDER_SIDE.BUY;
+        let side = CONSTANTS.SIDES.NONE;
+        if (order.side === CONSTANTS.SIDES.ASK) {
+            side = CONSTANTS.SIDES.SELL;
+        } else if (order.side === CONSTANTS.SIDES.BID) {
+            side = CONSTANTS.SIDES.BUY;
         }
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (order.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (order.datetime);
@@ -337,11 +337,26 @@ module.exports = class sparkswap extends Exchange {
             'trades': [],
             'info': order,
         };
+        // Trades structure can be found here: https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         for (let i = 0; i < order.open_orders.length; i++) {
-            response.trades.push (order.open_orders[i]);
+            response.trades.push ({
+                'id': order.open_orders[i].order_id,
+                'symbol': order.market,
+                'order': id,
+                'amount': this.safeFloat (order.open_orders[i], 'amount'),
+                'price': this.safeFloat (order.open_orders[i], 'price'),
+                'info': order.open_orders[i],
+            });
         }
         for (let y = 0; y < order.fills.length; y++) {
-            response.trades.push (order.fills[y]);
+            response.trades.push ({
+                'id': order.fills[y].order_id,
+                'symbol': order.market,
+                'order': id,
+                'amount': this.safeFloat (order.fills[y], 'amount'),
+                'price': this.safeFloat (order.fills[y], 'price'),
+                'info': order.fills[y],
+            });
         }
         return response;
     }
