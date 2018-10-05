@@ -230,7 +230,8 @@ class bibox (Exchange):
         response = await self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        return self.parse_tickers(response['result'], symbols)
+        tickers = self.parse_tickers(response['result'], symbols)
+        return self.index_by(tickers, 'symbol')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'time')
