@@ -337,7 +337,7 @@ module.exports = class sparkswap extends Exchange {
                 'timestamp': this.nanoToMillisecondTimestamp (trades[i].timestamp),
                 'datetime': this.nanoToMillisecondDatetime (trades[i].datetime),
                 'order': trades[i].order,
-                'symbol': trades[i].symbol,
+                'symbol': trades[i].market,
                 'type': trades[i].type,
                 'side': trades[i].side,
                 'price': trades[i].price,
