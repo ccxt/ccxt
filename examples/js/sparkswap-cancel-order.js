@@ -25,7 +25,7 @@ const SPARKSWAP_HOST = process.env.SPARKSWAP_HOST || 'http://localhost:27592'
       }
   });
 
-  const id = '1234'
+  const id = 'GbuLpwGWsB5vzy4wQ8Xkz2LKOCqc4-OBhN1m-vjx'
 
   try {
     log(`Attempting to cancel order: id: ${id}`)
