@@ -188,7 +188,7 @@ module.exports = class sparkswap extends Exchange {
         let balances = (res) ? res.balances : [];
         // The format that is returned from the sparkswap API does not match what
         // needs to be returned from ccxt. We modify the sparkswap response to
-        // fit: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
+        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
         let free = {};
         let used = {};
         let total = {};
@@ -271,24 +271,57 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        const CONSTANTS = {
+            'ORDER_STATUS': {
+                'ACTIVE': 'ACTIVE',
+                'CANCELLED': 'CANCELLED',
+                'COMPLETED': 'COMPLETED',
+                'FAILED': 'FAILED',
+                'NONE': 'NONE',
+            },
+            'ORDER_SIDES': {
+                'ASK': 'ASK',
+                'BID': 'BID',
+                'BUY': 'buy',
+                'SELL': 'sell',
+                'NONE': 'none',
+            },
+            'ORDER_TYPE': {
+                'LIMIT': 'limit',
+                'MARKET': 'market',
+            },
+        };
         const order = await this.privateGetV1OrdersId ({ id });
-        let status = 'open';
-        if (order.status === 'CANCELLED') {
+        // CCXT requires declaration (defaults) of variables, so we set status to
+        // `NONE` is there is an un-identified order status returned
+        let status = CONSTANTS.ORDER_STATUS.NONE;
+        if (order.status === CONSTANTS.ORDER_STATUS.CANCELLED || order.status === CONSTANTS.ORDER_STATUS.FAILED) {
             status = 'cancelled';
         }
-        if (order.status === 'COMPLETED') {
+        if (order.status === CONSTANTS.ORDER_STATUS.COMPLETED) {
             status = 'closed';
         }
-        let type = 'limit';
-        if (order.is_market_order) {
-            type = 'market';
+        if (order.status === CONSTANTS.ORDER_STATUS.ACTIVE) {
+            status = 'open';
         }
-        let side = 'buy';
-        if (order.side === 'ASK') {
-            side = 'sell';
+        // An order can either be market or limit
+        let type = CONSTANTS.ORDER_TYPE.LIMIT;
+        if (order.is_market_order) {
+            type = CONSTANTS.ORDER_TYPE.MARKET;
+        }
+        // CCXT requires declaration (defaults) of variables, so we set status to
+        // `NONE` if there is an un-identified order side returned
+        let side = CONSTANTS.ORDER_SIDE.NONE;
+        if (order.side === CONSTANTS.ORDER_SIDE.ASK) {
+            side = CONSTANTS.ORDER_SIDE.SELL;
+        } else if (order.side === CONSTANTS.ORDER_SIDE.BID) {
+            side = CONSTANTS.ORDER_SIDE.BUY;
         }
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (order.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (order.datetime);
+        // The format that is returned from the sparkswap API does not match what
+        // needs to be returned from ccxt. We modify the sparkswap response to
+        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         const response = {
             'id': id,
             'datetime': millisecondDatetime,
