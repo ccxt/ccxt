@@ -1516,6 +1516,11 @@ Although some exchanges do mix-in orderbook's top bid/ask prices into their tick
 
 To get historical prices and volumes use the unified [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) method where available.
 
+Methods for fetching tickers:
+
+- `fetchTicker (symbol[, params = {}]) // symbol is required, params are optional`
+- `fetchTickers ([symbols = undefined[, params = {}]]) // both argument are optional (mostly)`
+
 ### Individually By Symbol
 
 To get the individual ticker data from an exchange for each particular trading pair or symbol call the `fetchTicker (symbol)`:
@@ -1573,9 +1578,35 @@ if ($exchange->has['fetchTickers']) {
 }
 ```
 
-Fetching all tickers requires more traffic than fetching a single ticker. If you only need one ticker, fetching by a particular symbol is faster in general. You probably want to fetch all tickers only if you really need all of them.
+Fetching all tickers requires more traffic than fetching a single ticker. Also, note that some exchanges impose higher rate-limits on subsequent fetches of all tickers (see their docs on corresponding endpoints for details). **The cost of fetchTickers call in terms of rate limit is often higher than average**. If you only need one ticker, fetching by a particular symbol is faster as well. You probably want to fetch all tickers only if you really need all of them and, most likely, you don't want to fetchTickers more frequently than once a minute or so.
 
-The structure of returned value is as follows:
+Also, some exchanges may impose additional requirements on fetchTickers call, sometimes you can't fetch tickers for all symbols because of API limitations of the exchange in question. Some exchanges allow specifying a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, once can simply supply a list of strings as the first argument to fetchTickers:
+
+```JavaScript
+//JavaScript
+if (exchange.has['fetchTickers']) {
+    console.log (await (exchange.fetchTickers ([ 'ETH/BTC', 'LTC/BTC' ]))) // listed tickers indexed by their symbols
+}
+```
+
+```Python
+# Python
+if (exchange.has['fetchTickers']):
+    print(exchange.fetch_tickers(['ETH/BTC', 'LTC/BTC'])) # listed tickers indexed by their symbols
+```
+
+```PHP
+// PHP
+if ($exchange->has['fetchTickers']) {
+    var_dump ($exchange->fetch_tickers (array ('ETH/BTC', 'LTC/BTC'))); // listed tickers indexed by their symbols
+}
+```
+
+Note that the list of symbols is not required in most cases, but you must add additional logic if you want to handle all possible limitations that might be imposed on the exchanges' side.
+
+Like most methods of the Unified CCXT API, the last argument to fetchTickers is the `params` argument for overriding request parameters that are sent towards the exchange.
+
+The structure of the returned value is as follows:
 
 ```JavaScript
 {
