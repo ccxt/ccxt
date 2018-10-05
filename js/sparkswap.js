@@ -277,14 +277,12 @@ module.exports = class sparkswap extends Exchange {
                 'CANCELLED': 'CANCELLED',
                 'COMPLETED': 'COMPLETED',
                 'FAILED': 'FAILED',
-                'NONE': 'NONE',
             },
             'SIDES': {
                 'ASK': 'ASK',
                 'BID': 'BID',
                 'BUY': 'buy',
                 'SELL': 'sell',
-                'NONE': 'none',
             },
             'TYPES': {
                 'LIMIT': 'limit',
@@ -292,9 +290,7 @@ module.exports = class sparkswap extends Exchange {
             },
         };
         const order = await this.privateGetV1OrdersId ({ id });
-        // CCXT requires declaration (defaults) of variables, so we set status to
-        // `NONE` is there is an un-identified order status returned
-        let status = CONSTANTS.STATUSES.NONE;
+        let status = undefined;
         if (order.status === CONSTANTS.STATUSES.CANCELLED || order.status === CONSTANTS.STATUSES.FAILED) {
             status = 'cancelled';
         }
@@ -309,9 +305,7 @@ module.exports = class sparkswap extends Exchange {
         if (order.is_market_order) {
             type = CONSTANTS.TYPES.MARKET;
         }
-        // CCXT requires declaration (defaults) of variables, so we set status to
-        // `NONE` if there is an un-identified order side returned
-        let side = CONSTANTS.SIDES.NONE;
+        let side = undefined;
         if (order.side === CONSTANTS.SIDES.ASK) {
             side = CONSTANTS.SIDES.SELL;
         } else if (order.side === CONSTANTS.SIDES.BID) {
