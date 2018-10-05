@@ -481,7 +481,7 @@ module.exports = class Exchange {
             if (match)
                 title = match[1].trim();
 
-            const maintenance = responseBody.match(/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            const maintenance = responseBody.match(/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i);
             const ddosProtection = responseBody.match(/cloudflare|incapsula|overload|ddos/i);
 
             if (e instanceof SyntaxError) {
@@ -790,7 +790,6 @@ module.exports = class Exchange {
     }
 
     market(symbol) {
-
         if (typeof this.markets === 'undefined')
             throw new ExchangeError(this.id + ' markets not loaded');
 

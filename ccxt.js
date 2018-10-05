@@ -30,11 +30,10 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-const Exchange        = require ('./js/base/Exchange')
-    , functions       = require ('./js/base/functions')
-    , errors          = require ('./js/base/errors')
-    , StandardRelayer = require ('./js/base/StandardRelayer')
-    , TokenInfo       = require ('./js/base/TokenInfo');
+const Exchange        = require ('./dist/js/base/Exchange')
+    , functions       = require ('./dist/js/base/functions')
+    , errors          = require ('./dist/js/base/errors')
+    , TokenInfo       = require ('./dist/js/base/TokenInfo');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -153,6 +152,7 @@ const exchanges = {
     'quadrigacx':              require ('./js/quadrigacx.js'),
     'quoinex':                 require ('./js/quoinex.js'),
     'radarrelay':              require ('./js/radarrelay.js'),
+    'radarrelay2':             require ('./js/radarrelay.js'),
     'shapeshift':              require ('./js/shapeshift.js'),
     'sharkrelay':              require ('./js/sharkrelay.js'),
     'southxchange':            require ('./js/southxchange.js'),
@@ -179,7 +179,6 @@ const merged = Object.assign (
         version,
         Exchange,
         exchanges: Object.keys (exchanges),
-        StandardRelayer,
         TokenInfo
     },
     exchanges,
