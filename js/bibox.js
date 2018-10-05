@@ -222,7 +222,8 @@ module.exports = class bibox extends Exchange {
         let response = await this.publicGetMdata (this.extend ({
             'cmd': 'marketAll',
         }, params));
-        return this.parseTickers (response['result'], symbols);
+        let tickers = this.parseTickers (response['result'], symbols);
+        return this.indexBy (tickers, 'symbol');
     }
 
     parseTrade (trade, market = undefined) {
