@@ -2,7 +2,7 @@
 
 const { HttpClient } = require('@0xproject/connect');
 const { BigNumber } = require('@0xproject/utils');
-const { toUnitAmount } = require('@0xproject/web3-wrapper');
+const { Web3Wrapper } = require('@0xproject/web3-wrapper');
 
 const Exchange = require('./Exchange');
 const TokenInfo = require('./TokenInfo');
@@ -254,13 +254,13 @@ class StandardRelayer extends Exchange {
         for (let i = 0; i < orderCount; i++) {
             const order = orders[i];
             const { makerTokenAmount, takerTokenAmount } = order;
-            const unitMaker = toUnitAmount(makerTokenAmount, baseDecimals);
-            const unitTaker = toUnitAmount(takerTokenAmount, quoteDecimals);
+            const unitMaker = Web3Wrapper.toUnitAmount(makerTokenAmount, baseDecimals);
+            const unitTaker = Web3Wrapper.toUnitAmount(takerTokenAmount, quoteDecimals);
             let rate = unitMaker.div(unitTaker);
-            let limit = toUnitAmount(new BigNumber(takerTokenAmount), quoteDecimals);
+            let limit = Web3Wrapper.toUnitAmount(new BigNumber(takerTokenAmount), quoteDecimals);
             if (!isBid) {
                 rate = one.div(rate);
-                limit = toUnitAmount(new BigNumber(makerTokenAmount), baseDecimals);
+                limit = Web3Wrapper.toUnitAmount(new BigNumber(makerTokenAmount), baseDecimals);
             }
             rates[i] = [rate.toNumber(), limit.toNumber(), order];
         }
