@@ -1,0 +1,2 @@
+"use strict";module.exports={isNode:"undefined"==typeof window&&!("undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope),isWindows:"undefined"!=typeof process&&"win32"===process.platform};
+//# sourceMappingURL=platform.js.map
