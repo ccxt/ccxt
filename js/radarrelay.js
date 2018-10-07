@@ -38,6 +38,9 @@ module.exports = class radarrelay extends Exchange {
                 'fetchTicker': false,
                 'fetchTrades': false,
                 'privateAPI': false,
+                'is0xProtocol': true,
+                'needsEthereumNodeEndpoint': true,
+                'ethIsWeth': true,
             },
             'api': {
                 'public': {
