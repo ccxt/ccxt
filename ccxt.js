@@ -30,10 +30,10 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 
-const Exchange        = require ('./dist/js/base/Exchange')
-    , functions       = require ('./dist/js/base/functions')
-    , errors          = require ('./dist/js/base/errors')
-    , TokenInfo       = require ('./dist/js/base/TokenInfo');
+const Exchange        = require ('./js/base/Exchange')
+    , functions       = require ('./js/base/functions')
+    , errors          = require ('./js/base/errors')
+    , TokenInfo       = require ('./js/base/TokenInfo');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
