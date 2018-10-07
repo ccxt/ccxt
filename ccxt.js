@@ -146,7 +146,7 @@ const exchanges = {
     'okcoincny':               require ('./js/okcoincny.js'),
     'okcoinusd':               require ('./js/okcoinusd.js'),
     'okex':                    require ('./js/okex.js'),
-    'openrelay':               require ('./js/openrelay.js'),
+    'openrelay2':              require ('./js/openrelay.js'),
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
     'qryptos':                 require ('./js/qryptos.js'),
