@@ -12,7 +12,7 @@ module.exports = class ledgerdex extends StandardRelayerV2 {
             'userAgent': undefined,
             'rateLimit': 2000,
             'urls': {
-                'logo': 'https://app.ledgerdex.com/ledgerdex.png',
+                'logo': 'https://raw.githubusercontent.com/0xProject/0x-relayer-registry/master/images/logos/ledgerdex.png',
                 'api': 'https://api-v2.ledgerdex.com/sra/v2/',
             },
             'has': {
