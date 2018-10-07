@@ -29,7 +29,7 @@
   "types": "./ccxt.d.ts",
   "dependencies": {
     "0x.js": "^1.0.8",
-    "@0xproject/connect": "^0.6.14",
+    "@0xproject/connect": "^3.0.1",
     "@0xproject/order-utils": "^1.0.7",
     "@0xproject/utils": "2.0.2",
     "@0xproject/web3-wrapper": "^3.0.3",

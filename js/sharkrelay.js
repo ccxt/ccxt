@@ -1,11 +1,11 @@
 'use strict';
 
-const StandardRelayer = require('./base/StandardRelayer');
+const StandardRelayerV2 = require('./base/StandardRelayerV2');
 
-module.exports = class sharkrelay extends StandardRelayer {
+module.exports = class sharkrelay extends StandardRelayerV2 {
     describe() {
         return this.deepExtend(super.describe(), {
-            'id': 'sharkrelay',
+            'id': 'sharkrelay2',
             'name': 'Shark Relay',
             'countries': 'USA',
             'version': undefined,
@@ -13,19 +13,15 @@ module.exports = class sharkrelay extends StandardRelayer {
             'rateLimit': 1000,
             'urls': {
                 'logo': 'https://sharkrelay.com/assets/images/sharklogo.png',
-                'api': 'https://api.sharkrelay.com/api/v0',
+                'api': 'https://api.sharkrelay.com/sra/v2',
                 'www': 'https://sharkrelay.com/',
-                'doc': [
-                    'https://0xproject.com/docs/connect',
-                    'https://sharkrelay.com/api',
-                ],
             },
             'has': {
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
                 'fetchBalance': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -35,17 +31,5 @@ module.exports = class sharkrelay extends StandardRelayer {
             },
             'perPage': 500,
         });
-    }
-
-    fetchCurrencies() {
-        return this.listedCurrencies();
-    }
-
-    fetchMarkets() {
-        return this.tokenPairs();
-    }
-
-    fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.orderbook(symbol);
     }
 };

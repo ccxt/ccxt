@@ -1,11 +1,11 @@
 'use strict';
 
-const StandardRelayer = require('./base/StandardRelayer');
+const StandardRelayerV2 = require('./base/StandardRelayerV2');
 
-module.exports = class openrelay extends StandardRelayer {
+module.exports = class openrelay extends StandardRelayerV2 {
     describe() {
         return this.deepExtend(super.describe(), {
-            'id': 'openrelay',
+            'id': 'openrelay2',
             'name': 'Open Relay',
             'countries': 'USA',
             'version': undefined,
@@ -13,7 +13,7 @@ module.exports = class openrelay extends StandardRelayer {
             'rateLimit': 2000,
             'urls': {
                 'logo': 'https://openrelay.xyz/img/profile.png',
-                'api': 'https://api.openrelay.xyz/v0',
+                'api': 'https://api.openrelay.xyz/v2/',
                 'www': 'https://openrelay.xyz/',
                 'doc': [
                     'https://0xproject.com/docs/connect',
@@ -25,7 +25,7 @@ module.exports = class openrelay extends StandardRelayer {
                 'createMarketOrder': false,
                 'createLimitOrder': false,
                 'fetchBalance': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -37,17 +37,17 @@ module.exports = class openrelay extends StandardRelayer {
         });
     }
 
-    fetchCurrencies() {
-        return this.listedCurrencies();
-    }
-
-    fetchMarkets() {
-        return this.tokenPairs();
-    }
-
-    // TODO: these imbeciles don't list token pairs on an endpoint.
-    // TODO: at some point we'll need to generate them by mapping over the orderbook
-    fetchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.orderbook(symbol);
-    }
+    // fetchCurrencies() {
+    //     return this.listedCurrencies();
+    // }
+    //
+    // fetchMarkets() {
+    //     return this.tokenPairs();
+    // }
+    //
+    // // TODO: these imbeciles don't list token pairs on an endpoint.
+    // // TODO: at some point we'll need to generate them by mapping over the orderbook
+    // fetchOrderBook(symbol, limit = undefined, params = {}) {
+    //     return this.orderbook(symbol);
+    // }
 };

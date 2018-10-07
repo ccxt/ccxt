@@ -2,30 +2,25 @@
 
 const StandardRelayerV2 = require('./base/StandardRelayerV2');
 
-module.exports = class ercdex extends StandardRelayerV2 {
+module.exports = class ledgerdex extends StandardRelayerV2 {
     describe() {
         return this.deepExtend(super.describe(), {
-            'id': 'ercdex2',
-            'name': 'ERC dEX',
+            'id': 'ledgerdex',
+            'name': 'LedgerDex',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
-            'rateLimit': 1000,
+            'rateLimit': 2000,
             'urls': {
-                'logo': 'https://pbs.twimg.com/profile_images/941139790916861953/Q7GLIM7D_400x400.jpg',
-                'api': 'https://app.ercdex.com/api/v2',
-                'www': 'https://ercdex.com',
-                'doc': [
-                    'https://0xproject.com/docs/connect',
-                    'https://aqueduct.ercdex.com/rest.html',
-                ],
+                'logo': 'https://app.ledgerdex.com/ledgerdex.png',
+                'api': 'https://api-v2.ledgerdex.com/sra/v2/',
             },
             'has': {
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
                 'fetchBalance': false,
-                'fetchCurrencies': true,
+                'fetchCurrencies': false,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchOrderBook': true,
@@ -36,5 +31,4 @@ module.exports = class ercdex extends StandardRelayerV2 {
             'perPage': 99,
         });
     }
-
 };
