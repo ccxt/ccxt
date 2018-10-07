@@ -6,7 +6,7 @@ module.exports = class radarrelay extends StandardRelayerV2 {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'radarrelay2',
-            'name': 'Radar Relay - 0x V2',
+            'name': 'Radar Relay',
             'countries': 'USA',
             'version': undefined,
             'userAgent': undefined,
