@@ -76,7 +76,7 @@ module.exports = class StandardRelayerV2 extends Exchange {
             promises.push(this.sraClient().getOrderbookAsync({ baseAssetData, quoteAssetData }));
         }
         const responses = await Promise.all(promises);
-        responses.push(firstResponse);
+        responses.unshift(firstResponse); // orderbook is pre-sorted
         const bids = responses.reduce(((acc, current) => acc.concat(current.bids.records)), []);
         const asks = responses.reduce(((acc, current) => acc.concat(current.asks.records)), []);
         return { bids, asks }
