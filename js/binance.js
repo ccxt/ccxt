@@ -260,6 +260,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -427,13 +428,12 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
@@ -479,7 +479,8 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let rawTickers = await this.publicGetTicker24hr (params);
+        let method = this.options['fetchTickersMethod'];
+        let rawTickers = await this[method] (params);
         return this.parseTickers (rawTickers, symbols);
     }
 

@@ -271,6 +271,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -425,13 +426,12 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -472,7 +472,8 @@ class binance (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        rawTickers = self.publicGetTicker24hr(params)
+        method = self.options['fetchTickersMethod']
+        rawTickers = getattr(self, method)(params)
         return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
