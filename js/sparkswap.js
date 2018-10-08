@@ -75,7 +75,7 @@ module.exports = class sparkswap extends Exchange {
                         'v1/admin/healthcheck',
                         'v1/markets', // get supported markets
                         'v1/market_stats', // get market stats for a specific market
-                        'v1/order/{id}', // grab a single order
+                        'v1/orders/{id}', // grab a single order
                         'v1/orderbook', // get orderbook by market
                         'v1/orders', // get orders by market
                         'v1/trades', // get all trades for a specific market
@@ -188,7 +188,7 @@ module.exports = class sparkswap extends Exchange {
         let balances = (res) ? res.balances : [];
         // The format that is returned from the sparkswap API does not match what
         // needs to be returned from ccxt. We modify the sparkswap response to
-        // fit: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
+        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
         let free = {};
         let used = {};
         let total = {};
@@ -271,7 +271,88 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        return this.privateGetV1OrderId ({ id });
+        const CONSTANTS = {
+            'STATUSES': {
+                'ACTIVE': 'ACTIVE',
+                'CANCELLED': 'CANCELLED',
+                'COMPLETED': 'COMPLETED',
+                'FAILED': 'FAILED',
+            },
+            'SIDES': {
+                'ASK': 'ASK',
+                'BID': 'BID',
+                'BUY': 'buy',
+                'SELL': 'sell',
+            },
+            'TYPES': {
+                'LIMIT': 'limit',
+                'MARKET': 'market',
+            },
+        };
+        const order = await this.privateGetV1OrdersId ({ id });
+        let status = undefined;
+        if (order.status === CONSTANTS.STATUSES.CANCELLED || order.status === CONSTANTS.STATUSES.FAILED) {
+            status = 'cancelled';
+        }
+        if (order.status === CONSTANTS.STATUSES.COMPLETED) {
+            status = 'closed';
+        }
+        if (order.status === CONSTANTS.STATUSES.ACTIVE) {
+            status = 'open';
+        }
+        // An order can either be market or limit
+        let type = CONSTANTS.TYPES.LIMIT;
+        if (order.is_market_order) {
+            type = CONSTANTS.TYPES.MARKET;
+        }
+        let side = undefined;
+        if (order.side === CONSTANTS.SIDES.ASK) {
+            side = CONSTANTS.SIDES.SELL;
+        } else if (order.side === CONSTANTS.SIDES.BID) {
+            side = CONSTANTS.SIDES.BUY;
+        }
+        const millisecondTimestamp = this.nanoToMillisecondTimestamp (order.timestamp);
+        const millisecondDatetime = this.nanoToMillisecondDatetime (order.datetime);
+        // The format that is returned from the sparkswap API does not match what
+        // needs to be returned from ccxt. We modify the sparkswap response to
+        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+        const response = {
+            'id': id,
+            'datetime': millisecondDatetime,
+            'timestamp': millisecondTimestamp,
+            'status': status,
+            'symbol': order.market,
+            'type': type,
+            'side': side,
+            'price': (this.safeFloat (order, 'amount') * this.safeFloat (order, 'limit_price')).toFixed (16),
+            'amount': this.safeFloat (order, 'amount'),
+            'filled': this.safeFloat (order, 'fill_amount') || 0,
+            'cost': this.safeFloat (order, 'fill_amount') * this.safeFloat (order, 'price') || 0,
+            'trades': [],
+            'info': order,
+        };
+        // Trades structure can be found here: https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
+        for (let i = 0; i < order.open_orders.length; i++) {
+            response.trades.push ({
+                'id': order.open_orders[i].order_id,
+                'symbol': order.market,
+                'order': id,
+                'amount': this.safeFloat (order.open_orders[i], 'amount'),
+                'price': this.safeFloat (order.open_orders[i], 'price'),
+                'info': order.open_orders[i],
+            });
+        }
+        for (let y = 0; y < order.fills.length; y++) {
+            response.trades.push ({
+                'id': order.fills[y].order_id,
+                'symbol': order.market,
+                'order': id,
+                'amount': this.safeFloat (order.fills[y], 'amount'),
+                'price': this.safeFloat (order.fills[y], 'price'),
+                'info': order.fills[y],
+            });
+        }
+        return response;
     }
 
     async fetchOrderBook (symbol, params = {}) {
