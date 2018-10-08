@@ -39,4 +39,4 @@ module.exports = {
         {"blankLine": "always", "prev":"*", "next": "cjs-export" },
       ],
   },
-}
+};

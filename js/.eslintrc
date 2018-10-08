@@ -23,7 +23,7 @@
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
     "dot-notation": "off",
-    "quote-props": ["error", "always"],
+    "quote-props": "off",
     "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
