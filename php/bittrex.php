@@ -448,7 +448,6 @@ class bittrex extends Exchange {
             if ($response['result'])
                 return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
         }
-        throw new ExchangeError ($this->id . ' returned an empty or unrecognized $response => ' . $this->json ($response));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
