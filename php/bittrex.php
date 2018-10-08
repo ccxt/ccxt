@@ -671,7 +671,7 @@ class bittrex extends Exchange {
         if (!$address || $message === 'ADDRESS_GENERATING')
             throw new AddressPending ($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         $tag = null;
-        if (($code === 'XRP') || ($code === 'XLM')) {
+        if (($code === 'XRP') || ($code === 'XLM') || ($code === 'LSK')) {
             $tag = $address;
             $address = $currency['address'];
         }
