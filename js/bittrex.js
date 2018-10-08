@@ -448,7 +448,6 @@ module.exports = class bittrex extends Exchange {
             if (response['result'])
                 return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
         }
-        throw new ExchangeError (this.id + ' returned an empty or unrecognized response: ' + this.json (response));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
