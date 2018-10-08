@@ -640,7 +640,7 @@ class bittrex (Exchange):
         if not address or message == 'ADDRESS_GENERATING':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
-        if (code == 'XRP') or (code == 'XLM'):
+        if (code == 'XRP') or (code == 'XLM') or (code == 'LSK'):
             tag = address
             address = currency['address']
         self.check_address(address)
