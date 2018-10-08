@@ -1,2 +1,0 @@
-"use strict";const t=require("./foxbit.js");module.exports=class extends t{describe(){return this.deepExtend(super.describe(),{id:"chilebit",name:"ChileBit",countries:"CL",has:{CORS:!1},urls:{logo:"https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg",api:{public:"https://api.blinktrade.com/api",private:"https://api.blinktrade.com/tapi"},www:"https://chilebit.net",doc:"https://blinktrade.com/docs"},options:{brokerId:"9"}})}};
-//# sourceMappingURL=chilebit.js.map

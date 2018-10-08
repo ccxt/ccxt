@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),t=(require("ansicolor").nice,require("chai")),r=(t.expect,t.assert),s=require("./test.order.js");module.exports=(async(t,o)=>{if(t.has.fetchClosedOrders){let c=await t.fetchClosedOrders(o);e("fetched",c.length.toString().green,"closed orders, testing each"),r(c instanceof Array);let l=Date.now();for(let e=0;e<c.length;e++){let i=c[e];s(t,i,o,l),r("closed"===i.status)}}else e("fetching closed orders not supported")});
-//# sourceMappingURL=test.fetchClosedOrders.js.map

@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),r=(require("ansicolor").nice,require("chai")),o=(r.expect,r.assert,require("./test.orderbook.js"));module.exports=(async r=>{const t=r.symbols.sort(()=>.5-Math.random()).slice(0,2),i=["yobit","tidex","cryptopia","ccex","liqui"].reduce((e,r)=>({...e,[r]:[t]}),{}),s=r.id in i?i[r.id]:[],c="fetchOrderBooks";if(r.has[c]){let e=await r[c](...s);Object.entries(e).forEach(([e,t])=>{o(r,t,c,e)})}else e(c+"() not supported")});
-//# sourceMappingURL=test.fetchOrderBooks.js.map

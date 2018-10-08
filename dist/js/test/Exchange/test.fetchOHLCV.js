@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),t=(require("ansicolor").nice,require("chai"));t.expect,t.assert;module.exports=(async(t,r)=>{if(t.has.fetchOHLCV){let c=await t.fetchOHLCV(r);return e(r.green,"fetched",Object.keys(c).length.toString().green,"OHLCVs"),c}e("fetching OHLCV not supported")});
-//# sourceMappingURL=test.fetchOHLCV.js.map

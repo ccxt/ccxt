@@ -1,2 +1,0 @@
-"use strict";require("ololog"),require("ansicolor").nice;const e=require("chai"),o=e.expect;e.assert;module.exports=((e,t,s)=>{o(t).to.deep.include.all.keys({id:"btcusd",symbol:"BTC/USD",base:"BTC",quote:"USD"}),o(t).to.not.have.key("lot")});
-//# sourceMappingURL=test.market.js.map

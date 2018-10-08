@@ -1,2 +1,0 @@
-"use strict";const e=require("./btcturk.js");module.exports=class extends e{describe(){return this.deepExtend(super.describe(),{id:"btcexchange",name:"BTCExchange",countries:"PH",rateLimit:1500,has:{CORS:!1},urls:{logo:"https://user-images.githubusercontent.com/1294454/27993052-4c92911a-64aa-11e7-96d8-ec6ac3435757.jpg",api:"https://www.btcexchange.ph/api",www:"https://www.btcexchange.ph",doc:"https://github.com/BTCTrader/broker-api-docs"},markets:{"BTC/PHP":{id:"BTC/PHP",symbol:"BTC/PHP",base:"BTC",quote:"PHP"}}})}};
-//# sourceMappingURL=btcexchange.js.map

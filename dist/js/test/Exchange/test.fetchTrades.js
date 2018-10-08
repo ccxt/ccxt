@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),t=(require("ansicolor").nice,require("chai")),r=(t.expect,t.assert),s=require("./test.trade.js");module.exports=(async(t,a)=>{if(t.has.fetchTrades){let o=await t.fetchTrades(a);r(o instanceof Array),e(a.green,"fetched",Object.values(o).length.toString().green,"trades");let i=Date.now();for(let e=0;e<o.length;e++)s(t,o[e],a,i),e>0&&r(o[e].timestamp>=o[e-1].timestamp)}else e(a.green,"fetchTrades () not supported".yellow)});
-//# sourceMappingURL=test.fetchTrades.js.map

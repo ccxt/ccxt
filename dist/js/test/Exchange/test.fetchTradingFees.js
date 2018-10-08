@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),i=(require("ansicolor").nice,require("chai"));i.expect,i.assert;module.exports=(async i=>{if([].includes(i.id))e(i.id,"found in ignored exchanges, skipping fetchTradingFees...");else{if(i.has.fetchTradingFees){const n="fetchTradingFees",r=await i[n]();return e.green(r),r}e("fetching trading fees not supported")}});
-//# sourceMappingURL=test.fetchTradingFees.js.map

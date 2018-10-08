@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),t=(require("ansicolor").nice,require("chai")),r=(t.expect,t.assert);module.exports=(async(t,o)=>{if(t.has.fetchOHLCV){let s=await t.fetchOHLCV(o);e(o.green,"fetched",Object.keys(s).length.toString().green,"OHLCVs");for(let e=1;e<s.length;e++)r(s[e][0]>=s[e-1][0],"OHLCV timestamps out of order: "+s[e][0]+" < "+s[e-1][0]);return s}e("fetching OHLCV not supported")});
-//# sourceMappingURL=tmp.test.fetchOHLCV.js.map

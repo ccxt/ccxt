@@ -1,2 +1,0 @@
-"use strict";module.exports=class{constructor(e,t){this.exchange=e,this.symbol=t,this.market=e.markets[t]}amountToPrecision(e){return this.exchange.amountToPrecision(this.symbol,e)}createLimitBuyOrder(e,t){return this.exchange.createLimitBuyOrder(this.symbol,e,t)}createLimitSellOrder(e,t){return this.exchange.createLimitSellOrder(this.symbol,e,t)}};
-//# sourceMappingURL=Market.js.map

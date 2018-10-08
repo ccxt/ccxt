@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),n=(require("ansicolor").nice,require("chai"));n.expect,n.assert;module.exports=(async n=>{if([].includes(n.id))e(n.id,"found in ignored exchanges, skipping fetchFundingFees...");else{if(n.has.fetchFundingFees){const i="fetchFundingFees",s=await n[i]();return e.green(s),s}e("fetching funding fees not supported")}});
-//# sourceMappingURL=test.fetchFundingFees.js.map

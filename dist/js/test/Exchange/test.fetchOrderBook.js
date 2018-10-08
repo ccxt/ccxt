@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),o=(require("ansicolor").nice,require("chai")),r=(o.expect,o.assert,require("./test.orderbook.js"));module.exports=(async(o,s)=>{const t="fetchOrderBook";if(o.has[t]){let e=await o[t](s);return"ddex"===o.id&&(console.log(s),console.log(e)),r(o,e,t,s),e}e(t+"() not supported")});
-//# sourceMappingURL=test.fetchOrderBook.js.map

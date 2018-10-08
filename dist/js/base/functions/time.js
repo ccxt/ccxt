@@ -1,2 +1,0 @@
-"use strict";const t=Date.now,e=setTimeout,o=(s,r,n=e,i=t()+r)=>{let u=()=>{},c=!0,m=n(()=>{c=!0;const e=i-t();e>0?u=o(s,e,n,i):s()},r);return function(){c&&(c=!1,clearTimeout(m)),u()}};class s extends Error{constructor(){super("timed out"),this.constructor=s,this.__proto__=s.prototype,this.message="timed out"}}module.exports={now:t,setTimeout_safe:o,sleep:t=>new Promise(e=>o(e,t)),TimedOut:s,timeout:async(t,e)=>{let r=()=>{};const n=new Promise(e=>{r=o(e,t)});try{return await Promise.race([e,n.then(()=>{throw new s})])}finally{r()}}};
-//# sourceMappingURL=time.js.map

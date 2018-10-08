@@ -1,2 +1,0 @@
-"use strict";const{unCamelCase:e}=require("./functions/string");module.exports=(r=>{for(const n in r)r[e(n)]=r[n];return r})(Object.assign({},require("./functions/platform"),require("./functions/generic"),require("./functions/string"),require("./functions/type"),require("./functions/number"),require("./functions/encode"),require("./functions/crypto"),require("./functions/time"),require("./functions/throttle"),require("./functions/misc")));
-//# sourceMappingURL=functions.js.map

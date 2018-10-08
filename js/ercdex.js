@@ -1,9 +1,13 @@
 'use strict';
 
-const StandardRelayerV2 = require('./base/StandardRelayerV2');
 const { flatten } = require('lodash');
 const { ErcDex } = require('@ercdex/core');
+const { BigNumber } = require('@0xproject/utils');
+const { Web3Wrapper } = require('@0xproject/web3-wrapper');
+
 const Exchange = require('./base/Exchange');
+const StandardRelayerV2 = require('./base/StandardRelayerV2');
+const TokenInfo = require('./base/TokenInfo');
 
 module.exports = class ercdex extends Exchange {
     describe() {
@@ -94,13 +98,57 @@ module.exports = class ercdex extends Exchange {
 
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         const [baseSymbol, quoteSymbol] = symbol.split('/');
-        // const market = this.markets[symbol];
         const baseAssetData = StandardRelayerV2.encodeTokenInfo(baseSymbol);
         const quoteAssetData = StandardRelayerV2.encodeTokenInfo(quoteSymbol);
-
         const client = new ErcDex.Api.OrdersService();
         const firstResponse = await client.getOrderbook({ baseAssetData, quoteAssetData });
-        
+        const { total, perPage } = firstResponse;
+        const pagesNeeded = Math.ceil(total / perPage);
+
+        const promises = [];
+        for (let page = 2; page <= pagesNeeded; page++) {
+            promises.push(client.getOrderbook({
+                baseAssetData,
+                quoteAssetData,
+                page,
+            }));
+        }
+        const resolved = await Promise.all(promises);
+        resolved.unshift(firstResponse);
+
+        const bids = resolved.reduce(((acc, current) => acc.concat(current.bids.records)), []);
+        const asks = resolved.reduce(((acc, current) => acc.concat(current.asks.records)), []);
+
+        const one = new BigNumber(1);
+        const baseInfo = TokenInfo.getFromSymbol(baseSymbol);
+        const quoteInfo = TokenInfo.getFromSymbol(quoteSymbol);
+
+        const formattedBids = bids.map((record) => {
+            const { order } = record;
+            const makerAmount = new BigNumber(order.makerAssetAmount);
+            const takerAmount = new BigNumber(order.takerAssetAmount);
+            const makerUnit = Web3Wrapper.toUnitAmount(makerAmount, quoteInfo.decimals);
+            const takerUnit = Web3Wrapper.toUnitAmount(takerAmount, baseInfo.decimals);
+            const rate = makerUnit.div(takerUnit);
+            return [rate.toNumber(), takerUnit.toNumber(), order];
+        });
+        const formattedAsks = asks.map((record) => {
+            const { order } = record;
+            const makerAmount = new BigNumber(order.makerAssetAmount);
+            const takerAmount = new BigNumber(order.takerAssetAmount);
+            const makerUnit = Web3Wrapper.toUnitAmount(makerAmount, baseInfo.decimals);
+            const takerUnit = Web3Wrapper.toUnitAmount(takerAmount, quoteInfo.decimals);
+            const rate = makerUnit.div(takerUnit);
+            return [one.div(rate).toNumber(), makerUnit.toNumber(), order];
+        });
+        const now = new Date();
+        return {
+            'timestamp': now.getTime(),
+            'datetime': now.toISOString(),
+            'nonce': undefined,
+            'bids': formattedBids,
+            'asks': formattedAsks,
+        };
     }
 
     async fetchMarkets() {

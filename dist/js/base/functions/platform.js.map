@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../../js/base/functions/platform.js"],"names":["module","exports","isNode","window","WorkerGlobalScope","self","isWindows","process","platform"],"mappings":"AAAA,aAIAA,OAAOC,SAEHC,OAA2B,oBAAXC,UACsB,oBAAtBC,mBAAuCC,gBAAgBD,mBAErEE,UAA+B,oBAAZC,SAAgD,UAArBA,QAAQC","file":"platform.js"}

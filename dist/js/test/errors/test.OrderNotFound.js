@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),r=(require("ansicolor").nice,require("chai")),t=require("../../../ccxt.js"),o=(r.expect,r.assert);module.exports=(async(r,c)=>{if(!r.has.createOrder)return void e("createOrder not supported -> test skipped");try{await r.cancelOrder(1,c),e("test failed"),o.fail()}catch(r){if(!(r instanceof t.OrderNotFound))throw e("OrderNotFound test failed"),r;e("OrderNotFound thrown as expected")}});
-//# sourceMappingURL=test.OrderNotFound.js.map

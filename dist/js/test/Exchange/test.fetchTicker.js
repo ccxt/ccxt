@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),r=(require("ansicolor").nice,require("chai")),t=(r.expect,r.assert,require("./test.ticker.js"));module.exports=(async(r,c)=>{if(r.has.fetchTicker){let e=await r.fetchTicker(c);return t(r,e,"fetchTicker",c),e}e(c.green,"fetchTicker () not supported")});
-//# sourceMappingURL=test.fetchTicker.js.map

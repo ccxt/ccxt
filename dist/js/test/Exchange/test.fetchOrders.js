@@ -1,2 +1,0 @@
-"use strict";const e=require("ololog"),r=(require("ansicolor").nice,require("chai")),t=(r.expect,r.assert),s=require("./test.order.js");module.exports=(async(r,o)=>{if(r.has.fetchOrders){let i=await r.fetchOrders(o);e("fetched",i.length.toString().green,"orders, asserting each..."),t(i instanceof Array);let n=Date.now();for(let e=0;e<i.length;e++){let t=i[e];s(r,t,o,n)}}else e("fetching orders not supported")});
-//# sourceMappingURL=test.fetchOrders.js.map

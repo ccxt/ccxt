@@ -1,2 +1,0 @@
-"use strict";require("ololog"),require("ansicolor").nice;const e=require("chai"),r=e.expect;e.assert;module.exports=((e,o,c)=>{return r(o).to.deep.include.all.keys({id:"btc",code:"BTC"}),o});
-//# sourceMappingURL=test.currency.js.map

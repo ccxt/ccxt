@@ -1,2 +1,0 @@
-"use strict";const e=a=>a?(a^16*Math.random()>>a/4).toString(16):([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,e);module.exports={uuid:e,unCamelCase:e=>e.match(/^[A-Z0-9_]+$/)?e:e.replace(/[a-z0-9][A-Z]/g,e=>e[0]+"_"+e[1]).replace(/[A-Z0-9][A-Z0-9][a-z]/g,e=>e[0]+"_"+e[1]+e[2]).toLowerCase(),capitalize:e=>e.length?e.charAt(0).toUpperCase()+e.slice(1):e};
-//# sourceMappingURL=string.js.map

@@ -3,7 +3,7 @@
 const { flatten } = require('lodash');
 const { assetDataUtils } = require('0x.js');
 const { HttpClient } = require('@0xproject/connect');
-const { rateUtils, orderParsingUtils } = require('@0xproject/order-utils');
+const { orderParsingUtils } = require('@0xproject/order-utils');
 const { BigNumber } = require('@0xproject/utils');
 const { Web3Wrapper } = require('@0xproject/web3-wrapper');
 
@@ -168,5 +168,4 @@ module.exports = class StandardRelayerV2 extends Exchange {
         }
         return markets;
     }
-
 };
