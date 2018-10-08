@@ -18,6 +18,7 @@ module.exports = class excraft extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'logo': 'https://www.excraft.com/static/images/excraft_2480.png',
                 'api': {
                     'rest': 'https://www.excraft.com/apis/trading/v1',
                 },
