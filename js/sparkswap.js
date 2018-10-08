@@ -372,7 +372,68 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        throw new ExchangeError ('Not Implemented');
+        const CONSTANTS = {
+            'STATUSES': {
+                'ACTIVE': 'ACTIVE',
+                'CANCELLED': 'CANCELLED',
+                'COMPLETED': 'COMPLETED',
+                'FAILED': 'FAILED',
+            },
+            'SIDES': {
+                'ASK': 'ASK',
+                'BID': 'BID',
+                'BUY': 'buy',
+                'SELL': 'sell',
+            },
+            'TYPES': {
+                'LIMIT': 'limit',
+                'MARKET': 'market',
+            },
+        };
+        const res = await this.privateGetV1Orders ({ 'market': symbol });
+        const rawOrders = res.block_orders;
+        let orders = [];
+        for (let i = 0; i < rawOrders.length; i++) {
+            let status = undefined;
+            if (rawOrders[i].status === CONSTANTS.STATUSES.CANCELLED || rawOrders[i].status === CONSTANTS.STATUSES.FAILED) {
+                status = 'cancelled';
+            }
+            if (rawOrders[i].status === CONSTANTS.STATUSES.COMPLETED) {
+                status = 'closed';
+            }
+            if (rawOrders[i].status === CONSTANTS.STATUSES.ACTIVE) {
+                status = 'open';
+            }
+            // An rawOrders[i] can either be market or limit
+            let type = CONSTANTS.TYPES.LIMIT;
+            if (rawOrders[i].is_market_order) {
+                type = CONSTANTS.TYPES.MARKET;
+            }
+            let side = undefined;
+            if (rawOrders[i].side === CONSTANTS.SIDES.ASK) {
+                side = CONSTANTS.SIDES.SELL;
+            } else if (rawOrders[i].side === CONSTANTS.SIDES.BID) {
+                side = CONSTANTS.SIDES.BUY;
+            }
+            const millisecondTimestamp = this.nanoToMillisecondTimestamp (rawOrders[i].timestamp);
+            const millisecondDatetime = this.nanoToMillisecondDatetime (rawOrders[i].datetime);
+            // The format that is returned from the sparkswap API does not match what
+            // needs to be returned from ccxt. We modify the sparkswap response to
+            // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#order-structure
+            orders.push ({
+                'id': rawOrders[i].block_order_id,
+                'datetime': millisecondDatetime,
+                'timestamp': millisecondTimestamp,
+                'status': status,
+                'symbol': rawOrders[i].market,
+                'type': type,
+                'side': side,
+                'price': (this.safeFloat (rawOrders[i], 'amount') * this.safeFloat (rawOrders[i], 'limit_price')).toFixed (16),
+                'amount': this.safeFloat (rawOrders[i], 'amount'),
+                'info': rawOrders[i],
+            });
+        }
+        return orders;
     }
 
     async fetchTicker (symbol, params = {}) {
