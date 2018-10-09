@@ -30,6 +30,8 @@ module.exports = class kraken extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': true,
                 'withdraw': true,
             },
             'marketsByAltname': {},
@@ -714,6 +716,42 @@ module.exports = class kraken extends Exchange {
         };
     }
 
+    parseTransaction (transaction, currency, type) {
+        let id = transaction['refid'];
+        let txid = transaction['txid'];
+        let timestamp = parseInt (transaction['time'] * 1000);
+        // let type = undefined; // 'withdrawal' or 'deposit'
+        let amount = this.safeFloat (transaction, 'amount');
+        let fee = this.safeFloat (transaction, 'fee');
+        let status = transaction['status'];
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid, // ?
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': currency,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'currency': currency,
+                'cost': fee,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactions (transactions, currency_code = undefined, type = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency_code, type));
+        result = this.sortBy (result, 'timestamp');
+        let code = currency_code;
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = [];
         let ids = Object.keys (orders);
@@ -807,6 +845,26 @@ module.exports = class kraken extends Exchange {
             'asset': currency['id'],
         }, params));
         return response['result'];
+    }
+
+    async fetchWithdrawals (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostWithdrawStatus (this.extend ({
+            'asset': currency['id'],
+        }, params));
+        let result = response['result'];
+        return this.parseTransactions (result, code, 'withdrawal');
+    }
+
+    async fetchDeposits (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let response = await this.privatePostDepositStatus (this.extend ({
+            'asset': currency['id'],
+        }, params));
+        let result = response['result'];
+        return this.parseTransactions (result, code, 'deposit');
     }
 
     async createDepositAddress (code, params = {}) {
