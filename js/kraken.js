@@ -215,21 +215,26 @@ module.exports = class kraken extends Exchange {
 
     async fetchMinOrderSizes () {
         let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
-        let parts = html.split ('ul>');
-        let ul = parts[1];
-        let listItems = ul.split ('</li');
+        let parts = html.split ('<td class="wysiwyg-text-align-right">');
+        let numParts = parts.length;
+        if (numParts < 3) {
+            throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+        }
         let result = {};
-        const separator = '):' + ' ';
-        for (let l = 0; l < listItems.length; l++) {
-            let listItem = listItems[l];
-            let chunks = listItem.split (separator);
-            let numChunks = chunks.length;
-            if (numChunks > 1) {
-                let limit = parseFloat (chunks[1]);
-                let name = chunks[0];
-                chunks = name.split ('(');
-                let currency = chunks[1];
-                result[currency] = limit;
+        // skip the part before the header and the header itself
+        for (let i = 2; i < parts.length; i++) {
+            let part = parts[i];
+            let chunks = part.split ('</td>');
+            let amountAndCode = chunks[0];
+            if (amountAndCode !== 'to be announced') {
+                let pieces = amountAndCode.split (' ');
+                let numPieces = pieces.length;
+                if (numPieces !== 2) {
+                    throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+                }
+                let amount = parseFloat (pieces[0]);
+                let code = this.commonCurrencyCode (pieces[1]);
+                result[code] = amount;
             }
         }
         return result;
@@ -671,6 +676,7 @@ module.exports = class kraken extends Exchange {
             price = this.safeFloat (description, 'price2');
         if ((price === undefined) || (price === 0))
             price = this.safeFloat (order, 'price', price);
+        let average = this.safeFloat (order, 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
@@ -701,6 +707,7 @@ module.exports = class kraken extends Exchange {
             'cost': cost,
             'amount': amount,
             'filled': filled,
+            'average': average,
             'remaining': remaining,
             'fee': fee,
             // 'trades': this.parseTrades (order['trades'], market),

@@ -110,6 +110,8 @@ class huobipro (Exchange):
                         'query/deposit-withdraw',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -342,9 +344,9 @@ class huobipro (Exchange):
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             orderbook = response['tick']
-            timestamp = orderbook['ts']
-            orderbook['nonce'] = orderbook['version']
-            return self.parse_order_book(orderbook, timestamp)
+            result = self.parse_order_book(orderbook, orderbook['ts'])
+            result['nonce'] = orderbook['version']
+            return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     def fetch_ticker(self, symbol, params={}):

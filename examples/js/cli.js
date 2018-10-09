@@ -41,8 +41,8 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
 // cloudscraper helper
@@ -91,7 +91,17 @@ const enableRateLimit = true
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({ timeout, enableRateLimit })
+    const { Agent } = require ('https')
+
+    const agent = new Agent ({
+        ecdhCurve: 'auto',
+    })
+
+    exchange = new (ccxt)[exchangeId] ({
+        timeout,
+        enableRateLimit,
+        agent,
+    })
 
 } catch (e) {
 
@@ -203,7 +213,7 @@ async function main () {
     } else {
 
         let args = params
-            .map (s => s.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
             .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www

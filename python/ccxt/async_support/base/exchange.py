@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.308'
+__version__ = '1.17.375'
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.async_support.base.throttle import throttle
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
@@ -77,7 +78,7 @@ class Exchange(BaseExchange):
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=True)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         if self.session is not None:
@@ -174,13 +175,35 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    async def fetch_fees(self):
+        trading = {}
+        funding = {}
+        try:
+            trading = await self.fetch_trading_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        try:
+            funding = await self.fetch_funding_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        return {
+            'trading': trading,
+            'funding': funding,
+        }
+
     async def load_fees(self):
         await self.load_markets()
         self.populate_fees()
         if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
             return self.fees
 
-        fetched_fees = self.fetch_fees()
+        fetched_fees = await self.fetch_fees()
         if fetched_fees['funding']:
             self.fees['funding']['fee_loaded'] = True
         if fetched_fees['trading']:

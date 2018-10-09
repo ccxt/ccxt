@@ -16,6 +16,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -169,6 +170,9 @@ class bitz (Exchange):
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/3881
+                # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
@@ -883,7 +887,7 @@ class bitz (Exchange):
     async def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         request = {
             'coinFrom': market['baseId'],

@@ -45,12 +45,20 @@ const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill')
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
 
-const Web3      = require ('web3')
-    , ethAbi    = require ('ethereumjs-abi')
-    , ethUtil   = require ('ethereumjs-util')
-    , BigNumber = require ('bignumber.js')
+let Web3 = undefined
+    , ethAbi = undefined
+    , ethUtil = undefined
+    , BigNumber = undefined
+
+try {
+    Web3      = require ('web3') // eslint-disable-line global-require
+    ethAbi    = require ('ethereumjs-abi') // eslint-disable-line global-require
+    ethUtil   = require ('ethereumjs-util') // eslint-disable-line global-require
+    BigNumber = require ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
-    // , BN        = require ('bn.js')
+    // BN        = require ('bn.js') // eslint-disable-line global-require
+} catch (e) {
+}
 
 const journal = undefined // isNode && require ('./journal') // stub until we get a better solution for Webpack and React
 
@@ -352,7 +360,7 @@ module.exports = class Exchange {
             journal (() => this.journal, this, Object.keys (this.has))
         }
 
-        if (!this.web3) {
+        if (!this.web3 && Web3) {
             this.web3 = new Web3 (new Web3.providers.HttpProvider ())
         }
     }
@@ -1188,14 +1196,6 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    fromWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
-    }
-
-    toWei (amount, unit = 'ether') {
-        return (amount === undefined) ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
-    }
-
     costToPrecision (symbol, cost) {
         return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
@@ -1268,6 +1268,87 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // web3 / 0x methods
+
+    checkRequiredDependencies () {
+        if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
+            throw new ExchangeError ('The following npm modules are required: ' + [
+                'https://github.com/ethereum/web3.js/',
+                'https://github.com/ethereumjs/ethereumjs-util/',
+                'https://github.com/ethereumjs/ethereumjs-abi',
+                'https://github.com/MikeMcl/bignumber.js/',
+            ].join (', '));
+        }
+    }
+
+    ethDecimals (unit = 'ether') {
+        const units = {
+            'wei': 0,          // 1
+            'kwei': 3,         // 1000
+            'babbage': 3,      // 1000
+            'femtoether': 3,   // 1000
+            'mwei': 6,         // 1000000
+            'lovelace': 6,     // 1000000
+            'picoether': 6,    // 1000000
+            'gwei': 9,         // 1000000000
+            'shannon': 9,      // 1000000000
+            'nanoether': 9,    // 1000000000
+            'nano': 9,         // 1000000000
+            'szabo': 12,       // 1000000000000
+            'microether': 12,  // 1000000000000
+            'micro': 12,       // 1000000000000
+            'finney': 15,      // 1000000000000000
+            'milliether': 15,  // 1000000000000000
+            'milli': 15,       // 1000000000000000
+            'ether': 18,       // 1000000000000000000
+            'kether': 21,      // 1000000000000000000000
+            'grand': 21,       // 1000000000000000000000
+            'mether': 24,      // 1000000000000000000000000
+            'gether': 27,      // 1000000000000000000000000000
+            'tether': 30,      // 1000000000000000000000000000000
+        }
+        return this.safeValue (units, unit)
+    }
+
+    ethUnit (decimals = 18) {
+        const units = {
+            0: 'wei',      // 1000000000000000000
+            3: 'kwei',     // 1000000000000000
+            6: 'mwei',     // 1000000000000
+            9: 'gwei',     // 1000000000
+            12: 'szabo',   // 1000000
+            15: 'finney',  // 1000
+            18: 'ether',   // 1
+            21: 'kether',  // 0.001
+            24: 'mether',  // 0.000001
+            27: 'gether',  // 0.000000001
+            30: 'tether',  // 0.000000000001
+        }
+        return this.safeValue (units, decimals)
+    }
+
+    fromWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (amount).times (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = new BigNumber (amount).toFixed ()
+        }
+        return parseFloat (this.web3.utils.fromWei (amount, unit))
+    }
+
+    toWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (this.numberToString (amount)).div (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = this.numberToString (amount)
+        }
+        return this.web3.utils.toWei (amount, unit)
+    }
 
     decryptAccountFromJson (json, password) {
         return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)

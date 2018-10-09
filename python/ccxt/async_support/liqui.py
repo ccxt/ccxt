@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -94,14 +95,33 @@ class liqui (Exchange):
                 'DSH': 'DASH',
             },
             'exceptions': {
-                '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
-                '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
-                '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
-                '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
-                '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
-                '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
-                '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
-                '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                    '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                    '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                    '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                    '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                    '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                    '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                    '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError,  # {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
+            },
+            'options': {
+                'fetchOrderMethod': 'privatePostOrderInfo',
+                'fetchMyTradesMethod': 'privatePostTradeHistory',
+                'cancelOrderMethod': 'privatePostCancelOrder',
             },
         })
 
@@ -121,13 +141,6 @@ class liqui (Exchange):
             'cost': cost,
         }
 
-    def get_base_quote_from_market_id(self, id):
-        uppercase = id.upper()
-        base, quote = uppercase.split('_')
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
-        return [base, quote]
-
     async def fetch_markets(self):
         response = await self.publicGetInfo()
         markets = response['pairs']
@@ -136,7 +149,11 @@ class liqui (Exchange):
         for i in range(0, len(keys)):
             id = keys[i]
             market = markets[id]
-            base, quote = self.get_base_quote_from_market_id(id)
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -165,6 +182,8 @@ class liqui (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': market['fee'] / 100,
                 'precision': precision,
@@ -239,6 +258,17 @@ class liqui (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        #
+        #   {   high: 0.03497582,
+        #         low: 0.03248474,
+        #         avg: 0.03373028,
+        #         vol: 120.11485715062999,
+        #     vol_cur: 3572.24914074,
+        #        last: 0.0337611,
+        #         buy: 0.0337442,
+        #        sell: 0.03377798,
+        #     updated: 1537522009          }
+        #
         timestamp = ticker['updated'] * 1000
         symbol = None
         if market is not None:
@@ -300,33 +330,48 @@ class liqui (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['timestamp']) * 1000
-        side = trade['type']
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        side = self.safe_string(trade, 'type')
         if side == 'ask':
             side = 'sell'
-        if side == 'bid':
+        elif side == 'bid':
             side = 'buy'
-        price = self.safe_float(trade, 'price')
-        if 'rate' in trade:
-            price = self.safe_float(trade, 'rate')
-        id = self.safe_string(trade, 'tid')
-        if 'trade_id' in trade:
-            id = self.safe_string(trade, 'trade_id')
+        price = self.safe_float_2(trade, 'rate', 'price')
+        id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, self.get_order_id_key())
         if 'pair' in trade:
-            marketId = trade['pair']
-            market = self.markets_by_id[marketId]
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        amount = trade['amount']
+        amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
+        takerOrMaker = None
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+            feeCurrencyId = feeCurrencyId.upper()
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            else:
+                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         isYourOrder = self.safe_value(trade, 'is_your_order')
-        takerOrMaker = 'taker'
         if isYourOrder is not None:
+            takerOrMaker = 'taker'
             if isYourOrder:
                 takerOrMaker = 'maker'
-        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+            if fee is None:
+                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,
@@ -335,6 +380,7 @@ class liqui (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
@@ -410,7 +456,8 @@ class liqui (Exchange):
         request = {}
         idKey = self.get_order_id_key()
         request[idKey] = id
-        response = await self.privatePostCancelOrder(self.extend(request, params))
+        method = self.options['cancelOrderMethod']
+        response = await getattr(self, method)(self.extend(request, params))
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
         return response
@@ -483,9 +530,11 @@ class liqui (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrderInfo(self.extend({
-            'order_id': int(id),
-        }, params))
+        request = {}
+        idKey = self.get_order_id_key()
+        request[idKey] = int(id)
+        method = self.options['fetchOrderMethod']
+        response = await getattr(self, method)(self.extend(request, params))
         id = str(id)
         newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
         oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
@@ -530,7 +579,7 @@ class liqui (Exchange):
         if 'fetchOrdersRequiresSymbol' in self.options:
             if self.options['fetchOrdersRequiresSymbol']:
                 if symbol is None:
-                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+                    raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         request = {}
         market = None
@@ -557,6 +606,7 @@ class liqui (Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
+        # some derived classes use camelcase notation for request fields
         request = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
@@ -574,7 +624,8 @@ class liqui (Exchange):
             request['count'] = int(limit)
         if since is not None:
             request['since'] = int(since / 1000)
-        response = await self.privatePostTradeHistory(self.extend(request, params))
+        method = self.options['fetchMyTradesMethod']
+        response = await getattr(self, method)(self.extend(request, params))
         trades = []
         if 'return' in response:
             trades = response['return']
@@ -599,10 +650,14 @@ class liqui (Exchange):
     def get_version_string(self):
         return '/' + self.version
 
+    def get_private_path(self, path, params):
+        return ''
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            url += self.get_private_path(path, params)
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
@@ -676,28 +731,11 @@ class liqui (Exchange):
                     code = self.safe_string(response, 'code')
                     message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    # need a second error map for these messages, apparently...
-                    # in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if message == 'invalid api key':
-                        raise AuthenticationError(feedback)
-                    elif message == 'invalid sign':
-                        raise AuthenticationError(feedback)
-                    elif message == 'api key dont have trade permission':
-                        raise AuthenticationError(feedback)
-                    elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
-                        raise InvalidOrder(feedback)
-                    elif message == 'invalid order':
-                        raise InvalidOrder(feedback)
-                    elif message == 'Requests too often':
-                        raise DDoSProtection(feedback)
-                    elif message == 'not available':
-                        raise ExchangeNotAvailable(feedback)
-                    elif message == 'data unavailable':
-                        raise ExchangeNotAvailable(feedback)
-                    elif message == 'external service unavailable':
-                        raise ExchangeNotAvailable(feedback)
-                    else:
-                        raise ExchangeError(feedback)
+                    exact = self.exceptions['exact']
+                    if code in exact:
+                        raise exact[code](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    raise ExchangeError(feedback)  # unknown message

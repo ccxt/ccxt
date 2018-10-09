@@ -122,6 +122,7 @@ const commonRegexes = [
     [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
     [ /\.handleErrors\s/g, '.handle_errors'],
     [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
+    [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
     [ /\.checkAddress\s/g, '.check_address'],
     [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],

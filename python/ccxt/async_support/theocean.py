@@ -12,9 +12,11 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
+import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -23,11 +25,13 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import OrderNotFillable
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class theocean (Exchange):
 
     def describe(self):
+        self.check_required_dependencies()
         return self.deep_extend(super(theocean, self).describe(), {
             'id': 'theocean',
             'name': 'The Ocean',
@@ -48,6 +52,7 @@ class theocean (Exchange):
                 'CORS': False,  # ?
                 'fetchTickers': True,
                 'fetchOHLCV': False,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
             },
@@ -104,9 +109,11 @@ class theocean (Exchange):
                     'Fillable amount under minimum': InvalidOrder,  # {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder,  # {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
                     "Schema validation failed for 'params'": BadRequest,  # # {"message":"Schema validation failed for 'params'"}
+                    'Service Temporarily Unavailable': ExchangeNotAvailable,
                 },
             },
             'options': {
+                'decimals': {},
                 'fetchOrderMethod': 'fetch_order_from_history',
             },
         })
@@ -164,21 +171,25 @@ class theocean (Exchange):
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
+            baseDecimals = self.safe_integer(baseToken, 'decimals')
+            quoteDecimals = self.safe_integer(quoteToken, 'decimals')
+            self.options['decimals'][base] = baseDecimals
+            self.options['decimals'][quote] = quoteDecimals
             precision = {
-                'amount': self.safe_integer(baseToken, 'precision'),
-                'price': self.safe_integer(quoteToken, 'precision'),
+                'amount': -int(baseToken['precision']),
+                'price': -int(quoteToken['precision']),
             }
             amountLimits = {
-                'min': self.fromWei(self.safe_string(baseToken, 'minAmount')),
-                'max': self.fromWei(self.safe_string(baseToken, 'maxAmount')),
+                'min': self.fromWei(self.safe_string(baseToken, 'minAmount'), 'ether', baseDecimals),
+                'max': self.fromWei(self.safe_string(baseToken, 'maxAmount'), 'ether', baseDecimals),
             }
             priceLimits = {
                 'min': None,
                 'max': None,
             }
             costLimits = {
-                'min': self.fromWei(self.safe_string(quoteToken, 'minAmount')),
-                'max': self.fromWei(self.safe_string(quoteToken, 'maxAmount')),
+                'min': self.fromWei(self.safe_string(quoteToken, 'minAmount'), 'ether', quoteDecimals),
+                'max': self.fromWei(self.safe_string(quoteToken, 'maxAmount'), 'ether', quoteDecimals),
             }
             limits = {
                 'amount': amountLimits,
@@ -201,13 +212,14 @@ class theocean (Exchange):
         return result
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
+        baseDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
         return [
             self.safe_integer(ohlcv, 'startTime') * 1000,
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.fromWei(self.safe_string(ohlcv, 'baseVolume')),
+            self.fromWei(self.safe_string(ohlcv, 'baseVolume'), 'ether', baseDecimals),
             # self.safe_string(ohlcv, 'quoteVolume'),
         ]
 
@@ -260,9 +272,10 @@ class theocean (Exchange):
         #
         #     {"available":"0","committed":"0","total":"0"}
         #
-        free = self.fromWei(self.safe_string(response, 'available'))
-        used = self.fromWei(self.safe_string(response, 'committed'))
-        total = self.fromWei(self.safe_string(response, 'total'))
+        decimals = self.safe_integer(self.options['decimals'], code, 18)
+        free = self.fromWei(self.safe_string(response, 'available'), 'ether', decimals)
+        used = self.fromWei(self.safe_string(response, 'committed'), 'ether', decimals)
+        total = self.fromWei(self.safe_string(response, 'total'), 'ether', decimals)
         return {
             'free': free,
             'used': used,
@@ -284,11 +297,32 @@ class theocean (Exchange):
             result[code] = await self.fetch_balance_by_code(code)
         return self.parse_balance(result)
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market=None):
+        if market is None:
+            raise ArgumentsRequired(self.id + ' parseBidAsk requires a market argument')
         price = float(bidask[priceKey])
-        amount = self.fromWei(bidask[amountKey])
+        amountDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
+        amount = self.fromWei(bidask[amountKey], 'ether', amountDecimals)
         # return [price, amount, bidask]
         return [price, amount]
+
+    def parse_order_book(self, orderbook, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market=None):
+        result = {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'nonce': None,
+        }
+        sides = [bidsKey, asksKey]
+        for i in range(0, len(sides)):
+            side = sides[i]
+            orders = []
+            bidasks = self.safe_value(orderbook, side)
+            for k in range(0, len(bidasks)):
+                orders.append(self.parse_bid_ask(bidasks[k], priceKey, amountKey, market))
+            result[side] = orders
+        result[bidsKey] = self.sort_by(result[bidsKey], 0, True)
+        result[asksKey] = self.sort_by(result[asksKey], 0)
+        return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -322,7 +356,7 @@ class theocean (Exchange):
         #       ]
         #     }
         #
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'availableAmount')
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'availableAmount', market)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -336,8 +370,12 @@ class theocean (Exchange):
         #
         timestamp = int(self.safe_float(ticker, 'timestamp') / 1000)
         symbol = None
+        base = None
         if market is not None:
             symbol = market['symbol']
+            base = market['base']
+        baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
+        baseVolume = self.fromWei(self.safe_string(ticker, 'volume'), 'ether', baseDecimals)
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -357,7 +395,7 @@ class theocean (Exchange):
             'change': None,
             'percentage': self.safe_float(ticker, 'priceChange'),
             'average': None,
-            'baseVolume': self.fromWei(self.safe_string(ticker, 'volume')),
+            'baseVolume': baseVolume,
             'quoteVolume': None,
             'info': ticker,
         }
@@ -435,9 +473,12 @@ class theocean (Exchange):
         orderId = self.safe_string(trade, 'order')
         id = self.safe_string_2(trade, 'transactionHash', 'txHash')
         symbol = None
+        base = None
         if market is not None:
             symbol = market['symbol']
-        amount = self.fromWei(self.safe_string(trade, 'amount'))
+            base = market['base']
+        baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
+        amount = self.fromWei(self.safe_string(trade, 'amount'), 'ether', baseDecimals)
         cost = None
         if amount is not None:
             if price is not None:
@@ -500,12 +541,13 @@ class theocean (Exchange):
         query = self.omit(params, 'makerOrTaker')
         timestamp = self.milliseconds()
         market = self.market(symbol)
+        baseDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
         reserveRequest = {
             'walletAddress': self.walletAddress.lower(),  # Your Wallet Address
             'baseTokenAddress': market['baseId'],  # Base token address
             'quoteTokenAddress': market['quoteId'],  # Quote token address
             'side': side,  # "buy" or "sell"
-            'orderAmount': self.toWei(self.amount_to_precision(symbol, amount)),  # Base token amount in wei
+            'orderAmount': self.toWei(self.amount_to_precision(symbol, amount), 'ether', baseDecimals),  # Base token amount in wei
             'feeOption': 'feeInNative',  # Fees can be paid in native currency("feeInNative"), or ZRX("feeInZRX")
         }
         if type == 'limit':
@@ -843,24 +885,27 @@ class theocean (Exchange):
         timestamp = self.safe_integer(order, 'created')
         timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
         symbol = None
-        if market is None:
-            baseId = self.safe_string(order, 'baseTokenAddress')
-            quoteId = self.safe_string(order, 'quoteTokenAddress')
+        baseId = self.safe_string(order, 'baseTokenAddress')
+        quoteId = self.safe_string(order, 'quoteTokenAddress')
+        marketId = None
+        if baseId is not None and quoteId is not None:
             marketId = baseId + '/' + quoteId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        market = self.safe_value(self.markets_by_id, marketId, market)
+        base = None
         if market is not None:
             symbol = market['symbol']
+            base = market['base']
+        baseDecimals = self.safe_integer(self.options['decimals'], base, 18)
         price = self.safe_float(order, 'price')
-        openAmount = self.fromWei(self.safe_string(order, 'openAmount'))
-        reservedAmount = self.fromWei(self.safe_string(order, 'reservedAmount'))
-        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'))
-        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'))
-        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'))
-        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'))
-        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'))
-        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'))
-        amount = self.fromWei(self.safe_string(order, 'amount'))
+        openAmount = self.fromWei(self.safe_string(order, 'openAmount'), 'ether', baseDecimals)
+        reservedAmount = self.fromWei(self.safe_string(order, 'reservedAmount'), 'ether', baseDecimals)
+        filledAmount = self.fromWei(self.safe_string(order, 'filledAmount'), 'ether', baseDecimals)
+        settledAmount = self.fromWei(self.safe_string(order, 'settledAmount'), 'ether', baseDecimals)
+        confirmedAmount = self.fromWei(self.safe_string(order, 'confirmedAmount'), 'ether', baseDecimals)
+        failedAmount = self.fromWei(self.safe_string(order, 'failedAmount'), 'ether', baseDecimals)
+        deadAmount = self.fromWei(self.safe_string(order, 'deadAmount'), 'ether', baseDecimals)
+        prunedAmount = self.fromWei(self.safe_string(order, 'prunedAmount'), 'ether', baseDecimals)
+        amount = self.fromWei(self.safe_string(order, 'amount'), 'ether', baseDecimals)
         if amount is None:
             amount = self.sum(openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount)
         filled = self.sum(filledAmount, settledAmount, confirmedAmount)
@@ -868,16 +913,15 @@ class theocean (Exchange):
         lastTradeTimestamp = None
         timeline = self.safe_value(order, 'timeline')
         trades = None
-        status = 'open'
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
-                status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
+                # status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
                     if amount is None:
-                        amount = self.fromWei(self.safe_string(placeEvents[0], 'amount'))
+                        amount = self.fromWei(self.safe_string(placeEvents[0], 'amount'), 'ether', baseDecimals)
                     timestamp = self.safe_integer(placeEvents[0], 'timestamp')
                     timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
                 else:
@@ -911,7 +955,7 @@ class theocean (Exchange):
             if price is not None:
                 cost = filled * price
         fee = None
-        feeCost = self.fromWei(self.safe_string(order, 'feeAmount'))
+        feeCost = self.safe_string(order, 'feeAmount')
         if feeCost is not None:
             feeOption = self.safe_string(order, 'feeOption')
             feeCurrency = None
@@ -922,10 +966,18 @@ class theocean (Exchange):
                 feeCurrency = 'ZRX'
             else:
                 raise NotSupported(self.id + ' encountered an unsupported order fee option: ' + feeOption)
+            feeDecimals = self.safe_integer(self.options['decimals'], feeCurrency, 18)
             fee = {
-                'сost': feeCost,
+                'сost': self.fromWei(feeCost, 'ether', feeDecimals),
                 'сurrency': feeCurrency,
             }
+        status = None
+        amountPrecision = market['precision']['amount'] if market else 8
+        if remaining is not None:
+            status = 'open'
+            rest = remaining - failedAmount - deadAmount - prunedAmount
+            if rest < math.pow(10, -amountPrecision):
+                status = 'canceled' if (filled < amount) else 'closed'
         result = {
             'info': order,
             'id': id,

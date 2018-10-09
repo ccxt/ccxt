@@ -272,6 +272,7 @@ module.exports = class btcalpha extends Exchange {
         let trades = this.safeValue (order, 'trades');
         if (trades)
             trades = this.parseTrades (trades, market);
+        const side = this.safeString2 (order, 'my_side', 'type');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -279,7 +280,7 @@ module.exports = class btcalpha extends Exchange {
             'status': this.safeString (statuses, status),
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,

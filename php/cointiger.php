@@ -96,8 +96,8 @@ class cointiger extends huobipro {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => 0.0008,
+                    'taker' => 0.0015,
                 ),
             ),
             'exceptions' => array (
@@ -342,7 +342,11 @@ class cointiger extends huobipro {
         if ($feeCost !== null) {
             $feeCurrency = null;
             if ($market !== null) {
-                $feeCurrency = $market['base'];
+                if ($side === 'buy') {
+                    $feeCurrency = $market['base'];
+                } else if ($side === 'sell') {
+                    $feeCurrency = $market['quote'];
+                }
             }
             $fee = array (
                 'cost' => $feeCost,
@@ -388,7 +392,7 @@ class cointiger extends huobipro {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($limit === null)
@@ -454,7 +458,7 @@ class cointiger extends huobipro {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrderTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -484,7 +488,7 @@ class cointiger extends huobipro {
 
     public function fetch_orders_by_status_v1 ($status = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($limit === null)
@@ -564,7 +568,7 @@ class cointiger extends huobipro {
         //                    status =>  2              } }
         //
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -781,7 +785,7 @@ class cointiger extends huobipro {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $market = $this->market ($symbol);
         $response = $this->privateDeleteOrder (array_merge (array (
             'symbol' => $market['id'],
@@ -797,7 +801,7 @@ class cointiger extends huobipro {
     public function cancel_orders ($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrders requires a $symbol argument');
         $market = $this->market ($symbol);
         $marketId = $market['id'];
         $orderIdList = array ();
@@ -883,6 +887,8 @@ class cointiger extends huobipro {
                                     throw new ExchangeError ($feedback);
                                 } else if ($message === 'api_keyNot EXIST') {
                                     throw new AuthenticationError ($feedback);
+                                } else if ($message === 'price precision exceed the limit') {
+                                    throw new InvalidOrder ($feedback);
                                 } else if ($message === 'Parameter error') {
                                     throw new BadRequest ($feedback);
                                 }

@@ -6,7 +6,9 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 
 
 class zaif (Exchange):
@@ -99,6 +101,13 @@ class zaif (Exchange):
                         'trades/{group_id}/{pair}',
                         'depth/{group_id}/{pair}',
                     ],
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
+                },
+                'broad': {
                 },
             },
         })
@@ -369,11 +378,24 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + response['error'])
-        if 'success' in response:
-            if not response['success']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not self.is_json_encoded_object(body):
+            return  # fallback to default error handler
+        response = json.loads(body)
+        #
+        #     {"error": "unsupported currency_pair"}
+        #
+        feedback = self.id + ' ' + body
+        error = self.safe_string(response, 'error')
+        if error is not None:
+            exact = self.exceptions['exact']
+            if error in exact:
+                raise exact[error](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, error)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            raise ExchangeError(feedback)

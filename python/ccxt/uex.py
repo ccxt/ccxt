@@ -15,6 +15,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -92,7 +93,7 @@ class uex (Exchange):
                     'tierBased': False,
                     'percentage': True,
                     'maker': 0.0010,
-                    'taker': 0.0015,
+                    'taker': 0.0010,
                 },
             },
             'exceptions': {
@@ -415,12 +416,13 @@ class uex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float_2(trade, 'deal_price', 'price')
+        price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'volume', 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        cost = self.safe_float(trade, 'deal_price')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = amount * price
         fee = None
         feeCost = self.safe_float_2(trade, 'fee', 'deal_fee')
         if feeCost is not None:
@@ -744,7 +746,7 @@ class uex (Exchange):
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrdersWithMethod() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -844,7 +846,7 @@ class uex (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

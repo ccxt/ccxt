@@ -448,7 +448,6 @@ module.exports = class bittrex extends Exchange {
             if (response['result'])
                 return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
         }
-        throw new ExchangeError (this.id + ' returned an empty or unrecognized response: ' + this.json (response));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -672,7 +671,7 @@ module.exports = class bittrex extends Exchange {
         if (!address || message === 'ADDRESS_GENERATING')
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
         let tag = undefined;
-        if ((code === 'XRP') || (code === 'XLM')) {
+        if ((code === 'XRP') || (code === 'XLM') || (code === 'LSK')) {
             tag = address;
             address = currency['address'];
         }

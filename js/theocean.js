@@ -1,10 +1,11 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, OrderNotFound, NotSupported, OrderImmediatelyFillable, OrderNotFillable, InvalidAddress, InsufficientFunds } = require ('./base/errors');
 
 module.exports = class theocean extends Exchange {
     describe () {
+        this.checkRequiredDependencies ();
         return this.deepExtend (super.describe (), {
             'id': 'theocean',
             'name': 'The Ocean',
@@ -25,6 +26,7 @@ module.exports = class theocean extends Exchange {
                 'CORS': false, // ?
                 'fetchTickers': true,
                 'fetchOHLCV': false,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
             },
@@ -81,9 +83,11 @@ module.exports = class theocean extends Exchange {
                     'Fillable amount under minimum': InvalidOrder, // {"message":"Fillable amount under minimum WETH trade size.","type":"paramQuoteTokenAmount"}
                     'Fillable amount over maximum': InvalidOrder, // {"message":"Fillable amount over maximum TUSD trade size.","type":"paramQuoteTokenAmount"}
                     "Schema validation failed for 'params'": BadRequest, // // {"message":"Schema validation failed for 'params'"}
+                    'Service Temporarily Unavailable': ExchangeNotAvailable,
                 },
             },
             'options': {
+                'decimals': {},
                 'fetchOrderMethod': 'fetch_order_from_history',
             },
         });
@@ -144,21 +148,25 @@ module.exports = class theocean extends Exchange {
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let id = baseId + '/' + quoteId;
+            let baseDecimals = this.safeInteger (baseToken, 'decimals');
+            let quoteDecimals = this.safeInteger (quoteToken, 'decimals');
+            this.options['decimals'][base] = baseDecimals;
+            this.options['decimals'][quote] = quoteDecimals;
             let precision = {
-                'amount': this.safeInteger (baseToken, 'precision'),
-                'price': this.safeInteger (quoteToken, 'precision'),
+                'amount': -parseInt (baseToken['precision']),
+                'price': -parseInt (quoteToken['precision']),
             };
             let amountLimits = {
-                'min': this.fromWei (this.safeString (baseToken, 'minAmount')),
-                'max': this.fromWei (this.safeString (baseToken, 'maxAmount')),
+                'min': this.fromWei (this.safeString (baseToken, 'minAmount'), 'ether', baseDecimals),
+                'max': this.fromWei (this.safeString (baseToken, 'maxAmount'), 'ether', baseDecimals),
             };
             let priceLimits = {
                 'min': undefined,
                 'max': undefined,
             };
             let costLimits = {
-                'min': this.fromWei (this.safeString (quoteToken, 'minAmount')),
-                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount')),
+                'min': this.fromWei (this.safeString (quoteToken, 'minAmount'), 'ether', quoteDecimals),
+                'max': this.fromWei (this.safeString (quoteToken, 'maxAmount'), 'ether', quoteDecimals),
             };
             let limits = {
                 'amount': amountLimits,
@@ -183,13 +191,14 @@ module.exports = class theocean extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
+        let baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         return [
             this.safeInteger (ohlcv, 'startTime') * 1000,
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.fromWei (this.safeString (ohlcv, 'baseVolume')),
+            this.fromWei (this.safeString (ohlcv, 'baseVolume'), 'ether', baseDecimals),
             // this.safeString (ohlcv, 'quoteVolume'),
         ];
     }
@@ -246,9 +255,10 @@ module.exports = class theocean extends Exchange {
         //
         //     {"available":"0","committed":"0","total":"0"}
         //
-        let free = this.fromWei (this.safeString (response, 'available'));
-        let used = this.fromWei (this.safeString (response, 'committed'));
-        let total = this.fromWei (this.safeString (response, 'total'));
+        let decimals = this.safeInteger (this.options['decimals'], code, 18);
+        let free = this.fromWei (this.safeString (response, 'available'), 'ether', decimals);
+        let used = this.fromWei (this.safeString (response, 'committed'), 'ether', decimals);
+        let total = this.fromWei (this.safeString (response, 'total'), 'ether', decimals);
         return {
             'free': free,
             'used': used,
@@ -275,11 +285,36 @@ module.exports = class theocean extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1, market = undefined) {
+        if (market === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
+        }
         let price = parseFloat (bidask[priceKey]);
-        let amount = this.fromWei (bidask[amountKey]);
+        let amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
+        let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
         // return [ price, amount, bidask ];
         return [ price, amount ];
+    }
+
+    parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+        let result = {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        };
+        let sides = [ bidsKey, asksKey ];
+        for (let i = 0; i < sides.length; i++) {
+            let side = sides[i];
+            let orders = [];
+            let bidasks = this.safeValue (orderbook, side);
+            for (let k = 0; k < bidasks.length; k++) {
+                orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
+            }
+            result[side] = orders;
+        }
+        result[bidsKey] = this.sortBy (result[bidsKey], 0, true);
+        result[asksKey] = this.sortBy (result[asksKey], 0);
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -315,7 +350,7 @@ module.exports = class theocean extends Exchange {
         //       ]
         //     }
         //
-        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount');
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'availableAmount', market);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -330,9 +365,13 @@ module.exports = class theocean extends Exchange {
         //
         let timestamp = parseInt (this.safeFloat (ticker, 'timestamp') / 1000);
         let symbol = undefined;
+        let base = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            base = market['base'];
         }
+        let baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
+        let baseVolume = this.fromWei (this.safeString (ticker, 'volume'), 'ether', baseDecimals);
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -352,7 +391,7 @@ module.exports = class theocean extends Exchange {
             'change': undefined,
             'percentage': this.safeFloat (ticker, 'priceChange'),
             'average': undefined,
-            'baseVolume': this.fromWei (this.safeString (ticker, 'volume')),
+            'baseVolume': baseVolume,
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -437,10 +476,13 @@ module.exports = class theocean extends Exchange {
         let orderId = this.safeString (trade, 'order');
         let id = this.safeString2 (trade, 'transactionHash', 'txHash');
         let symbol = undefined;
+        let base = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            base = market['base'];
         }
-        let amount = this.fromWei (this.safeString (trade, 'amount'));
+        let baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
+        let amount = this.fromWei (this.safeString (trade, 'amount'), 'ether', baseDecimals);
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -510,12 +552,13 @@ module.exports = class theocean extends Exchange {
         let query = this.omit (params, 'makerOrTaker');
         let timestamp = this.milliseconds ();
         let market = this.market (symbol);
+        let baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         let reserveRequest = {
             'walletAddress': this.walletAddress.toLowerCase (), // Your Wallet Address
             'baseTokenAddress': market['baseId'], // Base token address
             'quoteTokenAddress': market['quoteId'], // Quote token address
             'side': side, // "buy" or "sell"
-            'orderAmount': this.toWei (this.amountToPrecision (symbol, amount)), // Base token amount in wei
+            'orderAmount': this.toWei (this.amountToPrecision (symbol, amount), 'ether', baseDecimals), // Base token amount in wei
             'feeOption': 'feeInNative', // Fees can be paid in native currency ("feeInNative"), or ZRX ("feeInZRX")
         };
         if (type === 'limit') {
@@ -867,27 +910,29 @@ module.exports = class theocean extends Exchange {
         let timestamp = this.safeInteger (order, 'created');
         timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
-        if (market === undefined) {
-            let baseId = this.safeString (order, 'baseTokenAddress');
-            let quoteId = this.safeString (order, 'quoteTokenAddress');
-            let marketId = baseId + '/' + quoteId;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+        let baseId = this.safeString (order, 'baseTokenAddress');
+        let quoteId = this.safeString (order, 'quoteTokenAddress');
+        let marketId = undefined;
+        if (baseId !== undefined && quoteId !== undefined) {
+            marketId = baseId + '/' + quoteId;
         }
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let base = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            base = market['base'];
         }
+        let baseDecimals = this.safeInteger (this.options['decimals'], base, 18);
         let price = this.safeFloat (order, 'price');
-        let openAmount = this.fromWei (this.safeString (order, 'openAmount'));
-        let reservedAmount = this.fromWei (this.safeString (order, 'reservedAmount'));
-        let filledAmount = this.fromWei (this.safeString (order, 'filledAmount'));
-        let settledAmount = this.fromWei (this.safeString (order, 'settledAmount'));
-        let confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'));
-        let failedAmount = this.fromWei (this.safeString (order, 'failedAmount'));
-        let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'));
-        let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'));
-        let amount = this.fromWei (this.safeString (order, 'amount'));
+        let openAmount = this.fromWei (this.safeString (order, 'openAmount'), 'ether', baseDecimals);
+        let reservedAmount = this.fromWei (this.safeString (order, 'reservedAmount'), 'ether', baseDecimals);
+        let filledAmount = this.fromWei (this.safeString (order, 'filledAmount'), 'ether', baseDecimals);
+        let settledAmount = this.fromWei (this.safeString (order, 'settledAmount'), 'ether', baseDecimals);
+        let confirmedAmount = this.fromWei (this.safeString (order, 'confirmedAmount'), 'ether', baseDecimals);
+        let failedAmount = this.fromWei (this.safeString (order, 'failedAmount'), 'ether', baseDecimals);
+        let deadAmount = this.fromWei (this.safeString (order, 'deadAmount'), 'ether', baseDecimals);
+        let prunedAmount = this.fromWei (this.safeString (order, 'prunedAmount'), 'ether', baseDecimals);
+        let amount = this.fromWei (this.safeString (order, 'amount'), 'ether', baseDecimals);
         if (amount === undefined) {
             amount = this.sum (openAmount, reservedAmount, filledAmount, settledAmount, confirmedAmount, failedAmount, deadAmount, prunedAmount);
         }
@@ -896,16 +941,15 @@ module.exports = class theocean extends Exchange {
         let lastTradeTimestamp = undefined;
         let timeline = this.safeValue (order, 'timeline');
         let trades = undefined;
-        let status = 'open';
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
-                status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
+                // status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
                     if (amount === undefined) {
-                        amount = this.fromWei (this.safeString (placeEvents[0], 'amount'));
+                        amount = this.fromWei (this.safeString (placeEvents[0], 'amount'), 'ether', baseDecimals);
                     }
                     timestamp = this.safeInteger (placeEvents[0], 'timestamp');
                     timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
@@ -951,7 +995,7 @@ module.exports = class theocean extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.fromWei (this.safeString (order, 'feeAmount'));
+        let feeCost = this.safeString (order, 'feeAmount');
         if (feeCost !== undefined) {
             let feeOption = this.safeString (order, 'feeOption');
             let feeCurrency = undefined;
@@ -964,10 +1008,20 @@ module.exports = class theocean extends Exchange {
             } else {
                 throw new NotSupported (this.id + ' encountered an unsupported order fee option: ' + feeOption);
             }
+            let feeDecimals = this.safeInteger (this.options['decimals'], feeCurrency, 18);
             fee = {
-                'сost': feeCost,
+                'сost': this.fromWei (feeCost, 'ether', feeDecimals),
                 'сurrency': feeCurrency,
             };
+        }
+        let status = undefined;
+        let amountPrecision = market ? market['precision']['amount'] : 8;
+        if (remaining !== undefined) {
+            status = 'open';
+            const rest = remaining - failedAmount - deadAmount - prunedAmount;
+            if (rest < Math.pow (10, -amountPrecision)) {
+                status = (filled < amount) ? 'canceled' : 'closed';
+            }
         }
         let result = {
             'info': order,

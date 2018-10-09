@@ -95,8 +95,8 @@ module.exports = class cointiger extends huobipro {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': 0.0008,
+                    'taker': 0.0015,
                 },
             },
             'exceptions': {
@@ -341,7 +341,11 @@ module.exports = class cointiger extends huobipro {
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
             if (market !== undefined) {
-                feeCurrency = market['base'];
+                if (side === 'buy') {
+                    feeCurrency = market['base'];
+                } else if (side === 'sell') {
+                    feeCurrency = market['quote'];
+                }
             }
             fee = {
                 'cost': feeCost,
@@ -387,7 +391,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (limit === undefined)
@@ -453,7 +457,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrderTrades requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -483,7 +487,7 @@ module.exports = class cointiger extends huobipro {
 
     async fetchOrdersByStatusV1 (status = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (limit === undefined)
@@ -563,7 +567,7 @@ module.exports = class cointiger extends huobipro {
         //                    status:  2              } }
         //
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -780,7 +784,7 @@ module.exports = class cointiger extends huobipro {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateDeleteOrder (this.extend ({
             'symbol': market['id'],
@@ -796,7 +800,7 @@ module.exports = class cointiger extends huobipro {
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined)
-            throw new ExchangeError (this.id + ' cancelOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrders requires a symbol argument');
         let market = this.market (symbol);
         let marketId = market['id'];
         let orderIdList = {};
@@ -882,6 +886,8 @@ module.exports = class cointiger extends huobipro {
                                     throw new ExchangeError (feedback);
                                 } else if (message === 'api_keyNot EXIST') {
                                     throw new AuthenticationError (feedback);
+                                } else if (message === 'price precision exceed the limit') {
+                                    throw new InvalidOrder (feedback);
                                 } else if (message === 'Parameter error') {
                                     throw new BadRequest (feedback);
                                 }

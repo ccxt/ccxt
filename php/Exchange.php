@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.308';
+$version = '1.17.375';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.308';
+    const VERSION = '1.17.375';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -178,6 +178,7 @@ class Exchange {
         'lakebtc',
         'lbank',
         'liqui',
+        'liquid',
         'livecoin',
         'luno',
         'lykke',
@@ -643,9 +644,9 @@ class Exchange {
     }
 
     public static function is_json_encoded_object ($input) {
-        return (gettype ($body) === 'string') &&
-                (strlen ($body) >= 2) &&
-                (($body[0] === '{') || ($body[0] === '['));
+        return (gettype ($input) === 'string') &&
+                (strlen ($input) >= 2) &&
+                (($input[0] === '{') || ($input[0] === '['));
     }
 
     public static function encode ($input) {
@@ -1894,22 +1895,6 @@ class Exchange {
         return $this->safe_string($currencyIds, $commonCode, $commonCode);
     }
 
-    public function fromWei ($amount, $unit = 'ether') {
-        if (!isset (Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
-        }
-        $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
-        return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
-    }
-
-    public function toWei ($amount, $unit = 'ether') {
-        if (!isset (Exchange::$eth_units[$unit])) {
-            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
-        }
-        return (string) (int) (($unit === 'wei') ? $amount : bcmul ($amount, Exchange::$eth_units[$unit]));
-    }
-
-
     public function precision_from_string ($string) {
         $parts = explode ('.', preg_replace ('/0+$/', '', $string));
         return (count ($parts) > 1) ? strlen ($parts[1]) : 0;
@@ -2177,6 +2162,80 @@ class Exchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
+    public function check_required_dependencies () {
+        // PHP version of this function does nothing, as most of its
+        // dependencies are very lighweight and don't eat a lot
+    }
+
+    public function eth_decimals ($unit = 'ether') {
+        $units = array (
+            'wei' => 0,          // 1
+            'kwei' => 3,         // 1000
+            'babbage' => 3,      // 1000
+            'femtoether' => 3,   // 1000
+            'mwei' => 6,         // 1000000
+            'lovelace' => 6,     // 1000000
+            'picoether' => 6,    // 1000000
+            'gwei' => 9,         // 1000000000
+            'shannon' => 9,      // 1000000000
+            'nanoether' => 9,    // 1000000000
+            'nano' => 9,         // 1000000000
+            'szabo' => 12,       // 1000000000000
+            'microether' => 12,  // 1000000000000
+            'micro' => 12,       // 1000000000000
+            'finney' => 15,      // 1000000000000000
+            'milliether' => 15,  // 1000000000000000
+            'milli' => 15,       // 1000000000000000
+            'ether' => 18,       // 1000000000000000000
+            'kether' => 21,      // 1000000000000000000000
+            'grand' => 21,       // 1000000000000000000000
+            'mether' => 24,      // 1000000000000000000000000
+            'gether' => 27,      // 1000000000000000000000000000
+            'tether' => 30,      // 1000000000000000000000000000000
+        );
+        return $this->safe_value ($units, $unit);
+    }
+
+    public function ethDecimals ($unit = 'ether') {
+        return $this->eth_decimals ($unit);
+    }
+
+    public function eth_unit ($decimals = 18) {
+        $units = array (
+            0 => 'wei',      // 1000000000000000000
+            3 => 'kwei',     // 1000000000000000
+            6 => 'mwei',     // 1000000000000
+            9 => 'gwei',     // 1000000000
+            12 => 'szabo',   // 1000000
+            15 => 'finney',  // 1000
+            18 => 'ether',   // 1
+            21 => 'kether',  // 0.001
+            24 => 'mether',  // 0.000001
+            27 => 'gether',  // 0.000000001
+            30 => 'tether',  // 0.000000000001
+        );
+        return $this->safe_value ($units, (int) $decimals);
+    }
+
+    public function ethUnit ($decimals = 18) {
+        return $this->eth_unit ($decimals);
+    }
+
+    public function fromWei ($amount, $unit = 'ether', $decimals = 18) {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Uknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        $denominator = substr_count (Exchange::$eth_units[$unit], 0) + strlen ($amount) - strpos ($amount, '.') - 1;
+        return (float) (($unit === 'wei') ? $amount : bcdiv ($amount, Exchange::$eth_units[$unit], $denominator));
+    }
+
+    public function toWei ($amount, $unit = 'ether', $decimals = 18) {
+        if (!isset (Exchange::$eth_units[$unit])) {
+            throw new \UnexpectedValueException ("Unknown unit '" . $unit . "', supported units: " . implode (', ', array_keys (Exchange::$eth_units)));
+        }
+        return (string) (int) (($unit === 'wei') ? $amount : bcmul ($amount, Exchange::$eth_units[$unit]));
+    }
+
     // decryptAccountFromJSON (json, password) {
     //     return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
     // }
@@ -2240,9 +2299,9 @@ class Exchange {
         return call_user_func_array('\kornrunner\Solidity::sha3', $unpacked);
     }
 
-    public function signZeroExOrder ($order) {
+    public function signZeroExOrder ($order, $privateKey) {
         $orderHash = $this->getZeroExOrderHash ($order);
-        $signature = $this->signMessage ($orderHash, $this->privateKey);
+        $signature = $this->signMessage ($orderHash, privateKey);
         return array_merge ($order, array (
             'orderHash' => $orderHash,
             'ecSignature' => $signature, // todo fix v if needed

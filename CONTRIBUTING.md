@@ -78,6 +78,7 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
+  - tox (`brew install tox` or `pip install tox`)
 - [PHP](http://php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv

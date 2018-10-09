@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
     describe () {
@@ -74,14 +74,33 @@ module.exports = class liqui extends Exchange {
                 'DSH': 'DASH',
             },
             'exceptions': {
-                '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                    '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                    '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                    '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                    '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                    '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                    '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                    '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
+            },
+            'options': {
+                'fetchOrderMethod': 'privatePostOrderInfo',
+                'fetchMyTradesMethod': 'privatePostTradeHistory',
+                'cancelOrderMethod': 'privatePostCancelOrder',
             },
         });
     }
@@ -104,14 +123,6 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    getBaseQuoteFromMarketId (id) {
-        let uppercase = id.toUpperCase ();
-        let [ base, quote ] = uppercase.split ('_');
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
-    }
-
     async fetchMarkets () {
         let response = await this.publicGetInfo ();
         let markets = response['pairs'];
@@ -120,7 +131,11 @@ module.exports = class liqui extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
-            let [ base, quote ] = this.getBaseQuoteFromMarketId (id);
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
             let precision = {
                 'amount': this.safeInteger (market, 'decimal_places'),
@@ -149,6 +164,8 @@ module.exports = class liqui extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': market['fee'] / 100,
                 'precision': precision,
@@ -236,6 +253,17 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //   {    high: 0.03497582,
+        //         low: 0.03248474,
+        //         avg: 0.03373028,
+        //         vol: 120.11485715062999,
+        //     vol_cur: 3572.24914074,
+        //        last: 0.0337611,
+        //         buy: 0.0337442,
+        //        sell: 0.03377798,
+        //     updated: 1537522009          }
+        //
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
         if (market !== undefined) {
@@ -305,39 +333,57 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
-        let side = trade['type'];
-        if (side === 'ask')
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let side = this.safeString (trade, 'type');
+        if (side === 'ask') {
             side = 'sell';
-        if (side === 'bid')
+        } else if (side === 'bid') {
             side = 'buy';
-        let price = this.safeFloat (trade, 'price');
-        if ('rate' in trade) {
-            price = this.safeFloat (trade, 'rate');
         }
-        let id = this.safeString (trade, 'tid');
-        if ('trade_id' in trade) {
-            id = this.safeString (trade, 'trade_id');
-        }
+        let price = this.safeFloat2 (trade, 'rate', 'price');
+        let id = this.safeString2 (trade, 'trade_id', 'tid');
         let order = this.safeString (trade, this.getOrderIdKey ());
         if ('pair' in trade) {
-            let marketId = trade['pair'];
-            market = this.markets_by_id[marketId];
+            let marketId = this.safeString (trade, 'pair');
+            market = this.safeValue (this.markets_by_id, marketId, market);
         }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let amount = trade['amount'];
+        let amount = this.safeFloat (trade, 'amount');
         let type = 'limit'; // all trades are still limit trades
+        let takerOrMaker = undefined;
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            feeCurrencyId = feeCurrencyId.toUpperCase ();
+            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            } else {
+                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         let isYourOrder = this.safeValue (trade, 'is_your_order');
-        let takerOrMaker = 'taker';
         if (isYourOrder !== undefined) {
+            takerOrMaker = 'taker';
             if (isYourOrder) {
                 takerOrMaker = 'maker';
             }
+            if (fee === undefined) {
+                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+            }
         }
-        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
         return {
             'id': id,
             'order': order,
@@ -346,6 +392,7 @@ module.exports = class liqui extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
@@ -431,7 +478,8 @@ module.exports = class liqui extends Exchange {
         let request = {};
         let idKey = this.getOrderIdKey ();
         request[idKey] = id;
-        let response = await this.privatePostCancelOrder (this.extend (request, params));
+        let method = this.options['cancelOrderMethod'];
+        let response = await this[method] (this.extend (request, params));
         if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
         }
@@ -516,9 +564,11 @@ module.exports = class liqui extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
+        let request = {};
+        let idKey = this.getOrderIdKey ();
+        request[idKey] = parseInt (id);
+        let method = this.options['fetchOrderMethod'];
+        let response = await this[method] (this.extend (request, params));
         id = id.toString ();
         let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
         let oldOrder = (id in this.orders) ? this.orders[id] : {};
@@ -571,7 +621,7 @@ module.exports = class liqui extends Exchange {
         if ('fetchOrdersRequiresSymbol' in this.options)
             if (this.options['fetchOrdersRequiresSymbol'])
                 if (symbol === undefined)
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -602,6 +652,7 @@ module.exports = class liqui extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
+        // some derived classes use camelcase notation for request fields
         let request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
@@ -622,7 +673,8 @@ module.exports = class liqui extends Exchange {
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
-        let response = await this.privatePostTradeHistory (this.extend (request, params));
+        let method = this.options['fetchMyTradesMethod'];
+        let response = await this[method] (this.extend (request, params));
         let trades = [];
         if ('return' in response) {
             trades = response['return'];
@@ -652,10 +704,15 @@ module.exports = class liqui extends Exchange {
         return '/' + this.version;
     }
 
+    getPrivatePath (path, params) {
+        return '';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
+            url += this.getPrivatePath (path, params);
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             body = this.urlencode (this.extend ({
@@ -736,33 +793,16 @@ module.exports = class liqui extends Exchange {
                     const code = this.safeString (response, 'code');
                     const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
+                    const exact = this.exceptions['exact'];
+                    if (code in exact) {
+                        throw new exact[code] (feedback);
                     }
-                    // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if (message === 'invalid api key') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'invalid sign') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'api key dont have trade permission') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'invalid order') {
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'Requests too often') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'not available') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'data unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else if (message === 'external service unavailable') {
-                        throw new ExchangeNotAvailable (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
+                    const broad = this.exceptions['broad'];
+                    const broadKey = this.findBroadlyMatchedKey (broad, message);
+                    if (broadKey !== undefined) {
+                        throw new broad[broadKey] (feedback);
                     }
+                    throw new ExchangeError (feedback); // unknown message
                 }
             }
         }

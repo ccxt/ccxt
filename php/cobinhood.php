@@ -524,7 +524,7 @@ class cobinhood extends Exchange {
         $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
             'price' => $this->price_to_precision($symbol, $price),
-            'size' => $this->amountToString ($symbol, $amount),
+            'size' => $this->amount_to_precision($symbol, $amount),
         ), $params));
         return $this->parse_order(array_merge ($response, array (
             'id' => $id,

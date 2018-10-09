@@ -8,6 +8,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -57,6 +58,7 @@ class okcoinusd (Exchange):
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
+                        'spot/user-level',
                     ],
                 },
                 'public': {
@@ -539,13 +541,13 @@ class okcoinusd (Exchange):
         volumeIndex = 6 if (numElements > 6) else 5
         return [
             ohlcv[0],  # timestamp
-            ohlcv[1],  # Open
-            ohlcv[2],  # High
-            ohlcv[3],  # Low
-            ohlcv[4],  # Close
-            # ohlcv[5],  # quote volume
-            # ohlcv[6],  # base volume
-            ohlcv[volumeIndex],  # okex will return base volume in the 7th element for future markets
+            float(ohlcv[1]),  # Open
+            float(ohlcv[2]),  # High
+            float(ohlcv[3]),  # Low
+            float(ohlcv[4]),  # Close
+            # float(ohlcv[5]),  # quote volume
+            # float(ohlcv[6]),  # base volume
+            float(ohlcv[volumeIndex]),  # okex will return base volume in the 7th element for future markets
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -659,7 +661,7 @@ class okcoinusd (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

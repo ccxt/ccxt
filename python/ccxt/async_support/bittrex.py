@@ -442,7 +442,6 @@ class bittrex (Exchange):
         if 'result' in response:
             if response['result']:
                 return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
-        raise ExchangeError(self.id + ' returned an empty or unrecognized response: ' + self.json(response))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -641,7 +640,7 @@ class bittrex (Exchange):
         if not address or message == 'ADDRESS_GENERATING':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
-        if (code == 'XRP') or (code == 'XLM'):
+        if (code == 'XRP') or (code == 'XLM') or (code == 'LSK'):
             tag = address
             address = currency['address']
         self.check_address(address)

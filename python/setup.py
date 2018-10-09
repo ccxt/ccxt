@@ -75,7 +75,6 @@ setup(
             'aiohttp>=3.0.1',
             'aiodns==1.1.1',
             'yarl==1.1.0',
-            'web3==4.6.0',
         ],
         'qa': [
             'flake8==3.5.0'
