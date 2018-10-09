@@ -745,10 +745,15 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    parseTransactions (transactions, currency_code = undefined, type = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency_code, type));
+    parseTransactions (transactions, currencyCode = undefined, type = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            let transaction = transactions[i];
+            let newTransaction = this.parseTransaction (transaction, currencyCode, type);
+            result.push (newTransaction);
+        }
         result = this.sortBy (result, 'timestamp');
-        let code = currency_code;
+        let code = currencyCode;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
