@@ -852,7 +852,7 @@ module.exports = class kraken extends Exchange {
         return response['result'];
     }
 
-    async fetchWithdrawals (code, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostWithdrawStatus (this.extend ({
@@ -862,7 +862,7 @@ module.exports = class kraken extends Exchange {
         return this.parseTransactions (result, code, 'withdrawal');
     }
 
-    async fetchDeposits (code, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostDepositStatus (this.extend ({
