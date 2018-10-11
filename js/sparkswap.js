@@ -63,8 +63,8 @@ module.exports = class sparkswap extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'www': 'https://www.sparkswap.com',
-                'doc': 'https://docs.sparkswap.com',
+                'www': 'https://sparkswap.com',
+                'doc': 'https://sparkswap.com/docs',
             },
             'api': {
                 'public': {
