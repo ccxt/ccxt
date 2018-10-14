@@ -129,6 +129,18 @@ module.exports = class gdax extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'Insufficient funds': InsufficientFunds,
+                    'NotFound': OrderNotFound,
+                    'Invalid API Key': AuthenticationError,
+                },
+                'broad': {
+                    'order not found': OrderNotFound,
+                    'price too small': InvalidOrder,
+                    'price too precise': InvalidOrder,
+                },
+            }
         });
     }
 
@@ -709,19 +721,17 @@ module.exports = class gdax extends Exchange {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
-                let error = this.id + ' ' + message;
-                if (message.indexOf ('price too small') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (message.indexOf ('price too precise') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (message === 'Insufficient funds') {
-                    throw new InsufficientFunds (error);
-                } else if (message === 'NotFound') {
-                    throw new OrderNotFound (error);
-                } else if (message === 'Invalid API Key') {
-                    throw new AuthenticationError (error);
+                let feedback = this.id + ' ' + message;
+                const exact = this.exceptions['exact'];
+                if (message in exact) {
+                    throw new exact[code] (feedback);
                 }
-                throw new ExchangeError (this.id + ' ' + message);
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+                throw new ExchangeError (feedback); // unknown message
             }
             throw new ExchangeError (this.id + ' ' + body);
         }
