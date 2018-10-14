@@ -100,7 +100,7 @@ module.exports = class poloniex extends Exchange {
             'wsconf': {
                 'conx-tpls': {
                     'default': {
-                        'type': 'ws-s',
+                        'type': 'ws',
                         'baseurl': 'wss://api2.poloniex.com',
                     },
                 },
@@ -1056,90 +1056,92 @@ module.exports = class poloniex extends Exchange {
         // Poloniex calls this Price Aggregated Book
         let channelId = data[0];
         let sequenceNumber = data[1];
-        let orderbook = data[2];
-        let symbol = this.findSymbol (channelId.toString ());
-        let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
-        // Check if this is the first response which contains full current orderbook
-        if (orderbook[0][0] == 'i') {
-            let currencyPair = orderbook[0][1]['currencyPair'];
-            let fullOrderbook = orderbook[0][1]['orderBook'];
-            let asks = [];
-            let bids = [];
-            let keys = [];
-            let i = 0;
-            keys = Object.keys (fullOrderbook[0]);
-            for (i = 0; i < keys.length; i++) {
-                asks.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[0][keys[i]])]);
-            }
-            keys = Object.keys (fullOrderbook[1]);
-            for (i = 0; i < keys.length; i++) {
-                bids.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[1][keys[i]])]);
-            }
-            fullOrderbook = {
-                'asks': asks,
-                'bids': bids,
-                'isFrozen': 0,
-                'seq': sequenceNumber
-            };
-            // I decided not to push the initial orderbook to cache. 
-            // This way is less consistent but I think it's easier.
-            fullOrderbook = this.parseOrderBook (fullOrderbook);
-            fullOrderbook = this._cloneOrderBook (fullOrderbook, symbolData['limit']);
-            fullOrderbook['obLastSequenceNumber'] = sequenceNumber;
-            symbolData['ob'] = fullOrderbook;
-            this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
-            this.emit ('ob', symbol, symbolData['ob']);
-        } else {
-            let order = undefined;
-            let orderbookDelta = {
-                'asks': [],
-                'bids': [], 
-                'seq': sequenceNumber
-            };
-            let price = 0.0;
-            let amount = 0.0;
-            let i = 0;
-            for (i = 0; i < orderbook.length; i++) {
-                order = orderbook[i];
-                if (order[0] === 'o') {
-                    price = parseFloat (order[2]);
-                    amount = parseFloat (order[3]);
-                    if (order[1] === 0) {
-                        // sell order
-                        orderbookDelta['asks'].push ([price, amount]);
-                    } else if (order[1] === 1) {
-                        // buy order
-                        orderbookDelta['bids'].push ([price, amount]);
+        if (data.length > 2) {
+            let orderbook = data[2];
+            let symbol = this.findSymbol (channelId.toString ());
+            let symbolData = this._contextGetSymbolData (contextId, 'ob', symbol);
+            // Check if this is the first response which contains full current orderbook
+            if (orderbook[0][0] == 'i') {
+                let currencyPair = orderbook[0][1]['currencyPair'];
+                let fullOrderbook = orderbook[0][1]['orderBook'];
+                let asks = [];
+                let bids = [];
+                let keys = [];
+                let i = 0;
+                keys = Object.keys (fullOrderbook[0]);
+                for (i = 0; i < keys.length; i++) {
+                    asks.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[0][keys[i]])]);
+                }
+                keys = Object.keys (fullOrderbook[1]);
+                for (i = 0; i < keys.length; i++) {
+                    bids.push ([parseFloat (keys[i]),parseFloat (fullOrderbook[1][keys[i]])]);
+                }
+                fullOrderbook = {
+                    'asks': asks,
+                    'bids': bids,
+                    'isFrozen': 0,
+                    'seq': sequenceNumber
+                };
+                // I decided not to push the initial orderbook to cache. 
+                // This way is less consistent but I think it's easier.
+                fullOrderbook = this.parseOrderBook (fullOrderbook);
+                fullOrderbook = this._cloneOrderBook (fullOrderbook, symbolData['limit']);
+                fullOrderbook['obLastSequenceNumber'] = sequenceNumber;
+                symbolData['ob'] = fullOrderbook;
+                this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+                this.emit ('ob', symbol, symbolData['ob']);
+            } else {
+                let order = undefined;
+                let orderbookDelta = {
+                    'asks': [],
+                    'bids': [], 
+                    'seq': sequenceNumber
+                };
+                let price = 0.0;
+                let amount = 0.0;
+                let i = 0;
+                for (i = 0; i < orderbook.length; i++) {
+                    order = orderbook[i];
+                    if (order[0] === 'o') {
+                        price = parseFloat (order[2]);
+                        amount = parseFloat (order[3]);
+                        if (order[1] === 0) {
+                            // sell order
+                            orderbookDelta['asks'].push ([price, amount]);
+                        } else if (order[1] === 1) {
+                            // buy order
+                            orderbookDelta['bids'].push ([price, amount]);
+                        } else {
+                            // error
+                            this.emit ('err', new ExchangeError (this.id + '._websocketHandleOb() unknown value in buy/sell field. Expected 0 or 1 but got: ' + order[1]));
+                            this.websocketClose (contextId);
+                            return;
+                        }
+                    } else if (order[0] === 't') {
+                        // this is not an order but a trade
+                        console.log (this.id + '._websocketHandleOb() skipping trade.');
+                        continue;
                     } else {
-                        // error
-                        this.emit ('err', new ExchangeError (this.id + '._websocketHandleOb() unknown value in buy/sell field. Expected 0 or 1 but got: ' + order[1]));
+                        // unknown value
+                        this.emit ('err', new ExchangeError (this.id + '._websocketHandleOb() unknown value in order/trade field. Expected \'o\' or \'t\' but got: ' + order[0]));
                         this.websocketClose (contextId);
                         return;
                     }
-                } else if (order[0] === 't') {
-                    // this is not an order but a trade
-                    console.log (this.id + '._websocketHandleOb() skipping trade.');
-                    continue;
-                } else {
-                    // unknown value
-                    this.emit ('err', new ExchangeError (this.id + '._websocketHandleOb() unknown value in order/trade field. Expected \'o\' or \'t\' but got: ' + order[0]));
-                    this.websocketClose (contextId);
-                    return;
                 }
+                // Add to cache
+                orderbookDelta = this.parseOrderBook (orderbookDelta);
+                if (typeof (symbolData['obDeltaCache']) === 'undefined') {
+                    // This check is necessary because the obDeltaCache will be deleted on a call to fetchOrderBook()
+                    symbolData['obDeltaCache'] = {}; // make empty cache
+                    symbolData['obDeltaCacheSize'] = 0; // counting number of cached deltas
+                }
+                symbolData['obDeltaCacheSize'] += 1;
+                let sequenceNumberStr = sequenceNumber.toString ();
+                symbolData['obDeltaCache'][sequenceNumberStr] = orderbookDelta;
+                // Schedule call to _websocketOrderBookDeltaCache()
+                this._websocketHandleObDeltaCache (contextId, symbol);
+                this.emit ('ob', symbol, symbolData['ob']);
             }
-            // Add to cache
-            orderbookDelta = this.parseOrderBook (orderbookDelta);
-            if (typeof (symbolData['obDeltaCache']) === 'undefined') {
-                // This check is necessary because the obDeltaCache will be deleted on a call to fetchOrderBook()
-                symbolData['obDeltaCache'] = {}; // make empty cache
-                symbolData['obDeltaCacheSize'] = 0; // counting number of cached deltas
-            }
-            symbolData['obDeltaCacheSize'] += 1;
-            let sequenceNumberStr = sequenceNumber.toString ();
-            symbolData['obDeltaCache'][sequenceNumberStr] = orderbookDelta;
-            // Schedule call to _websocketOrderBookDeltaCache()
-            this._websocketHandleObDeltaCache (contextId, symbol);
-            this.emit ('ob', symbol, symbolData['ob']);
         }
     }
 
