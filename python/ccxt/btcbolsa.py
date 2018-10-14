@@ -8,15 +8,15 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class mercado(Exchange):
+class btcbolsa(Exchange):
 
     def describe(self):
-        return self.deep_extend(super(mercado, self).describe(), {
-            'id': 'mercado',
-            'name': 'Mercado Bitcoin',
+        return self.deep_extend(super(btcbolsa, self).describe(), {
+            'id': 'btcbolsa',
+            'name': 'BTCBolsa',
             'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
-            'version': 'v3',
+            'version': '',
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
@@ -26,43 +26,29 @@ class mercado(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
                 'api': {
-                    'public': 'https://www.mercadobitcoin.net/api',
-                    'private': 'https://www.mercadobitcoin.net/tapi',
+                    'public': 'https://api.btcbolsa.com/v1',
+                    'private': 'https://api.btcbolsa.com/v1',
                 },
-                'www': 'https://www.mercadobitcoin.com.br',
+                'www': 'https://btcbolsa.com/',
                 'doc': [
-                    'https://www.mercadobitcoin.com.br/api-doc',
-                    'https://www.mercadobitcoin.com.br/trade-api',
+                    'https://docs.btcbolsa.com/',
                 ],
             },
             'api': {
                 'public': {
                     'get': [
-                        '{coin}/orderbook/',  # last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
+                        '/ticker/{currency}',
+                        '/orderbook/{currency}',
+                        '/trades/{currency}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'withdraw_coin',
                     ],
                 },
             },
             'markets': {
-                'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
+                'BTC/BRL': {'id': 'BTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
             },
             'fees': {
                 'trading': {
@@ -73,42 +59,17 @@ class mercado(Exchange):
         })
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        market = self.market(symbol)
-        orderbook = self.publicGetCoinOrderbook(self.extend({
-            'coin': market['base'],
-        }, params))
-        return self.parse_order_book(orderbook)
+        order_book = self.publicGetOrderbookCurrency(self.extend({
+            'currency': self.market(symbol)['id']}, params))
+        return {
+            'bids': self.get_adjusted_order_book(order_book['result']['bids'], 'price', 'amount'),
+            'asks': self.get_adjusted_order_book(order_book['result']['asks'], 'price', 'amount'),
+        }
 
     def fetch_ticker(self, symbol, params={}):
-        market = self.market(symbol)
-        response = self.publicGetCoinTicker(self.extend({
-            'coin': market['base'],
-        }, params))
-        ticker = response['ticker']
-        timestamp = int(ticker['date']) * 1000
-        last = self.safe_float(ticker, 'last')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': None,
-            'info': ticker,
-        }
+        ticker = self.publicGetTickerCurrency(self.extend({
+            'currency': self.market(symbol)['id']}, params))
+        return ticker
 
     def parse_trade(self, trade, market):
         timestamp = trade['date'] * 1000
@@ -126,19 +87,23 @@ class mercado(Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        market = self.market(symbol)
-        method = 'publicGetCoinTrades'
-        request = {
-            'coin': market['base'],
-        }
-        if since is not None:
-            method += 'From'
-            request['from'] = int(since / 1000)
-        to = self.safe_integer(params, 'to')
-        if to is not None:
-            method += 'To'
-        response = getattr(self, method)(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        trades = self.publicGetTradesCurrency(self.extend({
+            'currency': self.market(symbol)['id']}, params))
+        return trades
+
+        # market = self.market(symbol)
+        # method = 'publicGetCoinTrades'
+        # request = {
+        #     'coin': market['base'],
+        # }
+        # if since is not None:
+        #     method += 'From'
+        #     request['from'] = int(since / 1000)
+        # to = self.safe_integer(params, 'to')
+        # if to is not None:
+        #     method += 'To'
+        # response = getattr(self, method)(self.extend(request, params))
+        # return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         response = self.privatePostGetAccountInfo()
@@ -176,6 +141,9 @@ class mercado(Exchange):
         }
 
     def parse_status(self, statusCode):
+        status = 'open' if statusCode == 2 else 'wait'
+        status = 'canceled' if statusCode == 3 else status
+        status = 'filled' if statusCode == 4 else status
         return statusCode
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -271,7 +239,8 @@ class mercado(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/'
+        # url = self.urls['api'][api] + '/'
+        url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             url += self.implode_params(path, params)
@@ -295,7 +264,7 @@ class mercado(Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        #if 'error_message' in response:
-        #    #print(headers)
-        #    raise ExchangeError(self.id + ' ' + self.json(response))
+        if 'error_message' in response:
+            print(headers)
+            raise ExchangeError(self.id + ' ' + self.json(response))
         return response

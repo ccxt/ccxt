@@ -8,15 +8,15 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class mercado(Exchange):
+class coinbold(Exchange):
 
     def describe(self):
-        return self.deep_extend(super(mercado, self).describe(), {
-            'id': 'mercado',
-            'name': 'Mercado Bitcoin',
+        return self.deep_extend(super(coinbold, self).describe(), {
+            'id': 'coinbold',
+            'name': 'Coinbold',
             'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
-            'version': 'v3',
+            'version': 'v1',
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
@@ -24,26 +24,23 @@ class mercado(Exchange):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+                'logo': 'https://coinbold.com.br/dashboard/app-assets/images/logo/logo.png',
                 'api': {
-                    'public': 'https://www.mercadobitcoin.net/api',
-                    'private': 'https://www.mercadobitcoin.net/tapi',
+                    'public': 'https://coinbold.com.br/api/',
+                    'private': 'https://coinbold.com.br/api/',
                 },
-                'www': 'https://www.mercadobitcoin.com.br',
+                'www': 'https://coinbold.com.br/',
                 'doc': [
-                    'https://www.mercadobitcoin.com.br/api-doc',
-                    'https://www.mercadobitcoin.com.br/trade-api',
+                    'https://documenter.getpostman.com/view/285375/RWTrNbod#54d1bc9b-9687-42ed-aec5-6cb13e03b5b3',
+                    'https://documenter.getpostman.com/view/285375/RWTrNbod#2d6448ae-ae14-47a1-ad5f-f132f75df8a2',
                 ],
             },
             'api': {
                 'public': {
                     'get': [
-                        '{coin}/orderbook/',  # last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
+                        'public/coin/{coin}/book/',  # last slash critical
+                        'public/coin/ticker/{coin}/',
+                        'public/coin/{coin}/trades/'
                     ],
                 },
                 'private': {

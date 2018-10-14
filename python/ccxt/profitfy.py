@@ -7,16 +7,19 @@ from ccxt.base.exchange import Exchange
 import hashlib
 import math
 import time
+import uuid
+import base64
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InvalidOrder
 
-class braziliex(Exchange):
+class profitfy(Exchange):
 
     def describe(self):
-        return self.deep_extend(super(braziliex, self).describe(), {
-            'id': 'braziliex',
-            'name': 'Braziliex',
+        return self.deep_extend(super(profitfy, self).describe(), {
+            'id': 'profitfy',
+            'name': 'Profitfy',
             'countries': ['BR'],
             'rateLimit': 1000,
             'has': {
@@ -27,32 +30,21 @@ class braziliex(Exchange):
                 'fetchDepositAddress': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
-                'api': 'https://braziliex.com/api/v1',
-                'www': 'https://braziliex.com/',
-                'doc': 'https://braziliex.com/exchange/api.php',
-                'fees': 'https://braziliex.com/exchange/fees.php',
+                'api': 'https://profitfy.trade/api/v1',
+                'www': 'https://profitfy.trade/',
+                'doc': 'https://profitfy.trade/Home/Api',
+                'fees': '',
             },
             'api': {
                 'public': {
                     'get': [
-                        'currencies',
-                        'ticker',
-                        'ticker/{market}',
-                        'orderbook/{market}',
-                        'tradehistory/{market}',
+                        'orderbook/{coinFrom}/{coinTo}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'balance',
-                        'complete_balance',
-                        'open_orders',
-                        'trade_history',
-                        'deposit_address',
-                        'sell',
-                        'buy',
-                        'cancel_order',
+                        'orders/buy',
+                        'orders/sell',
                     ],
                 },
             },
@@ -69,6 +61,15 @@ class braziliex(Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'markets': {
+                'BTC/BRL': {'id': 'BTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
+                'LTC/BRL': {'id': 'LTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
+                'BCH/BRL': {'id': 'BCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
+            },
+            'coins': {
+                'coinTo': 'btc',
+                'coinFrom': 'brl',
+            }
         })
 
     def fetch_currencies(self, params={}):
@@ -235,12 +236,17 @@ class braziliex(Exchange):
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
-    def fetch_order_book(self, symbol, limit=None, params={}):
-        self.load_markets()
-        orderbook = self.publicGetOrderbookMarket(self.extend({
-            'market': self.market_id(symbol),
+    def fetch_order_book(self, symbol=None, limit=None, params={}):
+        # self.load_markets()
+        order_book = self.publicGetOrderbookCoinfromCointo(self.extend({
+            'coinFrom': self.coins['coinFrom'],
+            'coinTo': self.coins['coinTo'],
         }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        for i in range(len(order_book)):
+            return {
+                'bids': self.get_adjusted_order_book(order_book[i]['buy'], 'price', 'amount'),
+                'asks': self.get_adjusted_order_book(order_book[i]['sell'], 'price', 'amount'),
+            }
 
     def parse_trade(self, trade, market=None):
         timestamp = None
@@ -282,14 +288,14 @@ class braziliex(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privatePostCompleteBalance(params)
-        # print balances
+        print balances
         result = {'info': balances}
         currencies = list(balances.keys())
         for i in range(0, len(currencies)):
             id = currencies[i]
             balance = balances[id]
             if float(balance['total']) > 0:
-                currency = self.common_currency_code(id).upper()
+                currency = self.common_currency_code(id)
                 account = {
                     'free': float(balance['available']),
                     'used': 0.0,
@@ -354,44 +360,28 @@ class braziliex(Exchange):
             'info': info,
         }
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        method = 'privatePost' + self.capitalize(side)
-        # print side
-        response = getattr(self, method)(self.extend({
-            'command': side,
-            # 'price': self.price_to_precision(symbol, price),
-            # 'amount': self.amount_to_precision(symbol, amount),
-            'price': price,
+    def create_order(self, symbol=None, type=None, side=None, amount=None, price=None, params={}):
+        response = self.privatePostOrdersBuy(self.extend({
+            'coinFrom': self.coins['coinFrom'],
+            'coinTo': self.coins['coinTo'],
             'amount': amount,
-            'market': market['id'],
+            'price': price,
         }, params))
-        # print response
-        success = self.safe_integer(response, 'success')
-        if success != 1:
-            raise InvalidOrder(self.id + ' ' + self.json(response))
-        parts = response['message'].split(' / ')
-        parts = parts[1:]
-        feeParts = parts[5].split(' ')
-        order = self.parse_order({
-            'timestamp': self.milliseconds(),
-            'order_number': response['order_number'],
-            'type': parts[0].lower(),
-            'market': parts[0].lower(),
-            'amount': parts[2].split(' ')[1],
-            'price': parts[3].split(' ')[1],
-            'total': parts[4].split(' ')[1],
-            'fee': {
-                'cost': float(feeParts[1]),
-                'currency': feeParts[2],
-            },
-            'progress': '0.0',
-            'info': response,
-        }, market)
-        id = order['id']
-        self.orders[id] = order
-        return order
+        # order = {
+        #     'timestamp': response['timestamp'],
+        #     'status': response['Ativa'],
+        #     'type': response['Buy'],
+        #     'coinFrom': response['BTC'],
+        #     'coinTo': response['BRL'],
+        #     'negotiations': response['negotiations'],
+        #     'orderId': response['orderId'],
+        #     'userId': response['userId'],
+        #     'nickName': response['nickName'],
+        #     'price': response['price'],
+        #     'amount': response['amount'],
+        # }
+        print response
+        return response
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -406,22 +396,24 @@ class braziliex(Exchange):
 
         result = None
 
-        # print('Começa aqui...')
+        print('Começa aqui...')
 
         for item in self.fetch_open_orders(symbol):
             if id == item['id']:
-                # print item['id']
-                # print id
+                print item['id']
+                print id
                 result = item
-                # print('entrou no fetch_open_orders')
+                print('entrou no fetch_open_orders')
                 return result
+
         time.sleep(1)
+
         for item in self.fetch_my_trades(symbol):
             if id == item['id']:
-                # print item['id']
-                # print id
+                print item['id']
+                print id
                 result = item
-                # print('entrou no fetch_trades')
+                print('entrou no fetch_trades')
                 return result
 
         return {'id': id, 'status': 3, 'filled': '0'}
@@ -468,18 +460,28 @@ class braziliex(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
-            self.check_required_credentials()
-            query = self.extend({
-                'command': path,
-                'nonce': self.nonce(),
-            }, query)
-            body = self.urlencode(query)
-            signature = self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512)
+            url += '/' + self.implode_params(path, params)
+            path = path.lower()
+            method = 'POST'
+            nonce = str(uuid.uuid4().hex)
+            time_stamp = str(int(time.time()))
+            # body_params = 'coinFrom=' + params['coinFrom'] + '&coinTo=' + params['coinTo'] + '&amount=' + params['amount'] + '&price=' + params['price']
+            request_base_64 = self.hash(json.dumps({
+                'coinFrom': self.coins['coinFrom'],
+                'coinTo': self.coins['coinTo'],
+                'amount': float(params['amount']),
+                'price': float(params['price']),
+            }), 'md5', 'base64')
+            api_key = base64.b64encode(self.apiKey)
+            sig_raw_data = self.apiKey + method + path + time_stamp + nonce + request_base_64
+            signature = self.hmac(api_key, sig_raw_data.encode('utf-8'), hashlib.sha256, 'base64')
+            print signature
+
             headers = {
-                'Content-type': 'application/x-www-form-urlencoded',
-                'Key': self.apiKey,
-                'Sign': self.decode(signature),
+                'Content-type': 'application/json',
+                'Authorization': 'amx ' + self.apiKey + ':' + signature + ':' + nonce + ':' + time_stamp,
             }
+        print({'url': url, 'method': method, 'body': body, 'headers': headers})
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

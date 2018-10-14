@@ -8,15 +8,15 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 
 
-class mercado(Exchange):
+class brasilbitcoin(Exchange):
 
     def describe(self):
-        return self.deep_extend(super(mercado, self).describe(), {
-            'id': 'mercado',
-            'name': 'Mercado Bitcoin',
+        return self.deep_extend(super(brasilbitcoin, self).describe(), {
+            'id': 'brasilbitcoin',
+            'name': 'Brasil Bitcoin',
             'countries': ['BR'],  # Brazil
             'rateLimit': 1000,
-            'version': 'v3',
+            'version': '',
             'has': {
                 'CORS': True,
                 'createMarketOrder': False,
@@ -24,21 +24,21 @@ class mercado(Exchange):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
+                'logo': 'https://brasilbitcoin.com.br/index/imagens/logo/logocompb.svg',
                 'api': {
-                    'public': 'https://www.mercadobitcoin.net/api',
-                    'private': 'https://www.mercadobitcoin.net/tapi',
+                    'public': 'https://brasilbitcoin.com.br/API',
+                    'private': 'https://brasilbitcoin.com.br/API',
                 },
-                'www': 'https://www.mercadobitcoin.com.br',
+                'www': 'https://brasilbitcoin.com.br/',
                 'doc': [
-                    'https://www.mercadobitcoin.com.br/api-doc',
-                    'https://www.mercadobitcoin.com.br/trade-api',
+                    'https://api.brasilbitcoin.com.br/',
+                    'https://api.brasilbitcoin.com.br/#71e41a0a-ff57-4b22-9716-951896aebce8',
                 ],
             },
             'api': {
                 'public': {
                     'get': [
-                        '{coin}/orderbook/',  # last slash critical
+                        'orderbook/{coin}',  # last slash critical
                         '{coin}/ticker/',
                         '{coin}/trades/',
                         '{coin}/trades/{from}/',
@@ -74,10 +74,11 @@ class mercado(Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
-        orderbook = self.publicGetCoinOrderbook(self.extend({
+        orderbook = self.publicGetOrderbookCoin(self.extend({
             'coin': market['base'],
         }, params))
-        return self.parse_order_book(orderbook)
+        #print(orderbook)
+        return self.parse_order_book(orderbook, None, 'buy', 'sell', 'preco', 'quantidade')
 
     def fetch_ticker(self, symbol, params={}):
         market = self.market(symbol)
@@ -291,6 +292,7 @@ class mercado(Exchange):
                 'TAPI-ID': self.apiKey,
                 'TAPI-MAC': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
             }
+        #print({'url': url, 'method': method, 'body': body, 'headers': headers})
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

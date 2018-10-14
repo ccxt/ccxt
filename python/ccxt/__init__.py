@@ -196,9 +196,31 @@ from ccxt.yunbi import yunbi                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
+
+# Coinbold Extra Exchanges
+from ccxt.bitcambio import bitcambio  # noqa: F401
+from ccxt.bitblue import bitblue  # noqa: F401
+from ccxt.bitcointrade import bitcointrade  # noqa: F401
+from ccxt.btcbolsa import btcbolsa  # noqa: F401
+from ccxt.brasilbitcoin import brasilbitcoin  # noqa: F401
+from ccxt.omnitrade import omnitrade  # noqa: F401
+from ccxt.pagcripto import pagcripto  # noqa: F401
+from ccxt.profitfy import profitfy  # noqa: F401
+# Coinbold Extra Exchanges
+
+
 exchanges = [
     '_1broker',
     '_1btcxe',
+
+    'bitcambio',
+    'bitblue',
+    'bitcointrade',
+    'btcbolsa',
+    'omnitrade',
+    'pagcripto',
+    'profitfy',
+    
     'acx',
     'allcoin',
     'anxpro',
