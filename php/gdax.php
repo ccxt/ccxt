@@ -130,6 +130,18 @@ class gdax extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds',
+                    'NotFound' => '\\ccxt\\OrderNotFound',
+                    'Invalid API Key' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array (
+                    'order not found' => '\\ccxt\\OrderNotFound',
+                    'price too small' => '\\ccxt\\InvalidOrder',
+                    'price too precise' => '\\ccxt\\InvalidOrder',
+                ),
+            ),
         ));
     }
 
@@ -710,19 +722,17 @@ class gdax extends Exchange {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
-                $error = $this->id . ' ' . $message;
-                if (mb_strpos ($message, 'price too small') !== false) {
-                    throw new InvalidOrder ($error);
-                } else if (mb_strpos ($message, 'price too precise') !== false) {
-                    throw new InvalidOrder ($error);
-                } else if ($message === 'Insufficient funds') {
-                    throw new InsufficientFunds ($error);
-                } else if ($message === 'NotFound') {
-                    throw new OrderNotFound ($error);
-                } else if ($message === 'Invalid API Key') {
-                    throw new AuthenticationError ($error);
+                $feedback = $this->id . ' ' . $message;
+                $exact = $this->exceptions['exact'];
+                if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                    throw new $exact[$code] ($feedback);
                 }
-                throw new ExchangeError ($this->id . ' ' . $message);
+                $broad = $this->exceptions['broad'];
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey] ($feedback);
+                }
+                throw new ExchangeError ($feedback); // unknown $message
             }
             throw new ExchangeError ($this->id . ' ' . $body);
         }
