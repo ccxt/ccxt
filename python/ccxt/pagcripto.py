@@ -153,7 +153,6 @@ class pagcripto(Exchange):
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        print self.id
         return self.privatePostCurrencyTradeCancel(self.extend({
             'currency': market['id'],
             'idOrder': id,
@@ -262,7 +261,6 @@ class pagcripto(Exchange):
                 'X-Authentication': self.secret,
                 'Content-Type': 'text/html; charset=UTF-8',
             }
-        print url, method, body, headers
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

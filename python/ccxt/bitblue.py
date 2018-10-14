@@ -138,7 +138,6 @@ class bitblue(Exchange):
             raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        print self.id
         return self.privatePostCurrencyTradeCancel(self.extend({
             'currency': market['id'],
             'idOrder': id,

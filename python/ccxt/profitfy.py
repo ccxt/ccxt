@@ -288,7 +288,6 @@ class profitfy(Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privatePostCompleteBalance(params)
-        print balances
         result = {'info': balances}
         currencies = list(balances.keys())
         for i in range(0, len(currencies)):
@@ -380,7 +379,6 @@ class profitfy(Exchange):
         #     'price': response['price'],
         #     'amount': response['amount'],
         # }
-        print response
         return response
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -400,18 +398,13 @@ class profitfy(Exchange):
 
         for item in self.fetch_open_orders(symbol):
             if id == item['id']:
-                print item['id']
-                print id
                 result = item
-                print('entrou no fetch_open_orders')
                 return result
 
         time.sleep(1)
 
         for item in self.fetch_my_trades(symbol):
             if id == item['id']:
-                print item['id']
-                print id
                 result = item
                 print('entrou no fetch_trades')
                 return result
@@ -475,7 +468,6 @@ class profitfy(Exchange):
             api_key = base64.b64encode(self.apiKey)
             sig_raw_data = self.apiKey + method + path + time_stamp + nonce + request_base_64
             signature = self.hmac(api_key, sig_raw_data.encode('utf-8'), hashlib.sha256, 'base64')
-            print signature
 
             headers = {
                 'Content-type': 'application/json',
