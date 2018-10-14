@@ -903,8 +903,9 @@ class binance (Exchange):
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
-        if (tag is not None) and len((tag) < 1):
-            tag = None
+        if tag is not None:
+            if len(tag) < 1:
+                tag = None
         txid = self.safe_value(transaction, 'txId')
         code = None
         currencyId = self.safe_string(transaction, 'asset')
