@@ -140,7 +140,7 @@ module.exports = class gdax extends Exchange {
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,
                 },
-            }
+            },
         });
     }
 
