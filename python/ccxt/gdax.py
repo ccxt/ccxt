@@ -140,6 +140,18 @@ class gdax (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'Insufficient funds': InsufficientFunds,
+                    'NotFound': OrderNotFound,
+                    'Invalid API Key': AuthenticationError,
+                },
+                'broad': {
+                    'order not found': OrderNotFound,
+                    'price too small': InvalidOrder,
+                    'price too precise': InvalidOrder,
+                },
+            },
         })
 
     def fetch_markets(self):
@@ -662,18 +674,15 @@ class gdax (Exchange):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
-                error = self.id + ' ' + message
-                if message.find('price too small') >= 0:
-                    raise InvalidOrder(error)
-                elif message.find('price too precise') >= 0:
-                    raise InvalidOrder(error)
-                elif message == 'Insufficient funds':
-                    raise InsufficientFunds(error)
-                elif message == 'NotFound':
-                    raise OrderNotFound(error)
-                elif message == 'Invalid API Key':
-                    raise AuthenticationError(error)
-                raise ExchangeError(self.id + ' ' + message)
+                feedback = self.id + ' ' + message
+                exact = self.exceptions['exact']
+                if message in exact:
+                    raise exact[code](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
