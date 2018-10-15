@@ -61,13 +61,23 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobi.pro',
+                'api': {
+                    'market': 'https://api.huobi.pro',
+                    'public': 'https://api.huobi.pro',
+                    'private': 'https://api.huobi.pro',
+                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
+                'zendesk': {
+                    'get': [
+                        '360000400491-Trade-Limits',
+                    ],
+                },
                 'market': {
                     'get': [
                         'history/kline',  # 获取K线数据
@@ -100,6 +110,8 @@ class huobipro (Exchange):
                         'query/deposit-withdraw',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -138,6 +150,7 @@ class huobipro (Exchange):
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
                 'api-signature-check-failed': AuthenticationError,
+                'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
@@ -331,9 +344,9 @@ class huobipro (Exchange):
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             orderbook = response['tick']
-            timestamp = orderbook['ts']
-            orderbook['nonce'] = orderbook['version']
-            return self.parse_order_book(orderbook, timestamp)
+            result = self.parse_order_book(orderbook, orderbook['ts'])
+            result['nonce'] = orderbook['version']
+            return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     def fetch_ticker(self, symbol, params={}):
@@ -587,17 +600,14 @@ class huobipro (Exchange):
         return self.parse_order(response['data'])
 
     def parse_order_status(self, status):
-        if status == 'partial-filled':
-            return 'open'
-        elif status == 'partial-canceled':
-            return 'canceled'
-        elif status == 'filled':
-            return 'closed'
-        elif status == 'canceled':
-            return 'canceled'
-        elif status == 'submitted':
-            return 'open'
-        return status
+        statuses = {
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'submitted': 'open',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
@@ -718,8 +728,8 @@ class huobipro (Exchange):
             'info': response,
         }
 
-    def fee_to_precision(self, currency, fee):
-        return float(self.decimal_to_precision(fee, 0, self.currencies[currency]['precision']))
+    def currency_to_precision(self, currency, fee):
+        return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
@@ -734,7 +744,7 @@ class huobipro (Exchange):
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(market[key], cost)),
+            'cost': float(self.currency_to_precision(market[key], cost)),
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -761,7 +771,7 @@ class huobipro (Exchange):
         url = '/'
         if api == 'market':
             url += api
-        else:
+        elif (api == 'public') or (api == 'private'):
             url += self.version
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -793,7 +803,7 @@ class huobipro (Exchange):
         else:
             if params:
                 url += '?' + self.urlencode(params)
-        url = self.urls['api'] + url
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):

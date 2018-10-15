@@ -46,13 +46,23 @@ class huobipro extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api' => 'https://api.huobi.pro',
+                'api' => array (
+                    'market' => 'https://api.huobi.pro',
+                    'public' => 'https://api.huobi.pro',
+                    'private' => 'https://api.huobi.pro',
+                    'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
+                'zendesk' => array (
+                    'get' => array (
+                        '360000400491-Trade-Limits',
+                    ),
+                ),
                 'market' => array (
                     'get' => array (
                         'history/kline', // 获取K线数据
@@ -85,6 +95,8 @@ class huobipro extends Exchange {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'points/actions',
+                        'points/orders',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -123,6 +135,7 @@ class huobipro extends Exchange {
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
                 'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
+                'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array ("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -139,8 +152,9 @@ class huobipro extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $symbols = array ( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
         $this->load_markets();
-        if ($symbols === null)
+        if ($symbols === null) {
             $symbols = $this->symbols;
+        }
         $result = array ();
         for ($i = 0; $i < count ($symbols); $i++) {
             $symbol = $symbols[$i];
@@ -330,9 +344,9 @@ class huobipro extends Exchange {
                 throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
             $orderbook = $response['tick'];
-            $timestamp = $orderbook['ts'];
-            $orderbook['nonce'] = $orderbook['version'];
-            return $this->parse_order_book($orderbook, $timestamp);
+            $result = $this->parse_order_book($orderbook, $orderbook['ts']);
+            $result['nonce'] = $orderbook['version'];
+            return $result;
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
@@ -621,18 +635,14 @@ class huobipro extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === 'partial-filled') {
-            return 'open';
-        } else if ($status === 'partial-canceled') {
-            return 'canceled';
-        } else if ($status === 'filled') {
-            return 'closed';
-        } else if ($status === 'canceled') {
-            return 'canceled';
-        } else if ($status === 'submitted') {
-            return 'open';
-        }
-        return $status;
+        $statuses = array (
+            'partial-filled' => 'open',
+            'partial-canceled' => 'canceled',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'submitted' => 'open',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -770,8 +780,8 @@ class huobipro extends Exchange {
         );
     }
 
-    public function fee_to_precision ($currency, $fee) {
-        return floatval ($this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']));
+    public function currency_to_precision ($currency, $fee) {
+        return $this->decimal_to_precision($fee, 0, $this->currencies[$currency]['precision']);
     }
 
     public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
@@ -788,7 +798,7 @@ class huobipro extends Exchange {
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($market[$key], $cost)),
+            'cost' => floatval ($this->currency_to_precision($market[$key], $cost)),
         );
     }
 
@@ -816,10 +826,11 @@ class huobipro extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api === 'market')
+        if ($api === 'market') {
             $url .= $api;
-        else
+        } else if (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
+        }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -852,7 +863,7 @@ class huobipro extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

@@ -138,7 +138,7 @@ module.exports = class bithumb extends Exchange {
         let request = {
             'currency': market['base'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['count'] = limit; // max = 50
         let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         let orderbook = response['data'];
@@ -153,7 +153,16 @@ module.exports = class bithumb extends Exchange {
             symbol = market['symbol'];
         let open = this.safeFloat (ticker, 'opening_price');
         let close = this.safeFloat (ticker, 'closing_price');
-        let change = close - open;
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((close !== undefined) && (open !== undefined)) {
+            change = close - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (open, close) / 2;
+        }
         let vwap = this.safeFloat (ticker, 'average_price');
         let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
@@ -172,8 +181,8 @@ module.exports = class bithumb extends Exchange {
             'last': close,
             'previousClose': undefined,
             'change': change,
-            'percentage': change / open * 100,
-            'average': this.sum (open, close) / 2,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,
@@ -353,7 +362,7 @@ module.exports = class bithumb extends Exchange {
                 //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 //
                 let status = this.safeString (response, 'status');
-                if (typeof status !== 'undefined') {
+                if (status !== undefined) {
                     if (status === '0000')
                         return; // no error
                     const feedback = this.id + ' ' + this.json (response);

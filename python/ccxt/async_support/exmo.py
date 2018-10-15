@@ -46,6 +46,7 @@ class exmo (Exchange):
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -530,7 +531,7 @@ class exmo (Exchange):
             price = 0
         request = {
             'pair': market['id'],
-            'quantity': self.amount_to_string(symbol, amount),
+            'quantity': self.amount_to_precision(symbol, amount),
             'type': prefix + side,
             'price': self.price_to_precision(symbol, price),
         }
@@ -652,7 +653,6 @@ class exmo (Exchange):
         timestamp = self.safe_integer(order, 'created')
         if timestamp is not None:
             timestamp *= 1000
-        iso8601 = None
         symbol = None
         side = self.safe_string(order, 'type')
         if market is None:
@@ -694,8 +694,6 @@ class exmo (Exchange):
                         cost = 0.0
                     cost += trade['cost']
                     trades.append(trade)
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
         remaining = None
         if amount is not None:
             remaining = amount - filled
@@ -722,7 +720,7 @@ class exmo (Exchange):
         }
         return {
             'id': id,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
@@ -856,17 +854,19 @@ class exmo (Exchange):
                     'rate': None,
                 }
         return {
+            'info': transaction,
             'id': None,
             'currency': code,
             'amount': amount,
             'address': address,
+            'tag': None,  # refix it properly
             'status': status,
             'type': type,
             'updated': None,
             'txid': txid,
             'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fee': fee,
-            'info': transaction,
         }
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):

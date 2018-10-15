@@ -15,6 +15,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
@@ -402,14 +403,10 @@ class gateio (Exchange):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        datetime = None
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is not None:
             timestamp *= 1000
-            datetime = self.iso8601(timestamp)
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         price = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
@@ -428,7 +425,7 @@ class gateio (Exchange):
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
@@ -468,7 +465,7 @@ class gateio (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
         await self.load_markets()
         return await self.privatePostCancelOrder({
             'orderNumber': id,
@@ -513,7 +510,7 @@ class gateio (Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privatePostTradeHistory(self.extend({

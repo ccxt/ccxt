@@ -16,6 +16,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -169,6 +170,9 @@ class bitz (Exchange):
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/3881
+                # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
@@ -472,7 +476,6 @@ class bitz (Exchange):
         #
         tickers = response['data']
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
-        iso8601 = self.iso8601(timestamp)
         result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
@@ -496,7 +499,7 @@ class bitz (Exchange):
             if symbol is not None:
                 result[symbol] = self.extend(ticker, {
                     'timestamp': timestamp,
-                    'datetime': iso8601,
+                    'datetime': self.iso8601(timestamp),
                 })
         return result
 
@@ -748,7 +751,7 @@ class bitz (Exchange):
             'symbol': market['id'],
             'type': orderType,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_string(symbol, amount),
+            'number': self.amount_to_precision(symbol, amount),
             'tradePwd': self.password,
         }
         response = await self.tradePostAddEntrustSheet(self.extend(request, params))
@@ -884,7 +887,7 @@ class bitz (Exchange):
     async def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         request = {
             'coinFrom': market['baseId'],

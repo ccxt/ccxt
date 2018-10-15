@@ -145,7 +145,7 @@ module.exports = class deribit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'created');
-        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
+        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
         let last = this.safeFloat (ticker, 'last');
         return {
@@ -184,7 +184,7 @@ module.exports = class deribit extends Exchange {
     parseTrade (trade, market = undefined) {
         let id = this.safeString (trade, 'tradeId');
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
         return {
@@ -207,7 +207,7 @@ module.exports = class deribit extends Exchange {
         let request = {
             'instrument': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit;
         } else {
             request['limit'] = 10000;
@@ -272,8 +272,8 @@ module.exports = class deribit extends Exchange {
         let average = this.safeFloat (order, 'avgPrice');
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filledQuantity');
-        if (typeof lastTradeTimestamp === 'undefined') {
-            if (typeof filled !== 'undefined') {
+        if (lastTradeTimestamp === undefined) {
+            if (filled !== undefined) {
                 if (filled > 0) {
                     lastTradeTimestamp = lastUpdate;
                 }
@@ -281,22 +281,21 @@ module.exports = class deribit extends Exchange {
         }
         let remaining = undefined;
         let cost = undefined;
-        if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (filled !== undefined) {
+            if (amount !== undefined) {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
+            if (price !== undefined) {
                 cost = price * filled;
             }
         }
-        let status = this.safeString (order, 'state');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'direction');
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             side = side.toLowerCase ();
         }
         let feeCost = this.safeFloat (order, 'commission');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
         let fee = {
@@ -338,12 +337,12 @@ module.exports = class deribit extends Exchange {
             'quantity': amount,
             'type': type,
         };
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             request['price'] = price;
         let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
         let order = this.safeValue (response['result'], 'order');
-        if (typeof order === 'undefined') {
+        if (order === undefined) {
             return response;
         }
         return this.parseOrder (order);
@@ -354,9 +353,9 @@ module.exports = class deribit extends Exchange {
         let request = {
             'orderId': id,
         };
-        if (typeof amount !== 'undefined')
+        if (amount !== undefined)
             request['quantity'] = amount;
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             request['price'] = price;
         let response = await this.privatePostEdit (this.extend (request, params));
         return this.parseOrder (response['result']);
@@ -394,7 +393,7 @@ module.exports = class deribit extends Exchange {
         let request = {
             'instrument': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['count'] = limit; // default = 20
         }
         let response = await this.privateGetTradehistory (this.extend (request, params));

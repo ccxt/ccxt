@@ -371,7 +371,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'symbol': market['id'],
             'limit': limit, // default = max = 120
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['start'] = since;
             sort = '1';
         }
@@ -384,10 +384,10 @@ module.exports = class bitfinex2 extends bitfinex {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof limit === 'undefined') {
+        if (limit === undefined) {
             limit = 100;
         }
-        if (typeof since === 'undefined') {
+        if (since === undefined) {
             since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
         }
         let request = {
@@ -429,7 +429,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'limit': limit,
             'end': this.seconds (),
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostAuthRTradesSymbolHist (this.extend (request, params));
         // return this.parseTrades (response, market, since, limit); // not implemented yet for bitfinex v2

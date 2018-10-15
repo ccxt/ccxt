@@ -307,7 +307,7 @@ class bitso (Exchange):
 
     def parse_order(self, order, market=None):
         side = order['side']
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = order['book']

@@ -5,7 +5,6 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.decimal_to_precision import ROUND
 
 
 class flowbtc (Exchange):
@@ -188,9 +187,6 @@ class flowbtc (Exchange):
             'startIndex': -1,
         }, params))
         return self.parse_trades(response['trades'], market, since, limit)
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

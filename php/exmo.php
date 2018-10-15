@@ -31,6 +31,7 @@ class exmo extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchFundingFees' => true,
                 'fetchCurrencies' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -549,7 +550,7 @@ class exmo extends Exchange {
         }
         $request = array (
             'pair' => $market['id'],
-            'quantity' => $this->amount_to_string($symbol, $amount),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $prefix . $side,
             'price' => $this->price_to_precision($symbol, $price),
         );
@@ -685,9 +686,9 @@ class exmo extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null)
+        if ($timestamp !== null) {
             $timestamp *= 1000;
-        $iso8601 = null;
+        }
         $symbol = null;
         $side = $this->safe_string($order, 'type');
         if ($market === null) {
@@ -718,35 +719,41 @@ class exmo extends Exchange {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
                     $trade = $this->parse_trade($transactions[$i], $market);
-                    if ($id === null)
+                    if ($id === null) {
                         $id = $trade['order'];
-                    if ($timestamp === null)
+                    }
+                    if ($timestamp === null) {
                         $timestamp = $trade['timestamp'];
-                    if ($timestamp > $trade['timestamp'])
+                    }
+                    if ($timestamp > $trade['timestamp']) {
                         $timestamp = $trade['timestamp'];
+                    }
                     $filled .= $trade['amount'];
-                    if ($feeCost === null)
+                    if ($feeCost === null) {
                         $feeCost = 0.0;
+                    }
                     $feeCost .= $trade['fee']['cost'];
-                    if ($cost === null)
+                    if ($cost === null) {
                         $cost = 0.0;
+                    }
                     $cost .= $trade['cost'];
                     $trades[] = $trade;
                 }
             }
         }
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $remaining = null;
-        if ($amount !== null)
+        if ($amount !== null) {
             $remaining = $amount - $filled;
+        }
         $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled >= $amount)
+        if ($filled >= $amount) {
             $status = 'closed';
-        else
+        } else {
             $status = 'open';
-        if ($market === null)
+        }
+        if ($market === null) {
             $market = $this->get_market_from_trades ($trades);
+        }
         $feeCurrency = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -765,7 +772,7 @@ class exmo extends Exchange {
         );
         return array (
             'id' => $id,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -916,17 +923,19 @@ class exmo extends Exchange {
             }
         }
         return array (
+            'info' => $transaction,
             'id' => null,
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
+            'tag' => null, // refix it properly
             'status' => $status,
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
-            'info' => $transaction,
         );
     }
 

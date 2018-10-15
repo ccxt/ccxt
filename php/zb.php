@@ -308,7 +308,7 @@ class zb extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market !== 'null') {
+        if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $last = $this->safe_float($ticker, 'last');
@@ -385,7 +385,7 @@ class zb extends Exchange {
         $this->load_markets();
         $order = array (
             'price' => $this->price_to_precision($symbol, $price),
-            'amount' => $this->amount_to_string($symbol, $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'tradeType' => ($side === 'buy') ? '1' : '0',
             'currency' => $this->market_id($symbol),
         );
@@ -408,7 +408,7 @@ class zb extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder() requires a $symbol argument');
         $this->load_markets();
         $order = array (
             'id' => (string) $id,
@@ -416,6 +416,19 @@ class zb extends Exchange {
         );
         $order = array_merge ($order, $params);
         $response = $this->privateGetGetOrder ($order);
+        //
+        //     {
+        //         'total_amount' => 0.01,
+        //         'id' => '20180910244276459',
+        //         'price' => 180.0,
+        //         'trade_date' => 1536576744960,
+        //         'status' => 2,
+        //         'trade_money' => '1.96742',
+        //         'trade_amount' => 0.01,
+        //         'type' => 0,
+        //         'currency' => 'eth_usdt'
+        //     }
+        //
         return $this->parse_order($response, null);
     }
 
@@ -472,6 +485,21 @@ class zb extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        // fetchOrder
+        //
+        //     {
+        //         'total_amount' => 0.01,
+        //         'id' => '20180910244276459',
+        //         'price' => 180.0,
+        //         'trade_date' => 1536576744960,
+        //         'status' => 2,
+        //         'trade_money' => '1.96742',
+        //         'trade_amount' => 0.01,
+        //         'type' => 0,
+        //         'currency' => 'eth_usdt'
+        //     }
+        //
         $side = ($order['type'] === 1) ? 'buy' : 'sell';
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = null;
@@ -483,17 +511,19 @@ class zb extends Exchange {
             // get $symbol from currency
             $market = $this->marketsById[$order['currency']];
         }
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $price = $order['price'];
-        $average = null;
         $filled = $order['trade_amount'];
         $amount = $order['total_amount'];
         $remaining = $amount - $filled;
-        $cost = $order['trade_money'];
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $cost = $this->safe_float($order, 'trade_money');
+        $average = null;
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
+            $average = $cost / $filled;
+        }
         $result = array (
             'info' => $order,
             'id' => $order['id'],

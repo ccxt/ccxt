@@ -110,10 +110,13 @@ class coinfalcon extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         if ($market === null) {
-            $marketId = $ticker['name'];
-            $market = $this->marketsById[$marketId];
+            $marketId = $this->safe_string($ticker, 'name');
+            $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         }
-        $symbol = $market['symbol'];
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->milliseconds ();
         $last = floatval ($ticker['last_price']);
         return array (
@@ -236,11 +239,11 @@ class coinfalcon extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->parse8601 ($order['created_at']);
-        $price = floatval ($order['price']);
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'size_filled');
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
-        $cost = $this->price_to_precision($symbol, $amount * $price);
+        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
+        $cost = floatval ($this->price_to_precision($symbol, $amount * $price));
         // pending, open, partially_filled, fullfilled, canceled
         $status = $order['status'];
         if ($status === 'fulfilled') {
@@ -274,14 +277,14 @@ class coinfalcon extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         // $price/size must be string
-        $amount = $this->amount_to_precision($symbol, floatval ($amount));
+        $amount = $this->amount_to_precision($symbol, $amount);
         $request = array (
             'market' => $market['id'],
-            'size' => (string) $amount,
+            'size' => $amount,
             'order_type' => $side,
         );
         if ($type === 'limit') {
-            $price = $this->price_to_precision($symbol, floatval ($price));
+            $price = $this->price_to_precision($symbol, $price);
             $request['price'] = (string) $price;
         }
         $request['operation_type'] = $type . '_order';

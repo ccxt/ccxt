@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.235'
+__version__ = '1.17.383'
 
 # -----------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ from ccxt.async_support.base.throttle import throttle
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import NotSupported
@@ -76,8 +77,8 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         if self.session is not None:
@@ -136,13 +137,16 @@ class Exchange(BaseExchange):
                                       proxy=self.aiohttp_proxy) as response:
                 http_status_code = response.status
                 text = await response.text()
-                self.last_http_response = text
-                self.last_response_headers = response.headers
-                self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+                if self.enableLastHttpResponse:
+                    self.last_http_response = text
+                headers = response.headers
+                if self.enableLastResponseHeaders:
+                    self.last_response_headers = headers
+                self.handle_errors(http_status_code, text, url, method, headers, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
                 if self.verbose:
-                    print("\nResponse:", method, url, str(http_status_code), str(response.headers), self.last_http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
+                    print("\nResponse:", method, url, str(http_status_code), str(headers), text)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, text)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
@@ -156,7 +160,7 @@ class Exchange(BaseExchange):
         except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)
 
-        self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+        self.handle_errors(http_status_code, text, url, method, headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
     async def load_markets(self, reload=False):
@@ -171,13 +175,35 @@ class Exchange(BaseExchange):
             currencies = await self.fetch_currencies()
         return self.set_markets(markets, currencies)
 
+    async def fetch_fees(self):
+        trading = {}
+        funding = {}
+        try:
+            trading = await self.fetch_trading_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        try:
+            funding = await self.fetch_funding_fees()
+        except AuthenticationError:
+            pass
+        except AttributeError:
+            pass
+
+        return {
+            'trading': trading,
+            'funding': funding,
+        }
+
     async def load_fees(self):
         await self.load_markets()
         self.populate_fees()
         if not (self.has['fetchTradingFees'] or self.has['fetchFundingFees']):
             return self.fees
 
-        fetched_fees = self.fetch_fees()
+        fetched_fees = await self.fetch_fees()
         if fetched_fees['funding']:
             self.fees['funding']['fee_loaded'] = True
         if fetched_fees['trading']:

@@ -191,7 +191,7 @@ module.exports = class btcalpha extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -234,13 +234,19 @@ module.exports = class btcalpha extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currency = this.commonCurrencyCode (balance['currency']);
-            let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['reserve']),
-                'total': 0.0,
+            let used = this.safeFloat (balance, 'reserve');
+            let total = this.safeFloat (balance, 'balance');
+            let free = undefined;
+            if (used !== undefined) {
+                if (total !== undefined) {
+                    free = total - used;
+                }
+            }
+            result[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
             };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
         }
         return this.parseBalance (result);
     }
@@ -266,6 +272,7 @@ module.exports = class btcalpha extends Exchange {
         let trades = this.safeValue (order, 'trades');
         if (trades)
             trades = this.parseTrades (trades, market);
+        const side = this.safeString2 (order, 'my_side', 'type');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -273,7 +280,7 @@ module.exports = class btcalpha extends Exchange {
             'status': this.safeString (statuses, status),
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,

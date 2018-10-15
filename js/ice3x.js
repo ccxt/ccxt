@@ -207,7 +207,7 @@ module.exports = class ice3x extends Exchange {
         const request = {
             'pair_id': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             let type = this.safeString (params, 'type');
             if ((type !== 'ask') && (type !== 'bid')) {
                 // eslint-disable-next-line quotes
@@ -379,9 +379,9 @@ module.exports = class ice3x extends Exchange {
         let request = {
             'pair_id': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['items_per_page'] = limit;
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['date_from'] = parseInt (since / 1000);
         let response = await this.privatePostTradeList (this.extend (request, params));
         let trades = response['response']['entities'];

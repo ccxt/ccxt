@@ -153,6 +153,9 @@ class bitz extends Exchange {
                 'lastNonceTimestamp' => 0,
             ),
             'commonCurrencies' => array (
+                // https://github.com/ccxt/ccxt/issues/3881
+                // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX' => 'BOX Token',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
             ),
@@ -469,7 +472,6 @@ class bitz extends Exchange {
         //
         $tickers = $response['data'];
         $timestamp = $this->parse_microtime ($this->safe_string($response, 'microtime'));
-        $iso8601 = $this->iso8601 ($timestamp);
         $result = array ();
         $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -496,7 +498,7 @@ class bitz extends Exchange {
             if ($symbol !== null) {
                 $result[$symbol] = array_merge ($ticker, array (
                     'timestamp' => $timestamp,
-                    'datetime' => $iso8601,
+                    'datetime' => $this->iso8601 ($timestamp),
                 ));
             }
         }
@@ -773,7 +775,7 @@ class bitz extends Exchange {
             'symbol' => $market['id'],
             'type' => $orderType,
             'price' => $this->price_to_precision($symbol, $price),
-            'number' => $this->amount_to_string($symbol, $amount),
+            'number' => $this->amount_to_precision($symbol, $amount),
             'tradePwd' => $this->password,
         );
         $response = $this->tradePostAddEntrustSheet (array_merge ($request, $params));
@@ -913,7 +915,7 @@ class bitz extends Exchange {
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array (
