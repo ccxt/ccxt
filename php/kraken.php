@@ -49,7 +49,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => array (
@@ -218,7 +218,7 @@ class kraken extends Exchange {
         $parts = explode ('<td class="wysiwyg-text-align-right">', $html);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         if ($numParts < 3) {
-            throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+            throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
         $result = array ();
         // skip the $part before the header and the header itself
@@ -226,11 +226,11 @@ class kraken extends Exchange {
             $part = $parts[$i];
             $chunks = explode ('</td>', $part);
             $amountAndCode = $chunks[0];
-            if ($amountAndCode !== 'to be announced') {
+            if ($amountAndCode !== 'To Be Announced') {
                 $pieces = explode (' ', $amountAndCode);
                 $numPieces = is_array ($pieces) ? count ($pieces) : 0;
                 if ($numPieces !== 2) {
-                    throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-');
+                    throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
                 }
                 $amount = floatval ($pieces[0]);
                 $code = $this->common_currency_code($pieces[1]);
