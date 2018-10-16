@@ -26,4 +26,3 @@ while True:
     orderbook = exchange.fetch_order_book('ETH/BTC')
     process = psutil.Process(os.getpid())
     print(exchange.iso8601(exchange.milliseconds()), process.memory_info().rss)
-
