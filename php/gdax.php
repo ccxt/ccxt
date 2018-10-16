@@ -137,6 +137,7 @@ class gdax extends Exchange {
                     'Invalid API Key' => '\\ccxt\\AuthenticationError',
                 ),
                 'broad' => array (
+                    'Order already done' => '\\ccxt\\OrderNotFound',
                     'order not found' => '\\ccxt\\OrderNotFound',
                     'price too small' => '\\ccxt\\InvalidOrder',
                     'price too precise' => '\\ccxt\\InvalidOrder',
