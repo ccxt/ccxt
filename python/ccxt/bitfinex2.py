@@ -95,6 +95,7 @@ class bitfinex2 (bitfinex):
                     ],
                     'post': [
                         'calc/trade/avg',
+                        'calc/fx',
                     ],
                 },
                 'private': {
@@ -122,6 +123,10 @@ class bitfinex2 (bitfinex):
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ],
                 },
             },
@@ -312,9 +317,13 @@ class bitfinex2 (bitfinex):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(self.extend({
-            'symbols': ','.join(self.ids),
-        }, params))
+        request = {}
+        if symbols is not None:
+            ids = self.market_ids(symbols)
+            request['symbols'] = ','.join(ids)
+        else:
+            request['symbols'] = 'ALL'
+        tickers = self.publicGetTickers(self.extend(request, params))
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
