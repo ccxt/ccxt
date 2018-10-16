@@ -226,8 +226,8 @@ class Exchange(BaseExchange):
         # and may be changed for consistency later
         return self.currencies
 
-    async def fetch_order_status(self, id, market=None):
-        order = await self.fetch_order(id)
+    async def fetch_order_status(self, id, symbol=None, params={}):
+        order = await self.fetch_order(id, symbol, params)
         return order['status']
 
     async def fetch_partial_balance(self, part, params={}):

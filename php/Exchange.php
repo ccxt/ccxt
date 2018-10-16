@@ -1574,8 +1574,8 @@ class Exchange {
         return $this->fetch_tickers ($symbols, $params);
     }
 
-    public function fetch_order_status ($id, $market = null) {
-        $order = $this->fetch_order ($id);
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
+        $order = $this->fetch_order ($id, $symbol, $params);
         return $order['id'];
     }
 

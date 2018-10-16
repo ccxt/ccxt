@@ -1096,8 +1096,8 @@ class Exchange(object):
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
-    def fetch_order_status(self, id, market=None):
-        order = self.fetch_order(id)
+    def fetch_order_status(self, id, symbol=None, params={}):
+        order = self.fetch_order(id, symbol, params)
         return order['status']
 
     def purge_cached_orders(self, before):
