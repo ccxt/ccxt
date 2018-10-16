@@ -116,6 +116,7 @@ const ccxt = require ('./ccxt.js')
 // ----------------------------------------------------------------------------
 
 for (let id in exchanges) {
+    ccxt[id].prototype.checkRequiredDependencies = () => {}
     exchanges[id] = new (ccxt)[id] (exchanges[id])
     exchanges[id].verbose = verbose
 }

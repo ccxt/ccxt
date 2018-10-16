@@ -51,12 +51,12 @@ let Web3 = undefined
     , BigNumber = undefined
 
 try {
-    Web3      = require ('web3') // eslint-disable-line global-require
-    ethAbi    = require ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = require ('ethereumjs-util') // eslint-disable-line global-require
-    BigNumber = require ('bignumber.js') // eslint-disable-line global-require
+    Web3      = module.require ('web3') // eslint-disable-line global-require
+    ethAbi    = module.require ('ethereumjs-abi') // eslint-disable-line global-require
+    ethUtil   = module.require ('ethereumjs-util') // eslint-disable-line global-require
+    BigNumber = module.require ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
-    // BN        = require ('bn.js') // eslint-disable-line global-require
+    // BN        = module.require ('bn.js') // eslint-disable-line global-require
 } catch (e) {
 }
 
