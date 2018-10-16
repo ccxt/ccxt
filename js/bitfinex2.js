@@ -90,6 +90,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     ],
                     'post': [
                         'calc/trade/avg',
+                        'calc/fx',
                     ],
                 },
                 'private': {
