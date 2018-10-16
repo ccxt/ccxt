@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -131,8 +131,13 @@ module.exports = class bitmex extends Exchange {
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                'exact': {
+                    'Invalid API Key.': AuthenticationError,
+                    'Access Denied': PermissionDenied,
+                },
+                'broad': {
+                    'overloaded': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'fetchTickerQuotes': false,
@@ -569,19 +574,18 @@ module.exports = class bitmex extends Exchange {
             if (body) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    if ('error' in response) {
-                        if ('message' in response['error']) {
-                            let feedback = this.id + ' ' + this.json (response);
-                            let message = this.safeValue (response['error'], 'message');
-                            let exceptions = this.exceptions;
-                            if (message !== undefined) {
-                                if (message in exceptions) {
-                                    throw new exceptions[message] (feedback);
-                                }
-                            }
-                            throw new ExchangeError (feedback);
-                        }
+                    const message = this.safeString (response, 'error');
+                    const feedback = this.id + ' ' + body;
+                    const exact = this.exceptions['exact'];
+                    if (code in exact) {
+                        throw new exact[code] (feedback);
                     }
+                    const broad = this.exceptions['broad'];
+                    const broadKey = this.findBroadlyMatchedKey (broad, message);
+                    if (broadKey !== undefined) {
+                        throw new broad[broadKey] (feedback);
+                    }
+                    throw new ExchangeError (feedback); // unknown message
                 }
             }
         }

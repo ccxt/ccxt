@@ -826,8 +826,8 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    async fetchOrderStatus (id, market = undefined) {
-        let order = await this.fetchOrder (id, market);
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+        let order = await this.fetchOrder (id, symbol, params);
         return order['status'];
     }
 

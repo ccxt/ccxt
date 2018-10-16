@@ -450,6 +450,7 @@ class bitstamp extends Exchange {
             'In Queue' => 'open',
             'Open' => 'open',
             'Finished' => 'closed',
+            'Canceled' => 'canceled',
         );
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }

@@ -197,17 +197,20 @@ class bitstamp1 extends Exchange {
         return $this->privatePostCancelOrder (array ( 'id' => $id ));
     }
 
-    public function parse_order_status ($order) {
-        if (($order['status'] === 'Queue') || ($order['status'] === 'Open'))
-            return 'open';
-        if ($order['status'] === 'Finished')
-            return 'closed';
-        return $order['status'];
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'In Queue' => 'open',
+            'Open' => 'open',
+            'Finished' => 'closed',
+            'Canceled' => 'canceled',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
-    public function fetch_order_status ($id, $symbol = null) {
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderStatus (array ( 'id' => $id ));
+        $request = array ( 'id' => $id );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
         return $this->parse_order_status($response);
     }
 

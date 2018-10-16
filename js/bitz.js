@@ -986,7 +986,12 @@ module.exports = class bitz extends Exchange {
         //         "source": "api"
         //     }
         //
-        return this.parseOrders (response['data']['data'], undefined, since, limit);
+        let orders = this.safeValue (response['data'], 'data');
+        if (orders) {
+            return this.parseOrders (response['data']['data'], undefined, since, limit);
+        } else {
+            return [];
+        }
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

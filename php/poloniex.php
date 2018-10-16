@@ -797,9 +797,9 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_order_status ($id, $symbol = null) {
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $orders = $this->fetch_open_orders($symbol);
+        $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
         return (is_array ($indexed) && array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }
