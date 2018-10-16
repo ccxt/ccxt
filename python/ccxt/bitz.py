@@ -956,7 +956,11 @@ class bitz (Exchange):
         #         "source": "api"
         #     }
         #
-        return self.parse_orders(response['data']['data'], None, since, limit)
+        orders = self.safe_value(response['data'], 'data')
+        if orders:
+            return self.parse_orders(response['data']['data'], None, since, limit)
+        else:
+            return []
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
