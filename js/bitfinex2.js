@@ -321,9 +321,14 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (this.extend ({
-            'symbols': this.ids.join (','),
-        }, params));
+        let request = {};
+        if (symbols !== undefined) {
+            let ids = this.marketIds (symbols);
+            request['symbols'] = ids.join (',');
+        } else {
+            request['symbols'] = 'ALL';
+        }
+        let tickers = await this.publicGetTickers (this.extend (request, params));
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
