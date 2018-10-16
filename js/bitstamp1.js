@@ -206,9 +206,10 @@ module.exports = class bitstamp1 extends Exchange {
         return (status in statuses) ? statuses[status] : status;
     }
 
-    async fetchOrderStatus (id, symbol = undefined) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({ 'id': id });
+        let request = { 'id': id }
+        let response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 
