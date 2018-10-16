@@ -132,8 +132,13 @@ class bitmex extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'Invalid API Key.' => '\\ccxt\\AuthenticationError',
-                'Access Denied' => '\\ccxt\\PermissionDenied',
+                'exact' => array (
+                    'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'Access Denied' => '\\ccxt\\PermissionDenied',
+                ),
+                'broad' => array (
+                    'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                ),
             ),
             'options' => array (
                 'fetchTickerQuotes' => false,
@@ -570,19 +575,18 @@ class bitmex extends Exchange {
             if ($body) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
-                    if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
-                            $feedback = $this->id . ' ' . $this->json ($response);
-                            $message = $this->safe_value($response['error'], 'message');
-                            $exceptions = $this->exceptions;
-                            if ($message !== null) {
-                                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                                    throw new $exceptions[$message] ($feedback);
-                                }
-                            }
-                            throw new ExchangeError ($feedback);
-                        }
+                    $message = $this->safe_string($response, 'error');
+                    $feedback = $this->id . ' ' . $body;
+                    $exact = $this->exceptions['exact'];
+                    if (is_array ($exact) && array_key_exists ($code, $exact)) {
+                        throw new $exact[$code] ($feedback);
                     }
+                    $broad = $this->exceptions['broad'];
+                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                    if ($broadKey !== null) {
+                        throw new $broad[$broadKey] ($feedback);
+                    }
+                    throw new ExchangeError ($feedback); // unknown $message
                 }
             }
         }
