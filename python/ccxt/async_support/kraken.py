@@ -70,7 +70,7 @@ class kraken (Exchange):
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://support.kraken.com/hc/en-us/articles',
+                    'zendesk': 'https://support.kraken.com/hc/en-us/articles/',
                 },
                 'www': 'https://www.kraken.com',
                 'doc': [
@@ -236,18 +236,18 @@ class kraken (Exchange):
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
-            raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-')
+            raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
         result = {}
         # skip the part before the header and the header itself
         for i in range(2, len(parts)):
             part = parts[i]
             chunks = part.split('</td>')
             amountAndCode = chunks[0]
-            if amountAndCode != 'to be announced':
+            if amountAndCode != 'To Be Announced':
                 pieces = amountAndCode.split(' ')
                 numPieces = len(pieces)
                 if numPieces != 2:
-                    raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles205893708-What-is-the-minimum-order-size-')
+                    raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
                 amount = float(pieces[0])
                 code = self.common_currency_code(pieces[1])
                 result[code] = amount

@@ -196,17 +196,20 @@ module.exports = class bitstamp1 extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
-    parseOrderStatus (order) {
-        if ((order['status'] === 'Queue') || (order['status'] === 'Open'))
-            return 'open';
-        if (order['status'] === 'Finished')
-            return 'closed';
-        return order['status'];
+    parseOrderStatus (status) {
+        let statuses = {
+            'In Queue': 'open',
+            'Open': 'open',
+            'Finished': 'closed',
+            'Canceled': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
-    async fetchOrderStatus (id, symbol = undefined) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({ 'id': id });
+        let request = { 'id': id };
+        let response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 

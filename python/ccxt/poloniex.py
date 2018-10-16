@@ -747,9 +747,9 @@ class poloniex (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
-    def fetch_order_status(self, id, symbol=None):
+    def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        orders = self.fetch_open_orders(symbol)
+        orders = self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 

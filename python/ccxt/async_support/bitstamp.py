@@ -430,6 +430,7 @@ class bitstamp (Exchange):
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 

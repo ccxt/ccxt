@@ -136,6 +136,7 @@ module.exports = class gdax extends Exchange {
                     'Invalid API Key': AuthenticationError,
                 },
                 'broad': {
+                    'Order already done': OrderNotFound,
                     'order not found': OrderNotFound,
                     'price too small': InvalidOrder,
                     'price too precise': InvalidOrder,

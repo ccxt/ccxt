@@ -90,6 +90,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     ],
                     'post': [
                         'calc/trade/avg',
+                        'calc/fx',
                     ],
                 },
                 'private': {
@@ -117,6 +118,10 @@ module.exports = class bitfinex2 extends bitfinex {
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ],
                 },
             },
@@ -321,9 +326,14 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (this.extend ({
-            'symbols': this.ids.join (','),
-        }, params));
+        let request = {};
+        if (symbols !== undefined) {
+            let ids = this.marketIds (symbols);
+            request['symbols'] = ids.join (',');
+        } else {
+            request['symbols'] = 'ALL';
+        }
+        let tickers = await this.publicGetTickers (this.extend (request, params));
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];

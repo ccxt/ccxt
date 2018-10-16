@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bitmex (Exchange):
@@ -137,8 +138,13 @@ class bitmex (Exchange):
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                'exact': {
+                    'Invalid API Key.': AuthenticationError,
+                    'Access Denied': PermissionDenied,
+                },
+                'broad': {
+                    'overloaded': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'fetchTickerQuotes': False,
@@ -542,15 +548,16 @@ class bitmex (Exchange):
             if body:
                 if body[0] == '{':
                     response = json.loads(body)
-                    if 'error' in response:
-                        if 'message' in response['error']:
-                            feedback = self.id + ' ' + self.json(response)
-                            message = self.safe_value(response['error'], 'message')
-                            exceptions = self.exceptions
-                            if message is not None:
-                                if message in exceptions:
-                                    raise exceptions[message](feedback)
-                            raise ExchangeError(feedback)
+                    message = self.safe_string(response, 'error')
+                    feedback = self.id + ' ' + body
+                    exact = self.exceptions['exact']
+                    if code in exact:
+                        raise exact[code](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
         return self.milliseconds()

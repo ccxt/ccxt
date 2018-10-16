@@ -449,6 +449,7 @@ module.exports = class bitstamp extends Exchange {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         };
         return (status in statuses) ? statuses[status] : status;
     }

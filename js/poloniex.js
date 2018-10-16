@@ -796,9 +796,9 @@ module.exports = class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOrderStatus (id, symbol = undefined) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orders = await this.fetchOpenOrders (symbol);
+        let orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         let indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }
