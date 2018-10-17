@@ -1056,6 +1056,16 @@ class theocean (Exchange):
         #
         return self.parse_order(response)
 
+    def fetch_order(self, id, symbol=None, params={}):
+        request = {
+            'orderHash': id,
+        }
+        orders = self.fetch_orders(symbol, None, None, self.extend(request, params))
+        numOrders = len(orders)
+        if numOrders != 1:
+            raise OrderNotFound(self.id + ' order ' + id + ' not found')
+        return orders[0]
+
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {
