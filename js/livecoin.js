@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported, InvalidOrder, OrderNotFound, ExchangeNotAvailable, DDoSProtection, InsufficientFunds } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -87,7 +88,6 @@ module.exports = class livecoin extends Exchange {
             'commonCurrencies': {
                 'BTCH': 'Bithash',
                 'CPC': 'CapriCoin',
-                'CRC': 'CryCash',
                 'EDR': 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -129,10 +129,10 @@ module.exports = class livecoin extends Exchange {
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
             let id = market['symbol'];
-            let symbol = id;
-            let [ baseId, quoteId ] = symbol.split ('/');
+            let [ baseId, quoteId ] = id.split ('/');
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let coinRestrictions = this.safeValue (restrictionsById, symbol);
             let precision = {
                 'price': 5,
@@ -294,7 +294,7 @@ module.exports = class livecoin extends Exchange {
             'currencyPair': this.marketId (symbol),
             'groupByPrice': 'false',
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['depth'] = limit; // 100
         let orderbook = await this.publicGetExchangeOrderBook (this.extend (request, params));
         let timestamp = orderbook['timestamp'];
@@ -408,10 +408,9 @@ module.exports = class livecoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         let timestamp = undefined;
-        let datetime = undefined;
         if ('lastModificationTime' in order) {
             timestamp = this.safeString (order, 'lastModificationTime');
-            if (typeof timestamp !== 'undefined') {
+            if (timestamp !== undefined) {
                 if (timestamp.indexOf ('T') >= 0) {
                     timestamp = this.parse8601 (timestamp);
                 } else {
@@ -419,17 +418,12 @@ module.exports = class livecoin extends Exchange {
                 }
             }
         }
-        if (timestamp) {
-            datetime = this.iso8601 (timestamp);
-        }
         // TODO currently not supported by livecoin
         // let trades = this.parseTrades (order['trades'], market, since, limit);
         let trades = undefined;
-        let status = this.safeString (order, 'status');
-        status = this.safeString (order, 'orderStatus', status);
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString2 (order, 'status', 'orderStatus'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'currencyPair');
             marketId = this.safeString (order, 'symbol', marketId);
             if (marketId in this.markets_by_id)
@@ -449,20 +443,20 @@ module.exports = class livecoin extends Exchange {
         remaining = this.safeFloat (order, 'remaining_quantity', remaining);
         let amount = this.safeFloat (order, 'quantity', remaining);
         let filled = undefined;
-        if (typeof remaining !== 'undefined') {
+        if (remaining !== undefined) {
             filled = amount - remaining;
         }
         let cost = undefined;
-        if (typeof filled !== 'undefined' && typeof price !== 'undefined') {
+        if (filled !== undefined && price !== undefined) {
             cost = filled * price;
         }
         const feeRate = this.safeFloat (order, 'commission_rate');
         let feeCost = undefined;
-        if (typeof cost !== 'undefined' && typeof feeRate !== 'undefined') {
+        if (cost !== undefined && feeRate !== undefined) {
             feeCost = cost * feeRate;
         }
         let feeCurrency = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
@@ -470,7 +464,7 @@ module.exports = class livecoin extends Exchange {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
@@ -494,13 +488,13 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['currencyPair'] = market['id'];
         }
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['issuedFrom'] = parseInt (since);
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['endRow'] = limit - 1;
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];
@@ -551,8 +545,8 @@ module.exports = class livecoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let currencyPair = market['id'];
@@ -584,16 +578,16 @@ module.exports = class livecoin extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         let wallet = address;
-        if (typeof tag !== 'undefined')
+        if (tag !== undefined)
             wallet += '::' + tag;
         let withdrawal = {
-            'amount': this.truncate (amount, this.currencies[currency]['precision']), // throws an error when amount is too precise
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
             'currency': this.commonCurrencyCode (currency),
             'wallet': wallet,
         };
         let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
         let id = this.safeInteger (response, 'id');
-        if (typeof id === 'undefined')
+        if (id === undefined)
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
         return {
             'info': response,
@@ -662,13 +656,13 @@ module.exports = class livecoin extends Exchange {
             let success = this.safeValue (response, 'success', true);
             if (!success) {
                 const message = this.safeString (response, 'message');
-                if (typeof message !== 'undefined') {
+                if (message !== undefined) {
                     if (message.indexOf ('Cannot find order') >= 0) {
                         throw new OrderNotFound (this.id + ' ' + body);
                     }
                 }
                 const exception = this.safeString (response, 'exception');
-                if (typeof exception !== 'undefined') {
+                if (exception !== undefined) {
                     if (exception.indexOf ('Minimal amount is') >= 0) {
                         throw new InvalidOrder (this.id + ' ' + body);
                     }

@@ -264,7 +264,7 @@ class exx extends Exchange {
         $cost = $this->safe_float($order, 'trade_money');
         $amount = $this->safe_float($order, 'total_amount');
         $filled = $this->safe_float($order, 'trade_amount', 0.0);
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
+        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
         $status = $this->safe_integer($order, 'status');
         if ($status === 1) {
             $status = 'canceled';
@@ -285,7 +285,7 @@ class exx extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
-            'status' => 'open',
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $order['type'],
@@ -345,9 +345,12 @@ class exx extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orders = $this->privateGetOpenOrders (array_merge (array (
+        $orders = $this->privateGetGetOpenOrders (array_merge (array (
             'currency' => $market['id'],
         ), $params));
+        if (!gettype ($orders) === 'array' && count (array_filter (array_keys ($orders), 'is_string')) == 0) {
+            return array ();
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -366,8 +369,8 @@ class exx extends Exchange {
                 'accesskey' => $this->apiKey,
                 'nonce' => $this->nonce (),
             ), $params)));
-            $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
-            $url .= '?' . $query . '&$signature=' . $signature;
+            $signed = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha512');
+            $url .= '?' . $query . '&signature=' . $signed;
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
@@ -395,8 +398,13 @@ class exx extends Exchange {
                 $exceptions = $this->exceptions;
                 if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
                     throw new $exceptions[$code] ($feedback);
+                } else if ($code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // array ("$code":308,"$message":"Not Found Transaction Record")
+                    return;
+                } else {
+                    throw new ExchangeError ($feedback);
                 }
-                throw new ExchangeError ($feedback);
             }
             $result = $this->safe_value($response, 'result');
             if ($result !== null) {

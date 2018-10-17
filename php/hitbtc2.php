@@ -546,7 +546,7 @@ class hitbtc2 extends hitbtc {
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate ($fee, 8);
+        return $this->decimal_to_precision($fee, TRUNCATE, 8, DECIMAL_PLACES);
     }
 
     public function fetch_markets () {
@@ -566,7 +566,7 @@ class hitbtc2 extends hitbtc {
                 'price' => $this->precision_from_string($market['tickSize']),
                 // FIXME => for lots > 1 the following line returns 0
                 // 'amount' => $this->precision_from_string($market['quantityIncrement']),
-                'amount' => -1 * log10 ($lot),
+                'amount' => -1 * intval (log10 ($lot)),
             );
             $taker = $this->safe_float($market, 'takeLiquidityRate');
             $maker = $this->safe_float($market, 'provideLiquidityRate');
@@ -661,7 +661,8 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         $type = $this->safe_string($params, 'type', 'trading');
         $method = 'privateGet' . $this->capitalize ($type) . 'Balance';
-        $balances = $this->$method ();
+        $query = $this->omit ($params, 'type');
+        $balances = $this->$method ($query);
         $result = array ( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
@@ -801,11 +802,12 @@ class hitbtc2 extends hitbtc {
             }
         }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
-            $currency = $market ? $market['quote'] : null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrency = $market ? $market['quote'] : null;
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => $currency,
+                'cost' => $feeCost,
+                'currency' => $feeCurrency,
             );
         }
         $orderId = null;
@@ -838,8 +840,10 @@ class hitbtc2 extends hitbtc {
         );
         if ($limit !== null)
             $request['limit'] = $limit;
-        if ($since !== null)
+        if ($since !== null) {
+            $request['sort'] = 'ASC';
             $request['from'] = $this->iso8601 ($since);
+        }
         $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -886,7 +890,7 @@ class hitbtc2 extends hitbtc {
             'requestClientId' => $requestClientId,
         );
         if ($amount !== null)
-            $request['quantity'] = $this->amount_to_precision($symbol, floatval ($amount));
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         if ($price !== null)
             $request['price'] = $this->price_to_precision($symbol, $price);
         $response = $this->privatePatchOrderClientOrderId (array_merge ($request, $params));
@@ -904,12 +908,8 @@ class hitbtc2 extends hitbtc {
     }
 
     public function parse_order ($order, $market = null) {
-        $created = null;
-        if (is_array ($order) && array_key_exists ('createdAt', $order))
-            $created = $this->parse8601 ($order['createdAt']);
-        $updated = null;
-        if (is_array ($order) && array_key_exists ('updatedAt', $order))
-            $updated = $this->parse8601 ($order['updatedAt']);
+        $created = $this->parse8601 ($this->safe_string($order, 'createdAt'));
+        $updated = $this->parse8601 ($this->safe_string($order, 'updatedAt'));
         if (!$market)
             $market = $this->markets_by_id[$order['symbol']];
         $symbol = $market['symbol'];

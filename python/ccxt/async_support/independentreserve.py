@@ -200,7 +200,7 @@ class independentreserve (Exchange):
             'currency': feeCurrency,
         }
         id = order['OrderGuid']
-        status = self.parse_order_status(order['Status'])
+        status = self.parse_order_status(self.safe_string(order, 'Status'))
         cost = self.safe_float(order, 'Value')
         average = self.safe_float(order, 'AvgPrice')
         price = self.safe_float(order, 'Price', average)

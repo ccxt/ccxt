@@ -17,6 +17,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
+            'parseJsonResponse' => false,
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -48,7 +49,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => array (
@@ -205,40 +206,35 @@ class kraken extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_min_order_sizes () {
-        $html = null;
-        $oldParseJsonResponse = $this->parseJsonResponse;
-        try {
-            $this->parseJsonResponse = false;
-            $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            $this->parseJsonResponse = $oldParseJsonResponse;
-        } catch (Exception $e) {
-            // ensure parseJsonResponse is restored no matter what
-            $this->parseJsonResponse = $oldParseJsonResponse;
-            throw $e;
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
+        $parts = explode ('<td class="wysiwyg-text-align-right">', $html);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        if ($numParts < 3) {
+            throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
-        $parts = explode ('ul>', $html);
-        $ul = $parts[1];
-        $listItems = explode ('</li', $ul);
         $result = array ();
-        $separator = '):' . ' ';
-        for ($l = 0; $l < count ($listItems); $l++) {
-            $listItem = $listItems[$l];
-            $chunks = explode ($separator, $listItem);
-            $numChunks = is_array ($chunks) ? count ($chunks) : 0;
-            if ($numChunks > 1) {
-                $limit = floatval ($chunks[1]);
-                $name = $chunks[0];
-                $chunks = explode ('(', $name);
-                $currency = $chunks[1];
-                $result[$currency] = $limit;
+        // skip the $part before the header and the header itself
+        for ($i = 2; $i < count ($parts); $i++) {
+            $part = $parts[$i];
+            $chunks = explode ('</td>', $part);
+            $amountAndCode = $chunks[0];
+            if ($amountAndCode !== 'To Be Announced') {
+                $pieces = explode (' ', $amountAndCode);
+                $numPieces = is_array ($pieces) ? count ($pieces) : 0;
+                if ($numPieces !== 2) {
+                    throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                }
+                $amount = floatval ($pieces[0]);
+                $code = $this->common_currency_code($pieces[1]);
+                $result[$code] = $amount;
             }
         }
         return $result;
@@ -592,7 +588,7 @@ class kraken extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ();
+        $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result');
         if ($balances === null)
             throw new ExchangeNotAvailable ($this->id . ' fetchBalance failed due to a malformed $response ' . $this->json ($response));
@@ -680,6 +676,7 @@ class kraken extends Exchange {
             $price = $this->safe_float($description, 'price2');
         if (($price === null) || ($price === 0))
             $price = $this->safe_float($order, 'price', $price);
+        $average = $this->safe_float($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
@@ -710,6 +707,7 @@ class kraken extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
+            'average' => $average,
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
@@ -934,5 +932,10 @@ class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        return $this->parse_if_json_encoded_object($response);
     }
 }

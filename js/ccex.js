@@ -148,7 +148,7 @@ module.exports = class ccex extends Exchange {
             'market': this.marketId (symbol),
             'type': 'both',
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['depth'] = limit; // 100
         let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = response['result'];
@@ -197,7 +197,7 @@ module.exports = class ccex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['updated'] * 1000;
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'lastprice');
         return {

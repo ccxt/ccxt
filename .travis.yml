@@ -14,6 +14,8 @@ before_install:
 - nvm install stable
 - nvm use stable
 - npm install
+- npm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save
+- git checkout package.json package-lock.json
 - sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
 - sudo dpkg -i pandoc-2.2.1-1-amd64.deb
 - sudo apt-get install python3-pip
@@ -21,7 +23,9 @@ before_install:
 - python2 --version
 - pip3 --version
 - sudo -H pip3 install --upgrade setuptools pip wheel requests
+- sudo -H pip3 install --ignore-installed six
 - sudo -H pip3 install --upgrade tox twine
+- pip install --upgrade web3
 - pip install --upgrade aiohttp requests
 - pip2 install requests[security]
 script:

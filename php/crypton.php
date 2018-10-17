@@ -178,7 +178,8 @@ class crypton extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTickers ($params);
+        $response = $this->publicGetTickers ($params);
+        $tickers = $response['result'];
         $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -270,7 +271,6 @@ class crypton extends Exchange {
             $symbol = $this->parse_symbol ($marketId);
         }
         $timestamp = $this->parse8601 ($order['createdAt']);
-        $iso8601 = $this->iso8601 ($timestamp);
         $fee = null;
         if (is_array ($order) && array_key_exists ('fee', $order)) {
             $fee = array (
@@ -287,7 +287,7 @@ class crypton extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $type,

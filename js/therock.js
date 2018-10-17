@@ -128,7 +128,7 @@ module.exports = class therock extends Exchange {
         //
         let markets = this.safeValue (response, 'funds');
         let result = [];
-        if (typeof markets === 'undefined') {
+        if (markets === undefined) {
             throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
         } else {
             for (let i = 0; i < markets.length; i++) {
@@ -310,6 +310,7 @@ module.exports = class therock extends Exchange {
         await this.loadMarkets ();
         return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
             'id': id,
+            'fund_id': this.marketId (symbol),
         }, params));
     }
 

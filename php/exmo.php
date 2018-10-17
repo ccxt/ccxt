@@ -28,10 +28,18 @@ class exmo extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
+                'fetchTradingFees' => true,
+                'fetchFundingFees' => true,
+                'fetchCurrencies' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
-                'api' => 'https://api.exmo.com',
+                'api' => array (
+                    'public' => 'https://api.exmo.com',
+                    'private' => 'https://api.exmo.com',
+                    'web' => 'https://exmo.me',
+                ),
                 'www' => 'https://exmo.me',
                 'referral' => 'https://exmo.me/?ref=131685',
                 'doc' => array (
@@ -41,6 +49,12 @@ class exmo extends Exchange {
                 'fees' => 'https://exmo.com/en/docs/fees',
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'ctrl/feesAndLimits',
+                        'en/docs/fees',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'currency',
@@ -71,29 +85,14 @@ class exmo extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
                     'maker' => 0.2 / 100,
                     'taker' => 0.2 / 100,
                 ),
                 'funding' => array (
-                    'withdraw' => array (
-                        'BTC' => 0.001,
-                        'LTC' => 0.01,
-                        'DOGE' => 1,
-                        'DASH' => 0.01,
-                        'ETH' => 0.01,
-                        'WAVES' => 0.001,
-                        'ZEC' => 0.001,
-                        'USDT' => 25,
-                        'XMR' => 0.05,
-                        'XRP' => 0.02,
-                        'KICK' => 350,
-                        'ETC' => 0.01,
-                        'BCH' => 0.001,
-                    ),
-                    'deposit' => array (
-                        'USDT' => 15,
-                        'KICK' => 50,
-                    ),
+                    'tierBased' => false,
+                    'percentage' => false, // fixed funding fees for crypto, see fetchFundingFees below
                 ),
             ),
             'exceptions' => array (
@@ -112,7 +111,217 @@ class exmo extends Exchange {
         ));
     }
 
+    public function fetch_trading_fees ($params = array ()) {
+        $response = null;
+        $oldParseJsonResponse = $this->parseJsonResponse;
+        try {
+            $this->parseJsonResponse = false;
+            $response = $this->webGetEnDocsFees ($params);
+            $this->parseJsonResponse = $oldParseJsonResponse;
+        } catch (Exception $e) {
+            // ensure parseJsonResponse is restored no matter what
+            $this->parseJsonResponse = $oldParseJsonResponse;
+            throw $e;
+        }
+        $parts = explode ('<td class="th_fees_2" colspan="2">', $response);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        if ($numParts !== 2) {
+            throw new ExchangeError ($this->id . ' fetchTradingFees format has changed');
+        }
+        $rest = $parts[1];
+        $parts = explode ('</td>', $rest);
+        $numParts = is_array ($parts) ? count ($parts) : 0;
+        if ($numParts < 2) {
+            throw new ExchangeError ($this->id . ' fetchTradingFees format has changed');
+        }
+        $fee = floatval (str_replace ('%', '', $parts[0])) * 0.01;
+        $taker = $fee;
+        $maker = $fee;
+        return array (
+            'info' => $response,
+            'maker' => $maker,
+            'taker' => $taker,
+        );
+    }
+
+    public function parse_fixed_float_value ($input) {
+        if (($input === null) || ($input === '-')) {
+            return null;
+        }
+        $isPercentage = (mb_strpos ($input, '%') !== false);
+        $parts = explode (' ', $input);
+        $value = str_replace ('%', '', $parts[0]);
+        $result = floatval ($value);
+        if (($result > 0) && $isPercentage) {
+            throw new ExchangeError ($this->id . ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' . $input);
+        }
+        return $result;
+    }
+
+    public function fetch_funding_fees ($params = array ()) {
+        $response = $this->webGetCtrlFeesAndLimits ($params);
+        //
+        //     { success =>    1,
+        //          ctlr =>   "feesAndLimits",
+        //         error =>   "",
+        //          data => { limits => array ( array (  pair => "BTC/USD",
+        //                              min_q => "0.001",
+        //                              max_q => "100",
+        //                              min_p => "1",
+        //                              max_p => "30000",
+        //                              min_a => "1",
+        //                              max_a => "200000"   ),
+        //                            {  pair => "KICK/ETH",
+        //                              min_q => "100",
+        //                              max_q => "200000",
+        //                              min_p => "0.000001",
+        //                              max_p => "1",
+        //                              min_a => "0.0001",
+        //                              max_a => "100"       }    ),
+        //                    fees => array ( array ( group =>   "crypto",
+        //                              title =>   "Криптовалюта",
+        //                              $items => array ( array ( prov => "BTC", dep => "0%", wd => "0.0005 BTC" ),
+        //                                       array ( prov => "LTC", dep => "0%", wd => "0.01 LTC" ),
+        //                                       array ( prov => "DOGE", dep => "0%", wd => "1 Doge" ),
+        //                                       array ( prov => "DASH", dep => "0%", wd => "0.01 DASH" ),
+        //                                       array ( prov => "ETH", dep => "0%", wd => "0.01 ETH" ),
+        //                                       array ( prov => "WAVES", dep => "0%", wd => "0.001 WAVES" ),
+        //                                       array ( prov => "ZEC", dep => "0%", wd => "0.001 ZEC" ),
+        //                                       array ( prov => "USDT", dep => "5 USDT", wd => "5 USDT" ),
+        //                                       array ( prov => "NEO", dep => "0%", wd => "0%" ),
+        //                                       array ( prov => "GAS", dep => "0%", wd => "0%" ),
+        //                                       array ( prov => "ZRX", dep => "0%", wd => "1 ZRX" ),
+        //                                       array ( prov => "GNT", dep => "0%", wd => "1 GNT" ) ) ),
+        //                            array ( group =>   "usd",
+        //                              title =>   "USD",
+        //                              $items => array ( array ( prov => "AdvCash", dep => "1%", wd => "3%" ),
+        //                                       array ( prov => "Perfect Money", dep => "-", wd => "1%" ),
+        //                                       array ( prov => "Neteller", dep => "3.5% . 0.29 USD, wd => "1.95%" ),
+        //                                       array ( prov => "Wire Transfer", dep => "0%", wd => "1% . 20 USD" ),
+        //                                       array ( prov => "CryptoCapital", dep => "0.5%", wd => "1.9%" ),
+        //                                       array ( prov => "Skrill", dep => "3.5% . 0.36 USD", wd => "3%" ),
+        //                                       array ( prov => "Payeer", dep => "1.95%", wd => "3.95%" ),
+        //                                       array ( prov => "Visa/MasterCard (Simplex)", dep => "6%", wd => "-" ) ) ),
+        //                            array ( group =>   "eur",
+        //                              title =>   "EUR",
+        //                              $items => array ( array ( prov => "CryptoCapital", dep => "0%", wd => "-" ),
+        //                                       array ( prov => "SEPA", dep => "25 EUR", wd => "1%" ),
+        //                                       array ( prov => "Perfect Money", dep => "-", wd => "1.95%" ),
+        //                                       array ( prov => "Neteller", dep => "3.5%+0.25 EUR", wd => "1.95%" ),
+        //                                       array ( prov => "Payeer", dep => "2%", wd => "1%" ),
+        //                                       array ( prov => "AdvCash", dep => "1%", wd => "3%" ),
+        //                                       array ( prov => "Skrill", dep => "3.5% . 0.29 EUR", wd => "3%" ),
+        //                                       array ( prov => "Rapid Transfer", dep => "1.5% . 0.29 EUR", wd => "-" ),
+        //                                       array ( prov => "MisterTango SEPA", dep => "5 EUR", wd => "1%" ),
+        //                                       array ( prov => "Visa/MasterCard (Simplex)", dep => "6%", wd => "-" ) ) ),
+        //                            array ( group =>   "rub",
+        //                              title =>   "RUB",
+        //                              $items => array ( array ( prov => "Payeer", dep => "2.45%", wd => "5.95%" ),
+        //                                       array ( prov => "Yandex Money", dep => "4.5%", wd => "-" ),
+        //                                       array ( prov => "AdvCash", dep => "1.45%", wd => "5.45%" ),
+        //                                       array ( prov => "Qiwi", dep => "4.95%", wd => "-" ),
+        //                                       array ( prov => "Visa/Mastercard", dep => "-", wd => "6.95% . 100 RUB"  ) ) ),
+        //                            array ( group =>   "pln",
+        //                              title =>   "PLN",
+        //                              $items => array ( array ( prov => "Neteller", dep => "3.5% . 4 PLN", wd => "-" ),
+        //                                       array ( prov => "Rapid Transfer", dep => "1.5% . 1.21 PLN", wd => "-" ),
+        //                                       array ( prov => "CryptoCapital", dep => "20 PLN", wd => "-" ),
+        //                                       array ( prov => "Skrill", dep => "3.5% . 1.21 PLN", wd => "-" ),
+        //                                       array ( prov => "Visa/MasterCard (Simplex)", dep => "6%", wd => "-" ) ) ),
+        //                            { group =>   "uah",
+        //                              title =>   "UAH",
+        //                              $items => array ( array ( prov => "AdvCash", dep => "1%", wd => "6%" ),
+        //                                       array ( prov => "Visa/MasterCard", dep => "2.6%", wd => "8% . 30 UAH" ) ) } ) } }
+        //
+        //
+        // the $code below assumes all non-zero crypto fees are fixed (for now)
+        $withdraw = array ();
+        $deposit = array ();
+        $groups = $this->safe_value($response['data'], 'fees');
+        $groupsByGroup = $this->index_by($groups, 'group');
+        $items = $groupsByGroup['crypto']['items'];
+        for ($i = 0; $i < count ($items); $i++) {
+            $item = $items[$i];
+            $code = $this->common_currency_code($this->safe_string($item, 'prov'));
+            $withdraw[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'wd'));
+            $deposit[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'dep'));
+        }
+        $result = array (
+            'info' => $response,
+            'withdraw' => $withdraw,
+            'deposit' => $deposit,
+        );
+        // cache them for later use
+        $this->options['fundingFees'] = $result;
+        return $result;
+    }
+
+    public function fetch_currencies ($params = array ()) {
+        $fees = $this->fetch_funding_fees($params);
+        // todo redesign the 'fee' property in currencies
+        $ids = is_array ($fees['withdraw']) ? array_keys ($fees['withdraw']) : array ();
+        $limitsByMarketId = $this->index_by($fees['info']['data']['limits'], 'pair');
+        $marketIds = is_array ($limitsByMarketId) ? array_keys ($limitsByMarketId) : array ();
+        $minAmounts = array ();
+        $minPrices = array ();
+        $minCosts = array ();
+        $maxAmounts = array ();
+        $maxPrices = array ();
+        $maxCosts = array ();
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $limit = $limitsByMarketId[$marketId];
+            list ($baseId, $quoteId) = explode ('/', $marketId);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $maxAmount = $this->safe_float($limit, 'max_q');
+            $maxPrice = $this->safe_float($limit, 'max_p');
+            $maxCost = $this->safe_float($limit, 'max_a');
+            $minAmount = $this->safe_float($limit, 'min_q');
+            $minPrice = $this->safe_float($limit, 'min_p');
+            $minCost = $this->safe_float($limit, 'min_a');
+            $minAmounts[$base] = min ($this->safe_float($minAmounts, $base, $minAmount), $minAmount);
+            $maxAmounts[$base] = max ($this->safe_float($maxAmounts, $base, $maxAmount), $maxAmount);
+            $minPrices[$quote] = min ($this->safe_float($minPrices, $quote, $minPrice), $minPrice);
+            $minCosts[$quote] = min ($this->safe_float($minCosts, $quote, $minCost), $minCost);
+            $maxPrices[$quote] = max ($this->safe_float($maxPrices, $quote, $maxPrice), $maxPrice);
+            $maxCosts[$quote] = max ($this->safe_float($maxCosts, $quote, $maxCost), $maxCost);
+        }
+        $result = array ();
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $code = $this->common_currency_code($id);
+            $fee = $this->safe_value($fees['withdraw'], $code);
+            $active = true;
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'name' => $code,
+                'active' => $active,
+                'fee' => $fee,
+                'precision' => 8,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $this->safe_float($minAmounts, $code),
+                        'max' => $this->safe_float($maxAmounts, $code),
+                    ),
+                    'price' => array (
+                        'min' => $this->safe_float($minPrices, $code),
+                        'max' => $this->safe_float($maxPrices, $code),
+                    ),
+                    'cost' => array (
+                        'min' => $this->safe_float($minCosts, $code),
+                        'max' => $this->safe_float($maxCosts, $code),
+                    ),
+                ),
+                'info' => $fee,
+            );
+        }
+        return $result;
+    }
+
     public function fetch_markets () {
+        $fees = $this->fetch_trading_fees();
         $markets = $this->publicGetPairSettings ();
         $keys = is_array ($markets) ? array_keys ($markets) : array ();
         $result = array ();
@@ -127,6 +336,8 @@ class exmo extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
+                'taker' => $fees['taker'],
+                'maker' => $fees['maker'],
                 'limits' => array (
                     'amount' => array (
                         'min' => $this->safe_float($market, 'min_quantity'),
@@ -153,7 +364,7 @@ class exmo extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostUserInfo ();
+        $response = $this->privatePostUserInfo ($params);
         $result = array ( 'info' => $response );
         $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -261,20 +472,49 @@ class exmo extends Exchange {
         return $this->parse_ticker($response[$market['id']], $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $trade['date'] * 1000;
+        $fee = null;
+        $symbol = null;
+        $id = $this->safe_string($trade, 'trade_id');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
+        $cost = $this->safe_float($trade, 'amount');
+        $side = $this->safe_string($trade, 'type');
+        $type = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if ($market['taker'] !== $market['maker']) {
+                throw new ExchangeError ($this->id . ' parseTrade can not deduce proper $fee costs, taker and maker fees now differ');
+            }
+            if (($side === 'buy') && ($amount !== null)) {
+                $fee = array (
+                    'currency' => $market['base'],
+                    'cost' => $amount * $market['taker'],
+                    'rate' => $market['taker'],
+                );
+            } else if (($side === 'sell') && ($cost !== null)) {
+                $fee = array (
+                    'currency' => $market['quote'],
+                    'cost' => $amount * $market['taker'],
+                    'rate' => $market['taker'],
+                );
+            }
+        }
         return array (
-            'id' => (string) $trade['trade_id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'order' => $this->safe_string($trade, 'order_id'),
-            'type' => null,
-            'side' => $trade['type'],
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'quantity'),
-            'cost' => $this->safe_float($trade, 'amount'),
+            'symbol' => $symbol,
+            'order' => $orderId,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -310,7 +550,7 @@ class exmo extends Exchange {
         }
         $request = array (
             'pair' => $market['id'],
-            'quantity' => $this->amount_to_string($symbol, $amount),
+            'quantity' => $this->amount_to_precision($symbol, $amount),
             'type' => $prefix . $side,
             'price' => $this->price_to_precision($symbol, $price),
         );
@@ -446,9 +686,9 @@ class exmo extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null)
+        if ($timestamp !== null) {
             $timestamp *= 1000;
-        $iso8601 = null;
+        }
         $symbol = null;
         $side = $this->safe_string($order, 'type');
         if ($market === null) {
@@ -479,35 +719,41 @@ class exmo extends Exchange {
             if (gettype ($transactions) === 'array' && count (array_filter (array_keys ($transactions), 'is_string')) == 0) {
                 for ($i = 0; $i < count ($transactions); $i++) {
                     $trade = $this->parse_trade($transactions[$i], $market);
-                    if ($id === null)
+                    if ($id === null) {
                         $id = $trade['order'];
-                    if ($timestamp === null)
+                    }
+                    if ($timestamp === null) {
                         $timestamp = $trade['timestamp'];
-                    if ($timestamp > $trade['timestamp'])
+                    }
+                    if ($timestamp > $trade['timestamp']) {
                         $timestamp = $trade['timestamp'];
+                    }
                     $filled .= $trade['amount'];
-                    if ($feeCost === null)
+                    if ($feeCost === null) {
                         $feeCost = 0.0;
-                    // $feeCost .= $trade['fee']['cost'];
-                    if ($cost === null)
+                    }
+                    $feeCost .= $trade['fee']['cost'];
+                    if ($cost === null) {
                         $cost = 0.0;
+                    }
                     $cost .= $trade['cost'];
                     $trades[] = $trade;
                 }
             }
         }
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $remaining = null;
-        if ($amount !== null)
+        if ($amount !== null) {
             $remaining = $amount - $filled;
+        }
         $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        if ($filled >= $amount)
+        if ($filled >= $amount) {
             $status = 'closed';
-        else
+        } else {
             $status = 'open';
-        if ($market === null)
+        }
+        if ($market === null) {
             $market = $this->get_market_from_trades ($trades);
+        }
         $feeCurrency = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -526,7 +772,7 @@ class exmo extends Exchange {
         );
         return array (
             'id' => $id,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
@@ -610,12 +856,143 @@ class exmo extends Exchange {
         );
     }
 
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'transferred' => 'ok',
+            'paid' => 'ok',
+            'pending' => 'pending',
+            'processing' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchTransactions
+        //
+        //          {
+        //            "dt" => 1461841192,
+        //            "$type" => "deposit",
+        //            "curr" => "RUB",
+        //            "$status" => "processing",
+        //            "provider" => "Qiwi (LA) [12345]",
+        //            "$amount" => "1",
+        //            "account" => "",
+        //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          }
+        //
+        $timestamp = $this->safe_float($transaction, 'dt');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $amount = $this->safe_float($transaction, 'amount');
+        if ($amount !== null) {
+            $amount = abs ($amount);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $txid = $this->safe_string($transaction, 'txid');
+        $type = $this->safe_string($transaction, 'type');
+        $code = $this->safe_string($transaction, 'curr');
+        if ($currency === null) {
+            $currency = $this->safe_value($this->currencies_by_id, $code);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($code);
+        }
+        $address = $this->safe_string($transaction, 'account');
+        if ($address !== null) {
+            $parts = explode (':', $address);
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            if ($numParts === 2) {
+                $address = $parts[1];
+            }
+        }
+        $fee = null;
+        // fixed funding fees only (for now)
+        if (!$this->fees['funding']['percentage']) {
+            $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
+            $feeCost = $this->safe_float($this->options['fundingFees'][$key], $code);
+            if ($feeCost !== null) {
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $code,
+                    'rate' => null,
+                );
+            }
+        }
+        return array (
+            'info' => $transaction,
+            'id' => null,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null, // refix it properly
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($since !== null) {
+            $request['date'] = intval ($since / 1000);
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $response = $this->privatePostWalletHistory (array_merge ($request, $params));
+        //
+        //     {
+        //       "result" => true,
+        //       "error" => "",
+        //       "begin" => "1493942400",
+        //       "end" => "1494028800",
+        //       "history" => [
+        //          array (
+        //            "dt" => 1461841192,
+        //            "type" => "deposit",
+        //            "curr" => "RUB",
+        //            "status" => "processing",
+        //            "provider" => "Qiwi (LA) [12345]",
+        //            "amount" => "1",
+        //            "account" => "",
+        //            "txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
+        //          ),
+        //          array (
+        //            "dt" => 1463414785,
+        //            "type" => "withdrawal",
+        //            "curr" => "USD",
+        //            "status" => "paid",
+        //            "provider" => "EXCODE",
+        //            "amount" => "-1",
+        //            "account" => "EX-CODE_19371_USDda...",
+        //            "txid" => "",
+        //          ),
+        //       ],
+        //     }
+        //
+        return $this->parseTransactions ($response['history'], $currency, $since, $limit);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
-        if ($api === 'public') {
+        $url = $this->urls['api'][$api] . '/';
+        if ($api !== 'web') {
+            $url .= $this->version . '/';
+        }
+        $url .= $path;
+        if (($api === 'public') || ($api === 'web')) {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
-        } else {
+        } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $params));

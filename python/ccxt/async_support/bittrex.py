@@ -23,6 +23,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class bittrex (Exchange):
@@ -186,10 +188,10 @@ class bittrex (Exchange):
         })
 
     def cost_to_precision(self, symbol, cost):
-        return self.truncate(float(cost), self.markets[symbol]['precision']['price'])
+        return self.decimal_to_precision(cost, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(float(fee), self.markets[symbol]['precision']['price'])
+        return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     async def fetch_markets(self):
         response = await self.v2GetMarketsGetMarketSummaries()
@@ -276,11 +278,9 @@ class bittrex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_string(ticker, 'TimeStamp')
-        iso8601 = None
         if isinstance(timestamp, basestring):
             if len(timestamp) > 0:
                 timestamp = self.parse8601(timestamp)
-                iso8601 = self.iso8601(timestamp)
         symbol = None
         if market:
             symbol = market['symbol']
@@ -296,7 +296,7 @@ class bittrex (Exchange):
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'High'),
             'low': self.safe_float(ticker, 'Low'),
             'bid': self.safe_float(ticker, 'Bid'),
@@ -442,7 +442,6 @@ class bittrex (Exchange):
         if 'result' in response:
             if response['result']:
                 return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
-        raise ExchangeError(self.id + ' returned an empty or unrecognized response: ' + self.json(response))
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -519,7 +518,7 @@ class bittrex (Exchange):
         if ('CancelInitiated' in list(order.keys())) and order['CancelInitiated']:
             status = 'canceled'
         if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
-            status = self.parse_order_status(order['Status'])
+            status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if 'Exchange' in order:
             marketId = order['Exchange']
@@ -543,7 +542,6 @@ class bittrex (Exchange):
             lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
         if timestamp is None:
             timestamp = lastTradeTimestamp
-        iso8601 = self.iso8601(timestamp) if (timestamp is not None) else None
         fee = None
         commission = None
         if 'Commission' in order:
@@ -584,7 +582,7 @@ class bittrex (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
@@ -642,7 +640,7 @@ class bittrex (Exchange):
         if not address or message == 'ADDRESS_GENERATING':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
         tag = None
-        if (code == 'XRP') or (code == 'XLM'):
+        if (code == 'XRP') or (code == 'XLM') or (code == 'LSK'):
             tag = address
             address = currency['address']
         self.check_address(address)

@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -181,13 +182,14 @@ class bibox (Exchange):
         open = None
         if (last is not None) and(change is not None):
             open = last - change
-        iso8601 = None
-        if timestamp is not None:
-            iso8601 = self.iso8601(timestamp)
+        percentage = self.safe_string(ticker, 'percent')
+        if percentage is not None:
+            percentage = percentage.replace('%', '')
+            percentage = float(percentage)
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
@@ -200,7 +202,7 @@ class bibox (Exchange):
             'last': last,
             'previousClose': None,
             'change': change,
-            'percentage': self.safe_string(ticker, 'percent'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': baseVolume,
             'quoteVolume': self.safe_float(ticker, 'amount'),
@@ -219,14 +221,17 @@ class bibox (Exchange):
     def parse_tickers(self, rawTickers, symbols=None):
         tickers = []
         for i in range(0, len(rawTickers)):
-            tickers.append(self.parse_ticker(rawTickers[i]))
-        return self.filter_by_array(tickers, 'symbol', symbols)
+            ticker = self.parse_ticker(rawTickers[i])
+            if (symbols is None) or (self.in_array(ticker['symbol'], symbols)):
+                tickers.append(ticker)
+        return tickers
 
     async def fetch_tickers(self, symbols=None, params={}):
         response = await self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        return self.parse_tickers(response['result'], symbols)
+        tickers = self.parse_tickers(response['result'], symbols)
+        return self.index_by(tickers, 'symbol')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'time')
@@ -474,9 +479,7 @@ class bibox (Exchange):
             if cost is None:
                 cost = price * filled
         side = 'buy' if (order['order_side'] == 1) else 'sell'
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         result = {
             'info': order,
             'id': self.safe_string(order, 'id'),
@@ -507,7 +510,7 @@ class bibox (Exchange):
             '5': 'canceled',  # canceled
             '6': 'canceled',  # canceling
         }
-        return self.safe_string(statuses, status, status.lower())
+        return self.safe_string(statuses, status, status)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None
@@ -531,7 +534,7 @@ class bibox (Exchange):
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privatePostOrderpending({
@@ -548,7 +551,7 @@ class bibox (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         size = limit if (limit) else 200
@@ -610,8 +613,8 @@ class bibox (Exchange):
         }
 
     async def fetch_funding_fees(self, codes=None, params={}):
-        #  by default it will try load withdrawal fees of all currencies(with separate requests)
-        #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
+        # by default it will try load withdrawal fees of all currencies(with separate requests)
+        # however if you define codes = ['ETH', 'BTC'] in args it will only load those
         await self.load_markets()
         withdrawFees = {}
         info = {}

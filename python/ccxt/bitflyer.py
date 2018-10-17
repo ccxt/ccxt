@@ -5,6 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 
 
@@ -102,25 +103,30 @@ class bitflyer (Exchange):
                 future = True
                 spot = False
             currencies = id.split('_')
+            baseId = None
+            quoteId = None
             base = None
             quote = None
-            symbol = id
             numCurrencies = len(currencies)
             if numCurrencies == 1:
-                base = symbol[0:3]
-                quote = symbol[3:6]
+                baseId = id[0:3]
+                quoteId = id[3:6]
             elif numCurrencies == 2:
-                base = currencies[0]
-                quote = currencies[1]
-                symbol = base + '/' + quote
+                baseId = currencies[0]
+                quoteId = currencies[1]
             else:
-                base = currencies[1]
-                quote = currencies[2]
+                baseId = currencies[1]
+                quoteId = currencies[2]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = (base + '/' + quote) if (numCurrencies == 2) else id
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
                 'future': future,
@@ -236,7 +242,7 @@ class bitflyer (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         return self.privatePostCancelchildorder(self.extend({
             'product_code': self.market_id(symbol),
@@ -253,7 +259,7 @@ class bitflyer (Exchange):
         }
         if status in statuses:
             return statuses[status]
-        return status.lower()
+        return status
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['child_order_date'])
@@ -262,7 +268,7 @@ class bitflyer (Exchange):
         filled = self.safe_float(order, 'executed_size')
         price = self.safe_float(order, 'price')
         cost = price * filled
-        status = self.parse_order_status(order['child_order_state'])
+        status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = order['child_order_type'].lower()
         side = order['side'].lower()
         symbol = None
@@ -301,7 +307,7 @@ class bitflyer (Exchange):
 
     def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -328,7 +334,7 @@ class bitflyer (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         orders = self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
@@ -337,7 +343,7 @@ class bitflyer (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {

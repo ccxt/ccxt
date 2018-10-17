@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
-const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -195,10 +194,6 @@ module.exports = class flowbtc extends Exchange {
             'startIndex': -1,
         }, params));
         return this.parseTrades (response['trades'], market, since, limit);
-    }
-
-    priceToPrecision (symbol, price) {
-        return this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

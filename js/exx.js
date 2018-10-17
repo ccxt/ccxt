@@ -263,7 +263,7 @@ module.exports = class exx extends Exchange {
         let cost = this.safeFloat (order, 'trade_money');
         let amount = this.safeFloat (order, 'total_amount');
         let filled = this.safeFloat (order, 'trade_amount', 0.0);
-        let remaining = this.amountToPrecision (symbol, amount - filled);
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let status = this.safeInteger (order, 'status');
         if (status === 1) {
             status = 'canceled';
@@ -284,7 +284,7 @@ module.exports = class exx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -344,9 +344,12 @@ module.exports = class exx extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let orders = await this.privateGetOpenOrders (this.extend ({
+        let orders = await this.privateGetGetOpenOrders (this.extend ({
             'currency': market['id'],
         }, params));
+        if (!Array.isArray (orders)) {
+            return [];
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -365,8 +368,8 @@ module.exports = class exx extends Exchange {
                 'accesskey': this.apiKey,
                 'nonce': this.nonce (),
             }, params)));
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
-            url += '?' + query + '&signature=' + signature;
+            let signed = this.hmac (this.encode (query), this.encode (this.secret), 'sha512');
+            url += '?' + query + '&signature=' + signed;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
@@ -390,15 +393,20 @@ module.exports = class exx extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (code === '100')
                 return;
-            if (typeof code !== 'undefined') {
+            if (code !== undefined) {
                 const exceptions = this.exceptions;
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
+                } else if (code === '308') {
+                    // this is returned by the exchange when there are no open orders
+                    // {"code":308,"message":"Not Found Transaction Record"}
+                    return;
+                } else {
+                    throw new ExchangeError (feedback);
                 }
-                throw new ExchangeError (feedback);
             }
             let result = this.safeValue (response, 'result');
-            if (typeof result !== 'undefined') {
+            if (result !== undefined) {
                 if (!result) {
                     if (message === '服务端忙碌') {
                         throw new ExchangeNotAvailable (feedback);

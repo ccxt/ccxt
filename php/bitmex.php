@@ -132,8 +132,13 @@ class bitmex extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'Invalid API Key.' => '\\ccxt\\AuthenticationError',
-                'Access Denied' => '\\ccxt\\PermissionDenied',
+                'exact' => array (
+                    'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'Access Denied' => '\\ccxt\\PermissionDenied',
+                ),
+                'broad' => array (
+                    'overloaded' => '\\ccxt\\ExchangeNotAvailable',
+                ),
             ),
             'options' => array (
                 'fetchTickerQuotes' => false,
@@ -427,13 +432,11 @@ class bitmex extends Exchange {
             'rejected' => 'rejected',
             'expired' => 'expired',
         );
-        return $this->safe_string($statuses, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $status = $this->safe_value($order, 'ordStatus');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'ordStatus'));
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -444,17 +447,8 @@ class bitmex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $datetime_value = null;
-        $timestamp = null;
-        $iso8601 = null;
-        if (is_array ($order) && array_key_exists ('timestamp', $order))
-            $datetime_value = $order['timestamp'];
-        else if (is_array ($order) && array_key_exists ('transactTime', $order))
-            $datetime_value = $order['transactTime'];
-        if ($datetime_value !== null) {
-            $timestamp = $this->parse8601 ($datetime_value);
-            $iso8601 = $this->iso8601 ($timestamp);
-        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
+        $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'transactTime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'orderQty');
         $filled = $this->safe_float($order, 'cumQty', 0.0);
@@ -472,8 +466,8 @@ class bitmex extends Exchange {
             'info' => $order,
             'id' => (string) $order['orderID'],
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
-            'lastTradeTimestamp' => null,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => strtolower ($order['ordType']),
             'side' => strtolower ($order['side']),
@@ -581,19 +575,18 @@ class bitmex extends Exchange {
             if ($body) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
-                    if (is_array ($response) && array_key_exists ('error', $response)) {
-                        if (is_array ($response['error']) && array_key_exists ('message', $response['error'])) {
-                            $feedback = $this->id . ' ' . $this->json ($response);
-                            $message = $this->safe_value($response['error'], 'message');
-                            $exceptions = $this->exceptions;
-                            if ($message !== null) {
-                                if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                                    throw new $exceptions[$message] ($feedback);
-                                }
-                            }
-                            throw new ExchangeError ($feedback);
-                        }
+                    $message = $this->safe_string($response, 'error');
+                    $feedback = $this->id . ' ' . $body;
+                    $exact = $this->exceptions['exact'];
+                    if (is_array ($exact) && array_key_exists ($code, $exact)) {
+                        throw new $exact[$code] ($feedback);
                     }
+                    $broad = $this->exceptions['broad'];
+                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                    if ($broadKey !== null) {
+                        throw new $broad[$broadKey] ($feedback);
+                    }
+                    throw new ExchangeError ($feedback); // unknown $message
                 }
             }
         }

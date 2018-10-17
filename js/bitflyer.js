@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -102,26 +102,31 @@ module.exports = class bitflyer extends Exchange {
                 spot = false;
             }
             let currencies = id.split ('_');
+            let baseId = undefined;
+            let quoteId = undefined;
             let base = undefined;
             let quote = undefined;
-            let symbol = id;
             let numCurrencies = currencies.length;
             if (numCurrencies === 1) {
-                base = symbol.slice (0, 3);
-                quote = symbol.slice (3, 6);
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
             } else if (numCurrencies === 2) {
-                base = currencies[0];
-                quote = currencies[1];
-                symbol = base + '/' + quote;
+                baseId = currencies[0];
+                quoteId = currencies[1];
             } else {
-                base = currencies[1];
-                quote = currencies[2];
+                baseId = currencies[1];
+                quoteId = currencies[2];
             }
+            base = this.commonCurrencyCode (baseId);
+            quote = this.commonCurrencyCode (quoteId);
+            let symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'type': type,
                 'spot': spot,
                 'future': future,
@@ -204,7 +209,7 @@ module.exports = class bitflyer extends Exchange {
                 if (id in trade)
                     order = trade[id];
             }
-        if (typeof order === 'undefined')
+        if (order === undefined)
             order = this.safeString (trade, 'child_order_acceptance_id');
         let timestamp = this.parse8601 (trade['exec_date']);
         return {
@@ -248,8 +253,8 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' cancelOrder() requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         await this.loadMarkets ();
         return await this.privatePostCancelchildorder (this.extend ({
             'product_code': this.marketId (symbol),
@@ -267,7 +272,7 @@ module.exports = class bitflyer extends Exchange {
         };
         if (status in statuses)
             return statuses[status];
-        return status.toLowerCase ();
+        return status;
     }
 
     parseOrder (order, market = undefined) {
@@ -277,22 +282,22 @@ module.exports = class bitflyer extends Exchange {
         let filled = this.safeFloat (order, 'executed_size');
         let price = this.safeFloat (order, 'price');
         let cost = price * filled;
-        let status = this.parseOrderStatus (order['child_order_state']);
+        let status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
         let type = order['child_order_type'].toLowerCase ();
         let side = order['side'].toLowerCase ();
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'product_code');
-            if (typeof marketId !== 'undefined') {
+            if (marketId !== undefined) {
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let fee = undefined;
         let feeCost = this.safeFloat (order, 'total_commission');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': undefined,
@@ -319,8 +324,8 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrders() requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -329,7 +334,7 @@ module.exports = class bitflyer extends Exchange {
         };
         let response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
@@ -349,8 +354,8 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOrder() requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         let orders = await this.fetchOrders (symbol);
         let ordersById = this.indexBy (orders, 'id');
         if (id in ordersById)
@@ -359,14 +364,14 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'product_code': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['count'] = limit;
         let response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);

@@ -173,7 +173,8 @@ class crypton (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTickers(params)
+        response = self.publicGetTickers(params)
+        tickers = response['result']
         keys = list(tickers.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -254,7 +255,6 @@ class crypton (Exchange):
         else:
             symbol = self.parse_symbol(marketId)
         timestamp = self.parse8601(order['createdAt'])
-        iso8601 = self.iso8601(timestamp)
         fee = None
         if 'fee' in order:
             fee = {
@@ -270,7 +270,7 @@ class crypton (Exchange):
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,

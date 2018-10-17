@@ -82,7 +82,6 @@ module.exports = class yobit extends liqui {
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
-                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
@@ -173,7 +172,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
+                    if ((account['total'] !== undefined) && (account['free'] !== undefined))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }

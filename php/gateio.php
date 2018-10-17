@@ -169,12 +169,14 @@ class gateio extends Exchange {
                 'price' => $priceLimits,
                 'cost' => $costLimits,
             );
+            $active = true;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'info' => $market,
+                'active' => $active,
                 'maker' => $details['fee'] / 100,
                 'taker' => $details['fee'] / 100,
                 'precision' => $precision,
@@ -323,8 +325,9 @@ class gateio extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         // private fetchMyTrades
         $timestamp = $this->safe_integer($trade, 'time_unix', $timestamp);
-        if ($timestamp !== null)
+        if ($timestamp !== null) {
             $timestamp *= 1000;
+        }
         $id = $this->safe_string($trade, 'tradeID');
         $id = $this->safe_string($trade, 'id', $id);
         // take either of orderid or $orderId
@@ -415,15 +418,11 @@ class gateio extends Exchange {
         }
         if ($market !== null)
             $symbol = $market['symbol'];
-        $datetime = null;
         $timestamp = $this->safe_integer($order, 'timestamp');
         if ($timestamp !== null) {
             $timestamp *= 1000;
-            $datetime = $this->iso8601 ($timestamp);
         }
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $price = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float($order, 'initialAmount');
@@ -446,7 +445,7 @@ class gateio extends Exchange {
         }
         return array (
             'id' => $id,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'status' => $status,
             'symbol' => $symbol,
@@ -488,7 +487,7 @@ class gateio extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires $symbol argument');
         $this->load_markets();
         return $this->privatePostCancelOrder (array (
             'orderNumber' => $id,
@@ -540,7 +539,7 @@ class gateio extends Exchange {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

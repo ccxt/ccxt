@@ -264,7 +264,7 @@ class exx (Exchange):
         cost = self.safe_float(order, 'trade_money')
         amount = self.safe_float(order, 'total_amount')
         filled = self.safe_float(order, 'trade_amount', 0.0)
-        remaining = self.amount_to_precision(symbol, amount - filled)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
         status = self.safe_integer(order, 'status')
         if status == 1:
             status = 'canceled'
@@ -283,7 +283,7 @@ class exx (Exchange):
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -339,9 +339,11 @@ class exx (Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        orders = self.privateGetOpenOrders(self.extend({
+        orders = self.privateGetGetOpenOrders(self.extend({
             'currency': market['id'],
         }, params))
+        if not isinstance(orders, list):
+            return []
         return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):
@@ -358,8 +360,8 @@ class exx (Exchange):
                 'accesskey': self.apiKey,
                 'nonce': self.nonce(),
             }, params)))
-            signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
-            url += '?' + query + '&signature=' + signature
+            signed = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha512)
+            url += '?' + query + '&signature=' + signed
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
@@ -385,7 +387,12 @@ class exx (Exchange):
                 exceptions = self.exceptions
                 if code in exceptions:
                     raise exceptions[code](feedback)
-                raise ExchangeError(feedback)
+                elif code == '308':
+                    # self is returned by the exchange when there are no open orders
+                    # {"code":308,"message":"Not Found Transaction Record"}
+                    return
+                else:
+                    raise ExchangeError(feedback)
             result = self.safe_value(response, 'result')
             if result is not None:
                 if not result:

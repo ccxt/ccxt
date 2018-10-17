@@ -94,7 +94,7 @@ module.exports = class negociecoins extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = ticker['date'] * 1000;
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined;
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -162,7 +162,7 @@ module.exports = class negociecoins extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof since === 'undefined')
+        if (since === undefined)
             since = 0;
         let request = {
             'PAR': market['id'],
@@ -194,7 +194,7 @@ module.exports = class negociecoins extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             market = this.safeValue (this.marketsById, order['pair']);
             if (market)
                 symbol = market['symbol'];
@@ -284,9 +284,9 @@ module.exports = class negociecoins extends Exchange {
             // startDate yyyy-MM-dd
             // endDate: yyyy-MM-dd
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['startDate'] = this.ymd (since);
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['pageSize'] = limit;
         let orders = await this.privatePostUserOrders (this.extend (request, params));
         return this.parseOrders (orders, market);

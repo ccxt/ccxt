@@ -1,7 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 module.exports = class rightbtc extends Exchange {
     describe () {
@@ -33,8 +33,8 @@ module.exports = class rightbtc extends Exchange {
                 'api': 'https://www.rightbtc.com/api',
                 'www': 'https://www.rightbtc.com',
                 'doc': [
-                    'https://www.rightbtc.com/api/trader',
-                    'https://www.rightbtc.com/api/public',
+                    'https://52.53.159.206/api/trader/',
+                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
                 ],
                 // eslint-disable-next-line no-useless-escape
                 // 'fees': 'https://www.rightbtc.com/\#\!/support/fee',
@@ -181,7 +181,7 @@ module.exports = class rightbtc extends Exchange {
 
     divideSafeFloat (x, key, divisor) {
         let value = this.safeFloat (x, key);
-        if (typeof value !== 'undefined')
+        if (value !== undefined)
             return value / divisor;
         return value;
     }
@@ -246,11 +246,17 @@ module.exports = class rightbtc extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepthTradingPair (this.extend ({
+        let request = {
             'trading_pair': this.marketId (symbol),
-        }, params));
+        };
+        let method = 'publicGetDepthTradingPair';
+        if (limit !== undefined) {
+            method += 'Count';
+            request['count'] = limit;
+        }
+        let response = await this[method] (this.extend (request, params));
         let bidsasks = {};
         let types = ['bid', 'ask'];
         for (let ti = 0; ti < types.length; ti++) {
@@ -281,10 +287,8 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         let timestamp = this.safeInteger (trade, 'date');
-        if (typeof timestamp === 'undefined') {
-            if ('created_at' in trade) {
-                timestamp = this.parse8601 (trade['created_at']);
-            }
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         let id = this.safeString (trade, 'tid');
         id = this.safeString (trade, 'trade_id', id);
@@ -292,16 +296,16 @@ module.exports = class rightbtc extends Exchange {
         let price = this.divideSafeFloat (trade, 'price', 1e8);
         let amount = this.safeFloat (trade, 'amount');
         amount = this.safeFloat (trade, 'quantity', amount);
-        if (typeof amount !== 'undefined')
+        if (amount !== undefined)
             amount = amount / 1e8;
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (trade, 'trading_pair');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = this.costToPrecision (symbol, price * amount);
@@ -393,14 +397,18 @@ module.exports = class rightbtc extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
-            let total = this.divideSafeFloat (balance, 'balance', 1e8);
+            let free = this.divideSafeFloat (balance, 'balance', 1e8);
             let used = this.divideSafeFloat (balance, 'frozen', 1e8);
-            let free = undefined;
-            if (typeof total !== 'undefined') {
-                if (typeof used !== 'undefined') {
-                    free = total - used;
-                }
-            }
+            let total = this.sum (free, used);
+            //
+            // https://github.com/ccxt/ccxt/issues/3873
+            //
+            //     if (total !== undefined) {
+            //         if (used !== undefined) {
+            //             free = total - used;
+            //         }
+            //     }
+            //
             let account = {
                 'free': free,
                 'used': used,
@@ -426,8 +434,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -479,21 +487,19 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'id');
-        let status = this.safeValue (order, 'status');
-        if (typeof status !== 'undefined')
-            status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let marketId = this.safeString (order, 'trading_pair');
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = marketId;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (order, 'created');
-        if (typeof timestamp === 'undefined') {
-            timestamp = this.parse8601 (order['created_at']);
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
         if ('time' in order)
             timestamp = order['time'];
@@ -501,34 +507,34 @@ module.exports = class rightbtc extends Exchange {
             timestamp = order['transactTime'];
         let price = this.safeFloat (order, 'limit');
         price = this.safeFloat (order, 'price', price);
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             price = price / 1e8;
         let amount = this.divideSafeFloat (order, 'quantity', 1e8);
         let filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
         let remaining = this.divideSafeFloat (order, 'rest', 1e8);
         let cost = this.divideSafeFloat (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining === 'undefined') {
-                if (typeof filled !== 'undefined') {
+        if (amount !== undefined) {
+            if (remaining === undefined) {
+                if (filled !== undefined) {
                     remaining = Math.max (0, amount - filled);
                 }
             }
-            if (typeof filled === 'undefined') {
-                if (typeof remaining !== 'undefined') {
+            if (filled === undefined) {
+                if (remaining !== undefined) {
                     filled = Math.max (0, amount - remaining);
                 }
             }
         }
         let type = 'limit';
         let side = this.safeString (order, 'side');
-        if (typeof side !== 'undefined')
+        if (side !== undefined)
             side = side.toLowerCase ();
         let feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (typeof market !== 'undefined')
+            if (market !== undefined)
                 feeCurrency = market['quote'];
             fee = {
                 'rate': this.safeFloat (order, 'fee'),
@@ -559,8 +565,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -597,8 +603,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -634,7 +640,7 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let ids = this.safeString (params, 'ids');
-        if ((typeof symbol === 'undefined') || (typeof ids === 'undefined')) {
+        if ((symbol === undefined) || (ids === undefined)) {
             throw new ExchangeError (this.id + " fetchOrders requires a 'symbol' argument and an extra 'ids' parameter. The 'ids' should be an array or a string of one or more order ids separated with slashes."); // eslint-disable-line quotes
         }
         if (Array.isArray (ids)) {
@@ -673,8 +679,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -744,7 +750,7 @@ module.exports = class rightbtc extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let status = this.safeValue (response, 'status');
-            if (typeof status !== 'undefined') {
+            if (status !== undefined) {
                 //
                 //     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
                 //

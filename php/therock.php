@@ -311,6 +311,7 @@ class therock extends Exchange {
         $this->load_markets();
         return $this->privateDeleteFundsFundIdOrdersId (array_merge (array (
             'id' => $id,
+            'fund_id' => $this->market_id($symbol),
         ), $params));
     }
 

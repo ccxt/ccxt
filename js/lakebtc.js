@@ -118,7 +118,7 @@ module.exports = class lakebtc extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {

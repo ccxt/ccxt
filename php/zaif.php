@@ -99,6 +99,13 @@ class zaif extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array ("error" => "unsupported currency_pair")
+                ),
+                'broad' => array (
+                ),
+            ),
         ));
     }
 
@@ -394,13 +401,30 @@ class zaif extends Exchange {
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'api', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $response['error']);
-        if (is_array ($response) && array_key_exists ('success', $response))
-            if (!$response['success'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        return $response;
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
+        if (!$this->is_json_encoded_object($body))
+            return; // fallback to default $error handler
+        $response = json_decode ($body, $as_associative_array = true);
+        //
+        //     array ("$error" => "unsupported currency_pair")
+        //
+        $feedback = $this->id . ' ' . $body;
+        $error = $this->safe_string($response, 'error');
+        if ($error !== null) {
+            $exact = $this->exceptions['exact'];
+            if (is_array ($exact) && array_key_exists ($error, $exact)) {
+                throw new $exact[$error] ($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey] ($feedback);
+            }
+            throw new ExchangeError ($feedback); // unknown message
+        }
+        $success = $this->safe_value($response, 'success', true);
+        if (!$success) {
+            throw new ExchangeError ($feedback);
+        }
     }
 }
