@@ -725,7 +725,7 @@ module.exports = class gdax extends Exchange {
                 let feedback = this.id + ' ' + message;
                 const exact = this.exceptions['exact'];
                 if (message in exact) {
-                    throw new exact[code] (feedback);
+                    throw new exact[message] (feedback);
                 }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);

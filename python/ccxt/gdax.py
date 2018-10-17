@@ -678,7 +678,7 @@ class gdax (Exchange):
                 feedback = self.id + ' ' + message
                 exact = self.exceptions['exact']
                 if message in exact:
-                    raise exact[code](feedback)
+                    raise exact[message](feedback)
                 broad = self.exceptions['broad']
                 broadKey = self.findBroadlyMatchedKey(broad, message)
                 if broadKey is not None:
