@@ -2088,7 +2088,6 @@ class Exchange {
                 $unsigned = trim ((string) $x, '-');
                 $drop_decimals = substr($unsigned, 0, strpos($unsigned, '.'));
                 $truncated = substr ($drop_decimals, 0, strlen ($drop_decimals) + $numPrecisionDigits);
-                echo "$unsigned $drop_decimals $truncated ";
                 $formatStr = '%0-' . (string) (1 - $numPrecisionDigits) . 'd';
                 $adjusted = sprintf ($formatStr, $truncated);
                 $result = $x < 0  ? '-' . $adjusted : $adjusted;
