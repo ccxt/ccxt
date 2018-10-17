@@ -526,11 +526,23 @@ module.exports = class poloniex extends Exchange {
                 for (let i = 0; i < ids.length; i++) {
                     let id = ids[i];
                     let market = undefined;
-                    if (id in this.markets_by_id)
+                    if (id in this.markets_by_id) {
                         market = this.markets_by_id[id];
-                    let trades = this.parseTrades (response[id], market);
-                    for (let j = 0; j < trades.length; j++) {
-                        result.push (trades[j]);
+                        let trades = this.parseTrades (response[id], market);
+                        for (let j = 0; j < trades.length; j++) {
+                            result.push (trades[j]);
+                        }
+                    } else {
+                        let [ baseId, quoteId ] = id.split ('_');
+                        let base = this.commonCurrencyCode (baseId);
+                        let quote = this.commonCurrencyCode (quoteId);
+                        let symbol = base + '/' + quote;
+                        let trades = response[id];
+                        for (let j = 0; j < trades.length; j++) {
+                            result.push (this.extend (this.parseTrade (trades[j]), {
+                                'symbol': symbol,
+                            }));
+                        }
                     }
                 }
             }
@@ -784,9 +796,9 @@ module.exports = class poloniex extends Exchange {
         return response;
     }
 
-    async fetchOrderStatus (id, symbol = undefined) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let orders = await this.fetchOpenOrders (symbol);
+        let orders = await this.fetchOpenOrders (symbol, undefined, undefined, params);
         let indexed = this.indexBy (orders, 'id');
         return (id in indexed) ? 'open' : 'closed';
     }

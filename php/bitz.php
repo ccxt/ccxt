@@ -987,7 +987,12 @@ class bitz extends Exchange {
         //         "source" => "api"
         //     }
         //
-        return $this->parse_orders($response['data']['data'], null, $since, $limit);
+        $orders = $this->safe_value($response['data'], 'data');
+        if ($orders) {
+            return $this->parse_orders($response['data']['data'], null, $since, $limit);
+        } else {
+            return array ();
+        }
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

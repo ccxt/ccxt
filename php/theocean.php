@@ -1111,6 +1111,18 @@ class theocean extends Exchange {
         return $this->parse_order($response);
     }
 
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $request = array (
+            'orderHash' => $id,
+        );
+        $orders = $this->fetch_orders($symbol, null, null, array_merge ($request, $params));
+        $numOrders = is_array ($orders) ? count ($orders) : 0;
+        if ($numOrders !== 1) {
+            throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+        }
+        return $orders[0];
+    }
+
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array (

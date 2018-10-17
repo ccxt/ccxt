@@ -527,11 +527,23 @@ class poloniex extends Exchange {
                 for ($i = 0; $i < count ($ids); $i++) {
                     $id = $ids[$i];
                     $market = null;
-                    if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id))
+                    if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
                         $market = $this->markets_by_id[$id];
-                    $trades = $this->parse_trades($response[$id], $market);
-                    for ($j = 0; $j < count ($trades); $j++) {
-                        $result[] = $trades[$j];
+                        $trades = $this->parse_trades($response[$id], $market);
+                        for ($j = 0; $j < count ($trades); $j++) {
+                            $result[] = $trades[$j];
+                        }
+                    } else {
+                        list ($baseId, $quoteId) = explode ('_', $id);
+                        $base = $this->common_currency_code($baseId);
+                        $quote = $this->common_currency_code($quoteId);
+                        $symbol = $base . '/' . $quote;
+                        $trades = $response[$id];
+                        for ($j = 0; $j < count ($trades); $j++) {
+                            $result[] = array_merge ($this->parse_trade($trades[$j]), array (
+                                'symbol' => $symbol,
+                            ));
+                        }
                     }
                 }
             }
@@ -785,9 +797,9 @@ class poloniex extends Exchange {
         return $response;
     }
 
-    public function fetch_order_status ($id, $symbol = null) {
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $orders = $this->fetch_open_orders($symbol);
+        $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
         return (is_array ($indexed) && array_key_exists ($id, $indexed)) ? 'open' : 'closed';
     }

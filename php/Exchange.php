@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.375';
+$version = '1.17.392';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.375';
+    const VERSION = '1.17.392';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1574,8 +1574,8 @@ class Exchange {
         return $this->fetch_tickers ($symbols, $params);
     }
 
-    public function fetch_order_status ($id, $market = null) {
-        $order = $this->fetch_order ($id);
+    public function fetch_order_status ($id, $symbol = null, $params = array ()) {
+        $order = $this->fetch_order ($id, $symbol, $params);
         return $order['id'];
     }
 
