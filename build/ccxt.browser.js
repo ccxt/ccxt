@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.390'
+const version = '1.17.391'
 
 Exchange.ccxtVersion = version
 
@@ -35863,7 +35863,7 @@ module.exports = class gdax extends Exchange {
                 let feedback = this.id + ' ' + message;
                 const exact = this.exceptions['exact'];
                 if (message in exact) {
-                    throw new exact[code] (feedback);
+                    throw new exact[message] (feedback);
                 }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);
