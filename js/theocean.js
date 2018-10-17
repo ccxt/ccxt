@@ -1106,6 +1106,18 @@ module.exports = class theocean extends Exchange {
         return this.parseOrder (response);
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let request = {
+            'orderHash': id,
+        };
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        let numOrders = orders.length;
+        if (numOrders !== 1) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return orders[0];
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
