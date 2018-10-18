@@ -376,6 +376,7 @@ module.exports = class gdax extends Exchange {
             'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
+            'canceling': 'open',
         };
         return this.safeString (statuses, status, status);
     }
