@@ -51,12 +51,13 @@ let Web3 = undefined
     , BigNumber = undefined
 
 try {
-    Web3      = module.require ('web3') // eslint-disable-line global-require
-    ethAbi    = module.require ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = module.require ('ethereumjs-util') // eslint-disable-line global-require
-    BigNumber = module.require ('bignumber.js') // eslint-disable-line global-require
+    const requireFunction = require;
+    Web3      = requireFunction ('web3') // eslint-disable-line global-require
+    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
+    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
+    BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
-    // BN        = module.require ('bn.js') // eslint-disable-line global-require
+    // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
 } catch (e) {
 }
 
@@ -1271,12 +1272,7 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
-            throw new ExchangeError ('The following npm modules are required: ' + [
-                'https://github.com/ethereum/web3.js/',
-                'https://github.com/ethereumjs/ethereumjs-util/',
-                'https://github.com/ethereumjs/ethereumjs-abi',
-                'https://github.com/MikeMcl/bignumber.js/',
-            ].join (', '));
+            throw new ExchangeError ('The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save');
         }
     }
 
