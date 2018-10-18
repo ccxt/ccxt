@@ -410,7 +410,9 @@ module.exports = class bitstamp extends Exchange {
         }
         let response = await this.privatePostWithdrawalRequests (this.extend ({ 'timedelta': timedelta }, params));
         let result = [];
+        let currency = undefined;
         if (code) {
+            currency = this.currency (code);
             for (let i = 0; i < response.length; i++) {
                 let withdrawal = response[i];
                 if (withdrawal['currency'].toLowerCase () === code.toLowerCase ()) {
@@ -436,7 +438,7 @@ module.exports = class bitstamp extends Exchange {
         //   type: 16,
         //   id: 222222,
         //   transaction_id: 'xxxxx' }]
-        return this.parseTransactions (response, code, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -619,9 +621,9 @@ module.exports = class bitstamp extends Exchange {
         }
         let txid = undefined;
         if ('transaction_id' in transaction) {
-            txid = transaction.transaction_id;
+            txid = transaction['transaction_id'];
         }
-        let status = this.parseTransactionStatusByType (transaction.status);
+        let status = this.parseTransactionStatusByType (transaction['status']);
         let ret = {
             'info': transaction,
             'id': id,
