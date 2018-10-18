@@ -406,14 +406,14 @@ module.exports = class bitstamp extends Exchange {
         await this.loadMarkets ();
         let timedelta = undefined;
         if (since) {
-            timedelta = new Date ().getTime () - since;
+            timedelta = this.milliseconds () - since;
         }
         let response = await this.privatePostWithdrawalRequests (this.extend ({ 'timedelta': timedelta }, params));
         let result = [];
         if (code) {
             for (let i = 0; i < response.length; i++) {
                 let withdrawal = response[i];
-                if (withdrawal.currency.toLowerCase () === code.toLowerCase ()) {
+                if (withdrawal['currency'].toLowerCase () === code.toLowerCase ()) {
                     result.append (withdrawal);
                 }
             }
