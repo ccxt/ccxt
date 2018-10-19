@@ -907,7 +907,7 @@ module.exports = class theocean extends Exchange {
             id = this.safeString (zeroExOrder, 'orderHash');
         }
         let side = this.safeString (order, 'side');
-        let type = 'limit';
+        let type = this.safeString (order, 'type'); // injected from outside
         let timestamp = this.safeInteger (order, 'created');
         timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
         let symbol = undefined;
@@ -959,7 +959,6 @@ module.exports = class theocean extends Exchange {
                         timestamp = this.safeInteger (timelineEventsGroupedByAction['filled'][0], 'timestamp');
                         timestamp = (timestamp !== undefined) ? timestamp * 1000 : timestamp;
                     }
-                    type = 'market';
                 }
                 if ('filled' in timelineEventsGroupedByAction) {
                     let fillEvents = this.safeValue (timelineEventsGroupedByAction, 'filled');
