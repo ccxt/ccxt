@@ -52,6 +52,7 @@ class theocean (Exchange):
                 'CORS': False,  # ?
                 'fetchTickers': True,
                 'fetchOHLCV': False,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
@@ -881,7 +882,7 @@ class theocean (Exchange):
         if (id is None) and(zeroExOrder is not None):
             id = self.safe_string(zeroExOrder, 'orderHash')
         side = self.safe_string(order, 'side')
-        type = 'limit'
+        type = self.safe_string(order, 'type')  # injected from outside
         timestamp = self.safe_integer(order, 'created')
         timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
         symbol = None
@@ -913,11 +914,14 @@ class theocean (Exchange):
         lastTradeTimestamp = None
         timeline = self.safe_value(order, 'timeline')
         trades = None
+        status = None
         if timeline is not None:
             numEvents = len(timeline)
             if numEvents > 0:
                 # status = self.parse_order_status(self.safe_string(timeline[numEvents - 1], 'action'))
                 timelineEventsGroupedByAction = self.group_by(timeline, 'action')
+                if 'error' in timelineEventsGroupedByAction:
+                    status = 'failed'
                 if 'placed' in timelineEventsGroupedByAction:
                     placeEvents = self.safe_value(timelineEventsGroupedByAction, 'placed')
                     if amount is None:
@@ -928,7 +932,6 @@ class theocean (Exchange):
                     if 'filled' in timelineEventsGroupedByAction:
                         timestamp = self.safe_integer(timelineEventsGroupedByAction['filled'][0], 'timestamp')
                         timestamp = timestamp * 1000 if (timestamp is not None) else timestamp
-                    type = 'market'
                 if 'filled' in timelineEventsGroupedByAction:
                     fillEvents = self.safe_value(timelineEventsGroupedByAction, 'filled')
                     numFillEvents = len(fillEvents)
@@ -971,13 +974,13 @@ class theocean (Exchange):
                 'сost': self.fromWei(feeCost, 'ether', feeDecimals),
                 'сurrency': feeCurrency,
             }
-        status = None
         amountPrecision = market['precision']['amount'] if market else 8
         if remaining is not None:
-            status = 'open'
-            rest = remaining - failedAmount - deadAmount - prunedAmount
-            if rest < math.pow(10, -amountPrecision):
-                status = 'canceled' if (filled < amount) else 'closed'
+            if status is None:
+                status = 'open'
+                rest = remaining - failedAmount - deadAmount - prunedAmount
+                if rest < math.pow(10, -amountPrecision):
+                    status = 'canceled' if (filled < amount) else 'closed'
         result = {
             'info': order,
             'id': id,
