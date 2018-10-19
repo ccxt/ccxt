@@ -942,11 +942,15 @@ module.exports = class theocean extends Exchange {
         let lastTradeTimestamp = undefined;
         let timeline = this.safeValue (order, 'timeline');
         let trades = undefined;
+        let status = undefined;
         if (timeline !== undefined) {
             let numEvents = timeline.length;
             if (numEvents > 0) {
                 // status = this.parseOrderStatus (this.safeString (timeline[numEvents - 1], 'action'));
                 let timelineEventsGroupedByAction = this.groupBy (timeline, 'action');
+                if ('error' in timelineEventsGroupedByAction) {
+                    status = 'failed';
+                }
                 if ('placed' in timelineEventsGroupedByAction) {
                     let placeEvents = this.safeValue (timelineEventsGroupedByAction, 'placed');
                     if (amount === undefined) {
@@ -1014,13 +1018,14 @@ module.exports = class theocean extends Exchange {
                 'сurrency': feeCurrency,
             };
         }
-        let status = undefined;
         let amountPrecision = market ? market['precision']['amount'] : 8;
         if (remaining !== undefined) {
-            status = 'open';
-            const rest = remaining - failedAmount - deadAmount - prunedAmount;
-            if (rest < Math.pow (10, -amountPrecision)) {
-                status = (filled < amount) ? 'canceled' : 'closed';
+            if (status === undefined) {
+                status = 'open';
+                const rest = remaining - failedAmount - deadAmount - prunedAmount;
+                if (rest < Math.pow (10, -amountPrecision)) {
+                    status = (filled < amount) ? 'canceled' : 'closed';
+                }
             }
         }
         let result = {
