@@ -26,6 +26,7 @@ module.exports = class theocean extends Exchange {
                 'CORS': false, // ?
                 'fetchTickers': true,
                 'fetchOHLCV': false,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
