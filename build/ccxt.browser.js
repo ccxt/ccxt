@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.391'
+const version = '1.17.393'
 
 Exchange.ccxtVersion = version
 
@@ -1645,12 +1645,13 @@ let Web3 = undefined
     , BigNumber = undefined
 
 try {
-    Web3      = module.require ('web3') // eslint-disable-line global-require
-    ethAbi    = module.require ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = module.require ('ethereumjs-util') // eslint-disable-line global-require
-    BigNumber = module.require ('bignumber.js') // eslint-disable-line global-require
+    const requireFunction = require;
+    Web3      = requireFunction ('web3') // eslint-disable-line global-require
+    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
+    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
+    BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
-    // BN        = module.require ('bn.js') // eslint-disable-line global-require
+    // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
 } catch (e) {
 }
 
@@ -2865,12 +2866,7 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         if (!Web3 || !ethUtil || !ethAbi || !BigNumber) {
-            throw new ExchangeError ('The following npm modules are required: ' + [
-                'https://github.com/ethereum/web3.js/',
-                'https://github.com/ethereumjs/ethereumjs-util/',
-                'https://github.com/ethereumjs/ethereumjs-abi',
-                'https://github.com/MikeMcl/bignumber.js/',
-            ].join (', '));
+            throw new ExchangeError ('The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save');
         }
     }
 
@@ -35514,6 +35510,7 @@ module.exports = class gdax extends Exchange {
             'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
+            'canceling': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -53629,6 +53626,18 @@ module.exports = class theocean extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let request = {
+            'orderHash': id,
+        };
+        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        let numOrders = orders.length;
+        if (numOrders !== 1) {
+            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
+        }
+        return orders[0];
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
