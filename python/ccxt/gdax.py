@@ -367,6 +367,7 @@ class gdax (Exchange):
             'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
+            'canceling': 'open',
         }
         return self.safe_string(statuses, status, status)
 
