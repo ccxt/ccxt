@@ -124,7 +124,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies ();
+        let response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
