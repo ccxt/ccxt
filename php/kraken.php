@@ -192,6 +192,7 @@ class kraken extends Exchange {
                 'depositMethods' => array (),
             ),
             'exceptions' => array (
+                'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
                 'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
                 'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',

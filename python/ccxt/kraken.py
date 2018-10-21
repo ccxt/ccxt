@@ -16,6 +16,7 @@ import hashlib
 import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -213,6 +214,7 @@ class kraken (Exchange):
                 'depositMethods': {},
             },
             'exceptions': {
+                'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,

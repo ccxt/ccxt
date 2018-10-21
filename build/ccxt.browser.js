@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.396'
+const version = '1.17.397'
 
 Exchange.ccxtVersion = version
 
@@ -41460,7 +41460,7 @@ module.exports = class jubi extends btcbox {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { ExchangeNotAvailable, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -41649,6 +41649,7 @@ module.exports = class kraken extends Exchange {
                 'depositMethods': {},
             },
             'exceptions': {
+                'EAPI:Invalid key': AuthenticationError,
                 'EFunding:Unknown withdraw key': ExchangeError,
                 'EFunding:Invalid amount': InsufficientFunds,
                 'EService:Unavailable': ExchangeNotAvailable,
