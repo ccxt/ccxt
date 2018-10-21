@@ -118,7 +118,7 @@ module.exports = class liquid extends Exchange {
 
     async fetchMinOrderAmounts () {
         let html = await this.zendeskGet360004828252MinimumWithdrawalAmountMinimumOrderQuantity ();
-        let parts = html.split ('<td class="wysiwyg-text-align-right">');
+        let parts = html.split ('<tr style="height: 20px; text-align: center;">');
         let numParts = parts.length;
         if (numParts < 3) {
             throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity');
@@ -127,17 +127,17 @@ module.exports = class liquid extends Exchange {
         // skip the part before the header and the header itself
         for (let i = 2; i < parts.length; i++) {
             let part = parts[i];
-            let chunks = part.split ('</td>');
-            let amountAndCode = chunks[0];
-            if (amountAndCode !== 'To Be Announced') {
-                let pieces = amountAndCode.split (' ');
-                let numPieces = pieces.length;
-                if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity');
-                }
-                let amount = parseFloat (pieces[0]);
-                let code = this.commonCurrencyCode (pieces[1]);
-                result[code] = amount;
+            let chunks = part.split ('">');
+            let numChunks = chunks.length;
+            if (numChunks < 4) {
+                throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity');
+            }
+            let codeChunk = chunks[1].split ('<');
+            let minOrderAmountChunk = chunks[3].split ('<');
+            let code = codeChunk[0];
+            let minOrderAmount = minOrderAmountChunk[0].replace (' ', '');
+            if (minOrderAmount.indexOf ('non-applicable') < 0) {
+                result[code] = parseFloat (minOrderAmount);
             }
         }
         return result;
@@ -145,20 +145,8 @@ module.exports = class liquid extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
+        let minOrderAmounts = await this.fetchMinOrderAmounts ();
         let result = [];
-        // see: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity
-        let minOrderAmounts = {
-            'BTC': 0.001,
-            'ETH': 0.01,
-            'BCH': 0.01,
-            'DASH': 0.01,
-            'QTUM': 0.1,
-            'NEO': 0.1,
-            'UBTC': 0.01,
-            'XRP': 1,
-            'RKT': 1,
-            'QASH': 1,
-        };
         let defaultPrecisions = { 'price': 8, 'amount': 8 };
         let precisions = {
             '1WO/BTC': defaultPrecisions,
