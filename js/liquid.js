@@ -86,6 +86,8 @@ module.exports = class liquid extends Exchange {
                     'API Authentication failed': AuthenticationError,
                     'Nonce is too small': InvalidNonce,
                     'Order not found': OrderNotFound,
+                    'Can not update partially filled order': OrderNotFound,
+                    'Can not update non-live order': OrderNotFound,
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
@@ -689,6 +691,20 @@ module.exports = class liquid extends Exchange {
         if (order['status'] === 'closed')
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let order = {
+            'order': {
+                'quantity': amount,
+                'price': price,
+            },
+        };
+        let result = await this.privatePutOrdersId (this.extend ({
+            'id': id,
+        }), order);
+        return this.parseOrder (result);
     }
 
     parseOrder (order, market = undefined) {
