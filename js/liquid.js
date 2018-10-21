@@ -27,11 +27,7 @@ module.exports = class liquid extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': {
-                    'public': 'https://api.liquid.com',
-                    'private': 'https://api.liquid.com',
-                    'zendesk': 'https://quoine.zendesk.com/hc/en-us/articles',
-                },
+                'api': 'https://api.liquid.com',
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.quoine.com',
@@ -40,12 +36,6 @@ module.exports = class liquid extends Exchange {
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
             },
             'api': {
-                'zendesk': {
-                    'get': [
-                        '360004828252-Minimum-withdrawal-amount-Minimum-order-quantity', // order limits and limits on withdrawals
-                        '360001677811', // withdrawal fees
-                    ],
-                },
                 'public': {
                     'get': [
                         'currencies',
@@ -118,28 +108,79 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMinOrderAmounts () {
-        let html = await this.zendeskGet360004828252MinimumWithdrawalAmountMinimumOrderQuantity ();
-        let parts = html.split ('<tr style="height: 20px; text-align: center;">');
-        let numParts = parts.length;
-        if (numParts < 3) {
-            throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity');
-        }
+        let currencies = await this.fetchCurrencies ();
+        let currenciesByCode = this.indexBy (currencies, 'code');
+        let codes = Object.keys (currenciesByCode);
         let result = {};
-        // skip the part before the header and the header itself
-        for (let i = 2; i < parts.length; i++) {
-            let part = parts[i];
-            let chunks = part.split ('">');
-            let numChunks = chunks.length;
-            if (numChunks < 4) {
-                throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity');
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = currenciesByCode[code];
+            let info = this.safeValue (currency, 'info', {});
+            let minOrderAmount = this.safeFloat (info, 'minimum_order_quantity');
+            if (minOrderAmount !== undefined) {
+                result[code] = minOrderAmount;
             }
-            let codeChunk = chunks[1].split ('<');
-            let minOrderAmountChunk = chunks[3].split ('<');
-            let code = codeChunk[0];
-            let minOrderAmount = minOrderAmountChunk[0].replace (' ', '');
-            if (minOrderAmount.indexOf ('non-applicable') < 0) {
-                result[code] = parseFloat (minOrderAmount);
-            }
+        }
+        return result;
+    }
+
+    async fetchCurrencies () {
+        let response = await this.publicGetCurrencies ();
+        //
+        //     [
+        //         {
+        //             currency_type: 'fiat',
+        //             currency: 'USD',
+        //             symbol: '$',
+        //             assets_precision: 2,
+        //             quoting_precision: 5,
+        //             minimum_withdrawal: '15.0',
+        //             withdrawal_fee: 5,
+        //             minimum_fee: null,
+        //             minimum_order_quantity: null,
+        //             display_precision: 2,
+        //             depositable: true,
+        //             withdrawable: true,
+        //             discount_fee: 0.5,
+        //         },
+        //     ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let currency = response[i];
+            let id = this.safeString (currency, 'currency');
+            let code = this.commonCurrencyCode (id);
+            let active = currency['depositable'] && currency['withdrawable'];
+            let amountPrecision = this.safeInteger (currency, 'assets_precision');
+            let pricePrecision = this.safeInteger (currency, 'quoting_precision');
+            let precision = Math.max (amountPrecision, pricePrecision);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -amountPrecision),
+                        'max': Math.pow (10, amountPrecision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -pricePrecision),
+                        'max': Math.pow (10, pricePrecision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
@@ -148,6 +189,7 @@ module.exports = class liquid extends Exchange {
         let markets = await this.publicGetProducts ();
         let minOrderAmounts = await this.fetchMinOrderAmounts ();
         let result = [];
+        // will rewrite this very shortly
         let defaultPrecisions = { 'price': 8, 'amount': 8 };
         let precisions = {
             '1WO/BTC': defaultPrecisions,
@@ -858,7 +900,7 @@ module.exports = class liquid extends Exchange {
             if (Object.keys (query).length)
                 url += '?' + this.urlencode (query);
         }
-        url = this.urls['api'][api] + url;
+        url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
