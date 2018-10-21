@@ -106,23 +106,6 @@ module.exports = class liquid extends Exchange {
         });
     }
 
-    async fetchMinOrderAmounts () {
-        let currencies = await this.fetchCurrencies ();
-        let currenciesByCode = this.indexBy (currencies, 'code');
-        let codes = Object.keys (currenciesByCode);
-        let result = {};
-        for (let i = 0; i < codes.length; i++) {
-            let code = codes[i];
-            let currency = currenciesByCode[code];
-            let info = this.safeValue (currency, 'info', {});
-            let minOrderAmount = this.safeFloat (info, 'minimum_order_quantity');
-            if (minOrderAmount !== undefined) {
-                result[code] = minOrderAmount;
-            }
-        }
-        return result;
-    }
-
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
         //
@@ -150,7 +133,7 @@ module.exports = class liquid extends Exchange {
             let id = this.safeString (currency, 'currency');
             let code = this.commonCurrencyCode (id);
             let active = currency['depositable'] && currency['withdrawable'];
-            let amountPrecision = this.safeInteger (currency, 'assets_precision');
+            let amountPrecision = this.safeInteger (currency, 'display_precision');
             let pricePrecision = this.safeInteger (currency, 'quoting_precision');
             let precision = Math.max (amountPrecision, pricePrecision);
             result[code] = {
@@ -186,324 +169,41 @@ module.exports = class liquid extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
-        let minOrderAmounts = await this.fetchMinOrderAmounts ();
+        //
+        //     [
+        //         {
+        //             id: '7',
+        //             product_type: 'CurrencyPair',
+        //             code: 'CASH',
+        //             name: ' CASH Trading',
+        //             market_ask: 8865.79147,
+        //             market_bid: 8853.95988,
+        //             indicator: 1,
+        //             currency: 'SGD',
+        //             currency_pair_code: 'BTCSGD',
+        //             symbol: 'S$',
+        //             btc_minimum_withdraw: null,
+        //             fiat_minimum_withdraw: null,
+        //             pusher_channel: 'product_cash_btcsgd_7',
+        //             taker_fee: 0,
+        //             maker_fee: 0,
+        //             low_market_bid: '8803.25579',
+        //             high_market_ask: '8905.0',
+        //             volume_24h: '15.85443468',
+        //             last_price_24h: '8807.54625',
+        //             last_traded_price: '8857.77206',
+        //             last_traded_quantity: '0.00590974',
+        //             quoted_currency: 'SGD',
+        //             base_currency: 'BTC',
+        //             disabled: false,
+        //         },
+        //     ]
+        //
+        let currencies = await this.fetchCurrencies ();
+        let currenciesByCode = this.indexBy (currencies, 'code');
         let result = [];
-        // will rewrite this very shortly
-        let defaultPrecisions = { 'price': 8, 'amount': 8 };
-        let precisions = {
-            '1WO/BTC': defaultPrecisions,
-            '1WO/ETH': defaultPrecisions,
-            '1WO/QASH': defaultPrecisions,
-            'ADH/BTC': defaultPrecisions,
-            'ADH/ETH': defaultPrecisions,
-            'ADH/QASH': defaultPrecisions,
-            'ALX/BTC': defaultPrecisions,
-            'ALX/ETH': defaultPrecisions,
-            'ALX/QASH': defaultPrecisions,
-            'AMLT/BTC': defaultPrecisions,
-            'AMLT/ETH': defaultPrecisions,
-            'AMLT/QASH': defaultPrecisions,
-            'BCH/BTC': defaultPrecisions,
-            'BCH/JPY': { 'price': 5, 'amount': 8 },
-            'BCH/SGD': { 'price': 5, 'amount': 8 },
-            'BCH/USD': { 'price': 5, 'amount': 8 },
-            'BMC/BTC': defaultPrecisions,
-            'BMC/ETH': defaultPrecisions,
-            'BMC/QASH': defaultPrecisions,
-            'BRC/BCH': { 'price': 8, 'amount': 0 },
-            'BRC/BTC': defaultPrecisions,
-            'BRC/ETH': defaultPrecisions,
-            'BRC/QASH': defaultPrecisions,
-            'BTC/AUD': { 'price': 5, 'amount': 8 },
-            'BTC/CNY': { 'price': 5, 'amount': 6 },
-            'BTC/EUR': { 'price': 5, 'amount': 8 },
-            'BTC/HKD': { 'price': 5, 'amount': 8 },
-            'BTC/IDR': { 'price': 5, 'amount': 8 },
-            'BTC/INR': { 'price': 5, 'amount': 8 },
-            'BTC/JPY': { 'price': 5, 'amount': 8 },
-            'BTC/PHP': { 'price': 5, 'amount': 8 },
-            'BTC/SGD': { 'price': 5, 'amount': 8 },
-            'BTC/USD': { 'price': 5, 'amount': 8 },
-            'BTRN/BTC': defaultPrecisions,
-            'BTRN/ETH': defaultPrecisions,
-            'BTRN/QASH': defaultPrecisions,
-            'CAN/BTC': defaultPrecisions,
-            'CAN/ETH': defaultPrecisions,
-            'CAN/QASH': { 'price': 8, 'amount': 5 },
-            'CMCT/BTC': defaultPrecisions,
-            'CMCT/ETH': defaultPrecisions,
-            'CMCT/QASH': defaultPrecisions,
-            'CRPT/BTC': defaultPrecisions,
-            'CRPT/ETH': defaultPrecisions,
-            'CRPT/QASH': defaultPrecisions,
-            'DACS/BTC': defaultPrecisions,
-            'DACS/ETH': defaultPrecisions,
-            'DACS/QASH': defaultPrecisions,
-            'DASH/BTC': defaultPrecisions,
-            'DASH/EUR': { 'price': 5, 'amount': 8 },
-            'DASH/JPY': { 'price': 3, 'amount': 8 },
-            'DASH/SGD': { 'price': 4, 'amount': 8 },
-            'DASH/USD': { 'price': 4, 'amount': 8 },
-            'DENT/BTC': defaultPrecisions,
-            'DENT/ETH': defaultPrecisions,
-            'DENT/QASH': defaultPrecisions,
-            'DRG/BTC': defaultPrecisions,
-            'DRG/ETH': defaultPrecisions,
-            'DRG/QASH': defaultPrecisions,
-            'EARTH/BTC': defaultPrecisions,
-            'EARTH/ETH': defaultPrecisions,
-            'EARTH/QASH': defaultPrecisions,
-            'ECH/BTC': defaultPrecisions,
-            'ECH/ETH': defaultPrecisions,
-            'ECH/QASH': defaultPrecisions,
-            'ELY/BTC': defaultPrecisions,
-            'ELY/ETH': defaultPrecisions,
-            'ELY/QASH': defaultPrecisions,
-            'ENJ/BTC': defaultPrecisions,
-            'ENJ/ETH': defaultPrecisions,
-            'ENJ/QASH': defaultPrecisions,
-            'ETC/BTC': defaultPrecisions,
-            'ETH/AUD': { 'price': 5, 'amount': 8 },
-            'ETH/BTC': defaultPrecisions,
-            'ETH/EUR': { 'price': 5, 'amount': 8 },
-            'ETH/HKD': { 'price': 5, 'amount': 8 },
-            'ETH/IDR': { 'price': 5, 'amount': 8 },
-            'ETH/JPY': { 'price': 5, 'amount': 8 },
-            'ETH/PHP': { 'price': 5, 'amount': 8 },
-            'ETH/SGD': { 'price': 5, 'amount': 8 },
-            'ETH/USD': { 'price': 5, 'amount': 8 },
-            'ETN/BTC': { 'price': 8, 'amount': 2 },
-            'ETN/ETH': { 'price': 8, 'amount': 2 },
-            'ETN/QASH': { 'price': 8, 'amount': 2 },
-            'EZT/BTC': defaultPrecisions,
-            'EZT/ETH': defaultPrecisions,
-            'EZT/QASH': defaultPrecisions,
-            'FCT/BTC': defaultPrecisions,
-            'FCT/ETH': defaultPrecisions,
-            'FDX/BTC': defaultPrecisions,
-            'FDX/ETH': defaultPrecisions,
-            'FDX/QASH': defaultPrecisions,
-            'FLIXX/BTC': defaultPrecisions,
-            'FLIXX/ETH': defaultPrecisions,
-            'FLIXX/QASH': defaultPrecisions,
-            'FLP/BTC': defaultPrecisions,
-            'FLP/ETH': defaultPrecisions,
-            'FLP/QASH': defaultPrecisions,
-            'FLUZ/BTC': defaultPrecisions,
-            'FLUZ/ETH': defaultPrecisions,
-            'FLUZ/QASH': defaultPrecisions,
-            'FSN/BTC': defaultPrecisions,
-            'FSN/ETH': defaultPrecisions,
-            'FSN/QASH': defaultPrecisions,
-            'FTT/BTC': defaultPrecisions,
-            'FTT/ETH': defaultPrecisions,
-            'FTT/QASH': defaultPrecisions,
-            'FTX/BTC': defaultPrecisions,
-            'FTX/ETH': defaultPrecisions,
-            'FTX/QASH': defaultPrecisions,
-            'GAT/BTC': defaultPrecisions,
-            'GAT/ETH': defaultPrecisions,
-            'GAT/QASH': defaultPrecisions,
-            'GET/BTC': defaultPrecisions,
-            'GET/ETH': defaultPrecisions,
-            'GET/QASH': defaultPrecisions,
-            'GZE/BTC': defaultPrecisions,
-            'GZE/ETH': defaultPrecisions,
-            'GZE/QASH': defaultPrecisions,
-            'HAV/BTC': defaultPrecisions,
-            'HAV/ETH': defaultPrecisions,
-            'HAV/QASH': defaultPrecisions,
-            'HERO/BTC': defaultPrecisions,
-            'HERO/ETH': defaultPrecisions,
-            'HERO/QASH': defaultPrecisions,
-            'IDH/BTC': defaultPrecisions,
-            'IDH/ETH': defaultPrecisions,
-            'IDH/QASH': defaultPrecisions,
-            'IHF/BTC': defaultPrecisions,
-            'IHF/ETH': defaultPrecisions,
-            'IND/BTC': defaultPrecisions,
-            'IND/ETH': defaultPrecisions,
-            'IPSX/BTC': defaultPrecisions,
-            'IPSX/ETH': defaultPrecisions,
-            'IPSX/QASH': defaultPrecisions,
-            'IXT/BTC': defaultPrecisions,
-            'IXT/ETH': defaultPrecisions,
-            'IXT/QASH': defaultPrecisions,
-            'KRL/BTC': defaultPrecisions,
-            'KRL/ETH': defaultPrecisions,
-            'KRL/QASH': defaultPrecisions,
-            'LALA/BTC': defaultPrecisions,
-            'LALA/ETH': defaultPrecisions,
-            'LALA/QASH': defaultPrecisions,
-            'LDC/BTC': defaultPrecisions,
-            'LDC/ETH': defaultPrecisions,
-            'LDC/QASH': defaultPrecisions,
-            'LIKE/BTC': defaultPrecisions,
-            'LIKE/ETH': defaultPrecisions,
-            'LIKE/QASH': defaultPrecisions,
-            'LND/BTC': defaultPrecisions,
-            'LND/ETH': defaultPrecisions,
-            'LND/QASH': { 'price': 6, 'amount': 8 },
-            'LTC/BTC': defaultPrecisions,
-            'MCO/BTC': defaultPrecisions,
-            'MCO/ETH': defaultPrecisions,
-            'MCO/QASH': defaultPrecisions,
-            'MGO/BTC': defaultPrecisions,
-            'MGO/ETH': defaultPrecisions,
-            'MGO/QASH': defaultPrecisions,
-            'MITH/BTC': defaultPrecisions,
-            'MITH/ETH': defaultPrecisions,
-            'MITX/BTC': defaultPrecisions,
-            'MITX/ETH': defaultPrecisions,
-            'MITX/QASH': defaultPrecisions,
-            'MRK/BTC': defaultPrecisions,
-            'MRK/ETH': defaultPrecisions,
-            'MRK/QASH': defaultPrecisions,
-            'MT/BTC': defaultPrecisions,
-            'MT/ETH': { 'price': 7, 'amount': 0 },
-            'MT/QASH': defaultPrecisions,
-            'MTN/BTC': defaultPrecisions,
-            'MTN/ETH': defaultPrecisions,
-            'MTN/QASH': defaultPrecisions,
-            'NEO/BTC': defaultPrecisions,
-            'NEO/ETH': defaultPrecisions,
-            'NEO/EUR': { 'price': 4, 'amount': 8 },
-            'NEO/JPY': { 'price': 5, 'amount': 8 },
-            'NEO/SGD': { 'price': 5, 'amount': 8 },
-            'NEO/USD': { 'price': 4, 'amount': 8 },
-            'OAX/BTC': defaultPrecisions,
-            'OAX/ETH': defaultPrecisions,
-            'ONG/BTC': defaultPrecisions,
-            'ONG/ETH': defaultPrecisions,
-            'ONG/QASH': defaultPrecisions,
-            'PAL/BTC': defaultPrecisions,
-            'PAL/ETH': defaultPrecisions,
-            'PAL/QASH': { 'price': 8, 'amount': 7 },
-            'PLC/BTC': defaultPrecisions,
-            'PLC/ETH': defaultPrecisions,
-            'PLC/QASH': defaultPrecisions,
-            'PWV/BTC': defaultPrecisions,
-            'PWV/ETH': { 'price': 8, 'amount': 0 },
-            'PWV/QASH': { 'price': 6, 'amount': 4 },
-            'QASH/AUD': { 'price': 5, 'amount': 8 },
-            'QASH/BTC': defaultPrecisions,
-            'QASH/ETH': defaultPrecisions,
-            'QASH/EUR': { 'price': 5, 'amount': 8 },
-            'QASH/IDR': { 'price': 2, 'amount': 8 },
-            'QASH/JPY': { 'price': 5, 'amount': 8 },
-            'QASH/SGD': { 'price': 5, 'amount': 8 },
-            'QASH/USD': { 'price': 5, 'amount': 8 },
-            'QTUM/BTC': defaultPrecisions,
-            'QTUM/ETH': defaultPrecisions,
-            'QTUM/EUR': { 'price': 5, 'amount': 8 },
-            'QTUM/JPY': { 'price': 5, 'amount': 8 },
-            'QTUM/SGD': { 'price': 5, 'amount': 8 },
-            'QTUM/USD': { 'price': 5, 'amount': 8 },
-            'RBLX/BTC': defaultPrecisions,
-            'RBLX/ETH': defaultPrecisions,
-            'RBLX/QASH': defaultPrecisions,
-            'REP/BTC': defaultPrecisions,
-            'RKT/AUD': { 'price': 5, 'amount': 0 },
-            'RKT/BTC': defaultPrecisions,
-            'RKT/ETH': defaultPrecisions,
-            'RKT/EUR': { 'price': 5, 'amount': 8 },
-            'RKT/JPY': { 'price': 5, 'amount': 8 },
-            'RKT/QASH': defaultPrecisions,
-            'RKT/SGD': { 'price': 5, 'amount': 8 },
-            'RKT/USD': { 'price': 5, 'amount': 8 },
-            'SAL/BTC': defaultPrecisions,
-            'SAL/ETH': defaultPrecisions,
-            'SAL/QASH': defaultPrecisions,
-            'SER/BTC': defaultPrecisions,
-            'SER/ETH': defaultPrecisions,
-            'SER/QASH': defaultPrecisions,
-            'SGN/BTC': defaultPrecisions,
-            'SGN/ETH': defaultPrecisions,
-            'SGN/QASH': defaultPrecisions,
-            'SHP/BTC': defaultPrecisions,
-            'SHP/ETH': defaultPrecisions,
-            'SHP/QASH': defaultPrecisions,
-            'SIX/BTC': { 'price': 8, 'amount': 7 },
-            'SNIP/BTC': defaultPrecisions,
-            'SNIP/ETH': defaultPrecisions,
-            'SNIP/QASH': defaultPrecisions,
-            'SPHTX/BTC': defaultPrecisions,
-            'SPHTX/ETH': defaultPrecisions,
-            'SPHTX/QASH': defaultPrecisions,
-            'STAC/BTC': { 'price': 8, 'amount': 0 },
-            'STAC/ETH': defaultPrecisions,
-            'STAC/QASH': defaultPrecisions,
-            'STORJ/BTC': defaultPrecisions,
-            'STORJ/ETH': defaultPrecisions,
-            'STU/BTC': defaultPrecisions,
-            'STU/ETH': defaultPrecisions,
-            'STU/QASH': { 'price': 8, 'amount': 2 },
-            'STX/BTC': defaultPrecisions,
-            'STX/ETH': defaultPrecisions,
-            'THRT/BTC': defaultPrecisions,
-            'THRT/ETH': defaultPrecisions,
-            'THRT/QASH': defaultPrecisions,
-            'TPAY/BTC': defaultPrecisions,
-            'TPAY/ETH': defaultPrecisions,
-            'TPAY/QASH': defaultPrecisions,
-            'TPT/BTC': defaultPrecisions,
-            'TPT/ETH': defaultPrecisions,
-            'TPT/QASH': defaultPrecisions,
-            'TRX/BTC': { 'price': 8, 'amount': 6 },
-            'TRX/ETH': { 'price': 8, 'amount': 6 },
-            'UBT/BTC': defaultPrecisions,
-            'UBT/ETH': defaultPrecisions,
-            'UBT/QASH': defaultPrecisions,
-            'UBTC/BTC': { 'price': 8, 'amount': 7 },
-            'UBTC/ETH': defaultPrecisions,
-            'UBTC/JPY': { 'price': 4, 'amount': 0 },
-            'UBTC/QASH': defaultPrecisions,
-            'UBTC/SGD': { 'price': 5, 'amount': 0 },
-            'UBTC/USD': { 'price': 5, 'amount': 8 },
-            'UKG/BTC': defaultPrecisions,
-            'UKG/ETH': defaultPrecisions,
-            'UKG/QASH': defaultPrecisions,
-            'VET/BTC': defaultPrecisions,
-            'VET/ETH': defaultPrecisions,
-            'VIO/BTC': defaultPrecisions,
-            'VIO/ETH': defaultPrecisions,
-            'VIO/QASH': defaultPrecisions,
-            'VUU/BTC': defaultPrecisions,
-            'VUU/ETH': defaultPrecisions,
-            'VUU/QASH': defaultPrecisions,
-            'VZT/BTC': defaultPrecisions,
-            'VZT/ETH': defaultPrecisions,
-            'VZT/QASH': defaultPrecisions,
-            'WCOIN/BTC': defaultPrecisions,
-            'WCOIN/ETH': defaultPrecisions,
-            'WCOIN/QASH': defaultPrecisions,
-            'XEM/BTC': { 'price': 8, 'amount': 6 },
-            'XES/BTC': defaultPrecisions,
-            'XES/ETH': defaultPrecisions,
-            'XES/QASH': defaultPrecisions,
-            'XLM/BTC': defaultPrecisions,
-            'XLM/ETH': defaultPrecisions,
-            'XMR/BTC': defaultPrecisions,
-            'XNK/BTC': defaultPrecisions,
-            'XNK/ETH': defaultPrecisions,
-            'XNK/QASH': defaultPrecisions,
-            'XRP/BTC': { 'price': 8, 'amount': 6 },
-            'XRP/EUR': { 'price': 5, 'amount': 6 },
-            'XRP/IDR': { 'price': 5, 'amount': 0 },
-            'XRP/JPY': { 'price': 5, 'amount': 6 },
-            'XRP/QASH': { 'price': 8, 'amount': 6 },
-            'XRP/SGD': { 'price': 5, 'amount': 6 },
-            'XRP/USD': { 'price': 5, 'amount': 6 },
-            'ZCO/BTC': defaultPrecisions,
-            'ZCO/ETH': defaultPrecisions,
-            'ZCO/QASH': defaultPrecisions,
-            'ZEC/BTC': defaultPrecisions,
-            'ZPR/BTC': defaultPrecisions,
-            'ZPR/ETH': defaultPrecisions,
-            'ZPR/QASH': defaultPrecisions,
-        };
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
             let id = market['id'].toString ();
             let baseId = market['base_currency'];
             let quoteId = market['quoted_currency'];
@@ -513,35 +213,42 @@ module.exports = class liquid extends Exchange {
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
+            let baseCurrency = this.safeValue (currenciesByCode, base);
+            let quoteCurrency = this.safeValue (currenciesByCode, quote);
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             let minAmount = undefined;
-            if (baseId in minOrderAmounts)
-                minAmount = minOrderAmounts[baseId];
+            if (baseCurrency !== undefined) {
+                minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
+                precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
+            }
             let minPrice = undefined;
-            if (quote === 'BTC') {
-                minPrice = 0.00000001;
-            } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
-                minPrice = 0.00001;
+            if (quoteCurrency !== undefined) {
+                precision['price'] = this.safeInteger (quoteCurrency['info'], 'display_precision');
+                minPrice = Math.pow (10, -precision['price']);
+            }
+            let minCost = undefined;
+            if (minPrice !== undefined) {
+                if (minAmount !== undefined) {
+                    minCost = minPrice * minAmount;
+                }
             }
             let limits = {
-                'amount': { 'min': minAmount },
-                'price': { 'min': minPrice },
-                'cost': { 'min': undefined },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
             };
-            if (minPrice !== undefined)
-                if (minAmount !== undefined)
-                    limits['cost']['min'] = minPrice * minAmount;
-            let precision = {
-                'amount': undefined,
-                'price': undefined,
-            };
-            if (symbol in precisions) {
-                precision = precisions[symbol];
-            } else {
-                if (minAmount !== undefined)
-                    precision['amount'] = -Math.log10 (minAmount);
-                if (minPrice !== undefined)
-                    precision['price'] = -Math.log10 (minPrice);
-            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
