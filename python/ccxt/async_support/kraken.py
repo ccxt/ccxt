@@ -231,12 +231,12 @@ class kraken (Exchange):
     def fee_to_precision(self, symbol, fee):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
-    async def fetch_min_order_sizes(self):
+    async def fetch_min_order_amounts(self):
         html = await self.zendeskGet205893708WhatIsTheMinimumOrderSize()
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
-            raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+            raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
         result = {}
         # skip the part before the header and the header itself
         for i in range(2, len(parts)):
@@ -247,7 +247,7 @@ class kraken (Exchange):
                 pieces = amountAndCode.split(' ')
                 numPieces = len(pieces)
                 if numPieces != 2:
-                    raise ExchangeError(self.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+                    raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
                 amount = float(pieces[0])
                 code = self.common_currency_code(pieces[1])
                 result[code] = amount
@@ -255,7 +255,7 @@ class kraken (Exchange):
 
     async def fetch_markets(self):
         markets = await self.publicGetAssetPairs()
-        limits = await self.fetch_min_order_sizes()
+        limits = await self.fetch_min_order_amounts()
         keys = list(markets['result'].keys())
         result = []
         for i in range(0, len(keys)):
