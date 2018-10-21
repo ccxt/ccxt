@@ -6,8 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 import math
 import json
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -449,7 +449,7 @@ class liquid (Exchange):
     async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         if price is None:
-            raise ExchangeError(self.id + ' editOrder requires the price argument')
+            raise ArgumentsRequired(self.id + ' editOrder requires the price argument')
         order = {
             'order': {
                 'quantity': self.amount_to_precision(symbol, amount),

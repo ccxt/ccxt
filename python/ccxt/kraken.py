@@ -17,6 +17,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -52,6 +53,8 @@ class kraken (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': True,
+                'fetchWithdrawals': True,
+                'fetchDeposits': True,
                 'withdraw': True,
             },
             'marketsByAltname': {},
@@ -777,6 +780,133 @@ class kraken (Exchange):
             'asset': currency['id'],
         }, params))
         return response['result']
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #     {method: "Ether(Hex)",
+        #       aclass: "currency",
+        #        asset: "XETH",
+        #        refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        #         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        #         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        #       amount: "7.9999257900",
+        #          fee: "0.0000000000",
+        #         time:  1529223212,
+        #       status: "Success"                                                       }
+        #
+        # fetchWithdrawals
+        #
+        #     {method: "Ether",
+        #       aclass: "currency",
+        #        asset: "XETH",
+        #        refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        #         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        #         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        #       amount: "9.9950000000",
+        #          fee: "0.0050000000",
+        #         time:  1530481750,
+        #       status: "Success"                                                             }
+        #
+        id = self.safe_string(transaction, 'refid')
+        txid = self.safe_string(transaction, 'txid')
+        timestamp = self.safe_integer(transaction, 'time')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        code = None
+        currencyId = self.safe_string(transaction, 'asset')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        address = self.safe_string(transaction, 'info')
+        amount = self.safe_float(transaction, 'amount')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        type = self.safe_string(transaction, 'type')  # injected from the outside
+        feeCost = self.safe_float(transaction, 'fee')
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
+
+    def parse_transactions_by_type(self, type, transactions, code=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.parse_transaction(self.extend({
+                'type': type,
+            }, transactions[i]))
+            result.append(transaction)
+        return self.filterByCurrencySinceLimit(result, code, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        # https://www.kraken.com/en-us/help/api#deposit-status
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits requires a currency code argument')
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+        }
+        response = self.privatePostDepositStatus(self.extend(request, params))
+        #
+        #     { error: [],
+        #       result: [{method: "Ether(Hex)",
+        #                   aclass: "currency",
+        #                    asset: "XETH",
+        #                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        #                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        #                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        #                   amount: "7.9999257900",
+        #                      fee: "0.0000000000",
+        #                     time:  1529223212,
+        #                   status: "Success"                                                       }]}
+        #
+        return self.parse_transactions_by_type('deposit', response['result'], code, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        # https://www.kraken.com/en-us/help/api#withdraw-status
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+        }
+        response = self.privatePostWithdrawStatus(self.extend(request, params))
+        #
+        #     { error: [],
+        #       result: [{method: "Ether",
+        #                   aclass: "currency",
+        #                    asset: "XETH",
+        #                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        #                     txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        #                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        #                   amount: "9.9950000000",
+        #                      fee: "0.0050000000",
+        #                     time:  1530481750,
+        #                   status: "Success"                                                             }]}
+        #
+        return self.parse_transactions_by_type('withdrawal', response['result'], code, since, limit)
 
     def create_deposit_address(self, code, params={}):
         request = {
