@@ -213,12 +213,12 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_min_order_sizes () {
+    public function fetch_min_order_amounts () {
         $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $parts = explode ('<td class="wysiwyg-text-align-right">', $html);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         if ($numParts < 3) {
-            throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+            throw new ExchangeError ($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
         $result = array ();
         // skip the $part before the header and the header itself
@@ -230,7 +230,7 @@ class kraken extends Exchange {
                 $pieces = explode (' ', $amountAndCode);
                 $numPieces = is_array ($pieces) ? count ($pieces) : 0;
                 if ($numPieces !== 2) {
-                    throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                    throw new ExchangeError ($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
                 }
                 $amount = floatval ($pieces[0]);
                 $code = $this->common_currency_code($pieces[1]);
@@ -242,7 +242,7 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $limits = $this->fetch_min_order_sizes ();
+        $limits = $this->fetch_min_order_amounts ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
