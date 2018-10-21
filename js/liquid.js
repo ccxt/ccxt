@@ -37,6 +37,7 @@ module.exports = class liquid extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -105,22 +106,89 @@ module.exports = class liquid extends Exchange {
         });
     }
 
+    async fetchMinOrderAmounts () {
+        let currencies = await this.fetchCurrencies ();
+        let currenciesByCode = this.indexBy (currencies, 'code');
+        let codes = Object.keys (currenciesByCode);
+        let result = {};
+        for (let i = 0; i < codes.length; i++) {
+            let code = codes[i];
+            let currency = currenciesByCode[code];
+            let info = this.safeValue (currency, 'info', {});
+            let minOrderAmount = this.safeFloat (info, 'minimum_order_quantity');
+            if (minOrderAmount !== undefined) {
+                result[code] = minOrderAmount;
+            }
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             currency_type: 'fiat',
+        //             currency: 'USD',
+        //             symbol: '$',
+        //             assets_precision: 2,
+        //             quoting_precision: 5,
+        //             minimum_withdrawal: '15.0',
+        //             withdrawal_fee: 5,
+        //             minimum_fee: null,
+        //             minimum_order_quantity: null,
+        //             display_precision: 2,
+        //             depositable: true,
+        //             withdrawable: true,
+        //             discount_fee: 0.5,
+        //         },
+        //     ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let currency = response[i];
+            let id = this.safeString (currency, 'currency');
+            let code = this.commonCurrencyCode (id);
+            let active = currency['depositable'] && currency['withdrawable'];
+            let amountPrecision = this.safeInteger (currency, 'assets_precision');
+            let pricePrecision = this.safeInteger (currency, 'quoting_precision');
+            let precision = Math.max (amountPrecision, pricePrecision);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -amountPrecision),
+                        'max': Math.pow (10, amountPrecision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -pricePrecision),
+                        'max': Math.pow (10, pricePrecision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
+        let minOrderAmounts = await this.fetchMinOrderAmounts ();
         let result = [];
-        // see: https://quoine.zendesk.com/hc/en-us/articles/360004828252-Minimum-withdrawal-amount-Minimum-order-quantity
-        let minOrderAmounts = {
-            'BTC': 0.001,
-            'ETH': 0.01,
-            'BCH': 0.01,
-            'DASH': 0.01,
-            'QTUM': 0.1,
-            'NEO': 0.1,
-            'UBTC': 0.01,
-            'XRP': 1,
-            'RKT': 1,
-            'QASH': 1,
-        };
+        // will rewrite this very shortly
         let defaultPrecisions = { 'price': 8, 'amount': 8 };
         let precisions = {
             '1WO/BTC': defaultPrecisions,
@@ -811,10 +879,7 @@ module.exports = class liquid extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (query).length)
@@ -830,6 +895,9 @@ module.exports = class liquid extends Exchange {
                 'iat': Math.floor (nonce / 1000), // issued at
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
