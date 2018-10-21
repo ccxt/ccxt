@@ -15,6 +15,7 @@ module.exports = class liquid extends Exchange {
             'countries': [ 'JP', 'CN', 'TW' ],
             'version': '2',
             'rateLimit': 1000,
+            'parseJsonResponse': false,
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
@@ -26,7 +27,11 @@ module.exports = class liquid extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'public': 'https://api.liquid.com',
+                    'private': 'https://api.liquid.com',
+                    'zendesk': 'https://quoine.zendesk.com/hc/en-us/articles',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.quoine.com',
