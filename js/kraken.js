@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeNotAvailable, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
+const { ExchangeNotAvailable, ArgumentsRequired, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -30,6 +30,8 @@ module.exports = class kraken extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': true,
                 'withdraw': true,
             },
             'marketsByAltname': {},
@@ -808,6 +810,143 @@ module.exports = class kraken extends Exchange {
             'asset': currency['id'],
         }, params));
         return response['result'];
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     { method: "Ether (Hex)",
+        //       aclass: "currency",
+        //        asset: "XETH",
+        //        refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        //         txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //         info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //       amount: "7.9999257900",
+        //          fee: "0.0000000000",
+        //         time:  1529223212,
+        //       status: "Success"                                                       }
+        //
+        // fetchWithdrawals
+        //
+        //     { method: "Ether",
+        //       aclass: "currency",
+        //        asset: "XETH",
+        //        refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        //         txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //         info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //       amount: "9.9950000000",
+        //          fee: "0.0050000000",
+        //         time:  1530481750,
+        //       status: "Success"                                                             }
+        //
+        const id = this.safeString (transaction, 'refid');
+        const txid = this.safeString (transaction, 'txid');
+        let timestamp = this.safeInteger (transaction, 'time');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'asset');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const address = this.safeString (transaction, 'info');
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const type = this.safeString (transaction, 'type'); // injected from the outside
+        const feeCost = this.safeFloat (transaction, 'fee');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
+    }
+
+    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = this.parseTransaction (this.extend ({
+                'type': type,
+            }, transactions[i]));
+            result.push (transaction);
+        }
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://www.kraken.com/en-us/help/api#deposit-status
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privatePostDepositStatus (this.extend (request, params));
+        //
+        //     {  error: [],
+        //       result: [ { method: "Ether (Hex)",
+        //                   aclass: "currency",
+        //                    asset: "XETH",
+        //                    refid: "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                     txid: "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                     info: "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                   amount: "7.9999257900",
+        //                      fee: "0.0000000000",
+        //                     time:  1529223212,
+        //                   status: "Success"                                                       } ] }
+        //
+        return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // https://www.kraken.com/en-us/help/api#withdraw-status
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.privatePostWithdrawStatus (this.extend (request, params));
+        //
+        //     {  error: [],
+        //       result: [ { method: "Ether",
+        //                   aclass: "currency",
+        //                    asset: "XETH",
+        //                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
+        //                     txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                   amount: "9.9950000000",
+        //                      fee: "0.0050000000",
+        //                     time:  1530481750,
+        //                   status: "Success"                                                             } ] }
+        //
+        return this.parseTransactionsByType ('withdrawal', response['result'], code, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
