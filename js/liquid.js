@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -449,10 +449,11 @@ module.exports = class liquid extends Exchange {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
-            'quantity': amount,
+            'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit')
-            order['price'] = price;
+        if (type === 'limit') {
+            order['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response);
     }
@@ -470,10 +471,13 @@ module.exports = class liquid extends Exchange {
 
     async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' editOrder requires the price argument');
+        }
         let order = {
             'order': {
-                'quantity': amount,
-                'price': price,
+                'quantity': this.amountToPrecision (symbol, amount),
+                'price': this.priceToPrecision (symbol, price),
             },
         };
         let result = await this.privatePutOrdersId (this.extend ({
