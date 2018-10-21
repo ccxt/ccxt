@@ -850,9 +850,6 @@ module.exports = class liquid extends Exchange {
             'Content-Type': 'application/json',
         };
         if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (query).length)
@@ -868,8 +865,11 @@ module.exports = class liquid extends Exchange {
                 'iat': Math.floor (nonce / 1000), // issued at
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
