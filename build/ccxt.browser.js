@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.395'
+const version = '1.17.396'
 
 Exchange.ccxtVersion = version
 
@@ -41670,12 +41670,12 @@ module.exports = class kraken extends Exchange {
         return this.decimalToPrecision (fee, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    async fetchMinOrderSizes () {
+    async fetchMinOrderAmounts () {
         let html = await this.zendeskGet205893708WhatIsTheMinimumOrderSize ();
         let parts = html.split ('<td class="wysiwyg-text-align-right">');
         let numParts = parts.length;
         if (numParts < 3) {
-            throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+            throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
         let result = {};
         // skip the part before the header and the header itself
@@ -41687,7 +41687,7 @@ module.exports = class kraken extends Exchange {
                 let pieces = amountAndCode.split (' ');
                 let numPieces = pieces.length;
                 if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderSizes HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
                 }
                 let amount = parseFloat (pieces[0]);
                 let code = this.commonCurrencyCode (pieces[1]);
@@ -41699,7 +41699,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
-        let limits = await this.fetchMinOrderSizes ();
+        let limits = await this.fetchMinOrderAmounts ();
         let keys = Object.keys (markets['result']);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
