@@ -48,6 +48,7 @@ module.exports = class liquid extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
