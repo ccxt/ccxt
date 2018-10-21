@@ -468,7 +468,7 @@ module.exports = class liquid extends Exchange {
         return order;
     }
 
-    async editOrder (id, symbol = undefined, type = undefined, side = undefined, amount, price, params = {}) {
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let order = {
             'order': {
