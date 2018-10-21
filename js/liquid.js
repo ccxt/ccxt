@@ -40,6 +40,12 @@ module.exports = class liquid extends Exchange {
                 'fees': 'https://help.liquid.com/getting-started-with-liquid/the-platform/fee-structure',
             },
             'api': {
+                'zendesk': {
+                    'get': [
+                        '360004828252-Minimum-withdrawal-amount-Minimum-order-quantity', // order limits and limits on withdrawals
+                        '360001677811', // withdrawal fees
+                    ],
+                },
                 'public': {
                     'get': [
                         'products',
