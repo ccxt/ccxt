@@ -510,7 +510,7 @@ module.exports = class liquid extends Exchange {
         let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            feeCurrency = market.quote;
+            feeCurrency = market['quote'];
         }
         let averagePrice = this.safeFloat (order, 'average_price');
         let cost = filled * averagePrice;
