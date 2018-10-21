@@ -849,7 +849,7 @@ module.exports = class liquid extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api === 'public') {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (query).length)
