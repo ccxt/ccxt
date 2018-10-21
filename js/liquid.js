@@ -693,7 +693,7 @@ module.exports = class liquid extends Exchange {
         return order;
     }
 
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+    async editOrder (id, symbol = undefined, type = undefined, side = undefined, amount, price, params = {}) {
         await this.loadMarkets ();
         let order = {
             'order': {
@@ -703,7 +703,7 @@ module.exports = class liquid extends Exchange {
         };
         let result = await this.privatePutOrdersId (this.extend ({
             'id': id,
-        }), order);
+        }, order));
         return this.parseOrder (result);
     }
 
