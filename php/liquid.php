@@ -38,6 +38,7 @@ class liquid extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -62,6 +63,7 @@ class liquid extends Exchange {
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
+                        'transactions',
                     ),
                     'post' => array (
                         'fiat_accounts',
@@ -86,6 +88,8 @@ class liquid extends Exchange {
                     'API Authentication failed' => '\\ccxt\\AuthenticationError',
                     'Nonce is too small' => '\\ccxt\\InvalidNonce',
                     'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Can not update partially filled order' => '\\ccxt\\OrderNotFound',
+                    'Can not update non-live order' => '\\ccxt\\OrderNotFound',
                     'user' => array (
                         'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
                     ),
@@ -103,11 +107,104 @@ class liquid extends Exchange {
         ));
     }
 
+    public function fetch_currencies ($params = array ()) {
+        $response = $this->publicGetCurrencies ($params);
+        //
+        //     array (
+        //         array (
+        //             currency_type => 'fiat',
+        //             $currency => 'USD',
+        //             symbol => '$',
+        //             assets_precision => 2,
+        //             quoting_precision => 5,
+        //             minimum_withdrawal => '15.0',
+        //             withdrawal_fee => 5,
+        //             minimum_fee => null,
+        //             minimum_order_quantity => null,
+        //             display_precision => 2,
+        //             depositable => true,
+        //             withdrawable => true,
+        //             discount_fee => 0.5,
+        //         ),
+        //     )
+        //
+        $result = array ();
+        for ($i = 0; $i < count ($response); $i++) {
+            $currency = $response[$i];
+            $id = $this->safe_string($currency, 'currency');
+            $code = $this->common_currency_code($id);
+            $active = $currency['depositable'] && $currency['withdrawable'];
+            $amountPrecision = $this->safe_integer($currency, 'display_precision');
+            $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
+            $precision = max ($amountPrecision, $pricePrecision);
+            $result[$code] = array (
+                'id' => $id,
+                'code' => $code,
+                'info' => $currency,
+                'name' => $code,
+                'active' => $active,
+                'fee' => $this->safe_float($currency, 'withdrawal_fee'),
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => pow (10, -$amountPrecision),
+                        'max' => pow (10, $amountPrecision),
+                    ),
+                    'price' => array (
+                        'min' => pow (10, -$pricePrecision),
+                        'max' => pow (10, $pricePrecision),
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array (
+                        'min' => $this->safe_float($currency, 'minimum_withdrawal'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
     public function fetch_markets () {
         $markets = $this->publicGetProducts ();
+        //
+        //     array (
+        //         array (
+        //             $id => '7',
+        //             product_type => 'CurrencyPair',
+        //             code => 'CASH',
+        //             name => ' CASH Trading',
+        //             market_ask => 8865.79147,
+        //             market_bid => 8853.95988,
+        //             indicator => 1,
+        //             currency => 'SGD',
+        //             currency_pair_code => 'BTCSGD',
+        //             $symbol => 'S$',
+        //             btc_minimum_withdraw => null,
+        //             fiat_minimum_withdraw => null,
+        //             pusher_channel => 'product_cash_btcsgd_7',
+        //             taker_fee => 0,
+        //             maker_fee => 0,
+        //             low_market_bid => '8803.25579',
+        //             high_market_ask => '8905.0',
+        //             volume_24h => '15.85443468',
+        //             last_price_24h => '8807.54625',
+        //             last_traded_price => '8857.77206',
+        //             last_traded_quantity => '0.00590974',
+        //             quoted_currency => 'SGD',
+        //             base_currency => 'BTC',
+        //             disabled => false,
+        //         ),
+        //     )
+        //
+        $currencies = $this->fetch_currencies();
+        $currenciesByCode = $this->index_by($currencies, 'code');
         $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
             $id = (string) $market['id'];
             $baseId = $market['base_currency'];
             $quoteId = $market['quoted_currency'];
@@ -117,34 +214,42 @@ class liquid extends Exchange {
             $maker = $this->safe_float($market, 'maker_fee');
             $taker = $this->safe_float($market, 'taker_fee');
             $active = !$market['disabled'];
+            $baseCurrency = $this->safe_value($currenciesByCode, $base);
+            $quoteCurrency = $this->safe_value($currenciesByCode, $quote);
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
             $minAmount = null;
-            $minPrice = null;
-            if ($base === 'BTC') {
-                $minAmount = 0.001;
-            } else if ($base === 'ETH') {
-                $minAmount = 0.01;
+            if ($baseCurrency !== null) {
+                $minAmount = $this->safe_float($baseCurrency['info'], 'minimum_order_quantity');
+                $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
             }
-            if ($quote === 'BTC') {
-                $minPrice = 0.00000001;
-            } else if ($quote === 'ETH' || $quote === 'USD' || $quote === 'JPY') {
-                $minPrice = 0.00001;
+            $minPrice = null;
+            if ($quoteCurrency !== null) {
+                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'display_precision');
+                $minPrice = pow (10, -$precision['price']);
+            }
+            $minCost = null;
+            if ($minPrice !== null) {
+                if ($minAmount !== null) {
+                    $minCost = $minPrice * $minAmount;
+                }
             }
             $limits = array (
-                'amount' => array ( 'min' => $minAmount ),
-                'price' => array ( 'min' => $minPrice ),
-                'cost' => array ( 'min' => null ),
+                'amount' => array (
+                    'min' => $minAmount,
+                    'max' => null,
+                ),
+                'price' => array (
+                    'min' => $minPrice,
+                    'max' => null,
+                ),
+                'cost' => array (
+                    'min' => $minCost,
+                    'max' => null,
+                ),
             );
-            if ($minPrice !== null)
-                if ($minAmount !== null)
-                    $limits['cost']['min'] = $minPrice * $minAmount;
-            $precision = array (
-                'amount' => null,
-                'price' => null,
-            );
-            if ($minAmount !== null)
-                $precision['amount'] = -log10 ($minAmount);
-            if ($minPrice !== null)
-                $precision['price'] = -log10 ($minPrice);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -177,7 +282,7 @@ class liquid extends Exchange {
             $total = floatval ($balance['balance']);
             $account = array (
                 'free' => $total,
-                'used' => 0.0,
+                'used' => null,
                 'total' => $total,
             );
             $result[$code] = $account;
@@ -284,6 +389,7 @@ class liquid extends Exchange {
         //       created_at =>  1512345678,
         //          my_side => "buy"           }
         $timestamp = $trade['created_at'] * 1000;
+        $orderId = $this->safe_string($trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         $takerSide = $this->safe_string($trade, 'taker_side');
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
@@ -295,7 +401,7 @@ class liquid extends Exchange {
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
-            'order' => null,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
@@ -327,8 +433,10 @@ class liquid extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        // the `with_details` param is undocumented - it adds the order_id to the results
         $request = array (
             'product_id' => $market['id'],
+            'with_details' => true,
         );
         if ($limit !== null)
             $request['limit'] = $limit;
@@ -342,10 +450,11 @@ class liquid extends Exchange {
             'order_type' => $type,
             'product_id' => $this->market_id($symbol),
             'side' => $side,
-            'quantity' => $amount,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
         );
-        if ($type === 'limit')
-            $order['price'] = $price;
+        if ($type === 'limit') {
+            $order['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrders (array_merge ($order, $params));
         return $this->parse_order($response);
     }
@@ -359,6 +468,23 @@ class liquid extends Exchange {
         if ($order['status'] === 'closed')
             throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
         return $order;
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
+        if ($price === null) {
+            throw new ExchangeError ($this->id . ' editOrder requires the $price argument');
+        }
+        $order = array (
+            'order' => array (
+                'quantity' => $this->amount_to_precision($symbol, $amount),
+                'price' => $this->price_to_precision($symbol, $price),
+            ),
+        );
+        $result = $this->privatePutOrdersId (array_merge (array (
+            'id' => $id,
+        ), $order));
+        return $this->parse_order($result);
     }
 
     public function parse_order ($order, $market = null) {
@@ -382,9 +508,13 @@ class liquid extends Exchange {
         $filled = $this->safe_float($order, 'filled_quantity');
         $price = $this->safe_float($order, 'price');
         $symbol = null;
+        $feeCurrency = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
+            $feeCurrency = $market['quote'];
         }
+        $averagePrice = $this->safe_float($order, 'average_price');
+        $cost = $filled * $averagePrice;
         return array (
             'id' => (string) $order['id'],
             'timestamp' => $timestamp,
@@ -397,10 +527,11 @@ class liquid extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'filled' => $filled,
+            'cost' => $cost,
             'remaining' => $amount - $filled,
             'trades' => null,
             'fee' => array (
-                'currency' => null,
+                'currency' => $feeCurrency,
                 'cost' => $this->safe_float($order, 'order_fee'),
             ),
             'info' => $order,
@@ -460,10 +591,7 @@ class liquid extends Exchange {
             'X-Quoine-API-Version' => $this->version,
             'Content-Type' => 'application/json',
         );
-        if ($api === 'public') {
-            if ($query)
-                $url .= '?' . $this->urlencode ($query);
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             if ($method === 'GET') {
                 if ($query)
@@ -479,6 +607,9 @@ class liquid extends Exchange {
                 'iat' => (int) floor ($nonce / 1000), // issued at
             );
             $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
+        } else {
+            if ($query)
+                $url .= '?' . $this->urlencode ($query);
         }
         $url = $this->urls['api'] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
