@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, BadRequest } = require ('./base/errors');
+const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ----------------------------------------------------------------------------
 
@@ -97,6 +98,7 @@ module.exports = class sparkswap extends Exchange {
             'exceptions': {},
             'options': {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'defaultCurrencyPrecision': 16,
             },
             // While sparkswap is still in alpha, we will have payment network channel
             // limits specified for each currency
@@ -158,7 +160,7 @@ module.exports = class sparkswap extends Exchange {
         }
         const order = {
             'market': this.marketId (symbol),
-            'amount': amount.toString (),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
             'side': orderType,
         };
         const marketOrder = (type === CONSTANTS.ORDER_TYPES.MARKET);
@@ -167,7 +169,7 @@ module.exports = class sparkswap extends Exchange {
             if (price === undefined) {
                 throw new BadRequest (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
-            order['limit_price'] = price.toString ();
+            order['limit_price'] = this.decimalToPrecision (price, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES);
             order['time_in_force'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (marketOrder) {
@@ -495,7 +497,7 @@ module.exports = class sparkswap extends Exchange {
     async withdraw (code, amount, address) {
         const response = await this.privatePostV1WalletWithdraw ({
             'symbol': code.toString (),
-            'amount': amount.toString (),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
             'address': address.toString (),
         });
         return {
@@ -511,7 +513,7 @@ module.exports = class sparkswap extends Exchange {
         }
         return this.privatePostV1WalletCommit ({
             'symbol': code.toString (),
-            'balance': balance.toString (),
+            'balance': this.decimalToPrecision (balance, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
             'market': market.toString (),
         });
     }
