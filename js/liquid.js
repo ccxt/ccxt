@@ -512,7 +512,17 @@ module.exports = class liquid extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let averagePrice = this.safeFloat (order, 'average_price');
+        let executedQuantity = 0;
+        let totalValue = 0;
+        for (let i = 0; i < order['executions'].length; i++) {
+            let execution = order['executions'];
+            let executionPrice = this.safeFloat (execution, 'price');
+            let executionAmount = this.safeFloat (execution, 'quantity');
+            let executionCost = executionPrice * executionAmount;
+            executedQuantity += executionAmount;
+            totalValue += executionCost;
+        }
+        let averagePrice = totalValue / executedQuantity;
         let cost = filled * averagePrice;
         return {
             'id': order['id'].toString (),
