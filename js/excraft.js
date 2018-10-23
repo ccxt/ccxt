@@ -200,10 +200,12 @@ module.exports = class excraft extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = []) {
-        symbol = symbol.replace ('/', '').toUpperCase ();
-        let orderbook = await this.publicGetMarketsMarketDepth (this.extend ({
-            'market': symbol,
-        }, params));
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        let orderbook = await this.publicGetMarketsMarketDepth (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
