@@ -125,7 +125,11 @@ module.exports = class excraft extends Exchange {
         return result;
     }
 
-    parse_ticker (ticker, symbol, market = undefined) {
+    parseTicker (ticker, market = undefined) {
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let timestamp = this.milliseconds () / 1000;
         let close = this.safeFloat (ticker, 'last');
         let open = this.safeFloat (ticker, 'open');
@@ -165,20 +169,32 @@ module.exports = class excraft extends Exchange {
     }
 
     async fetchTicker (symbol, params = []) {
-        symbol = symbol.replace ('/', '').toUpperCase ();
-        let ticker = await this.publicGetMarketsMarketStatusToday (this.extend ({
-            'market': symbol,
-        }, params));
-        return this.parse_ticker (ticker, symbol);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        let response = await this.publicGetMarketsMarketStatusToday (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = []) {
-        let data = await this.publicGetMarketsStatusToday ();
+        await this.loadMarkets ();
+        let response = await this.publicGetMarketsStatusToday ();
         let result = {};
-        let tickers = data['markets'];
+        let tickers = response['markets'];
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            result[ticker['name']] = this.parse_ticker (ticker, ticker['name']);
+            let market = undefined;
+            let marketId = this.safeString (ticker, 'name');
+            if (marketId in this.markets_by_id) {
+                market = this.safeValue (this.markets_by_id, marketId);
+            }
+            let ticker = this.parseTicker (ticker, market);
+            let symbol = ticker['symbol'];
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return result;
     }
