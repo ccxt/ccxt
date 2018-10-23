@@ -3,10 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const {
-    ExchangeError,
-    InvalidOrder,
-} = require ('./base/errors');
+const { ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -157,11 +154,10 @@ module.exports = class hibtc extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        if ('timestamp' in ticker)
-            timestamp = ticker['timestamp'];
+        }
+        let timestamp = this.safeInteger (ticker, 'timestamp');
         let bid = this.safeFloat (ticker, 'buy');
         let ask = this.safeFloat (ticker, 'sell');
         let high = this.safeFloat (ticker, 'high');
@@ -212,14 +208,14 @@ module.exports = class hibtc extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
-            'prec': 0,
-        };
         if (limit === undefined) {
             limit = 20;
         }
-        request['depth'] = limit - 1;
+        let request = {
+            'pair': market['id'],
+            'prec': 0,
+            'depth': limit - 1,
+        };
         let response = await this.publicGetDepth (this.extend (request, params));
         let orderbook = response['data'];
         let timestamp = parseInt (orderbook['timestamp']);
@@ -278,8 +274,9 @@ module.exports = class hibtc extends Exchange {
             stopPriceIsRequired = false;
         }
         if (priceIsRequired) {
-            if (typeof price === 'undefined')
+            if (typeof price === 'undefined') {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
             order['price'] = price.toString ();
         } else {
             order['price'] = '0';
@@ -344,7 +341,7 @@ module.exports = class hibtc extends Exchange {
             order_id = order[0];
             if (order[1] in this.markets_by_id) {
                 market = this.markets_by_id[order[1]];
-                if (market) {
+                if (market !== undefined) {
                     symbol = market['symbol'];
                 }
             }
@@ -387,6 +384,7 @@ module.exports = class hibtc extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetDetailOrder ({
             'order_id': id,
         });
@@ -553,21 +551,20 @@ module.exports = class hibtc extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
-        let request = {
-            'page_index': 1,
-        };
         if (limit === undefined)
             limit = 10;
-        request['page_size'] = limit;
+        let request = {
+            'page_index': 1,
+            'page_size': limit,
+        };
         let response = await this.privatePostQueryOrders (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/';
-        url += this.version;
-        url += '/' + this.implodeParams (path, params);
+        let url = '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -602,33 +599,30 @@ module.exports = class hibtc extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body) {
-        if (typeof body !== 'string')
+        if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
-            if ('code' in response) {
-                // {"code":-1,"msg":"fail"}
-                let code = response['code'];
-                if (code < 0 || code === 5000) {
-                    throw new ExchangeError (this.safeString (response, 'msg_code', 'fail'));
-                }
+        }
+        let response = JSON.parse (body);
+        if ('code' in response) {
+            // {"code":-1,"msg":"fail"}
+            let code = response['code'];
+            if (code < 0 || code === 5000) {
+                throw new ExchangeError (this.safeString (response, 'msg_code', 'fail'));
             }
-            if ('data' in response) {
-                //
-                // {
-                //   data: {
-                //     result: false,
-                //     orderId: "441346014116890624"
-                //   },
-                //   channel: "auth-cancel-order"
-                //  }
-                //
-                let result = response['data'];
-                if (result === 'false') {
-                    throw new ExchangeError ();
-                }
+        }
+        if ('data' in response) {
+            //
+            // {
+            //   data: {
+            //     result: false,
+            //     orderId: "441346014116890624"
+            //   },
+            //   channel: "auth-cancel-order"
+            //  }
+            //
+            let result = response['data'];
+            if (result === 'false') {
+                throw new ExchangeError ();
             }
         }
     }
