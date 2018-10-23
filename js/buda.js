@@ -23,11 +23,12 @@ module.exports = class buda extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingFees': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
@@ -325,6 +326,64 @@ module.exports = class buda extends Exchange {
             'baseVolume': parseFloat (ticker['volume'][0]),
             'quoteVolume': undefined,
             'info': ticker,
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketsMarketTrades (this.extend ({
+            'market': market['id'],
+        }, params));
+        //
+        //     { trades: {      market_id:   "ETH-BTC",
+        //                      timestamp:    null,
+        //                 last_timestamp:   "1536901277302",
+        //                        entries: [ [ "1540077456791", "0.0063767", "0.03", "sell", 479842 ],
+        //                                   [ "1539916642772", "0.01888263", "0.03019563", "sell", 479438 ],
+        //                                   [ "1539834081787", "0.023718648", "0.031001", "sell", 479069 ],
+        //                                   ... ]
+        //
+        return this.parseTrades (response['trades']['entries'], market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //  [ "1540077456791", "0.0063767", "0.03", "sell", 479842 ]
+        //
+        let timestamp = undefined;
+        let side = undefined;
+        let type = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let id = undefined;
+        let order = undefined;
+        let fee = undefined;
+        let symbol = undefined;
+        if (market) {
+            symbol = market['symbol'];
+        }
+        if (this.isArray (trade)) {
+            timestamp = parseInt (trade[0]);
+            price = parseFloat (trade[1]);
+            amount = parseFloat (trade[2]);
+            side = trade[3];
+            id = trade[4].toString ();
+        }
+        return {
+            'id': id,
+            'order': order,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
+            'fee': fee,
         };
     }
 
