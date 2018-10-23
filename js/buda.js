@@ -350,18 +350,7 @@ module.exports = class buda extends Exchange {
             'to': this.seconds (),
         };
         let response = await this.publicGetTvHistory (this.extend (request, params));
-        let ohlcvs = [];
-        for (let i = 0; i < response['t'].length; i++) {
-            ohlcvs.push ([
-                response['t'][i] * 1000,
-                response['o'][i],
-                response['h'][i],
-                response['l'][i],
-                response['c'][i],
-                response['v'][i],
-            ]);
-        }
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
+        return this.parseTradingViewOHLCV (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
