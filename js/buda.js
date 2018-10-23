@@ -332,9 +332,17 @@ module.exports = class buda extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetMarketsMarketTrades (this.extend ({
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        // the since argument works backwards – returns trades up to the specified timestamp 
+        // therefore not implemented here
+        // the method is still available for users to be able to traverse backwards in time
+        // by using the timestamp from the first received trade upon each iteration
+        if (limit !== undefined) {
+            request['limit'] = limit; // 50 max
+        }
+        let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         //
         //     { trades: {      market_id:   "ETH-BTC",
         //                      timestamp:    null,
