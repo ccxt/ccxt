@@ -730,6 +730,11 @@ module.exports = class Exchange {
         return ohlcvc.map (c => c.slice (0, -1))
     }
 
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = this.convertTradingViewToOHLCV (ohlcvs);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
     convertTradingViewToOHLCV (ohlcvs) {
         let result = [];
         for (let i = 0; i < ohlcvs['t'].length; i++) {

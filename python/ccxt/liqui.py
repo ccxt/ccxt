@@ -688,54 +688,51 @@ class liqui (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+        if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            if 'success' in response:
-                #
-                # 1 - Liqui only returns the integer 'success' key from their private API
-                #
-                #     {"success": 1, ...} httpCode == 200
-                #     {"success": 0, ...} httpCode == 200
-                #
-                # 2 - However, exchanges derived from Liqui, can return non-integers
-                #
-                #     It can be a numeric string
-                #     {"sucesss": "1", ...}
-                #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
-                #
-                #     Or just a string
-                #     {"success": "true", ...}
-                #     {"success": "false", ...}, httpCode >= 200
-                #
-                #     Or a boolean
-                #     {"success": True, ...}
-                #     {"success": False, ...}, httpCode >= 200
-                #
-                # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
-                #
-                # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
-                #
-                # To cover points 1, 2, 3 and 4 combined self handler should work like self:
-                #
-                success = self.safe_value(response, 'success', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    code = self.safe_string(response, 'code')
-                    message = self.safe_string(response, 'error')
-                    feedback = self.id + ' ' + self.json(response)
-                    exact = self.exceptions['exact']
-                    if code in exact:
-                        raise exact[code](feedback)
-                    broad = self.exceptions['broad']
-                    broadKey = self.findBroadlyMatchedKey(broad, message)
-                    if broadKey is not None:
-                        raise broad[broadKey](feedback)
-                    raise ExchangeError(feedback)  # unknown message
+        response = json.loads(body)
+        if 'success' in response:
+            #
+            # 1 - Liqui only returns the integer 'success' key from their private API
+            #
+            #     {"success": 1, ...} httpCode == 200
+            #     {"success": 0, ...} httpCode == 200
+            #
+            # 2 - However, exchanges derived from Liqui, can return non-integers
+            #
+            #     It can be a numeric string
+            #     {"sucesss": "1", ...}
+            #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
+            #
+            #     Or just a string
+            #     {"success": "true", ...}
+            #     {"success": "false", ...}, httpCode >= 200
+            #
+            #     Or a boolean
+            #     {"success": True, ...}
+            #     {"success": False, ...}, httpCode >= 200
+            #
+            # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
+            #
+            # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
+            #
+            # To cover points 1, 2, 3 and 4 combined self handler should work like self:
+            #
+            success = self.safe_value(response, 'success', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                code = self.safe_string(response, 'code')
+                message = self.safe_string(response, 'error')
+                feedback = self.id + ' ' + self.json(response)
+                exact = self.exceptions['exact']
+                if code in exact:
+                    raise exact[code](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message
