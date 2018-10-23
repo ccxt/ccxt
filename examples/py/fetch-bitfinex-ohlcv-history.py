@@ -54,7 +54,7 @@ while from_timestamp < now:
             print('First candle epoch', first, exchange.iso8601(first))
             print('Last candle epoch', last, exchange.iso8601(last))
             # from_timestamp += len(ohlcvs) * minute * 5  # very bad
-            from_timestamp += ohlcvs[-1][0] + minute * 5  # good
+            from_timestamp = ohlcvs[-1][0] + minute * 5  # good
             data += ohlcvs
 
     except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
