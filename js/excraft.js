@@ -207,27 +207,30 @@ module.exports = class excraft extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    parse_trade_type (type) {
-        if (type === 1)
-            return 'sell';
-        else
-            return 'buy';
-    }
-
-    parse_trade (trade, market = undefined) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.milliseconds ();
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let symbol = market;
-        let cost = amount * price;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
+        let side = trade['side'] === 1) ? 'sell' : 'buy';
+        let id = this.safeString (trade, 'id');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'id'),
+            'id': id,
             'order': undefined,
             'type': 'limit',
-            'side': this.parse_trade_type (trade['side']),
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -237,19 +240,14 @@ module.exports = class excraft extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = []) {
-        symbol = symbol.replace ('/', '').toUpperCase ();
-        let data = await this.publicGetMarketsMarketTrades (this.extend ({
-            'market': symbol,
-        }, params));
-        let result = [];
-        let trades = data['trades'];
-        for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i];
-            trade = this.parse_trade (trade, symbol);
-            result.push (trade);
-        }
-        result = this.sort_by (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'market': market['id'],
+        };
+        let response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        let trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     nonce () {
