@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.401'
+const version = '1.17.402'
 
 Exchange.ccxtVersion = version
 
@@ -2322,6 +2322,11 @@ module.exports = class Exchange {
         let trades = await this.fetchTrades (symbol, since, limits, params)
         let ohlcvc = buildOHLCVC (trades, timeframe, since, limits)
         return ohlcvc.map (c => c.slice (0, -1))
+    }
+
+    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        let result = this.convertTradingViewToOHLCV (ohlcvs);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     convertTradingViewToOHLCV (ohlcvs) {
@@ -43762,11 +43767,6 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetDealOrders (this.extend (request, params));
         return this.parseTrades (response['data']['datas'], market, since, limit);
-    }
-
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = this.convertTradingViewToOHLCV (ohlcvs);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

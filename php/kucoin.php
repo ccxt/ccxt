@@ -1221,11 +1221,6 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);
     }
 
-    public function parse_trading_view_ohlcv ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-    }
-
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1261,7 +1256,7 @@ class kucoin extends Exchange {
             'to' => $end,
         );
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        return $this->parse_trading_view_ohlcv ($response, $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
