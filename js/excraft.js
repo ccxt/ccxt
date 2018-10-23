@@ -223,7 +223,7 @@ module.exports = class excraft extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = trade['side'] === 1) ? 'sell' : 'buy';
+        let side = (trade['side'] === 1) ? 'sell' : 'buy';
         let id = this.safeString (trade, 'id');
         return {
             'timestamp': timestamp,
