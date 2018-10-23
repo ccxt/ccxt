@@ -513,6 +513,7 @@ module.exports = class liquid extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
+        let type = order['order_type'];
         let executedQuantity = 0;
         let totalValue = 0;
         let averagePrice = this.safeFloat (order, 'average_price');
@@ -522,11 +523,12 @@ module.exports = class liquid extends Exchange {
             for (let i = 0; i < trades.length; i++) {
                 let trade = trades[i];
                 trade.order = orderId;
+                trade.type = type;
                 executedQuantity += trade.amount;
                 let cost = trade.price * trade.amount;
                 totalValue += cost;
             }
-            if (averagePrice > 0) {
+            if (!averagePrice && trades.length > 0) {
                 averagePrice = totalValue / executedQuantity;
             }
         }
@@ -536,7 +538,7 @@ module.exports = class liquid extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': order['order_type'],
+            'type': type,
             'status': status,
             'symbol': symbol,
             'side': order['side'],
