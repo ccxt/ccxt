@@ -1722,6 +1722,11 @@ class Exchange {
         return $this->fetch_ohlcv ($symbol, $timeframe, $since, $limit, $params);
     }
 
+    public function parse_trading_view_ohlcv ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
     public function convert_trading_view_to_ohlcv ($ohlcvs) {
         $result = array ();
         for ($i = 0; $i < count ($ohlcvs['t']); $i++) {
