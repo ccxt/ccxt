@@ -754,61 +754,57 @@ class liqui extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body) {
-        if (gettype ($body) !== 'string')
+        if (!$this->is_json_encoded_object($body))
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            $response = json_decode ($body, $as_associative_array = true);
-            if (is_array ($response) && array_key_exists ('success', $response)) {
-                //
-                // 1 - Liqui only returns the integer 'success' key from their private API
-                //
-                //     array ( "$success" => 1, ... ) $httpCode === 200
-                //     array ( "$success" => 0, ... ) $httpCode === 200
-                //
-                // 2 - However, exchanges derived from Liqui, can return non-integers
-                //
-                //     It can be a numeric string
-                //     array ( "sucesss" => "1", ... )
-                //     array ( "sucesss" => "0", ... ), $httpCode >= 200 (can be 403, 502, etc)
-                //
-                //     Or just a string
-                //     array ( "$success" => "true", ... )
-                //     array ( "$success" => "false", ... ), $httpCode >= 200
-                //
-                //     Or a boolean
-                //     array ( "$success" => true, ... )
-                //     array ( "$success" => false, ... ), $httpCode >= 200
-                //
-                // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-                //
-                // 4 - We do not want to copy-paste and duplicate the $code of this handler to other exchanges derived from Liqui
-                //
-                // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-                //
-                $success = $this->safe_value($response, 'success', false);
-                if (gettype ($success) === 'string') {
-                    if (($success === 'true') || ($success === '1'))
-                        $success = true;
-                    else
-                        $success = false;
+        $response = json_decode ($body, $as_associative_array = true);
+        if (is_array ($response) && array_key_exists ('success', $response)) {
+            //
+            // 1 - Liqui only returns the integer 'success' key from their private API
+            //
+            //     array ( "$success" => 1, ... ) $httpCode === 200
+            //     array ( "$success" => 0, ... ) $httpCode === 200
+            //
+            // 2 - However, exchanges derived from Liqui, can return non-integers
+            //
+            //     It can be a numeric string
+            //     array ( "sucesss" => "1", ... )
+            //     array ( "sucesss" => "0", ... ), $httpCode >= 200 (can be 403, 502, etc)
+            //
+            //     Or just a string
+            //     array ( "$success" => "true", ... )
+            //     array ( "$success" => "false", ... ), $httpCode >= 200
+            //
+            //     Or a boolean
+            //     array ( "$success" => true, ... )
+            //     array ( "$success" => false, ... ), $httpCode >= 200
+            //
+            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
+            //
+            // 4 - We do not want to copy-paste and duplicate the $code of this handler to other exchanges derived from Liqui
+            //
+            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
+            //
+            $success = $this->safe_value($response, 'success', false);
+            if (gettype ($success) === 'string') {
+                if (($success === 'true') || ($success === '1'))
+                    $success = true;
+                else
+                    $success = false;
+            }
+            if (!$success) {
+                $code = $this->safe_string($response, 'code');
+                $message = $this->safe_string($response, 'error');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exact = $this->exceptions['exact'];
+                if (is_array ($exact) && array_key_exists ($code, $exact)) {
+                    throw new $exact[$code] ($feedback);
                 }
-                if (!$success) {
-                    $code = $this->safe_string($response, 'code');
-                    $message = $this->safe_string($response, 'error');
-                    $feedback = $this->id . ' ' . $this->json ($response);
-                    $exact = $this->exceptions['exact'];
-                    if (is_array ($exact) && array_key_exists ($code, $exact)) {
-                        throw new $exact[$code] ($feedback);
-                    }
-                    $broad = $this->exceptions['broad'];
-                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                    if ($broadKey !== null) {
-                        throw new $broad[$broadKey] ($feedback);
-                    }
-                    throw new ExchangeError ($feedback); // unknown $message
+                $broad = $this->exceptions['broad'];
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey] ($feedback);
                 }
+                throw new ExchangeError ($feedback); // unknown $message
             }
         }
     }
