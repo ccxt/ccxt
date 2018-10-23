@@ -190,10 +190,10 @@ module.exports = class excraft extends Exchange {
             if (marketId in this.markets_by_id) {
                 market = this.safeValue (this.markets_by_id, marketId);
             }
-            let ticker = this.parseTicker (ticker, market);
-            let symbol = ticker['symbol'];
+            let parsedTicker = this.parseTicker (ticker, market);
+            let symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {
-                result[symbol] = ticker;
+                result[symbol] = parsedTicker;
             }
         }
         return result;
