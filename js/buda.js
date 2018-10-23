@@ -373,7 +373,7 @@ module.exports = class buda extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        if (this.isArray (trade)) {
+        if (Array.isArray (trade)) {
             timestamp = parseInt (trade[0]);
             price = parseFloat (trade[1]);
             amount = parseFloat (trade[2]);
