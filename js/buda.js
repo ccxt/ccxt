@@ -361,6 +361,7 @@ module.exports = class buda extends Exchange {
         let order = undefined;
         let fee = undefined;
         let symbol = undefined;
+        let cost = undefined;
         if (market) {
             symbol = market['symbol'];
         }
@@ -368,6 +369,7 @@ module.exports = class buda extends Exchange {
             timestamp = parseInt (trade[0]);
             price = parseFloat (trade[1]);
             amount = parseFloat (trade[2]);
+            cost = price * amount;
             side = trade[3];
             id = trade[4].toString ();
         }
@@ -382,7 +384,7 @@ module.exports = class buda extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': fee,
         };
     }
