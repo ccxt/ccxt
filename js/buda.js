@@ -11,7 +11,7 @@ module.exports = class buda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'buda',
-            'name': 'Buda.com',
+            'name': 'Buda',
             'countries': [ 'AR', 'CL', 'CO', 'PE' ],
             'rateLimit': 1000,
             'version': 'v2',
