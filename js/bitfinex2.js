@@ -338,9 +338,11 @@ module.exports = class bitfinex2 extends bitfinex {
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             let id = ticker[0];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            if (id in this.markets_by_id) {
+                let market = this.markets_by_id[id];
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
