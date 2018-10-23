@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -37,6 +37,7 @@ module.exports = class liquid extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'currencies',
                         'products',
                         'products/{id}',
                         'products/{id}/price_levels',
@@ -61,6 +62,7 @@ module.exports = class liquid extends Exchange {
                         'trades/{id}/loans',
                         'trading_accounts',
                         'trading_accounts/{id}',
+                        'transactions',
                     ],
                     'post': [
                         'fiat_accounts',
@@ -85,6 +87,8 @@ module.exports = class liquid extends Exchange {
                     'API Authentication failed': AuthenticationError,
                     'Nonce is too small': InvalidNonce,
                     'Order not found': OrderNotFound,
+                    'Can not update partially filled order': OrderNotFound,
+                    'Can not update non-live order': OrderNotFound,
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
                     },
@@ -102,11 +106,104 @@ module.exports = class liquid extends Exchange {
         });
     }
 
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             currency_type: 'fiat',
+        //             currency: 'USD',
+        //             symbol: '$',
+        //             assets_precision: 2,
+        //             quoting_precision: 5,
+        //             minimum_withdrawal: '15.0',
+        //             withdrawal_fee: 5,
+        //             minimum_fee: null,
+        //             minimum_order_quantity: null,
+        //             display_precision: 2,
+        //             depositable: true,
+        //             withdrawable: true,
+        //             discount_fee: 0.5,
+        //         },
+        //     ]
+        //
+        let result = {};
+        for (let i = 0; i < response.length; i++) {
+            let currency = response[i];
+            let id = this.safeString (currency, 'currency');
+            let code = this.commonCurrencyCode (id);
+            let active = currency['depositable'] && currency['withdrawable'];
+            let amountPrecision = this.safeInteger (currency, 'display_precision');
+            let pricePrecision = this.safeInteger (currency, 'quoting_precision');
+            let precision = Math.max (amountPrecision, pricePrecision);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': this.safeFloat (currency, 'withdrawal_fee'),
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -amountPrecision),
+                        'max': Math.pow (10, amountPrecision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -pricePrecision),
+                        'max': Math.pow (10, pricePrecision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimum_withdrawal'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets () {
         let markets = await this.publicGetProducts ();
+        //
+        //     [
+        //         {
+        //             id: '7',
+        //             product_type: 'CurrencyPair',
+        //             code: 'CASH',
+        //             name: ' CASH Trading',
+        //             market_ask: 8865.79147,
+        //             market_bid: 8853.95988,
+        //             indicator: 1,
+        //             currency: 'SGD',
+        //             currency_pair_code: 'BTCSGD',
+        //             symbol: 'S$',
+        //             btc_minimum_withdraw: null,
+        //             fiat_minimum_withdraw: null,
+        //             pusher_channel: 'product_cash_btcsgd_7',
+        //             taker_fee: 0,
+        //             maker_fee: 0,
+        //             low_market_bid: '8803.25579',
+        //             high_market_ask: '8905.0',
+        //             volume_24h: '15.85443468',
+        //             last_price_24h: '8807.54625',
+        //             last_traded_price: '8857.77206',
+        //             last_traded_quantity: '0.00590974',
+        //             quoted_currency: 'SGD',
+        //             base_currency: 'BTC',
+        //             disabled: false,
+        //         },
+        //     ]
+        //
+        let currencies = await this.fetchCurrencies ();
+        let currenciesByCode = this.indexBy (currencies, 'code');
         let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
             let id = market['id'].toString ();
             let baseId = market['base_currency'];
             let quoteId = market['quoted_currency'];
@@ -116,34 +213,42 @@ module.exports = class liquid extends Exchange {
             let maker = this.safeFloat (market, 'maker_fee');
             let taker = this.safeFloat (market, 'taker_fee');
             let active = !market['disabled'];
+            let baseCurrency = this.safeValue (currenciesByCode, base);
+            let quoteCurrency = this.safeValue (currenciesByCode, quote);
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             let minAmount = undefined;
-            let minPrice = undefined;
-            if (base === 'BTC') {
-                minAmount = 0.001;
-            } else if (base === 'ETH') {
-                minAmount = 0.01;
+            if (baseCurrency !== undefined) {
+                minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
+                precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
             }
-            if (quote === 'BTC') {
-                minPrice = 0.00000001;
-            } else if (quote === 'ETH' || quote === 'USD' || quote === 'JPY') {
-                minPrice = 0.00001;
+            let minPrice = undefined;
+            if (quoteCurrency !== undefined) {
+                precision['price'] = this.safeInteger (quoteCurrency['info'], 'display_precision');
+                minPrice = Math.pow (10, -precision['price']);
+            }
+            let minCost = undefined;
+            if (minPrice !== undefined) {
+                if (minAmount !== undefined) {
+                    minCost = minPrice * minAmount;
+                }
             }
             let limits = {
-                'amount': { 'min': minAmount },
-                'price': { 'min': minPrice },
-                'cost': { 'min': undefined },
+                'amount': {
+                    'min': minAmount,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': minPrice,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
             };
-            if (minPrice !== undefined)
-                if (minAmount !== undefined)
-                    limits['cost']['min'] = minPrice * minAmount;
-            let precision = {
-                'amount': undefined,
-                'price': undefined,
-            };
-            if (minAmount !== undefined)
-                precision['amount'] = -Math.log10 (minAmount);
-            if (minPrice !== undefined)
-                precision['price'] = -Math.log10 (minPrice);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -176,7 +281,7 @@ module.exports = class liquid extends Exchange {
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
-                'used': 0.0,
+                'used': undefined,
                 'total': total,
             };
             result[code] = account;
@@ -283,6 +388,7 @@ module.exports = class liquid extends Exchange {
         //       created_at:  1512345678,
         //          my_side: "buy"           }
         let timestamp = trade['created_at'] * 1000;
+        let orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         let takerSide = this.safeString (trade, 'taker_side');
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
@@ -294,7 +400,7 @@ module.exports = class liquid extends Exchange {
         return {
             'info': trade,
             'id': trade['id'].toString (),
-            'order': undefined,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
@@ -326,8 +432,10 @@ module.exports = class liquid extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
+        // the `with_details` param is undocumented - it adds the order_id to the results
         let request = {
             'product_id': market['id'],
+            'with_details': true,
         };
         if (limit !== undefined)
             request['limit'] = limit;
@@ -341,10 +449,11 @@ module.exports = class liquid extends Exchange {
             'order_type': type,
             'product_id': this.marketId (symbol),
             'side': side,
-            'quantity': amount,
+            'quantity': this.amountToPrecision (symbol, amount),
         };
-        if (type === 'limit')
-            order['price'] = price;
+        if (type === 'limit') {
+            order['price'] = this.priceToPrecision (symbol, price);
+        }
         let response = await this.privatePostOrders (this.extend (order, params));
         return this.parseOrder (response);
     }
@@ -358,6 +467,23 @@ module.exports = class liquid extends Exchange {
         if (order['status'] === 'closed')
             throw new OrderNotFound (this.id + ' ' + this.json (order));
         return order;
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires the price argument');
+        }
+        let order = {
+            'order': {
+                'quantity': this.amountToPrecision (symbol, amount),
+                'price': this.priceToPrecision (symbol, price),
+            },
+        };
+        let result = await this.privatePutOrdersId (this.extend ({
+            'id': id,
+        }, order));
+        return this.parseOrder (result);
     }
 
     parseOrder (order, market = undefined) {
@@ -381,9 +507,13 @@ module.exports = class liquid extends Exchange {
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
         let symbol = undefined;
+        let feeCurrency = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
+            feeCurrency = market['quote'];
         }
+        let averagePrice = this.safeFloat (order, 'average_price');
+        let cost = filled * averagePrice;
         return {
             'id': order['id'].toString (),
             'timestamp': timestamp,
@@ -396,10 +526,11 @@ module.exports = class liquid extends Exchange {
             'price': price,
             'amount': amount,
             'filled': filled,
+            'cost': cost,
             'remaining': amount - filled,
             'trades': undefined,
             'fee': {
-                'currency': undefined,
+                'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'order_fee'),
             },
             'info': order,
@@ -459,10 +590,7 @@ module.exports = class liquid extends Exchange {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
         };
-        if (api === 'public') {
-            if (Object.keys (query).length)
-                url += '?' + this.urlencode (query);
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
                 if (Object.keys (query).length)
@@ -478,6 +606,9 @@ module.exports = class liquid extends Exchange {
                 'iat': Math.floor (nonce / 1000), // issued at
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+        } else {
+            if (Object.keys (query).length)
+                url += '?' + this.urlencode (query);
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

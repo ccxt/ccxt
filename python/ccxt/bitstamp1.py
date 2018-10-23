@@ -187,16 +187,19 @@ class bitstamp1 (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'id': id})
 
-    def parse_order_status(self, order):
-        if (order['status'] == 'Queue') or (order['status'] == 'Open'):
-            return 'open'
-        if order['status'] == 'Finished':
-            return 'closed'
-        return order['status']
+    def parse_order_status(self, status):
+        statuses = {
+            'In Queue': 'open',
+            'Open': 'open',
+            'Finished': 'closed',
+            'Canceled': 'canceled',
+        }
+        return statuses[status] if (status in list(statuses.keys())) else status
 
-    def fetch_order_status(self, id, symbol=None):
+    def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus({'id': id})
+        request = {'id': id}
+        response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

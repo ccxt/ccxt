@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.375'
+__version__ = '1.17.402'
 
 # -----------------------------------------------------------------------------
 
@@ -1096,8 +1096,8 @@ class Exchange(object):
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
-    def fetch_order_status(self, id, market=None):
-        order = self.fetch_order(id)
+    def fetch_order_status(self, id, symbol=None, params={}):
+        order = self.fetch_order(id, symbol, params)
         return order['status']
 
     def purge_cached_orders(self, before):
@@ -1225,6 +1225,10 @@ class Exchange(object):
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def convert_trading_view_to_ohlcv(self, ohlcvs):
         result = []

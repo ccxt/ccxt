@@ -22,5 +22,4 @@ exchanges.json
 ISSUE_TEMPLATE.md
 keys.local.json
 npm-debug.log
-package-lock.json
 travis-keys.sh

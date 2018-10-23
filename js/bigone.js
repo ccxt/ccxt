@@ -53,6 +53,9 @@ module.exports = class bigone extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{order_id}',
+                        'trades',
+                        'withdrawals',
+                        'deposits',
                     ],
                     'post': [
                         'orders',

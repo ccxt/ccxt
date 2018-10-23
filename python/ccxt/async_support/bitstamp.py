@@ -72,8 +72,10 @@ class bitstamp (Exchange):
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
+                        'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
+                        'sell/instant/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -428,6 +430,7 @@ class bitstamp (Exchange):
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 

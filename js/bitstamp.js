@@ -59,8 +59,10 @@ module.exports = class bitstamp extends Exchange {
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
+                        'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
+                        'sell/instant/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -447,6 +449,7 @@ module.exports = class bitstamp extends Exchange {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         };
         return (status in statuses) ? statuses[status] : status;
     }

@@ -67,6 +67,9 @@ class bigone (Exchange):
                         'accounts',
                         'orders',
                         'orders/{order_id}',
+                        'trades',
+                        'withdrawals',
+                        'deposits',
                     ],
                     'post': [
                         'orders',

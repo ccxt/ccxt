@@ -516,9 +516,19 @@ class poloniex (Exchange):
                     market = None
                     if id in self.markets_by_id:
                         market = self.markets_by_id[id]
-                    trades = self.parse_trades(response[id], market)
-                    for j in range(0, len(trades)):
-                        result.append(trades[j])
+                        trades = self.parse_trades(response[id], market)
+                        for j in range(0, len(trades)):
+                            result.append(trades[j])
+                    else:
+                        baseId, quoteId = id.split('_')
+                        base = self.common_currency_code(baseId)
+                        quote = self.common_currency_code(quoteId)
+                        symbol = base + '/' + quote
+                        trades = response[id]
+                        for j in range(0, len(trades)):
+                            result.append(self.extend(self.parse_trade(trades[j]), {
+                                'symbol': symbol,
+                            }))
         return self.filter_by_since_limit(result, since, limit)
 
     def parse_order(self, order, market=None):
@@ -737,9 +747,9 @@ class poloniex (Exchange):
             self.orders[id]['status'] = 'canceled'
         return response
 
-    async def fetch_order_status(self, id, symbol=None):
+    async def fetch_order_status(self, id, symbol=None, params={}):
         await self.load_markets()
-        orders = await self.fetch_open_orders(symbol)
+        orders = await self.fetch_open_orders(symbol, None, None, params)
         indexed = self.index_by(orders, 'id')
         return 'open' if (id in list(indexed.keys())) else 'closed'
 

@@ -57,8 +57,6 @@ if (count ($argv) > 2) {
 
             } catch (\ccxt\ExchangeError $e) {
 
-                echo $e->class . "-\n";
-
                 echo get_class ($e) . ': ' . $e->getMessage () . "\n";
             }
 
