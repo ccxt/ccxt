@@ -487,6 +487,7 @@ module.exports = class liquid extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        let orderId = order['id'].toString ();
         let timestamp = order['created_at'] * 1000;
         let marketId = this.safeString (order, 'product_id');
         if (marketId !== undefined) {
@@ -514,18 +515,24 @@ module.exports = class liquid extends Exchange {
         }
         let executedQuantity = 0;
         let totalValue = 0;
-        for (let i = 0; i < order['executions'].length; i++) {
-            let execution = order['executions'];
-            let executionPrice = this.safeFloat (execution, 'price');
-            let executionAmount = this.safeFloat (execution, 'quantity');
-            let executionCost = executionPrice * executionAmount;
-            executedQuantity += executionAmount;
-            totalValue += executionCost;
+        let averagePrice = this.safeFloat (order, 'average_price');
+        let trades = undefined;
+        if ('executions' in order) {
+            trades = this.parseTrades (order['executions'], market);
+            for (let i = 0; i < trades.length; i++) {
+                let trade = trades[i];
+                trade.order = orderId;
+                executedQuantity += trade.amount;
+                let cost = trade.price * trade.amount;
+                totalValue += cost;
+            }
+            if (averagePrice > 0) {
+                averagePrice = totalValue / executedQuantity;
+            }
         }
-        let averagePrice = totalValue / executedQuantity;
         let cost = filled * averagePrice;
         return {
-            'id': order['id'].toString (),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -538,7 +545,7 @@ module.exports = class liquid extends Exchange {
             'filled': filled,
             'cost': cost,
             'remaining': amount - filled,
-            'trades': undefined,
+            'trades': trades,
             'fee': {
                 'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'order_fee'),
