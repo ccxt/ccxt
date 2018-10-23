@@ -32,7 +32,7 @@ module.exports = class buda extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/4157289/45259478-582aab80-b3a4-11e8-83a5-baa995f53e4d.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
                 'api': 'https://www.buda.com/api',
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
@@ -683,23 +683,20 @@ module.exports = class buda extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (typeof body !== 'string')
-            return;  // fallback to default error handler
-        if (body.length < 2)
-            return;  // fallback to default error handler
+        if (!this.isJsonEncodedObject (body)) {
+            return; // fallback to default error handler
+        }
         if (code >= 400) {
-            if (body[0] === '{') {
-                const response = JSON.parse (body);
-                let errorCode = this.safeString (response, 'code');
-                let message = this.safeString (response, 'message', body);
-                let feedback = this.name + ': ' + message;
-                let exceptions = this.exceptions;
-                if (typeof errorCode !== 'undefined') {
-                    if (errorCode in exceptions) {
-                        throw new exceptions[errorCode] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+            const response = JSON.parse (body);
+            let errorCode = this.safeString (response, 'code');
+            let message = this.safeString (response, 'message', body);
+            let feedback = this.name + ': ' + message;
+            let exceptions = this.exceptions;
+            if (typeof errorCode !== 'undefined') {
+                if (errorCode in exceptions) {
+                    throw new exceptions[errorCode] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
                 }
             }
         }
