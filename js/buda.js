@@ -335,7 +335,7 @@ module.exports = class buda extends Exchange {
         const request = {
             'market': market['id'],
         };
-        // the since argument works backwards – returns trades up to the specified timestamp 
+        // the since argument works backwards – returns trades up to the specified timestamp
         // therefore not implemented here
         // the method is still available for users to be able to traverse backwards in time
         // by using the timestamp from the first received trade upon each iteration
