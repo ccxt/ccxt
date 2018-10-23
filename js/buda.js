@@ -487,7 +487,7 @@ module.exports = class buda extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'trades': [],
+            'trades': undefined,
             'fee': fee,
             'info': order,
         };
