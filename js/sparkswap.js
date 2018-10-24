@@ -275,21 +275,9 @@ module.exports = class sparkswap extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const CONSTANTS = {
-            'SIDES': {
-                'ASK': 'ASK',
-                'BID': 'BID',
-                'BUY': 'buy',
-                'SELL': 'sell',
-            },
-            'TYPES': {
-                'LIMIT': 'limit',
-                'MARKET': 'market',
-            },
-        };
         let symbol = undefined;
         let marketId = this.safeString (order, 'market');
-        if (market === undefined) {            
+        if (market === undefined) {
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market !== undefined) {
