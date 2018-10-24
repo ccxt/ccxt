@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -283,8 +283,9 @@ module.exports = class kkex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (!symbol)
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol parameter');
+        if (!symbol) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -292,8 +293,9 @@ module.exports = class kkex extends Exchange {
             'symbol': market['id'],
         };
         let response = await this.privatePostOrderInfo (this.extend (request, params));
-        if (response['result'])
-            return this.parseOrder (response['order']);
+        if (response['result']) {
+            return this.parseOrder (response['order'], market);
+        }
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
@@ -426,6 +428,9 @@ module.exports = class kkex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -438,10 +443,10 @@ module.exports = class kkex extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit) {
+        if (limit === undefined) {
             limit = 20;
         }
-        if (!since) {
+        if (since === undefined) {
             since = this.milliseconds () - 1000 * 60 * 60;
         }
         let response = await this.privatePostOrderHistory (this.extend ({
@@ -456,10 +461,10 @@ module.exports = class kkex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit) {
+        if (limit === undefined) {
             limit = 20;
         }
-        if (!since) {
+        if (since === undefined) {
             since = this.milliseconds () - 1000 * 60 * 60;
         }
         let response = await this.privatePostOrderHistory (this.extend ({
@@ -479,7 +484,6 @@ module.exports = class kkex extends Exchange {
         if (api === 'public') {
             url += '?' + this.urlencode (params);
             headers = { 'Content-Type': 'application/json' };
-            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -496,7 +500,7 @@ module.exports = class kkex extends Exchange {
             }, params);
             body = this.urlencode (body);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
         }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
