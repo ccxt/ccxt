@@ -73,25 +73,25 @@ module.exports = class sparkswap extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'v1/admin/healthcheck',
-                        'v1/markets', // get supported markets
-                        'v1/market_stats', // get market stats for a specific market
-                        'v1/orders/{id}', // grab a single order
-                        'v1/orderbook', // get orderbook by market
-                        'v1/orders', // get orders by market
-                        'v1/trades', // get all trades for a specific market
-                        'v1/wallet/balances', // get balances for a specified wallet
+                        'admin/healthcheck',
+                        'markets', // get supported markets
+                        'market_stats', // get market stats for a specific market
+                        'orders/{id}', // grab a single order
+                        'orderbook', // get orderbook by market
+                        'orders', // get orders by market
+                        'trades', // get all trades for a specific market
+                        'wallet/balances', // get balances for a specified wallet
                     ],
                     'post': [
-                        'v1/orders', // create an order
-                        'v1/wallet/address', // generate a wallet address
-                        'v1/wallet/commit', // commit a balance to the exchange
-                        'v1/wallet/release', // release your balance from the exchange
-                        'v1/wallet/withdraw', // withdraw funds to an external address
+                        'orders', // create an order
+                        'wallet/address', // generate a wallet address
+                        'wallet/commit', // commit a balance to the exchange
+                        'wallet/release', // release your balance from the exchange
+                        'wallet/withdraw', // withdraw funds to an external address
                     ],
                     'put': [],
                     'delete': [
-                        'v1/orders/{id}', // cancel an order
+                        'orders/{id}', // cancel an order
                     ],
                 },
             },
@@ -110,7 +110,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length) {
@@ -130,11 +130,11 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return this.privateDeleteV1OrdersId ({ id });
+        return this.privateDeleteOrdersId ({ id });
     }
 
     async createDepositAddress (code, params = {}) {
-        let res = await this.privatePostV1WalletAddress ({ 'symbol': code });
+        let res = await this.privatePostWalletAddress ({ 'symbol': code });
         return res.address;
     }
 
@@ -175,7 +175,7 @@ module.exports = class sparkswap extends Exchange {
         if (marketOrder) {
             order['is_market_order'] = true;
         }
-        const response = await this.privatePostV1Orders (order, params);
+        const response = await this.privatePostOrders (order, params);
         return {
             'info': response,
             'id': response['block_order_id'],
@@ -187,7 +187,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let res = await this.privateGetV1WalletBalances ();
+        let res = await this.privateGetWalletBalances ();
         let balances = (res) ? res.balances : [];
         // The format that is returned from the sparkswap API does not match what
         // needs to be returned from ccxt. We modify the sparkswap response to
@@ -227,7 +227,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async fetchMarkets () {
-        let response = await this.privateGetV1Markets ();
+        let response = await this.privateGetMarkets ();
         let markets = response['supported_markets'];
         let result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -292,7 +292,7 @@ module.exports = class sparkswap extends Exchange {
                 'MARKET': 'market',
             },
         };
-        const order = await this.privateGetV1OrdersId ({ id });
+        const order = await this.privateGetOrdersId ({ id });
         let status = undefined;
         if (order.status === CONSTANTS.STATUSES.CANCELLED || order.status === CONSTANTS.STATUSES.FAILED) {
             status = 'cancelled';
@@ -360,10 +360,10 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        // The call to v1/orderbook will return the correct information that CCXT will
+        // The call to orderbook endpoint will return the correct information that CCXT will
         // expect, however we need to modify the payload to convert nanosecond timestamps
         // to miliseconds
-        const res = await this.privateGetV1Orderbook ({ 'market': this.marketId (symbol) });
+        const res = await this.privateGetOrderbook ({ 'market': this.marketId (symbol) });
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
         return {
@@ -394,7 +394,7 @@ module.exports = class sparkswap extends Exchange {
             },
         };
         await this.loadMarkets ();
-        const res = await this.privateGetV1Orders ({ 'market': this.marketId (symbol) });
+        const res = await this.privateGetOrders ({ 'market': this.marketId (symbol) });
         const rawOrders = res.block_orders;
         let orders = [];
         for (let i = 0; i < rawOrders.length; i++) {
@@ -442,10 +442,10 @@ module.exports = class sparkswap extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        // The call to v1/market_stats will return the correct information that CCXT will
+        // The call to market_stats endpoint will return the correct information that CCXT will
         // expect, however we need to modify the payload to convert nanosecond timestamps
         // to miliseconds
-        const res = await this.privateGetV1MarketStats ({ 'market': this.marketId (symbol) });
+        const res = await this.privateGetMarketStats ({ 'market': this.marketId (symbol) });
         const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
         const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
         return {
@@ -474,7 +474,7 @@ module.exports = class sparkswap extends Exchange {
         if (limit) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetV1Trades (request);
+        let response = await this.privateGetTrades (request);
         let trades = response['trades'];
         let formattedTrades = [];
         for (let i = 0; i < trades.length; i++) {
@@ -495,7 +495,7 @@ module.exports = class sparkswap extends Exchange {
     }
 
     async withdraw (code, amount, address) {
-        const response = await this.privatePostV1WalletWithdraw ({
+        const response = await this.privatePostWalletWithdraw ({
             'symbol': code.toString (),
             'amount': this.decimalToPrecision (amount, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
             'address': address.toString (),
@@ -511,7 +511,7 @@ module.exports = class sparkswap extends Exchange {
         if (limit < parseFloat (balance)) {
             throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
         }
-        return this.privatePostV1WalletCommit ({
+        return this.privatePostWalletCommit ({
             'symbol': code.toString (),
             'balance': this.decimalToPrecision (balance, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
             'market': market.toString (),
@@ -520,7 +520,7 @@ module.exports = class sparkswap extends Exchange {
 
     async release (symbol) {
         await this.loadMarkets ();
-        return this.privatePostV1WalletRelease ({
+        return this.privatePostWalletRelease ({
             'market': this.marketId (symbol),
         });
     }
