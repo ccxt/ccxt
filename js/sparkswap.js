@@ -205,11 +205,6 @@ module.exports = class sparkswap extends Exchange {
             const uncommittedPendingBalance = this.safeFloat (balance, 'uncommitted_pending_balance');
             const used = this.sum (totalChannelBalance, totalPendingChannelBalance, uncommittedPendingBalance);
             const total = this.sum (used, free);
-            let account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
             const currencyId = this.safeString (balance, 'symbol');
             const currency = this.safeValue (this.currencies_by_id, currencyId);
             let code = undefined;
@@ -218,7 +213,11 @@ module.exports = class sparkswap extends Exchange {
             } else {
                 code = currency['code'];
             }
-            result[code] = account;
+            result[code] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
         }
         return this.parseBalance (response);
     }
