@@ -384,7 +384,7 @@ class liquid extends Exchange {
     public function parse_trade ($trade, $market) {
         // {             id =>  12345,
         //         quantity => "6.789",
-        //            price => "98765.4321",
+        //            $price => "98765.4321",
         //       taker_side => "sell",
         //       created_at =>  1512345678,
         //          my_side => "buy"           }
@@ -398,6 +398,14 @@ class liquid extends Exchange {
         $takerOrMaker = null;
         if ($mySide !== null)
             $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
+        $cost = null;
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'quantity');
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -408,8 +416,10 @@ class liquid extends Exchange {
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'quantity'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -487,23 +497,24 @@ class liquid extends Exchange {
         return $this->parse_order($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'live' => 'open',
+            'filled' => 'closed',
+            'cancelled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
-        $timestamp = $order['created_at'] * 1000;
+        $orderId = $this->safe_string($order, 'id');
+        $timestamp = $this->safe_integer($order, 'created_at');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
         $marketId = $this->safe_string($order, 'product_id');
-        if ($marketId !== null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                $market = $this->markets_by_id[$marketId];
-        }
-        $status = null;
-        if (is_array ($order) && array_key_exists ('status', $order)) {
-            if ($order['status'] === 'live') {
-                $status = 'open';
-            } else if ($order['status'] === 'filled') {
-                $status = 'closed';
-            } else if ($order['status'] === 'cancelled') { // 'll' intended
-                $status = 'canceled';
-            }
-        }
+        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'filled_quantity');
         $price = $this->safe_float($order, 'price');
@@ -513,14 +524,34 @@ class liquid extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
+        $type = $order['order_type'];
+        $executedQuantity = 0;
+        $totalValue = 0;
         $averagePrice = $this->safe_float($order, 'average_price');
+        $trades = null;
+        if (is_array ($order) && array_key_exists ('executions', $order)) {
+            $trades = $this->parse_trades($this->safe_value($order, 'executions', array ()), $market);
+            $numTrades = is_array ($trades) ? count ($trades) : 0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                // php copies values upon assignment, but not references them
+                // todo rewrite this (shortly)
+                $trade = $trades[$i];
+                $trade['order'] = $orderId;
+                $trade['type'] = $type;
+                $executedQuantity .= $trade['amount'];
+                $totalValue .= $trade['cost'];
+            }
+            if (!$averagePrice && ($numTrades > 0) && ($executedQuantity > 0)) {
+                $averagePrice = $totalValue / $executedQuantity;
+            }
+        }
         $cost = $filled * $averagePrice;
         return array (
-            'id' => (string) $order['id'],
+            'id' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'type' => $order['order_type'],
+            'type' => $type,
             'status' => $status,
             'symbol' => $symbol,
             'side' => $order['side'],
@@ -529,7 +560,7 @@ class liquid extends Exchange {
             'filled' => $filled,
             'cost' => $cost,
             'remaining' => $amount - $filled,
-            'trades' => null,
+            'trades' => $trades,
             'fee' => array (
                 'currency' => $feeCurrency,
                 'cost' => $this->safe_float($order, 'order_fee'),
