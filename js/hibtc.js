@@ -410,21 +410,16 @@ module.exports = class hibtc extends Exchange {
             }
         }
         let fee = undefined;
-        let order = undefined;
+        let orderId = undefined;
         let type = undefined;
-        let _side = trade[4];
-        let side = undefined;
-        if (_side === 'false') {
-            side = 'sell';
-        } else if (_side === 'true') {
-            side = 'buy';
-        }
+        let side = (trade[4] === 'false') ? 'sell' : 'buy';
+        let id = trade[0].toString ();
         return {
             'info': trade,
-            'id': trade[0],
-            'order': order,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'order': orderId,
             'symbol': symbol,
             'type': type,
             'side': side,
