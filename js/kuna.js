@@ -57,7 +57,10 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMarkets () {
-        let quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
+        const quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
+        const pricePrecisions = {
+            'UAH': 0,
+        };
         let markets = [];
         let tickers = await this.publicGetTickers ();
         let ids = Object.keys (tickers);
@@ -72,6 +75,10 @@ module.exports = class kuna extends acx {
                     base = this.commonCurrencyCode (base);
                     quote = this.commonCurrencyCode (quote);
                     let symbol = base + '/' + quote;
+                    let precision = {
+                        'amount': 6,
+                        'price': this.safeInteger (pricePrecisions, quote, 6),
+                    };
                     markets.push ({
                         'id': id,
                         'symbol': symbol,
@@ -79,6 +86,21 @@ module.exports = class kuna extends acx {
                         'quote': quote,
                         'baseId': baseId,
                         'quoteId': quoteId,
+                        'precision': precision,
+                        'limits': {
+                            'amount': {
+                                'min': Math.pow (10, -precision['amount']),
+                                'max': Math.pow (10, precision['amount']),
+                            },
+                            'price': {
+                                'min': Math.pow (10, -precision['price']),
+                                'max': Math.pow (10, precision['price']),
+                            },
+                            'cost': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
                     });
                     break;
                 }
