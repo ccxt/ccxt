@@ -392,38 +392,40 @@ module.exports = class kkex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let sides = ['buy', 'sell', 'buy_market', 'sell_market'];
-        let request = { 'symbol': market['id'] };
+        let request = { 
+            'symbol': market['id'],
+        };
         if (type === 'market') {
-            if (side === 'sell') {
-                request['amount'] = amount;
-            } else if (side === 'buy') {
-                request['price'] = amount;
+            // for market buy it requires the amount of quote currency to spend
+            if (side === 'buy') {
+                if (this.options['createMarketBuyOrderRequiresPrice']) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
+                    } else {
+                        amount = amount * price;
+                    }
+                }
+                request['price'] = this.amountToPrecision (symbol, amount);
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
             }
             side += '_market';
         } else {
-            request['amount'] = amount;
-            request['price'] = price;
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         request['type'] = side;
-        if (!this.inArray (side, sides)) {
-            throw new ExchangeError ('side not in', sides);
-        }
         let response = await this.privatePostTrade (this.extend (request, params));
-        if (!response['result']) {
-            throw new ExchangeError (response);
-        }
-        let order_id = response['order_id'];
-        let timestamp = this.milliseconds ();
-        let iso8601 = this.iso8601 (timestamp);
+        let id = this.safeString (response, 'order_id');
         return {
-            'id': parseInt (order_id),
-            'datetime': iso8601,
-            'timestamp': timestamp,
+            'info': response,
+            'id': id,
+            'datetime': undefined,
+            'timestamp': undefined,
             'lastTradeTimestamp': undefined,
             'status': 'open',
             'symbol': symbol,
-            'type': 'limit',
+            'type': type,
             'side': side,
             'price': price,
             'cost': undefined,
@@ -432,7 +434,6 @@ module.exports = class kkex extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': response,
         };
     }
 
