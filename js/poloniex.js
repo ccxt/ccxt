@@ -3,8 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, ArgumentsRequired } = require ('./base/errors');
-const { now } = require ('./base/functions/time');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -868,14 +867,13 @@ module.exports = class poloniex extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a since parameter');
-        } else {
-            request['start'] = since;
-        }
-        if (!('end' in params))
-            request['end'] = now ();
+        const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
+        const now = this.seconds ();
+        let start = (since !== undefined) ? parseInt (since / 1000) : now - year;
+        let request = {
+            'start': start, // UNIX timestamp, required
+            'end': now, // UNIX timestamp, required
+        };
         if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
