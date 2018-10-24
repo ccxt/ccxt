@@ -118,8 +118,8 @@ module.exports = class kkex extends Exchange {
                     };
                     limits = {
                         'amount': {
-                            'min': Math.min (this.safeFloat (p, 'min_bid_size'), this.safeFloat (p, 'min_ask_size')),
-                            'max': Math.max (this.safeFloat (p, 'max_bid_size'), this.safeFloat (p, 'max_ask_size')),
+                            'min': Math.max (this.safeFloat (p, 'min_bid_size'), this.safeFloat (p, 'min_ask_size')),
+                            'max': Math.min (this.safeFloat (p, 'max_bid_size'), this.safeFloat (p, 'max_ask_size')),
                         },
                         'price': {
                             'min': this.safeFloat (p, 'min_price'),
