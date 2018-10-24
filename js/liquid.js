@@ -397,6 +397,14 @@ module.exports = class liquid extends Exchange {
         let takerOrMaker = undefined;
         if (mySide !== undefined)
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -407,8 +415,10 @@ module.exports = class liquid extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -486,23 +496,24 @@ module.exports = class liquid extends Exchange {
         return this.parseOrder (result);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'live': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
-        let timestamp = order['created_at'] * 1000;
+        let orderId = this.safeString (order, 'id');
+        let timestamp = this.safeInteger (order, 'created_at');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         let marketId = this.safeString (order, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id)
-                market = this.markets_by_id[marketId];
-        }
-        let status = undefined;
-        if ('status' in order) {
-            if (order['status'] === 'live') {
-                status = 'open';
-            } else if (order['status'] === 'filled') {
-                status = 'closed';
-            } else if (order['status'] === 'cancelled') { // 'll' intended
-                status = 'canceled';
-            }
-        }
+        market = this.safeValue (this.markets_by_id, marketId);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
@@ -512,14 +523,34 @@ module.exports = class liquid extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
+        let type = order['order_type'];
+        let executedQuantity = 0;
+        let totalValue = 0;
         let averagePrice = this.safeFloat (order, 'average_price');
+        let trades = undefined;
+        if ('executions' in order) {
+            trades = this.parseTrades (this.safeValue (order, 'executions', []), market);
+            let numTrades = trades.length;
+            for (let i = 0; i < numTrades; i++) {
+                // php copies values upon assignment, but not references them
+                // todo rewrite this (shortly)
+                let trade = trades[i];
+                trade['order'] = orderId;
+                trade['type'] = type;
+                executedQuantity += trade['amount'];
+                totalValue += trade['cost'];
+            }
+            if (!averagePrice && (numTrades > 0) && (executedQuantity > 0)) {
+                averagePrice = totalValue / executedQuantity;
+            }
+        }
         let cost = filled * averagePrice;
         return {
-            'id': order['id'].toString (),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'type': order['order_type'],
+            'type': type,
             'status': status,
             'symbol': symbol,
             'side': order['side'],
@@ -528,7 +559,7 @@ module.exports = class liquid extends Exchange {
             'filled': filled,
             'cost': cost,
             'remaining': amount - filled,
-            'trades': undefined,
+            'trades': trades,
             'fee': {
                 'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'order_fee'),
