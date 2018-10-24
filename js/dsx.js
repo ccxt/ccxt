@@ -659,4 +659,44 @@ module.exports = class dsx extends liqui {
         //
         return this.parseOrdersById (this.safeValue (response, 'return', {}), symbol, since, limit);
     }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api];
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'private' || api === 'dwapi') {
+            url += this.getPrivatePath (path, params);
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ();
+            body = this.urlencode (this.extend ({
+                'nonce': nonce,
+                'method': path,
+            }, query));
+            let signature = this.signBodyWithSecret (body);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Key': this.apiKey,
+                'Sign': signature,
+            };
+        } else if (api === 'public') {
+            url += this.getVersionString () + '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            url += '/' + this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
 };
