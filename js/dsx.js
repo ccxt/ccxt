@@ -190,26 +190,26 @@ module.exports = class dsx extends liqui {
         return this.parseBalance (result);
     }
 
-    async createDepositAddress (code, params = {}) {
+    async createDepositAddress (symbol, params = {}) {
         let request = {
             'new': 1,
         };
-        let response = await this.fetchDepositAddress (code, this.extend (request, params));
+        let response = await this.fetchDepositAddress (symbol, this.extend (request, params));
         return response;
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddress (symbol, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        let currency = this.currency (symbol);
         let request = {
             'currency': currency['id'],
         };
-        let response = await this.dwapiPostDepositCryptoaddress (this.extend (request, params)); // overwrite methods
+        let response = await this.dwapiPostDepositCryptoaddress (this.extend (request, params));
         let result = response['return'];
         let address = this.safeString (result, 'address');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': symbol,
             'address': address,
             'info': response,
         };
