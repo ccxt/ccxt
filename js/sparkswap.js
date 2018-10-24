@@ -514,16 +514,21 @@ module.exports = class sparkswap extends Exchange {
         };
     }
 
-    async commit (code = '', balance = '', market = '', params = {}) {
-        let limit = this.safeFloat (this.channelLimits, code);
-        if (limit < parseFloat (balance)) {
-            throw new BadRequest ('Balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit);
+    async commit (code, balance, symbol, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let market = this.market (symbol);
+        let limit = this.safeFloat (this.channelLimits, code, 0);
+        if (limit < balance) {
+            throw new BadRequest (this.id + ' balance exceeds channel limit for currency, the maximum balance you can commit for ' + code + ' is: ' + limit.toString ());
         }
-        return this.privatePostWalletCommit ({
-            'symbol': code.toString (),
+        const request = {
+            'symbol': currency['id'],
             'balance': this.decimalToPrecision (balance, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
-            'market': market.toString (),
-        });
+            'market': symbol['id'],
+        };
+        const result = await this.privatePostWalletCommit (this.extend (request, params));
+        return result;
     }
 
     async release (symbol) {
