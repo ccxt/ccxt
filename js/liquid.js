@@ -499,7 +499,7 @@ module.exports = class liquid extends Exchange {
         let orderId = this.safeString (order, 'id');
         let timestamp = this.safeInteger (order, 'created_at');
         if (timestamp !== undefined) {
-            timestamp *= 1000;
+            timestamp = timestamp * 1000;
         }
         let marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
