@@ -17,8 +17,8 @@ module.exports = class hibtc extends Exchange {
             'version': 'v1',
             'has': {
                 'fetchClosedOrders': true,
-                'fetchL2OrderBook': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
+                'fetchTickers': false, // will be true, shortly, because they have the endpoint for all tickers
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -73,74 +73,6 @@ module.exports = class hibtc extends Exchange {
                     ],
                 },
             },
-            'markets': {
-                'BTC/USDT': {
-                    'id': 'BTC_USDT',
-                    'symbol': 'BTC/USDT',
-                    'base': 'BTC',
-                    'quote': 'USDT',
-                },
-                'ETH/USDT': {
-                    'id': 'ETH_USDT',
-                    'symbol': 'ETH/USDT',
-                    'base': 'ETH',
-                    'quote': 'USDT',
-                },
-                'BCH/USDT': {
-                    'id': 'BCH_USDT',
-                    'symbol': 'BCH/USDT',
-                    'base': 'BCH',
-                    'quote': 'USDT',
-                },
-                'LTC/USDT': {
-                    'id': 'LTC_USDT',
-                    'symbol': 'LTC/USDT',
-                    'base': 'LTC',
-                    'quote': 'USDT',
-                },
-                'HIBT/USDT': {
-                    'id': 'HIBT_USDT',
-                    'symbol': 'HIBT/USDT',
-                    'base': 'HIBT',
-                    'quote': 'USDT',
-                },
-                'HIBT/ETH': {
-                    'id': 'HIBT_ETH',
-                    'symbol': 'HIBT/ETH',
-                    'base': 'HIBT',
-                    'quote': 'ETH',
-                },
-                'HIBT/BTC': {
-                    'id': 'HIBT_BTC',
-                    'symbol': 'HIBT/BTC',
-                    'base': 'HIBT',
-                    'quote': 'BTC',
-                },
-                'CMT/USDT': {
-                    'id': 'CMT_USDT',
-                    'symbol': 'CMT/USDT',
-                    'base': 'CMT',
-                    'quote': 'USDT',
-                },
-                'CMT/ETH': {
-                    'id': 'CMT_ETH',
-                    'symbol': 'CMT/ETH',
-                    'base': 'CMT',
-                    'quote': 'ETH',
-                },
-                'CMT/BTC': {
-                    'id': 'CMT_BTC',
-                    'symbol': 'CMT/BTC',
-                    'base': 'CMT',
-                    'quote': 'BTC',
-                },
-                'USE/ETH': {
-                    'id': 'USE_ETH',
-                    'symbol': 'USE/ETH',
-                    'base': 'USE',
-                    'quote': 'ETH',
-                },
-            },
             'fees': {
                 'trading': {
                     'tierBased': false,
@@ -150,6 +82,75 @@ module.exports = class hibtc extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchMarkets () {
+        let response = await this.publicGetTicker ();
+        //     {    date:   "1540347643779",
+        //        ticker: [ {     dchange: "-102.05",
+        //                           high: "6730.86",
+        //                            vol: "9533.63",
+        //                           last: "6535.35",
+        //                            low: "6436.05",
+        //                            buy: "6499.11",
+        //                           sell: "6650.00",
+        //                    dchange_pec: "-1.50",
+        //                           pair: "BTC_USDT",
+        //                      timestamp: "1540347643773" },
+        //                  ...
+        //                  {     dchange: "0.0000",
+        //                           high: "0.0015",
+        //                            vol: "2.6458",
+        //                           last: "0.0015",
+        //                            low: "0.0015",
+        //                            buy: "0.0014",
+        //                           sell: "0.0032",
+        //                    dchange_pec: "0.00",
+        //                           pair: "LBOX_USDT",
+        //                      timestamp: "1540347643779" }  ],
+        //          code:    0,
+        //       channel:   "ticker"                             }
+        let markets = this.safeValue (response, 'ticker', []);
+        let result = [];
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = this.safeString (market, 'pair');
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
+            let active = true;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision['amount']),
+                        'max': Math.pow (10, precision['amount']),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
