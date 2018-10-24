@@ -12,7 +12,7 @@ module.exports = class hibtc extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hibtc',
             'name': 'HiBTC',
-            'countries': ['MT'], // Malta
+            'countries': [ 'MT' ], // Malta
             'certified': true,
             'version': 'v1',
             'has': {
