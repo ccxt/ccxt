@@ -427,11 +427,12 @@ module.exports = class kkex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostCancelOrder (this.extend ({
+        let market = this.market (symbol);
+        let request = {
             'order_id': id,
-            'symbol': symbol.replace ('/', ''),
-        }, params));
-        return response;
+            'symbol': market['id'],
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
