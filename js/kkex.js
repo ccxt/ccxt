@@ -200,26 +200,35 @@ module.exports = class kkex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetTickers (params);
-        // will be rewritten shortly
+        //
+        //     {    date:    1540350657,
+        //       tickers: [ { ENUBTC: { sell: "0.00000256",
+        //                               buy: "0.00000253",
+        //                              last: "0.00000253",
+        //                               vol: "138686.828804",
+        //                              high: "0.00000278",
+        //                               low: "0.00000253",
+        //                              open: "0.0000027"      } },
+        //                  { ENUEOS: { sell: "0.00335",
+        //                               buy: "0.002702",
+        //                              last: "0.0034",
+        //                               vol: "15084.9",
+        //                              high: "0.0034",
+        //                               low: "0.003189",
+        //                              open: "0.003189"  } }           ],
+        //        result:    true                                          }
+        //
         let tickers = response['tickers'];
-        let date = response['date'];
-        let ids = [];
-        for (let k = 0; k < tickers.length; k++) {
-            let keys = Object.keys (tickers[k]);
-            ids.push (keys[0]);
-        }
         let result = {};
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[i][id];
-            let t = {
-                'ticker': ticker,
-                'symbol': symbol,
-                'date': date,
-            };
-            result[symbol] = this.parseTicker (t, market);
+        for (let i = 0; i < tickers.length; i++) {
+            let ids = Object.keys (tickers[i]);
+            let id = ids[0];
+            let market = this.safeValue (this.markets_by_id, id);
+            if (market !== undefined) {
+                let symbol = market['symbol'];
+                let ticker = this.extend (tickers[i][id], this.omit (response, 'tickers'));
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
