@@ -263,15 +263,19 @@ module.exports = class sparkswap extends Exchange {
         }
         return result;
     }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    
+    parseOrderStatus (status) {
+        const statuses = {
+            'ACTIVE': 'open',
+            'CANCELLED': 'canceled',
+            'COMPLETED': 'closed',
+            'FAILED': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+    
+    parseOrder (order, market = undefined) {
         const CONSTANTS = {
-            'STATUSES': {
-                'ACTIVE': 'ACTIVE',
-                'CANCELLED': 'CANCELLED',
-                'COMPLETED': 'COMPLETED',
-                'FAILED': 'FAILED',
-            },
             'SIDES': {
                 'ASK': 'ASK',
                 'BID': 'BID',
@@ -283,48 +287,61 @@ module.exports = class sparkswap extends Exchange {
                 'MARKET': 'market',
             },
         };
-        const order = await this.privateGetOrdersId ({ id });
-        let status = undefined;
-        if (order.status === CONSTANTS.STATUSES.CANCELLED || order.status === CONSTANTS.STATUSES.FAILED) {
-            status = 'cancelled';
+        let symbol = undefined;
+        let marketId = this.safeString (order, 'market');
+        if (market === undefined) {            
+            market = this.safeValue (this.markets_by_id, marketId);
         }
-        if (order.status === CONSTANTS.STATUSES.COMPLETED) {
-            status = 'closed';
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            let [ baseId, quoteId ] = marketId.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
-        if (order.status === CONSTANTS.STATUSES.ACTIVE) {
-            status = 'open';
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         // An order can either be market or limit
-        let type = CONSTANTS.TYPES.LIMIT;
-        if (order.is_market_order) {
-            type = CONSTANTS.TYPES.MARKET;
+        let isMarketOrder = this.safeValue (order, 'is_market_order');
+        let type = (isMarketOrder) ? 'market' : 'limit';
+        let side = this.safeString (order, 'side');
+        side = (side === 'ask') ? 'sell' : 'buy';
+        const timestamp = this.nanoToMillisecondTimestamp (this.safeInteger (order, 'timestamp'));
+        const price = this.safeFloat (order, 'limit_price');
+        const average = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount');
+        const filled = this.safeFloat (order, 'fill_amount');
+        let remaining = undefined;
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (price !== undefined) {
+                cost = price * filled;
+            } else if (average !== undefined) {
+                cost = average * filled;
+            }
         }
-        let side = undefined;
-        if (order.side === CONSTANTS.SIDES.ASK) {
-            side = CONSTANTS.SIDES.SELL;
-        } else if (order.side === CONSTANTS.SIDES.BID) {
-            side = CONSTANTS.SIDES.BUY;
-        }
-        const millisecondTimestamp = this.nanoToMillisecondTimestamp (order.timestamp);
-        const millisecondDatetime = this.nanoToMillisecondDatetime (order.datetime);
-        // The format that is returned from the sparkswap API does not match what
-        // needs to be returned from ccxt. We modify the sparkswap response to
-        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#order-structure
         const response = {
+            'info': order,
             'id': id,
-            'datetime': millisecondDatetime,
-            'timestamp': millisecondTimestamp,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
             'status': status,
-            'symbol': order.market,
+            'symbol': symbol,
             'type': type,
             'side': side,
-            'price': (this.safeFloat (order, 'amount') * this.safeFloat (order, 'limit_price')).toFixed (16),
-            'amount': this.safeFloat (order, 'amount'),
-            'filled': this.safeFloat (order, 'fill_amount') || 0,
-            'cost': this.safeFloat (order, 'fill_amount') * this.safeFloat (order, 'price') || 0,
-            'trades': [],
-            'info': order,
+            'price': price,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': undefined,
+            'fee': undefined,
         };
+        // todo rewrite to conform to https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes
         // Trades structure can be found here: https://github.com/ccxt/ccxt/wiki/Manual#trade-structure
         for (let i = 0; i < order.open_orders.length; i++) {
             response.trades.push ({
@@ -347,6 +364,15 @@ module.exports = class sparkswap extends Exchange {
             });
         }
         return response;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        return this.parseOrder (response);
     }
 
     async fetchOrderBook (symbol, params = {}) {
