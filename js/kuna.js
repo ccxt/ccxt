@@ -57,7 +57,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchMarkets () {
-        let quotes = ['btc', 'eth', 'eurs', 'gbg', 'uah'];
+        let quotes = [ 'btc', 'eth', 'eurs', 'gbg', 'uah' ];
         let markets = [];
         let tickers = await this.publicGetTickers ();
         let ids = Object.keys (tickers);
