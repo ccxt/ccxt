@@ -485,7 +485,7 @@ module.exports = class liquid extends Exchange {
         }, order));
         return this.parseOrder (result);
     }
-    
+
     parseOrderStatus (status) {
         const statuses = {
             'live': 'open',
