@@ -53,7 +53,6 @@ module.exports = class btcmarkets extends Exchange {
                         'v2/order/history/{id}',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
-                        
                     ],
                     'post': [
                         'fundtransfer/withdrawCrypto',
