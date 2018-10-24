@@ -36,7 +36,7 @@ module.exports = class kkex extends Exchange {
                 '1w': '1week',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/12462602/39745941-70adc518-52db-11e8-8e21-94778cb3c7ca.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg',
                 'api': {
                     'public': 'https://kkex.com/api/v1',
                     'private': 'https://kkex.com/api/v2',
