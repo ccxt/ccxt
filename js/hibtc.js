@@ -251,17 +251,11 @@ module.exports = class hibtc extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let method = 'privatePostMakeOrder';
-        let isbid = 'true';
-        if (side === 'buy') {
-            isbid = 'true';
-        } else {
-            isbid = 'false';
-        }
+        let isbid = (side === 'buy') ? 'true' : 'false';
         let order = {
             'pair': market['id'],
             'isbid': isbid,
-            'amount': amount.toString (),
+            'amount': this.amountToPrecision (symbol, amount),
             'order_type': type.toUpperCase (),
         };
         let stopPriceIsRequired = false;
@@ -278,7 +272,7 @@ module.exports = class hibtc extends Exchange {
             if (typeof price === 'undefined') {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
-            order['price'] = price.toString ();
+            order['price'] = this.priceToPrecision (symbol, price);
         } else {
             order['price'] = '0';
         }
@@ -292,7 +286,7 @@ module.exports = class hibtc extends Exchange {
         } else {
             order['stop_price'] = '0';
         }
-        let response = await this[method] (this.extend (order, params));
+        let response = await this.privatePostMakeOrder (this.extend (order, params));
         let timestamp = this.milliseconds ();
         return {
             'info': response,
@@ -338,7 +332,7 @@ module.exports = class hibtc extends Exchange {
         let average = undefined;
         let type = undefined;
         let status = undefined;
-        if (order.length > 0) {
+        if (Array.isArray (order)) {
             order_id = order[0];
             if (order[1] in this.markets_by_id) {
                 market = this.markets_by_id[order[1]];
