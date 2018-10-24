@@ -19,7 +19,6 @@ module.exports = class sparkswap extends Exchange {
             'enableRateLimit': true,
             'version': 'v1',
             'userAgent': this.userAgents['chrome'],
-            'headers': {},
             'timeout': 10000, // number in milliseconds
             'verbose': false, // boolean, output error details
             'requiredCredentials': {
@@ -89,7 +88,6 @@ module.exports = class sparkswap extends Exchange {
                         'wallet/release', // release your balance from the exchange
                         'wallet/withdraw', // withdraw funds to an external address
                     ],
-                    'put': [],
                     'delete': [
                         'orders/{id}', // cancel an order
                     ],
@@ -194,48 +192,35 @@ module.exports = class sparkswap extends Exchange {
         };
     }
 
-    async deposit () {
-        throw new ExchangeError ('Not Implemented');
-    }
-
     async fetchBalance (params = {}) {
-        let res = await this.privateGetWalletBalances ();
-        let balances = (res) ? res.balances : [];
-        // The format that is returned from the sparkswap API does not match what
-        // needs to be returned from ccxt. We modify the sparkswap response to
-        // fit ccxt: https://github.com/ccxt/ccxt/wiki/Manual#querying-account-balance
-        let free = {};
-        let used = {};
-        let total = {};
-        let response = {
-            'info': { balances },
-            'free': free,
-            'used': used,
-            'total': total,
-        };
+        await this.loadMarkets ();
+        let response = await this.privateGetWalletBalances (params);
+        let balances = (response) ? this.safeValue (response, 'balances', []) : [];
+        let result = {};
         for (let i = 0; i < balances.length; i++) {
-            const balanceTotal = (
-                this.safeFloat (balances[i], 'total_channel_balance') +
-                this.safeFloat (balances[i], 'uncommitted_balance') +
-                this.safeFloat (balances[i], 'total_pending_channel_balance') +
-                this.safeFloat (balances[i], 'uncommitted_pending_balance')
-            );
-            const usedTotal = (
-                this.safeFloat (balances[i], 'total_channel_balance') +
-                this.safeFloat (balances[i], 'total_pending_channel_balance') +
-                this.safeFloat (balances[i], 'uncommitted_pending_balance')
-            );
-            const freeTotal = this.safeFloat (balances[i], 'uncommitted_balance');
-            response.free[balances[i].symbol] = freeTotal;
-            response.used[balances[i].symbol] = usedTotal;
-            response.total[balances[i].symbol] = balanceTotal;
-            response[balances[i].symbol] = {
-                'free': freeTotal,
-                'used': usedTotal,
-                'total': balanceTotal,
+            const balance = balances[i];
+            const totalChannelBalance = this.safeFloat (balance, 'total_channel_balance');
+            const free = this.safeFloat (balance, 'uncommitted_balance');
+            const totalPendingChannelBalance = this.safeFloat (balance, 'total_pending_channel_balance');
+            const uncommittedPendingBalance = this.safeFloat (balance, 'uncommitted_pending_balance');
+            const used = this.sum (totalChannelBalance, totalPendingChannelBalance, uncommittedPendingBalance);
+            const total = this.sum (used, free);
+            let account = {
+                'free': free,
+                'used': used,
+                'total': total,
             };
+            const currencyId = this.safeString (balance, 'symbol');
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            let code = undefined;
+            if (currency === undefined) {
+                code = this.commonCurrencyCode (currencyId);
+            } else {
+                code = currency['code'];
+            }
+            result[code] = account;
         }
-        return response;
+        return this.parseBalance (response);
     }
 
     async fetchMarkets () {
