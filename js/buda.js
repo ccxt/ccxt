@@ -611,13 +611,12 @@ module.exports = class buda extends Exchange {
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
             'currency': currency,
         }, params));
-        let receiveAddress = response['receive_address'];
-        let address = receiveAddress['address'];  // the creation is async and returns a null address, returns only the id
+        let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
             'currency': currency,
             'address': address,
             'tag': undefined,
-            'info': receiveAddress,
+            'info': response,
         };
     }
 
