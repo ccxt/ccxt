@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.410'
+const version = '1.17.411'
 
 Exchange.ccxtVersion = version
 
@@ -20928,13 +20928,12 @@ module.exports = class buda extends Exchange {
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
             'currency': currency,
         }, params));
-        let receiveAddress = response['receive_address'];
-        let address = receiveAddress['address'];  // the creation is async and returns a null address, returns only the id
+        let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
             'currency': currency,
             'address': address,
             'tag': undefined,
-            'info': receiveAddress,
+            'info': response,
         };
     }
 
