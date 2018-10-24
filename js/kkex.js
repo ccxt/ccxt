@@ -154,10 +154,15 @@ module.exports = class kkex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['date'] * 1000;
-        let symbol = market['symbol'];
+        let timestamp = this.safeInteger (ticker, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let last = this.safeFloat (ticker, 'last');
-        ticker = ticker['ticker'];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -188,17 +193,14 @@ module.exports = class kkex extends Exchange {
         let response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        let t = {
-            'ticker': response['ticker'],
-            'symbol': symbol,
-            'date': response['date'],
-        };
-        return this.parseTicker (t, market);
+        let ticker = this.extend (response['ticker'], this.omit (response, 'ticker'));
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.publicGetTickers (params);
+        // will be rewritten shortly
         let tickers = response['tickers'];
         let date = response['date'];
         let ids = [];
