@@ -40,7 +40,7 @@ module.exports = class hibtc extends Exchange {
                 '1M': 'MONTH',
             },
             'urls': {
-                'logo': 'https://www.hibtc.com/images/logo.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/47399591-df0fc980-d741-11e8-94aa-be2d444ede86.jpg',
                 'api': {
                     'public': 'https://api.hibtc.com',
                     'private': 'https://api.hibtc.com',
