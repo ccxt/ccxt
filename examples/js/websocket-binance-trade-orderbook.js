@@ -32,8 +32,8 @@ class WSHandler {
     return new WSHandler(exchange);
   }
 
-  tradeResult(symbol, trade) {
-    console.log(`tradeResult - ${logS(this.exchange.name, symbol)}`);
+  tradeResult(trade) {
+    console.log(`tradeResult - ${logS(this.exchange.name, trade.symbol)}`);
     console.log(JSON.stringify(trade));
   }
 
