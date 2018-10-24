@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.406'
+const version = '1.17.407'
 
 Exchange.ccxtVersion = version
 
@@ -20321,7 +20321,7 @@ module.exports = class buda extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'buda',
-            'name': 'Buda.com',
+            'name': 'Buda',
             'countries': [ 'AR', 'CL', 'CO', 'PE' ],
             'rateLimit': 1000,
             'version': 'v2',
