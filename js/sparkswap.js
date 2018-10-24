@@ -263,7 +263,7 @@ module.exports = class sparkswap extends Exchange {
         }
         return result;
     }
-    
+
     parseOrderStatus (status) {
         const statuses = {
             'ACTIVE': 'open',
@@ -273,7 +273,7 @@ module.exports = class sparkswap extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-    
+
     parseOrder (order, market = undefined) {
         const CONSTANTS = {
             'SIDES': {
