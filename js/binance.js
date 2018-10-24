@@ -145,6 +145,14 @@ module.exports = class binance extends Exchange {
                             'stream': '{symbol}@depth',
                         },
                     },
+                    'trade': {
+                        'conx-tpl': 'default',
+                        'conx-param': {
+                            'url': '{baseurl}',
+                            'id': '{id}',
+                            'stream': '{symbol}@aggTrade'
+                        }
+                    }
                 },
             },
             'fees': {
@@ -987,6 +995,8 @@ module.exports = class binance extends Exchange {
         if (partsLen === 2) {
             if (parts[1] === 'depth') {
                 this._websocketHandleOb (contextId, resData);
+            } else if (parts[1] === 'aggTrade') {
+                this._websocketHandleTrade (contextId, resData);
             }
         }
     }
@@ -1020,6 +1030,13 @@ module.exports = class binance extends Exchange {
             this.emit ('ob', symbol, this._cloneOrderBook (symbolData['ob'], symbolData['limit']));
         }
         this._contextSetSymbolData (contextId, 'ob', symbol, symbolData);
+    }
+
+    _websocketHandleTrade (contextId, data) {
+        const symbol = this.findSymbol (this.safeString (data, 's'));
+        const market = this.market (symbol);
+        const trade = this.parseTrade(data, market);
+        this.emit('trade', symbol, trade);
     }
 
     _websocketHandleObRestSnapshot (context, error, response) {
@@ -1058,18 +1075,18 @@ module.exports = class binance extends Exchange {
     }
 
     _websocketSubscribe (contextId, event, symbol, nonce, params = {}) {
-        if (event !== 'ob') {
+        if (event !== 'ob' && event !== 'trade') {
             throw new NotSupported ('subscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
-        let data = this._contextGetSymbolData (contextId, 'ob', symbol);
+        let data = this._contextGetSymbolData (contextId, event, symbol);
         data['limit'] = this.safeInteger (params, 'limit', undefined);
-        this._contextSetSymbolData (contextId, 'ob', symbol, data);
+        this._contextSetSymbolData (contextId, event, symbol, data);
         let nonceStr = nonce.toString ();
         this.emit (nonceStr, true);
     }
 
     _websocketUnsubscribe (contextId, event, symbol, nonce, params = {}) {
-        if (event !== 'ob') {
+        if (event !== 'ob' && event !== 'trade') {
             throw new NotSupported ('unsubscribe ' + event + '(' + symbol + ') not supported for exchange ' + this.id);
         }
         let nonceStr = nonce.toString ();
@@ -1089,8 +1106,11 @@ module.exports = class binance extends Exchange {
                 partsLen = pair.length;
                 if (partsLen === 2) {
                     let symbol = this.findSymbol (pair[0].toUpperCase ());
-                    this._contextSetSubscribed (contextId, 'ob', symbol, true);
-                    this._contextSetSubscribing (contextId, 'ob', symbol, false);
+                    let event = pair[1].toLowerCase();
+                    event == 'depth' && (event = 'ob'); 
+                    event == 'aggtrade' && (event = 'trade'); 
+                    this._contextSetSubscribed (contextId, event, symbol, true);
+                    this._contextSetSubscribing (contextId, event, symbol, false);
                 }
             }
         }
