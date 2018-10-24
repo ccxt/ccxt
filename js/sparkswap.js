@@ -524,7 +524,6 @@ module.exports = class sparkswap extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.privateGetTrades (this.extend (request, params));
-        let trades = response['trades'];
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
