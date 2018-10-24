@@ -521,11 +521,13 @@ module.exports = class liquid extends Exchange {
         if ('executions' in order) {
             trades = this.parseTrades (order['executions'], market);
             for (let i = 0; i < trades.length; i++) {
+                // php copies values upon assignment, but not references them
+                // todo rewrite this (shortly)
                 let trade = trades[i];
-                trade.order = orderId;
-                trade.type = type;
-                executedQuantity += trade.amount;
-                let cost = trade.price * trade.amount;
+                trade['order'] = orderId;
+                trade['type'] = type;
+                executedQuantity += trade['amount'];
+                let cost = trade['price'] * trade['amount'];
                 totalValue += cost;
             }
             if (!averagePrice && trades.length > 0) {
