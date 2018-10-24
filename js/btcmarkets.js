@@ -40,6 +40,7 @@ module.exports = class btcmarkets extends Exchange {
                         'market/{id}/tick',
                         'market/{id}/orderbook',
                         'market/{id}/trades',
+                        'v2/market/{id}/tickByTime/{timeframe}',
                         'v2/market/{id}/trades',
                         'v2/market/active',
                     ],
