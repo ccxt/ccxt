@@ -506,12 +506,15 @@ module.exports = class sparkswap extends Exchange {
         return formattedTrades;
     }
 
-    async withdraw (code, amount, address) {
-        const response = await this.privatePostWalletWithdraw ({
-            'symbol': code.toString (),
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'symbol': currency['id'],
             'amount': this.decimalToPrecision (amount, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
-            'address': address.toString (),
-        });
+            'address': address,
+        };
+        const response = await this.privatePostWalletWithdraw (this.extend (request, params));
         return {
             'info': response,
             'id': response['txid'],
