@@ -381,6 +381,12 @@ class liquid (Exchange):
         takerOrMaker = None
         if mySide is not None:
             takerOrMaker = 'taker' if (takerSide == mySide) else 'maker'
+        cost = None
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -391,8 +397,10 @@ class liquid (Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -461,20 +469,22 @@ class liquid (Exchange):
         }, order))
         return self.parse_order(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'live': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
-        timestamp = order['created_at'] * 1000
+        orderId = self.safe_string(order, 'id')
+        timestamp = self.safe_integer(order, 'created_at')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         marketId = self.safe_string(order, 'product_id')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        status = None
-        if 'status' in order:
-            if order['status'] == 'live':
-                status = 'open'
-            elif order['status'] == 'filled':
-                status = 'closed'
-            elif order['status'] == 'cancelled':  # 'll' intended
-                status = 'canceled'
+        market = self.safe_value(self.markets_by_id, marketId)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'filled_quantity')
         price = self.safe_float(order, 'price')
@@ -483,14 +493,31 @@ class liquid (Exchange):
         if market is not None:
             symbol = market['symbol']
             feeCurrency = market['quote']
+        type = order['order_type']
+        executedQuantity = 0
+        totalValue = 0
         averagePrice = self.safe_float(order, 'average_price')
+        trades = None
+        if 'executions' in order:
+            trades = self.parse_trades(self.safe_value(order, 'executions', []), market)
+            numTrades = len(trades)
+            for i in range(0, numTrades):
+                # php copies values upon assignment, but not references them
+                # todo rewrite self(shortly)
+                trade = trades[i]
+                trade['order'] = orderId
+                trade['type'] = type
+                executedQuantity += trade['amount']
+                totalValue += trade['cost']
+            if not averagePrice and(numTrades > 0) and(executedQuantity > 0):
+                averagePrice = totalValue / executedQuantity
         cost = filled * averagePrice
         return {
-            'id': str(order['id']),
+            'id': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': order['order_type'],
+            'type': type,
             'status': status,
             'symbol': symbol,
             'side': order['side'],
@@ -499,7 +526,7 @@ class liquid (Exchange):
             'filled': filled,
             'cost': cost,
             'remaining': amount - filled,
-            'trades': None,
+            'trades': trades,
             'fee': {
                 'currency': feeCurrency,
                 'cost': self.safe_float(order, 'order_fee'),
