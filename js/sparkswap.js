@@ -207,12 +207,7 @@ module.exports = class sparkswap extends Exchange {
             const total = this.sum (used, free);
             const currencyId = this.safeString (balance, 'symbol');
             const currency = this.safeValue (this.currencies_by_id, currencyId);
-            let code = undefined;
-            if (currency === undefined) {
-                code = this.commonCurrencyCode (currencyId);
-            } else {
-                code = currency['code'];
-            }
+            let code = (currency !== undefined) ? currency['code'] : this.commonCurrencyCode (currencyId);
             result[code] = {
                 'free': free,
                 'used': used,
