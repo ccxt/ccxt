@@ -485,25 +485,25 @@ module.exports = class liquid extends Exchange {
         }, order));
         return this.parseOrder (result);
     }
+    
+    parseOrderStatus (status) {
+        const statuses = {
+            'live': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
 
     parseOrder (order, market = undefined) {
-        let orderId = order['id'].toString ();
-        let timestamp = order['created_at'] * 1000;
+        let orderId = this.safeString (order, 'id');
+        let timestamp = this.safeInteger (order, 'created_at');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let marketId = this.safeString (order, 'product_id');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id)
-                market = this.markets_by_id[marketId];
-        }
-        let status = undefined;
-        if ('status' in order) {
-            if (order['status'] === 'live') {
-                status = 'open';
-            } else if (order['status'] === 'filled') {
-                status = 'closed';
-            } else if (order['status'] === 'cancelled') { // 'll' intended
-                status = 'canceled';
-            }
-        }
+        market = this.safeValue (this.markets_by_id, marketId);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filled_quantity');
         let price = this.safeFloat (order, 'price');
