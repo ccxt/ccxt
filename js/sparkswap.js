@@ -554,7 +554,7 @@ module.exports = class sparkswap extends Exchange {
         const request = {
             'symbol': currency['id'],
             'balance': this.decimalToPrecision (balance, TRUNCATE, this.options['defaultCurrencyPrecision'], DECIMAL_PLACES),
-            'market': symbol['id'],
+            'market': market['id'],
         };
         const result = await this.privatePostWalletCommit (this.extend (request, params));
         return result;
