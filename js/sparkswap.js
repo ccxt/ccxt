@@ -469,34 +469,63 @@ module.exports = class sparkswap extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        const request = {
-            'market': symbol,
+    parseTrade (trade, market = undefined) {
+        const id = this.safeString (trade, 'id');
+        let timestamp = this.nanoToMillisecondTimestamp (this.safeInteger (trade, 'timestamp'));
+        const orderId = this.safeString (trade, 'order');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
+            let [ baseId, quoteId ] = marketId.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        const type = this.safeString (trade, 'type');
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'order': orderId,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'takerOrMaker': undefined,
+            'fee': undefined,
         };
-        if (since) {
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (since !== undefined) {
             request['since'] = since;
         }
-        if (limit) {
+        if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetTrades (request);
+        let response = await this.privateGetTrades (this.extend (request, params));
         let trades = response['trades'];
-        let formattedTrades = [];
-        for (let i = 0; i < trades.length; i++) {
-            formattedTrades.push ({
-                'id': trades[i].id,
-                'timestamp': this.nanoToMillisecondTimestamp (trades[i].timestamp),
-                'datetime': this.nanoToMillisecondDatetime (trades[i].datetime),
-                'order': trades[i].order,
-                'symbol': trades[i].market,
-                'type': trades[i].type,
-                'side': trades[i].side,
-                'price': trades[i].price,
-                'amount': trades[i].amount,
-                'info': trades[i],
-            });
-        }
-        return formattedTrades;
+        return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
