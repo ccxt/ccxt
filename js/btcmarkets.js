@@ -49,7 +49,7 @@ module.exports = class btcmarkets extends Exchange {
                         'account/balance',
                         'account/{id}/tradingfee',
                         'v2/order/open',
-                        'v2/order/open/{id},
+                        'v2/order/open/{id}',
                         'v2/order/history/{id}',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
