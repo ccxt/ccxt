@@ -314,19 +314,15 @@ module.exports = class kkex extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === -1)
-            return 'canceled';
-        if (status === 0)
-            return 'open';
-        if (status === 1)
-            return 'open';
-        if (status === 2)
-            return 'closed';
-        if (status === 3)
-            return 'open';
-        if (status === 4)
-            return 'canceled';
-        return status;
+        const statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -342,7 +338,7 @@ module.exports = class kkex extends Exchange {
         let order_id = undefined;
         let amount = undefined;
         let keys = Object.keys (order);
-        let status = this.parseOrderStatus (order['status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         if (this.inArray ('order_id', keys)) {
             order_id = order['order_id'];
         } else if (this.inArray ('id', keys)) {
