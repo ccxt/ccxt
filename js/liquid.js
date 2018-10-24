@@ -397,6 +397,14 @@ module.exports = class liquid extends Exchange {
         let takerOrMaker = undefined;
         if (mySide !== undefined)
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'quantity');
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -407,8 +415,10 @@ module.exports = class liquid extends Exchange {
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -519,18 +529,18 @@ module.exports = class liquid extends Exchange {
         let averagePrice = this.safeFloat (order, 'average_price');
         let trades = undefined;
         if ('executions' in order) {
-            trades = this.parseTrades (order['executions'], market);
-            for (let i = 0; i < trades.length; i++) {
+            trades = this.parseTrades (this.safeValue (order, 'executions', []), market);
+            let numTrades = trades.length;
+            for (let i = 0; i < numTrades; i++) {
                 // php copies values upon assignment, but not references them
                 // todo rewrite this (shortly)
                 let trade = trades[i];
                 trade['order'] = orderId;
                 trade['type'] = type;
                 executedQuantity += trade['amount'];
-                let cost = trade['price'] * trade['amount'];
-                totalValue += cost;
+                totalValue += trade['cost'];
             }
-            if (!averagePrice && trades.length > 0) {
+            if (!averagePrice && (numTrades > 0) && (executedQuantity > 0)) {
                 averagePrice = totalValue / executedQuantity;
             }
         }
