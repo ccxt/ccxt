@@ -910,11 +910,6 @@ module.exports = class poloniex extends Exchange {
         return deposits;
     }
 
-    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
-        return this.sortBy (result, 'timestamp');
-    }
-
     parseTransaction (transaction, currency = undefined) {
         let timestamp = transaction['timestamp'] * 1000;
         let code = undefined;
