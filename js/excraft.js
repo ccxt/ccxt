@@ -1,6 +1,7 @@
 'use strict';
 
 //  ---------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
 
 //  ---------------------------------------------------------------------------
@@ -10,7 +11,7 @@ module.exports = class excraft extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'excraft',
             'name': 'ExCraft',
-            'countries': ['HK', 'UK'],
+            'countries': [ 'HK', 'UK' ],
             'has': {
                 'fetchOrder': true,
                 'fetchOrders': true,
