@@ -3,7 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, DDoSProtection, InsufficientFunds, OrderNotFound, OrderNotCached, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, ArgumentsRequired } = require ('./base/errors');
+const { now } = require ('./base/functions/time');
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +32,9 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchCurrencies': true,
                 'withdraw': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': true,
             },
             'timeframes': {
                 '5m': 300,
@@ -859,6 +863,91 @@ module.exports = class poloniex extends Exchange {
         return {
             'info': result,
             'id': result['response'],
+        };
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a since parameter');
+        } else {
+            request['start'] = since;
+        }
+        if (!('end' in params))
+            request['end'] = now ();
+        if (limit !== undefined)
+            request['limit'] = limit;
+        let response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
+        for (let i = 0; i < response['deposits'].length; i++) {
+            response['deposits'][i]['type'] = 'deposit';
+        }
+        for (let i = 0; i < response['withdrawals'].length; i++) {
+            response['withdrawals'][i]['type'] = 'withdrawal';
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        return deposits.concat (withdrawals);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let transactions = await this.fetchTransactions (code, since, limit, params);
+        let withdrawals = [];
+        for (let i = 0; i < transactions.length; i++) {
+            if (transactions[i]['type'] === 'withdrawal')
+                withdrawals.push (transactions[i]);
+        }
+        return withdrawals;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let transactions = await this.fetchTransactions (code, since, limit, params);
+        let deposits = [];
+        for (let i = 0; i < transactions.length; i++) {
+            if (transactions[i]['type'] === 'deposit')
+                deposits.push (transactions[i]);
+        }
+        return deposits;
+    }
+
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
+        return this.sortBy (result, 'timestamp');
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = transaction['timestamp'] * 1000;
+        let code = undefined;
+        if (currency === undefined) {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id)
+                currency = this.currencies_by_id[currencyId];
+        }
+        if (currency !== undefined)
+            code = currency['code'];
+        let type = this.safeString (transaction, 'type');
+        if (type !== undefined)
+            type = type.toLowerCase ();
+        let status = 'pending';
+        if (transaction['status'].startsWith ('COMPLETE'))
+            status = 'ok';
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'tag': undefined, // or is it defined?
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'fee': {
+                'cost': undefined,
+                'rate': undefined,
+            },
         };
     }
 
