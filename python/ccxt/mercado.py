@@ -66,7 +66,7 @@ class mercado (Exchange):
                 'BTC/BRL': {'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin'},
                 'LTC/BRL': {'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin'},
                 'BCH/BRL': {'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash'},
-                'XRP/BRL': {'id': 'XRPBCH', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple'},
+                'XRP/BRL': {'id': 'XRPBRL', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple'},
             },
             'fees': {
                 'trading': {
@@ -314,6 +314,12 @@ class mercado (Exchange):
             tx_fee = ('tx_fee' in list(params.keys()))
             if not tx_fee:
                 raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + currency)
+            if currency == 'XRP':
+                if tag is None:
+                    if not('destination_tag' in list(params.keys())):
+                        raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + currency)
+                else:
+                    request['destination_tag'] = tag
         response = self.privatePostWithdrawCoin(self.extend(request, params))
         return {
             'info': response,
