@@ -32,8 +32,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchCurrencies': true,
                 'withdraw': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': true,
-                'fetchDeposits': true,
+                'fetchWithdrawals': 'emulated', // but almost true )
+                'fetchDeposits': 'emulated',
             },
             'timeframes': {
                 '5m': 300,
