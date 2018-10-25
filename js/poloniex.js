@@ -932,7 +932,7 @@ module.exports = class poloniex extends Exchange {
         let transactions = await this.fetchTransactions (code, since, limit, params);
         return this.filterBy (transactions, 'type', 'withdrawal');
     }
-    
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         let transactions = await this.fetchTransactions (code, since, limit, params);
         return this.filterBy (transactions, 'type', 'deposit');
