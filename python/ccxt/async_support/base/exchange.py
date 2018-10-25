@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.420'
+__version__ = '1.17.419'
 
 # -----------------------------------------------------------------------------
 
@@ -51,6 +51,7 @@ class Exchange(BaseExchange):
             self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
         self.own_session = 'session' not in config
+        self.cafile = config.get('cafile', certifi.where())
         self.open()
         super(Exchange, self).__init__(config)
         self.init_rest_rate_limiter()
@@ -75,7 +76,7 @@ class Exchange(BaseExchange):
     def open(self):
         if self.own_session and self.session is None:
             # Create our SSL context object with our CA cert file
-            context = ssl.create_default_context(cafile=certifi.where())
+            context = ssl.create_default_context(cafile=self.cafile)
             # Pass this SSL context to aiohttp and create a TCPConnector
             connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
