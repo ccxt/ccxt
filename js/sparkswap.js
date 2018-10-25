@@ -129,7 +129,11 @@ module.exports = class sparkswap extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return this.privateDeleteOrdersId ({ id });
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        return response;
     }
 
     async createDepositAddress (code, params = {}) {
