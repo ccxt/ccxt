@@ -32,6 +32,9 @@ class poloniex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchCurrencies' => true,
                 'withdraw' => true,
+                'fetchTransactions' => true,
+                'fetchWithdrawals' => 'emulated', // but almost true )
+                'fetchDeposits' => 'emulated',
             ),
             'timeframes' => array (
                 '5m' => 300,
@@ -860,6 +863,180 @@ class poloniex extends Exchange {
         return array (
             'info' => $result,
             'id' => $result['response'],
+        );
+    }
+
+    public function fetch_transactions_helper ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $year = 31104000; // 60 * 60 * 24 * 30 * 12 = one $year of history, why not
+        $now = $this->seconds ();
+        $start = ($since !== null) ? intval ($since / 1000) : $now - $year;
+        $request = array (
+            'start' => $start, // UNIX timestamp, required
+            'end' => $now, // UNIX timestamp, required
+        );
+        if ($limit !== null)
+            $request['limit'] = $limit;
+        $response = $this->privatePostReturnDepositsWithdrawals (array_merge ($request, $params));
+        //
+        //     {    deposits => array ( array (      currency => "BTC",
+        //                              address => "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                               amount => "0.01063000",
+        //                        confirmations =>  1,
+        //                                 txid => "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                            timestamp =>  1507916888,
+        //                               status => "COMPLETE"                                                          ),
+        //                      {      currency => "ETH",
+        //                              address => "0x20108ba20b65c04d82909e91df06618107460197",
+        //                               amount => "4.00000000",
+        //                        confirmations =>  38,
+        //                                 txid => "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                            timestamp =>  1525060430,
+        //                               status => "COMPLETE"                                                            }  ),
+        //       withdrawals => array ( array ( withdrawalNumber =>  8224394,
+        //                                currency => "EMC2",
+        //                                 address => "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                                  amount => "63.10796020",
+        //                                     fee => "0.01000000",
+        //                               timestamp =>  1510819838,
+        //                                  status => "COMPLETE => d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                               ipAddress => "5.220.220.200"                                                               ),
+        //                      array ( withdrawalNumber =>  9290444,
+        //                                currency => "ETH",
+        //                                 address => "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                                  amount => "0.15500000",
+        //                                     fee => "0.00500000",
+        //                               timestamp =>  1514099289,
+        //                                  status => "COMPLETE => 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                               ipAddress => "5.228.227.214"                                                                 ),
+        //                      { withdrawalNumber =>  11518260,
+        //                                currency => "BTC",
+        //                                 address => "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                                  amount => "0.20000000",
+        //                                     fee => "0.00050000",
+        //                               timestamp =>  1527918155,
+        //                                  status => "COMPLETE => 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                               ipAddress => "211.8.195.26"                                                                }    ) }
+        //
+        return $response;
+    }
+
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        for ($i = 0; $i < count ($response['deposits']); $i++) {
+            $response['deposits'][$i]['type'] = 'deposit';
+        }
+        for ($i = 0; $i < count ($response['withdrawals']); $i++) {
+            $response['withdrawals'][$i]['type'] = 'withdrawal';
+        }
+        $withdrawals = $this->parseTransactions ($response['withdrawals'], $code, $since, $limit);
+        $deposits = $this->parseTransactions ($response['deposits'], $code, $since, $limit);
+        $transactions = $this->array_concat($deposits, $withdrawals);
+        return $this->filterByCurrencySinceLimit ($this->sort_by($transactions, 'timestamp'), $code, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        for ($i = 0; $i < count ($response['withdrawals']); $i++) {
+            $response['withdrawals'][$i]['type'] = 'withdrawal';
+        }
+        $withdrawals = $this->parseTransactions ($response['withdrawals'], $code, $since, $limit);
+        return $this->filterByCurrencySinceLimit ($withdrawals, $code, $since, $limit);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->fetch_transactions_helper ($code, $since, $limit, $params);
+        for ($i = 0; $i < count ($response['deposits']); $i++) {
+            $response['deposits'][$i]['type'] = 'deposit';
+        }
+        $deposits = $this->parseTransactions ($response['deposits'], $code, $since, $limit);
+        return $this->filterByCurrencySinceLimit ($deposits, $code, $since, $limit);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'COMPLETE' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // deposits
+        //
+        //      {      $currency => "BTC",
+        //              $address => "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //               $amount => "0.01063000",
+        //        confirmations =>  1,
+        //                 $txid => "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //            $timestamp =>  1507916888,
+        //               $status => "COMPLETE"                                                          }
+        //
+        // withdrawals
+        //
+        //      array ( withdrawalNumber =>  9290444,
+        //                $currency => "ETH",
+        //                 $address => "0x731015ff2e75261d50433fbd05bd57e942336149",
+        //                  $amount => "0.15500000",
+        //                     fee => "0.00500000",
+        //               $timestamp =>  1514099289,
+        //                  $status => "COMPLETE => 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //               ipAddress => "5.228.227.214"                                                                 ),
+        //
+        $timestamp = $this->safe_integer($transaction, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency === null) {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $status = $this->safe_string($transaction, 'status', 'pending');
+        $txid = $this->safe_string($transaction, 'txid');
+        if ($status !== null) {
+            $parts = explode (' => ', $status);
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            $status = $parts[0];
+            if (($numParts > 1) && ($txid === null)) {
+                $txid = $parts[1];
+            }
+            $status = $this->parse_transaction_status ($status);
+        }
+        $id = $this->safe_string($transaction, 'withdrawalNumber');
+        $type = ($id !== null) ? 'withdrawal' : 'deposit';
+        $amount = $this->safe_float($transaction, 'amount');
+        $address = $this->safe_string($transaction, 'address');
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost === null) {
+            if ($type === 'deposit') {
+                // according to https://poloniex.com/fees/
+                $feeCost = 0; // FIXME => remove hardcoded value that may change any time
+            } else if ($type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
         );
     }
 
