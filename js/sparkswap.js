@@ -368,15 +368,12 @@ module.exports = class sparkswap extends Exchange {
         // The call to orderbook endpoint will return the correct information that CCXT will
         // expect, however we need to modify the payload to convert nanosecond timestamps
         // to miliseconds
-        const res = await this.privateGetOrderbook ({ 'market': this.marketId (symbol) });
-        const millisecondTimestamp = this.nanoToMillisecondTimestamp (res.timestamp);
-        const millisecondDatetime = this.nanoToMillisecondDatetime (res.datetime);
-        return {
-            'asks': res.asks,
-            'bids': res.bids,
-            'timestamp': millisecondTimestamp,
-            'datetime': millisecondDatetime,
+        const request = {
+            'market': this.marketId (symbol),
         };
+        const response = await this.privateGetOrderbook (this.extend (request, params));
+        const millisecondTimestamp = this.nanoToMillisecondTimestamp (response['timestamp']);
+        return this.parseOrderBook (response, millisecondTimestamp);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
