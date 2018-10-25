@@ -87,7 +87,7 @@ module.exports = class liquid extends Exchange {
                     'API Authentication failed': AuthenticationError,
                     'Nonce is too small': InvalidNonce,
                     'Order not found': OrderNotFound,
-                    'Can not update partially filled order': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
                     'Can not update non-live order': OrderNotFound,
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,
