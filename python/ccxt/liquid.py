@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import math
 import json
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -91,25 +92,20 @@ class liquid (Exchange):
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
-                'messages': {
-                    'API Authentication failed': AuthenticationError,
-                    'Nonce is too small': InvalidNonce,
-                    'Order not found': OrderNotFound,
-                    'Can not update partially filled order': InvalidOrder,
-                    'Can not update non-live order': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
-                    },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
-                    },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
-                    },
-                },
+                'API Authentication failed': AuthenticationError,
+                'Nonce is too small': InvalidNonce,
+                'Order not found': OrderNotFound,
+                'Can not update partially filled order': InvalidOrder,
+                'Can not update non-live order': OrderNotFound,
+                'not_enough_free_balance': InsufficientFunds,
+                'must_be_positive': InvalidOrder,
+                'less_than_order_size': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
+            },
+            'options': {
+                'cancelOrderException': True,
             },
         })
 
@@ -451,7 +447,8 @@ class liquid (Exchange):
         }, params))
         order = self.parse_order(result)
         if order['status'] == 'closed':
-            raise OrderNotFound(self.id + ' ' + self.json(order))
+            if self.options['cancelOrderException']:
+                raise OrderNotFound(self.id + ' order closed already: ' + self.json(result))
         return order
 
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
@@ -601,38 +598,41 @@ class liquid (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response=None):
-        if code >= 200 and code <= 299:
+        if code >= 200 and code < 300:
             return
-        messages = self.exceptions['messages']
+        exceptions = self.exceptions
         if code == 401:
             # expected non-json response
-            if body in messages:
-                raise messages[body](self.id + ' ' + body)
+            if body in exceptions:
+                raise exceptions[body](self.id + ' ' + body)
             else:
                 return
+        if not self.is_json_encoded_object(body):
+            return  # fallback to default error handler
         if response is None:
-            if (body[0] == '{') or (body[0] == '['):
-                response = json.loads(body)
-            else:
-                return
-        feedback = self.id + ' ' + self.json(response)
-        if code == 404:
-            # {"message": "Order not found"}
-            message = self.safe_string(response, 'message')
-            if message in messages:
-                raise messages[message](feedback)
-        elif code == 422:
-            # array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            # {"errors": {"user": ["not_enough_free_balance"]}}
-            # {"errors": {"quantity": ["less_than_order_size"]}}
-            if 'errors' in response:
-                errors = response['errors']
-                errorTypes = ['user', 'quantity', 'price']
-                for i in range(0, len(errorTypes)):
-                    errorType = errorTypes[i]
-                    if errorType in errors:
-                        errorMessages = errors[errorType]
-                        for j in range(0, len(errorMessages)):
-                            message = errorMessages[j]
-                            if message in messages[errorType]:
-                                raise messages[errorType][message](feedback)
+            response = json.loads(body)
+        feedback = self.id + ' ' + body
+        message = self.safe_string(response, 'message')
+        errors = self.safe_value(response, 'errors')
+        if message is not None:
+            #
+            #  {"message": "Order not found"}
+            #
+            if message in exceptions:
+                raise exceptions[message](feedback)
+        elif errors is not None:
+            #
+            #  {"errors": {"user": ["not_enough_free_balance"]}}
+            #  {"errors": {"quantity": ["less_than_order_size"]}}
+            #  {"errors": {"order": ["Can not update partially filled order"]}}
+            #
+            types = list(errors.keys())
+            for i in range(0, len(types)):
+                type = types[i]
+                errorMessages = errors[type]
+                for j in range(0, len(errorMessages)):
+                    message = errorMessages[j]
+                    if message in exceptions:
+                        raise exceptions[message](feedback)
+        else:
+            raise ExchangeError(feedback)

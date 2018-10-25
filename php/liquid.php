@@ -84,25 +84,20 @@ class liquid extends Exchange {
             ),
             'skipJsonOnStatusCodes' => [401],
             'exceptions' => array (
-                'messages' => array (
-                    'API Authentication failed' => '\\ccxt\\AuthenticationError',
-                    'Nonce is too small' => '\\ccxt\\InvalidNonce',
-                    'Order not found' => '\\ccxt\\OrderNotFound',
-                    'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
-                    'Can not update non-live order' => '\\ccxt\\OrderNotFound',
-                    'user' => array (
-                        'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
-                    ),
-                    'price' => array (
-                        'must_be_positive' => '\\ccxt\\InvalidOrder',
-                    ),
-                    'quantity' => array (
-                        'less_than_order_size' => '\\ccxt\\InvalidOrder',
-                    ),
-                ),
+                'API Authentication failed' => '\\ccxt\\AuthenticationError',
+                'Nonce is too small' => '\\ccxt\\InvalidNonce',
+                'Order not found' => '\\ccxt\\OrderNotFound',
+                'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
+                'Can not update non-live order' => '\\ccxt\\OrderNotFound',
+                'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
+                'must_be_positive' => '\\ccxt\\InvalidOrder',
+                'less_than_order_size' => '\\ccxt\\InvalidOrder',
             ),
             'commonCurrencies' => array (
                 'WIN' => 'WCOIN',
+            ),
+            'options' => array (
+                'cancelOrderException' => true,
             ),
         ));
     }
@@ -475,8 +470,11 @@ class liquid extends Exchange {
             'id' => $id,
         ), $params));
         $order = $this->parse_order($result);
-        if ($order['status'] === 'closed')
-            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
+        if ($order['status'] === 'closed') {
+            if ($this->options['cancelOrderException']) {
+                throw new OrderNotFound ($this->id . ' $order closed already => ' . $this->json ($result));
+            }
+        }
         return $order;
     }
 
@@ -647,46 +645,51 @@ class liquid extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
-        if ($code >= 200 && $code <= 299)
+        if ($code >= 200 && $code < 300)
             return;
-        $messages = $this->exceptions['messages'];
+        $exceptions = $this->exceptions;
         if ($code === 401) {
             // expected non-json $response
-            if (is_array ($messages) && array_key_exists ($body, $messages))
-                throw new $messages[$body] ($this->id . ' ' . $body);
-            else
+            if (is_array ($exceptions) && array_key_exists ($body, $exceptions)) {
+                throw new $exceptions[$body] ($this->id . ' ' . $body);
+            } else {
                 return;
+            }
         }
-        if ($response === null)
-            if (($body[0] === '{') || ($body[0] === '['))
-                $response = json_decode ($body, $as_associative_array = true);
-            else
-                return;
-        $feedback = $this->id . ' ' . $this->json ($response);
-        if ($code === 404) {
-            // array ( "$message" => "Order not found" )
-            $message = $this->safe_string($response, 'message');
-            if (is_array ($messages) && array_key_exists ($message, $messages))
-                throw new $messages[$message] ($feedback);
-        } else if ($code === 422) {
-            // array of error $messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            // array ( "$errors" => { "user" => ["not_enough_free_balance"] )}
-            // array ( "$errors" => { "quantity" => ["less_than_order_size"] )}
-            if (is_array ($response) && array_key_exists ('errors', $response)) {
-                $errors = $response['errors'];
-                $errorTypes = ['user', 'quantity', 'price'];
-                for ($i = 0; $i < count ($errorTypes); $i++) {
-                    $errorType = $errorTypes[$i];
-                    if (is_array ($errors) && array_key_exists ($errorType, $errors)) {
-                        $errorMessages = $errors[$errorType];
-                        for ($j = 0; $j < count ($errorMessages); $j++) {
-                            $message = $errorMessages[$j];
-                            if (is_array ($messages[$errorType]) && array_key_exists ($message, $messages[$errorType]))
-                                throw new $messages[$errorType][$message] ($feedback);
-                        }
-                    }
+        if (!$this->is_json_encoded_object($body)) {
+            return; // fallback to default error handler
+        }
+        if ($response === null) {
+            $response = json_decode ($body, $as_associative_array = true);
+        }
+        $feedback = $this->id . ' ' . $body;
+        $message = $this->safe_string($response, 'message');
+        $errors = $this->safe_value($response, 'errors');
+        if ($message !== null) {
+            //
+            //  array ( "$message" => "Order not found" )
+            //
+            if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
+                throw new $exceptions[$message] ($feedback);
+            }
+        } else if ($errors !== null) {
+            //
+            //  array ( "$errors" => { "user" => ["not_enough_free_balance"] )}
+            //  array ( "$errors" => { "quantity" => ["less_than_order_size"] )}
+            //  array ( "$errors" => { "order" => ["Can not update partially filled order"] )}
+            //
+            $types = is_array ($errors) ? array_keys ($errors) : array ();
+            for ($i = 0; $i < count ($types); $i++) {
+                $type = $types[$i];
+                $errorMessages = $errors[$type];
+                for ($j = 0; $j < count ($errorMessages); $j++) {
+                    $message = $errorMessages[$j];
+                    if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
+                        throw new $exceptions[$message] ($feedback);
                 }
             }
+        } else {
+            throw new ExchangeError ($feedback);
         }
     }
 }
