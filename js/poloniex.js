@@ -956,42 +956,81 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = transaction['timestamp'] * 1000;
+        //
+        // deposits
+        //
+        //      {      currency: "BTC",
+        //              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //               amount: "0.01063000",
+        //        confirmations:  1,
+        //                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //            timestamp:  1507916888,
+        //               status: "COMPLETE"                                                          }
+        //
+        // withdrawals
+        //
+        //      { withdrawalNumber:  9290444,
+        //                currency: "ETH",
+        //                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
+        //                  amount: "0.15500000",
+        //                     fee: "0.00500000",
+        //               timestamp:  1514099289,
+        //                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //               ipAddress: "5.228.227.214"                                                                 },
+        //
+        let timestamp = this.safeInteger (transaction, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
         let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency === undefined) {
-            let currencyId = this.safeString (transaction, 'currency');
-            if (currencyId in this.currencies_by_id)
-                currency = this.currencies_by_id[currencyId];
+            code = this.commonCurrencyCode (currencyId);
         }
-        if (currency !== undefined)
+        if (currency !== undefined) {
             code = currency['code'];
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined)
-            type = type.toLowerCase ();
-        let statusString = this.safeString (transaction, 'status', 'pending');
-        let parts = statusString.split (':');
-        let numParts = parts.length;
-        let txid = this.safeString (transaction, 'txid');
-        if ((txid === undefined) && (numParts > 1)) {
-            txid = parts[numParts - 1];
         }
-        let status = this.parseTransactionStatus (parts[0]);
+        let status = this.safeString (transaction, 'status');
+        let txid = this.safeString (transaction, 'txid');
+        if (status !== undefined) {
+            let parts = status.split (': ');
+            let numParts = parts.length;
+            status = parts[0];
+            if ((numParts > 1) && (txid === undefined)) {
+                txid = parts[1];
+            }
+            status = this.parseTransactionStatus (status);
+        }
+        const id = this.safeString (transaction, 'withdrawalNumber');
+        const type = (id !== undefined) ? 'withdrawal' : 'deposit';
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                // according to https://poloniex.com/fees/
+                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else if (type === 'withdrawal') {
+                throw new ccxt.ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
         return {
             'info': transaction,
-            'id': undefined,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'),
-            'tag': undefined, // or is it defined?
-            'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': undefined,
             'fee': {
-                'cost': undefined,
-                'rate': undefined,
+                'currency': code,
+                'cost': feeCost,
             },
         };
     }
