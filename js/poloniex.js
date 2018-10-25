@@ -865,7 +865,7 @@ module.exports = class poloniex extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
         const now = this.seconds ();
@@ -917,6 +917,11 @@ module.exports = class poloniex extends Exchange {
         //                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
         //                               ipAddress: "211.8.195.26"                                                                }    ] }
         //
+        return response;
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
         for (let i = 0; i < response['deposits'].length; i++) {
             response['deposits'][i]['type'] = 'deposit';
         }
@@ -925,17 +930,26 @@ module.exports = class poloniex extends Exchange {
         }
         let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
         let deposits = this.parseTransactions (response['deposits'], code, since, limit);
-        return deposits.concat (withdrawals);
+        let transactions = this.arrayConcat (deposits, withdrawals);
+        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let transactions = await this.fetchTransactions (code, since, limit, params);
-        return this.filterBy (transactions, 'type', 'withdrawal');
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
+        for (let i = 0; i < response['withdrawals'].length; i++) {
+            response['withdrawals'][i]['type'] = 'withdrawal';
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let transactions = await this.fetchTransactions (code, since, limit, params);
-        return this.filterBy (transactions, 'type', 'deposit');
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
+        for (let i = 0; i < response['deposits'].length; i++) {
+            response['deposits'][i]['type'] = 'deposit';
+        }
+        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
     }
 
     parseTransactionStatus (status) {
