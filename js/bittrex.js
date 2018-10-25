@@ -24,12 +24,15 @@ module.exports = class bittrex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 'oneMin',
@@ -390,24 +393,44 @@ module.exports = class bittrex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
-        if (trade['OrderType'] === 'BUY') {
+        if (trade['OrderType'] === 'BUY' || trade['OrderType'] === 'LIMIT_BUY') {
             side = 'buy';
-        } else if (trade['OrderType'] === 'SELL') {
+        } else if (trade['OrderType'] === 'SELL' || trade['OrderType'] === 'LIMIT_SELL') {
             side = 'sell';
         }
         let id = undefined;
         if ('Id' in trade)
             id = trade['Id'].toString ();
+        let orderId = this.safeString (trade, 'OrderUuid');
+        let price = this.safeFloat (trade, 'Price');
+        let quantity = this.safeFloat (trade, 'Quantity');
+        let symbol = undefined;
+        if (market === undefined) {
+            let marketId = this.safeString (trade, 'Exchange');
+            market = this.safeValue (this.markets_by_id, marketId);
+        }
+        let currency = undefined;
+        if (market) {
+            symbol = market['symbol'];
+            currency = market['quote'];
+        }
+        let fee = {
+            'cost': this.safeFloat (trade, 'Commission'),
+            'currency': currency,
+        };
         return {
             'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': quantity,
+            'cost': price * quantity,
+            'fee': fee,
         };
     }
 
@@ -502,6 +525,120 @@ module.exports = class bittrex extends Exchange {
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        let market = undefined;
+        await this.loadMarkets ();
+        let request = {};
+        if (symbol !== undefined)
+            request['symbol'] = this.market (symbol)['id'];
+        if (limit !== undefined)
+            request['count'] = limit;
+        let response = await this.accountGetOrderhistory (this.extend (request, params));
+        if ('result' in response) {
+            if (response['result'] !== undefined)
+                return this.parseTrades (response['result'], market, since, limit);
+        }
+        throw new ExchangeError (this.id + ' fetchMyTrades() returned undefined response');
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (limit !== undefined)
+            request['count'] = limit;
+        if (code !== undefined)
+            request['currency'] = this.currency (code)['code'];
+        let response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        for (let i = 0; i < response['result'].length; i++) {
+            response['result'][i]['type'] = 'withdrawal';
+        }
+        if ('result' in response) {
+            if (response['result'] !== undefined)
+                return this.parseTransactions (response['result'], code, since, limit);
+        }
+        throw new ExchangeError (this.id + ' fetchWithdrawals() returned undefined response');
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (limit !== undefined)
+            request['count'] = limit;
+        if (code !== undefined)
+            request['currency'] = this.currency (code)['code'];
+        let response = await this.accountGetDeposithistory (this.extend (request, params));
+        for (let i = 0; i < response['result'].length; i++) {
+            response['result'][i]['type'] = 'deposit';
+        }
+        if ('result' in response) {
+            if (response['result'] !== undefined)
+                return this.parseTransactions (response['result'], code, since, limit);
+        }
+        throw new ExchangeError (this.id + ' fetchDeposits() returned undefined response');
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let deposits = await this.fetchDeposits (code, since, limit, params);
+        let withdrawals = await this.fetchWithdrawals (code, since, limit, params);
+        return deposits.concat (withdrawals);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.parse8601 (transaction['Opened'] + '+00:00');
+        let code = undefined;
+        if (currency === undefined) {
+            let currencyId = transaction['Currency'];
+            if (currencyId in this.currencies_by_id)
+                currency = this.currencies_by_id[currencyId];
+        } else {
+            currency = this.currencies_by_id[currency];
+        }
+        if (currency !== undefined)
+            code = currency['code'];
+        let type = this.safeString (transaction, 'type');
+        if (type !== undefined)
+            type = type.toLowerCase ();
+        let status = 'pending';
+        if (transaction['TxId'])
+            status = 'ok';
+        if (transaction['Canceled'])
+            status = 'canceled';
+        let feeCost = undefined;
+        if (transaction['TxCost'])
+            feeCost = transaction['TxCost'];
+        let address = undefined;
+        if (transaction['Address'])
+            address = this.safeString (transaction, 'Address');
+        // Sometimes 1.0 version of the deposit datastructure is returned
+        if (transaction['success'])
+            status = 'ok';
+        let lastUpdated = undefined;
+        if (transaction['LastUpdated'])
+            lastUpdated = this.parse8601 (transaction['LastUpdated'] + '+00:00');
+        if (transaction['CryptoAddress'])
+            address = this.safeString (transaction, 'CryptoAddress');
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'PaymentUuid'),
+            'txid': this.safeString (transaction, 'TxId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined, // or is it defined?
+            'type': type,
+            'amount': this.safeFloat (transaction, 'Amount'),
+            'currency': code,
+            'status': status,
+            'updated': this.iso8601 (lastUpdated),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
     }
 
     parseSymbol (id) {
