@@ -788,6 +788,19 @@ class hitbtc2 (hitbtc):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # createMarketOrder
+        #
+        #  {      fee: "0.0004644",
+        #           id:  386394956,
+        #        price: "0.4644",
+        #     quantity: "1",
+        #    timestamp: "2018-10-25T16:41:44.780Z"}
+        #
+        # fetchTrades ...
+        #
+        # fetchMyTrades ...
+        #
         timestamp = self.parse8601(trade['timestamp'])
         symbol = None
         if market is not None:
@@ -897,7 +910,38 @@ class hitbtc2 (hitbtc):
         }, params))
         return self.parse_order(response)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
+        #
+        # createMarketOrder
+        #
+        #   {clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
+        #         createdAt:   "2018-10-25T16:41:44.780Z",
+        #       cumQuantity:   "1",
+        #                id:   "66799540063",
+        #          quantity:   "1",
+        #              side:   "sell",
+        #            status:   "filled",
+        #            symbol:   "XRPUSDT",
+        #       timeInForce:   "FOK",
+        #      tradesReport: [{      fee: "0.0004644",
+        #                               id:  386394956,
+        #                            price: "0.4644",
+        #                         quantity: "1",
+        #                        timestamp: "2018-10-25T16:41:44.780Z"}],
+        #              type:   "market",
+        #         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        #
         created = self.parse8601(self.safe_string(order, 'createdAt'))
         updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         if not market:
@@ -905,15 +949,7 @@ class hitbtc2 (hitbtc):
         symbol = market['symbol']
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
-        status = order['status']
-        if status == 'new':
-            status = 'open'
-        elif status == 'suspended':
-            status = 'open'
-        elif status == 'partiallyFilled':
-            status = 'open'
-        elif status == 'filled':
-            status = 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         id = str(order['clientOrderId'])
         price = self.safe_float(order, 'price')
         if price is None:
@@ -926,6 +962,36 @@ class hitbtc2 (hitbtc):
                 remaining = amount - filled
                 if price is not None:
                     cost = filled * price
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side')
+        trades = self.safe_value(order, 'tradesReport')
+        fee = None
+        average = None
+        if trades is not None:
+            trades = self.parse_trades(trades, market)
+            feeCost = None
+            sumOfPrices = None
+            numTrades = len(trades)
+            for i in range(0, numTrades):
+                if feeCost is None:
+                    feeCost = 0
+                if sumOfPrices is None:
+                    sumOfPrices = 0
+                if cost is None:
+                    cost = 0
+                cost += trades[i]['cost']
+                feeCost += trades[i]['fee']['cost']
+                sumOfPrices += trades[i]['price']
+            if (sumOfPrices is not None) and(numTrades > 0):
+                average = sumOfPrices / numTrades
+                if type == 'market':
+                    if price is None:
+                        price = average
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                }
         return {
             'id': id,
             'timestamp': created,
@@ -933,14 +999,16 @@ class hitbtc2 (hitbtc):
             'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
-            'fee': None,
+            'fee': fee,
+            'trades': trades,
             'info': order,
         }
 
