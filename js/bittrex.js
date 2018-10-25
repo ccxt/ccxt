@@ -32,7 +32,7 @@ module.exports = class bittrex extends Exchange {
                 'withdraw': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchTransactions': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': 'oneMin',
@@ -507,100 +507,173 @@ module.exports = class bittrex extends Exchange {
         });
     }
 
+    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.accountGetDeposithistory (this.extend (request, params));
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: [ {            Id:  72578097,
+        //                           Amount:  0.3,
+        //                         Currency: "ETH",
+        //                    Confirmations:  15,
+        //                      LastUpdated: "2018-06-17T07:12:14.57",
+        //                             TxId: "0xf30b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress: "0x7f5f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //
+        return this.parseTransactions (response['result'], currency, since, limit);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        if (limit !== undefined)
-            request['count'] = limit;
-        if (code !== undefined)
-            request['currency'] = this.currency (code)['code'];
-        let response = await this.accountGetWithdrawalhistory (this.extend (request, params));
-        for (let i = 0; i < response['result'].length; i++) {
-            response['result'][i]['type'] = 'withdrawal';
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
         }
-        if ('result' in response) {
-            if (response['result'] !== undefined)
-                return this.parseTransactions (response['result'], code, since, limit);
-        }
-        throw new ExchangeError (this.id + ' fetchWithdrawals() returned undefined response');
-    }
-
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let request = {};
-        if (limit !== undefined)
-            request['count'] = limit;
-        if (code !== undefined)
-            request['currency'] = this.currency (code)['code'];
-        let response = await this.accountGetDeposithistory (this.extend (request, params));
-        for (let i = 0; i < response['result'].length; i++) {
-            response['result'][i]['type'] = 'deposit';
-        }
-        if ('result' in response) {
-            if (response['result'] !== undefined)
-                return this.parseTransactions (response['result'], code, since, limit);
-        }
-        throw new ExchangeError (this.id + ' fetchDeposits() returned undefined response');
-    }
-
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let deposits = await this.fetchDeposits (code, since, limit, params);
-        let withdrawals = await this.fetchWithdrawals (code, since, limit, params);
-        return deposits.concat (withdrawals);
+        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        //
+        //     {
+        //         "success" : true,
+        //         "message" : "",
+        //         "result" : [{
+        //                 "PaymentUuid" : "b52c7a5c-90c6-4c6e-835c-e16df12708b1",
+        //                 "Currency" : "BTC",
+        //                 "Amount" : 17.00000000,
+        //                 "Address" : "1DeaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
+        //                 "Opened" : "2014-07-09T04:24:47.217",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00020000,
+        //                 "TxId" : null,
+        //                 "Canceled" : true,
+        //                 "InvalidAddress" : false
+        //             }, {
+        //                 "PaymentUuid" : "f293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //                 "Currency" : "XC",
+        //                 "Amount" : 7513.75121715,
+        //                 "Address" : "XVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //                 "Opened" : "2014-07-08T23:13:31.83",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00002000,
+        //                 "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //                 "Canceled" : false,
+        //                 "InvalidAddress" : false
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (response['result'], currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.parse8601 (transaction['Opened'] + '+00:00');
+        //
+        // fetchDeposits
+        //
+        //      {            Id:  72578097,
+        //               Amount:  0.3,
+        //             Currency: "ETH",
+        //        Confirmations:  15,
+        //          LastUpdated: "2018-06-17T07:12:14.57",
+        //                 TxId: "0xa30b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //        CryptoAddress: "0x1f5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //         "Currency" : "XC",
+        //         "Amount" : 7513.75121715,
+        //         "Address" : "BVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Opened" : "2014-07-08T23:13:31.83",
+        //         "Authorized" : true,
+        //         "PendingPayment" : false,
+        //         "TxCost" : 0.00002000,
+        //         "TxId" : "c4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //         "Canceled" : false,
+        //         "InvalidAddress" : false
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
+        const amount = this.safeFloat (transaction, 'Amount');
+        const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
+        const txid = this.safeString (transaction, 'TxId');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'));
+        // if (timestamp) {
+        //     log.red (timestamp, this.appendTimezoneParse8601 (this.safeString (transaction, 'Opened')));
+        // }
+        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
-        if (currency === undefined) {
-            let currencyId = transaction['Currency'];
-            if (currencyId in this.currencies_by_id)
-                currency = this.currencies_by_id[currencyId];
-        } else {
-            currency = this.currencies_by_id[currency];
-        }
-        if (currency !== undefined)
+        let currencyId = this.safeString (transaction, 'Currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
             code = currency['code'];
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined)
-            type = type.toLowerCase ();
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
         let status = 'pending';
-        if (transaction['TxId'])
-            status = 'ok';
-        if (transaction['Canceled'])
-            status = 'canceled';
-        let feeCost = undefined;
-        if (transaction['TxCost'])
-            feeCost = transaction['TxCost'];
-        let address = undefined;
-        if (transaction['Address'])
-            address = this.safeString (transaction, 'Address');
-        // Sometimes 1.0 version of the deposit datastructure is returned
-        if (transaction['success'])
-            status = 'ok';
-        let lastUpdated = undefined;
-        if (transaction['LastUpdated'])
-            lastUpdated = this.parse8601 (transaction['LastUpdated'] + '+00:00');
-        if (transaction['CryptoAddress'])
-            address = this.safeString (transaction, 'CryptoAddress');
+        if (type === 'deposit') {
+            if (currency !== undefined) {
+                const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+                const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+                // deposits numConfirmations never reach the minConfirmations number
+                // we set all of them to 'ok', otherwise they'd all be 'pending'
+                status = 'ok';
+                // if (numConfirmations >= minConfirmations) {
+                //     status = 'ok';
+                // }
+            }
+        } else {
+            const authorized = this.safeValue (transaction, 'Authorized', false);
+            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
+            const canceled = this.safeValue (transaction, 'Canceled', false);
+            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
+            if (invalidAddress) {
+                status = 'failed';
+            } else if (canceled) {
+                status = 'canceled';
+            } else if (pendingPayment) {
+                status = 'pending';
+            } else if (authorized && (txid !== undefined)) {
+                status = 'ok';
+            }
+        }
+        let updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+        let feeCost = this.safeFloat (transaction, 'TxCost');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
+                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else if (type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'PaymentUuid'),
-            'txid': this.safeString (transaction, 'TxId'),
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': address,
-            'tag': undefined, // or is it defined?
-            'type': type,
-            'amount': this.safeFloat (transaction, 'Amount'),
-            'currency': code,
-            'status': status,
-            'updated': this.iso8601 (lastUpdated),
             'fee': {
                 'currency': code,
                 'cost': feeCost,
-                'rate': undefined,
             },
         };
     }
