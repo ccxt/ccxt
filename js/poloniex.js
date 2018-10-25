@@ -930,22 +930,12 @@ module.exports = class poloniex extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         let transactions = await this.fetchTransactions (code, since, limit, params);
-        let withdrawals = [];
-        for (let i = 0; i < transactions.length; i++) {
-            if (transactions[i]['type'] === 'withdrawal')
-                withdrawals.push (transactions[i]);
-        }
-        return withdrawals;
+        return this.filterBy (transactions, 'type', 'withdrawal');
     }
-
+    
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         let transactions = await this.fetchTransactions (code, since, limit, params);
-        let deposits = [];
-        for (let i = 0; i < transactions.length; i++) {
-            if (transactions[i]['type'] === 'deposit')
-                deposits.push (transactions[i]);
-        }
-        return deposits;
+        return this.filterBy (transactions, 'type', 'deposit');
     }
 
     parseTransactionStatus (status) {
