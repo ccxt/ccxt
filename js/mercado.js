@@ -333,7 +333,11 @@ module.exports = class mercado extends Exchange {
             }
             if (currency === 'XRP') {
                 if (tag === undefined) {
-                    throw new ExchangeError (this.id + ' requires tag argument to withdraw ' + currency);
+                    if (!('destination_tag' in params)) {
+                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + currency);
+                    }
+                } else {
+                    request['destination_tag'] = tag;
                 }
             }
         }
