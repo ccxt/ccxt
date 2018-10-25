@@ -908,6 +908,13 @@ module.exports = class poloniex extends Exchange {
         return deposits;
     }
 
+    parseTransactionStatus function (status) {
+        const statuses = {
+            'COMPLETE': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, currency = undefined) {
         let timestamp = transaction['timestamp'] * 1000;
         let code = undefined;
@@ -921,9 +928,7 @@ module.exports = class poloniex extends Exchange {
         let type = this.safeString (transaction, 'type');
         if (type !== undefined)
             type = type.toLowerCase ();
-        let status = 'pending';
-        if (transaction['status'].startsWith ('COMPLETE'))
-            status = 'ok';
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status', 'pending'));
         return {
             'info': transaction,
             'id': undefined,
