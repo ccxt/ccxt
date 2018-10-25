@@ -393,44 +393,24 @@ module.exports = class bittrex extends Exchange {
     parseTrade (trade, market = undefined) {
         let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
-        if (trade['OrderType'] === 'BUY' || trade['OrderType'] === 'LIMIT_BUY') {
+        if (trade['OrderType'] === 'BUY') {
             side = 'buy';
-        } else if (trade['OrderType'] === 'SELL' || trade['OrderType'] === 'LIMIT_SELL') {
+        } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
         let id = undefined;
         if ('Id' in trade)
             id = trade['Id'].toString ();
-        let orderId = this.safeString (trade, 'OrderUuid');
-        let price = this.safeFloat (trade, 'Price');
-        let quantity = this.safeFloat (trade, 'Quantity');
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (trade, 'Exchange');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        let currency = undefined;
-        if (market) {
-            symbol = market['symbol'];
-            currency = market['quote'];
-        }
-        let fee = {
-            'cost': this.safeFloat (trade, 'Commission'),
-            'currency': currency,
-        };
         return {
             'id': id,
-            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': 'limit',
             'side': side,
-            'price': price,
-            'amount': quantity,
-            'cost': price * quantity,
-            'fee': fee,
+            'price': this.safeFloat (trade, 'Price'),
+            'amount': this.safeFloat (trade, 'Quantity'),
         };
     }
 
@@ -525,22 +505,6 @@ module.exports = class bittrex extends Exchange {
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let market = undefined;
-        await this.loadMarkets ();
-        let request = {};
-        if (symbol !== undefined)
-            request['symbol'] = this.market (symbol)['id'];
-        if (limit !== undefined)
-            request['count'] = limit;
-        let response = await this.accountGetOrderhistory (this.extend (request, params));
-        if ('result' in response) {
-            if (response['result'] !== undefined)
-                return this.parseTrades (response['result'], market, since, limit);
-        }
-        throw new ExchangeError (this.id + ' fetchMyTrades() returned undefined response');
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
