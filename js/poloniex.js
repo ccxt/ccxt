@@ -981,7 +981,7 @@ module.exports = class poloniex extends Exchange {
         if (currency !== undefined) {
             code = currency['code'];
         }
-        let status = this.safeString (transaction, 'status');
+        let status = this.safeString (transaction, 'status', 'pending');
         let txid = this.safeString (transaction, 'txid');
         if (status !== undefined) {
             let parts = status.split (': ');
