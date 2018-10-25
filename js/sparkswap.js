@@ -363,7 +363,7 @@ module.exports = class sparkswap extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // The call to orderbook endpoint will return the correct information that CCXT will
         // expect, however we need to modify the payload to convert nanosecond timestamps
