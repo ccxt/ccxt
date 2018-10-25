@@ -95,6 +95,9 @@ module.exports = class liquid extends Exchange {
             'commonCurrencies': {
                 'WIN': 'WCOIN',
             },
+            'options': {
+                'cancelOrderException': true,
+            },
         });
     }
 
@@ -466,8 +469,11 @@ module.exports = class liquid extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] === 'closed')
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        if (order['status'] === 'closed') {
+            if (this.options['cancelOrderException']) {
+                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (result));
+            }
+        }
         return order;
     }
 
