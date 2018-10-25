@@ -948,7 +948,7 @@ module.exports = class poloniex extends Exchange {
         return deposits;
     }
 
-    parseTransactionStatus function (status) {
+    parseTransactionStatus (status) {
         const statuses = {
             'COMPLETE': 'ok',
         };
