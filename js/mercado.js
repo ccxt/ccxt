@@ -63,7 +63,7 @@ module.exports = class mercado extends Exchange {
                 'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
-                'XRP/BRL': { 'id': 'XRPBCH', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
+                'XRP/BRL': { 'id': 'XRPBRL', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
             },
             'fees': {
                 'trading': {
@@ -323,12 +323,19 @@ module.exports = class mercado extends Exchange {
         };
         if (currency === 'BRL') {
             let account_ref = ('account_ref' in params);
-            if (!account_ref)
+            if (!account_ref) {
                 throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
+            }
         } else if (currency !== 'LTC') {
             let tx_fee = ('tx_fee' in params);
-            if (!tx_fee)
+            if (!tx_fee) {
                 throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
+            }
+            if (currency === 'XRP') {
+                if (tag === undefined) {
+                    throw new ExchangeError (this.id + ' requires tag argument to withdraw ' + currency);
+                }
+            }
         }
         let response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
