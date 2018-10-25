@@ -507,7 +507,7 @@ module.exports = class bittrex extends Exchange {
         });
     }
 
-    async fetchDeposits (code, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
         const request = {};
@@ -520,13 +520,13 @@ module.exports = class bittrex extends Exchange {
         //
         //     { success:    true,
         //       message:   "",
-        //        result: [ {            Id:  72578097,
+        //        result: [ {            Id:  22578097,
         //                           Amount:  0.3,
         //                         Currency: "ETH",
         //                    Confirmations:  15,
-        //                      LastUpdated: "2018-06-17T07:12:14.57",
-        //                             TxId: "0xf30b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //                    CryptoAddress: "0x7f5f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //                      LastUpdated: "2018-06-10T07:12:10.57",
+        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
         //
         return this.parseTransactions (response['result'], currency, since, limit);
     }
@@ -546,10 +546,10 @@ module.exports = class bittrex extends Exchange {
         //         "success" : true,
         //         "message" : "",
         //         "result" : [{
-        //                 "PaymentUuid" : "b52c7a5c-90c6-4c6e-835c-e16df12708b1",
+        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
         //                 "Currency" : "BTC",
         //                 "Amount" : 17.00000000,
-        //                 "Address" : "1DeaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
+        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
         //                 "Opened" : "2014-07-09T04:24:47.217",
         //                 "Authorized" : true,
         //                 "PendingPayment" : false,
@@ -558,15 +558,15 @@ module.exports = class bittrex extends Exchange {
         //                 "Canceled" : true,
         //                 "InvalidAddress" : false
         //             }, {
-        //                 "PaymentUuid" : "f293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
         //                 "Currency" : "XC",
         //                 "Amount" : 7513.75121715,
-        //                 "Address" : "XVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
         //                 "Opened" : "2014-07-08T23:13:31.83",
         //                 "Authorized" : true,
         //                 "PendingPayment" : false,
         //                 "TxCost" : 0.00002000,
-        //                 "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
         //                 "Canceled" : false,
         //                 "InvalidAddress" : false
         //             }
@@ -585,8 +585,8 @@ module.exports = class bittrex extends Exchange {
         //             Currency: "ETH",
         //        Confirmations:  15,
         //          LastUpdated: "2018-06-17T07:12:14.57",
-        //                 TxId: "0xa30b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
-        //        CryptoAddress: "0x1f5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
         //
         // fetchWithdrawals
         //
@@ -594,12 +594,12 @@ module.exports = class bittrex extends Exchange {
         //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
         //         "Currency" : "XC",
         //         "Amount" : 7513.75121715,
-        //         "Address" : "BVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
         //         "Opened" : "2014-07-08T23:13:31.83",
         //         "Authorized" : true,
         //         "PendingPayment" : false,
         //         "TxCost" : 0.00002000,
-        //         "TxId" : "c4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
         //         "Canceled" : false,
         //         "InvalidAddress" : false
         //     }
@@ -609,9 +609,6 @@ module.exports = class bittrex extends Exchange {
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
         const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'));
-        // if (timestamp) {
-        //     log.red (timestamp, this.appendTimezoneParse8601 (this.safeString (transaction, 'Opened')));
-        // }
         const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
@@ -624,14 +621,16 @@ module.exports = class bittrex extends Exchange {
         let status = 'pending';
         if (type === 'deposit') {
             if (currency !== undefined) {
-                const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
                 // deposits numConfirmations never reach the minConfirmations number
                 // we set all of them to 'ok', otherwise they'd all be 'pending'
+                //
+                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+                //     if (numConfirmations >= minConfirmations) {
+                //         status = 'ok';
+                //     }
+                //
                 status = 'ok';
-                // if (numConfirmations >= minConfirmations) {
-                //     status = 'ok';
-                // }
             }
         } else {
             const authorized = this.safeValue (transaction, 'Authorized', false);
