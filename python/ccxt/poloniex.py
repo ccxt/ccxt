@@ -47,6 +47,9 @@ class poloniex (Exchange):
                 'fetchTradingFees': True,
                 'fetchCurrencies': True,
                 'withdraw': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': 'emulated',  # but almost True )
+                'fetchDeposits': 'emulated',
             },
             'timeframes': {
                 '5m': 300,
@@ -806,6 +809,163 @@ class poloniex (Exchange):
         return {
             'info': result,
             'id': result['response'],
+        }
+
+    def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        year = 31104000  # 60 * 60 * 24 * 30 * 12 = one year of history, why not
+        now = self.seconds()
+        start = int(since / 1000) if (since is not None) else now - year
+        request = {
+            'start': start,  # UNIX timestamp, required
+            'end': now,  # UNIX timestamp, required
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privatePostReturnDepositsWithdrawals(self.extend(request, params))
+        #
+        #     {   deposits: [{     currency: "BTC",
+        #                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        #                               amount: "0.01063000",
+        #                        confirmations:  1,
+        #                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        #                            timestamp:  1507916888,
+        #                               status: "COMPLETE"                                                          },
+        #                      {     currency: "ETH",
+        #                              address: "0x20108ba20b65c04d82909e91df06618107460197",
+        #                               amount: "4.00000000",
+        #                        confirmations:  38,
+        #                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        #                            timestamp:  1525060430,
+        #                               status: "COMPLETE"                                                            }  ],
+        #       withdrawals: [{withdrawalNumber:  8224394,
+        #                                currency: "EMC2",
+        #                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        #                                  amount: "63.10796020",
+        #                                     fee: "0.01000000",
+        #                               timestamp:  1510819838,
+        #                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        #                               ipAddress: "5.220.220.200"                                                               },
+        #                      {withdrawalNumber:  9290444,
+        #                                currency: "ETH",
+        #                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
+        #                                  amount: "0.15500000",
+        #                                     fee: "0.00500000",
+        #                               timestamp:  1514099289,
+        #                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        #                               ipAddress: "5.228.227.214"                                                                 },
+        #                      {withdrawalNumber:  11518260,
+        #                                currency: "BTC",
+        #                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        #                                  amount: "0.20000000",
+        #                                     fee: "0.00050000",
+        #                               timestamp:  1527918155,
+        #                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        #                               ipAddress: "211.8.195.26"                                                                }    ]}
+        #
+        return response
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        response = self.fetch_transactions_helper(code, since, limit, params)
+        for i in range(0, len(response['deposits'])):
+            response['deposits'][i]['type'] = 'deposit'
+        for i in range(0, len(response['withdrawals'])):
+            response['withdrawals'][i]['type'] = 'withdrawal'
+        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
+        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        transactions = self.array_concat(deposits, withdrawals)
+        return self.filterByCurrencySinceLimit(self.sort_by(transactions, 'timestamp'), code, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        response = self.fetch_transactions_helper(code, since, limit, params)
+        for i in range(0, len(response['withdrawals'])):
+            response['withdrawals'][i]['type'] = 'withdrawal'
+        withdrawals = self.parseTransactions(response['withdrawals'], code, since, limit)
+        return self.filterByCurrencySinceLimit(withdrawals, code, since, limit)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        response = self.fetch_transactions_helper(code, since, limit, params)
+        for i in range(0, len(response['deposits'])):
+            response['deposits'][i]['type'] = 'deposit'
+        deposits = self.parseTransactions(response['deposits'], code, since, limit)
+        return self.filterByCurrencySinceLimit(deposits, code, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'COMPLETE': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # deposits
+        #
+        #      {     currency: "BTC",
+        #              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        #               amount: "0.01063000",
+        #        confirmations:  1,
+        #                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        #            timestamp:  1507916888,
+        #               status: "COMPLETE"                                                          }
+        #
+        # withdrawals
+        #
+        #      {withdrawalNumber:  9290444,
+        #                currency: "ETH",
+        #                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
+        #                  amount: "0.15500000",
+        #                     fee: "0.00500000",
+        #               timestamp:  1514099289,
+        #                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        #               ipAddress: "5.228.227.214"                                                                 },
+        #
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is None:
+            code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        status = self.safe_string(transaction, 'status', 'pending')
+        txid = self.safe_string(transaction, 'txid')
+        if status is not None:
+            parts = status.split(': ')
+            numParts = len(parts)
+            status = parts[0]
+            if (numParts > 1) and(txid is None):
+                txid = parts[1]
+            status = self.parse_transaction_status(status)
+        id = self.safe_string(transaction, 'withdrawalNumber')
+        type = 'withdrawal' if (id is not None) else 'deposit'
+        amount = self.safe_float(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is None:
+            if type == 'deposit':
+                # according to https://poloniex.com/fees/
+                feeCost = 0  # FIXME: remove hardcoded value that may change any time
+            elif type == 'withdrawal':
+                raise ExchangeError('Withdrawal without fee detectednot ')
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         }
 
     def nonce(self):
