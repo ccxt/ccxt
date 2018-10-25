@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.413'
+const version = '1.17.414'
 
 Exchange.ccxtVersion = version
 
@@ -46632,7 +46632,7 @@ module.exports = class liquid extends Exchange {
                     'API Authentication failed': AuthenticationError,
                     'Nonce is too small': InvalidNonce,
                     'Order not found': OrderNotFound,
-                    'Can not update partially filled order': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
                     'Can not update non-live order': OrderNotFound,
                     'user': {
                         'not_enough_free_balance': InsufficientFunds,

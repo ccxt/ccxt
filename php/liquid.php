@@ -88,7 +88,7 @@ class liquid extends Exchange {
                     'API Authentication failed' => '\\ccxt\\AuthenticationError',
                     'Nonce is too small' => '\\ccxt\\InvalidNonce',
                     'Order not found' => '\\ccxt\\OrderNotFound',
-                    'Can not update partially filled order' => '\\ccxt\\OrderNotFound',
+                    'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
                     'Can not update non-live order' => '\\ccxt\\OrderNotFound',
                     'user' => array (
                         'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
