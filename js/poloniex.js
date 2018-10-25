@@ -928,11 +928,18 @@ module.exports = class poloniex extends Exchange {
         let type = this.safeString (transaction, 'type');
         if (type !== undefined)
             type = type.toLowerCase ();
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'status', 'pending'));
+        let statusString = this.safeString (transaction, 'status', 'pending');
+        let parts = statusString.split (':');
+        let numParts = parts.length;
+        let txid = this.safeString (transaction, 'txid');
+        if ((txid === undefined) && (numParts > 1)) {
+            txid = parts[numParts - 1];
+        }
+        let status = this.parseTransactionStatus (parts[0]);
         return {
             'info': transaction,
             'id': undefined,
-            'txid': this.safeString (transaction, 'txid'),
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'address'),
