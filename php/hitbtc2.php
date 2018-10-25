@@ -829,6 +829,7 @@ class hitbtc2 extends hitbtc {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
         $cost = $price * $amount;
+        $side = $this->safe_string($trade, 'side');
         return array (
             'info' => $trade,
             'id' => (string) $trade['id'],
@@ -837,7 +838,7 @@ class hitbtc2 extends hitbtc {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade['side'],
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

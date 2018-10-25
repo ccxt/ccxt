@@ -826,6 +826,7 @@ class hitbtc2 (hitbtc):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
         cost = price * amount
+        side = self.safe_string(trade, 'side')
         return {
             'info': trade,
             'id': str(trade['id']),
@@ -834,7 +835,7 @@ class hitbtc2 (hitbtc):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
