@@ -64,7 +64,7 @@ class mercado extends Exchange {
                 'BTC/BRL' => array ( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'suffix' => 'Bitcoin' ),
                 'LTC/BRL' => array ( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'suffix' => 'Litecoin' ),
                 'BCH/BRL' => array ( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'suffix' => 'BCash' ),
-                'XRP/BRL' => array ( 'id' => 'XRPBCH', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'suffix' => 'Ripple' ),
+                'XRP/BRL' => array ( 'id' => 'XRPBRL', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'suffix' => 'Ripple' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -324,12 +324,23 @@ class mercado extends Exchange {
         );
         if ($currency === 'BRL') {
             $account_ref = (is_array ($params) && array_key_exists ('account_ref', $params));
-            if (!$account_ref)
+            if (!$account_ref) {
                 throw new ExchangeError ($this->id . ' requires $account_ref parameter to withdraw ' . $currency);
+            }
         } else if ($currency !== 'LTC') {
             $tx_fee = (is_array ($params) && array_key_exists ('tx_fee', $params));
-            if (!$tx_fee)
+            if (!$tx_fee) {
                 throw new ExchangeError ($this->id . ' requires $tx_fee parameter to withdraw ' . $currency);
+            }
+            if ($currency === 'XRP') {
+                if ($tag === null) {
+                    if (!(is_array ($params) && array_key_exists ('destination_tag', $params))) {
+                        throw new ExchangeError ($this->id . ' requires a $tag argument or destination_tag parameter to withdraw ' . $currency);
+                    }
+                } else {
+                    $request['destination_tag'] = $tag;
+                }
+            }
         }
         $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
         return array (
