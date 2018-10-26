@@ -27,7 +27,7 @@ module.exports = class cobinhood extends Exchange {
                 'createDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'withdraw': false,
+                'withdraw': true,
                 'fetchMyTrades': true,
                 'editOrder': true,
             },
