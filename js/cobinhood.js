@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -145,6 +145,7 @@ module.exports = class cobinhood extends Exchange {
                 'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+                'invalid_address': InvalidAddress,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
