@@ -94,6 +94,12 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
@@ -116,6 +122,8 @@ module.exports = class cobinhood extends Exchange {
                         'wallet/deposits',
                     ],
                     'post': [
+                        'funding/auto_offerings',
+                        'funding/fundings',
                         'trading/orders',
                         // older endpoints
                         'wallet/deposit_addresses',
@@ -123,9 +131,13 @@ module.exports = class cobinhood extends Exchange {
                         'wallet/withdrawals',
                     ],
                     'put': [
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ],
                     'delete': [
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                     ],
                 },
