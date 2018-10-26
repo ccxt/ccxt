@@ -622,7 +622,7 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
         let response = await this.privatePostWalletWithdrawals (this.extend ({
