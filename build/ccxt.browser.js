@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.421'
+const version = '1.17.423'
 
 Exchange.ccxtVersion = version
 
@@ -43703,6 +43703,7 @@ module.exports = class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -49042,7 +49043,7 @@ module.exports = class mercado extends Exchange {
                 'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
-                'XRP/BRL': { 'id': 'XRPBRL', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
+                'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
             },
             'fees': {
                 'trading': {
