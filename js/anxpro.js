@@ -166,19 +166,16 @@ module.exports = class anxpro extends Exchange {
         return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
-    getAmountMultiplier (currency) {
-        if (currency === 'BTC') {
-            return 100000000;
-        } else if (currency === 'LTC') {
-            return 100000000;
-        } else if (currency === 'STR') {
-            return 100000000;
-        } else if (currency === 'XRP') {
-            return 100000000;
-        } else if (currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    getAmountMultiplier (code) {
+        const multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        };
+        const defaultValue = 100;
+        return this.safeInteger (multipliers, code, defaultValue);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
