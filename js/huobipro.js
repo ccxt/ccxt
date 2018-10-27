@@ -21,6 +21,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': false,
+                'fetchTickers': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -270,11 +271,10 @@ module.exports = class huobipro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        if ('ts' in ticker)
-            timestamp = ticker['ts'];
+        }
+        let timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let ask = undefined;
         let bidVolume = undefined;
@@ -299,20 +299,22 @@ module.exports = class huobipro extends Exchange {
         if ((open !== undefined) && (close !== undefined)) {
             change = close - open;
             average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0))
+            if ((close !== undefined) && (close > 0)) {
                 percentage = (change / open) * 100;
+            }
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0)
+        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
             vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
