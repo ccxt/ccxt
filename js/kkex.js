@@ -340,10 +340,10 @@ module.exports = class kkex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeString (order, 'side');
-        if (typeof side === 'undefined') {
+        if (side === undefined) {
             side = this.safeString (order, 'type');
         }
         let timestamp = undefined;
