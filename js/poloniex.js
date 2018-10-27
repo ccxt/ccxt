@@ -322,9 +322,11 @@ module.exports = class poloniex extends Exchange {
         let request = {
             'currencyPair': 'all',
         };
-        // if (limit !== undefined) {
-        //     request['depth'] = limit; // 100
-        // }
+        //
+        //     if (limit !== undefined) {
+        //         request['depth'] = limit; // 100
+        //     }
+        //
         let response = await this.publicGetReturnOrderBook (this.extend (request, params));
         let marketIds = Object.keys (response);
         let result = {};
