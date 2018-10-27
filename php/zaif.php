@@ -348,18 +348,24 @@ class zaif extends Exchange {
         return $this->parse_orders($response['return'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        if ($currency === 'JPY')
-            throw new ExchangeError ($this->id . ' does not allow ' . $currency . ' withdrawals');
-        $result = $this->privatePostWithdraw (array_merge (array (
-            'currency' => $currency,
+        $currency = $this->currency ($code);
+        if ($code === 'JPY') {
+            throw new ExchangeError ($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
+        }
+        $request = array (
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-            // 'message' => 'Hi!', // XEM only
+            // 'message' => 'Hi!', // XEM and others
             // 'opt_fee' => 0.003, // BTC and MONA only
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['message'] = $tag;
+        }
+        $result = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result['return']['txid'],
