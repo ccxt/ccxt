@@ -951,12 +951,13 @@ class kraken (Exchange):
             'info': response,
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         if 'key' in params:
             self.load_markets()
+            currency = self.currency(code)
             response = self.privatePostWithdraw(self.extend({
-                'asset': currency,
+                'asset': currency['id'],
                 'amount': amount,
                 # 'address': address,  # they don't allow withdrawals to direct addresses
             }, params))

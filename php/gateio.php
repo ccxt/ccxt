@@ -140,9 +140,9 @@ class gateio extends Exchange {
             $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
-            list ($base, $quote) = explode ('_', $id);
-            $base = strtoupper ($base);
-            $quote = strtoupper ($quote);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -175,6 +175,8 @@ class gateio extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
                 'maker' => $details['fee'] / 100,
@@ -560,11 +562,12 @@ class gateio extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
+        $currency = $this->currency ($code);
         $response = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address, // Address must exist in you AddressBook in security settings
         ), $params));

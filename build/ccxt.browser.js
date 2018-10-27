@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.425'
+const version = '1.17.426'
 
 Exchange.ccxtVersion = version
 
@@ -677,14 +677,16 @@ module.exports = class _1btcxe extends Exchange {
         return await this.privatePostOrdersCancel ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawalsNew (this.extend ({
-            'currency': currency,
+        let currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        let response = await this.privatePostWithdrawalsNew (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['uuid'],
@@ -836,14 +838,25 @@ module.exports = class acx extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
+            let baseId = this.safeString (market, 'base_unit');
+            let quoteId = this.safeString (market, 'quote_unit');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+            // todo: find out their undocumented precision and limits
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             });
         }
@@ -1074,14 +1087,18 @@ module.exports = class acx extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+        let currency = this.currency (code);
+        // they have XRP but no docs on memo/tag
+        let request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params));
+        };
+        let result = await this.privatePostWithdraw (this.extend (request, params));
+        // withdrawal response is undocumented
         return {
             'info': result,
             'id': undefined,
@@ -1459,30 +1476,32 @@ module.exports = class anxpro extends Exchange {
         return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
-    getAmountMultiplier (currency) {
-        if (currency === 'BTC') {
-            return 100000000;
-        } else if (currency === 'LTC') {
-            return 100000000;
-        } else if (currency === 'STR') {
-            return 100000000;
-        } else if (currency === 'XRP') {
-            return 100000000;
-        } else if (currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    getAmountMultiplier (code) {
+        const multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        };
+        const defaultValue = 100;
+        return this.safeInteger (multipliers, code, defaultValue);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let multiplier = this.getAmountMultiplier (currency);
-        let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
+        let currency = this.currency (code);
+        let multiplier = this.getAmountMultiplier (code);
+        let request = {
             'currency': currency,
             'amount_int': parseInt (amount * multiplier),
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        let response = await this.privatePostMoneyCurrencySendSimple (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['transactionId'],
@@ -9442,27 +9461,27 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    getCurrencyName (currency) {
-        if (currency in this.options['currencyNames'])
-            return this.options['currencyNames'][currency];
-        throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
+    getCurrencyName (code) {
+        if (code in this.options['currencyNames'])
+            return this.options['currencyNames'][code];
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let response = await this.fetchDepositAddress (currency, this.extend ({
+    async createDepositAddress (code, params = {}) {
+        let response = await this.fetchDepositAddress (code, this.extend ({
             'renew': 1,
         }, params));
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'info': response['info'],
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let name = this.getCurrencyName (currency);
+    async fetchDepositAddress (code, params = {}) {
+        let name = this.getCurrencyName (code);
         let request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -9477,7 +9496,7 @@ module.exports = class bitfinex extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -9578,9 +9597,9 @@ module.exports = class bitfinex extends Exchange {
         return (status in statuses) ? statuses[status] : status;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let name = this.getCurrencyName (currency);
+        let name = this.getCurrencyName (code);
         let request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -10110,7 +10129,7 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
@@ -11475,17 +11494,22 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         };
         if (currency === 'XRP' || currency === 'XMR') {
-            let destination = ('destination' in params);
-            if (!destination)
-                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+            const destination = this.safeString (params, 'destination');
+            if ((tag === undefined) && (destination === undefined)) {
+                throw new ExchangeError (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+            } else if (tag !== undefined) {
+                request['destination'] = tag;
+            }
         }
         let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
         return {
@@ -11934,10 +11958,11 @@ module.exports = class bitlish extends Exchange {
         return await this.privatePostCancelTrade ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency !== 'BTC') {
+        let currency = this.currency (code);
+        if (code !== 'BTC') {
             // they did not document other types...
             throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
@@ -12285,15 +12310,16 @@ module.exports = class bitmarket extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let method = undefined;
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat (code)) {
             method = 'privatePostWithdrawFiat';
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal
@@ -12895,11 +12921,13 @@ module.exports = class bitmex extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency !== 'BTC')
+        // let currency = this.currency (code);
+        if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
+        }
         let request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
@@ -21053,24 +21081,23 @@ module.exports = class buda extends Exchange {
     }
 
     isFiat (code) {
-        if (code === 'ARS')
-            return true;
-        if (code === 'CLP')
-            return true;
-        if (code === 'COP')
-            return true;
-        if (code === 'PEN')
-            return true;
-        return false;
+        const fiats = {
+            'ARS': true,
+            'CLP': true,
+            'COP': true,
+            'PEN': true,
+        };
+        return this.safeValue (fiats, code, false);
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fetchDepositAddress() for fiat ' + code + ' is not supported');
+        }
         let response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let receiveAddresses = response['receive_addresses'];
         let addressPool = [];
@@ -21082,11 +21109,13 @@ module.exports = class buda extends Exchange {
                 addressPool.push (address);
             }
         }
-        if (addressPool.length === 0)
-            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + currency + ', retry again later)');
+        let addressPoolLength = addressPool.length;
+        if (addressPoolLength < 1) {
+            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + code + ', retry again later)');
+        }
         let address = addressPool[0];
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': receiveAddresses,
@@ -21095,15 +21124,15 @@ module.exports = class buda extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code))
+            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': response,
@@ -32959,15 +32988,17 @@ module.exports = class exmo extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'amount': amount,
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['invoice'] = tag;
+        }
         let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
@@ -35692,9 +35723,9 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ base, quote ] = id.split ('_');
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -35727,6 +35758,8 @@ module.exports = class gateio extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'active': active,
                 'maker': details['fee'] / 100,
@@ -36112,11 +36145,12 @@ module.exports = class gateio extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
         }, params));
@@ -43568,12 +43602,13 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();
+            let currency = this.currency (code);
             let response = await this.privatePostWithdraw (this.extend ({
-                'asset': currency,
+                'asset': currency['id'],
                 'amount': amount,
                 // 'address': address, // they don't allow withdrawals to direct addresses
             }, params));
@@ -46711,14 +46746,20 @@ module.exports = class liqui extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
+        let currency = this.currency (code);
+        let request = {
+            'coinName': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        // no docs on the tag, yet...
+        if (tag !== undefined) {
+            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+        }
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -48105,23 +48146,25 @@ module.exports = class livecoin extends Exchange {
         throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         // Sometimes the response with be { key: null } for all keys.
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
-        await this.loadMarkets ();
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let wallet = address;
         if (tag !== undefined)
             wallet += '::' + tag;
-        let withdrawal = {
+        let request = {
             'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
-            'currency': this.commonCurrencyCode (currency),
+            'currency': currency['id'],
             'wallet': wallet,
         };
-        let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
+        let response = await this.privatePostPaymentOutCoin (this.extend (request, params));
         let id = this.safeInteger (response, 'id');
-        if (id === undefined)
+        if (id === undefined) {
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
+        }
         return {
             'info': response,
             'id': id,
@@ -49333,28 +49376,29 @@ module.exports = class mercado extends Exchange {
         return this.parseOrder (response['response_data']['order']);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'coin': currency,
+            'coin': currency['id'],
             'quantity': amount.toFixed (10),
             'address': address,
         };
-        if (currency === 'BRL') {
+        if (code === 'BRL') {
             let account_ref = ('account_ref' in params);
             if (!account_ref) {
-                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
+                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + code);
             }
-        } else if (currency !== 'LTC') {
+        } else if (code !== 'LTC') {
             let tx_fee = ('tx_fee' in params);
             if (!tx_fee) {
-                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
+                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + code);
             }
-            if (currency === 'XRP') {
+            if (code === 'XRP') {
                 if (tag === undefined) {
                     if (!('destination_tag' in params)) {
-                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + currency);
+                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tag;

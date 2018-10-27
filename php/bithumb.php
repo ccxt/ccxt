@@ -301,17 +301,22 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
             'units' => $amount,
             'address' => $address,
-            'currency' => $currency,
+            'currency' => $currency['id'],
         );
         if ($currency === 'XRP' || $currency === 'XMR') {
-            $destination = (is_array ($params) && array_key_exists ('destination', $params));
-            if (!$destination)
-                throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
+            $destination = $this->safe_string($params, 'destination');
+            if (($tag === null) && ($destination === null)) {
+                throw new ExchangeError ($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+            } else if ($tag !== null) {
+                $request['destination'] = $tag;
+            }
         }
         $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
         return array (

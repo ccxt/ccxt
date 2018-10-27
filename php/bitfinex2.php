@@ -430,7 +430,7 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' fetchDepositAddress() not implemented yet.');
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         throw new NotSupported ($this->id . ' withdraw not implemented yet');
     }
 
