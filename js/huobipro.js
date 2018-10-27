@@ -376,7 +376,7 @@ module.exports = class huobipro extends Exchange {
                 symbol = market['symbol'];
                 let ticker = this.parseTicker (tickers[i], market);
                 ticker['timestamp'] = timestamp;
-                ticker['iso8601'] = this.iso8601 (timestamp);
+                ticker['datetime'] = this.iso8601 (timestamp);
                 result[symbol] = ticker;
             }
         }
