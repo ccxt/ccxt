@@ -23,6 +23,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderTrades': true,
                 'fetchMyTrades': true,
+                'fetchOrderBooks': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -307,12 +308,42 @@ module.exports = class poloniex extends Exchange {
         let request = {
             'currencyPair': this.marketId (symbol),
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit; // 100
+        }
         let response = await this.publicGetReturnOrderBook (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'sec');
+        orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'currencyPair': 'all',
+        };
+        // if (limit !== undefined) {
+        //     request['depth'] = limit; // 100
+        // }
+        let response = await this.publicGetReturnOrderBook (this.extend (request, params));
+        let marketIds = Object.keys (response);
+        let result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            } else {
+                let [ quoteId, baseId ] = marketId.split ('_');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            let orderbook = this.parseOrderBook (response[marketId]);
+            orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
+            result[symbol] = orderbook;
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
