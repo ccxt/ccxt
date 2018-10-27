@@ -563,24 +563,23 @@ module.exports = class buda extends Exchange {
     }
 
     isFiat (code) {
-        if (code === 'ARS')
-            return true;
-        if (code === 'CLP')
-            return true;
-        if (code === 'COP')
-            return true;
-        if (code === 'PEN')
-            return true;
-        return false;
+        const fiats = {
+            'ARS': true,
+            'CLP': true,
+            'COP': true,
+            'PEN': true,
+        };
+        return this.safeValue (fiats, code, false);
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fetchDepositAddress() for fiat ' + code + ' is not supported');
+        }
         let response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let receiveAddresses = response['receive_addresses'];
         let addressPool = [];
@@ -592,11 +591,13 @@ module.exports = class buda extends Exchange {
                 addressPool.push (address);
             }
         }
-        if (addressPool.length === 0)
-            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + currency + ', retry again later)');
+        let addressPoolLength = addressPool.length;
+        if (addressPoolLength < 1) {
+            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + code + ', retry again later)');
+        }
         let address = addressPool[0];
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': receiveAddresses,
@@ -605,15 +606,15 @@ module.exports = class buda extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code))
+            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': response,
