@@ -71,6 +71,7 @@ module.exports = class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -359,6 +360,27 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response['tick'], market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.marketGetTickers (params);
+        let tickers = response['data'];
+        let timestamp = this.safeInteger (response, 'ts');
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let marketId = this.safeString (tickers[i], 'symbol');
+            let market = this.safeValue (this.markets_by_id, marketId);
+            let symbol = marketId;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+                let ticker = this.parseTicker (tickers[i], market);
+                ticker['timestamp'] = timestamp;
+                ticker['iso8601'] = this.iso8601 (timestamp);
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
