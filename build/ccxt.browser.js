@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.427'
+const version = '1.17.428'
 
 Exchange.ccxtVersion = version
 
@@ -40057,6 +40057,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': false,
+                'fetchTickers': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -40106,6 +40107,7 @@ module.exports = class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -40306,11 +40308,10 @@ module.exports = class huobipro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        if ('ts' in ticker)
-            timestamp = ticker['ts'];
+        }
+        let timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let ask = undefined;
         let bidVolume = undefined;
@@ -40335,20 +40336,22 @@ module.exports = class huobipro extends Exchange {
         if ((open !== undefined) && (close !== undefined)) {
             change = close - open;
             average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0))
+            if ((close !== undefined) && (close > 0)) {
                 percentage = (change / open) * 100;
+            }
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0)
+        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
             vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -40393,6 +40396,27 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response['tick'], market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.marketGetTickers (params);
+        let tickers = response['data'];
+        let timestamp = this.safeInteger (response, 'ts');
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let marketId = this.safeString (tickers[i], 'symbol');
+            let market = this.safeValue (this.markets_by_id, marketId);
+            let symbol = marketId;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+                let ticker = this.parseTicker (tickers[i], market);
+                ticker['timestamp'] = timestamp;
+                ticker['datetime'] = this.iso8601 (timestamp);
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
@@ -51599,6 +51623,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderTrades': true,
                 'fetchMyTrades': true,
+                'fetchOrderBooks': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -51883,12 +51908,44 @@ module.exports = class poloniex extends Exchange {
         let request = {
             'currencyPair': this.marketId (symbol),
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit; // 100
+        }
         let response = await this.publicGetReturnOrderBook (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'sec');
+        orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'currencyPair': 'all',
+        };
+        //
+        //     if (limit !== undefined) {
+        //         request['depth'] = limit; // 100
+        //     }
+        //
+        let response = await this.publicGetReturnOrderBook (this.extend (request, params));
+        let marketIds = Object.keys (response);
+        let result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            } else {
+                let [ quoteId, baseId ] = marketId.split ('_');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            let orderbook = this.parseOrderBook (response[marketId]);
+            orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
+            result[symbol] = orderbook;
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {

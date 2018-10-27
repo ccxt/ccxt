@@ -39,6 +39,7 @@ class poloniex (Exchange):
                 'fetchOHLCV': True,
                 'fetchOrderTrades': True,
                 'fetchMyTrades': True,
+                'fetchOrderBooks': True,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': True,
@@ -317,8 +318,36 @@ class poloniex (Exchange):
             request['depth'] = limit  # 100
         response = await self.publicGetReturnOrderBook(self.extend(request, params))
         orderbook = self.parse_order_book(response)
-        orderbook['nonce'] = self.safe_integer(response, 'sec')
+        orderbook['nonce'] = self.safe_integer(response, 'seq')
         return orderbook
+
+    async def fetch_order_books(self, symbols=None, params={}):
+        await self.load_markets()
+        request = {
+            'currencyPair': 'all',
+        }
+        #
+        #     if limit is not None:
+        #         request['depth'] = limit  # 100
+        #     }
+        #
+        response = await self.publicGetReturnOrderBook(self.extend(request, params))
+        marketIds = list(response.keys())
+        result = {}
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = None
+            if marketId in self.markets_by_id:
+                symbol = self.markets_by_id[marketId]['symbol']
+            else:
+                quoteId, baseId = marketId.split('_')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+            orderbook = self.parse_order_book(response[marketId])
+            orderbook['nonce'] = self.safe_integer(response[marketId], 'seq')
+            result[symbol] = orderbook
+        return result
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()

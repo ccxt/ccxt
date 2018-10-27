@@ -24,6 +24,7 @@ class poloniex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOrderTrades' => true,
                 'fetchMyTrades' => true,
+                'fetchOrderBooks' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrders' => 'emulated',
                 'fetchOpenOrders' => true,
@@ -308,12 +309,44 @@ class poloniex extends Exchange {
         $request = array (
             'currencyPair' => $this->market_id($symbol),
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['depth'] = $limit; // 100
+        }
         $response = $this->publicGetReturnOrderBook (array_merge ($request, $params));
         $orderbook = $this->parse_order_book($response);
-        $orderbook['nonce'] = $this->safe_integer($response, 'sec');
+        $orderbook['nonce'] = $this->safe_integer($response, 'seq');
         return $orderbook;
+    }
+
+    public function fetch_order_books ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'currencyPair' => 'all',
+        );
+        //
+        //     if (limit !== null) {
+        //         $request['depth'] = limit; // 100
+        //     }
+        //
+        $response = $this->publicGetReturnOrderBook (array_merge ($request, $params));
+        $marketIds = is_array ($response) ? array_keys ($response) : array ();
+        $result = array ();
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = null;
+            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                $symbol = $this->markets_by_id[$marketId]['symbol'];
+            } else {
+                list ($quoteId, $baseId) = explode ('_', $marketId);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+            $orderbook = $this->parse_order_book($response[$marketId]);
+            $orderbook['nonce'] = $this->safe_integer($response[$marketId], 'seq');
+            $result[$symbol] = $orderbook;
+        }
+        return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
