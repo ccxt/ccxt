@@ -39,37 +39,41 @@ module.exports = class tidebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
-                'doc': 'https://www.tidebit.com/documents/api_v2',
+                'doc': [
+                    'https://www.tidebit.com/documents/api/guide',
+                    'https://www.tidebit.com/swagger/#/default',
+                ],
             },
             'api': {
                 'public': {
                     'get': [
-                        'v2/markets', // V2MarketsJson
-                        'v2/tickers', // V2TickersJson
-                        'v2/tickers/{market}', // V2TickersMarketJson
-                        'v2/trades', // V2TradesJson
-                        'v2/trades/{market}', // V2TradesMarketJson
-                        'v2/order_book', // V2OrderBookJson
-                        'v2/order', // V2OrderJson
-                        'v2/k_with_pending_trades', // V2KWithPendingTradesJson
-                        'v2/k', // V2KJson
-                        'v2/depth', // V2DepthJson
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'timestamp',
+                        'trades',
+                        'trades/{market}',
+                        'order_book',
+                        'order',
+                        'k_with_pending_trades',
+                        'k',
+                        'depth',
                     ],
                     'post': [],
                 },
                 'private': {
                     'get': [
-                        'v2/deposits', // V2DepositsJson
-                        'v2/deposit_address', // V2DepositAddressJson
-                        'v2/deposit', // V2DepositJson
-                        'v2/members/me', // V2MembersMeJson
-                        'v2/addresses/{address}', // V2AddressesAddressJson
+                        'deposits',
+                        'deposit_address',
+                        'deposit',
+                        'members/me',
+                        'addresses/{address}',
                     ],
                     'post': [
-                        'v2/order/delete', // V2OrderDeleteJson
-                        'v2/order', // V2OrderJson
-                        'v2/order/multi', // V2OrderMultiJson
-                        'v2/order/clear', // V2OrderClearJson
+                        'order/delete',
+                        'order',
+                        'order/multi',
+                        'order/clear',
                     ],
                 },
             },
@@ -358,14 +362,19 @@ module.exports = class tidebit extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
+        let currency = this.currency (code);
+        let request = {
             'currency': currency.toLowerCase (),
             'sum': amount,
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+
+        }
+        let result = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': result,
             'id': undefined,
@@ -381,7 +390,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.implodeParams (path, params) + '.json';
+        let request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api === 'public') {
