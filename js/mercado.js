@@ -313,28 +313,29 @@ module.exports = class mercado extends Exchange {
         return this.parseOrder (response['response_data']['order']);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'coin': currency,
+            'coin': currency['id'],
             'quantity': amount.toFixed (10),
             'address': address,
         };
-        if (currency === 'BRL') {
+        if (code === 'BRL') {
             let account_ref = ('account_ref' in params);
             if (!account_ref) {
-                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
+                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + code);
             }
-        } else if (currency !== 'LTC') {
+        } else if (code !== 'LTC') {
             let tx_fee = ('tx_fee' in params);
             if (!tx_fee) {
-                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
+                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + code);
             }
-            if (currency === 'XRP') {
+            if (code === 'XRP') {
                 if (tag === undefined) {
                     if (!('destination_tag' in params)) {
-                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + currency);
+                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tag;
