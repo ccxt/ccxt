@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.424'
+const version = '1.17.425'
 
 Exchange.ccxtVersion = version
 
@@ -52353,13 +52353,19 @@ module.exports = class poloniex extends Exchange {
             'currency': currency['id'],
         });
         let address = undefined;
+        let tag = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
         this.checkAddress (address);
+        const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (depositAddress !== undefined) {
+            tag = address;
+            address = depositAddress;
+        }
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }
@@ -52370,11 +52376,17 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
+        let tag = undefined;
         this.checkAddress (address);
+        const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (depositAddress !== undefined) {
+            tag = address;
+            address = depositAddress;
+        }
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }

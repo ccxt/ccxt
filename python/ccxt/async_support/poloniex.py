@@ -770,13 +770,18 @@ class poloniex (Exchange):
             'currency': currency['id'],
         })
         address = None
+        tag = None
         if response['success'] == 1:
             address = self.safe_string(response, 'response')
         self.check_address(address)
+        depositAddress = self.safe_string(currency['info'], 'depositAddress')
+        if depositAddress is not None:
+            tag = address
+            address = depositAddress
         return {
             'currency': code,
             'address': address,
-            'tag': None,
+            'tag': tag,
             'info': response,
         }
 
@@ -786,11 +791,16 @@ class poloniex (Exchange):
         response = await self.privatePostReturnDepositAddresses()
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
+        tag = None
         self.check_address(address)
+        depositAddress = self.safe_string(currency['info'], 'depositAddress')
+        if depositAddress is not None:
+            tag = address
+            address = depositAddress
         return {
             'currency': code,
             'address': address,
-            'tag': None,
+            'tag': tag,
             'info': response,
         }
 

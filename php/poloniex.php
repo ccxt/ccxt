@@ -822,13 +822,19 @@ class poloniex extends Exchange {
             'currency' => $currency['id'],
         ));
         $address = null;
+        $tag = null;
         if ($response['success'] === 1)
             $address = $this->safe_string($response, 'response');
         $this->check_address($address);
+        $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+        if ($depositAddress !== null) {
+            $tag = $address;
+            $address = $depositAddress;
+        }
         return array (
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'info' => $response,
         );
     }
@@ -839,11 +845,17 @@ class poloniex extends Exchange {
         $response = $this->privatePostReturnDepositAddresses ();
         $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
+        $tag = null;
         $this->check_address($address);
+        $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
+        if ($depositAddress !== null) {
+            $tag = $address;
+            $address = $depositAddress;
+        }
         return array (
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'info' => $response,
         );
     }
