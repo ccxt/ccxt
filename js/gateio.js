@@ -139,9 +139,9 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ base, quote ] = id.split ('_');
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -174,6 +174,8 @@ module.exports = class gateio extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'active': active,
                 'maker': details['fee'] / 100,
@@ -559,11 +561,12 @@ module.exports = class gateio extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
         }, params));
