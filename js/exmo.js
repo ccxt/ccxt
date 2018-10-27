@@ -839,15 +839,17 @@ module.exports = class exmo extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'amount': amount,
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['invoice'] = tag;
+        }
         let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
