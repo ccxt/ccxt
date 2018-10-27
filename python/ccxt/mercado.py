@@ -298,26 +298,27 @@ class mercado (Exchange):
         }, params))
         return self.parse_order(response['response_data']['order'])
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
+        currency = self.currency(code)
         request = {
-            'coin': currency,
+            'coin': currency['id'],
             'quantity': '{:.10f}'.format(amount),
             'address': address,
         }
-        if currency == 'BRL':
+        if code == 'BRL':
             account_ref = ('account_ref' in list(params.keys()))
             if not account_ref:
-                raise ExchangeError(self.id + ' requires account_ref parameter to withdraw ' + currency)
-        elif currency != 'LTC':
+                raise ExchangeError(self.id + ' requires account_ref parameter to withdraw ' + code)
+        elif code != 'LTC':
             tx_fee = ('tx_fee' in list(params.keys()))
             if not tx_fee:
-                raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + currency)
-            if currency == 'XRP':
+                raise ExchangeError(self.id + ' requires tx_fee parameter to withdraw ' + code)
+            if code == 'XRP':
                 if tag is None:
                     if not('destination_tag' in list(params.keys())):
-                        raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + currency)
+                        raise ExchangeError(self.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code)
                 else:
                     request['destination_tag'] = tag
         response = self.privatePostWithdrawCoin(self.extend(request, params))

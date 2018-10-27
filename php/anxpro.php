@@ -167,30 +167,32 @@ class anxpro extends Exchange {
         return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
-    public function get_amount_multiplier ($currency) {
-        if ($currency === 'BTC') {
-            return 100000000;
-        } else if ($currency === 'LTC') {
-            return 100000000;
-        } else if ($currency === 'STR') {
-            return 100000000;
-        } else if ($currency === 'XRP') {
-            return 100000000;
-        } else if ($currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    public function get_amount_multiplier ($code) {
+        $multipliers = array (
+            'BTC' => 100000000,
+            'LTC' => 100000000,
+            'STR' => 100000000,
+            'XRP' => 100000000,
+            'DOGE' => 100000000,
+        );
+        $defaultValue = 100;
+        return $this->safe_integer($multipliers, $code, $defaultValue);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $multiplier = $this->get_amount_multiplier ($currency);
-        $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (
+        $currency = $this->currency ($code);
+        $multiplier = $this->get_amount_multiplier ($code);
+        $request = array (
             'currency' => $currency,
             'amount_int' => intval ($amount * $multiplier),
             'address' => $address,
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['destinationTag'] = $tag;
+        }
+        $response = $this->privatePostMoneyCurrencySendSimple (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['data']['transactionId'],

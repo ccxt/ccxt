@@ -314,28 +314,29 @@ class mercado extends Exchange {
         return $this->parse_order($response['response_data']['order']);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
-            'coin' => $currency,
+            'coin' => $currency['id'],
             'quantity' => sprintf ('%.10f', $amount),
             'address' => $address,
         );
-        if ($currency === 'BRL') {
+        if ($code === 'BRL') {
             $account_ref = (is_array ($params) && array_key_exists ('account_ref', $params));
             if (!$account_ref) {
-                throw new ExchangeError ($this->id . ' requires $account_ref parameter to withdraw ' . $currency);
+                throw new ExchangeError ($this->id . ' requires $account_ref parameter to withdraw ' . $code);
             }
-        } else if ($currency !== 'LTC') {
+        } else if ($code !== 'LTC') {
             $tx_fee = (is_array ($params) && array_key_exists ('tx_fee', $params));
             if (!$tx_fee) {
-                throw new ExchangeError ($this->id . ' requires $tx_fee parameter to withdraw ' . $currency);
+                throw new ExchangeError ($this->id . ' requires $tx_fee parameter to withdraw ' . $code);
             }
-            if ($currency === 'XRP') {
+            if ($code === 'XRP') {
                 if ($tag === null) {
                     if (!(is_array ($params) && array_key_exists ('destination_tag', $params))) {
-                        throw new ExchangeError ($this->id . ' requires a $tag argument or destination_tag parameter to withdraw ' . $currency);
+                        throw new ExchangeError ($this->id . ' requires a $tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tag;

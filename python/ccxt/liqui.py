@@ -631,14 +631,19 @@ class liqui (Exchange):
             trades = response['return']
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdrawCoin(self.extend({
-            'coinName': currency,
+        currency = self.currency(code)
+        request = {
+            'coinName': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        # no docs on the tag, yet...
+        if tag is not None:
+            raise ExchangeError(self.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.')
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
         return {
             'info': response,
             'id': response['return']['tId'],
