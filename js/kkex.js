@@ -18,6 +18,7 @@ module.exports = class kkex extends Exchange {
                 'CORS': false,
                 'fetchBalance': true,
                 'fetchTickers': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
@@ -460,38 +461,31 @@ module.exports = class kkex extends Exchange {
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20;
-        }
-        if (since === undefined) {
-            since = this.milliseconds () - 1000 * 60 * 60;
-        }
-        let response = await this.privatePostOrderHistory (this.extend ({
+        let request = {
             'symbol': market['id'],
-            'status': 0,
-            'page_length': limit,
-        }, params));
-        let orders = this.parseOrders (response['orders'], market, since, limit);
+        };
+        if (limit !== undefined) {
+            request['page_length'] = limit; // 20 by default
+        }
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        return this.parseOrders (response['orders'], market, since, limit);
         return orders;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({
+            'status': 0,
+        }, params));
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20;
-        }
-        let request = {
-            'symbol': market['id'],
+        return this.fetchOrders (symbol, since, limit, this.extend ({
             'status': 1,
-            'page_length': limit,
-        };
-        let response = await this.privatePostOrderHistory (this.extend (request, params));
-        return this.parseOrders (response['orders'], market, since, limit);
+        }, params));
     }
 
     nonce () {
