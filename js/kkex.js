@@ -371,40 +371,36 @@ module.exports = class kkex extends Exchange {
         if (side === undefined) {
             side = this.safeString (order, 'type');
         }
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        let order_id = undefined;
-        let amount = undefined;
+        let timestamp = this.safeInteger (order, 'create_date']);
+        let id = this.safeString2 (order, 'order_id', 'id');
         let keys = Object.keys (order);
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (this.inArray ('order_id', keys)) {
-            order_id = order['order_id'];
-        } else if (this.inArray ('id', keys)) {
-            order_id = order['id'];
-        }
-        if (this.inArray ('amount', keys)) {
-            amount = this.safeFloat (order, 'amount');
-        }
-        if (this.inArray ('create_date', keys)) {
-            timestamp = order['create_date'];
-            iso8601 = this.iso8601 (timestamp);
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));        
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let average = this.safeFloat (order, 'avg_price');
-        let remaining = amount - filled;
         average = this.safeFloat (order, 'price_avg', average);
-        let cost = average * filled;
+        let remaining = undefined;
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (average !== undefined) {
+                cost = average * filled;
+            }
+        }
         return {
-            'id': parseInt (order_id),
-            'datetime': iso8601,
+            'id': id,
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'average': average,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
