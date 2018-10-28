@@ -373,7 +373,7 @@ module.exports = class kkex extends Exchange {
         if (side === undefined) {
             side = this.safeString (order, 'type');
         }
-        let timestamp = this.safeInteger (order, 'create_date']);
+        let timestamp = this.safeInteger (order, 'create_date');
         let id = this.safeString2 (order, 'order_id', 'id');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));        
         let price = this.safeFloat (order, 'price');
