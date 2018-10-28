@@ -32,9 +32,11 @@ module.exports = class kkex extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
-                '1d': 'day',
+                '4h': '4hour',
+                '12h': '12hour',
+                '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg',
@@ -336,18 +338,18 @@ module.exports = class kkex extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit) {
-            limit = 5;
-        }
-        if (!since) {
-            since = this.milliseconds () - 1000 * 60;
-        }
-        let response = await this.publicGetKline (this.extend ({
+        let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'since': since,
-            'size': limit,
-        }, params));
+        };
+        if (since !== undefined) {
+            // since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = await this.publicGetKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -373,7 +375,6 @@ module.exports = class kkex extends Exchange {
         }
         let timestamp = this.safeInteger (order, 'create_date']);
         let id = this.safeString2 (order, 'order_id', 'id');
-        let keys = Object.keys (order);
         let status = this.parseOrderStatus (this.safeString (order, 'status'));        
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'amount');
