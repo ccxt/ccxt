@@ -485,14 +485,12 @@ module.exports = class kkex extends Exchange {
         if (limit === undefined) {
             limit = 20;
         }
-        if (since === undefined) {
-            since = this.milliseconds () - 1000 * 60 * 60;
-        }
-        let response = await this.privatePostOrderHistory (this.extend ({
+        let request = {
             'symbol': market['id'],
             'status': 1,
             'page_length': limit,
-        }, params));
+        };
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
