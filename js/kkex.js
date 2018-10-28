@@ -482,7 +482,6 @@ module.exports = class kkex extends Exchange {
         }
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
-        return orders;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
