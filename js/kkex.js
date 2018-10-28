@@ -335,6 +335,17 @@ module.exports = class kkex extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            parseFloat (ohlcv[0]),
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[5]),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -350,6 +361,26 @@ module.exports = class kkex extends Exchange {
             request['size'] = limit;
         }
         let response = await this.publicGetKline (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             "1521072000000",
+        //             "0.000002",
+        //             "0.00003",
+        //             "0.000002",
+        //             "0.00003",
+        //             "3.106889"
+        //         ],
+        //         [
+        //             "1517356800000",
+        //             "0.1",
+        //             "0.1",
+        //             "0.00000013",
+        //             "0.000001",
+        //             "542832.83114"
+        //         ]
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
