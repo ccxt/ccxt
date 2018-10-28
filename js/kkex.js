@@ -259,19 +259,32 @@ module.exports = class kkex extends Exchange {
         let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let symbol = market['symbol'];
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let id = this.safeString (trade, 'tid');
+        let type = undefined;
+        let side = this.safeString (trade, 'type');
         return {
+            'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'id': trade['tid'],
             'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 
