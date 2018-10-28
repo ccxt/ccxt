@@ -13,7 +13,7 @@ module.exports = class kkex extends Exchange {
             'id': 'kkex',
             'name': 'KKEX',
             'countries': [ 'CN', 'US', 'JA' ],
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'CORS': false,
                 'fetchBalance': true,
@@ -40,6 +40,7 @@ module.exports = class kkex extends Exchange {
                 'api': {
                     'public': 'https://kkex.com/api/v1',
                     'private': 'https://kkex.com/api/v2',
+                    'v1': 'https://kkex.com/api/v1',
                 },
                 'www': 'https://kkex.com',
                 'doc': 'https://kkex.com/api_wiki/cn/',
@@ -48,6 +49,7 @@ module.exports = class kkex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'exchange_rate',
                         'products',
                         'assets',
                         'tickers',
@@ -59,11 +61,20 @@ module.exports = class kkex extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'profile',
                         'trade',
+                        'batch_trade',
                         'cancel_order',
+                        'cancel_all_orders',
                         'order_history',
                         'userinfo',
                         'order_info',
+                        'orders_info',
+                    ],
+                },
+                'v1': {
+                    'post': [
+                        'process_strategy',
                     ],
                 },
             },
