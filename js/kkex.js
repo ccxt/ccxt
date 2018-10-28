@@ -516,7 +516,8 @@ module.exports = class kkex extends Exchange {
             let signature = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
             signature = this.urlencode (this.keysort (signature));
             signature += '&secret_key=' + this.secret;
-            signature = this.hash (this.encode (signature), 'md5').toUpperCase ();
+            signature = this.hash (this.encode (signature), 'md5');
+            signature = signature.toUpperCase ();
             body = this.extend ({
                 'api_key': this.apiKey,
                 'sign': signature,
