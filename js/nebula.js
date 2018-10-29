@@ -196,10 +196,7 @@ module.exports = class nebula extends Exchange {
         let request = {};
         if (typeof code !== 'undefined')
             request['endpoint'] = code;
-        let hideZero = this.safeValue (params, 'hideZero');
-        if (typeof hideZero !== 'undefined')
-            request['hideZero'] = hideZero;
-        response = await this.privateGetWallets (request);
+        response = await this.privateGetWallets (this.extend (request, params));
         if (typeof response === 'undefined')
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         let result = { 'info': response };
