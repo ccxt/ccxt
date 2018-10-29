@@ -340,7 +340,7 @@ module.exports = class kkex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseInteger (ohlcv[0]),
+            parseInt (ohlcv[0]),
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
