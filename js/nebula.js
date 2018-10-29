@@ -492,9 +492,9 @@ module.exports = class nebula extends Exchange {
         await this.loadMarkets ();
         let order = {
             'symbol': this.marketId (symbol),
-            'side': side.toLowerCase (),
+            'side': side,
             'quantity': amount,
-            'type': type.toLowerCase (),
+            'type': type,
         };
         if (type === 'market') {
             order['price'] = this.nonce ().toString ();
@@ -506,14 +506,6 @@ module.exports = class nebula extends Exchange {
         let id = result['id'];
         this.orders[id] = result;
         return this.extend ({ 'info': response }, result);
-    }
-
-    async createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
-    }
-
-    async createLimitSellOrder (symbol, amount, price, params = {}) {
-        return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
     }
 
     async createMarketBuyOrder (symbol, amount, params = {}) {
