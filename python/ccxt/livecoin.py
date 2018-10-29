@@ -551,20 +551,21 @@ class livecoin (Exchange):
                     raise OrderNotFound(message)
         raise ExchangeError(self.id + ' cancelOrder() failed: ' + self.json(response))
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         # Sometimes the response with be {key: null} for all keys.
         # An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
-        self.load_markets()
         self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         wallet = address
         if tag is not None:
             wallet += '::' + tag
-        withdrawal = {
+        request = {
             'amount': self.decimal_to_precision(amount, TRUNCATE, self.currencies[currency]['precision'], DECIMAL_PLACES),
-            'currency': self.common_currency_code(currency),
+            'currency': currency['id'],
             'wallet': wallet,
         }
-        response = self.privatePostPaymentOutCoin(self.extend(withdrawal, params))
+        response = self.privatePostPaymentOutCoin(self.extend(request, params))
         id = self.safe_integer(response, 'id')
         if id is None:
             raise InsufficientFunds(self.id + ' insufficient funds to cover requested withdrawal amount post fees ' + self.json(response))

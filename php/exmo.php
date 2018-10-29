@@ -840,15 +840,17 @@ class exmo extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
             'amount' => $amount,
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['invoice'] = $tag;
+        }
         $result = $this->privatePostWithdrawCrypt (array_merge ($request, $params));
         return array (
             'info' => $result,

@@ -159,28 +159,30 @@ class anxpro (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCurrencyPairMoneyOrderCancel({'oid': id})
 
-    def get_amount_multiplier(self, currency):
-        if currency == 'BTC':
-            return 100000000
-        elif currency == 'LTC':
-            return 100000000
-        elif currency == 'STR':
-            return 100000000
-        elif currency == 'XRP':
-            return 100000000
-        elif currency == 'DOGE':
-            return 100000000
-        return 100
+    def get_amount_multiplier(self, code):
+        multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        }
+        defaultValue = 100
+        return self.safe_integer(multipliers, code, defaultValue)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        multiplier = self.get_amount_multiplier(currency)
-        response = self.privatePostMoneyCurrencySendSimple(self.extend({
+        currency = self.currency(code)
+        multiplier = self.get_amount_multiplier(code)
+        request = {
             'currency': currency,
             'amount_int': int(amount * multiplier),
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['destinationTag'] = tag
+        response = self.privatePostMoneyCurrencySendSimple(self.extend(request, params))
         return {
             'info': response,
             'id': response['data']['transactionId'],

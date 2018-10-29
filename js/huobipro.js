@@ -21,6 +21,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': false,
+                'fetchTickers': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -70,6 +71,7 @@ module.exports = class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -96,6 +98,7 @@ module.exports = class huobipro extends Exchange {
                         'margin/accounts/balance', // 借贷账户详情
                         'points/actions',
                         'points/orders',
+                        'subuser/aggregate-balance',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -112,6 +115,7 @@ module.exports = class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'subuser/transfer',
                     ],
                 },
             },
@@ -270,11 +274,10 @@ module.exports = class huobipro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        if ('ts' in ticker)
-            timestamp = ticker['ts'];
+        }
+        let timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let ask = undefined;
         let bidVolume = undefined;
@@ -299,20 +302,22 @@ module.exports = class huobipro extends Exchange {
         if ((open !== undefined) && (close !== undefined)) {
             change = close - open;
             average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0))
+            if ((close !== undefined) && (close > 0)) {
                 percentage = (change / open) * 100;
+            }
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0)
+        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
             vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -357,6 +362,27 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response['tick'], market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.marketGetTickers (params);
+        let tickers = response['data'];
+        let timestamp = this.safeInteger (response, 'ts');
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let marketId = this.safeString (tickers[i], 'symbol');
+            let market = this.safeValue (this.markets_by_id, marketId);
+            let symbol = marketId;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+                let ticker = this.parseTicker (tickers[i], market);
+                ticker['timestamp'] = timestamp;
+                ticker['datetime'] = this.iso8601 (timestamp);
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {

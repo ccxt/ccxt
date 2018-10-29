@@ -209,14 +209,16 @@ module.exports = class _1btcxe extends Exchange {
         return await this.privatePostOrdersCancel ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawalsNew (this.extend ({
-            'currency': currency,
+        let currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        let response = await this.privatePostWithdrawalsNew (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['uuid'],

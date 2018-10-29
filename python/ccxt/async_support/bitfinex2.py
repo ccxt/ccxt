@@ -404,7 +404,7 @@ class bitfinex2 (bitfinex):
     async def fetch_deposit_address(self, currency, params={}):
         raise NotSupported(self.id + ' fetchDepositAddress() not implemented yet.')
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):

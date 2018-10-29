@@ -300,15 +300,16 @@ class bitmarket (Exchange):
             return True
         return False
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
+        currency = self.currency(code)
         method = None
         request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         }
-        if self.is_fiat(currency):
+        if self.is_fiat(code):
             method = 'privatePostWithdrawFiat'
             if 'account' in params:
                 request['account'] = params['account']  # bank account code for withdrawal

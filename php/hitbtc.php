@@ -806,7 +806,9 @@ class hitbtc extends Exchange {
         if ($amountDefined) {
             if ($remainingDefined) {
                 $filled = $amount - $remaining;
-                $cost = $price * $filled;
+                if ($price !== null) {
+                    $cost = $price * $filled;
+                }
             }
         }
         $feeCost = $this->safe_float($order, 'fee');

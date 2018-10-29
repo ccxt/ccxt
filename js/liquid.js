@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -83,25 +83,20 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
-                'messages': {
-                    'API Authentication failed': AuthenticationError,
-                    'Nonce is too small': InvalidNonce,
-                    'Order not found': OrderNotFound,
-                    'Can not update partially filled order': OrderNotFound,
-                    'Can not update non-live order': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
-                    },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
-                    },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
-                    },
-                },
+                'API Authentication failed': AuthenticationError,
+                'Nonce is too small': InvalidNonce,
+                'Order not found': OrderNotFound,
+                'Can not update partially filled order': InvalidOrder,
+                'Can not update non-live order': OrderNotFound,
+                'not_enough_free_balance': InsufficientFunds,
+                'must_be_positive': InvalidOrder,
+                'less_than_order_size': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
+            },
+            'options': {
+                'cancelOrderException': true,
             },
         });
     }
@@ -474,8 +469,11 @@ module.exports = class liquid extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] === 'closed')
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        if (order['status'] === 'closed') {
+            if (this.options['cancelOrderException']) {
+                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (result));
+            }
+        }
         return order;
     }
 
@@ -646,46 +644,51 @@ module.exports = class liquid extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (code >= 200 && code <= 299)
+        if (code >= 200 && code < 300)
             return;
-        const messages = this.exceptions['messages'];
+        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in messages)
-                throw new messages[body] (this.id + ' ' + body);
-            else
+            if (body in exceptions) {
+                throw new exceptions[body] (this.id + ' ' + body);
+            } else {
                 return;
+            }
         }
-        if (response === undefined)
-            if ((body[0] === '{') || (body[0] === '['))
-                response = JSON.parse (body);
-            else
-                return;
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 404) {
-            // { "message": "Order not found" }
-            const message = this.safeString (response, 'message');
-            if (message in messages)
-                throw new messages[message] (feedback);
-        } else if (code === 422) {
-            // array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            // { "errors": { "user": ["not_enough_free_balance"] }}
-            // { "errors": { "quantity": ["less_than_order_size"] }}
-            if ('errors' in response) {
-                const errors = response['errors'];
-                const errorTypes = ['user', 'quantity', 'price'];
-                for (let i = 0; i < errorTypes.length; i++) {
-                    const errorType = errorTypes[i];
-                    if (errorType in errors) {
-                        const errorMessages = errors[errorType];
-                        for (let j = 0; j < errorMessages.length; j++) {
-                            const message = errorMessages[j];
-                            if (message in messages[errorType])
-                                throw new messages[errorType][message] (feedback);
-                        }
-                    }
+        if (!this.isJsonEncodedObject (body)) {
+            return; // fallback to default error handler
+        }
+        if (response === undefined) {
+            response = JSON.parse (body);
+        }
+        const feedback = this.id + ' ' + body;
+        const message = this.safeString (response, 'message');
+        const errors = this.safeValue (response, 'errors');
+        if (message !== undefined) {
+            //
+            //  { "message": "Order not found" }
+            //
+            if (message in exceptions) {
+                throw new exceptions[message] (feedback);
+            }
+        } else if (errors !== undefined) {
+            //
+            //  { "errors": { "user": ["not_enough_free_balance"] }}
+            //  { "errors": { "quantity": ["less_than_order_size"] }}
+            //  { "errors": { "order": ["Can not update partially filled order"] }}
+            //
+            const types = Object.keys (errors);
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const errorMessages = errors[type];
+                for (let j = 0; j < errorMessages.length; j++) {
+                    const message = errorMessages[j];
+                    if (message in exceptions)
+                        throw new exceptions[message] (feedback);
                 }
             }
+        } else {
+            throw new ExchangeError (feedback);
         }
     }
 };

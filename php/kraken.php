@@ -996,12 +996,13 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
+            $currency = $this->currency ($code);
             $response = $this->privatePostWithdraw (array_merge (array (
-                'asset' => $currency,
+                'asset' => $currency['id'],
                 'amount' => $amount,
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             ), $params));

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.411'
+const version = '1.17.430'
 
 Exchange.ccxtVersion = version
 
@@ -677,14 +677,16 @@ module.exports = class _1btcxe extends Exchange {
         return await this.privatePostOrdersCancel ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawalsNew (this.extend ({
-            'currency': currency,
+        let currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        let response = await this.privatePostWithdrawalsNew (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['uuid'],
@@ -836,14 +838,25 @@ module.exports = class acx extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
+            let baseId = this.safeString (market, 'base_unit');
+            let quoteId = this.safeString (market, 'quote_unit');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+            // todo: find out their undocumented precision and limits
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             });
         }
@@ -1074,14 +1087,18 @@ module.exports = class acx extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+        let currency = this.currency (code);
+        // they have XRP but no docs on memo/tag
+        let request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params));
+        };
+        let result = await this.privatePostWithdraw (this.extend (request, params));
+        // withdrawal response is undocumented
         return {
             'info': result,
             'id': undefined,
@@ -1459,30 +1476,32 @@ module.exports = class anxpro extends Exchange {
         return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
-    getAmountMultiplier (currency) {
-        if (currency === 'BTC') {
-            return 100000000;
-        } else if (currency === 'LTC') {
-            return 100000000;
-        } else if (currency === 'STR') {
-            return 100000000;
-        } else if (currency === 'XRP') {
-            return 100000000;
-        } else if (currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    getAmountMultiplier (code) {
+        const multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        };
+        const defaultValue = 100;
+        return this.safeInteger (multipliers, code, defaultValue);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let multiplier = this.getAmountMultiplier (currency);
-        let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
+        let currency = this.currency (code);
+        let multiplier = this.getAmountMultiplier (code);
+        let request = {
             'currency': currency,
             'amount_int': parseInt (amount * multiplier),
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        let response = await this.privatePostMoneyCurrencySendSimple (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['transactionId'],
@@ -9442,27 +9461,27 @@ module.exports = class bitfinex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    getCurrencyName (currency) {
-        if (currency in this.options['currencyNames'])
-            return this.options['currencyNames'][currency];
-        throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
+    getCurrencyName (code) {
+        if (code in this.options['currencyNames'])
+            return this.options['currencyNames'][code];
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let response = await this.fetchDepositAddress (currency, this.extend ({
+    async createDepositAddress (code, params = {}) {
+        let response = await this.fetchDepositAddress (code, this.extend ({
             'renew': 1,
         }, params));
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'info': response['info'],
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let name = this.getCurrencyName (currency);
+    async fetchDepositAddress (code, params = {}) {
+        let name = this.getCurrencyName (code);
         let request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -9477,7 +9496,7 @@ module.exports = class bitfinex extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -9578,9 +9597,9 @@ module.exports = class bitfinex extends Exchange {
         return (status in statuses) ? statuses[status] : status;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let name = this.getCurrencyName (currency);
+        let name = this.getCurrencyName (code);
         let request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -10110,7 +10129,7 @@ module.exports = class bitfinex2 extends bitfinex {
         throw new NotSupported (this.id + ' fetchDepositAddress() not implemented yet.');
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         throw new NotSupported (this.id + ' withdraw not implemented yet');
     }
 
@@ -11475,17 +11494,22 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         };
         if (currency === 'XRP' || currency === 'XMR') {
-            let destination = ('destination' in params);
-            if (!destination)
-                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+            const destination = this.safeString (params, 'destination');
+            if ((tag === undefined) && (destination === undefined)) {
+                throw new ExchangeError (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+            } else if (tag !== undefined) {
+                request['destination'] = tag;
+            }
         }
         let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
         return {
@@ -11934,10 +11958,11 @@ module.exports = class bitlish extends Exchange {
         return await this.privatePostCancelTrade ({ 'id': id });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency !== 'BTC') {
+        let currency = this.currency (code);
+        if (code !== 'BTC') {
             // they did not document other types...
             throw new NotSupported (this.id + ' currently supports BTC withdrawals only, until they document other currencies...');
         }
@@ -12285,15 +12310,16 @@ module.exports = class bitmarket extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let method = undefined;
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat (code)) {
             method = 'privatePostWithdrawFiat';
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal
@@ -12895,11 +12921,13 @@ module.exports = class bitmex extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency !== 'BTC')
+        // let currency = this.currency (code);
+        if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
+        }
         let request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
@@ -15060,6 +15088,9 @@ module.exports = class bittrex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchTickers': true,
                 'withdraw': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
             },
             'timeframes': {
                 '1m': 'oneMin',
@@ -15532,6 +15563,176 @@ module.exports = class bittrex extends Exchange {
         return this.extend (this.parseOrder (response), {
             'status': 'canceled',
         });
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.accountGetDeposithistory (this.extend (request, params));
+        //
+        //     { success:    true,
+        //       message:   "",
+        //        result: [ {            Id:  22578097,
+        //                           Amount:  0.3,
+        //                         Currency: "ETH",
+        //                    Confirmations:  15,
+        //                      LastUpdated: "2018-06-10T07:12:10.57",
+        //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
+        //
+        return this.parseTransactions (response['result'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        const response = await this.accountGetWithdrawalhistory (this.extend (request, params));
+        //
+        //     {
+        //         "success" : true,
+        //         "message" : "",
+        //         "result" : [{
+        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
+        //                 "Currency" : "BTC",
+        //                 "Amount" : 17.00000000,
+        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
+        //                 "Opened" : "2014-07-09T04:24:47.217",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00020000,
+        //                 "TxId" : null,
+        //                 "Canceled" : true,
+        //                 "InvalidAddress" : false
+        //             }, {
+        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //                 "Currency" : "XC",
+        //                 "Amount" : 7513.75121715,
+        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //                 "Opened" : "2014-07-08T23:13:31.83",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00002000,
+        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //                 "Canceled" : false,
+        //                 "InvalidAddress" : false
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseTransactions (response['result'], currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //      {            Id:  72578097,
+        //               Amount:  0.3,
+        //             Currency: "ETH",
+        //        Confirmations:  15,
+        //          LastUpdated: "2018-06-17T07:12:14.57",
+        //                 TxId: "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //        CryptoAddress: "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //         "Currency" : "XC",
+        //         "Amount" : 7513.75121715,
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Opened" : "2014-07-08T23:13:31.83",
+        //         "Authorized" : true,
+        //         "PendingPayment" : false,
+        //         "TxCost" : 0.00002000,
+        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //         "Canceled" : false,
+        //         "InvalidAddress" : false
+        //     }
+        //
+        const id = this.safeString2 (transaction, 'Id', 'PaymentUuid');
+        const amount = this.safeFloat (transaction, 'Amount');
+        const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
+        const txid = this.safeString (transaction, 'TxId');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'));
+        const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'Currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let status = 'pending';
+        if (type === 'deposit') {
+            if (currency !== undefined) {
+                // deposits numConfirmations never reach the minConfirmations number
+                // we set all of them to 'ok', otherwise they'd all be 'pending'
+                //
+                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+                //     if (numConfirmations >= minConfirmations) {
+                //         status = 'ok';
+                //     }
+                //
+                status = 'ok';
+            }
+        } else {
+            const authorized = this.safeValue (transaction, 'Authorized', false);
+            const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
+            const canceled = this.safeValue (transaction, 'Canceled', false);
+            const invalidAddress = this.safeValue (transaction, 'InvalidAddress', false);
+            if (invalidAddress) {
+                status = 'failed';
+            } else if (canceled) {
+                status = 'canceled';
+            } else if (pendingPayment) {
+                status = 'pending';
+            } else if (authorized && (txid !== undefined)) {
+                status = 'ok';
+            }
+        }
+        let updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+        let feeCost = this.safeFloat (transaction, 'TxCost');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
+                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else if (type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
     }
 
     parseSymbol (id) {
@@ -20880,24 +21081,23 @@ module.exports = class buda extends Exchange {
     }
 
     isFiat (code) {
-        if (code === 'ARS')
-            return true;
-        if (code === 'CLP')
-            return true;
-        if (code === 'COP')
-            return true;
-        if (code === 'PEN')
-            return true;
-        return false;
+        const fiats = {
+            'ARS': true,
+            'CLP': true,
+            'COP': true,
+            'PEN': true,
+        };
+        return this.safeValue (fiats, code, false);
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code)) {
+            throw new NotSupported (this.id + ' fetchDepositAddress() for fiat ' + code + ' is not supported');
+        }
         let response = await this.privateGetCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let receiveAddresses = response['receive_addresses'];
         let addressPool = [];
@@ -20909,11 +21109,13 @@ module.exports = class buda extends Exchange {
                 addressPool.push (address);
             }
         }
-        if (addressPool.length === 0)
-            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + currency + ', retry again later)');
+        let addressPoolLength = addressPool.length;
+        if (addressPoolLength < 1) {
+            throw new AddressPending (this.name + ': there are no addresses ready for receiving ' + code + ', retry again later)');
+        }
         let address = addressPool[0];
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': receiveAddresses,
@@ -20922,15 +21124,15 @@ module.exports = class buda extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currencyId (code);
-        if (this.isFiat (currency))
-            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + currency + ' is not supported');
+        let currency = this.currency (code);
+        if (this.isFiat (code))
+            throw new NotSupported (this.name + ': fiat fetchDepositAddress() for ' + code + ' is not supported');
         let response = await this.privatePostCurrenciesCurrencyReceiveAddresses (this.extend ({
-            'currency': currency,
+            'currency': currency['id'],
         }, params));
         let address = this.safeString (response['receive_address'], 'address');  // the creation is async and returns a null address, returns only the id
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': response,
@@ -22400,7 +22602,7 @@ module.exports = class chilebit extends foxbit {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -22424,7 +22626,7 @@ module.exports = class cobinhood extends Exchange {
                 'createDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'withdraw': false,
+                'withdraw': true,
                 'fetchMyTrades': true,
                 'editOrder': true,
             },
@@ -22479,51 +22681,86 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'market/fundingbook/precisions/{currency_id}',
+                        'market/fundingbooks/{currency_id}',
                         'market/tickers',
                         'market/currencies',
+                        'market/quote_currencies',
                         'market/trading_pairs',
+                        'market/orderbook/precisions/{trading_pair_id}',
                         'market/orderbooks/{trading_pair_id}',
                         'market/stats',
+                        'market/tickers', // fetchTickers
                         'market/tickers/{trading_pair_id}',
                         'market/trades/{trading_pair_id}',
+                        'market/trades_history/{trading_pair_id}',
+                        'market/trading_pairs',
                         'chart/candles/{trading_pair_id}',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'get': [
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/positions',
+                        'trading/positions/{trading_pair_id}',
+                        'trading/positions/{trading_pair_id}/claimable_size',
                         'trading/trades',
                         'trading/trades/{trade_id}',
                         'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/limits/withdrawal',
                         'wallet/generic_deposits',
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/deposit_addresses/iota',
                         'wallet/withdrawal_addresses',
+                        'wallet/withdrawal_frozen',
                         'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
                         'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ],
+                    'patch': [
+                        'trading/positions/{trading_pair_id}',
+                    ],
                     'post': [
+                        'funding/auto_offerings',
+                        'funding/fundings',
+                        'trading/check_order',
                         'trading/orders',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/transfer',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                        'wallet/withdrawals/fee',
                     ],
                     'put': [
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ],
                     'delete': [
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
+                        'trading/positions/{trading_pair_id}',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        'wallet/withdrawal_addresses/{wallet_id}',
                     ],
                 },
             },
@@ -22542,6 +22779,7 @@ module.exports = class cobinhood extends Exchange {
                 'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+                'invalid_address': InvalidAddress,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
@@ -23019,16 +23257,20 @@ module.exports = class cobinhood extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostWalletWithdrawals (this.extend ({
+        const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        let response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         return {
-            'id': response['result']['withdrawal_id'],
+            'id': undefined,
             'info': response,
         };
     }
@@ -32746,15 +32988,17 @@ module.exports = class exmo extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'amount': amount,
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['invoice'] = tag;
+        }
         let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
             'info': result,
@@ -35479,9 +35723,9 @@ module.exports = class gateio extends Exchange {
             let keys = Object.keys (market);
             let id = keys[0];
             let details = market[id];
-            let [ base, quote ] = id.split ('_');
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             let symbol = base + '/' + quote;
@@ -35514,6 +35758,8 @@ module.exports = class gateio extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'active': active,
                 'maker': details['fee'] / 100,
@@ -35899,11 +36145,12 @@ module.exports = class gateio extends Exchange {
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let response = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'amount': amount,
             'address': address, // Address must exist in you AddressBook in security settings
         }, params));
@@ -38094,7 +38341,9 @@ module.exports = class hitbtc extends Exchange {
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = price * filled;
+                if (price !== undefined) {
+                    cost = price * filled;
+                }
             }
         }
         let feeCost = this.safeFloat (order, 'fee');
@@ -39039,6 +39288,19 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // createMarketOrder
+        //
+        //  {       fee: "0.0004644",
+        //           id:  386394956,
+        //        price: "0.4644",
+        //     quantity: "1",
+        //    timestamp: "2018-10-25T16:41:44.780Z" }
+        //
+        // fetchTrades ...
+        //
+        // fetchMyTrades ...
+        //
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
         if (market !== undefined) {
@@ -39067,6 +39329,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
+        let side = this.safeString (trade, 'side');
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -39075,7 +39338,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -39158,7 +39421,39 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOrder (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
+        //
+        // createMarketOrder
+        //
+        //   { clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
+        //         createdAt:   "2018-10-25T16:41:44.780Z",
+        //       cumQuantity:   "1",
+        //                id:   "66799540063",
+        //          quantity:   "1",
+        //              side:   "sell",
+        //            status:   "filled",
+        //            symbol:   "XRPUSDT",
+        //       timeInForce:   "FOK",
+        //      tradesReport: [ {       fee: "0.0004644",
+        //                               id:  386394956,
+        //                            price: "0.4644",
+        //                         quantity: "1",
+        //                        timestamp: "2018-10-25T16:41:44.780Z" } ],
+        //              type:   "market",
+        //         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        //
         let created = this.parse8601 (this.safeString (order, 'createdAt'));
         let updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         if (!market)
@@ -39166,16 +39461,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let symbol = market['symbol'];
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'cumQuantity');
-        let status = order['status'];
-        if (status === 'new') {
-            status = 'open';
-        } else if (status === 'suspended') {
-            status = 'open';
-        } else if (status === 'partiallyFilled') {
-            status = 'open';
-        } else if (status === 'filled') {
-            status = 'closed';
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = order['clientOrderId'].toString ();
         let price = this.safeFloat (order, 'price');
         if (price === undefined) {
@@ -39192,6 +39478,45 @@ module.exports = class hitbtc2 extends hitbtc {
                 }
             }
         }
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        let trades = this.safeValue (order, 'tradesReport');
+        let fee = undefined;
+        let average = undefined;
+        if (trades !== undefined) {
+            trades = this.parseTrades (trades, market);
+            let feeCost = undefined;
+            let sumOfPrices = undefined;
+            let numTrades = trades.length;
+            for (let i = 0; i < numTrades; i++) {
+                if (feeCost === undefined) {
+                    feeCost = 0;
+                }
+                if (sumOfPrices === undefined) {
+                    sumOfPrices = 0;
+                }
+                if (cost === undefined) {
+                    cost = 0;
+                }
+                cost += trades[i]['cost'];
+                feeCost += trades[i]['fee']['cost'];
+                sumOfPrices += trades[i]['price'];
+            }
+            if ((sumOfPrices !== undefined) && (numTrades > 0)) {
+                average = sumOfPrices / numTrades;
+                if (type === 'market') {
+                    if (price === undefined) {
+                        price = average;
+                    }
+                }
+            }
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                };
+            }
+        }
         return {
             'id': id,
             'timestamp': created,
@@ -39199,14 +39524,16 @@ module.exports = class hitbtc2 extends hitbtc {
             'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
+            'trades': trades,
             'info': order,
         };
     }
@@ -39730,6 +40057,7 @@ module.exports = class huobipro extends Exchange {
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': false,
+                'fetchTickers': true,
                 'fetchDepositAddress': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -39779,6 +40107,7 @@ module.exports = class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -39805,6 +40134,7 @@ module.exports = class huobipro extends Exchange {
                         'margin/accounts/balance', // 借贷账户详情
                         'points/actions',
                         'points/orders',
+                        'subuser/aggregate-balance',
                     ],
                     'post': [
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -39821,6 +40151,7 @@ module.exports = class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'subuser/transfer',
                     ],
                 },
             },
@@ -39979,11 +40310,10 @@ module.exports = class huobipro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        if ('ts' in ticker)
-            timestamp = ticker['ts'];
+        }
+        let timestamp = this.safeInteger (ticker, 'ts');
         let bid = undefined;
         let ask = undefined;
         let bidVolume = undefined;
@@ -40008,20 +40338,22 @@ module.exports = class huobipro extends Exchange {
         if ((open !== undefined) && (close !== undefined)) {
             change = close - open;
             average = this.sum (open, close) / 2;
-            if ((close !== undefined) && (close > 0))
+            if ((close !== undefined) && (close > 0)) {
                 percentage = (change / open) * 100;
+            }
         }
         let baseVolume = this.safeFloat (ticker, 'amount');
         let quoteVolume = this.safeFloat (ticker, 'vol');
         let vwap = undefined;
-        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0)
+        if (baseVolume !== undefined && quoteVolume !== undefined && baseVolume > 0) {
             vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -40066,6 +40398,27 @@ module.exports = class huobipro extends Exchange {
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response['tick'], market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.marketGetTickers (params);
+        let tickers = response['data'];
+        let timestamp = this.safeInteger (response, 'ts');
+        let result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            let marketId = this.safeString (tickers[i], 'symbol');
+            let market = this.safeValue (this.markets_by_id, marketId);
+            let symbol = marketId;
+            if (market !== undefined) {
+                symbol = market['symbol'];
+                let ticker = this.parseTicker (tickers[i], market);
+                ticker['timestamp'] = timestamp;
+                ticker['datetime'] = this.iso8601 (timestamp);
+                result[symbol] = ticker;
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
@@ -43275,12 +43628,13 @@ module.exports = class kraken extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         if ('key' in params) {
             await this.loadMarkets ();
+            let currency = this.currency (code);
             let response = await this.privatePostWithdraw (this.extend ({
-                'asset': currency,
+                'asset': currency['id'],
                 'amount': amount,
                 // 'address': address, // they don't allow withdrawals to direct addresses
             }, params));
@@ -43450,6 +43804,7 @@ module.exports = class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -46417,14 +46772,20 @@ module.exports = class liqui extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
+        let currency = this.currency (code);
+        let request = {
+            'coinName': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        // no docs on the tag, yet...
+        if (tag !== undefined) {
+            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+        }
+        let response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -46546,7 +46907,7 @@ module.exports = class liqui extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -46626,25 +46987,20 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
-                'messages': {
-                    'API Authentication failed': AuthenticationError,
-                    'Nonce is too small': InvalidNonce,
-                    'Order not found': OrderNotFound,
-                    'Can not update partially filled order': OrderNotFound,
-                    'Can not update non-live order': OrderNotFound,
-                    'user': {
-                        'not_enough_free_balance': InsufficientFunds,
-                    },
-                    'price': {
-                        'must_be_positive': InvalidOrder,
-                    },
-                    'quantity': {
-                        'less_than_order_size': InvalidOrder,
-                    },
-                },
+                'API Authentication failed': AuthenticationError,
+                'Nonce is too small': InvalidNonce,
+                'Order not found': OrderNotFound,
+                'Can not update partially filled order': InvalidOrder,
+                'Can not update non-live order': OrderNotFound,
+                'not_enough_free_balance': InsufficientFunds,
+                'must_be_positive': InvalidOrder,
+                'less_than_order_size': InvalidOrder,
             },
             'commonCurrencies': {
                 'WIN': 'WCOIN',
+            },
+            'options': {
+                'cancelOrderException': true,
             },
         });
     }
@@ -47017,8 +47373,11 @@ module.exports = class liquid extends Exchange {
             'id': id,
         }, params));
         let order = this.parseOrder (result);
-        if (order['status'] === 'closed')
-            throw new OrderNotFound (this.id + ' ' + this.json (order));
+        if (order['status'] === 'closed') {
+            if (this.options['cancelOrderException']) {
+                throw new OrderNotFound (this.id + ' order closed already: ' + this.json (result));
+            }
+        }
         return order;
     }
 
@@ -47189,46 +47548,51 @@ module.exports = class liquid extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response = undefined) {
-        if (code >= 200 && code <= 299)
+        if (code >= 200 && code < 300)
             return;
-        const messages = this.exceptions['messages'];
+        const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
-            if (body in messages)
-                throw new messages[body] (this.id + ' ' + body);
-            else
+            if (body in exceptions) {
+                throw new exceptions[body] (this.id + ' ' + body);
+            } else {
                 return;
+            }
         }
-        if (response === undefined)
-            if ((body[0] === '{') || (body[0] === '['))
-                response = JSON.parse (body);
-            else
-                return;
-        const feedback = this.id + ' ' + this.json (response);
-        if (code === 404) {
-            // { "message": "Order not found" }
-            const message = this.safeString (response, 'message');
-            if (message in messages)
-                throw new messages[message] (feedback);
-        } else if (code === 422) {
-            // array of error messages is returned in 'user' or 'quantity' property of 'errors' object, e.g.:
-            // { "errors": { "user": ["not_enough_free_balance"] }}
-            // { "errors": { "quantity": ["less_than_order_size"] }}
-            if ('errors' in response) {
-                const errors = response['errors'];
-                const errorTypes = ['user', 'quantity', 'price'];
-                for (let i = 0; i < errorTypes.length; i++) {
-                    const errorType = errorTypes[i];
-                    if (errorType in errors) {
-                        const errorMessages = errors[errorType];
-                        for (let j = 0; j < errorMessages.length; j++) {
-                            const message = errorMessages[j];
-                            if (message in messages[errorType])
-                                throw new messages[errorType][message] (feedback);
-                        }
-                    }
+        if (!this.isJsonEncodedObject (body)) {
+            return; // fallback to default error handler
+        }
+        if (response === undefined) {
+            response = JSON.parse (body);
+        }
+        const feedback = this.id + ' ' + body;
+        const message = this.safeString (response, 'message');
+        const errors = this.safeValue (response, 'errors');
+        if (message !== undefined) {
+            //
+            //  { "message": "Order not found" }
+            //
+            if (message in exceptions) {
+                throw new exceptions[message] (feedback);
+            }
+        } else if (errors !== undefined) {
+            //
+            //  { "errors": { "user": ["not_enough_free_balance"] }}
+            //  { "errors": { "quantity": ["less_than_order_size"] }}
+            //  { "errors": { "order": ["Can not update partially filled order"] }}
+            //
+            const types = Object.keys (errors);
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const errorMessages = errors[type];
+                for (let j = 0; j < errorMessages.length; j++) {
+                    const message = errorMessages[j];
+                    if (message in exceptions)
+                        throw new exceptions[message] (feedback);
                 }
             }
+        } else {
+            throw new ExchangeError (feedback);
         }
     }
 };
@@ -47808,23 +48172,25 @@ module.exports = class livecoin extends Exchange {
         throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         // Sometimes the response with be { key: null } for all keys.
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
-        await this.loadMarkets ();
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let wallet = address;
         if (tag !== undefined)
             wallet += '::' + tag;
-        let withdrawal = {
+        let request = {
             'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
-            'currency': this.commonCurrencyCode (currency),
+            'currency': currency['id'],
             'wallet': wallet,
         };
-        let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
+        let response = await this.privatePostPaymentOutCoin (this.extend (request, params));
         let id = this.safeInteger (response, 'id');
-        if (id === undefined)
+        if (id === undefined) {
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
+        }
         return {
             'info': response,
             'id': id,
@@ -48786,7 +49152,7 @@ module.exports = class mercado extends Exchange {
                 'BTC/BRL': { 'id': 'BRLBTC', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL', 'suffix': 'Bitcoin' },
                 'LTC/BRL': { 'id': 'BRLLTC', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL', 'suffix': 'Litecoin' },
                 'BCH/BRL': { 'id': 'BRLBCH', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL', 'suffix': 'BCash' },
-                'XRP/BRL': { 'id': 'XRPBCH', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
+                'XRP/BRL': { 'id': 'BRLXRP', 'symbol': 'XRP/BRL', 'base': 'XRP', 'quote': 'BRL', 'suffix': 'Ripple' },
             },
             'fees': {
                 'trading': {
@@ -49036,22 +49402,34 @@ module.exports = class mercado extends Exchange {
         return this.parseOrder (response['response_data']['order']);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'coin': currency,
+            'coin': currency['id'],
             'quantity': amount.toFixed (10),
             'address': address,
         };
-        if (currency === 'BRL') {
+        if (code === 'BRL') {
             let account_ref = ('account_ref' in params);
-            if (!account_ref)
-                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + currency);
-        } else if (currency !== 'LTC') {
+            if (!account_ref) {
+                throw new ExchangeError (this.id + ' requires account_ref parameter to withdraw ' + code);
+            }
+        } else if (code !== 'LTC') {
             let tx_fee = ('tx_fee' in params);
-            if (!tx_fee)
-                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + currency);
+            if (!tx_fee) {
+                throw new ExchangeError (this.id + ' requires tx_fee parameter to withdraw ' + code);
+            }
+            if (code === 'XRP') {
+                if (tag === undefined) {
+                    if (!('destination_tag' in params)) {
+                        throw new ExchangeError (this.id + ' requires a tag argument or destination_tag parameter to withdraw ' + code);
+                    }
+                } else {
+                    request['destination_tag'] = tag;
+                }
+            }
         }
         let response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
@@ -51247,6 +51625,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderTrades': true,
                 'fetchMyTrades': true,
+                'fetchOrderBooks': true,
                 'fetchOrder': 'emulated',
                 'fetchOrders': 'emulated',
                 'fetchOpenOrders': true,
@@ -51255,6 +51634,9 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchCurrencies': true,
                 'withdraw': true,
+                'fetchTransactions': true,
+                'fetchWithdrawals': 'emulated', // but almost true )
+                'fetchDeposits': 'emulated',
             },
             'timeframes': {
                 '5m': 300,
@@ -51528,12 +51910,44 @@ module.exports = class poloniex extends Exchange {
         let request = {
             'currencyPair': this.marketId (symbol),
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit; // 100
+        }
         let response = await this.publicGetReturnOrderBook (this.extend (request, params));
         let orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'sec');
+        orderbook['nonce'] = this.safeInteger (response, 'seq');
         return orderbook;
+    }
+
+    async fetchOrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {
+            'currencyPair': 'all',
+        };
+        //
+        //     if (limit !== undefined) {
+        //         request['depth'] = limit; // 100
+        //     }
+        //
+        let response = await this.publicGetReturnOrderBook (this.extend (request, params));
+        let marketIds = Object.keys (response);
+        let result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            let marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            } else {
+                let [ quoteId, baseId ] = marketId.split ('_');
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            let orderbook = this.parseOrderBook (response[marketId]);
+            orderbook['nonce'] = this.safeInteger (response[marketId], 'seq');
+            result[symbol] = orderbook;
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -52042,13 +52456,19 @@ module.exports = class poloniex extends Exchange {
             'currency': currency['id'],
         });
         let address = undefined;
+        let tag = undefined;
         if (response['success'] === 1)
             address = this.safeString (response, 'response');
         this.checkAddress (address);
+        const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (depositAddress !== undefined) {
+            tag = address;
+            address = depositAddress;
+        }
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }
@@ -52059,11 +52479,17 @@ module.exports = class poloniex extends Exchange {
         let response = await this.privatePostReturnDepositAddresses ();
         let currencyId = currency['id'];
         let address = this.safeString (response, currencyId);
+        let tag = undefined;
         this.checkAddress (address);
+        const depositAddress = this.safeString (currency['info'], 'depositAddress');
+        if (depositAddress !== undefined) {
+            tag = address;
+            address = depositAddress;
+        }
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }
@@ -52083,6 +52509,180 @@ module.exports = class poloniex extends Exchange {
         return {
             'info': result,
             'id': result['response'],
+        };
+    }
+
+    async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
+        const now = this.seconds ();
+        let start = (since !== undefined) ? parseInt (since / 1000) : now - year;
+        let request = {
+            'start': start, // UNIX timestamp, required
+            'end': now, // UNIX timestamp, required
+        };
+        if (limit !== undefined)
+            request['limit'] = limit;
+        let response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
+        //
+        //     {    deposits: [ {      currency: "BTC",
+        //                              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //                               amount: "0.01063000",
+        //                        confirmations:  1,
+        //                                 txid: "952b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //                            timestamp:  1507916888,
+        //                               status: "COMPLETE"                                                          },
+        //                      {      currency: "ETH",
+        //                              address: "0x20108ba20b65c04d82909e91df06618107460197",
+        //                               amount: "4.00000000",
+        //                        confirmations:  38,
+        //                                 txid: "0x4be260073491fe63935e9e0da42bd71138fdeb803732f41501015a2d46eb479d",
+        //                            timestamp:  1525060430,
+        //                               status: "COMPLETE"                                                            }  ],
+        //       withdrawals: [ { withdrawalNumber:  8224394,
+        //                                currency: "EMC2",
+        //                                 address: "EYEKyCrqTNmVCpdDV8w49XvSKRP9N3EUyF",
+        //                                  amount: "63.10796020",
+        //                                     fee: "0.01000000",
+        //                               timestamp:  1510819838,
+        //                                  status: "COMPLETE: d37354f9d02cb24d98c8c4fc17aa42f475530b5727effdf668ee5a43ce667fd6",
+        //                               ipAddress: "5.220.220.200"                                                               },
+        //                      { withdrawalNumber:  9290444,
+        //                                currency: "ETH",
+        //                                 address: "0x191015ff2e75261d50433fbd05bd57e942336149",
+        //                                  amount: "0.15500000",
+        //                                     fee: "0.00500000",
+        //                               timestamp:  1514099289,
+        //                                  status: "COMPLETE: 0x12d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //                               ipAddress: "5.228.227.214"                                                                 },
+        //                      { withdrawalNumber:  11518260,
+        //                                currency: "BTC",
+        //                                 address: "8JoDXAmE1GY2LRK8jD1gmAmgRPq54kXJ4t",
+        //                                  amount: "0.20000000",
+        //                                     fee: "0.00050000",
+        //                               timestamp:  1527918155,
+        //                                  status: "COMPLETE: 1864f4ebb277d90b0b1ff53259b36b97fa1990edc7ad2be47c5e0ab41916b5ff",
+        //                               ipAddress: "211.8.195.26"                                                                }    ] }
+        //
+        return response;
+    }
+
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
+        for (let i = 0; i < response['deposits'].length; i++) {
+            response['deposits'][i]['type'] = 'deposit';
+        }
+        for (let i = 0; i < response['withdrawals'].length; i++) {
+            response['withdrawals'][i]['type'] = 'withdrawal';
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        let transactions = this.arrayConcat (deposits, withdrawals);
+        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
+        for (let i = 0; i < response['withdrawals'].length; i++) {
+            response['withdrawals'][i]['type'] = 'withdrawal';
+        }
+        let withdrawals = this.parseTransactions (response['withdrawals'], code, since, limit);
+        return this.filterByCurrencySinceLimit (withdrawals, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactionsHelper (code, since, limit, params);
+        for (let i = 0; i < response['deposits'].length; i++) {
+            response['deposits'][i]['type'] = 'deposit';
+        }
+        let deposits = this.parseTransactions (response['deposits'], code, since, limit);
+        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'COMPLETE': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // deposits
+        //
+        //      {      currency: "BTC",
+        //              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
+        //               amount: "0.01063000",
+        //        confirmations:  1,
+        //                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
+        //            timestamp:  1507916888,
+        //               status: "COMPLETE"                                                          }
+        //
+        // withdrawals
+        //
+        //      { withdrawalNumber:  9290444,
+        //                currency: "ETH",
+        //                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
+        //                  amount: "0.15500000",
+        //                     fee: "0.00500000",
+        //               timestamp:  1514099289,
+        //                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
+        //               ipAddress: "5.228.227.214"                                                                 },
+        //
+        let timestamp = this.safeInteger (transaction, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency === undefined) {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let status = this.safeString (transaction, 'status', 'pending');
+        let txid = this.safeString (transaction, 'txid');
+        if (status !== undefined) {
+            let parts = status.split (': ');
+            let numParts = parts.length;
+            status = parts[0];
+            if ((numParts > 1) && (txid === undefined)) {
+                txid = parts[1];
+            }
+            status = this.parseTransactionStatus (status);
+        }
+        const id = this.safeString (transaction, 'withdrawalNumber');
+        const type = (id !== undefined) ? 'withdrawal' : 'deposit';
+        const amount = this.safeFloat (transaction, 'amount');
+        const address = this.safeString (transaction, 'address');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost === undefined) {
+            if (type === 'deposit') {
+                // according to https://poloniex.com/fees/
+                feeCost = 0; // FIXME: remove hardcoded value that may change any time
+            } else if (type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
         };
     }
 
@@ -53555,15 +54155,18 @@ module.exports = class southxchange extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['address'] = address + '|' + tag;
+        }
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
@@ -55242,7 +55845,7 @@ module.exports = class therock extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, OrderNotFound } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -55278,37 +55881,61 @@ module.exports = class tidebit extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39034921-e3acf016-4480-11e8-9945-a6086a1082fe.jpg',
                 'api': 'https://www.tidebit.com',
                 'www': 'https://www.tidebit.com',
-                'doc': 'https://www.tidebit.com/documents/api_v2',
+                'doc': [
+                    'https://www.tidebit.com/documents/api/guide',
+                    'https://www.tidebit.com/swagger/#/default',
+                ],
             },
             'api': {
                 'public': {
                     'get': [
-                        'v2/markets', // V2MarketsJson
-                        'v2/tickers', // V2TickersJson
-                        'v2/tickers/{market}', // V2TickersMarketJson
-                        'v2/trades', // V2TradesJson
-                        'v2/trades/{market}', // V2TradesMarketJson
-                        'v2/order_book', // V2OrderBookJson
-                        'v2/order', // V2OrderJson
-                        'v2/k_with_pending_trades', // V2KWithPendingTradesJson
-                        'v2/k', // V2KJson
-                        'v2/depth', // V2DepthJson
+                        'markets',
+                        'tickers',
+                        'tickers/{market}',
+                        'timestamp',
+                        'trades',
+                        'trades/{market}',
+                        'order_book',
+                        'order',
+                        'k_with_pending_trades',
+                        'k',
+                        'depth',
                     ],
                     'post': [],
                 },
                 'private': {
                     'get': [
-                        'v2/deposits', // V2DepositsJson
-                        'v2/deposit_address', // V2DepositAddressJson
-                        'v2/deposit', // V2DepositJson
-                        'v2/members/me', // V2MembersMeJson
-                        'v2/addresses/{address}', // V2AddressesAddressJson
+                        'addresses/{address}',
+                        'deposits/history',
+                        'deposits/get_deposit',
+                        'deposits/deposit_address',
+                        'historys/orders',
+                        'historys/vouchers',
+                        'historys/accounts',
+                        'historys/snapshots',
+                        'linkage/get_status',
+                        'members/me',
+                        'order',
+                        'orders',
+                        'partners/orders/{id}/trades',
+                        'referral_commissions/get_undeposited',
+                        'referral_commissions/get_graph_data',
+                        'trades/my',
+                        'withdraws/bind_account_list',
+                        'withdraws/get_withdraw_account',
+                        'withdraws/fetch_bind_info',
                     ],
                     'post': [
-                        'v2/order/delete', // V2OrderDeleteJson
-                        'v2/order', // V2OrderJson
-                        'v2/order/multi', // V2OrderMultiJson
-                        'v2/order/clear', // V2OrderClearJson
+                        'deposits/deposit_cash',
+                        'favorite_markets/update',
+                        'order/delete',
+                        'orders',
+                        'orders/multi',
+                        'orders/clear',
+                        'referral_commissions/deposit',
+                        'withdraws/apply',
+                        'withdraws/bind_bank',
+                        'withdraws/bind_address',
                     ],
                 },
             },
@@ -55335,7 +55962,7 @@ module.exports = class tidebit extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privateGetV2DepositAddress (this.extend ({
+        let response = await this.privateGetDepositAddress (this.extend ({
             'currency': currency['id'],
         }, params));
         if ('success' in response) {
@@ -55353,7 +55980,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetV2Markets ();
+        let markets = await this.publicGetMarkets ();
         let result = [];
         for (let p = 0; p < markets.length; p++) {
             let market = markets[p];
@@ -55377,7 +56004,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetV2MembersMe ();
+        let response = await this.privateGetMembersMe ();
         let balances = response['accounts'];
         let result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
@@ -55406,7 +56033,7 @@ module.exports = class tidebit extends Exchange {
         if (limit === undefined)
             request['limit'] = limit; // default = 300
         request['market'] = market['id'];
-        let orderbook = await this.publicGetV2Depth (this.extend (request, params));
+        let orderbook = await this.publicGetDepth (this.extend (request, params));
         let timestamp = orderbook['timestamp'] * 1000;
         return this.parseOrderBook (orderbook, timestamp);
     }
@@ -55444,7 +56071,7 @@ module.exports = class tidebit extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetV2Tickers (params);
+        let tickers = await this.publicGetTickers (params);
         let ids = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -55472,7 +56099,7 @@ module.exports = class tidebit extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetV2TickersMarket (this.extend ({
+        let response = await this.publicGetTickersMarket (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTicker (response, market);
@@ -55497,7 +56124,7 @@ module.exports = class tidebit extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetV2Trades (this.extend ({
+        let response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -55529,7 +56156,7 @@ module.exports = class tidebit extends Exchange {
         } else {
             request['timestamp'] = 1800000;
         }
-        let response = await this.publicGetV2K (this.extend (request, params));
+        let response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -55572,23 +56199,23 @@ module.exports = class tidebit extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        let request = {
             'market': this.marketId (symbol),
             'side': side,
             'volume': amount.toString (),
             'ord_type': type,
         };
         if (type === 'limit') {
-            order['price'] = price.toString ();
+            request['price'] = price.toString ();
         }
-        let response = await this.privatePostV2Order (this.extend (order, params));
+        let response = await this.privatePostOrders (this.extend (request, params));
         let market = this.markets_by_id[response['market']];
         return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let result = await this.privatePostV2OrderDelete ({ 'id': id });
+        let result = await this.privatePostOrderDelete ({ 'id': id });
         let order = this.parseOrder (result);
         let status = order['status'];
         if (status === 'closed' || status === 'canceled') {
@@ -55597,14 +56224,25 @@ module.exports = class tidebit extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
+        let currency = this.currency (code);
+        let id = this.safeString (params, 'id');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() requires an extra id param (withdraw account id according to withdraws/bind_account_list endpoint');
+        }
+        let request = {
+            'id': id,
+            'currency_type': 'coin', // or 'cash'
             'currency': currency.toLowerCase (),
-            'sum': amount,
-            'address': address,
-        }, params));
+            'body': amount,
+            // 'address': address, // they don't allow withdrawing to direct addresses?
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        let result = await this.privatePostWithdrawsApply (this.extend (request, params));
         return {
             'info': result,
             'id': undefined,
@@ -55620,7 +56258,7 @@ module.exports = class tidebit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + 'api/' + this.implodeParams (path, params) + '.json';
+        let request = '/' + 'api/' + this.version + '/' + this.implodeParams (path, params) + '.json';
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
         if (api === 'public') {
@@ -58591,18 +59229,24 @@ module.exports = class zaif extends Exchange {
         return this.parseOrders (response['return'], market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (currency === 'JPY')
-            throw new ExchangeError (this.id + ' does not allow ' + currency + ' withdrawals');
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency,
+        let currency = this.currency (code);
+        if (code === 'JPY') {
+            throw new ExchangeError (this.id + ' withdraw() does not allow ' + code + ' withdrawals');
+        }
+        let request = {
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
-            // 'message': 'Hi!', // XEM only
+            // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['message'] = tag;
+        }
+        let result = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': result,
             'id': result['return']['txid'],

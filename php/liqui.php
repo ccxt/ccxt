@@ -687,14 +687,20 @@ class liqui extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $response = $this->privatePostWithdrawCoin (array_merge (array (
-            'coinName' => $currency,
+        $currency = $this->currency ($code);
+        $request = array (
+            'coinName' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-        ), $params));
+        );
+        // no docs on the $tag, yet...
+        if ($tag !== null) {
+            throw new ExchangeError ($this->id . ' withdraw() does not support the $tag argument yet due to a lack of docs on withdrawing with $tag/memo on behalf of the exchange.');
+        }
+        $response = $this->privatePostWithdrawCoin (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['return']['tId'],

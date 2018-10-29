@@ -745,25 +745,25 @@ class bitfinex (Exchange):
         response = await self.v2GetCandlesTradeTimeframeSymbolHist(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def get_currency_name(self, currency):
-        if currency in self.options['currencyNames']:
-            return self.options['currencyNames'][currency]
-        raise NotSupported(self.id + ' ' + currency + ' not supported for withdrawal')
+    def get_currency_name(self, code):
+        if code in self.options['currencyNames']:
+            return self.options['currencyNames'][code]
+        raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
-    async def create_deposit_address(self, currency, params={}):
-        response = await self.fetch_deposit_address(currency, self.extend({
+    async def create_deposit_address(self, code, params={}):
+        response = await self.fetch_deposit_address(code, self.extend({
             'renew': 1,
         }, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'info': response['info'],
         }
 
-    async def fetch_deposit_address(self, currency, params={}):
-        name = self.get_currency_name(currency)
+    async def fetch_deposit_address(self, code, params={}):
+        name = self.get_currency_name(code)
         request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -777,7 +777,7 @@ class bitfinex (Exchange):
             address = response['address_pool']
         self.check_address(address)
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
@@ -865,9 +865,9 @@ class bitfinex (Exchange):
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
-        name = self.get_currency_name(currency)
+        name = self.get_currency_name(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',

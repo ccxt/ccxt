@@ -291,17 +291,21 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
         request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         }
         if currency == 'XRP' or currency == 'XMR':
-            destination = ('destination' in list(params.keys()))
-            if not destination:
-                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+            destination = self.safe_string(params, 'destination')
+            if (tag is None) and(destination is None):
+                raise ExchangeError(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+            elif tag is not None:
+                request['destination'] = tag
         response = self.privatePostTradeBtcWithdrawal(self.extend(request, params))
         return {
             'info': response,

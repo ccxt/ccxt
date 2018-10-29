@@ -523,10 +523,11 @@ class bitmex (Exchange):
             return True
         return False
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
-        if currency != 'BTC':
+        # currency = self.currency(code)
+        if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
         request = {
             'currency': 'XBt',  # temporarily

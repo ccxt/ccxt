@@ -398,7 +398,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
     const errorImports = []
 
     for (let error in errors) {
-        const regex = new RegExp ("[^\\']" + error + "[^\\']")
+        const regex = new RegExp ("[^\\'\"]" + error + "[^\\'\"]")
         if (bodyAsString.match (regex))
             errorImports.push ('from ccxt.base.errors import ' + error)
     }

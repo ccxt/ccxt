@@ -768,27 +768,27 @@ class bitfinex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function get_currency_name ($currency) {
-        if (is_array ($this->options['currencyNames']) && array_key_exists ($currency, $this->options['currencyNames']))
-            return $this->options['currencyNames'][$currency];
-        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    public function get_currency_name ($code) {
+        if (is_array ($this->options['currencyNames']) && array_key_exists ($code, $this->options['currencyNames']))
+            return $this->options['currencyNames'][$code];
+        throw new NotSupported ($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+    public function create_deposit_address ($code, $params = array ()) {
+        $response = $this->fetch_deposit_address ($code, array_merge (array (
             'renew' => 1,
         ), $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'info' => $response['info'],
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $name = $this->get_currency_name ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $name = $this->get_currency_name ($code);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -803,7 +803,7 @@ class bitfinex extends Exchange {
         }
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'info' => $response,
@@ -904,9 +904,9 @@ class bitfinex extends Exchange {
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $name = $this->get_currency_name ($currency);
+        $name = $this->get_currency_name ($code);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',

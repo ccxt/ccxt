@@ -297,15 +297,18 @@ module.exports = class southxchange extends Exchange {
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
             'amount': amount,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['address'] = address + '|' + tag;
+        }
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,

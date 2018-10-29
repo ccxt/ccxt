@@ -210,14 +210,16 @@ class _1btcxe extends Exchange {
         return $this->privatePostOrdersCancel (array ( 'id' => $id ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $response = $this->privatePostWithdrawalsNew (array_merge (array (
-            'currency' => $currency,
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-        ), $params));
+        );
+        $response = $this->privatePostWithdrawalsNew (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['result']['uuid'],
