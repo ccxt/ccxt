@@ -19,11 +19,13 @@ module.exports = class anxpro extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
+                'fetchOpenOrders': true,
                 'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27765983-fd8595da-5ec9-11e7-82e3-adb3ab8c2612.jpg',
                 'api': 'https://anxpro.com/api',
+                'test': 'https://private-anon-4203fc0d0f-anxv2.apiary-mock.com/api',
                 'www': 'https://anxpro.com',
                 'doc': [
                     'http://docs.anxv2.apiary.io',
@@ -145,6 +147,158 @@ module.exports = class anxpro extends Exchange {
         throw new ExchangeError (this.id + ' switched off the trades endpoint, see their docs at http://docs.anxv2.apiary.io/reference/market-data/currencypairmoneytradefetch-disabled');
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        const request = {
+            'currency_pair': market['id'],
+        };
+        // ANXPro will return all symbol pairs irregardless of what is specified in request
+        const response = await this.privatePostCurrencyPairMoneyOrders (this.extend (request, params));
+        //
+        // {
+        //   "result": "success",
+        //   "data": [
+        //     {
+        //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //       "currency": "HKD",
+        //       "item": "BTC",
+        //       "type": "offer",
+        //       "amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "effective_amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "price": {
+        //         "currency": "HKD",
+        //         "display": "412.34567 HKD",
+        //         "display_short": "412.35 HKD",
+        //         "value": "412.34567",
+        //         "value_int": "41234567"
+        //       },
+        //       "status": "open",
+        //       "date": 1393411075000,
+        //       "priority": 1393411075000000,
+        //       "actions": []
+        //     },...]}
+        //
+        return this.parseOrders (this.safeValue (response, 'data', {}), symbol, since, limit);
+    }
+
+    parseOrders (orders, symbol = undefined, since = undefined, limit = undefined) {
+        let result = [];
+        for (let i = 0; i < orders.length; i++) {
+            let order = this.parseOrder (orders[i]);
+            result.push (order);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //       "oid": "e74305c7-c424-4fbc-a8a2-b41d8329deb0",
+        //       "currency": "HKD",
+        //       "item": "BTC",
+        //       "type": "offer",  <-- bid/offer
+        //       "amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "effective_amount": {
+        //         "currency": "BTC",
+        //         "display": "10.00000000 BTC",
+        //         "display_short": "10.00 BTC",
+        //         "value": "10.00000000",
+        //         "value_int": "1000000000"
+        //       },
+        //       "price": {
+        //         "currency": "HKD",
+        //         "display": "412.34567 HKD",
+        //         "display_short": "412.35 HKD",
+        //         "value": "412.34567",
+        //         "value_int": "41234567"
+        //       },
+        //       "status": "open",
+        //       "date": 1393411075000,
+        //       "priority": 1393411075000000,
+        //       "actions": []
+        //     }
+        //
+        let id = this.safeString (order, 'oid');
+        let status = this.safeString (order, 'status');
+        let timestamp = this.safeInteger (order, 'date');
+        let marketId = this.safeString (order, 'item') + '/' + this.safeString (order, 'currency');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
+        let remaining = undefined;
+        let amount = undefined;
+        let price = undefined;
+        let filled = undefined;
+        let cost = undefined;
+        if (typeof market !== 'undefined') {
+            symbol = market['symbol'];
+        }
+        let amount_info = this.safeValue (order, 'amount', []);
+        let effective_info = this.safeValue (order, 'effective_amount', []);
+        let price_info = this.safeValue (order, 'price', []);
+        if (typeof amount_info !== 'undefined') {
+            amount = this.safeFloat (amount_info, 'volume');
+        }
+        if (typeof effective_info !== 'undefined') {
+            remaining = this.safeFloat (effective_info, 'value');
+        }
+        if (typeof price_info !== 'undefined') {
+            price = this.safeFloat (price_info, 'value');
+        }
+        if (typeof amount !== 'undefined') {
+            if (typeof remaining !== 'undefined') {
+                filled = amount - remaining;
+                cost = price * filled;
+            }
+        }
+        let orderType = 'limit';
+        let side = this.safeString (order, 'type');
+        if (side === 'offer') {
+            side = 'sell';
+        } else {
+            side = 'buy';
+        }
+        let fee = undefined;
+        let trades = undefined;
+        let lastTradeTimestamp = undefined;
+        return {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'remaining': remaining,
+            'filled': filled,
+            'status': status,
+            'fee': fee,
+            'trades': trades,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         let market = this.market (symbol);
         let order = {
@@ -193,6 +347,27 @@ module.exports = class anxpro extends Exchange {
         return {
             'info': response,
             'id': response['data']['transactionId'],
+        };
+    }
+
+    async createDepositAddress (symbol, params = {}) {
+        return await this.fetchDepositAddress (symbol, params);
+    }
+
+    async fetchDepositAddress (symbol, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (symbol);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privatePostMoneyCurrencyAddress (this.extend (request, params));
+        let result = response['data'];
+        let address = this.safeString (result, 'addr');
+        this.checkAddress (address);
+        return {
+            'currency': symbol,
+            'address': address,
+            'info': response,
         };
     }
 
