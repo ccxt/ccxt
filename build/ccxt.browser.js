@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.432'
+const version = '1.17.433'
 
 Exchange.ccxtVersion = version
 
@@ -20823,7 +20823,7 @@ module.exports = class buda extends Exchange {
         let percentage = parseFloat (ticker['price_variation_24h']);
         let open = parseFloat (this.priceToPrecision (symbol, last / (percentage + 1)));
         let change = last - open;
-        let average = (last + open) / 2;
+        let average = this.sum (last, open) / 2;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
