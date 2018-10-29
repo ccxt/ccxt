@@ -100,6 +100,7 @@ class kucoin (Exchange):
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -1169,10 +1170,6 @@ class kucoin (Exchange):
             request['limit'] = limit
         response = self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
-
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()

@@ -805,7 +805,9 @@ module.exports = class hitbtc extends Exchange {
         if (amountDefined) {
             if (remainingDefined) {
                 filled = amount - remaining;
-                cost = price * filled;
+                if (price !== undefined) {
+                    cost = price * filled;
+                }
             }
         }
         let feeCost = this.safeFloat (order, 'fee');

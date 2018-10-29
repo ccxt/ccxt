@@ -31,6 +31,7 @@ class theocean extends Exchange {
                 'CORS' => false, // ?
                 'fetchTickers' => true,
                 'fetchOHLCV' => false,
+                'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
@@ -911,7 +912,7 @@ class theocean extends Exchange {
             $id = $this->safe_string($zeroExOrder, 'orderHash');
         }
         $side = $this->safe_string($order, 'side');
-        $type = 'limit';
+        $type = $this->safe_string($order, 'type'); // injected from outside
         $timestamp = $this->safe_integer($order, 'created');
         $timestamp = ($timestamp !== null) ? $timestamp * 1000 : $timestamp;
         $symbol = null;
@@ -946,11 +947,15 @@ class theocean extends Exchange {
         $lastTradeTimestamp = null;
         $timeline = $this->safe_value($order, 'timeline');
         $trades = null;
+        $status = null;
         if ($timeline !== null) {
             $numEvents = is_array ($timeline) ? count ($timeline) : 0;
             if ($numEvents > 0) {
                 // $status = $this->parse_order_status($this->safe_string($timeline[$numEvents - 1], 'action'));
                 $timelineEventsGroupedByAction = $this->group_by($timeline, 'action');
+                if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('error', $timelineEventsGroupedByAction)) {
+                    $status = 'failed';
+                }
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('placed', $timelineEventsGroupedByAction)) {
                     $placeEvents = $this->safe_value($timelineEventsGroupedByAction, 'placed');
                     if ($amount === null) {
@@ -963,7 +968,6 @@ class theocean extends Exchange {
                         $timestamp = $this->safe_integer($timelineEventsGroupedByAction['filled'][0], 'timestamp');
                         $timestamp = ($timestamp !== null) ? $timestamp * 1000 : $timestamp;
                     }
-                    $type = 'market';
                 }
                 if (is_array ($timelineEventsGroupedByAction) && array_key_exists ('filled', $timelineEventsGroupedByAction)) {
                     $fillEvents = $this->safe_value($timelineEventsGroupedByAction, 'filled');
@@ -1019,13 +1023,14 @@ class theocean extends Exchange {
                 'сurrency' => $feeCurrency,
             );
         }
-        $status = null;
         $amountPrecision = $market ? $market['precision']['amount'] : 8;
         if ($remaining !== null) {
-            $status = 'open';
-            $rest = $remaining - $failedAmount - $deadAmount - $prunedAmount;
-            if ($rest < pow (10, -$amountPrecision)) {
-                $status = ($filled < $amount) ? 'canceled' : 'closed';
+            if ($status === null) {
+                $status = 'open';
+                $rest = $remaining - $failedAmount - $deadAmount - $prunedAmount;
+                if ($rest < pow (10, -$amountPrecision)) {
+                    $status = ($filled < $amount) ? 'canceled' : 'closed';
+                }
             }
         }
         $result = array (

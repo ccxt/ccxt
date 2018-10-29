@@ -155,9 +155,9 @@ class gateio (Exchange):
             keys = list(market.keys())
             id = keys[0]
             details = market[id]
-            base, quote = id.split('_')
-            base = base.upper()
-            quote = quote.upper()
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
@@ -190,6 +190,8 @@ class gateio (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'active': active,
                 'maker': details['fee'] / 100,
@@ -528,11 +530,12 @@ class gateio (Exchange):
         response = await self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
+        currency = self.currency(code)
         response = await self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'amount': amount,
             'address': address,  # Address must exist in you AddressBook in security settings
         }, params))

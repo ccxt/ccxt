@@ -572,23 +572,25 @@ module.exports = class livecoin extends Exchange {
         throw new ExchangeError (this.id + ' cancelOrder() failed: ' + this.json (response));
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         // Sometimes the response with be { key: null } for all keys.
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
-        await this.loadMarkets ();
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let wallet = address;
         if (tag !== undefined)
             wallet += '::' + tag;
-        let withdrawal = {
+        let request = {
             'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
-            'currency': this.commonCurrencyCode (currency),
+            'currency': currency['id'],
             'wallet': wallet,
         };
-        let response = await this.privatePostPaymentOutCoin (this.extend (withdrawal, params));
+        let response = await this.privatePostPaymentOutCoin (this.extend (request, params));
         let id = this.safeInteger (response, 'id');
-        if (id === undefined)
+        if (id === undefined) {
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
+        }
         return {
             'info': response,
             'id': id,

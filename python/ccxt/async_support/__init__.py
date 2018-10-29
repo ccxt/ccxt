@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.393'
+__version__ = '1.17.432'
 
 # -----------------------------------------------------------------------------
 
@@ -63,6 +63,7 @@ from ccxt.async_support.bitfinex2 import bitfinex2                        # noqa
 from ccxt.async_support.bitflyer import bitflyer                          # noqa: F401
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
+from ccxt.async_support.bitibu import bitibu                              # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmarket import bitmarket                        # noqa: F401
@@ -85,6 +86,7 @@ from ccxt.async_support.btctradeim import btctradeim                      # noqa
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.btcx import btcx                                  # noqa: F401
+from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bxinth import bxinth                              # noqa: F401
 from ccxt.async_support.ccex import ccex                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
@@ -137,6 +139,7 @@ from ccxt.async_support.independentreserve import independentreserve      # noqa
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
 from ccxt.async_support.jubi import jubi                                  # noqa: F401
+from ccxt.async_support.kkex import kkex                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                              # noqa: F401
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
@@ -197,6 +200,7 @@ exchanges = [
     'bitflyer',
     'bitforex',
     'bithumb',
+    'bitibu',
     'bitkk',
     'bitlish',
     'bitmarket',
@@ -219,6 +223,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'btcx',
+    'buda',
     'bxinth',
     'ccex',
     'cex',
@@ -271,6 +276,7 @@ exchanges = [
     'indodax',
     'itbit',
     'jubi',
+    'kkex',
     'kraken',
     'kucoin',
     'kuna',

@@ -166,30 +166,32 @@ module.exports = class anxpro extends Exchange {
         return await this.privatePostCurrencyPairMoneyOrderCancel ({ 'oid': id });
     }
 
-    getAmountMultiplier (currency) {
-        if (currency === 'BTC') {
-            return 100000000;
-        } else if (currency === 'LTC') {
-            return 100000000;
-        } else if (currency === 'STR') {
-            return 100000000;
-        } else if (currency === 'XRP') {
-            return 100000000;
-        } else if (currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    getAmountMultiplier (code) {
+        const multipliers = {
+            'BTC': 100000000,
+            'LTC': 100000000,
+            'STR': 100000000,
+            'XRP': 100000000,
+            'DOGE': 100000000,
+        };
+        const defaultValue = 100;
+        return this.safeInteger (multipliers, code, defaultValue);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let multiplier = this.getAmountMultiplier (currency);
-        let response = await this.privatePostMoneyCurrencySendSimple (this.extend ({
+        let currency = this.currency (code);
+        let multiplier = this.getAmountMultiplier (code);
+        let request = {
             'currency': currency,
             'amount_int': parseInt (amount * multiplier),
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['destinationTag'] = tag;
+        }
+        let response = await this.privatePostMoneyCurrencySendSimple (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['transactionId'],

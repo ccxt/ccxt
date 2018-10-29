@@ -311,23 +311,24 @@ class bitmarket extends Exchange {
         return false;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
+        $currency = $this->currency ($code);
         $method = null;
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'quantity' => $amount,
         );
-        if ($this->is_fiat ($currency)) {
+        if ($this->is_fiat ($code)) {
             $method = 'privatePostWithdrawFiat';
             if (is_array ($params) && array_key_exists ('account', $params)) {
-                $request['account'] = $params['account']; // bank account code for withdrawal
+                $request['account'] = $params['account']; // bank account $code for withdrawal
             } else {
                 throw new ExchangeError ($this->id . ' requires account parameter to withdraw fiat currency');
             }
             if (is_array ($params) && array_key_exists ('account2', $params)) {
-                $request['account2'] = $params['account2']; // bank SWIFT code (EUR only)
+                $request['account2'] = $params['account2']; // bank SWIFT $code (EUR only)
             } else {
                 if ($currency === 'EUR')
                     throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');

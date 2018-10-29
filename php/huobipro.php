@@ -22,6 +22,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro',
             'has' => array (
                 'CORS' => false,
+                'fetchTickers' => true,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
@@ -71,6 +72,7 @@ class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ),
                 ),
                 'public' => array (
@@ -97,6 +99,7 @@ class huobipro extends Exchange {
                         'margin/accounts/balance', // 借贷账户详情
                         'points/actions',
                         'points/orders',
+                        'subuser/aggregate-balance',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -113,6 +116,7 @@ class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'subuser/transfer',
                     ),
                 ),
             ),
@@ -271,11 +275,10 @@ class huobipro extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $this->milliseconds ();
-        if (is_array ($ticker) && array_key_exists ('ts', $ticker))
-            $timestamp = $ticker['ts'];
+        }
+        $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
         $ask = null;
         $bidVolume = null;
@@ -300,20 +303,22 @@ class huobipro extends Exchange {
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
             $average = $this->sum ($open, $close) / 2;
-            if (($close !== null) && ($close > 0))
+            if (($close !== null) && ($close > 0)) {
                 $percentage = ($change / $open) * 100;
+            }
         }
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
         $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
             $vwap = $quoteVolume / $baseVolume;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['high'],
-            'low' => $ticker['low'],
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -358,6 +363,27 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_ticker($response['tick'], $market);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->marketGetTickers ($params);
+        $tickers = $response['data'];
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $marketId = $this->safe_string($tickers[$i], 'symbol');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+            $symbol = $marketId;
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->parse_ticker($tickers[$i], $market);
+                $ticker['timestamp'] = $timestamp;
+                $ticker['datetime'] = $this->iso8601 ($timestamp);
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {

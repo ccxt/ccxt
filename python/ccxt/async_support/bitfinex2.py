@@ -328,9 +328,10 @@ class bitfinex2 (bitfinex):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             id = ticker[0]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -403,7 +404,7 @@ class bitfinex2 (bitfinex):
     async def fetch_deposit_address(self, currency, params={}):
         raise NotSupported(self.id + ' fetchDepositAddress() not implemented yet.')
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):

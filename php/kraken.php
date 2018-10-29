@@ -30,6 +30,8 @@ class kraken extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'fetchWithdrawals' => true,
+                'fetchDeposits' => true,
                 'withdraw' => true,
             ),
             'marketsByAltname' => array (),
@@ -192,6 +194,7 @@ class kraken extends Exchange {
                 'depositMethods' => array (),
             ),
             'exceptions' => array (
+                'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',
                 'EFunding:Unknown withdraw key' => '\\ccxt\\ExchangeError',
                 'EFunding:Invalid amount' => '\\ccxt\\InsufficientFunds',
                 'EService:Unavailable' => '\\ccxt\\ExchangeNotAvailable',
@@ -213,12 +216,12 @@ class kraken extends Exchange {
         return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_min_order_sizes () {
+    public function fetch_min_order_amounts () {
         $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $parts = explode ('<td class="wysiwyg-text-align-right">', $html);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         if ($numParts < 3) {
-            throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+            throw new ExchangeError ($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
         }
         $result = array ();
         // skip the $part before the header and the header itself
@@ -230,7 +233,7 @@ class kraken extends Exchange {
                 $pieces = explode (' ', $amountAndCode);
                 $numPieces = is_array ($pieces) ? count ($pieces) : 0;
                 if ($numPieces !== 2) {
-                    throw new ExchangeError ($this->id . ' fetchMinOrderSizes HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                    throw new ExchangeError ($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
                 }
                 $amount = floatval ($pieces[0]);
                 $code = $this->common_currency_code($pieces[1]);
@@ -242,7 +245,7 @@ class kraken extends Exchange {
 
     public function fetch_markets () {
         $markets = $this->publicGetAssetPairs ();
-        $limits = $this->fetch_min_order_sizes ();
+        $limits = $this->fetch_min_order_amounts ();
         $keys = is_array ($markets['result']) ? array_keys ($markets['result']) : array ();
         $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -809,6 +812,143 @@ class kraken extends Exchange {
         return $response['result'];
     }
 
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'Success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     { method => "Ether (Hex)",
+        //       aclass => "$currency",
+        //        asset => "XETH",
+        //        refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //         $txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //         info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //       $amount => "7.9999257900",
+        //          fee => "0.0000000000",
+        //         time =>  1529223212,
+        //       $status => "Success"                                                       }
+        //
+        // fetchWithdrawals
+        //
+        //     { method => "Ether",
+        //       aclass => "$currency",
+        //        asset => "XETH",
+        //        refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //         $txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //         info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //       $amount => "9.9950000000",
+        //          fee => "0.0050000000",
+        //         time =>  1530481750,
+        //       $status => "Success"                                                             }
+        //
+        $id = $this->safe_string($transaction, 'refid');
+        $txid = $this->safe_string($transaction, 'txid');
+        $timestamp = $this->safe_integer($transaction, 'time');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'asset');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $address = $this->safe_string($transaction, 'info');
+        $amount = $this->safe_float($transaction, 'amount');
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $type = $this->safe_string($transaction, 'type'); // injected from the outside
+        $feeCost = $this->safe_float($transaction, 'fee');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
+    }
+
+    public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
+        $result = array ();
+        for ($i = 0; $i < count ($transactions); $i++) {
+            $transaction = $this->parse_transaction (array_merge (array (
+                'type' => $type,
+            ), $transactions[$i]));
+            $result[] = $transaction;
+        }
+        return $this->filterByCurrencySinceLimit ($result, $code, $since, $limit);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://www.kraken.com/en-us/help/api#deposit-status
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchDeposits requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+        );
+        $response = $this->privatePostDepositStatus (array_merge ($request, $params));
+        //
+        //     {  error => array (),
+        //       result => array ( { method => "Ether (Hex)",
+        //                   aclass => "$currency",
+        //                    asset => "XETH",
+        //                    refid => "Q2CANKL-LBFVEE-U4Y2WQ",
+        //                     txid => "0x57fd704dab1a73c20e24c8696099b695d596924b401b261513cfdab23…",
+        //                     info => "0x615f9ba7a9575b0ab4d571b2b36b1b324bd83290",
+        //                   amount => "7.9999257900",
+        //                      fee => "0.0000000000",
+        //                     time =>  1529223212,
+        //                   status => "Success"                                                       } ) }
+        //
+        return $this->parse_transactions_by_type ('deposit', $response['result'], $code, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        // https://www.kraken.com/en-us/help/api#withdraw-status
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');
+        }
+        $currency = $this->currency ($code);
+        $request = array (
+            'asset' => $currency['id'],
+        );
+        $response = $this->privatePostWithdrawStatus (array_merge ($request, $params));
+        //
+        //     {  error => array (),
+        //       result => array ( { method => "Ether",
+        //                   aclass => "$currency",
+        //                    asset => "XETH",
+        //                    refid => "A2BF34S-O7LBNQ-UE4Y4O",
+        //                     txid => "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //                     info => "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
+        //                   amount => "9.9950000000",
+        //                      fee => "0.0050000000",
+        //                     time =>  1530481750,
+        //                   status => "Success"                                                             } ) }
+        //
+        return $this->parse_transactions_by_type ('withdrawal', $response['result'], $code, $since, $limit);
+    }
+
     public function create_deposit_address ($code, $params = array ()) {
         $request = array (
             'new' => 'true',
@@ -856,12 +996,13 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         if (is_array ($params) && array_key_exists ('key', $params)) {
             $this->load_markets();
+            $currency = $this->currency ($code);
             $response = $this->privatePostWithdraw (array_merge (array (
-                'asset' => $currency,
+                'asset' => $currency['id'],
                 'amount' => $amount,
                 // 'address' => $address, // they don't allow withdrawals to direct addresses
             ), $params));

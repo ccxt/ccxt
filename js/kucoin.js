@@ -88,6 +88,7 @@ module.exports = class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -1219,11 +1220,6 @@ module.exports = class kucoin extends Exchange {
             request['limit'] = limit;
         let response = await this.privateGetDealOrders (this.extend (request, params));
         return this.parseTrades (response['data']['datas'], market, since, limit);
-    }
-
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = this.convertTradingViewToOHLCV (ohlcvs);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

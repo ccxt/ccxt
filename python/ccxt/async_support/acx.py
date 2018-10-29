@@ -108,14 +108,25 @@ class acx (Exchange):
             market = markets[p]
             id = market['id']
             symbol = market['name']
-            base, quote = symbol.split('/')
+            baseId = self.safe_string(market, 'base_unit')
+            quoteId = self.safe_string(market, 'quote_unit')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
+            # todo: find out their undocumented precision and limits
+            precision = {
+                'amount': 8,
+                'price': 8,
+            }
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             })
         return result
@@ -324,14 +335,18 @@ class acx (Exchange):
             raise OrderNotFound(self.id + ' ' + self.json(order))
         return order
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         await self.load_markets()
-        result = await self.privatePostWithdraw(self.extend({
-            'currency': currency.lower(),
+        currency = self.currency(code)
+        # they have XRP but no docs on memo/tag
+        request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params))
+        }
+        result = await self.privatePostWithdraw(self.extend(request, params))
+        # withdrawal response is undocumented
         return {
             'info': result,
             'id': None,

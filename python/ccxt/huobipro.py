@@ -37,6 +37,7 @@ class huobipro (Exchange):
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': False,
+                'fetchTickers': True,
                 'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
@@ -86,6 +87,7 @@ class huobipro (Exchange):
                         'trade',  # 获取 Trade Detail 数据
                         'history/trade',  # 批量获取最近的交易记录
                         'detail',  # 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -112,6 +114,7 @@ class huobipro (Exchange):
                         'margin/accounts/balance',  # 借贷账户详情
                         'points/actions',
                         'points/orders',
+                        'subuser/aggregate-balance',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -128,6 +131,7 @@ class huobipro (Exchange):
                         'dw/transfer-out/margin',  # 借贷账户划出至现货账户
                         'margin/orders',  # 申请借贷
                         'margin/orders/{id}/repay',  # 归还借贷
+                        'subuser/transfer',
                     ],
                 },
             },
@@ -278,11 +282,9 @@ class huobipro (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        timestamp = self.milliseconds()
-        if 'ts' in ticker:
-            timestamp = ticker['ts']
+        timestamp = self.safe_integer(ticker, 'ts')
         bid = None
         ask = None
         bidVolume = None
@@ -314,8 +316,8 @@ class huobipro (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -356,6 +358,24 @@ class huobipro (Exchange):
             'symbol': market['id'],
         }, params))
         return self.parse_ticker(response['tick'], market)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        self.load_markets()
+        response = self.marketGetTickers(params)
+        tickers = response['data']
+        timestamp = self.safe_integer(response, 'ts')
+        result = {}
+        for i in range(0, len(tickers)):
+            marketId = self.safe_string(tickers[i], 'symbol')
+            market = self.safe_value(self.markets_by_id, marketId)
+            symbol = marketId
+            if market is not None:
+                symbol = market['symbol']
+                ticker = self.parse_ticker(tickers[i], market)
+                ticker['timestamp'] = timestamp
+                ticker['datetime'] = self.iso8601(timestamp)
+                result[symbol] = ticker
+        return result
 
     def parse_trade(self, trade, market=None):
         symbol = None
