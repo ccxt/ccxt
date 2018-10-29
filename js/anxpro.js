@@ -20,6 +20,8 @@ module.exports = class anxpro extends Exchange {
                 'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchOpenOrders': true,
+                'fetchDepositAddress': true,
+                'createDepositAddress': false,
                 'withdraw': true,
             },
             'urls': {
@@ -350,13 +352,9 @@ module.exports = class anxpro extends Exchange {
         };
     }
 
-    async createDepositAddress (symbol, params = {}) {
-        return await this.fetchDepositAddress (symbol, params);
-    }
-
-    async fetchDepositAddress (symbol, params = {}) {
+    async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (symbol);
+        let currency = this.currency (code);
         let request = {
             'currency': currency['id'],
         };
@@ -365,7 +363,7 @@ module.exports = class anxpro extends Exchange {
         let address = this.safeString (result, 'addr');
         this.checkAddress (address);
         return {
-            'currency': symbol,
+            'currency': code,
             'address': address,
             'info': response,
         };
