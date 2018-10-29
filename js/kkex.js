@@ -337,7 +337,7 @@ module.exports = class kkex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            parseFloat (ohlcv[0]),
+            parseInteger (ohlcv[0]),
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
@@ -447,6 +447,7 @@ module.exports = class kkex extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
+            'type': side,
         };
         if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
@@ -462,12 +463,11 @@ module.exports = class kkex extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            side += '_market';
+            request['type'] += '_' + type;
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        request['type'] = side;
         let response = await this.privatePostTrade (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         return {
