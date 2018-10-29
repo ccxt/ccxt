@@ -522,14 +522,6 @@ module.exports = class nebula extends Exchange {
         return this.extend ({ 'info': response }, order);
     }
 
-    isFiat (currency) {
-        if (currency === 'EURT')
-            return true;
-        if (currency === 'USDT')
-            return true;
-        return false;
-    }
-
     handleErrors (code, reason, url, method, headers, body) {
         if (code === 429)
             throw new DDoSProtection (this.id + ' ' + JSON.parse (body));
