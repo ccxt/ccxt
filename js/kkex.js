@@ -249,10 +249,13 @@ module.exports = class kkex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepth (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-            'size': limit,
-        }, params));
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
