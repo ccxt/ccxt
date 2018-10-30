@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.434'
+const version = '1.17.435'
 
 Exchange.ccxtVersion = version
 
@@ -45545,11 +45545,17 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         this.checkAddress (address);
-        let response = await this.privatePostAccountCoinWithdrawApply (this.extend ({
+        const request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        // they don't have the tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if (tag !== undefined) {
+            request['address'] += '@' + tag;
+        }
+        let response = await this.privatePostAccountCoinWithdrawApply (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
