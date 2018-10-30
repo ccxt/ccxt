@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, OrderNotFound } = require ('./base/errors');
+const { ArgumentsRequired, InvalidOrder, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,11 +13,12 @@ module.exports = class kkex extends Exchange {
             'id': 'kkex',
             'name': 'KKEX',
             'countries': [ 'CN', 'US', 'JP' ],
-            'version': 'v1',
+            'version': 'v2',
             'has': {
                 'CORS': false,
                 'fetchBalance': true,
                 'fetchTickers': true,
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
@@ -31,15 +32,18 @@ module.exports = class kkex extends Exchange {
                 '15m': '15min',
                 '30m': '30min',
                 '1h': '1hour',
-                '8h': '12hour',
-                '1d': 'day',
+                '4h': '4hour',
+                '12h': '12hour',
+                '1d': '1day',
                 '1w': '1week',
+                '1M': '1month',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47401462-2e59f800-d74a-11e8-814f-e4ae17b4968a.jpg',
                 'api': {
                     'public': 'https://kkex.com/api/v1',
                     'private': 'https://kkex.com/api/v2',
+                    'v1': 'https://kkex.com/api/v1',
                 },
                 'www': 'https://kkex.com',
                 'doc': 'https://kkex.com/api_wiki/cn/',
@@ -48,6 +52,7 @@ module.exports = class kkex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'exchange_rate',
                         'products',
                         'assets',
                         'tickers',
@@ -59,11 +64,20 @@ module.exports = class kkex extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'profile',
                         'trade',
+                        'batch_trade',
                         'cancel_order',
+                        'cancel_all_orders',
                         'order_history',
                         'userinfo',
                         'order_info',
+                        'orders_info',
+                    ],
+                },
+                'v1': {
+                    'post': [
+                        'process_strategy',
                     ],
                 },
             },
@@ -235,10 +249,13 @@ module.exports = class kkex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetDepth (this.extend ({
+        let request = {
             'symbol': this.marketId (symbol),
-            'size': limit,
-        }, params));
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
@@ -247,19 +264,32 @@ module.exports = class kkex extends Exchange {
         let datetime = this.iso8601 (timestamp);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let symbol = market['symbol'];
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let id = this.safeString (trade, 'tid');
+        let type = undefined;
+        let side = this.safeString (trade, 'type');
         return {
+            'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': datetime,
             'symbol': symbol,
-            'id': trade['tid'],
             'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 
@@ -308,21 +338,52 @@ module.exports = class kkex extends Exchange {
         throw new OrderNotFound (this.id + ' order ' + id + ' not found');
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            parseInt (ohlcv[0]),
+            parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
+            parseFloat (ohlcv[3]),
+            parseFloat (ohlcv[4]),
+            parseFloat (ohlcv[5]),
+        ];
+    }
+
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (!limit) {
-            limit = 5;
-        }
-        if (!since) {
-            since = this.milliseconds () - 1000 * 60;
-        }
-        let response = await this.publicGetKline (this.extend ({
+        let request = {
             'symbol': market['id'],
             'type': this.timeframes[timeframe],
-            'since': since,
-            'size': limit,
-        }, params));
+        };
+        if (since !== undefined) {
+            // since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
+            request['since'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        let response = await this.publicGetKline (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             "1521072000000",
+        //             "0.000002",
+        //             "0.00003",
+        //             "0.000002",
+        //             "0.00003",
+        //             "3.106889"
+        //         ],
+        //         [
+        //             "1517356800000",
+        //             "0.1",
+        //             "0.1",
+        //             "0.00000013",
+        //             "0.000001",
+        //             "542832.83114"
+        //         ]
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -340,46 +401,41 @@ module.exports = class kkex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeString (order, 'side');
-        if (typeof side === 'undefined') {
+        if (side === undefined) {
             side = this.safeString (order, 'type');
         }
-        let timestamp = undefined;
-        let iso8601 = undefined;
-        let order_id = undefined;
-        let amount = undefined;
-        let keys = Object.keys (order);
+        let timestamp = this.safeInteger (order, 'create_date');
+        let id = this.safeString2 (order, 'order_id', 'id');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (this.inArray ('order_id', keys)) {
-            order_id = order['order_id'];
-        } else if (this.inArray ('id', keys)) {
-            order_id = order['id'];
-        }
-        if (this.inArray ('amount', keys)) {
-            amount = this.safeFloat (order, 'amount');
-        }
-        if (this.inArray ('create_date', keys)) {
-            timestamp = order['create_date'];
-            iso8601 = this.iso8601 (timestamp);
-        }
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
         let average = this.safeFloat (order, 'avg_price');
-        let remaining = amount - filled;
         average = this.safeFloat (order, 'price_avg', average);
-        let cost = average * filled;
+        let remaining = undefined;
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (amount !== undefined) {
+                remaining = amount - filled;
+            }
+            if (average !== undefined) {
+                cost = average * filled;
+            }
+        }
         return {
-            'id': parseInt (order_id),
-            'datetime': iso8601,
+            'id': id,
             'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'average': average,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (order, 'price'),
+            'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -394,6 +450,7 @@ module.exports = class kkex extends Exchange {
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
+            'type': side,
         };
         if (type === 'market') {
             // for market buy it requires the amount of quote currency to spend
@@ -409,15 +466,15 @@ module.exports = class kkex extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            side += '_market';
+            request['type'] += '_' + type;
         } else {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        request['type'] = side;
         let response = await this.privatePostTrade (this.extend (request, params));
         let id = this.safeString (response, 'order_id');
         return {
+            'info': response,
             'id': id,
             'datetime': undefined,
             'timestamp': undefined,
@@ -433,7 +490,6 @@ module.exports = class kkex extends Exchange {
             'remaining': undefined,
             'trades': undefined,
             'fee': undefined,
-            'info': response,
         };
     }
 
@@ -450,39 +506,29 @@ module.exports = class kkex extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20;
-        }
-        if (since === undefined) {
-            since = this.milliseconds () - 1000 * 60 * 60;
-        }
-        let response = await this.privatePostOrderHistory (this.extend ({
+        let request = {
             'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_length'] = limit; // 20 by default
+        }
+        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        return this.parseOrders (response['orders'], market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, this.extend ({
             'status': 0,
-            'page_length': limit,
         }, params));
-        let orders = this.parseOrders (response['orders'], market, since, limit);
-        return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 20;
-        }
-        if (since === undefined) {
-            since = this.milliseconds () - 1000 * 60 * 60;
-        }
-        let response = await this.privatePostOrderHistory (this.extend ({
-            'symbol': market['id'],
+        return this.fetchOrders (symbol, since, limit, this.extend ({
             'status': 1,
-            'page_length': limit,
         }, params));
-        return this.parseOrders (response['orders'], market, since, limit);
     }
 
     nonce () {
@@ -498,11 +544,10 @@ module.exports = class kkex extends Exchange {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
             let signature = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
-            signature = this.keysort (signature);
-            signature['secret_key'] = this.secret;
-            signature = this.urlencode (signature);
-            signature = this.encode (signature);
-            signature = this.hash (signature, 'md5').toUpperCase ();
+            signature = this.urlencode (this.keysort (signature));
+            signature += '&secret_key=' + this.secret;
+            signature = this.hash (this.encode (signature), 'md5');
+            signature = signature.toUpperCase ();
             body = this.extend ({
                 'api_key': this.apiKey,
                 'sign': signature,
