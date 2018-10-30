@@ -196,10 +196,7 @@ module.exports = class nebula extends Exchange {
         let request = {};
         if (typeof code !== 'undefined')
             request['endpoint'] = code;
-        let hideZero = this.safeValue (params, 'hideZero');
-        if (typeof hideZero !== 'undefined')
-            request['hideZero'] = hideZero;
-        response = await this.privateGetWallets (request);
+        response = await this.privateGetWallets (this.extend (request, params));
         if (typeof response === 'undefined')
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         let result = { 'info': response };
@@ -427,23 +424,17 @@ module.exports = class nebula extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' please provide a symbol');
         let market = this.market (symbol);
         let request = {};
         request['endpoint'] = market['id'];
-        let fromId = this.safeValue (params, 'fromId', undefined);
-        if (fromId) {
-            request['fromId'] = fromId;
-        } else if (since) {
+        if (since !== undefined) {
             request['start'] = this.iso8601 (since);
-            request['end'] = this.safeValue (params, 'end', this.iso8601 (this.nonce ()));
+            request['end'] = this.iso8601 (this.milliseconds ());
         }
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let signed = this.safeValue (params, 'signed', false);
-        let response = signed ? await this.privateGetTradehistory (this.extend (request)) :
-            await this.publicGetTradehistory (this.extend (request));
+        }
+        let response = await this.publicGetTradehistory (this.extend (request, params));
         return this.parseTrades (response, market);
     }
 
@@ -492,9 +483,9 @@ module.exports = class nebula extends Exchange {
         await this.loadMarkets ();
         let order = {
             'symbol': this.marketId (symbol),
-            'side': side.toLowerCase (),
+            'side': side,
             'quantity': amount,
-            'type': type.toLowerCase (),
+            'type': type,
         };
         if (type === 'market') {
             order['price'] = this.nonce ().toString ();
@@ -506,14 +497,6 @@ module.exports = class nebula extends Exchange {
         let id = result['id'];
         this.orders[id] = result;
         return this.extend ({ 'info': response }, result);
-    }
-
-    async createLimitBuyOrder (symbol, amount, price, params = {}) {
-        return await this.createOrder (symbol, 'limit', 'buy', amount, price, params);
-    }
-
-    async createLimitSellOrder (symbol, amount, price, params = {}) {
-        return await this.createOrder (symbol, 'limit', 'sell', amount, price, params);
     }
 
     async createMarketBuyOrder (symbol, amount, params = {}) {
@@ -537,14 +520,6 @@ module.exports = class nebula extends Exchange {
         let order = this.parseOrder (response);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
-    }
-
-    isFiat (currency) {
-        if (currency === 'EURT')
-            return true;
-        if (currency === 'USDT')
-            return true;
-        return false;
     }
 
     handleErrors (code, reason, url, method, headers, body) {
