@@ -1211,11 +1211,16 @@ class kucoin (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         self.check_address(address)
-        response = await self.privatePostAccountCoinWithdrawApply(self.extend({
+        request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        # they don't have the tag properly documented for currencies that require it(XLM, XRP, ...)
+        # https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if tag is not None:
+            request['address'] += '@' + tag
+        response = await self.privatePostAccountCoinWithdrawApply(self.extend(request, params))
         return {
             'info': response,
             'id': None,

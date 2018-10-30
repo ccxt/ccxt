@@ -1265,11 +1265,17 @@ class kucoin extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
-        $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (
+        $request = array (
             'coin' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        // they don't have the $tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if ($tag !== null) {
+            $request['address'] .= '@' . $tag;
+        }
+        $response = $this->privatePostAccountCoinWithdrawApply (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,
