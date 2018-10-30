@@ -531,11 +531,11 @@ class Exchange {
     }
 
     public static function urlencode ($string) {
-        return http_build_query ($string);
+        return http_build_query ($string,"","&");
     }
 
     public static function rawencode ($string) {
-        return urldecode (http_build_query ($string));
+        return urldecode (http_build_query ($string,"","&"));
     }
 
     public static function encode_uri_component ($string) {
