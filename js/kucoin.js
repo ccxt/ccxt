@@ -1275,7 +1275,7 @@ module.exports = class kucoin extends Exchange {
         if (tag !== undefined) {
             request['address'] += '@' + tag;
         }
-        let response = await this.privatePostAccountCoinWithdrawApply (this.extend (, params));
+        let response = await this.privatePostAccountCoinWithdrawApply (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
