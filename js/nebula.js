@@ -45,7 +45,7 @@ module.exports = class nebula extends Exchange {
             'urls': {
                 'test': 'https://demo.nebula.exchange',
                 'logo': 'https://nebula.exchange/newsite/wp-content/uploads/2018/04/logo_header.png',
-                'api': 'https://api.nebula.exchange',
+                'api': 'https://tapi.nebula.exchange',
                 'www': 'https://nebula.exchange',
                 'doc': 'https://nebula.exchange/wp-content/uploads/2018/06/Nebula-API-V1.pdf',
                 'fees': 'https://nebula.exchange/faq/',
