@@ -433,9 +433,6 @@ module.exports = class crex24 extends Exchange {
         //                   bid:  0.0007,
         //             timestamp: "2018-10-31T09:21:25Z" }   ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         return this.parseTickers (response, symbols);
     }
 
@@ -448,39 +445,49 @@ module.exports = class crex24 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestampField = ('T' in trade) ? 'T' : 'time';
-        let timestamp = this.safeInteger (trade, timestampField);
-        let priceField = ('p' in trade) ? 'p' : 'price';
-        let price = this.safeFloat (trade, priceField);
-        let amountField = ('q' in trade) ? 'q' : 'qty';
-        let amount = this.safeFloat (trade, amountField);
-        let idField = ('a' in trade) ? 'a' : 'id';
-        let id = this.safeString (trade, idField);
-        let side = undefined;
-        let order = undefined;
-        if ('orderId' in trade)
-            order = this.safeString (trade, 'orderId');
-        if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        } else {
-            if ('isBuyer' in trade)
-                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+        //
+        // public fetchTrades
+        //
+        //       {     price:  0.03105,
+        //            volume:  0.11,
+        //              side: "sell",
+        //         timestamp: "2018-10-31T04:19:35Z" }  ]
+        //
+        let timestamp = this.parse8601 (trade['timestamp']);
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'volume');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
         }
+        let id = undefined;
+        let side = this.safeString (trade, 'side');
+        let orderId = undefined;
+        // if ('orderId' in trade)
+        //     order = this.safeString (trade, 'orderId');
+        // if ('m' in trade) {
+        //     side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+        // } else {
+        //     if ('isBuyer' in trade)
+        //         side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+        // }
         let fee = undefined;
-        if ('commission' in trade) {
-            fee = {
-                'cost': this.safeFloat (trade, 'commission'),
-                'currency': this.commonCurrencyCode (trade['commissionAsset']),
-            };
-        }
+        // if ('commission' in trade) {
+        //     fee = {
+        //         'cost': this.safeFloat (trade, 'commission'),
+        //         'currency': this.commonCurrencyCode (trade['commissionAsset']),
+        //     };
+        // }
         let takerOrMaker = undefined;
-        if ('isMaker' in trade)
-            takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        // if ('isMaker' in trade)
+        //     takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
         let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
+        // if (market === undefined) {
+        //     let marketId = this.safeString (trade, 'symbol');
+        //     market = this.safeValue (this.markets_by_id, marketId);
+        // }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -490,12 +497,12 @@ module.exports = class crex24 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': order,
+            'order': orderId,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
+            'cost': cost,
             'amount': amount,
             'fee': fee,
         };
@@ -505,28 +512,25 @@ module.exports = class crex24 extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            'instrument': market['id'],
         };
-        if (since !== undefined) {
-            request['startTime'] = since;
-            request['endTime'] = this.sum (since, 3600000);
+        if (limit !== undefined) {
+            request['limit'] = limit; // min 1, max 1000, default 100
         }
-        if (limit !== undefined)
-            request['limit'] = limit;
-        // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-        // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-        // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-        // 'limit': 500,     // default = 500, maximum = 1000
+        let response = await this.publicGetRecentTrades (this.extend (request, params));
         //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
-        let response = await this.publicGetAggTrades (this.extend (request, params));
+        //     [ {     price:  0.03117,
+        //            volume:  0.02597403,
+        //              side: "buy",
+        //         timestamp: "2018-10-31T09:37:46Z" },
+        //       {     price:  0.03105,
+        //            volume:  0.11,
+        //              side: "sell",
+        //         timestamp: "2018-10-31T04:19:35Z" }  ]
+        //
+        // const log = require ('ololog').unlimited.green;
+        // log (response);
+        // process.exit ();
         return this.parseTrades (response, market, since, limit);
     }
 
