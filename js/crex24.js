@@ -1049,62 +1049,40 @@ module.exports = class crex24 extends Exchange {
         }, params));
     }
 
-    parseTransactionStatusByType (status, type = undefined) {
-        if (type === undefined) {
-            return status;
-        }
+    parseTransactionStatus (status) {
         let statuses = {
-            'deposit': {
-                '0': 'pending',
-                '1': 'ok',
-            },
-            'withdrawal': {
-                '0': 'pending', // Email Sent
-                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
-                '2': 'pending', // Awaiting Approval
-                '3': 'failed', // Rejected
-                '4': 'pending', // Processing
-                '5': 'failed', // Failure
-                '6': 'ok', // Completed
-            },
+            'pending': 'pending', // transfer is in progress
+            'success': 'ok', // completed successfully
+            'failed': 'failed', // aborted at some point (money will be credited back to the account of origin)
         };
-        return (status in statuses[type]) ? statuses[type][status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // fetchDeposits
-        //      { insertTime:  1517425007000,
-        //            amount:  0.3,
-        //           address: "0x0123456789abcdef",
-        //        addressTag: "",
-        //              txId: "0x0123456789abcdef",
-        //             asset: "ETH",
-        //            status:  1                                                                    }
-        //
-        // fetchWithdrawals
-        //
-        //       {      amount:  14,
-        //             address: "0x0123456789abcdef...",
-        //         successTime:  1514489710000,
-        //          addressTag: "",
-        //                txId: "0x0123456789abcdef...",
-        //                  id: "0123456789abcdef...",
-        //               asset: "ETH",
-        //           applyTime:  1514488724000,
-        //              status:  6                       }
+        //     {
+        //         "id": 756446,
+        //         "type": "deposit",
+        //         "currency": "ETH",
+        //         "address": "0x451d5a1b7519aa75164f440df78c74aac96023fe",
+        //         "paymentId": null,
+        //         "amount": 0.142,
+        //         "fee": null,
+        //         "txId": "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
+        //         "createdAt": "2018-06-02T19:30:28Z",
+        //         "processedAt": "2018-06-02T21:10:41Z",
+        //         "confirmationsRequired": 12,
+        //         "confirmationCount": 12,
+        //         "status": "success",
+        //         "errorDescription": null
+        //     },
         //
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
-        if (tag !== undefined) {
-            if (tag.length < 1) {
-                tag = undefined;
-            }
-        }
+        let tag = this.safeString (transaction, 'paymentId');
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'asset');
+        let currencyId = this.safeString (transaction, 'currency');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
         } else {
@@ -1113,22 +1091,12 @@ module.exports = class crex24 extends Exchange {
         if (currency !== undefined) {
             code = currency['code'];
         }
-        let timestamp = undefined;
-        let insertTime = this.safeInteger (transaction, 'insertTime');
-        let applyTime = this.safeInteger (transaction, 'applyTime');
         let type = this.safeString (transaction, 'type');
-        if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
-                type = 'deposit';
-                timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
-                type = 'withdrawal';
-                timestamp = applyTime;
-            }
-        }
-        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        let timestamp = this.parse8601 (transaction, 'createdAt');
+        let updated = this.parse8601 (transaction, 'processedAt');
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let amount = this.safeFloat (transaction, 'amount');
-        const feeCost = undefined;
+        const feeCost = this.safeFloat (transaction, 'fee');
         let fee = {
             'cost': feeCost,
             'currency': code,
@@ -1145,7 +1113,7 @@ module.exports = class crex24 extends Exchange {
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': undefined,
+            'updated': updated,
             'fee': fee,
         };
     }
