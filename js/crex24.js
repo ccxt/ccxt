@@ -1150,21 +1150,25 @@ module.exports = class crex24 extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.wapiGetDepositAddress (this.extend ({
-            'asset': currency['id'],
-        }, params));
-        if ('success' in response) {
-            if (response['success']) {
-                let address = this.safeString (response, 'address');
-                let tag = this.safeString (response, 'addressTag');
-                return {
-                    'currency': code,
-                    'address': this.checkAddress (address),
-                    'tag': tag,
-                    'info': response,
-                };
-            }
-        }
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.accountGetDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "currency": "BTS",
+        //         "address": "crex24",
+        //         "paymentId": "0fg4da4186741579"
+        //     }
+        //
+        let address = this.safeString (response, 'address');
+        let tag = this.safeString (response, 'paymentId');
+        return {
+            'currency': code,
+            'address': this.checkAddress (address),
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
