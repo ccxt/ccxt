@@ -135,6 +135,8 @@ class gdax extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'NotFound' => '\\ccxt\\OrderNotFound',
                     'Invalid API Key' => '\\ccxt\\AuthenticationError',
+                    'invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
                 ),
                 'broad' => array (
                     'Order already done' => '\\ccxt\\OrderNotFound',
