@@ -391,10 +391,29 @@ module.exports = class crex24 extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTicker (this.extend ({
-            'symbol': market['id'],
-        }, params));
-        return this.parseTicker (response, market);
+        let request = {
+            'instrument': market['id'],
+        };
+        let response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [ {    instrument: "$PAC-BTC",
+        //                  last:  3.3e-7,
+        //         percentChange:  3.125,
+        //                   low:  2.7e-7,
+        //                  high:  3.3e-7,
+        //            baseVolume:  191700.79823187,
+        //           quoteVolume:  0.0587930939346704,
+        //           volumeInBtc:  0.0587930939346704,
+        //           volumeInUsd:  376.2006339435353,
+        //                   ask:  3.3e-7,
+        //                   bid:  3.1e-7,
+        //             timestamp: "2018-10-31T09:21:25Z" }   ]
+        //
+        let numTickers = response.length;
+        if (numTickers < 1) {
+            throw new ExchangeError (this.id + ' fetchTicker could not load quotes for symbol ' + symbol);
+        }
+        return this.parseTicker (response[0], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -429,7 +448,7 @@ module.exports = class crex24 extends Exchange {
         //           volumeInUsd:  0,
         //                   ask:  0.5,
         //                   bid:  0.0007,
-        //             timestamp: "2018-10-31T09:21:25Z" }   ] (fetchTickers @ crex24.js:385)
+        //             timestamp: "2018-10-31T09:21:25Z" }   ]
         //
         // const log = require ('ololog').unlimited.green;
         // log (response);
