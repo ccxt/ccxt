@@ -15,7 +15,7 @@ class kkex (Exchange):
         return self.deep_extend(super(kkex, self).describe(), {
             'id': 'kkex',
             'name': 'KKEX',
-            'countries': ['CN', 'US', 'JA'],
+            'countries': ['CN', 'US', 'JP'],
             'version': 'v2',
             'has': {
                 'CORS': False,
