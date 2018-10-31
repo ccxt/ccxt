@@ -1074,8 +1074,8 @@ module.exports = class crex24 extends Exchange {
         //         "confirmationsRequired": 12,
         //         "confirmationCount": 12,
         //         "status": "success",
-        //         "errorDescription": null
-        //     },
+        //         "errorDescription": null,
+        //     }
         //
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
@@ -1146,20 +1146,20 @@ module.exports = class crex24 extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let name = address.slice (0, 20);
         let request = {
-            'asset': currency['id'],
+            'currency': currency['id'],
             'address': address,
-            'amount': parseFloat (amount),
-            'name': name,
+            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
+            // sets whether the specified amount includes fee, can have either of the two values:
+            // true - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address;
+            // false - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee].
+            // 'includeFee': false, // The default value is false
         };
-        if (tag)
-            request['addressTag'] = tag;
-        let response = await this.wapiPostWithdraw (this.extend (request, params));
-        return {
-            'info': response,
-            'id': this.safeString (response, 'id'),
-        };
+        if (tag !== undefined) {
+            request['paymentId'] = tag;
+        }
+        let response = await this.accountPostWithdraw (this.extend (request, params));
+        return this.parseTransaction (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
