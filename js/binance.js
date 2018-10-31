@@ -732,8 +732,9 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
-            if (price === undefined)
+            if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
             order['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
