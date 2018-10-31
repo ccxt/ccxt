@@ -665,75 +665,34 @@ module.exports = class crex24 extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // The parameters should be passed in the body of POST request as fields of a JSON object:
-        // Parameter	Type	Description
-        // instrument	string	Trade instrument for which the order should be placed, e.g. "ETH-BTC"
-        // side	string	Order side, can have either of the two values:
-        // "buy" - buying order;
-        // "sell" - selling order
-        // type	string	Optional. Order type. Accepted values:
-        // "limit" - limit order;
-        // "market" - market order;
-        // "stopLimit" - stop-limit order.
-        // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument).
-        // If the parameter is not specified, the default value "limit" is used.
-        // More about order types in the corresponding section of documentation
-        // timeInForce	string	Optional. Sets the length of time over which the order will continue working before it’s cancelled. Accepted values:
-        // "GTC" - Good-Til-Cancelled;
-        // "IOC" - Immediate-Or-Cancel (currently not supported, reserved for future use);
-        // "FOK" - Fill-Or-Kill (currently not supported, reserved for future use).
-        // If the parameter is not specified, the default value "GTC" is used for limit orders.
-        // More about limit order lifecycle in the section Limit Order
-        // volume	decimal	The amount of base currency to be bought or sold.
-        // The value must be greater than or equal to the minVolume of the Instrument
-        // price	decimal	Order price.
-        // The value must be greater than or equal to the minPrice of the Instrument.
-        // This parameter is not necessary for market-orders (if set explicitly, the value is ignored)
-        // stopPrice	decimal	Stop-price.
-        // This parameter is mandatory for stop-limit orders only. In case of alternate order types, the value is ignored
-        // strictValidation	boolean	Optional. Values of parameters price and stopPrice must be a multiple of tickSize of the Instrument. This field defines how such values should be processed, if they don’t meet the requirement:
-        // false - prices will be rounded to meet the requirement;
-        // true - execution of the method will be aborted and an error message will be returned.
-        // The default value is false
         let market = this.market (symbol);
-        // the next 5 lines are added to support for testing orders
-        let method = 'privatePostOrder';
-        let test = this.safeValue (params, 'test', false);
-        if (test) {
-            method += 'Test';
-            params = this.omit (params, 'test');
-        }
-        let uppercaseType = type.toUpperCase ();
         let request = {
-            'symbol': market['id'],
-            'quantity': this.amountToPrecision (symbol, amount),
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
-            'newOrderRespType': this.options['newOrderRespType'], // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'instrument': market['id'],
+            'volume': this.amountToPrecision (symbol, amount),
+            // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument).
+            // If the parameter is not specified, the default value "limit" is used.
+            // More about order types in the corresponding section of documentation
+            'type': type, // 'limit', 'market', 'stopLimit', in fact as of 2018-10-31, only 'limit' orders are supported for all markets
+            'side': side, // 'buy' or 'sell'
+            // "GTC" - Good-Til-Cancelled;
+            // "IOC" - Immediate-Or-Cancel (currently not supported by the exchange API, reserved for future use);
+            // "FOK" - Fill-Or-Kill (currently not supported by the exchange API, reserved for future use).
+            // 'timeInForce': 'GTC', // IOC', 'FOK'
+            // 'strictValidation': false, // false - prices will be rounded to meet the requirement, true - execution of the method will be aborted and an error message will be returned.
         };
-        let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
-        if (uppercaseType === 'LIMIT') {
+        if (type === 'limit') {
             priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+        } else if (type === 'stopLimit') {
+            priceIsRequired = true;
             stopPriceIsRequired = true;
-        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
-            stopPriceIsRequired = true;
-            priceIsRequired = true;
-            timeInForceIsRequired = true;
-        } else if (uppercaseType === 'LIMIT_MAKER') {
-            priceIsRequired = true;
         }
         if (priceIsRequired) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
             }
             request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
             let stopPrice = this.safeFloat (params, 'stopPrice');
@@ -744,6 +703,25 @@ module.exports = class crex24 extends Exchange {
             }
         }
         let response = await this.tradingPostPlaceOrder (this.extend (request, params));
+        //
+        //     {
+        //         "id": 469594855,
+        //         "timestamp": "2018-06-08T16:59:44Z",
+        //         "instrument": "BTS-BTC",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "status": "submitting",
+        //         "cancellationReason": null,
+        //         "timeInForce": "GTC",
+        //         "volume": 4.0,
+        //         "price": 0.000025,
+        //         "stopPrice": null,
+        //         "remainingVolume": 4.0,
+        //         "lastUpdate": null,
+        //         "parentOrderId": null,
+        //         "childOrderId": null
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
@@ -1076,39 +1054,6 @@ module.exports = class crex24 extends Exchange {
             }
             let signature = this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha512', 'binary'));
             headers['X-CREX24-API-SIGN'] = signature;
-            // const crypto = require("crypto");
-            // const request = require("request");
-            // var baseUrl = "https://api.crex24.com";
-            // var apiKey = "-- Your API key --";
-            // var secret = "-- Your secret --";
-            // var path = "/v2/trading/placeOrder";
-            // var body = JSON.stringify({
-            //     instrument: "ETH-BTC",
-            //     side: "sell",
-            //     volume: 1,
-            //     price: 12345.67
-            // });
-            // var nonce = Date.now();
-            // var key = Buffer(secret, "base64");
-            // var message = path + nonce + body;
-            // var hmac = crypto.createHmac("sha512", key);
-            // var signature = hmac.update(message).digest('base64');
-            // request({
-            //         url: baseUrl + path,
-            //         method: "POST",
-            //         headers: {
-            //             "X-CREX24-API-KEY": apiKey,
-            //             "X-CREX24-API-NONCE": nonce,
-            //             "X-CREX24-API-SIGN": signature
-            //         },
-            //         body: body
-            //     },
-            //     function (error, response, body) {
-            //         console.log("error:", error);
-            //         console.log("statusCode:", response && response.statusCode);
-            //         console.log("body:", body);
-            //     }
-            // );
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
