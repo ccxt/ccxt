@@ -562,76 +562,74 @@ module.exports = class crex24 extends Exchange {
 
     parseOrderStatus (status) {
         let statuses = {
-            'NEW': 'open',
-            'PARTIALLY_FILLED': 'open',
-            'FILLED': 'closed',
-            'CANCELED': 'canceled',
+            'submitting': 'open', // A newly created limit order has a status "submitting" until it has been processed.
+            // This status changes during the lifetime of an order and can have different values depending on the value of the parameter Time In Force.
+            'unfilledActive': 'open', // order is active, no trades have been made
+            'partiallyFilledActive': 'open', // part of the order has been filled, the other part is active
+            'filled': 'closed', // order has been filled entirely
+            'partiallyFilledCancelled': 'canceled', // part of the order has been filled, the other part has been cancelled either by the trader or by the system (see the value of cancellationReason of an Order for more details on the reason of cancellation);
+            'unfilledCancelled': 'canceled', // order has been cancelled, no trades have taken place (see the value of cancellationReason of an Order for more details on the reason of cancellation).
         };
         return (status in statuses) ? statuses[status] : status;
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "id": 469594855,
+        //         "timestamp": "2018-06-08T16:59:44Z",
+        //         "instrument": "BTS-BTC",
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "status": "submitting",
+        //         "cancellationReason": null,
+        //         "timeInForce": "GTC",
+        //         "volume": 4.0,
+        //         "price": 0.000025,
+        //         "stopPrice": null,
+        //         "remainingVolume": 4.0,
+        //         "lastUpdate": null,
+        //         "parentOrderId": null,
+        //         "childOrderId": null
+        //     }
+        //
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
-        let timestamp = undefined;
-        if ('time' in order)
-            timestamp = order['time'];
-        else if ('transactTime' in order)
-            timestamp = order['transactTime'];
+        let timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'origQty');
-        let filled = this.safeFloat (order, 'executedQty');
-        let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
-        if (filled !== undefined) {
+        let amount = this.safeFloat (order, 'volume');
+        let remaining = this.safeFloat (order, 'remainingVolume');
+        let filled = undefined;
+        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'lastUpdate'));
+        let cost = undefined;
+        if (remaining !== undefined) {
             if (amount !== undefined) {
-                remaining = amount - filled;
+                filled = amount - remaining;
                 if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                    filled = parseFloat (this.amountToPrecision (symbol, filled));
                 }
-                remaining = Math.max (remaining, 0.0);
-            }
-            if (price !== undefined) {
-                if (cost === undefined) {
+                filled = Math.max (filled, 0.0);
+                if (price !== undefined) {
                     cost = price * filled;
                 }
             }
         }
-        let id = this.safeString (order, 'orderId');
+        let id = this.safeString (order, 'id');
         let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
-                        }
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
                     }
                 }
             }
         }
         let side = this.safeString (order, 'side');
-        if (side !== undefined)
-            side = side.toLowerCase ();
         let fee = undefined;
         let trades = undefined;
-        const fills = this.safeValue (order, 'fills');
-        if (fills !== undefined) {
-            trades = this.parseTrades (fills, market);
-            let numTrades = trades.length;
-            if (numTrades > 0) {
-                cost = trades[0]['cost'];
-                fee = {
-                    'cost': trades[0]['fee']['cost'],
-                    'currency': trades[0]['fee']['currency'],
-                };
-                for (let i = 1; i < trades.length; i++) {
-                    cost = this.sum (cost, trades[i]['cost']);
-                    fee['cost'] = this.sum (fee['cost'], trades[i]['fee']['cost']);
-                }
-            }
-        }
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {
@@ -646,7 +644,7 @@ module.exports = class crex24 extends Exchange {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
             'side': side,
