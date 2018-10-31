@@ -576,10 +576,7 @@ module.exports = class bittrex extends Exchange {
         //         ]
         //     }
         //
-        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
-        // see https://github.com/ccxt/ccxt/issues/4067
-        // return this.parseTransactions (response['result'], currency, since, limit);
-        return this.parseTransactions (response['result'], currency, undefined, limit);
+        return this.parseTransactions (response['result'], currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
