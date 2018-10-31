@@ -515,7 +515,10 @@ class bittrex (Exchange):
         #                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
         #                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    }]}
         #
-        return self.parseTransactions(response['result'], currency, since, limit)
+        # we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        # see https://github.com/ccxt/ccxt/issues/4067
+        # return self.parseTransactions(response['result'], currency, since, limit)
+        return self.parseTransactions(response['result'], currency, None, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

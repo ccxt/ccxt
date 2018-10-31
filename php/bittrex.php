@@ -528,7 +528,10 @@ class bittrex extends Exchange {
         //                             TxId => "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
         //                    CryptoAddress => "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ) }
         //
-        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
+        // see https://github.com/ccxt/ccxt/issues/4067
+        // return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parseTransactions ($response['result'], $currency, null, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {

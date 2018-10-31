@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.436'
+const version = '1.17.437'
 
 Exchange.ccxtVersion = version
 
@@ -15587,7 +15587,10 @@ module.exports = class bittrex extends Exchange {
         //                             TxId: "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
         //                    CryptoAddress: "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ] }
         //
-        return this.parseTransactions (response['result'], currency, since, limit);
+        // we cannot filter by `since` timestamp, as it isn't set by Bittrex
+        // see https://github.com/ccxt/ccxt/issues/4067
+        // return this.parseTransactions (response['result'], currency, since, limit);
+        return this.parseTransactions (response['result'], currency, undefined, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -21765,22 +21768,21 @@ module.exports = class ccex extends Exchange {
         await this.loadMarkets ();
         let orderbooks = {};
         let response = await this.publicGetFullorderbook ();
-        let types = Object.keys (response['result']);
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i];
-            let bidasks = response['result'][type];
+        let sides = Object.keys (response['result']);
+        for (let i = 0; i < sides.length; i++) {
+            let side = sides[i];
+            let bidasks = response['result'][side];
             let bidasksByMarketId = this.groupBy (bidasks, 'Market');
             let marketIds = Object.keys (bidasksByMarketId);
             for (let j = 0; j < marketIds.length; j++) {
                 let marketId = marketIds[j];
-                let symbol = marketId.toUpperCase ();
-                let side = type;
-                if (symbol in this.markets_by_id) {
+                let symbol = marketId;
+                if (marketId in this.markets_by_id) {
                     let market = this.markets_by_id[symbol];
                     symbol = market['symbol'];
                 } else {
-                    let [ base, quote ] = symbol.split ('-');
-                    let invertedId = quote + '-' + base;
+                    let [ baseId, quoteId ] = symbol.split ('-');
+                    let invertedId = quoteId + '-' + baseId;
                     if (invertedId in this.markets_by_id) {
                         let market = this.markets_by_id[invertedId];
                         symbol = market['symbol'];
