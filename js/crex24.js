@@ -309,14 +309,35 @@ module.exports = class crex24 extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            'instrument': market['id'],
         };
         if (limit !== undefined)
             request['limit'] = limit; // default = maximum = 100
-        let response = await this.publicGetDepth (this.extend (request, params));
-        let orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
-        return orderbook;
+        let response = await this.publicGetOrderBook (this.extend (request, params));
+        //
+        //     {  buyLevels: [ { price: 0.03099, volume: 0.00610063 },
+        //                     { price: 0.03097, volume: 1.33455158 },
+        //                     { price: 0.03096, volume: 0.0830889 },
+        //                     { price: 0.03095, volume: 0.0820356 },
+        //                     { price: 0.03093, volume: 0.5499419 },
+        //                     { price: 0.03092, volume: 0.23317494 },
+        //                     { price: 0.03091, volume: 0.62105322 },
+        //                     { price: 0.0309, volume: 0.05261453 },
+        //                     { price: 0.03089, volume: 0.68379217 },
+        //                     { price: 0.00620041, volume: 0.003 }    ],
+        //       sellLevels: [ { price: 0.03117, volume: 5.47492315 },
+        //                     { price: 0.03118, volume: 1.97744139 },
+        //                     { price: 0.03119, volume: 0.012 },
+        //                     { price: 0.03121, volume: 0.741242 },
+        //                     { price: 0.03122, volume: 0.96178089 },
+        //                     { price: 0.03123, volume: 0.152326 },
+        //                     { price: 0.03124, volume: 2.63462933 },
+        //                     { price: 0.069, volume: 0.004 }            ] }
+        //
+        // const log = require ('ololog').unlimited.green;
+        // log (response);
+        // process.exit ();
+        return this.parseOrderBook (response, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -528,9 +549,6 @@ module.exports = class crex24 extends Exchange {
         //              side: "sell",
         //         timestamp: "2018-10-31T04:19:35Z" }  ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         return this.parseTrades (response, market, since, limit);
     }
 
