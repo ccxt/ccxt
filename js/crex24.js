@@ -111,9 +111,6 @@ module.exports = class crex24 extends Exchange {
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
@@ -135,14 +132,7 @@ module.exports = class crex24 extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
-    }
-
-    async loadTimeDifference () {
-        const response = await this.publicGetTime ();
-        const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt (after - response['serverTime']);
-        return this.options['timeDifference'];
+        return this.milliseconds ();
     }
 
     async fetchMarkets () {
@@ -286,21 +276,41 @@ module.exports = class crex24 extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccount (params);
+        let request = {
+            // 'currency': 'ETH', // comma-separated list of currency ids
+            // 'nonZeroOnly': 'false', // true by default
+        };
+        let response = await this.accountGetBalance (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //           "currency": "ETH",
+        //           "available": 0.0,
+        //           "reserved": 0.0
+        //         }
+        //     ]
+        //
+        // const log = require ('ololog').unlimited.green;
+        // log (response);
+        // process.exit ();
         let result = { 'info': response };
-        let balances = response['balances'];
-        for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let currency = balance['asset'];
-            if (currency in this.currencies_by_id)
-                currency = this.currencies_by_id[currency]['code'];
-            let account = {
-                'free': parseFloat (balance['free']),
-                'used': parseFloat (balance['locked']),
-                'total': 0.0,
+        for (let i = 0; i < response.length; i++) {
+            let balance = response[i];
+            let currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
             };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            let free = this.safeFloat (balance, 'available');
+            let used = this.safeFloat (balance, 'reserved');
+            let total = this.sum (free, used);
+            result[code] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
         }
         return this.parseBalance (result);
     }
@@ -334,9 +344,6 @@ module.exports = class crex24 extends Exchange {
         //                     { price: 0.03124, volume: 2.63462933 },
         //                     { price: 0.069, volume: 0.004 }            ] }
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         return this.parseOrderBook (response, undefined, 'buyLevels', 'sellLevels', 'price', 'volume');
     }
 
@@ -1050,26 +1057,63 @@ module.exports = class crex24 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
-        if (api === 'public') {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
-        } else {
-            this.checkRequiredCredentials ();
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-            }, params));
-            let signature = this.hmac (this.encode (query), this.encode (this.secret));
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
-                url += '?' + query;
-            } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        let request = '/' + this.version + '/' + api + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                request += '?' + this.urlencode (query);
             }
+        }
+        let url = this.urls['api'] + request;
+        if ((api === 'trading') || (api === 'account')) {
+            this.checkRequiredCredentials ();
+            let nonce = this.nonce ().toString ();
+            let secret = this.base64ToBinary (this.secret);
+            let auth = request + nonce;
+            headers = {
+                'X-CREX24-API-KEY': this.apiKey,
+                'X-CREX24-API-NONCE': nonce,
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (params);
+                auth += body;
+            }
+            let signature = this.stringToBase64 (this.hmac (this.encode (auth), secret, 'sha512', 'binary'));
+            headers['X-CREX24-API-SIGN'] = signature;
+            // const crypto = require("crypto");
+            // const request = require("request");
+            // var baseUrl = "https://api.crex24.com";
+            // var apiKey = "-- Your API key --";
+            // var secret = "-- Your secret --";
+            // var path = "/v2/trading/placeOrder";
+            // var body = JSON.stringify({
+            //     instrument: "ETH-BTC",
+            //     side: "sell",
+            //     volume: 1,
+            //     price: 12345.67
+            // });
+            // var nonce = Date.now();
+            // var key = Buffer(secret, "base64");
+            // var message = path + nonce + body;
+            // var hmac = crypto.createHmac("sha512", key);
+            // var signature = hmac.update(message).digest('base64');
+            // request({
+            //         url: baseUrl + path,
+            //         method: "POST",
+            //         headers: {
+            //             "X-CREX24-API-KEY": apiKey,
+            //             "X-CREX24-API-NONCE": nonce,
+            //             "X-CREX24-API-SIGN": signature
+            //         },
+            //         body: body
+            //     },
+            //     function (error, response, body) {
+            //         console.log("error:", error);
+            //         console.log("statusCode:", response && response.statusCode);
+            //         console.log("body:", body);
+            //     }
+            // );
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
