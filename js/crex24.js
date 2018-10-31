@@ -26,7 +26,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -768,18 +768,10 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrder (response[0]);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let id = this.safeValue2 (params, 'ids', 'id');
-        let query = this.omit (params, [ 'ids', 'id' ]);
-        if (id === undefined) {
-            throw new ExchangeError (this.id + ' fetchOrders requires an extra ids or id param (a single order id or an array of order ids)');
-        }
-        if (this.isArray (id)) {
-            id = id.join (',');
-        }
+    async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
-            'id': id,
+            'id': ids.join (','),
         };
         let response = await this.tradingGetOrderStatus (this.extend (request, query));
         //
