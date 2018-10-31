@@ -484,6 +484,20 @@ module.exports = class crex24 extends Exchange {
         //              side: "sell",
         //         timestamp: "2018-10-31T04:19:35Z" }  ]
         //
+        // private fetchMyTrades
+        //
+        //     {
+        //         "id": 3005866,
+        //         "orderId": 468533093,
+        //         "timestamp": "2018-06-02T16:26:27Z",
+        //         "instrument": "BCH-ETH",
+        //         "side": "buy",
+        //         "price": 1.78882,
+        //         "volume": 0.027,
+        //         "fee": 0.0000483,
+        //         "feeCurrency": "ETH"
+        //     }
+        //
         let timestamp = this.parse8601 (trade['timestamp']);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'volume');
@@ -495,33 +509,30 @@ module.exports = class crex24 extends Exchange {
         }
         let id = undefined;
         let side = this.safeString (trade, 'side');
-        let orderId = undefined;
-        // if ('orderId' in trade)
-        //     order = this.safeString (trade, 'orderId');
-        // if ('m' in trade) {
-        //     side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
-        // } else {
-        //     if ('isBuyer' in trade)
-        //         side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
-        // }
-        let fee = undefined;
-        // if ('commission' in trade) {
-        //     fee = {
-        //         'cost': this.safeFloat (trade, 'commission'),
-        //         'currency': this.commonCurrencyCode (trade['commissionAsset']),
-        //     };
-        // }
-        let takerOrMaker = undefined;
-        // if ('isMaker' in trade)
-        //     takerOrMaker = trade['isMaker'] ? 'maker' : 'taker';
+        let orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
-        // if (market === undefined) {
-        //     let marketId = this.safeString (trade, 'symbol');
-        //     market = this.safeValue (this.markets_by_id, marketId);
-        // }
+        let marketId = this.safeString (trade, 'instrument');
+        market = this.safeValue (this.markets_by_id, marketId, market);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        let fee = undefined;
+        let feeCurrencyId = this.safeString (trade, 'feeCurrency');
+        let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+        let feeCode = undefined;
+        if (feeCurrency !== undefined) {
+            feeCode = feeCurrency['code'];
+        } else if (market !== undefined) {
+            feeCode = market['quote'];
+        }
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCode,
+            };
+        }
+        let takerOrMaker = undefined;
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -806,6 +817,45 @@ module.exports = class crex24 extends Exchange {
             request['instrument'] = market['id'];
         }
         let response = await this.tradingGetActiveOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 466747915,
+        //             "timestamp": "2018-05-26T06:43:49Z",
+        //             "instrument": "UNI-BTC",
+        //             "side": "sell",
+        //             "type": "limit",
+        //             "status": "partiallyFilledActive",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 5700.0,
+        //             "price": 0.000005,
+        //             "stopPrice": null,
+        //             "remainingVolume": 1.948051948052,
+        //             "lastUpdate": null,
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         },
+        //         {
+        //             "id": 466748077,
+        //             "timestamp": "2018-05-26T06:45:29Z",
+        //             "instrument": "PRJ-BTC",
+        //             "side": "sell",
+        //             "type": "limit",
+        //             "status": "partiallyFilledActive",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 10000.0,
+        //             "price": 0.0000007,
+        //             "stopPrice": null,
+        //             "remainingVolume": 9975.0,
+        //             "lastUpdate": null,
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         },
+        //         ...
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -824,6 +874,44 @@ module.exports = class crex24 extends Exchange {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
         let response = await this.tradingGetActiveOrders (this.extend (request, params));
+        //     [
+        //         {
+        //             "id": 468535711,
+        //             "timestamp": "2018-06-02T16:42:40Z",
+        //             "instrument": "BTC-EUR",
+        //             "side": "sell",
+        //             "type": "limit",
+        //             "status": "submitting",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 0.00770733,
+        //             "price": 6724.9,
+        //             "stopPrice": null,
+        //             "remainingVolume": 0.00770733,
+        //             "lastUpdate": null,
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         },
+        //         {
+        //             "id": 468535707,
+        //             "timestamp": "2018-06-02T16:42:37Z",
+        //             "instrument": "BTG-BTC",
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "status": "unfilledActive",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 0.0173737,
+        //             "price": 0.00589027,
+        //             "stopPrice": null,
+        //             "remainingVolume": 0.0173737,
+        //             "lastUpdate": null,
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         },
+        //         ...
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -834,33 +922,68 @@ module.exports = class crex24 extends Exchange {
                 parseInt (id),
             ],
         }, params));
+        //
+        //     [
+        //         465448358,
+        //         468364313
+        //     ]
+        //
         return this.parseOrder (response);
     }
 
     async cancelAllOrders (symbols = undefined, params = {}) {
         const response = await this.tradingPostCancelAllOrders (params);
         //
-        //     [{
-        //       "canceledOrder": {
-        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
-        //         "amount": "100000000000"
-        //       }
-        //     }]
+        //     [
+        //         465448358,
+        //         468364313
+        //     ]
         //
         return response;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined)
-            request['limit'] = limit;
-        let response = await this.privateGetMyTrades (this.extend (request, params));
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.ymdhms (since, 'T');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // min 1, max 1000, default 100
+        }
+        let response = await this.tradingGetTradeHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 3005866,
+        //             "orderId": 468533093,
+        //             "timestamp": "2018-06-02T16:26:27Z",
+        //             "instrument": "BCH-ETH",
+        //             "side": "buy",
+        //             "price": 1.78882,
+        //             "volume": 0.027,
+        //             "fee": 0.0000483,
+        //             "feeCurrency": "ETH"
+        //         },
+        //         {
+        //             "id": 3005812,
+        //             "orderId": 468515771,
+        //             "timestamp": "2018-06-02T16:16:05Z",
+        //             "instrument": "ETC-BTC",
+        //             "side": "sell",
+        //             "price": 0.00210958,
+        //             "volume": 0.05994006,
+        //             "fee": -0.000000063224,
+        //             "feeCurrency": "BTC"
+        //         },
+        //         ...
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
