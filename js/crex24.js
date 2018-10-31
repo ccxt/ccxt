@@ -665,6 +665,36 @@ module.exports = class crex24 extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        // The parameters should be passed in the body of POST request as fields of a JSON object:
+        // Parameter	Type	Description
+        // instrument	string	Trade instrument for which the order should be placed, e.g. "ETH-BTC"
+        // side	string	Order side, can have either of the two values:
+        // "buy" - buying order;
+        // "sell" - selling order
+        // type	string	Optional. Order type. Accepted values:
+        // "limit" - limit order;
+        // "market" - market order;
+        // "stopLimit" - stop-limit order.
+        // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument).
+        // If the parameter is not specified, the default value "limit" is used.
+        // More about order types in the corresponding section of documentation
+        // timeInForce	string	Optional. Sets the length of time over which the order will continue working before it’s cancelled. Accepted values:
+        // "GTC" - Good-Til-Cancelled;
+        // "IOC" - Immediate-Or-Cancel (currently not supported, reserved for future use);
+        // "FOK" - Fill-Or-Kill (currently not supported, reserved for future use).
+        // If the parameter is not specified, the default value "GTC" is used for limit orders.
+        // More about limit order lifecycle in the section Limit Order
+        // volume	decimal	The amount of base currency to be bought or sold.
+        // The value must be greater than or equal to the minVolume of the Instrument
+        // price	decimal	Order price.
+        // The value must be greater than or equal to the minPrice of the Instrument.
+        // This parameter is not necessary for market-orders (if set explicitly, the value is ignored)
+        // stopPrice	decimal	Stop-price.
+        // This parameter is mandatory for stop-limit orders only. In case of alternate order types, the value is ignored
+        // strictValidation	boolean	Optional. Values of parameters price and stopPrice must be a multiple of tickSize of the Instrument. This field defines how such values should be processed, if they don’t meet the requirement:
+        // false - prices will be rounded to meet the requirement;
+        // true - execution of the method will be aborted and an error message will be returned.
+        // The default value is false
         let market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
         let method = 'privatePostOrder';
@@ -674,7 +704,7 @@ module.exports = class crex24 extends Exchange {
             params = this.omit (params, 'test');
         }
         let uppercaseType = type.toUpperCase ();
-        let order = {
+        let request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
@@ -697,22 +727,23 @@ module.exports = class crex24 extends Exchange {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
-            if (price === undefined)
+            if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
-            order['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
-            order['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (stopPriceIsRequired) {
             let stopPrice = this.safeFloat (params, 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order');
             } else {
-                order['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
-        let response = await this[method] (this.extend (order, params));
+        let response = await this.tradingPostPlaceOrder (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
