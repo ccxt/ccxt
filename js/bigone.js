@@ -499,7 +499,7 @@ module.exports = class bigone extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrdersOrderIdCancel (params);
         //
