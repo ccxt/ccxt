@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.438'
+const version = '1.17.439'
 
 Exchange.ccxtVersion = version
 
@@ -7008,8 +7008,9 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
-            if (price === undefined)
+            if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
             order['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
