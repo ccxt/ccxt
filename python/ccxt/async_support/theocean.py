@@ -776,7 +776,7 @@ class theocean (Exchange):
             'status': 'canceled',
         })
 
-    async def cancel_all_orders(self, params={}):
+    async def cancel_all_orders(self, symbols=None, params={}):
         response = await self.privateDeleteOrders(params)
         #
         #     [{
