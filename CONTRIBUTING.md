@@ -35,10 +35,11 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
-  - `/doc/*`
-  - `/build/*`
+  - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
+  - `/build/*` (these are generated automatically)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
 
