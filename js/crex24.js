@@ -35,6 +35,8 @@ module.exports = class crex24 extends Exchange {
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': true,
+                'fetchOrderTrades': true,
+                'editOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
@@ -724,33 +726,53 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let origClientOrderId = this.safeValue (params, 'origClientOrderId');
         let request = {
-            'symbol': market['id'],
+            'id': id,
         };
-        if (origClientOrderId !== undefined)
-            request['origClientOrderId'] = origClientOrderId;
-        else
-            request['orderId'] = parseInt (id);
         let response = await this.privateGetOrder (this.extend (request, params));
-        return this.parseOrder (response, market);
+        //
+        //     [
+        //         {
+        //           "id": 466747915,
+        //           "timestamp": "2018-05-26T06:43:49Z",
+        //           "instrument": "UNI-BTC",
+        //           "side": "sell",
+        //           "type": "limit",
+        //           "status": "partiallyFilledActive",
+        //           "cancellationReason": null,
+        //           "timeInForce": "GTC",
+        //           "volume": 5700.0,
+        //           "price": 0.000005,
+        //           "stopPrice": null,
+        //           "remainingVolume": 1.948051948052,
+        //           "lastUpdate": null,
+        //           "parentOrderId": null,
+        //           "childOrderId": null
+        //         }
+        //     ]
+        //
+        let numOrders = response.length;
+        if (numOrders < 1) {
+            throw new OrderNotFound (this.id + ' fetchOrder could not fetch order id ' + id);
+        }
+        return this.parseOrder (response[0]);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        let ids = this.safeValue2 (params, 'ids', 'id');
+        let query = this.omit (params, [ 'ids', 'id' ]);
+        if (ids === undefined) {
+            throw new ExchangeError (this.id + ' fetchOrders requires an extra ids or id param (a single order id or an array of order ids)');
+        }
+        if (this.isArray (ids)) {
+            ids = ids.join (',');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
         let request = {
-            'symbol': market['id'],
+            'id': ids,
         };
-        if (limit !== undefined)
-            request['limit'] = limit;
-        let response = await this.privateGetAllOrders (this.extend (request, params));
+        let response = await this.privateGetAllOrders (this.extend (request, query));
         //
         //     [
         //         {
@@ -773,7 +795,7 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        return this.parseOrders (response, undefined, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -782,14 +804,9 @@ module.exports = class crex24 extends Exchange {
         let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            let symbols = this.symbols;
-            let numSymbols = symbols.length;
-            let fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            request['instrument'] = market['id'];
         }
-        let response = await this.privateGetOpenOrders (this.extend (request, params));
+        let response = await this.tradingGetActiveOrders (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -799,14 +816,11 @@ module.exports = class crex24 extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateDeleteOrder (this.extend ({
-            'symbol': market['id'],
-            'orderId': parseInt (id),
-            // 'origClientOrderId': id,
+        let response = await this.tradingPostCancelOrdersById (this.extend ({
+            'ids': [
+                parseInt (id),
+            ],
         }, params));
         return this.parseOrder (response);
     }
