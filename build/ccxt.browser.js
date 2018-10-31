@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.442'
+const version = '1.17.443'
 
 Exchange.ccxtVersion = version
 
@@ -29895,7 +29895,6 @@ module.exports = class crex24 extends Exchange {
             'name': 'CREX24',
             'countries': [ 'EE' ], // Estonia
             'rateLimit': 500,
-            'certified': true,
             'version': 'v2',
             // new metainfo interface
             'has': {

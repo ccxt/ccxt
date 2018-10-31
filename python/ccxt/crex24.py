@@ -28,7 +28,6 @@ class crex24 (Exchange):
             'name': 'CREX24',
             'countries': ['EE'],  # Estonia
             'rateLimit': 500,
-            'certified': True,
             'version': 'v2',
             # new metainfo interface
             'has': {

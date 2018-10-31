@@ -15,7 +15,6 @@ class crex24 extends Exchange {
             'name' => 'CREX24',
             'countries' => array ( 'EE' ), // Estonia
             'rateLimit' => 500,
-            'certified' => true,
             'version' => 'v2',
             // new metainfo interface
             'has' => array (
