@@ -18,6 +18,7 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'CORS': false,
                 'fetchBidsAsks': true,
@@ -183,9 +184,6 @@ module.exports = class crex24 extends Exchange {
         //         supportedOrderTypes: ["limit"],
         //                       state:   "active"   }        ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         let result = [];
         for (let i = 0; i < response.length; i++) {
             let market = response[i];
@@ -231,26 +229,53 @@ module.exports = class crex24 extends Exchange {
 
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
-        let currencies = response['result'];
+        //
+        //     [ {                   symbol: "$PAC",
+        //                             name: "PACCoin",
+        //                           isFiat:  false,
+        //                  depositsAllowed:  true,
+        //         depositConfirmationCount:  8,
+        //                       minDeposit:  0,
+        //               withdrawalsAllowed:  true,
+        //              withdrawalPrecision:  8,
+        //                    minWithdrawal:  4,
+        //                    maxWithdrawal:  1000000000,
+        //                flatWithdrawalFee:  2,
+        //                       isDelisted:  false       },
+        //       {                   symbol: "ZZC",
+        //                             name: "Zozo",
+        //                           isFiat:  false,
+        //                  depositsAllowed:  false,
+        //         depositConfirmationCount:  8,
+        //                       minDeposit:  0,
+        //               withdrawalsAllowed:  false,
+        //              withdrawalPrecision:  8,
+        //                    minWithdrawal:  0.2,
+        //                    maxWithdrawal:  1000000000,
+        //                flatWithdrawalFee:  0.1,
+        //                       isDelisted:  false       } ]
+        //
+        // const log = require ('ololog').unlimited.green;
+        // log (response);
+        // process.exit ();
         let result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['Currency'];
-            // todo: will need to rethink the fees
-            // to add support for multiple withdrawal/deposit methods and
-            // differentiated fees for each particular method
+        for (let i = 0; i < response.length; i++) {
+            let currency = response[i];
+            let id = currency['symbol'];
             let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
+            let precision = this.safeInteger (currency, 'withdrawalPrecision');
             let address = this.safeValue (currency, 'BaseAddress');
+            let active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
+            let type = currency['isFiat'] ? 'fiat' : 'crypto';
             result[code] = {
                 'id': id,
                 'code': code,
                 'address': address,
                 'info': currency,
-                'type': currency['CoinType'],
-                'name': currency['CurrencyLong'],
-                'active': currency['IsActive'],
-                'fee': this.safeFloat (currency, 'TxFee'), // todo: redesign
+                'type': type,
+                'name': this.safeString (currency, 'name'),
+                'active': active,
+                'fee': this.safeFloat (currency, 'flatWithdrawalFee'), // todo: redesign
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -265,32 +290,18 @@ module.exports = class crex24 extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
+                    'deposit': {
+                        'min': this.safeFloat (currency, 'minDeposit'),
+                        'max': undefined,
+                    },
                     'withdraw': {
-                        'min': currency['TxFee'],
-                        'max': Math.pow (10, precision),
+                        'min': this.safeFloat (currency, 'minWithdrawal'),
+                        'max': this.safeFloat (currency, 'maxWithdrawal'),
                     },
                 },
             };
         }
         return result;
-    }
-
-    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let key = 'quote';
-        let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
-        if (side === 'sell') {
-            cost *= price;
-        } else {
-            key = 'base';
-        }
-        return {
-            'type': takerOrMaker,
-            'currency': market[key],
-            'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
-        };
     }
 
     async fetchBalance (params = {}) {
