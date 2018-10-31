@@ -776,7 +776,7 @@ class theocean (Exchange):
             'status': 'canceled',
         })
 
-    def cancel_all_orders(self, params={}):
+    def cancel_all_orders(self, symbols=None, params={}):
         response = self.privateDeleteOrders(params)
         #
         #     [{

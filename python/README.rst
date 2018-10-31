@@ -49,7 +49,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
@@ -185,6 +185,8 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 | cointiger          | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__         |                                                                      | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                             | China                                    |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | coolcoin           | `CoolCoin <https://www.coolcoin.com>`__                                                 |                                                                      | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                    | Hong Kong                                |
++--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 2     | `API <https://docs.crex24.com/trade-api/v2>`__                                                      | Estonia                                  |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | crypton            | `Crypton <https://cryptonbtc.com>`__                                                    |                                                                      | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                        | EU                                       |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -732,6 +734,7 @@ Social
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
+.. |crex24| image:: https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg
 .. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |deribit| image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
