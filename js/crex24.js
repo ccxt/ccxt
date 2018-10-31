@@ -730,7 +730,7 @@ module.exports = class crex24 extends Exchange {
         let request = {
             'id': id,
         };
-        let response = await this.privateGetOrder (this.extend (request, params));
+        let response = await this.tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -760,38 +760,37 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let ids = this.safeValue2 (params, 'ids', 'id');
+        let id = this.safeValue2 (params, 'ids', 'id');
         let query = this.omit (params, [ 'ids', 'id' ]);
-        if (ids === undefined) {
+        if (id === undefined) {
             throw new ExchangeError (this.id + ' fetchOrders requires an extra ids or id param (a single order id or an array of order ids)');
         }
-        if (this.isArray (ids)) {
-            ids = ids.join (',');
+        if (this.isArray (id)) {
+            id = id.join (',');
         }
         await this.loadMarkets ();
         let request = {
-            'id': ids,
+            'id': id,
         };
-        let response = await this.privateGetAllOrders (this.extend (request, query));
+        let response = await this.tradingGetOrderStatus (this.extend (request, query));
         //
         //     [
         //         {
-        //             "symbol": "LTCBTC",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "0.0",
-        //             "cummulativeQuoteQty": "0.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": 1499827319559,
-        //             "updateTime": 1499827319559,
-        //             "isWorking": true
+        //           "id": 466747915,
+        //           "timestamp": "2018-05-26T06:43:49Z",
+        //           "instrument": "UNI-BTC",
+        //           "side": "sell",
+        //           "type": "limit",
+        //           "status": "partiallyFilledActive",
+        //           "cancellationReason": null,
+        //           "timeInForce": "GTC",
+        //           "volume": 5700.0,
+        //           "price": 0.000005,
+        //           "stopPrice": null,
+        //           "remainingVolume": 1.948051948052,
+        //           "lastUpdate": null,
+        //           "parentOrderId": null,
+        //           "childOrderId": null
         //         }
         //     ]
         //
@@ -811,8 +810,21 @@ module.exports = class crex24 extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        await this.loadMarkets ();
+        let market = undefined;
+        let request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.ymdhms (since, 'T');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // min 1, max 1000, default 100
+        }
+        let response = await this.tradingGetActiveOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -823,6 +835,19 @@ module.exports = class crex24 extends Exchange {
             ],
         }, params));
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbols = undefined, params = {}) {
+        const response = await this.tradingPostCancelAllOrders (params);
+        //
+        //     [{
+        //       "canceledOrder": {
+        //         "orderHash": "0x3d6b287c1dc79262d2391ae2ca9d050fdbbab2c8b3180e4a46f9f321a7f1d7a9",
+        //         "amount": "100000000000"
+        //       }
+        //     }]
+        //
+        return response;
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
