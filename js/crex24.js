@@ -335,8 +335,6 @@ module.exports = class crex24 extends Exchange {
         //                     { price: 0.03093, volume: 0.5499419 },
         //                     { price: 0.03092, volume: 0.23317494 },
         //                     { price: 0.03091, volume: 0.62105322 },
-        //                     { price: 0.0309, volume: 0.05261453 },
-        //                     { price: 0.03089, volume: 0.68379217 },
         //                     { price: 0.00620041, volume: 0.003 }    ],
         //       sellLevels: [ { price: 0.03117, volume: 5.47492315 },
         //                     { price: 0.03118, volume: 1.97744139 },
