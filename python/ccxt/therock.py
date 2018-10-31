@@ -143,6 +143,7 @@ class therock (Exchange):
                 buy_fee = self.safe_float(market, 'buy_fee')
                 sell_fee = self.safe_float(market, 'sell_fee')
                 taker = max(buy_fee, sell_fee)
+                taker = taker / 100
                 maker = taker
                 result.append({
                     'id': id,

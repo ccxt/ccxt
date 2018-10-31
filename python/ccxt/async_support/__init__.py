@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.443'
+__version__ = '1.17.444'
 
 # -----------------------------------------------------------------------------
 
@@ -45,7 +45,6 @@ from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
-from ccxt.async_support._1broker import _1broker                          # noqa: F401
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.allcoin import allcoin                            # noqa: F401
@@ -107,7 +106,6 @@ from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinnest import coinnest                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
-from ccxt.async_support.coinsecure import coinsecure                      # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.cointiger import cointiger                        # noqa: F401
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
@@ -183,7 +181,6 @@ from ccxt.async_support.zaif import zaif                                  # noqa
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1broker',
     '_1btcxe',
     'acx',
     'allcoin',
@@ -245,7 +242,6 @@ exchanges = [
     'coinmate',
     'coinnest',
     'coinone',
-    'coinsecure',
     'coinspot',
     'cointiger',
     'coolcoin',
