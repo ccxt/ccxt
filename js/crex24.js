@@ -23,7 +23,7 @@ module.exports = class crex24 extends Exchange {
                 'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
-                'fetchOHLCV': true,
+                'fetchOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -34,23 +34,6 @@ module.exports = class crex24 extends Exchange {
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchTransactions': false,
-            },
-            'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '3d': '3d',
-                '1w': '1w',
-                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
@@ -462,34 +445,6 @@ module.exports = class crex24 extends Exchange {
             result.push (this.parseTicker (tickers[i]));
         }
         return this.filterByArray (result, 'symbol', symbols);
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            ohlcv[0],
-            parseFloat (ohlcv[1]),
-            parseFloat (ohlcv[2]),
-            parseFloat (ohlcv[3]),
-            parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[5]),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
-        };
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
-        }
-        let response = await this.publicGetKlines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
