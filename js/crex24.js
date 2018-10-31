@@ -255,9 +255,6 @@ module.exports = class crex24 extends Exchange {
         //                flatWithdrawalFee:  0.1,
         //                       isDelisted:  false       } ]
         //
-        // const log = require ('ololog').unlimited.green;
-        // log (response);
-        // process.exit ();
         let result = {};
         for (let i = 0; i < response.length; i++) {
             let currency = response[i];
@@ -340,28 +337,52 @@ module.exports = class crex24 extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'closeTime');
-        let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
-        let last = this.safeFloat (ticker, 'lastPrice');
+        //
+        //       {    instrument: "ZZC-USD",
+        //                  last:  0.065,
+        //         percentChange:  0,
+        //                   low:  0.065,
+        //                  high:  0.065,
+        //            baseVolume:  0,
+        //           quoteVolume:  0,
+        //           volumeInBtc:  0,
+        //           volumeInUsd:  0,
+        //                   ask:  0.5,
+        //                   bid:  0.0007,
+        //             timestamp: "2018-10-31T09:21:25Z" }   ]
+        //
+        let timestamp = this.parse8601 (ticker['timestamp']);
+        let symbol = undefined;
+        let marketId = this.safeString (ticker, 'instrument');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else if (marketId !== undefined) {
+            let [ baseId, quoteId ] = marketId.split ('-');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'highPrice'),
-            'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
-            'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
-            'open': this.safeFloat (ticker, 'openPrice'),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': this.safeFloat (ticker, 'bid'),
+            'bidVolume': undefined,
+            'ask': this.safeFloat (ticker, 'ask'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeFloat (ticker, 'priceChange'),
-            'percentage': this.safeFloat (ticker, 'priceChangePercent'),
+            'previousClose': undefined, // previous day close
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'percentChange'),
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'baseVolume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
@@ -370,31 +391,58 @@ module.exports = class crex24 extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTicker24hr (this.extend ({
+        let response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
         return this.parseTicker (response, market);
     }
 
-    parseTickers (rawTickers, symbols = undefined) {
-        let tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
-    async fetchBidsAsks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        let rawTickers = await this.publicGetTickerBookTicker (params);
-        return this.parseTickers (rawTickers, symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = this.options['fetchTickersMethod'];
-        let rawTickers = await this[method] (params);
-        return this.parseTickers (rawTickers, symbols);
+        let request = {};
+        if (symbols !== undefined) {
+            let ids = this.marketIds (symbols);
+            request['instrument'] = ids.join (',');
+        }
+        let response = await this.publicGetTickers (this.extend (request, params));
+        //
+        //     [ {    instrument: "$PAC-BTC",
+        //                  last:  3.3e-7,
+        //         percentChange:  3.125,
+        //                   low:  2.7e-7,
+        //                  high:  3.3e-7,
+        //            baseVolume:  191700.79823187,
+        //           quoteVolume:  0.0587930939346704,
+        //           volumeInBtc:  0.0587930939346704,
+        //           volumeInUsd:  376.2006339435353,
+        //                   ask:  3.3e-7,
+        //                   bid:  3.1e-7,
+        //             timestamp: "2018-10-31T09:21:25Z" },
+        //       {    instrument: "ZZC-USD",
+        //                  last:  0.065,
+        //         percentChange:  0,
+        //                   low:  0.065,
+        //                  high:  0.065,
+        //            baseVolume:  0,
+        //           quoteVolume:  0,
+        //           volumeInBtc:  0,
+        //           volumeInUsd:  0,
+        //                   ask:  0.5,
+        //                   bid:  0.0007,
+        //             timestamp: "2018-10-31T09:21:25Z" }   ] (fetchTickers @ crex24.js:385)
+        //
+        // const log = require ('ololog').unlimited.green;
+        // log (response);
+        // process.exit ();
+        return this.parseTickers (response, symbols);
+    }
+
+    parseTickers (tickers, symbols = undefined) {
+        let result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            result.push (this.parseTicker (tickers[i]));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
