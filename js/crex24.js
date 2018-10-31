@@ -30,10 +30,11 @@ module.exports = class crex24 extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
-                'fetchFundingFees': true,
+                'fetchTradingFees': false, // actually, true, but will be implemented later
+                'fetchFundingFees': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
@@ -997,43 +998,6 @@ module.exports = class crex24 extends Exchange {
                 };
             }
         }
-    }
-
-    async fetchFundingFees (codes = undefined, params = {}) {
-        let response = await this.wapiGetAssetDetail ();
-        //
-        //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
-        //     }
-        //
-        let detail = this.safeValue (response, 'assetDetail');
-        let ids = Object.keys (detail);
-        let withdrawFees = {};
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let code = this.commonCurrencyCode (id);
-            withdrawFees[code] = this.safeFloat (detail[id], 'withdrawFee');
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
