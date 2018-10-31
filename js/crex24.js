@@ -39,7 +39,7 @@ module.exports = class crex24 extends Exchange {
                 'editOrder': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
                 'api': 'https://api.crex24.com',
                 'www': 'https://crex24.com',
                 'referral': 'https://crex24.com/?refid=slxsjsjtil8xexl9hksr',
