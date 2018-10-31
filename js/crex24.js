@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -118,18 +118,18 @@ module.exports = class crex24 extends Exchange {
                 'newOrderRespType': 'RESULT', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
             },
             'exceptions': {
-                '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce, // 'your time is ahead of server'
-                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                'exact': {
+                    "Parameter 'filter' contains invalid value.": BadRequest, // eslint-disable-quotes
+                    "Mandatory parameter 'instrument' is missing.": BadRequest, // eslint-disable-quotes
+                    "The value of parameter 'till' must be greater than or equal to the value of parameter 'from'.": BadRequest, // eslint-disable-quotes
+                    'Failed to verify request signature.': AuthenticationError, // eslint-disable-quotes
+                    "Nonce error. Make sure that the value passed in the 'X-CREX24-API-NONCE' header is greater in each consecutive request than in the previous one for the corresponding API-Key provided in 'X-CREX24-API-KEY' header.": InvalidNonce,
+                    'Market orders are not supported by the instrument currently.': InvalidOrder,
+                },
+                'broad': {
+                    'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
+                    'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
+                },
             },
         });
     }
@@ -305,7 +305,7 @@ module.exports = class crex24 extends Exchange {
                 code = this.currencies_by_id[currencyId]['code'];
             } else {
                 code = this.commonCurrencyCode (code);
-            };
+            }
             let free = this.safeFloat (balance, 'available');
             let used = this.safeFloat (balance, 'reserved');
             let total = this.sum (free, used);
@@ -578,8 +578,8 @@ module.exports = class crex24 extends Exchange {
             'unfilledActive': 'open', // order is active, no trades have been made
             'partiallyFilledActive': 'open', // part of the order has been filled, the other part is active
             'filled': 'closed', // order has been filled entirely
-            'partiallyFilledCancelled': 'canceled', // part of the order has been filled, the other part has been cancelled either by the trader or by the system (see the value of cancellationReason of an Order for more details on the reason of cancellation);
-            'unfilledCancelled': 'canceled', // order has been cancelled, no trades have taken place (see the value of cancellationReason of an Order for more details on the reason of cancellation).
+            'partiallyFilledCancelled': 'canceled', // part of the order has been filled, the other part has been cancelled either by the trader or by the system (see the value of cancellationReason of an Order for more details on the reason of cancellation)
+            'unfilledCancelled': 'canceled', // order has been cancelled, no trades have taken place (see the value of cancellationReason of an Order for more details on the reason of cancellation)
         };
         return (status in statuses) ? statuses[status] : status;
     }
@@ -678,16 +678,16 @@ module.exports = class crex24 extends Exchange {
         let request = {
             'instrument': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
-            // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument).
-            // If the parameter is not specified, the default value "limit" is used.
+            // The value must comply with the list of order types supported by the instrument (see the value of parameter supportedOrderTypes of the Instrument)
+            // If the parameter is not specified, the default value "limit" is used
             // More about order types in the corresponding section of documentation
             'type': type, // 'limit', 'market', 'stopLimit', in fact as of 2018-10-31, only 'limit' orders are supported for all markets
             'side': side, // 'buy' or 'sell'
-            // "GTC" - Good-Til-Cancelled;
-            // "IOC" - Immediate-Or-Cancel (currently not supported by the exchange API, reserved for future use);
-            // "FOK" - Fill-Or-Kill (currently not supported by the exchange API, reserved for future use).
+            // "GTC" - Good-Til-Cancelled
+            // "IOC" - Immediate-Or-Cancel (currently not supported by the exchange API, reserved for future use)
+            // "FOK" - Fill-Or-Kill (currently not supported by the exchange API, reserved for future use)
             // 'timeInForce': 'GTC', // IOC', 'FOK'
-            // 'strictValidation': false, // false - prices will be rounded to meet the requirement, true - execution of the method will be aborted and an error message will be returned.
+            // 'strictValidation': false, // false - prices will be rounded to meet the requirement, true - execution of the method will be aborted and an error message will be returned
         };
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -773,7 +773,7 @@ module.exports = class crex24 extends Exchange {
         let request = {
             'id': ids.join (','),
         };
-        let response = await this.tradingGetOrderStatus (this.extend (request, query));
+        let response = await this.tradingGetOrderStatus (this.extend (request, params));
         //
         //     [
         //         {
@@ -1141,11 +1141,11 @@ module.exports = class crex24 extends Exchange {
         let request = {
             'currency': currency['id'],
             'address': address,
-            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
-            // sets whether the specified amount includes fee, can have either of the two values:
-            // true - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address;
-            // false - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee].
-            // 'includeFee': false, // The default value is false
+            'amount': parseFloat (this.currencyToPrecision (code, amount)),
+            // sets whether the specified amount includes fee, can have either of the two values
+            // true - balance will be decreased by amount, whereas [amount - fee] will be transferred to the specified address
+            // false - amount will be deposited to the specified address, whereas the balance will be decreased by [amount + fee]
+            // 'includeFee': false, // the default value is false
         };
         if (tag !== undefined) {
             request['paymentId'] = tag;
@@ -1183,6 +1183,40 @@ module.exports = class crex24 extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    // handleErrors (code, reason, url, method, headers, body) {
-    // }
+    handleErrors (code, reason, url, method, headers, body) {
+        if (!this.isJsonEncodedObject (body)) {
+            return; // fallback to default error handler
+        }
+        if ((code >= 200) && (code < 300)) {
+            return; // no error
+        }
+        let response = JSON.parse (body);
+        const message = this.safeString (response, 'errorDescription');
+        const feedback = this.id + ' ' + this.json (response);
+        const exact = this.exceptions['exact'];
+        if (message in exact) {
+            throw new exact[message] (feedback);
+        }
+        const broad = this.exceptions['broad'];
+        const broadKey = this.findBroadlyMatchedKey (broad, message);
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (feedback);
+        }
+        if (code === 400) {
+            throw new BadRequest (feedback);
+        } else if (code === 401) {
+            throw new AuthenticationError (feedback);
+        } else if (code === 403) {
+            throw new AuthenticationError (feedback);
+        } else if (code === 429) {
+            throw new DDoSProtection (feedback);
+        } else if (code === 500) {
+            throw new ExchangeError (feedback);
+        } else if (code === 503) {
+            throw new ExchangeNotAvailable (feedback);
+        } else if (code === 504) {
+            throw new RequestTimeout (feedback);
+        }
+        throw new ExchangeError (feedback); // unknown message
+    }
 };
