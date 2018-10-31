@@ -985,65 +985,68 @@ module.exports = class crex24 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
             currency = this.currency (code);
-            request['asset'] = currency['id'];
+            request['currency'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['from'] = this.ymd (since, 'T');
         }
-        let response = await this.wapiGetDepositHistory (this.extend (request, params));
+        let response = await this.aacountGetMoneyTransfers (this.extend (request, params));
         //
-        //     {     success:    true,
-        //       depositList: [ { insertTime:  1517425007000,
-        //                            amount:  0.3,
-        //                           address: "0x0123456789abcdef",
-        //                        addressTag: "",
-        //                              txId: "0x0123456789abcdef",
-        //                             asset: "ETH",
-        //                            status:  1                                                                    } ] }
+        //     [
+        //         {
+        //           "id": 756446,
+        //           "type": "deposit",
+        //           "currency": "ETH",
+        //           "address": "0x451d5a1b7519aa75164f440df78c74aac96023fe",
+        //           "paymentId": null,
+        //           "amount": 0.142,
+        //           "fee": null,
+        //           "txId": "0x2b49098749840a9482c4894be94f94864b498a1306b6874687a5640cc9871918",
+        //           "createdAt": "2018-06-02T19:30:28Z",
+        //           "processedAt": "2018-06-02T21:10:41Z",
+        //           "confirmationsRequired": 12,
+        //           "confirmationCount": 12,
+        //           "status": "success",
+        //           "errorDescription": null
+        //         },
+        //         {
+        //           "id": 754618,
+        //           "type": "deposit",
+        //           "currency": "BTC",
+        //           "address": "1IgNfmERVcier4IhfGEfutkLfu4AcmeiUC",
+        //           "paymentId": null,
+        //           "amount": 0.09,
+        //           "fee": null,
+        //           "txId": "6876541687a9187e987c9187654f7198b9718af974641687b19a87987f91874f",
+        //           "createdAt": "2018-06-02T16:19:44Z",
+        //           "processedAt": "2018-06-02T16:20:50Z",
+        //           "confirmationsRequired": 1,
+        //           "confirmationCount": 1,
+        //           "status": "success",
+        //           "errorDescription": null
+        //         },
+        //         ...
+        //     ]
         //
-        return this.parseTransactions (response['depositList'], currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchTransactions (code, since, limit, this.extend ({
+            'type': 'deposit',
+        }, params));
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let currency = undefined;
-        const request = {};
-        if (code !== undefined) {
-            currency = this.currency (code);
-            request['asset'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        let response = await this.wapiGetWithdrawHistory (this.extend (request, params));
-        //
-        //     { withdrawList: [ {      amount:  14,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1514489710000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ETH",
-        //                           applyTime:  1514488724000,
-        //                              status:  6                       },
-        //                       {      amount:  7600,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1515323226000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ICN",
-        //                           applyTime:  1515322539000,
-        //                              status:  6                       }  ],
-        //            success:    true                                         }
-        //
-        return this.parseTransactions (response['withdrawList'], currency, since, limit);
+        return this.fetchTransactions (code, since, limit, this.extend ({
+            'type': 'withdrawal',
+        }, params));
     }
 
     parseTransactionStatusByType (status, type = undefined) {
