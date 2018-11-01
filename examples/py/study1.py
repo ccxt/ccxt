@@ -1,9 +1,12 @@
 import ccxt
 import time
 import os
+import asyncio
 good_coin = ['BTC', 'ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR']
 # good_coin = ['BTC', 'ETH', 'XRP']
-good_exchange_name = ['binance', 'fcoin', 'gateio', 'huobipro', 'kucoin', 'okex']
+good_exchange_name = ['binance', 'fcoin', 'gateio', 'huobipro', 'kucoin', 'okex','bcex','bibox','bigone','bitfinex','bitforex',
+                      'bithumb','bitkk','cex','coinbase','coinex','cointiger','exx','gdax','gemini','hitbtc','rightbtc',
+                      'theocean','uex']
 # good_exchange_name = ['huobipro', 'kucoin', 'okex']
 
 def_quote = 'USDT'
@@ -61,7 +64,7 @@ def get_exchange_list(good_list):
 
 
 # 低买高卖，获取指定交易对的潜在套利最大化的2个交易所，理论上先去ask1卖一最低（卖的最便宜的bid1）的买入，立刻去bid1买一最高（买起来最贵的bid1）卖出
-def find_trade_object(in_symbol,exchange_list):
+async def find_trade_object(in_symbol,exchange_list):
     pass
     #最贵的买一 初始化为一个较小值
     max_bid1 = 0
@@ -73,7 +76,7 @@ def find_trade_object(in_symbol,exchange_list):
     ask_time = None
     bid_amount = None
     ask_amount = None
-    print ('current symbol is {}'.format(in_symbol))
+    print ('async version current symbol is {}'.format(in_symbol))
     for exchange in exchange_list:
         #获取市场交易对数据
         try:
@@ -119,7 +122,7 @@ def find_trade_object(in_symbol,exchange_list):
         percent = price_diff / min_ask1 * 100
         trade_volume = min(ask_amount,bid_amount)
         profits = min_ask1 * trade_volume * percent/100
-        print('\n\n****** symbol {} find good exchange,\n percent {}%,price_diff {},trade_volume {},profits {},'
+        print('\n\n++++++++ symbol {} find good exchange,\n percent {}%,price_diff {},trade_volume {},profits {},'
               '\nbuy at {},{},{},{},\nsell at {},{},{},{}'.
               format(in_symbol,percent,price_diff,trade_volume,profits, min_ask1,ask_amount,min_ask1*ask_amount,ask_exchange.name,
                      max_bid1,bid_amount,max_bid1*bid_amount,bid_exchange.name))
@@ -141,8 +144,9 @@ if __name__ == '__main__':
     # 找出每个指定交易对在指定交易所中价差最大的2个，可以在这2个交易所进行搬砖套利
     for base in good_coin:
         symbol = base + '/' + def_quote
-        print('-------start base is {},symbol is {}'.format(base,symbol))
-        print(find_trade_object(symbol,good_exchange_list))
+        print('-------start async version base is {},symbol is {}'.format(base,symbol))
+        # print(find_trade_object(symbol,good_exchange_list))
+        print(asyncio.get_event_loop().run_until_complete(find_trade_object(symbol,good_exchange_list)))
         print('+++++++end this symbol \n\n\n')
 
     print('-----------all over---------------')

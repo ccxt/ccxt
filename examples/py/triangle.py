@@ -1,9 +1,8 @@
 import ccxt
 import time
 import os
-good_exchange_name = ['binance', 'fcoin', 'gateio', 'huobipro', 'kucoin', 'okex']
-good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR']
 """
+    三角套利demo1：寻找三角套利空间，未涉及下单模块
     交易对：用一种资产（quote currency）去定价另一种资产（base currency）,比如用比特币（BTC）去定价莱特币（LTC），
     就形成了一个LTC/BTC的交易对，
     交易对的价格代表的是买入1单位的base currency（比如LTC）
@@ -20,7 +19,11 @@ default_quote_cur = 'BTC'
 default_mid_cur = 'USDT'
 #delay 2 second
 delay = 2
-
+# good_exchange_name = ['binance', 'fcoin', 'gateio', 'huobipro', 'kucoin', 'okex']
+good_exchange_name = ['binance', 'fcoin', 'gateio', 'huobipro', 'kucoin', 'okex','bcex','bibox','bigone','bitfinex','bitforex',
+                      'bithumb','bitkk','cex','coinbase','coinex','cointiger','exx','gdax','gemini','hitbtc','rightbtc',
+                      'theocean','uex']
+good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR']
 
 def set_proxy():
     os.environ.setdefault('http_proxy', 'http://127.0.0.1:1080')
