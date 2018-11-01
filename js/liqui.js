@@ -734,9 +734,7 @@ module.exports = class liqui extends Exchange {
                 'Sign': signature,
             };
         } else if (api === 'public') {
-            console.log (params);
             url += this.getVersionString () + '/' + this.implodeParams (path, params);
-            console.log (url);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
