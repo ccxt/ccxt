@@ -11,6 +11,7 @@ const ccxt = require("../../ccxt.js"),
   const exchange = new ccxt.coinbase({
     verbose: process.argv.includes("--verbose"),
     timeout: 60000,
+    // These don't work. Sorry home slice.
     apiKey: "5ILxQ0DkBIZIKFfS",
     secret: "06aKK7SfVyi4KHXipmPgFZHoCo9snNpF"
   });
