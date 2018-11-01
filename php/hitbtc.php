@@ -650,6 +650,11 @@ class hitbtc extends Exchange {
         $symbol = null;
         if ($market)
             $symbol = $market['symbol'];
+        $side = null;
+        $tradeLength = is_array ($trade) ? count ($trade) : 0;
+        if ($tradeLength > 3) {
+            $side = $trade[4];
+        }
         return array (
             'info' => $trade,
             'id' => (string) $trade[0],
@@ -657,7 +662,7 @@ class hitbtc extends Exchange {
             'datetime' => $this->iso8601 ($trade[3]),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade[4],
+            'side' => $side,
             'price' => floatval ($trade[1]),
             'amount' => floatval ($trade[2]),
         );
