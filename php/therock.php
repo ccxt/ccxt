@@ -143,6 +143,7 @@ class therock extends Exchange {
                 $buy_fee = $this->safe_float($market, 'buy_fee');
                 $sell_fee = $this->safe_float($market, 'sell_fee');
                 $taker = max ($buy_fee, $sell_fee);
+                $taker = $taker / 100;
                 $maker = $taker;
                 $result[] = array (
                     'id' => $id,

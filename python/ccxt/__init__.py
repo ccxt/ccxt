@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.443'
+__version__ = '1.17.444'
 
 # ----------------------------------------------------------------------------
 
@@ -63,7 +63,6 @@ from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
 from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
-from ccxt._1broker import _1broker                          # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
@@ -125,7 +124,6 @@ from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinnest import coinnest                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
-from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
@@ -201,7 +199,6 @@ from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1broker',
     '_1btcxe',
     'acx',
     'allcoin',
@@ -263,7 +260,6 @@ exchanges = [
     'coinmate',
     'coinnest',
     'coinone',
-    'coinsecure',
     'coinspot',
     'cointiger',
     'coolcoin',

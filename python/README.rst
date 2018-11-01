@@ -49,13 +49,11 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 136 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
 +====================+=========================================================================================+======================================================================+=======+=====================================================================================================+==========================================+
-|  _1broker          | `1Broker <https://1broker.com>`__                                                       |                                                                      | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                       | US                                       |
-+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |  _1btcxe           | `1BTCXE <https://1btcxe.com>`__                                                         |                                                                      | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                           | Panama                                   |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | acx                | `ACX <https://acx.io>`__                                                                |                                                                      | 2     | `API <https://acx.io/documents/api_v2>`__                                                           | Australia                                |
@@ -177,8 +175,6 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 | coinnest           | `coinnest <https://www.coinnest.co.kr>`__                                               |                                                                      | \*    | `API <https://www.coinnest.co.kr/doc/intro.html>`__                                                 | South Korea                              |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | coinone            | `CoinOne <https://coinone.co.kr>`__                                                     |                                                                      | 2     | `API <https://doc.coinone.co.kr>`__                                                                 | South Korea                              |
-+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| coinsecure         | `Coinsecure <https://coinsecure.in>`__                                                  |                                                                      | 1     | `API <https://api.coinsecure.in>`__                                                                 | India                                    |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | coinspot           | `CoinSpot <https://www.coinspot.com.au>`__                                              |                                                                      | \*    | `API <https://www.coinspot.com.au/api>`__                                                           | Australia                                |
 +--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -671,7 +667,6 @@ Social
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg
 .. |theocean| image:: https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg
-.. | _1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. | _1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
@@ -730,7 +725,6 @@ Social
 .. |coinmate| image:: https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg
 .. |coinnest| image:: https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg
 .. |coinone| image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
-.. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
