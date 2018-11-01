@@ -122,6 +122,7 @@ class liqui (Exchange):
                 'fetchOrderMethod': 'privatePostOrderInfo',
                 'fetchMyTradesMethod': 'privatePostTradeHistory',
                 'cancelOrderMethod': 'privatePostCancelOrder',
+                'fetchTickersMaxLength': 2048,
             },
         })
 
@@ -299,13 +300,14 @@ class liqui (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        ids = None
+        ids = self.ids
         if symbols is None:
-            ids = '-'.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > 2048:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+            numIds = len(ids)
+            ids = '-'.join(ids)
+            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
+            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > self.options['fetchTickersMaxLength']:
+                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
