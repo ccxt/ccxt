@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } = require ('./base/errors');
 
 // ----------------------------------------------------------------------------
 
@@ -30,7 +30,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchMarkets': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -156,6 +156,29 @@ module.exports = class coinbase extends Exchange {
         let response = await this.publicGetTime ();
         let data = response['data'];
         return this.parse8601 (data['iso']);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const accounts = await this.privateGetAccounts ();
+        const accountIds = accounts.data.map (account => account.id);
+        
+        for (const id of accountIds) {
+            const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
+                'account_id': id,
+            }, params));
+            const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
+                'account_id': id,
+            }, params));
+
+            if (buys.data.length > 0) {
+                console.log(buys);
+                
+            }
+
+            if (sells.data.length > 0) {
+                console.log(sells);
+            }
+        }
     }
 
     async fetchCurrencies (params = {}) {
