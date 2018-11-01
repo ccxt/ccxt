@@ -255,11 +255,15 @@ module.exports = class kraken extends Exchange {
             let quoteId = market['quote'];
             let base = baseId;
             let quote = quoteId;
-            if ((base.length > 3) && ((base[0] === 'X') || (base[0] === 'Z'))) {
-                base = base.slice (1);
+            if (base.length > 3) {
+                if ((base[0] === 'X') || (base[0] === 'Z')) {
+                    base = base.slice (1);
+                }
             }
-            if ((quote.length > 3) && ((quote[0] === 'X') || (quote[0] === 'Z'))) {
-                quote = quote.slice (1);
+            if (quote.length > 3) {
+                if ((quote[0] === 'X') || (quote[0] === 'Z')) {
+                    quote = quote.slice (1);
+                }
             }
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
