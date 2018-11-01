@@ -255,11 +255,15 @@ class kraken extends Exchange {
             $quoteId = $market['quote'];
             $base = $baseId;
             $quote = $quoteId;
-            if ((strlen ($base) > 3) && (($base[0] === 'X') || ($base[0] === 'Z'))) {
-                $base = mb_substr ($base, 1);
+            if (strlen ($base) > 3) {
+                if (($base[0] === 'X') || ($base[0] === 'Z')) {
+                    $base = mb_substr ($base, 1);
+                }
             }
-            if ((strlen ($quote) > 3) && (($quote[0] === 'X') || ($quote[0] === 'Z'))) {
-                $quote = mb_substr ($quote, 1);
+            if (strlen ($quote) > 3) {
+                if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
+                    $quote = mb_substr ($quote, 1);
+                }
             }
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
