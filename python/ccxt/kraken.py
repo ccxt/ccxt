@@ -212,6 +212,9 @@ class kraken (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'XDG': 'DOGE',
+            },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
