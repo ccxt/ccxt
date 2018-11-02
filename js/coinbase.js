@@ -179,6 +179,7 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
@@ -194,7 +195,7 @@ module.exports = class coinbase extends Exchange {
         const parsedSells = this.parseTrades (sells['data'], undefined, since, limit);
         let result = this.arrayConcat (parsedBuys, parsedSells);
         let sortedResult = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sortedResult, since, limit);
+        return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
