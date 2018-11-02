@@ -198,30 +198,25 @@ module.exports = class coinbase extends Exchange {
         return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired (this.id + ' fetchTransactionsWithMethod requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const withdrawals = await this.privateGetAccountsAccountIdWithdrawals (this.extend ({
+        const response = await this[method] (this.extend ({
             'account_id': accountId,
         }, query));
-        return this.parseTransactions (withdrawals['data'], undefined, since, limit);
+        return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
-    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const accountId = this.safeString2 (params, 'account_id', 'accountId');
-        if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
-        }
-        await this.loadMarkets ();
-        const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const deposits = await this.privateGetAccountsAccountIdDeposits (this.extend ({
-            'account_id': accountId,
-        }, query));
-        return this.parseTransactions (deposits['data'], undefined, since, limit);
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
     parseTransaction (transaction, market = undefined) {
