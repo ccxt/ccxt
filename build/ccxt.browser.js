@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.455'
+const version = '1.17.456'
 
 Exchange.ccxtVersion = version
 
@@ -49397,7 +49397,7 @@ module.exports = class livecoin extends Exchange {
         if (tag !== undefined)
             wallet += '::' + tag;
         let request = {
-            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, currency['precision'], DECIMAL_PLACES),
             'currency': currency['id'],
             'wallet': wallet,
         };
