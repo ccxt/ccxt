@@ -265,7 +265,6 @@ module.exports = class coinbase extends Exchange {
                 price = cost / amount;
             }
         }
-        let fee = undefined;
         let feeCost = this.safeFloat (feeObject, 'amount');
         let feeCurrencyId = this.safeString (feeObject, 'currency');
         let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
