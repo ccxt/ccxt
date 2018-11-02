@@ -433,14 +433,7 @@ module.exports = class bitstamp extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
-        // let response = await this[method] (this.extend (request, params));
-        let response = {
-            'price': '196.97',
-            'amount': '0.21678274',
-            'type': '0',
-            'id': '2332492766',
-            'datetime': '2018-11-01 18:19:47.949128',
-        };
+        let response = await this[method] (this.extend (request, params));
         let order = this.parseOrder (response, market);
         return this.extend (order, {
             'type': type,
