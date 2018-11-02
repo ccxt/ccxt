@@ -189,6 +189,9 @@ module.exports = class kraken extends Exchange {
                     ],
                 },
             },
+            'commonCurrencies': {
+                'XDG': 'DOGE',
+            },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
