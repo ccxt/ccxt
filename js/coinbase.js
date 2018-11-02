@@ -157,7 +157,7 @@ module.exports = class coinbase extends Exchange {
         let data = response['data'];
         return this.parse8601 (data['iso']);
     }
-    
+
     async loadAccounts (reload = false) {
         if (reload) {
             this.accounts = await this.fetchAccounts ();
