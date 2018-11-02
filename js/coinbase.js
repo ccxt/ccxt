@@ -157,28 +157,45 @@ module.exports = class coinbase extends Exchange {
         let data = response['data'];
         return this.parse8601 (data['iso']);
     }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const accounts = await this.privateGetAccounts ();
-        const accountIds = accounts.data.map (account => account.id);
-        
-        for (const id of accountIds) {
-            const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
-                'account_id': id,
-            }, params));
-            const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
-                'account_id': id,
-            }, params));
-
-            if (buys.data.length > 0) {
-                console.log(buys);
-                
-            }
-
-            if (sells.data.length > 0) {
-                console.log(sells);
+    
+    async loadAccounts (reload = false) {
+        if (reload) {
+            this.accounts = await this.fetchAccounts ();
+        } else {
+            if (this.accounts) {
+                return this.accounts;
+            } else {
+                this.accounts = await this.fetchAccounts ();
+                this.accountsById = this.indexBy (this.accounts, 'id');
             }
         }
+        return this.accounts;
+    }
+
+    async fetchAccounts () {
+        await this.loadMarkets ();
+        let response = await this.privateGetAccountAccounts ();
+        return response['data'];
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const accountId = this.safeString (params, 'account_id');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, u');
+        }
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
+            'account_id': accountId,
+        }, query));
+        const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
+            'account_id': accountId,
+        }, query));
+        const parsedBuys = this.parseTrades (buys['data'], undefined, since, limit);
+        const parsedSells = this.parseTrades (sells['data'], undefined, since, limit);
+        // missing parsing here
+        let result = this.arrayConcat (parsedBuys, parsedSells);
+        let sortedResult = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sortedResult, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
