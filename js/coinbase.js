@@ -275,7 +275,7 @@ module.exports = class coinbase extends Exchange {
         return {
             'info': trade,
             'id': id,
-            'order': order,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
