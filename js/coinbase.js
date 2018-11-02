@@ -198,6 +198,97 @@ module.exports = class coinbase extends Exchange {
         return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
     }
 
+    parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //       "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "status": "completed",
+        //       "payment_method": {
+        //         "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //         "resource": "payment_method",
+        //         "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //       },
+        //       "transaction": {
+        //         "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //         "resource": "transaction",
+        //         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //       },
+        //       "amount": {
+        //         "amount": "1.00000000",
+        //         "currency": "BTC"
+        //       },
+        //       "total": {
+        //         "amount": "10.25",
+        //         "currency": "USD"
+        //       },
+        //       "subtotal": {
+        //         "amount": "10.10",
+        //         "currency": "USD"
+        //       },
+        //       "created_at": "2015-01-31T20:49:02Z",
+        //       "updated_at": "2015-02-11T16:54:02-08:00",
+        //       "resource": "buy",
+        //       "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //       "committed": true,
+        //       "instant": false,
+        //       "fee": {
+        //         "amount": "0.15",
+        //         "currency": "USD"
+        //       },
+        //       "payout_at": "2015-02-18T16:54:00-08:00"
+        //     }
+        //
+        let symbol = undefined;
+        let totalObject = this.safeValue (trade, 'total', {});
+        let amountObject = this.safeValue (trade, 'amount', {});
+        let subtotalObject = this.safeValue (trade, 'subtotal', {});
+        let feeObject = this.safeValue (trade, 'fee', {});
+        let id = this.safeString (trade, 'id');
+        let timestamp = this.parse8601 (this.safeValue (trade, 'created_at'));
+        if (market === undefined) {
+            let baseId = this.safeString (totalObject, 'currency');
+            let quoteId = this.safeString (amountObject, 'currency');
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
+                let base = this.commonCurrencyCode (baseId);
+                let quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        let orderId = undefined;
+        let side = this.safeString (trade, 'resource');
+        let type = undefined;
+        let cost = this.safeFloat (subtotalObject, 'amount');
+        let amount = this.safeFloat2 (amountObject, 'amount');
+        let price = undefined;
+        if (cost !== undefined) {
+            if (amount !== undefined) {
+                price = cost / amount;
+            }
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (feeObject, 'amount');
+        let feeCurrencyId = this.safeString (feeObject, 'currency');
+        let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
+        let fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        };
+        return {
+            'info': trade,
+            'id': id,
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
+    }
+
     async fetchCurrencies (params = {}) {
         let response = await this.publicGetCurrencies (params);
         let currencies = response['data'];
