@@ -536,6 +536,7 @@ class hitbtc2 extends hitbtc {
                 'defaultTimeInForce' => 'FOK',
             ),
             'exceptions' => array (
+                '1003' => '\\ccxt\\PermissionDenied', // "Action is forbidden for this API key"
                 '2010' => '\\ccxt\\InvalidOrder', // "Quantity not a valid number"
                 '2011' => '\\ccxt\\InvalidOrder', // "Quantity too low"
                 '2020' => '\\ccxt\\InvalidOrder', // "Price not a valid number"
