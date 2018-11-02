@@ -582,7 +582,7 @@ module.exports = class livecoin extends Exchange {
         if (tag !== undefined)
             wallet += '::' + tag;
         let request = {
-            'amount': this.decimalToPrecision (amount, TRUNCATE, this.currencies[currency]['precision'], DECIMAL_PLACES),
+            'amount': this.decimalToPrecision (amount, TRUNCATE, currency['precision'], DECIMAL_PLACES),
             'currency': currency['id'],
             'wallet': wallet,
         };
