@@ -30,6 +30,9 @@ class bittrex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
                 'withdraw' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'fetchTransactions' => false,
             ),
             'timeframes' => array (
                 '1m' => 'oneMin',
@@ -448,7 +451,6 @@ class bittrex extends Exchange {
             if ($response['result'])
                 return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
         }
-        throw new ExchangeError ($this->id . ' returned an empty or unrecognized $response => ' . $this->json ($response));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -503,6 +505,179 @@ class bittrex extends Exchange {
         return array_merge ($this->parse_order($response), array (
             'status' => 'canceled',
         ));
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        $request = array ();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->accountGetDeposithistory (array_merge ($request, $params));
+        //
+        //     { success =>    true,
+        //       message =>   "",
+        //        result => array ( {            Id =>  22578097,
+        //                           Amount =>  0.3,
+        //                         Currency => "ETH",
+        //                    Confirmations =>  15,
+        //                      LastUpdated => "2018-06-10T07:12:10.57",
+        //                             TxId => "0xf50b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //                    CryptoAddress => "0xb25f281fa51f1635abd4a60b0870a62d2a7fa404"                    } ) }
+        //
+        // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
+        // see https://github.com/ccxt/ccxt/issues/4067
+        // return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parseTransactions ($response['result'], $currency, null, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        // https://support.bittrex.com/hc/en-us/articles/115003723911
+        $request = array ();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->accountGetWithdrawalhistory (array_merge ($request, $params));
+        //
+        //     {
+        //         "success" : true,
+        //         "message" : "",
+        //         "result" : [array (
+        //                 "PaymentUuid" : "b32c7a5c-90c6-4c6e-835c-e16df12708b1",
+        //                 "Currency" : "BTC",
+        //                 "Amount" : 17.00000000,
+        //                 "Address" : "1DfaaFBdbB5nrHj87x3NHS4onvw1GPNyAu",
+        //                 "Opened" : "2014-07-09T04:24:47.217",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00020000,
+        //                 "TxId" : null,
+        //                 "Canceled" : true,
+        //                 "InvalidAddress" : false
+        //             ), {
+        //                 "PaymentUuid" : "d193da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //                 "Currency" : "XC",
+        //                 "Amount" : 7513.75121715,
+        //                 "Address" : "TcnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //                 "Opened" : "2014-07-08T23:13:31.83",
+        //                 "Authorized" : true,
+        //                 "PendingPayment" : false,
+        //                 "TxCost" : 0.00002000,
+        //                 "TxId" : "d8a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //                 "Canceled" : false,
+        //                 "InvalidAddress" : false
+        //             }
+        //         ]
+        //     }
+        //
+        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //      {            Id =>  72578097,
+        //               Amount =>  0.3,
+        //             Currency => "ETH",
+        //        Confirmations =>  15,
+        //          LastUpdated => "2018-06-17T07:12:14.57",
+        //                 TxId => "0xb31b5ba2ca5438b58f93516eaa523eaf35b4420ca0f24061003df1be7…",
+        //        CryptoAddress => "0x2d5f281fa51f1635abd4a60b0870a62d2a7fa404"                    }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
+        //         "Currency" : "XC",
+        //         "Amount" : 7513.75121715,
+        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
+        //         "Opened" : "2014-07-08T23:13:31.83",
+        //         "Authorized" : true,
+        //         "PendingPayment" : false,
+        //         "TxCost" : 0.00002000,
+        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
+        //         "Canceled" : false,
+        //         "InvalidAddress" : false
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'Id', 'PaymentUuid');
+        $amount = $this->safe_float($transaction, 'Amount');
+        $address = $this->safe_string_2($transaction, 'CryptoAddress', 'Address');
+        $txid = $this->safe_string($transaction, 'TxId');
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Opened'));
+        $type = ($timestamp !== null) ? 'withdrawal' : 'deposit';
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'Currency');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency !== null) {
+            $code = $currency['code'];
+        } else {
+            $code = $this->common_currency_code($currencyId);
+        }
+        $status = 'pending';
+        if ($type === 'deposit') {
+            if ($currency !== null) {
+                // deposits $numConfirmations never reach the $minConfirmations number
+                // we set all of them to 'ok', otherwise they'd all be 'pending'
+                //
+                //     $numConfirmations = $this->safe_integer($transaction, 'Confirmations', 0);
+                //     $minConfirmations = $this->safe_integer($currency['info'], 'MinConfirmation');
+                //     if ($numConfirmations >= $minConfirmations) {
+                //         $status = 'ok';
+                //     }
+                //
+                $status = 'ok';
+            }
+        } else {
+            $authorized = $this->safe_value($transaction, 'Authorized', false);
+            $pendingPayment = $this->safe_value($transaction, 'PendingPayment', false);
+            $canceled = $this->safe_value($transaction, 'Canceled', false);
+            $invalidAddress = $this->safe_value($transaction, 'InvalidAddress', false);
+            if ($invalidAddress) {
+                $status = 'failed';
+            } else if ($canceled) {
+                $status = 'canceled';
+            } else if ($pendingPayment) {
+                $status = 'pending';
+            } else if ($authorized && ($txid !== null)) {
+                $status = 'ok';
+            }
+        }
+        $updated = $this->parse8601 ($this->safe_value($transaction, 'LastUpdated'));
+        $feeCost = $this->safe_float($transaction, 'TxCost');
+        if ($feeCost === null) {
+            if ($type === 'deposit') {
+                // according to https://support.bittrex.com/hc/en-us/articles/115000199651-What-fees-does-Bittrex-charge-
+                $feeCost = 0; // FIXME => remove hardcoded value that may change any time
+            } else if ($type === 'withdrawal') {
+                throw new ExchangeError ('Withdrawal without fee detected!');
+            }
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
     }
 
     public function parse_symbol ($id) {
@@ -672,7 +847,7 @@ class bittrex extends Exchange {
         if (!$address || $message === 'ADDRESS_GENERATING')
             throw new AddressPending ($this->id . ' the $address for ' . $code . ' is being generated (pending, not ready yet, retry again later)');
         $tag = null;
-        if (($code === 'XRP') || ($code === 'XLM')) {
+        if (($code === 'XRP') || ($code === 'XLM') || ($code === 'LSK')) {
             $tag = $address;
             $address = $currency['address'];
         }

@@ -91,6 +91,7 @@ class bitfinex2 extends bitfinex {
                     ),
                     'post' => array (
                         'calc/trade/avg',
+                        'calc/fx',
                     ),
                 ),
                 'private' => array (
@@ -118,6 +119,10 @@ class bitfinex2 extends bitfinex {
                         'auth/w/alert/{type}:{symbol}:{price}/del',
                         'auth/calc/order/avail',
                         'auth/r/ledgers/{symbol}/hist',
+                        'auth/r/settings',
+                        'auth/w/settings/set',
+                        'auth/w/settings/del',
+                        'auth/r/info/user',
                     ),
                 ),
             ),
@@ -322,16 +327,23 @@ class bitfinex2 extends bitfinex {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTickers (array_merge (array (
-            'symbols' => implode (',', $this->ids),
-        ), $params));
+        $request = array ();
+        if ($symbols !== null) {
+            $ids = $this->market_ids($symbols);
+            $request['symbols'] = implode (',', $ids);
+        } else {
+            $request['symbols'] = 'ALL';
+        }
+        $tickers = $this->publicGetTickers (array_merge ($request, $params));
         $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker[0];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$id];
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
         }
         return $result;
     }
@@ -418,7 +430,7 @@ class bitfinex2 extends bitfinex {
         throw new NotSupported ($this->id . ' fetchDepositAddress() not implemented yet.');
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         throw new NotSupported ($this->id . ' withdraw not implemented yet');
     }
 

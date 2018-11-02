@@ -330,18 +330,22 @@ class zaif (Exchange):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency == 'JPY':
-            raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
-        result = self.privatePostWithdraw(self.extend({
-            'currency': currency,
+        currency = self.currency(code)
+        if code == 'JPY':
+            raise ExchangeError(self.id + ' withdraw() does not allow ' + code + ' withdrawals')
+        request = {
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM only
+            # 'message': 'Hinot ',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
-        }, params))
+        }
+        if tag is not None:
+            request['message'] = tag
+        result = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['return']['txid'],

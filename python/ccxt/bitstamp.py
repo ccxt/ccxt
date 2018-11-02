@@ -72,8 +72,10 @@ class bitstamp (Exchange):
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
+                        'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
+                        'sell/instant/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -403,21 +405,22 @@ class bitstamp (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
-        order = {
-            'pair': self.market_id(symbol),
+        request = {
+            'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
         }
         if type == 'market':
             method += 'Market'
         else:
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         method += 'Pair'
-        response = getattr(self, method)(self.extend(order, params))
-        return {
-            'info': response,
-            'id': response['id'],
-        }
+        response = getattr(self, method)(self.extend(request, params))
+        order = self.parse_order(response, market)
+        return self.extend(order, {
+            'type': type,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -428,6 +431,7 @@ class bitstamp (Exchange):
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         }
         return statuses[status] if (status in list(statuses.keys())) else status
 

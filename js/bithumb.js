@@ -300,17 +300,22 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         };
         if (currency === 'XRP' || currency === 'XMR') {
-            let destination = ('destination' in params);
-            if (!destination)
-                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+            const destination = this.safeString (params, 'destination');
+            if ((tag === undefined) && (destination === undefined)) {
+                throw new ExchangeError (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+            } else if (tag !== undefined) {
+                request['destination'] = tag;
+            }
         }
         let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
         return {

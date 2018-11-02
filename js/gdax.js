@@ -129,6 +129,21 @@ module.exports = class gdax extends Exchange {
                     },
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'Insufficient funds': InsufficientFunds,
+                    'NotFound': OrderNotFound,
+                    'Invalid API Key': AuthenticationError,
+                    'invalid signature': AuthenticationError,
+                    'Invalid Passphrase': AuthenticationError,
+                },
+                'broad': {
+                    'Order already done': OrderNotFound,
+                    'order not found': OrderNotFound,
+                    'price too small': InvalidOrder,
+                    'price too precise': InvalidOrder,
+                },
+            },
         });
     }
 
@@ -363,6 +378,7 @@ module.exports = class gdax extends Exchange {
             'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
+            'canceling': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -591,6 +607,8 @@ module.exports = class gdax extends Exchange {
             return 'canceled';
         } else if ('completed_at' in transaction && transaction['completed_at']) {
             return 'ok';
+        } else if (('canceled_at' in transaction && !transaction['canceled_at']) && ('completed_at' in transaction && !transaction['completed_at']) && ('processed_at' in transaction && !transaction['processed_at'])) {
+            return 'pending';
         } else if ('procesed_at' in transaction && transaction['procesed_at']) {
             return 'pending';
         } else {
@@ -707,19 +725,17 @@ module.exports = class gdax extends Exchange {
             if (body[0] === '{') {
                 let response = JSON.parse (body);
                 let message = response['message'];
-                let error = this.id + ' ' + message;
-                if (message.indexOf ('price too small') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (message.indexOf ('price too precise') >= 0) {
-                    throw new InvalidOrder (error);
-                } else if (message === 'Insufficient funds') {
-                    throw new InsufficientFunds (error);
-                } else if (message === 'NotFound') {
-                    throw new OrderNotFound (error);
-                } else if (message === 'Invalid API Key') {
-                    throw new AuthenticationError (error);
+                let feedback = this.id + ' ' + message;
+                const exact = this.exceptions['exact'];
+                if (message in exact) {
+                    throw new exact[message] (feedback);
                 }
-                throw new ExchangeError (this.id + ' ' + message);
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+                throw new ExchangeError (feedback); // unknown message
             }
             throw new ExchangeError (this.id + ' ' + body);
         }

@@ -142,6 +142,7 @@ module.exports = class therock extends Exchange {
                 let buy_fee = this.safeFloat (market, 'buy_fee');
                 let sell_fee = this.safeFloat (market, 'sell_fee');
                 let taker = Math.max (buy_fee, sell_fee);
+                taker = taker / 100;
                 let maker = taker;
                 result.push ({
                     'id': id,

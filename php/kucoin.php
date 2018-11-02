@@ -88,6 +88,7 @@ class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -1221,11 +1222,6 @@ class kucoin extends Exchange {
         return $this->parse_trades($response['data']['datas'], $market, $since, $limit);
     }
 
-    public function parse_trading_view_ohlcv ($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $result = $this->convert_trading_view_to_ohlcv($ohlcvs);
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-    }
-
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1261,7 +1257,7 @@ class kucoin extends Exchange {
             'to' => $end,
         );
         $response = $this->publicGetOpenChartHistory (array_merge ($request, $params));
-        return $this->parse_trading_view_ohlcv ($response, $market, $timeframe, $since, $limit);
+        return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -1269,11 +1265,17 @@ class kucoin extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $this->check_address($address);
-        $response = $this->privatePostAccountCoinWithdrawApply (array_merge (array (
+        $request = array (
             'coin' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        // they don't have the $tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if ($tag !== null) {
+            $request['address'] .= '@' . $tag;
+        }
+        $response = $this->privatePostAccountCoinWithdrawApply (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,

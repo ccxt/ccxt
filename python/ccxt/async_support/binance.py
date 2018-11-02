@@ -271,6 +271,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -425,13 +426,12 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -472,7 +472,8 @@ class binance (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.publicGetTicker24hr(params)
+        method = self.options['fetchTickersMethod']
+        rawTickers = await getattr(self, method)(params)
         return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -902,8 +903,9 @@ class binance (Exchange):
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'addressTag')  # set but unused
-        if (tag is not None) and len((tag) < 1):
-            tag = None
+        if tag is not None:
+            if len(tag) < 1:
+                tag = None
         txid = self.safe_value(transaction, 'txId')
         code = None
         currencyId = self.safe_string(transaction, 'asset')

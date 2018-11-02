@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.372'
+__version__ = '1.17.452'
 
 # ----------------------------------------------------------------------------
 
@@ -63,7 +63,6 @@ from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
 from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 
-from ccxt._1broker import _1broker                          # noqa: F401
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
@@ -81,6 +80,7 @@ from ccxt.bitfinex2 import bitfinex2                        # noqa: F401
 from ccxt.bitflyer import bitflyer                          # noqa: F401
 from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
+from ccxt.bitibu import bitibu                              # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
 from ccxt.bitmarket import bitmarket                        # noqa: F401
@@ -103,6 +103,7 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.btcx import btcx                                  # noqa: F401
+from ccxt.buda import buda                                  # noqa: F401
 from ccxt.bxinth import bxinth                              # noqa: F401
 from ccxt.ccex import ccex                                  # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
@@ -123,10 +124,10 @@ from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinnest import coinnest                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
-from ccxt.coinsecure import coinsecure                      # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
+from ccxt.crex24 import crex24                              # noqa: F401
 from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.cryptopia import cryptopia                        # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
@@ -155,6 +156,7 @@ from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
 from ccxt.jubi import jubi                                  # noqa: F401
+from ccxt.kkex import kkex                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
 from ccxt.kuna import kuna                                  # noqa: F401
@@ -197,7 +199,6 @@ from ccxt.zaif import zaif                                  # noqa: F401
 from ccxt.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1broker',
     '_1btcxe',
     'acx',
     'allcoin',
@@ -215,6 +216,7 @@ exchanges = [
     'bitflyer',
     'bitforex',
     'bithumb',
+    'bitibu',
     'bitkk',
     'bitlish',
     'bitmarket',
@@ -237,6 +239,7 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'btcx',
+    'buda',
     'bxinth',
     'ccex',
     'cex',
@@ -257,10 +260,10 @@ exchanges = [
     'coinmate',
     'coinnest',
     'coinone',
-    'coinsecure',
     'coinspot',
     'cointiger',
     'coolcoin',
+    'crex24',
     'crypton',
     'cryptopia',
     'deribit',
@@ -289,6 +292,7 @@ exchanges = [
     'indodax',
     'itbit',
     'jubi',
+    'kkex',
     'kraken',
     'kucoin',
     'kuna',

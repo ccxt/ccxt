@@ -59,8 +59,10 @@ module.exports = class bitstamp extends Exchange {
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
+                        'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
+                        'sell/instant/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -419,22 +421,23 @@ module.exports = class bitstamp extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side);
-        let order = {
-            'pair': this.marketId (symbol),
+        let request = {
+            'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'market') {
             method += 'Market';
         } else {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
-        let response = await this[method] (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['id'],
-        };
+        let response = await this[method] (this.extend (request, params));
+        let order = this.parseOrder (response, market);
+        return this.extend (order, {
+            'type': type,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -447,6 +450,7 @@ module.exports = class bitstamp extends Exchange {
             'In Queue': 'open',
             'Open': 'open',
             'Finished': 'closed',
+            'Canceled': 'canceled',
         };
         return (status in statuses) ? statuses[status] : status;
     }

@@ -261,6 +261,7 @@ class binance extends Exchange {
             ),
             // exchange-specific options
             'options' => array (
+                'fetchTickersMethod' => 'publicGetTicker24hr',
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType' => 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
@@ -428,13 +429,12 @@ class binance extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'closeTime');
-        $iso8601 = ($timestamp === null) ? null : $this->iso8601 ($timestamp);
         $symbol = $this->find_symbol($this->safe_string($ticker, 'symbol'), $market);
         $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'highPrice'),
             'low' => $this->safe_float($ticker, 'lowPrice'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
@@ -480,7 +480,8 @@ class binance extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $rawTickers = $this->publicGetTicker24hr ($params);
+        $method = $this->options['fetchTickersMethod'];
+        $rawTickers = $this->$method ($params);
         return $this->parse_tickers ($rawTickers, $symbols);
     }
 
@@ -732,8 +733,9 @@ class binance extends Exchange {
             $priceIsRequired = true;
         }
         if ($priceIsRequired) {
-            if ($price === null)
+            if ($price === null) {
                 throw new InvalidOrder ($this->id . ' createOrder $method requires a $price argument for a ' . $type . ' order');
+            }
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($timeInForceIsRequired) {
@@ -962,8 +964,10 @@ class binance extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
-        if (($tag !== null) && (strlen ($tag) < 1)) {
-            $tag = null;
+        if ($tag !== null) {
+            if (strlen ($tag) < 1) {
+                $tag = null;
+            }
         }
         $txid = $this->safe_value($transaction, 'txId');
         $code = null;

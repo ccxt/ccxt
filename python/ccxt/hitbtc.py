@@ -643,6 +643,10 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        side = None
+        tradeLength = len(trade)
+        if tradeLength > 3:
+            side = trade[4]
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -650,7 +654,7 @@ class hitbtc (Exchange):
             'datetime': self.iso8601(trade[3]),
             'symbol': symbol,
             'type': None,
-            'side': trade[4],
+            'side': side,
             'price': float(trade[1]),
             'amount': float(trade[2]),
         }
@@ -789,7 +793,8 @@ class hitbtc (Exchange):
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
-                cost = price * filled
+                if price is not None:
+                    cost = price * filled
         feeCost = self.safe_float(order, 'fee')
         feeCurrency = None
         if market is not None:

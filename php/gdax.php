@@ -130,6 +130,21 @@ class gdax extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    'Insufficient funds' => '\\ccxt\\InsufficientFunds',
+                    'NotFound' => '\\ccxt\\OrderNotFound',
+                    'Invalid API Key' => '\\ccxt\\AuthenticationError',
+                    'invalid signature' => '\\ccxt\\AuthenticationError',
+                    'Invalid Passphrase' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array (
+                    'Order already done' => '\\ccxt\\OrderNotFound',
+                    'order not found' => '\\ccxt\\OrderNotFound',
+                    'price too small' => '\\ccxt\\InvalidOrder',
+                    'price too precise' => '\\ccxt\\InvalidOrder',
+                ),
+            ),
         ));
     }
 
@@ -364,6 +379,7 @@ class gdax extends Exchange {
             'open' => 'open',
             'done' => 'closed',
             'canceled' => 'canceled',
+            'canceling' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -592,6 +608,8 @@ class gdax extends Exchange {
             return 'canceled';
         } else if (is_array ($transaction && $transaction['completed_at']) && array_key_exists ('completed_at', $transaction && $transaction['completed_at'])) {
             return 'ok';
+        } else if ((is_array ($transaction && !$transaction['canceled_at']) && array_key_exists ('canceled_at', $transaction && !$transaction['canceled_at'])) && (is_array ($transaction && !$transaction['completed_at']) && array_key_exists ('completed_at', $transaction && !$transaction['completed_at'])) && (is_array ($transaction && !$transaction['processed_at']) && array_key_exists ('processed_at', $transaction && !$transaction['processed_at']))) {
+            return 'pending';
         } else if (is_array ($transaction && $transaction['procesed_at']) && array_key_exists ('procesed_at', $transaction && $transaction['procesed_at'])) {
             return 'pending';
         } else {
@@ -708,19 +726,17 @@ class gdax extends Exchange {
             if ($body[0] === '{') {
                 $response = json_decode ($body, $as_associative_array = true);
                 $message = $response['message'];
-                $error = $this->id . ' ' . $message;
-                if (mb_strpos ($message, 'price too small') !== false) {
-                    throw new InvalidOrder ($error);
-                } else if (mb_strpos ($message, 'price too precise') !== false) {
-                    throw new InvalidOrder ($error);
-                } else if ($message === 'Insufficient funds') {
-                    throw new InsufficientFunds ($error);
-                } else if ($message === 'NotFound') {
-                    throw new OrderNotFound ($error);
-                } else if ($message === 'Invalid API Key') {
-                    throw new AuthenticationError ($error);
+                $feedback = $this->id . ' ' . $message;
+                $exact = $this->exceptions['exact'];
+                if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                    throw new $exact[$message] ($feedback);
                 }
-                throw new ExchangeError ($this->id . ' ' . $message);
+                $broad = $this->exceptions['broad'];
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey] ($feedback);
+                }
+                throw new ExchangeError ($feedback); // unknown $message
             }
             throw new ExchangeError ($this->id . ' ' . $body);
         }

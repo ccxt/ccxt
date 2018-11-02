@@ -88,6 +88,7 @@ module.exports = class kucoin extends Exchange {
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -1221,11 +1222,6 @@ module.exports = class kucoin extends Exchange {
         return this.parseTrades (response['data']['datas'], market, since, limit);
     }
 
-    parseTradingViewOHLCV (ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let result = this.convertTradingViewToOHLCV (ohlcvs);
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -1269,11 +1265,17 @@ module.exports = class kucoin extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         this.checkAddress (address);
-        let response = await this.privatePostAccountCoinWithdrawApply (this.extend ({
+        const request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        // they don't have the tag properly documented for currencies that require it (XLM, XRP, ...)
+        // https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if (tag !== undefined) {
+            request['address'] += '@' + tag;
+        }
+        let response = await this.privatePostAccountCoinWithdrawApply (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,

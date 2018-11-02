@@ -260,6 +260,7 @@ module.exports = class binance extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -427,13 +428,12 @@ module.exports = class binance extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'closeTime');
-        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         let last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
@@ -479,7 +479,8 @@ module.exports = class binance extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let rawTickers = await this.publicGetTicker24hr (params);
+        let method = this.options['fetchTickersMethod'];
+        let rawTickers = await this[method] (params);
         return this.parseTickers (rawTickers, symbols);
     }
 
@@ -731,8 +732,9 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
         }
         if (priceIsRequired) {
-            if (price === undefined)
+            if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder method requires a price argument for a ' + type + ' order');
+            }
             order['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
@@ -961,8 +963,10 @@ module.exports = class binance extends Exchange {
         let id = this.safeString (transaction, 'id');
         let address = this.safeString (transaction, 'address');
         let tag = this.safeString (transaction, 'addressTag'); // set but unused
-        if ((tag !== undefined) && (tag.length < 1)) {
-            tag = undefined;
+        if (tag !== undefined) {
+            if (tag.length < 1) {
+                tag = undefined;
+            }
         }
         let txid = this.safeValue (transaction, 'txId');
         let code = undefined;

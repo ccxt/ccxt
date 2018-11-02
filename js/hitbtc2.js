@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -536,6 +536,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'defaultTimeInForce': 'FOK',
             },
             'exceptions': {
+                '1003': PermissionDenied, // "Action is forbidden for this API key"
                 '2010': InvalidOrder, // "Quantity not a valid number"
                 '2011': InvalidOrder, // "Quantity too low"
                 '2020': InvalidOrder, // "Price not a valid number"
@@ -788,6 +789,19 @@ module.exports = class hitbtc2 extends hitbtc {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // createMarketOrder
+        //
+        //  {       fee: "0.0004644",
+        //           id:  386394956,
+        //        price: "0.4644",
+        //     quantity: "1",
+        //    timestamp: "2018-10-25T16:41:44.780Z" }
+        //
+        // fetchTrades ...
+        //
+        // fetchMyTrades ...
+        //
         let timestamp = this.parse8601 (trade['timestamp']);
         let symbol = undefined;
         if (market !== undefined) {
@@ -816,6 +830,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'quantity');
         let cost = price * amount;
+        let side = this.safeString (trade, 'side');
         return {
             'info': trade,
             'id': trade['id'].toString (),
@@ -824,7 +839,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -907,7 +922,39 @@ module.exports = class hitbtc2 extends hitbtc {
         return this.parseOrder (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'new': 'open',
+            'suspended': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'expired': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
+        //
+        // createMarketOrder
+        //
+        //   { clientOrderId:   "fe36aa5e190149bf9985fb673bbb2ea0",
+        //         createdAt:   "2018-10-25T16:41:44.780Z",
+        //       cumQuantity:   "1",
+        //                id:   "66799540063",
+        //          quantity:   "1",
+        //              side:   "sell",
+        //            status:   "filled",
+        //            symbol:   "XRPUSDT",
+        //       timeInForce:   "FOK",
+        //      tradesReport: [ {       fee: "0.0004644",
+        //                               id:  386394956,
+        //                            price: "0.4644",
+        //                         quantity: "1",
+        //                        timestamp: "2018-10-25T16:41:44.780Z" } ],
+        //              type:   "market",
+        //         updatedAt:   "2018-10-25T16:41:44.780Z"                   }
+        //
         let created = this.parse8601 (this.safeString (order, 'createdAt'));
         let updated = this.parse8601 (this.safeString (order, 'updatedAt'));
         if (!market)
@@ -915,16 +962,7 @@ module.exports = class hitbtc2 extends hitbtc {
         let symbol = market['symbol'];
         let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'cumQuantity');
-        let status = order['status'];
-        if (status === 'new') {
-            status = 'open';
-        } else if (status === 'suspended') {
-            status = 'open';
-        } else if (status === 'partiallyFilled') {
-            status = 'open';
-        } else if (status === 'filled') {
-            status = 'closed';
-        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = order['clientOrderId'].toString ();
         let price = this.safeFloat (order, 'price');
         if (price === undefined) {
@@ -941,6 +979,45 @@ module.exports = class hitbtc2 extends hitbtc {
                 }
             }
         }
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        let trades = this.safeValue (order, 'tradesReport');
+        let fee = undefined;
+        let average = undefined;
+        if (trades !== undefined) {
+            trades = this.parseTrades (trades, market);
+            let feeCost = undefined;
+            let sumOfPrices = undefined;
+            let numTrades = trades.length;
+            for (let i = 0; i < numTrades; i++) {
+                if (feeCost === undefined) {
+                    feeCost = 0;
+                }
+                if (sumOfPrices === undefined) {
+                    sumOfPrices = 0;
+                }
+                if (cost === undefined) {
+                    cost = 0;
+                }
+                cost += trades[i]['cost'];
+                feeCost += trades[i]['fee']['cost'];
+                sumOfPrices += trades[i]['price'];
+            }
+            if ((sumOfPrices !== undefined) && (numTrades > 0)) {
+                average = sumOfPrices / numTrades;
+                if (type === 'market') {
+                    if (price === undefined) {
+                        price = average;
+                    }
+                }
+            }
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': market['quote'],
+                };
+            }
+        }
         return {
             'id': id,
             'timestamp': created,
@@ -948,14 +1025,16 @@ module.exports = class hitbtc2 extends hitbtc {
             'lastTradeTimestamp': updated,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
+            'average': average,
             'amount': amount,
             'cost': cost,
             'filled': filled,
             'remaining': remaining,
-            'fee': undefined,
+            'fee': fee,
+            'trades': trades,
             'info': order,
         };
     }

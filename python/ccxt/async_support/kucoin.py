@@ -100,6 +100,7 @@ class kucoin (Exchange):
                         'account/{coin}/balance',
                         'account/promotion/info',
                         'account/promotion/sum',
+                        'account/transfer-records',
                         'deal-orders',
                         'order/active',
                         'order/active-map',
@@ -1170,10 +1171,6 @@ class kucoin (Exchange):
         response = await self.privateGetDealOrders(self.extend(request, params))
         return self.parse_trades(response['data']['datas'], market, since, limit)
 
-    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
-        result = self.convert_trading_view_to_ohlcv(ohlcvs)
-        return self.parse_ohlcvs(result, market, timeframe, since, limit)
-
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
@@ -1214,11 +1211,16 @@ class kucoin (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         self.check_address(address)
-        response = await self.privatePostAccountCoinWithdrawApply(self.extend({
+        request = {
             'coin': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        # they don't have the tag properly documented for currencies that require it(XLM, XRP, ...)
+        # https://www.reddit.com/r/kucoin/comments/93o92b/withdraw_of_xlm_through_api/
+        if tag is not None:
+            request['address'] += '@' + tag
+        response = await self.privatePostAccountCoinWithdrawApply(self.extend(request, params))
         return {
             'info': response,
             'id': None,

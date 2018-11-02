@@ -106,14 +106,25 @@ module.exports = class acx extends Exchange {
             let market = markets[p];
             let id = market['id'];
             let symbol = market['name'];
-            let [ base, quote ] = symbol.split ('/');
+            let baseId = this.safeString (market, 'base_unit');
+            let quoteId = this.safeString (market, 'quote_unit');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
+            // todo: find out their undocumented precision and limits
+            let precision = {
+                'amount': 8,
+                'price': 8,
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'precision': precision,
                 'info': market,
             });
         }
@@ -344,14 +355,18 @@ module.exports = class acx extends Exchange {
         return order;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let result = await this.privatePostWithdraw (this.extend ({
-            'currency': currency.toLowerCase (),
+        let currency = this.currency (code);
+        // they have XRP but no docs on memo/tag
+        let request = {
+            'currency': currency['id'],
             'sum': amount,
             'address': address,
-        }, params));
+        };
+        let result = await this.privatePostWithdraw (this.extend (request, params));
+        // withdrawal response is undocumented
         return {
             'info': result,
             'id': undefined,

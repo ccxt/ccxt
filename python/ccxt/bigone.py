@@ -67,6 +67,9 @@ class bigone (Exchange):
                         'accounts',
                         'orders',
                         'orders/{order_id}',
+                        'trades',
+                        'withdrawals',
+                        'deposits',
                     ],
                     'post': [
                         'orders',
@@ -480,7 +483,7 @@ class bigone (Exchange):
         order = response['data']
         return self.parse_order(order)
 
-    def cancel_all_orders(self, symbol=None, params={}):
+    def cancel_all_orders(self, symbols=None, params={}):
         self.load_markets()
         response = self.privatePostOrdersOrderIdCancel(params)
         #

@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import InvalidNonce
 
@@ -33,7 +34,7 @@ class cobinhood (Exchange):
                 'createDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
-                'withdraw': False,
+                'withdraw': True,
                 'fetchMyTrades': True,
                 'editOrder': True,
             },
@@ -88,51 +89,86 @@ class cobinhood (Exchange):
                 },
                 'public': {
                     'get': [
+                        'market/fundingbook/precisions/{currency_id}',
+                        'market/fundingbooks/{currency_id}',
                         'market/tickers',
                         'market/currencies',
+                        'market/quote_currencies',
                         'market/trading_pairs',
+                        'market/orderbook/precisions/{trading_pair_id}',
                         'market/orderbooks/{trading_pair_id}',
                         'market/stats',
+                        'market/tickers',  # fetchTickers
                         'market/tickers/{trading_pair_id}',
                         'market/trades/{trading_pair_id}',
+                        'market/trades_history/{trading_pair_id}',
+                        'market/trading_pairs',
                         'chart/candles/{trading_pair_id}',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'get': [
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/positions',
+                        'trading/positions/{trading_pair_id}',
+                        'trading/positions/{trading_pair_id}/claimable_size',
                         'trading/trades',
                         'trading/trades/{trade_id}',
                         'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/limits/withdrawal',
                         'wallet/generic_deposits',
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
                         # older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/deposit_addresses/iota',
                         'wallet/withdrawal_addresses',
+                        'wallet/withdrawal_frozen',
                         'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
                         'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ],
+                    'patch': [
+                        'trading/positions/{trading_pair_id}',
+                    ],
                     'post': [
+                        'funding/auto_offerings',
+                        'funding/fundings',
+                        'trading/check_order',
                         'trading/orders',
                         # older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/transfer',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                        'wallet/withdrawals/fee',
                     ],
                     'put': [
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ],
                     'delete': [
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
+                        'trading/positions/{trading_pair_id}',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        'wallet/withdrawal_addresses/{wallet_id}',
                     ],
                 },
             },
@@ -151,6 +187,7 @@ class cobinhood (Exchange):
                 'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+                'invalid_address': InvalidAddress,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
@@ -592,16 +629,19 @@ class cobinhood (Exchange):
             'info': response,
         }
 
-    def withdraw(self, code, amount, address, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostWalletWithdrawals(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = self.privatePostWalletWithdrawals(self.extend(request, params))
         return {
-            'id': response['result']['withdrawal_id'],
+            'id': None,
             'info': response,
         }
 

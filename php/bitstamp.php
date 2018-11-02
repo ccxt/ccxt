@@ -60,8 +60,10 @@ class bitstamp extends Exchange {
                         'cancel_order/',
                         'buy/{pair}/',
                         'buy/market/{pair}/',
+                        'buy/instant/{pair}/',
                         'sell/{pair}/',
                         'sell/market/{pair}/',
+                        'sell/instant/{pair}/',
                         'ltc_withdrawal/',
                         'ltc_address/',
                         'eth_withdrawal/',
@@ -420,22 +422,23 @@ class bitstamp extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side);
-        $order = array (
-            'pair' => $this->market_id($symbol),
+        $request = array (
+            'pair' => $market['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type === 'market') {
             $method .= 'Market';
         } else {
-            $order['price'] = $this->price_to_precision($symbol, $price);
+            $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $method .= 'Pair';
-        $response = $this->$method (array_merge ($order, $params));
-        return array (
-            'info' => $response,
-            'id' => $response['id'],
-        );
+        $response = $this->$method (array_merge ($request, $params));
+        $order = $this->parse_order($response, $market);
+        return array_merge ($order, array (
+            'type' => $type,
+        ));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -448,6 +451,7 @@ class bitstamp extends Exchange {
             'In Queue' => 'open',
             'Open' => 'open',
             'Finished' => 'closed',
+            'Canceled' => 'canceled',
         );
         return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }

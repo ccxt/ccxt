@@ -54,6 +54,9 @@ class bigone extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{order_id}',
+                        'trades',
+                        'withdrawals',
+                        'deposits',
                     ),
                     'post' => array (
                         'orders',
@@ -497,7 +500,7 @@ class bigone extends Exchange {
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders ($symbol = null, $params = array ()) {
+    public function cancel_all_orders ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersOrderIdCancel ($params);
         //

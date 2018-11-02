@@ -572,23 +572,25 @@ class livecoin extends Exchange {
         throw new ExchangeError ($this->id . ' cancelOrder() failed => ' . $this->json ($response));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         // Sometimes the $response with be array ( key => null ) for all keys.
-        // An example is if you attempt to withdraw more than is allowed when $withdrawal fees are considered.
-        $this->load_markets();
+        // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $wallet = $address;
         if ($tag !== null)
             $wallet .= '::' . $tag;
-        $withdrawal = array (
+        $request = array (
             'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$currency]['precision'], DECIMAL_PLACES),
-            'currency' => $this->common_currency_code($currency),
+            'currency' => $currency['id'],
             'wallet' => $wallet,
         );
-        $response = $this->privatePostPaymentOutCoin (array_merge ($withdrawal, $params));
+        $response = $this->privatePostPaymentOutCoin (array_merge ($request, $params));
         $id = $this->safe_integer($response, 'id');
-        if ($id === null)
-            throw new InsufficientFunds ($this->id . ' insufficient funds to cover requested $withdrawal $amount post fees ' . $this->json ($response));
+        if ($id === null) {
+            throw new InsufficientFunds ($this->id . ' insufficient funds to cover requested withdrawal $amount post fees ' . $this->json ($response));
+        }
         return array (
             'info' => $response,
             'id' => $id,

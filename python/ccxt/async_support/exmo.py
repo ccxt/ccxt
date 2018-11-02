@@ -781,11 +781,12 @@ class exmo (Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
+        currency = self.currency(code)
         request = {
             'amount': amount,
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
         }
         if tag is not None:
