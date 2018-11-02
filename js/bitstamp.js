@@ -421,22 +421,30 @@ module.exports = class bitstamp extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        let market = this.market (symbol);
         let method = 'privatePost' + this.capitalize (side);
-        let order = {
-            'pair': this.marketId (symbol),
+        let request = {
+            'pair': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
         };
         if (type === 'market') {
             method += 'Market';
         } else {
-            order['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         method += 'Pair';
-        let response = await this[method] (this.extend (order, params));
-        return {
-            'info': response,
-            'id': response['id'],
+        // let response = await this[method] (this.extend (request, params));
+        let response = {
+            'price': '196.97',
+            'amount': '0.21678274',
+            'type': '0',
+            'id': '2332492766',
+            'datetime': '2018-11-01 18:19:47.949128',
         };
+        let order = this.parseOrder (response, market);
+        return this.extend (order, {
+            'type': type,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
