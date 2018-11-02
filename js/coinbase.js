@@ -198,10 +198,10 @@ module.exports = class coinbase extends Exchange {
         return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
@@ -211,10 +211,10 @@ module.exports = class coinbase extends Exchange {
         return this.parseTransactions (withdrawals['data'], undefined, since, limit);
     }
 
-    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
