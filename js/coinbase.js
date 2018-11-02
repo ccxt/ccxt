@@ -278,33 +278,16 @@ module.exports = class coinbase extends Exchange {
         //           },
         //           "payout_at": "2015-02-18T16:54:00-08:00"
         //         }
-        let symbol = undefined;
-        let totalObject = this.safeValue (transaction, 'total', {});
         let amountObject = this.safeValue (transaction, 'amount', {});
-        let subtotalObject = this.safeValue (transaction, 'subtotal', {});
         let feeObject = this.safeValue (transaction, 'fee', {});
         let id = this.safeString (transaction, 'id');
-        let timestamp = this.parse8601 (this.safeValue (transaction, 'payout_at'));
-        if (market === undefined) {
-            let baseId = this.safeString (totalObject, 'currency');
-            let quoteId = this.safeString (amountObject, 'currency');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
+        let timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
+        let updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
         let orderId = undefined;
-        let side = undefined;
         let type = this.safeString (transaction, 'resource');
-        let cost = this.safeFloat (subtotalObject, 'amount');
         let amount = this.safeFloat2 (amountObject, 'amount');
-        let price = undefined;
-        if (cost !== undefined) {
-            if (amount !== undefined) {
-                price = cost / amount;
-            }
-        }
+        let currencyId = this.safeString (amountObject, 'currency');
+        let currency = this.commonCurrencyCode (currencyId);
         let feeCost = this.safeFloat (feeObject, 'amount');
         let feeCurrencyId = this.safeString (feeObject, 'currency');
         let feeCurrency = this.commonCurrencyCode (feeCurrencyId);
@@ -312,18 +295,26 @@ module.exports = class coinbase extends Exchange {
             'cost': feeCost,
             'currency': feeCurrency,
         };
+        let status = undefined;
+        if (transaction['comitted'] === true) {
+            status = 'ok';
+        } else {
+            status = 'pending';
+        }
         return {
             'info': transaction,
             'id': id,
+            'txid': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'address': undefined,
+            'tag': undefined,
             'type': type,
-            'side': side,
-            'price': price,
             'amount': amount,
-            'cost': cost,
+            'currency': currency,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         };
     }
