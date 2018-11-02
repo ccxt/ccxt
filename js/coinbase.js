@@ -174,7 +174,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchAccounts () {
         await this.loadMarkets ();
-        let response = await this.privateGetAccountAccounts ();
+        let response = await this.privateGetAccounts ();
         return response['data'];
     }
 
