@@ -192,7 +192,6 @@ module.exports = class coinbase extends Exchange {
         }, query));
         const parsedBuys = this.parseTrades (buys['data'], undefined, since, limit);
         const parsedSells = this.parseTrades (sells['data'], undefined, since, limit);
-        // missing parsing here
         let result = this.arrayConcat (parsedBuys, parsedSells);
         let sortedResult = this.sortBy (result, 'timestamp');
         return this.filterBySinceLimit (sortedResult, since, limit);
