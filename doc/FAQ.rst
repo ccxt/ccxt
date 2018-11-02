@@ -13,6 +13,7 @@ When asking a question:
 - **Surround code and output with triple backticks: \```GOOD``\`**.
 - Don’t confuse the backtick symbol (`) with the quote symbol ('): ’‘’BAD’’’
 - Don’t confuse a single backtick with triple backticks: \`BAD\`
+- **DO NOT POST YOUR ``apiKey`` AND ``secret``!** Keep them safe (remove them before posting)!
 - Post your version number of ccxt
 - Post your language version number, how do you think we can guess it otherwise?
 
