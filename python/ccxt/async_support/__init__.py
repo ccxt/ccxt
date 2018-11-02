@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.456'
+__version__ = '1.17.457'
 
 # -----------------------------------------------------------------------------
 
@@ -84,7 +84,6 @@ from ccxt.async_support.btcmarkets import btcmarkets                      # noqa
 from ccxt.async_support.btctradeim import btctradeim                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
-from ccxt.async_support.btcx import btcx                                  # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bxinth import bxinth                              # noqa: F401
 from ccxt.async_support.ccex import ccex                                  # noqa: F401
@@ -220,7 +219,6 @@ exchanges = [
     'btctradeim',
     'btctradeua',
     'btcturk',
-    'btcx',
     'buda',
     'bxinth',
     'ccex',
