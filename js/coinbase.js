@@ -11,7 +11,7 @@ module.exports = class coinbase extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'coinbase',
-            'name': 'coinbase',
+            'name': 'Coinbase',
             'countries': [ 'US' ],
             'rateLimit': 400, // 10k calls per hour
             'version': 'v2',
