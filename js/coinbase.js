@@ -225,60 +225,59 @@ module.exports = class coinbase extends Exchange {
     }
 
     parseTransaction (transaction, market = undefined) {
-    //
-    //    DEPOSIT
-    //        id: '406176b1-92cf-598f-ab6e-7d87e4a6cac1',
-    //        status: 'completed',
-    //        payment_method: [Object],
-    //        transaction: [Object],
-    //        user_reference: 'JQKBN85B',
-    //        created_at: '2018-10-01T14:58:21Z',
-    //        updated_at: '2018-10-01T17:57:27Z',
-    //        resource: 'deposit',
-    //        resource_path: '/v2/accounts/7702be4f-de96-5f08-b13b-32377c449ecf/deposits/406176b1-92cf-598f-ab6e-7d87e4a6cac1',
-    //        committed: true,
-    //        payout_at: '2018-10-01T14:58:34Z',
-    //        instant: true,
-    //        fee: [Object],
-    //        amount: [Object],
-    //        subtotal: [Object],
-    //        hold_until: '2018-10-04T07:00:00Z',
-    //        hold_days: 3
-    //
-    //    WITHDRAWAL
-    //       {
-    //           "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
-    //           "status": "completed",
-    //           "payment_method": {
-    //             "id": "83562370-3e5c-51db-87da-752af5ab9559",
-    //             "resource": "payment_method",
-    //             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
-    //           },
-    //           "transaction": {
-    //             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
-    //             "resource": "transaction",
-    //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
-    //           },
-    //           "amount": {
-    //             "amount": "10.00",
-    //             "currency": "USD"
-    //           },
-    //           "subtotal": {
-    //             "amount": "10.00",
-    //             "currency": "USD"
-    //           },
-    //           "created_at": "2015-01-31T20:49:02Z",
-    //           "updated_at": "2015-02-11T16:54:02-08:00",
-    //           "resource": "withdrawal",
-    //           "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/withdrawals/67e0eaec-07d7-54c4-a72c-2e92826897df",
-    //           "committed": true,
-    //           "fee": {
-    //             "amount": "0.00",
-    //             "currency": "USD"
-    //           },
-    //           "payout_at": "2015-02-18T16:54:00-08:00"
-    //         }
-
+        //
+        //    DEPOSIT
+        //        id: '406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        status: 'completed',
+        //        payment_method: [Object],
+        //        transaction: [Object],
+        //        user_reference: 'JQKBN85B',
+        //        created_at: '2018-10-01T14:58:21Z',
+        //        updated_at: '2018-10-01T17:57:27Z',
+        //        resource: 'deposit',
+        //        resource_path: '/v2/accounts/7702be4f-de96-5f08-b13b-32377c449ecf/deposits/406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        //        committed: true,
+        //        payout_at: '2018-10-01T14:58:34Z',
+        //        instant: true,
+        //        fee: [Object],
+        //        amount: [Object],
+        //        subtotal: [Object],
+        //        hold_until: '2018-10-04T07:00:00Z',
+        //        hold_days: 3
+        //
+        //    WITHDRAWAL
+        //       {
+        //           "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "status": "completed",
+        //           "payment_method": {
+        //             "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //           },
+        //           "transaction": {
+        //             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //           },
+        //           "amount": {
+        //             "amount": "10.00",
+        //             "currency": "USD"
+        //           },
+        //           "subtotal": {
+        //             "amount": "10.00",
+        //             "currency": "USD"
+        //           },
+        //           "created_at": "2015-01-31T20:49:02Z",
+        //           "updated_at": "2015-02-11T16:54:02-08:00",
+        //           "resource": "withdrawal",
+        //           "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/withdrawals/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //           "committed": true,
+        //           "fee": {
+        //             "amount": "0.00",
+        //             "currency": "USD"
+        //           },
+        //           "payout_at": "2015-02-18T16:54:00-08:00"
+        //         }
         let symbol = undefined;
         let totalObject = this.safeValue (transaction, 'total', {});
         let amountObject = this.safeValue (transaction, 'amount', {});
