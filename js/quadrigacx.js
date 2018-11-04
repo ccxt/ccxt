@@ -240,20 +240,17 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     getMarketById (id) {
-        let symbol = id;
         let market = undefined;
         if (id in this.markets_by_id) {
             market = this.markets_by_id[id];
-            symbol = market['symbol'];
         } else {
             let [ baseId, quoteId ] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (base);
-            symbol = base + '/' + quote;
             market = {
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
             };
         }
         return market;
