@@ -18,6 +18,8 @@ module.exports = class quadrigacx extends Exchange {
             'has': {
                 'fetchDepositAddress': true,
                 'fetchTickers': true,
+                'fetchOrder': true,
+                'fetchMyTrades': true,
                 'CORS': true,
                 'withdraw': true,
             },
@@ -95,6 +97,118 @@ module.exports = class quadrigacx extends Exchange {
             result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    getMarketById (id) {
+        let symbol = id;
+        let market = undefined;
+        if (id in this.markets_by_id) {
+            market = this.markets_by_id[id];
+            symbol = market['symbol'];
+        } else {
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (base);
+            symbol = base + '/' + quote;
+            market = {
+                'symbol': symbol,
+            };
+        }
+        return market;
+    }
+
+    parseMyTrade (trade) {
+        let market = {};
+        Object.entries (trade).some (([key, value]) => {
+            if (value === trade.rate && key !== 'rate') {
+                market = this.getMarketById (key);
+                return true;
+            }
+            return false;
+        });
+        let side = this.safeFloat (trade, market.base) > 0 ? 'buy' : 'sell';
+        let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
+        let result = {
+            'info': trade,
+            'id': trade.id.toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market.symbol,
+            'order': this.safeString (trade, 'order_id'),
+            'type': null,
+            'side': side,
+            'takerOrMaker': null,
+            'price': this.safeFloat (trade, 'rate'),
+            'amount': Math.abs (this.safeFloat (trade, market.base.toLowerCase ())),
+            'cost': Math.abs (this.safeFloat (trade, market.quote.toLowerCase ())),
+            'fee': {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': side === 'buy' ? market.base : market.quote,
+                'rate': market.maker,
+            },
+        };
+        return result;
+    }
+
+    async fetchMyTrades (params = {}) {
+        let transactions = await this.privatePostUserTransactions ();
+        let trades = transactions.reduce ((acc, val) => {
+            if (val.type === 2) {
+                acc.push (this.parseMyTrade (val));
+            }
+            return acc;
+        }, []);
+        return trades;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        let request = { id };
+        let response = await this.privatePostLookupOrder (this.extend (request, params));
+        return this.parseOrders (response);
+    }
+
+    parseOrder (order) {
+        let price = this.safeFloat (order, 'price');
+        let responseAmount = this.safeFloat (order, 'amount');
+        let market = this.getMarketById (this.safeString (order, 'book'));
+        let side = this.safeString (order, 'type') === '0' ? 'buy' : 'sell';
+        let status = null;
+        switch (this.safeString (order, 'status')) {
+        case '-1':
+            status = 'canceled';
+            break;
+        case '0':
+        case '1':
+            status = 'open';
+            break;
+        case '2':
+            status = 'closed';
+            break;
+        default:
+            break;
+        }
+        let timestamp = this.parse8601 (this.safeString (order, 'created'));
+        let result = {
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastorderTimestamp': this.parse8601 (this.safeString (order, 'updated')),
+            'symbol': market.symbol,
+            'type': price === 0 ? 'market' : 'limit',
+            'side': side,
+            'price': price,
+            'cost': null,
+            'average': null,
+            'amount': status === 'closed' ? responseAmount : null,
+            'filled': status === 'closed' ? responseAmount : null,
+            'remaining': status === 'closed' ? 0 : responseAmount,
+            'status': status,
+            'fee': null,
+        };
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
