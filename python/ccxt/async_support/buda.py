@@ -300,7 +300,7 @@ class buda (Exchange):
         percentage = float(ticker['price_variation_24h'])
         open = float(self.price_to_precision(symbol, last / (percentage + 1)))
         change = last - open
-        average = (last + open) / 2
+        average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,

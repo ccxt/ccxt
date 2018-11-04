@@ -425,12 +425,18 @@ class bitmex extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array (
-            'new' => 'open',
-            'partiallyfilled' => 'open',
-            'filled' => 'closed',
-            'canceled' => 'canceled',
-            'rejected' => 'rejected',
-            'expired' => 'expired',
+            'New' => 'open',
+            'PartiallyFilled' => 'open',
+            'Filled' => 'closed',
+            'DoneForDay' => 'open',
+            'Canceled' => 'canceled',
+            'PendingCancel' => 'open',
+            'PendingNew' => 'open',
+            'Rejected' => 'rejected',
+            'Expired' => 'expired',
+            'Stopped' => 'open',
+            'Untriggered' => 'open',
+            'Triggered' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }

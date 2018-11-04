@@ -12,7 +12,7 @@ module.exports = class kkex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'kkex',
             'name': 'KKEX',
-            'countries': [ 'CN', 'US', 'JA' ],
+            'countries': [ 'CN', 'US', 'JP' ],
             'version': 'v2',
             'has': {
                 'CORS': false,

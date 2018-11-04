@@ -212,6 +212,9 @@ class kraken (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'XDG': 'DOGE',
+            },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
@@ -270,10 +273,12 @@ class kraken (Exchange):
             quoteId = market['quote']
             base = baseId
             quote = quoteId
-            if (base[0] == 'X') or (base[0] == 'Z'):
-                base = base[1:]
-            if (quote[0] == 'X') or (quote[0] == 'Z'):
-                quote = quote[1:]
+            if len(base) > 3:
+                if (base[0] == 'X') or (base[0] == 'Z'):
+                    base = base[1:]
+            if len(quote) > 3:
+                if (quote[0] == 'X') or (quote[0] == 'Z'):
+                    quote = quote[1:]
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             darkpool = id.find('.d') >= 0

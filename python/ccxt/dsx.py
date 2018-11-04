@@ -85,6 +85,7 @@ class dsx (liqui):
                 'fetchOrderMethod': 'privatePostOrderStatus',
                 'fetchMyTradesMethod': 'privatePostHistoryTrades',
                 'cancelOrderMethod': 'privatePostOrderCancel',
+                'fetchTickersMaxLength': 250,
             },
         })
 

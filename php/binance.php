@@ -733,8 +733,9 @@ class binance extends Exchange {
             $priceIsRequired = true;
         }
         if ($priceIsRequired) {
-            if ($price === null)
+            if ($price === null) {
                 throw new InvalidOrder ($this->id . ' createOrder $method requires a $price argument for a ' . $type . ' order');
+            }
             $order['price'] = $this->price_to_precision($symbol, $price);
         }
         if ($timeInForceIsRequired) {

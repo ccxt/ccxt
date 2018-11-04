@@ -485,7 +485,7 @@ class exmo (Exchange):
             elif (side == 'sell') and(cost is not None):
                 fee = {
                     'currency': market['quote'],
-                    'cost': amount * market['taker'],
+                    'cost': cost * market['taker'],
                     'rate': market['taker'],
                 }
         return {

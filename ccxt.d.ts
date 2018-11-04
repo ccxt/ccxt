@@ -312,7 +312,6 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
-    export class _1broker extends Exchange {}
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
@@ -352,7 +351,6 @@ declare module 'ccxt' {
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
-    export class btcx extends Exchange {}
     export class buda extends Exchange {}
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
@@ -374,10 +372,10 @@ declare module 'ccxt' {
     export class coinmate extends Exchange {}
     export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
-    export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
+    export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class cryptopia extends Exchange {}
     export class deribit extends Exchange {}

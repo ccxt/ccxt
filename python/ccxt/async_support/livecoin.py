@@ -561,7 +561,7 @@ class livecoin (Exchange):
         if tag is not None:
             wallet += '::' + tag
         request = {
-            'amount': self.decimal_to_precision(amount, TRUNCATE, self.currencies[currency]['precision'], DECIMAL_PLACES),
+            'amount': self.decimal_to_precision(amount, TRUNCATE, currency['precision'], DECIMAL_PLACES),
             'currency': currency['id'],
             'wallet': wallet,
         }

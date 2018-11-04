@@ -802,7 +802,7 @@ class theocean extends Exchange {
         ));
     }
 
-    public function cancel_all_orders ($params = array ()) {
+    public function cancel_all_orders ($symbols = null, $params = array ()) {
         $response = $this->privateDeleteOrders ($params);
         //
         //     [{

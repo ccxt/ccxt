@@ -13,7 +13,7 @@ class kkex extends Exchange {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'kkex',
             'name' => 'KKEX',
-            'countries' => array ( 'CN', 'US', 'JA' ),
+            'countries' => array ( 'CN', 'US', 'JP' ),
             'version' => 'v2',
             'has' => array (
                 'CORS' => false,

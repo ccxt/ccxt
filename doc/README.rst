@@ -20,7 +20,7 @@ Current feature list:
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc…
 -  optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
--  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
+-  works in Node 7.6+, Python 2 and 3, PHP 5.4+, web browsers
 
 Sponsored Promotion
 -------------------
@@ -49,13 +49,11 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 135 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
 
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 |                      | id                 | name                                                                                    | certified                                                            | ver   | doc                                                                                                 | countries                                |
 +======================+====================+=========================================================================================+======================================================================+=======+=====================================================================================================+==========================================+
-| |_1broker|           | _1broker           | `1Broker <https://1broker.com>`__                                                       |                                                                      | 2     | `API <https://1broker.com/?c=en/content/api-documentation>`__                                       | US                                       |
-+----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |_1btcxe|            | _1btcxe            | `1BTCXE <https://1btcxe.com>`__                                                         |                                                                      | \*    | `API <https://1btcxe.com/api-docs.php>`__                                                           | Panama                                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |acx|                | acx                | `ACX <https://acx.io>`__                                                                |                                                                      | 2     | `API <https://acx.io/documents/api_v2>`__                                                           | Australia                                |
@@ -134,8 +132,6 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |btcturk|            | btcturk            | `BTCTurk <https://www.btcturk.com>`__                                                   |                                                                      | \*    | `API <https://github.com/BTCTrader/broker-api-docs>`__                                              | Turkey                                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |btcx|               | btcx               | `BTCX <https://btc-x.is>`__                                                             |                                                                      | 1     | `API <https://btc-x.is/custom/api-document.html>`__                                                 | Iceland, US, EU                          |
-+----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |buda|               | buda               | `Buda <https://www.buda.com>`__                                                         |                                                                      | 2     | `API <https://api.buda.com>`__                                                                      | Argentina, Chile, Colombia, Peru         |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |bxinth|             | bxinth             | `BX.in.th <https://bx.in.th>`__                                                         |                                                                      | \*    | `API <https://bx.in.th/info/api>`__                                                                 | Thailand                                 |
@@ -178,13 +174,13 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinone|            | coinone            | `CoinOne <https://coinone.co.kr>`__                                                     |                                                                      | 2     | `API <https://doc.coinone.co.kr>`__                                                                 | South Korea                              |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |coinsecure|         | coinsecure         | `Coinsecure <https://coinsecure.in>`__                                                  |                                                                      | 1     | `API <https://api.coinsecure.in>`__                                                                 | India                                    |
-+----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinspot|           | coinspot           | `CoinSpot <https://www.coinspot.com.au>`__                                              |                                                                      | \*    | `API <https://www.coinspot.com.au/api>`__                                                           | Australia                                |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |cointiger|          | cointiger          | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__         |                                                                      | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                             | China                                    |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coolcoin|           | coolcoin           | `CoolCoin <https://www.coolcoin.com>`__                                                 |                                                                      | \*    | `API <https://www.coolcoin.com/help.api.html>`__                                                    | Hong Kong                                |
++----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
+| |crex24|             | crex24             | `CREX24 <https://crex24.com/?refid=slxsjsjtil8xexl9hksr>`__                             |                                                                      | 2     | `API <https://docs.crex24.com/trade-api/v2>`__                                                      | Estonia                                  |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |crypton|            | crypton            | `Crypton <https://cryptonbtc.com>`__                                                    |                                                                      | 1     | `API <https://cryptonbtc.docs.apiary.io/>`__                                                        | EU                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -242,7 +238,7 @@ The ccxt library currently supports the following 135 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |jubi|               | jubi               | `jubi.com <https://www.jubi.com>`__                                                     |                                                                      | 1     | `API <https://www.jubi.com/help/api.html>`__                                                        | China                                    |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |kkex|               | kkex               | `KKEX <https://kkex.com>`__                                                             |                                                                      | 2     | `API <https://kkex.com/api_wiki/cn/>`__                                                             | China, US, JA                            |
+| |kkex|               | kkex               | `KKEX <https://kkex.com>`__                                                             |                                                                      | 2     | `API <https://kkex.com/api_wiki/cn/>`__                                                             | China, US, Japan                         |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |kraken|             | kraken             | `Kraken <https://www.kraken.com>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ | 0     | `API <https://www.kraken.com/en-us/help/api>`__                                                     | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -336,7 +332,7 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 -  `ccxt in NPM <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
 -  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3.5.3+)
--  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+)
+-  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -407,7 +403,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-`ccxt in PHP with Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+)
+`ccxt in PHP with Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 It requires common PHP modules:
 
@@ -669,7 +665,6 @@ Social
 .. |bittrex| image:: https://user-images.githubusercontent.com/1294454/27766352-cf0b3c26-5ed5-11e7-82b7-f3826b7a97d8.jpg
 .. |kraken| image:: https://user-images.githubusercontent.com/1294454/27766599-22709304-5ede-11e7-9de1-9f33732e1509.jpg
 .. |theocean| image:: https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg
-.. |_1broker| image:: https://user-images.githubusercontent.com/1294454/27766021-420bd9fc-5ecb-11e7-8ed6-56d0081efed2.jpg
 .. |_1btcxe| image:: https://user-images.githubusercontent.com/1294454/27766049-2b294408-5ecc-11e7-85cc-adaff013dc1a.jpg
 .. |acx| image:: https://user-images.githubusercontent.com/1294454/30247614-1fe61c74-9621-11e7-9e8c-f1a627afa279.jpg
 .. |allcoin| image:: https://user-images.githubusercontent.com/1294454/31561809-c316b37c-b061-11e7-8d5a-b547b4d730eb.jpg
@@ -706,7 +701,6 @@ Social
 .. |btctradeim| image:: https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg
 .. |btctradeua| image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
 .. |btcturk| image:: https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg
-.. |btcx| image:: https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg
 .. |buda| image:: https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg
 .. |bxinth| image:: https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg
 .. |ccex| image:: https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg
@@ -728,10 +722,10 @@ Social
 .. |coinmate| image:: https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg
 .. |coinnest| image:: https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg
 .. |coinone| image:: https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg
-.. |coinsecure| image:: https://user-images.githubusercontent.com/1294454/27766472-9cbd200a-5ed9-11e7-9551-2267ad7bac08.jpg
 .. |coinspot| image:: https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg
 .. |cointiger| image:: https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg
 .. |coolcoin| image:: https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg
+.. |crex24| image:: https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg
 .. |crypton| image:: https://user-images.githubusercontent.com/1294454/41334251-905b5a78-6eed-11e8-91b9-f3aa435078a1.jpg
 .. |cryptopia| image:: https://user-images.githubusercontent.com/1294454/29484394-7b4ea6e2-84c6-11e7-83e5-1fccf4b2dc81.jpg
 .. |deribit| image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
