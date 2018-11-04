@@ -307,15 +307,13 @@ module.exports = class quadrigacx extends Exchange {
                 }
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         let orderId = this.safeString (trade, 'order_id');
         let side = this.safeString (trade, 'side');
         let price = this.safeFloat (trade, 'price', rate);
         let amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
         if (market !== undefined) {
+            symbol = market['symbol'];
             let baseId = market['baseId'];
             let quoteId = market['quoteId'];
             if (amount === undefined) {
