@@ -538,13 +538,13 @@ module.exports = class bitstamp extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (since) {
+        if (since !== undefined) {
             request['timedelta'] = this.milliseconds () - since;
         }
         let response = await this.privatePostWithdrawalRequests (this.extend (request, params));
         //
         //     [
-        //         { 
+        //         {
         //             status: 2,
         //             datetime: '2018-10-17 10:58:13',
         //             currency: 'BTC',
@@ -566,7 +566,7 @@ module.exports = class bitstamp extends Exchange {
         //         },
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, undefined, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
