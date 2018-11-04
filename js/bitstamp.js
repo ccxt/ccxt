@@ -588,7 +588,7 @@ module.exports = class bitstamp extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     { 
+        //     {
         //         status: 2,
         //         datetime: '2018-10-17 10:58:13',
         //         currency: 'BTC',
@@ -645,7 +645,7 @@ module.exports = class bitstamp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
