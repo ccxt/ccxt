@@ -123,20 +123,23 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseOrders (response);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order) {
         let price = this.safeFloat (order, 'price');
         let responseAmount = this.safeFloat (order, 'amount');
         let market = this.getMarketById (this.safeString (order, 'book'));
         let side = this.safeString (order, 'type') === '0' ? 'buy' : 'sell';
         let status = undefined;
-        let responseStatus = this.safeString (order, 'status');
-        if (responseStatus === '-1') {
-            status = 'canceled';
-        } else if (responseStatus === '0' || responseStatus === '1') {
-            status = 'open';
-        } else if (responseStatus === '2') {
-            status = 'closed';
-        }
+        let responseStatus = this.parseOrderStatus (this.safeString (order, 'status'));
         let timestamp = this.parse8601 (this.safeString (order, 'created'));
         let result = {
             'info': order,
