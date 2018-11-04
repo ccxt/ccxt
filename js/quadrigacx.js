@@ -258,6 +258,8 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     parseMyTrade (trade) {
+        let id = this.safeString (trade, 'id');
+        let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
         let market = {};
         let keys = Object.keys (trade);
         for (let i = 0; i < keys.length; i++) {
@@ -266,8 +268,15 @@ module.exports = class quadrigacx extends Exchange {
                 market = this.getMarketById (key);
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        let orderId = this.safeString (trade, 'order_id');
         let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
-        let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
+        let price = this.safeFloat (trade, 'rate');
+        let amount = Math.abs (this.safeFloat (trade, market['base'].toLowerCase ()));
+        let cost = Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ()));
         let fee = {
             'cost': this.safeFloat (trade, 'fee'),
             'currency': side === 'buy' ? market['base'] : market['quote'],
@@ -275,28 +284,29 @@ module.exports = class quadrigacx extends Exchange {
         };
         return {
             'info': trade,
-            'id': trade['id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'order_id'),
+            'symbol': symbol,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': Math.abs (this.safeFloat (trade, market['base'].toLowerCase ())),
-            'cost': Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ())),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
 
     parseTrade (trade, market = undefined) {
+        let id = this.safeString (trade, 'tid');
         let timestamp = parseInt (trade['date']) * 1000;
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let id = this.safeString (trade, 'tid');
+        let orderId = undefined;
         let side = this.safeString (trade, 'side');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
@@ -306,20 +316,21 @@ module.exports = class quadrigacx extends Exchange {
                 cost = amount * price;
             }
         }
+        let fee = undefined;
         return {
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': undefined,
+            'order': orderId,
             'type': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
