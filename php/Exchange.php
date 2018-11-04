@@ -528,15 +528,15 @@ class Exchange {
         return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }
 
-    public static function urlencode ($string) {
+    public function urlencode ($string) {
         return http_build_query ($string, "", $this->urlencode_glue);
     }
 
-    public static function rawencode ($string) {
+    public function rawencode ($string) {
         return urldecode (http_build_query ($string, "", $this->urlencode_glue));
     }
 
-    public static function encode_uri_component ($string) {
+    public function encode_uri_component ($string) {
         return urlencode ($string);
     }
 
@@ -872,7 +872,7 @@ class Exchange {
             'BCC' => 'BCH',
             'DRK' => 'DASH'
         );
-        
+
         $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params
         $this->urlencode_glue_warning = true;
 
@@ -890,7 +890,7 @@ class Exchange {
                 throw new ExchangeError (this.id . " warning! The glue symbol for HTTP queries " .
                     " is changed from its default value & to " .  $this->urlencode_glue . " in php.ini" .
                     " (arg_separator.output) or with a call to ini_set prior to this message. If that" .
-                    " was the intent, you can acknowledge this warning and silence it by setting" . 
+                    " was the intent, you can acknowledge this warning and silence it by setting" .
                     " 'urlencode_glue_warning' => false or 'urlencode_glue' => '&' with exchange constructor params");
             }
         }
