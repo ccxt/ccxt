@@ -801,6 +801,7 @@ module.exports = class huobipro extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }

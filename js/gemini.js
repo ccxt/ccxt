@@ -445,6 +445,7 @@ module.exports = class gemini extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
