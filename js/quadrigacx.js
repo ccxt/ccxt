@@ -93,7 +93,7 @@ module.exports = class quadrigacx extends Exchange {
             result[code] = {
                 'free': this.safeFloat (balances, currencyId + '_available'),
                 'used': this.safeFloat (balances, currencyId + '_reserved'),
-                'total': this.safeFloat (balances, currencyId + '_balance']),
+                'total': this.safeFloat (balances, currencyId + '_balance'),
             };
         }
         return this.parseBalance (result);
