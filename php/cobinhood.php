@@ -616,14 +616,20 @@ class cobinhood extends Exchange {
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostWalletDepositAddresses (array (
+        // 'ledger_type' is required, see => https://cobinhood.github.io/api-public/#create-new-deposit-$address
+        $ledgerType = $this->safe_string($params, 'ledger_type', 'exchange');
+        $request = array (
             'currency' => $currency['id'],
-        ));
+            'ledger_type' => $ledgerType,
+        );
+        $response = $this->privatePostWalletDepositAddresses (array_merge ($request, $params));
         $address = $this->safe_string($response['result']['deposit_address'], 'address');
+        $tag = $this->safe_string($response['result']['deposit_address'], 'memo');
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }
