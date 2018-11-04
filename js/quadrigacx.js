@@ -28,6 +28,7 @@ module.exports = class quadrigacx extends Exchange {
                 'api': 'https://api.quadrigacx.com',
                 'www': 'https://www.quadrigacx.com',
                 'doc': 'https://www.quadrigacx.com/api_info',
+                'referral': 'https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -100,20 +101,18 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let book = undefined;
+        let market = undefined;
+        let request = {};
         if (symbol !== undefined) {
-            book = this.marketId (symbol);
+            market = this.market (symbol);
+            request['book'] = market['id'];
         }
-        let request = { 'book': book, 'limit': limit };
-        let transactions = await this.privatePostUserTransactions (this.extend (request, params));
-        let trades = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if (transaction['type'] === 2) {
-                trades.push (this.parseMyTrade (transaction));
-            }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        return trades;
+        let response = await this.privatePostUserTransactions (this.extend (request, params));
+        let trades = this.filterBy (response, 'type', 2);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -256,66 +255,106 @@ module.exports = class quadrigacx extends Exchange {
         return market;
     }
 
-    parseMyTrade (trade) {
-        let id = this.safeString (trade, 'id');
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {"amount":"2.26252009","date":"1541355778","price":"0.03300000","tid":3701722,"side":"sell"}
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "datetime": "2018-01-01T00:00:00", // date and time
+        //         "id": 123, // unique identifier (only for trades)
+        //         "type": 2, // transaction type (0 - deposit; 1 - withdrawal; 2 - trade)
+        //         "method": "...", // deposit or withdrawal method
+        //         "(minor currency code)" – the minor currency amount
+        //         "(major currency code)" – the major currency amount
+        //         "order_id": "...", // a 64 character long hexadecimal string representing the order that was fully or partially filled (only for trades)
+        //         "fee": 123.45, // transaction fee
+        //         "rate": 54.321, // rate per btc (only for trades)
+        //     }
+        //
+        let id = this.safeString2 (trade, 'tid', 'id');
         let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
-        let market = {};
-        let keys = Object.keys (trade);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (trade[key] === trade['rate'] && key !== 'rate') {
-                market = this.getMarketById (key);
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (trade, 'date');
+            if (timestamp !== undefined) {
+                timestamp *= 1000;
             }
         }
         let symbol = undefined;
+        let omitted = this.omit (trade, [ 'datetime', 'id', 'type', 'method', 'order_id', 'fee', 'rate' ]);
+        let keys = Object.keys (omitted);
+        let rate = this.safeFloat (trade, 'rate');
+        for (let i = 0; i < keys.length; i++) {
+            let marketId = keys[i];
+            if (trade[marketId] === rate) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                } else {
+                    let currencyIds = marketId.split ('_');
+                    let numCurrencyIds = currencyIds.length;
+                    if (numCurrencyIds === 2) {
+                        let baseId = currencyIds[0];
+                        let quoteId = currencyIds[1];
+                        let base = baseId.toUpperCase ();
+                        let quote = quoteId.toUpperCase ();
+                        base = this.commonCurrencyCode (base);
+                        quote = this.commonCurrencyCode (base);
+                        symbol = base + '/' + quote;
+                    }
+                }
+            }
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         let orderId = this.safeString (trade, 'order_id');
-        let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
-        let price = this.safeFloat (trade, 'rate');
-        let amount = Math.abs (this.safeFloat (trade, market['base'].toLowerCase ()));
-        let cost = Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ()));
-        let fee = {
-            'cost': this.safeFloat (trade, 'fee'),
-            'currency': side === 'buy' ? market['base'] : market['quote'],
-            'rate': market['maker'],
-        };
-        return {
-            'info': trade,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'order': orderId,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
-        };
-    }
-
-    parseTrade (trade, market = undefined) {
-        let id = this.safeString (trade, 'tid');
-        let timestamp = parseInt (trade['date']) * 1000;
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let orderId = undefined;
         let side = this.safeString (trade, 'side');
-        let price = this.safeFloat (trade, 'price');
+        let price = this.safeFloat (trade, 'price', rate);
         let amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
+        if (market !== undefined) {
+            let baseId = market['baseId'];
+            let quoteId = market['quoteId'];
+            if (amount === undefined) {
+                amount = this.safeFloat (trade, baseId);
+                if (amount !== undefined) {
+                    amount = Math.abs (amount);
+                }
+            }
+            cost = this.safeFloat (trade, quoteId);
+            if (cost !== undefined) {
+                cost = Math.abs (cost);
+            }
+            if (side === undefined) {
+                if (this.safeFloat (trade, market['base']) > 0) {
+                    side = 'buy';
+                } else {
+                    side = 'sell';
+                }
+            }
+        }
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = amount * price;
+                }
             }
         }
         let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            let feeCurrency = undefined;
+            if (market !== undefined) {
+                feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return {
             'info': trade,
             'id': id,
