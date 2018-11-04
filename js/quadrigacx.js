@@ -153,7 +153,12 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let transactions = await this.privatePostUserTransactions ();
+        let book = undefined;
+        if (symbol !== undefined) {
+            book = this.marketId (symbol);
+        }
+        let request = { 'book': book, 'limit': limit };
+        let transactions = await this.privatePostUserTransactions (this.extend (request, params));
         let trades = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
