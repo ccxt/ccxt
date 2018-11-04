@@ -109,7 +109,7 @@ module.exports = class quadrigacx extends Exchange {
         let trades = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
-            if (transaction.type === 2) {
+            if (transaction['type'] === 2) {
                 trades.push (this.parseMyTrade (transaction));
             }
         }
