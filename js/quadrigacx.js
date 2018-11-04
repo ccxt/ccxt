@@ -268,7 +268,12 @@ module.exports = class quadrigacx extends Exchange {
         }
         let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
         let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
-        let result = {
+        let fee = {
+            'cost': this.safeFloat (trade, 'fee'),
+            'currency': side === 'buy' ? market['base'] : market['quote'],
+            'rate': market['maker'],
+        };
+        return {
             'info': trade,
             'id': trade['id'].toString (),
             'timestamp': timestamp,
@@ -281,13 +286,8 @@ module.exports = class quadrigacx extends Exchange {
             'price': this.safeFloat (trade, 'rate'),
             'amount': Math.abs (this.safeFloat (trade, market['base'].toLowerCase ())),
             'cost': Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ())),
-            'fee': {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': side === 'buy' ? market['base'] : market['quote'],
-                'rate': market['maker'],
-            },
+            'fee': fee,
         };
-        return result;
     }
 
     parseTrade (trade, market) {
