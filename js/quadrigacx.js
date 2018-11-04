@@ -121,45 +121,46 @@ module.exports = class quadrigacx extends Exchange {
 
     parseMyTrade (trade) {
         let market = {};
-        Object.entries (trade).some (([key, value]) => {
-            if (value === trade.rate && key !== 'rate') {
+        let keys = Object.keys (trade);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (trade[key] === trade['rate'] && key !== 'rate') {
                 market = this.getMarketById (key);
-                return true;
             }
-            return false;
-        });
-        let side = this.safeFloat (trade, market.base) > 0 ? 'buy' : 'sell';
+        }
+        let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
         let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
         let result = {
             'info': trade,
-            'id': trade.id.toString (),
+            'id': trade['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market.symbol,
+            'symbol': market['symbol'],
             'order': this.safeString (trade, 'order_id'),
-            'type': null,
+            'type': undefined,
             'side': side,
-            'takerOrMaker': null,
+            'takerOrMaker': undefined,
             'price': this.safeFloat (trade, 'rate'),
-            'amount': Math.abs (this.safeFloat (trade, market.base.toLowerCase ())),
-            'cost': Math.abs (this.safeFloat (trade, market.quote.toLowerCase ())),
+            'amount': Math.abs (this.safeFloat (trade, market['base'].toLowerCase ())),
+            'cost': Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ())),
             'fee': {
                 'cost': this.safeFloat (trade, 'fee'),
-                'currency': side === 'buy' ? market.base : market.quote,
-                'rate': market.maker,
+                'currency': side === 'buy' ? market['base'] : market['quote'],
+                'rate': market['maker'],
             },
         };
         return result;
     }
 
-    async fetchMyTrades (params = {}) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let transactions = await this.privatePostUserTransactions ();
-        let trades = transactions.reduce ((acc, val) => {
-            if (val.type === 2) {
-                acc.push (this.parseMyTrade (val));
+        let trades = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = transactions[i];
+            if (transaction.type === 2) {
+                trades.push (this.parseMyTrade (transaction));
             }
-            return acc;
-        }, []);
+        }
         return trades;
     }
 
@@ -174,20 +175,14 @@ module.exports = class quadrigacx extends Exchange {
         let responseAmount = this.safeFloat (order, 'amount');
         let market = this.getMarketById (this.safeString (order, 'book'));
         let side = this.safeString (order, 'type') === '0' ? 'buy' : 'sell';
-        let status = null;
-        switch (this.safeString (order, 'status')) {
-        case '-1':
+        let status = undefined;
+        let responseStatus = this.safeString (order, 'status');
+        if (responseStatus === '-1') {
             status = 'canceled';
-            break;
-        case '0':
-        case '1':
+        } else if (responseStatus === '0' || responseStatus === '1') {
             status = 'open';
-            break;
-        case '2':
+        } else if (responseStatus === '2') {
             status = 'closed';
-            break;
-        default:
-            break;
         }
         let timestamp = this.parse8601 (this.safeString (order, 'created'));
         let result = {
@@ -196,17 +191,17 @@ module.exports = class quadrigacx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastorderTimestamp': this.parse8601 (this.safeString (order, 'updated')),
-            'symbol': market.symbol,
+            'symbol': market['symbol'],
             'type': price === 0 ? 'market' : 'limit',
             'side': side,
             'price': price,
-            'cost': null,
-            'average': null,
-            'amount': status === 'closed' ? responseAmount : null,
-            'filled': status === 'closed' ? responseAmount : null,
+            'cost': undefined,
+            'average': undefined,
+            'amount': status === 'closed' ? responseAmount : undefined,
+            'filled': status === 'closed' ? responseAmount : undefined,
             'remaining': status === 'closed' ? 0 : responseAmount,
             'status': status,
-            'fee': null,
+            'fee': undefined,
         };
         return result;
     }
