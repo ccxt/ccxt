@@ -510,7 +510,8 @@ class bigone (Exchange):
         request = {'order_id': id}
         response = self.privateGetOrdersOrderId(self.extend(request, params))
         #
-        #     {
+        #  {
+        #     "data": {
         #         "id": 10,
         #         "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
         #         "price": "10.00",
@@ -520,8 +521,10 @@ class bigone (Exchange):
         #         "side": "ASK",
         #         "state": "FILLED"
         #     }
+        #  }
         #
-        return self.parse_order(response)
+        order = self.safe_value(response, 'data')
+        return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         # NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
