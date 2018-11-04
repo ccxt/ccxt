@@ -628,15 +628,12 @@ module.exports = class bitstamp extends Exchange {
         } else if (type === '1') {
             type = 'withdrawal';
         }
-        let txid = undefined;
-        if ('transaction_id' in transaction) {
-            txid = transaction['transaction_id'];
-        }
-        let status = this.parseTransactionStatusByType (transaction['status']);
-        let ret = {
+        let txid = this.safeString (transaction, 'transaction_id');
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+        return {
             'info': transaction,
             'id': id,
-            'txid': txid, // ?
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
@@ -652,7 +649,6 @@ module.exports = class bitstamp extends Exchange {
                 'rate': undefined,
             },
         };
-        return ret;
     }
 
     parseTransactionStatusByType (status) {
