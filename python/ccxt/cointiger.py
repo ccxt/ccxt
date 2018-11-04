@@ -402,6 +402,16 @@ class cointiger (huobipro):
         }, params))
         return self.parse_trades(response['data']['list'], market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        return [
+            ohlcv['id'] * 1000,
+            ohlcv['open'],
+            ohlcv['high'],
+            ohlcv['low'],
+            ohlcv['close'],
+            ohlcv['vol'],
+        ]
+
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         self.load_markets()
         market = self.market(symbol)

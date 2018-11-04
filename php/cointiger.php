@@ -405,6 +405,17 @@ class cointiger extends huobipro {
         return $this->parse_trades($response['data']['list'], $market, $since, $limit);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        return [
+            $ohlcv['id'] * 1000,
+            $ohlcv['open'],
+            $ohlcv['high'],
+            $ohlcv['low'],
+            $ohlcv['close'],
+            $ohlcv['vol'],
+        ];
+    }
+
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
