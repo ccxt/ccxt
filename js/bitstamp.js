@@ -258,7 +258,6 @@ module.exports = class bitstamp extends Exchange {
         //         "eur": 0.0
         //     }
         //
-
         if ('currency' in transaction) {
             return transaction['currency'].toLowerCase ();
         }
