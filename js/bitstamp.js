@@ -656,19 +656,16 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseTransactionStatusByType (status) {
-        if (status === undefined) {
-            return status;
-        }
         // withdrawals:
         // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
-        let statuses = {
+        const statuses = {
             '0': 'pending', // Open
             '1': 'pending', // In process
             '2': 'ok', // Finished
             '3': 'canceled', // Canceled
             '4': 'failed', // Failed
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
