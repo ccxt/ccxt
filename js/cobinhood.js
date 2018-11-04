@@ -616,12 +616,12 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let currency = this.currency (code);
         // 'ledger_type' is required, see: https://cobinhood.github.io/api-public/#create-new-deposit-address
-        if (!('ledger_type' in params)) {
-            params['ledger_type'] = 'exchange';
-        }
-        let response = await this.privatePostWalletDepositAddresses (this.extend ({
+        let ledgerType = this.safeString (params, 'ledger_type', 'exchange');
+        let request = {
             'currency': currency['id'],
-        }, params));
+            'ledger_type': ledgerType,
+        }
+        let response = await this.privatePostWalletDepositAddresses (this.extend (request, params));
         let address = this.safeString (response['result']['deposit_address'], 'address');
         this.checkAddress (address);
         return {
