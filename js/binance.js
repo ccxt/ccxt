@@ -151,8 +151,8 @@ module.exports = class binance extends Exchange {
                             'url': '{baseurl}',
                             'id': '{id}',
                             'stream': '{symbol}@aggTrade'
-                        }
-                    }
+                        },
+                    },
                 },
             },
             'fees': {
@@ -1107,8 +1107,10 @@ module.exports = class binance extends Exchange {
                 if (partsLen === 2) {
                     let symbol = this.findSymbol (pair[0].toUpperCase ());
                     let event = pair[1].toLowerCase();
-                    event == 'depth' && (event = 'ob'); 
-                    event == 'aggtrade' && (event = 'trade'); 
+                    if (event == 'depth') 
+                        event = 'ob'; 
+                    else if (event == 'aggtrade')
+                        event = 'trade';
                     this._contextSetSubscribed (contextId, event, symbol, true);
                     this._contextSetSubscribing (contextId, event, symbol, false);
                 }
