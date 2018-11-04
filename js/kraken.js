@@ -997,7 +997,7 @@ module.exports = class kraken extends Exchange {
         if (numResults < 1)
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
         let address = this.safeString (result[0], 'address');
-        let tag = this.safeString (result[0], 'tag') || this.safeString (result[0], 'memo');
+        let tag = this.safeString2 (result[0], 'tag', 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
