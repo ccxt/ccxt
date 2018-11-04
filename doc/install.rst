@@ -95,7 +95,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-The autoloadable version of ccxt can be installed with `Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+).
+The autoloadable version of ccxt can be installed with `Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+).
 
 It can also be installed from the source code: ```ccxt.php`` <https://raw.githubusercontent.com/ccxt/ccxt/master/php>`__
 
