@@ -27,6 +27,7 @@ class quadrigacx extends Exchange {
                 'api' => 'https://api.quadrigacx.com',
                 'www' => 'https://www.quadrigacx.com',
                 'doc' => 'https://www.quadrigacx.com/api_info',
+                'referral' => 'https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
