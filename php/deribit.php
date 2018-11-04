@@ -139,7 +139,7 @@ class deribit extends Exchange {
         return array (
             'currency' => 'BTC',
             'address' => $account['depositAddress'],
-            'status' => 'ok',
+            'tag' => null,
             'info' => $account,
         );
     }

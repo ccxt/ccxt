@@ -949,10 +949,12 @@ class kraken (Exchange):
         if numResults < 1:
             raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
         address = self.safe_string(result[0], 'address')
+        tag = self.safe_string_2(result[0], 'tag', 'memo')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 

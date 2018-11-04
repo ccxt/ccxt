@@ -781,9 +781,10 @@ class bitfinex extends Exchange {
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
+            'info' => $response['info'],
             'currency' => $code,
             'address' => $address,
-            'info' => $response['info'],
+            'tag' => null,
         );
     }
 

@@ -997,10 +997,12 @@ class kraken extends Exchange {
         if ($numResults < 1)
             throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
         $address = $this->safe_string($result[0], 'address');
+        $tag = $this->safe_string_2($result[0], 'tag', 'memo');
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }

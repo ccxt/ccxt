@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.465'
+const version = '1.17.466'
 
 Exchange.ccxtVersion = version
 
@@ -9210,9 +9210,10 @@ module.exports = class bitfinex extends Exchange {
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
+            'info': response['info'],
             'currency': code,
             'address': address,
-            'info': response['info'],
+            'tag': undefined,
         };
     }
 
@@ -13134,6 +13135,7 @@ module.exports = class bitsane extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -31449,12 +31451,15 @@ module.exports = class cryptopia extends Exchange {
             'Currency': currency['id'],
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
-        if (!address)
-            address = this.safeString (response['Data'], 'Address');
+        let tag = this.safeString (response['Data'], 'Address');
+        if (address === undefined) {
+            address = tag;
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
@@ -31703,7 +31708,7 @@ module.exports = class deribit extends Exchange {
         return {
             'currency': 'BTC',
             'address': account['depositAddress'],
-            'status': 'ok',
+            'tag': undefined,
             'info': account,
         };
     }
@@ -35987,6 +35992,7 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -36003,6 +36009,7 @@ module.exports = class gatecoin extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -37869,6 +37876,7 @@ module.exports = class gemini extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -41313,6 +41321,7 @@ module.exports = class huobipro extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -44668,10 +44677,12 @@ module.exports = class kraken extends Exchange {
         if (numResults < 1)
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
         let address = this.safeString (result[0], 'address');
+        let tag = this.safeString2 (result[0], 'tag', 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }

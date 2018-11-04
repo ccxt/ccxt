@@ -696,12 +696,15 @@ class cryptopia extends Exchange {
             'Currency' => $currency['id'],
         ), $params));
         $address = $this->safe_string($response['Data'], 'BaseAddress');
-        if (!$address)
-            $address = $this->safe_string($response['Data'], 'Address');
+        $tag = $this->safe_string($response['Data'], 'Address');
+        if ($address === null) {
+            $address = $tag;
+        }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }

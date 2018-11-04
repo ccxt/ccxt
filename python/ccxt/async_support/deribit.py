@@ -136,7 +136,7 @@ class deribit (Exchange):
         return {
             'currency': 'BTC',
             'address': account['depositAddress'],
-            'status': 'ok',
+            'tag': None,
             'info': account,
         }
 

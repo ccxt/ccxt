@@ -616,6 +616,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -631,6 +632,7 @@ class gatecoin (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
