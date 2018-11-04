@@ -125,14 +125,12 @@ class bitso (Exchange):
                 'amount': self.precision_from_string(market['minimum_amount']),
                 'price': self.precision_from_string(market['minimum_price']),
             }
-            lot = limits['amount']['min']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'info': market,
-                'lot': lot,
                 'limits': limits,
                 'precision': precision,
             })
@@ -309,7 +307,7 @@ class bitso (Exchange):
 
     def parse_order(self, order, market=None):
         side = order['side']
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = order['book']
@@ -378,7 +376,7 @@ class bitso (Exchange):
             raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
         return self.parse_order(response['payload'][0], market)
 
-    def fetch_order_trades(self, id, symbol=None, params={}):
+    def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         response = self.privateGetOrderTradesOid({

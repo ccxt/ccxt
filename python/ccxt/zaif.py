@@ -6,7 +6,9 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 import math
+import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 
 
 class zaif (Exchange):
@@ -99,6 +101,13 @@ class zaif (Exchange):
                         'trades/{group_id}/{pair}',
                         'depth/{group_id}/{pair}',
                     ],
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'unsupported currency_pair': BadRequest,  # {"error": "unsupported currency_pair"}
+                },
+                'broad': {
                 },
             },
         })
@@ -227,6 +236,11 @@ class zaif (Exchange):
         response = self.publicGetTradesPair(self.extend({
             'pair': market['id'],
         }, params))
+        numTrades = len(response)
+        if numTrades == 1:
+            firstTrade = response[0]
+            if not firstTrade:
+                response = []
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -316,18 +330,22 @@ class zaif (Exchange):
         response = self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_orders(response['return'], market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency == 'JPY':
-            raise ExchangeError(self.id + ' does not allow ' + currency + ' withdrawals')
-        result = self.privatePostWithdraw(self.extend({
-            'currency': currency,
+        currency = self.currency(code)
+        if code == 'JPY':
+            raise ExchangeError(self.id + ' withdraw() does not allow ' + code + ' withdrawals')
+        request = {
+            'currency': currency['id'],
             'amount': amount,
             'address': address,
-            # 'message': 'Hinot ',  # XEM only
+            # 'message': 'Hinot ',  # XEM and others
             # 'opt_fee': 0.003,  # BTC and MONA only
-        }, params))
+        }
+        if tag is not None:
+            request['message'] = tag
+        result = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': result,
             'id': result['return']['txid'],
@@ -364,11 +382,24 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='api', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'error' in response:
-            raise ExchangeError(self.id + ' ' + response['error'])
-        if 'success' in response:
-            if not response['success']:
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body):
+        if not self.is_json_encoded_object(body):
+            return  # fallback to default error handler
+        response = json.loads(body)
+        #
+        #     {"error": "unsupported currency_pair"}
+        #
+        feedback = self.id + ' ' + body
+        error = self.safe_string(response, 'error')
+        if error is not None:
+            exact = self.exceptions['exact']
+            if error in exact:
+                raise exact[error](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, error)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            raise ExchangeError(feedback)

@@ -7,6 +7,7 @@ from ccxt.liqui import liqui
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
 
@@ -86,7 +87,6 @@ class yobit (liqui):
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
-                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
@@ -104,6 +104,7 @@ class yobit (liqui):
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
+                'GOT': 'Giotto Coin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -234,4 +235,7 @@ class yobit (liqui):
                             raise DDoSProtection(self.id + ' ' + self.json(response))
                         elif (response['error_log'] == 'not available') or (response['error_log'] == 'external service unavailable'):
                             raise DDoSProtection(self.id + ' ' + self.json(response))
+                        elif response['error_log'] == 'Total transaction amount':
+                            # eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            raise InvalidOrder(self.id + ' ' + self.json(response))
                     raise ExchangeError(self.id + ' ' + self.json(response))

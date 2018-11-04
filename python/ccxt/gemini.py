@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class gemini (Exchange):
@@ -27,9 +28,13 @@ class gemini (Exchange):
                 'fetchMyTrades': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchOpenOrders': False,
+                'fetchOpenOrders': True,
                 'fetchClosedOrders': False,
+                'createMarketOrder': False,
                 'withdraw': True,
+                'fetchTransactions': True,
+                'fetchWithdrawals': False,
+                'fetchDeposits': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -66,6 +71,7 @@ class gemini (Exchange):
                         'orders',
                         'mytrades',
                         'tradevolume',
+                        'transfers',
                         'balances',
                         'deposit/{currency}/newAddress',
                         'withdraw/{currency}',
@@ -167,7 +173,7 @@ class gemini (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['type'],
+            'side': trade['type'].lower(),
             'price': price,
             'cost': price * amount,
             'amount': amount,
@@ -206,14 +212,16 @@ class gemini (Exchange):
         status = 'closed'
         if order['is_live']:
             status = 'open'
-        if order['is_canceled']:
+        if order['is_cancelled']:
             status = 'canceled'
         price = self.safe_float(order, 'price')
-        price = self.safe_float(order, 'avg_execution_price', price)
+        average = self.safe_float(order, 'avg_execution_price')
+        if average != 0.0:
+            price = average  # prefer filling(execution) price over the submitted price
         cost = None
         if filled is not None:
-            if price is not None:
-                cost = filled * price
+            if average is not None:
+                cost = filled * average
         type = self.safe_string(order, 'type')
         if type == 'exchange limit':
             type = 'limit'
@@ -238,8 +246,9 @@ class gemini (Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'],
+            'side': order['side'].lower(),
             'price': price,
+            'average': average,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -253,6 +262,15 @@ class gemini (Exchange):
             'order_id': id,
         }, params))
         return self.parse_order(response)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        response = self.privatePostOrders(params)
+        orders = self.parse_orders(response, None, since, limit)
+        if symbol is not None:
+            market = self.market(symbol)  # throws on non-existent symbol
+            orders = self.filter_by_symbol(orders, market['symbol'])
+        return orders
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -279,7 +297,7 @@ class gemini (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -304,6 +322,50 @@ class gemini (Exchange):
         return {
             'info': response,
             'id': self.safe_string(response, 'txHash'),
+        }
+
+    def nonce(self):
+        return self.milliseconds()
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {}
+        response = self.privatePostTransfers(self.extend(request, params))
+        return self.parseTransactions(response)
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_integer(transaction, 'timestampms')
+        code = None
+        if currency is None:
+            currencyId = self.safe_string(transaction, 'currency')
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+        if currency is not None:
+            code = currency['code']
+        type = self.safe_string(transaction, 'type')
+        if type is not None:
+            type = type.lower()
+        status = 'pending'
+        # When deposits show as Advanced or Complete they are available for trading.
+        if transaction['status']:
+            status = 'ok'
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'eid'),
+            'txid': self.safe_string(transaction, 'txHash'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': None,  # or is it defined?
+            'tag': None,  # or is it defined?
+            'type': type,  # direction of the transaction,('deposit' | 'withdraw')
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': None,
+            'fee': {
+                'cost': None,
+                'rate': None,
+            },
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

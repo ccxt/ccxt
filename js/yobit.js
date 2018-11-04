@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -82,7 +82,6 @@ module.exports = class yobit extends liqui {
                 'COV': 'Coven Coin',
                 'COVX': 'COV',
                 'CPC': 'Capricoin',
-                'CRC': 'CryCash',
                 'CS': 'CryptoSpots',
                 'DCT': 'Discount',
                 'DGD': 'DarkGoldCoin',
@@ -100,6 +99,7 @@ module.exports = class yobit extends liqui {
                 'GEN': 'Genstake',
                 'GENE': 'Genesiscoin',
                 'GOLD': 'GoldMint',
+                'GOT': 'Giotto Coin',
                 'HTML5': 'HTML',
                 'HYPERX': 'HYPER',
                 'ICN': 'iCoin',
@@ -172,7 +172,7 @@ module.exports = class yobit extends liqui {
                         account = this.account ();
                     }
                     account[key] = balances[side][lowercase];
-                    if ((typeof account['total'] !== 'undefined') && (typeof account['free'] !== 'undefined'))
+                    if ((account['total'] !== undefined) && (account['free'] !== undefined))
                         account['used'] = account['total'] - account['free'];
                     result[currency] = account;
                 }
@@ -240,6 +240,9 @@ module.exports = class yobit extends liqui {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
                         } else if ((response['error_log'] === 'not available') || (response['error_log'] === 'external service unavailable')) {
                             throw new DDoSProtection (this.id + ' ' + this.json (response));
+                        } else if (response['error_log'] === 'Total transaction amount') {
+                            // eg {"success":0,"error":"Total transaction amount is less than minimal total: 0.00010000"}
+                            throw new InvalidOrder (this.id + ' ' + this.json (response));
                         }
                     }
                     throw new ExchangeError (this.id + ' ' + this.json (response));

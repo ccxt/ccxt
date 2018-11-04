@@ -50,6 +50,7 @@ class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'referral' => 'https://www.bibox.com/signPage?id=11114745&lang=en',
             ),
             'api' => array (
                 'public' => array (
@@ -98,6 +99,7 @@ class bibox extends Exchange {
             ),
             'commonCurrencies' => array (
                 'KEY' => 'Bihu',
+                'PAI' => 'PCHAIN',
             ),
         ));
     }
@@ -129,7 +131,6 @@ class bibox extends Exchange {
                 'quoteId' => $quote,
                 'active' => true,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
@@ -168,13 +169,15 @@ class bibox extends Exchange {
         $open = null;
         if (($last !== null) && ($change !== null))
             $open = $last - $change;
-        $iso8601 = null;
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
+        $percentage = $this->safe_string($ticker, 'percent');
+        if ($percentage !== null) {
+            $percentage = str_replace ('%', '', $percentage);
+            $percentage = floatval ($percentage);
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -187,7 +190,7 @@ class bibox extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $this->safe_string($ticker, 'percent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_float($ticker, 'amount'),
@@ -208,16 +211,20 @@ class bibox extends Exchange {
     public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+            $ticker = $this->parse_ticker($rawTickers[$i]);
+            if (($symbols === null) || ($this->in_array($ticker['symbol'], $symbols))) {
+                $tickers[] = $ticker;
+            }
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $tickers;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'marketAll',
         ), $params));
-        return $this->parse_tickers ($response['result'], $symbols);
+        $tickers = $this->parse_tickers ($response['result'], $symbols);
+        return $this->index_by($tickers, 'symbol');
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -480,11 +487,10 @@ class bibox extends Exchange {
         $type = ($order['order_type'] === 1) ? 'market' : 'limit';
         $timestamp = $order['createdAt'];
         $price = $this->safe_float($order, 'price');
-        $price = $this->safe_float($order, 'deal_price', $price);
+        $average = $this->safe_float($order, 'deal_price');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = $this->safe_float($order, 'amount');
-        $cost = $this->safe_float($order, 'money');
-        $cost = $this->safe_float($order, 'deal_money', $cost);
+        $cost = $this->safe_float_2($order, 'deal_money', 'money');
         $remaining = null;
         if ($filled !== null) {
             if ($amount !== null)
@@ -493,9 +499,7 @@ class bibox extends Exchange {
                 $cost = $price * $filled;
         }
         $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
@@ -508,6 +512,7 @@ class bibox extends Exchange {
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost ? $cost : floatval ($price) * $filled,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
@@ -526,7 +531,7 @@ class bibox extends Exchange {
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
         );
-        return $this->safe_string($statuses, $status, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -553,7 +558,7 @@ class bibox extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrderpending (array (
@@ -571,7 +576,7 @@ class bibox extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
@@ -598,9 +603,12 @@ class bibox extends Exchange {
             ), $params),
         ));
         $address = $this->safe_string($response, 'result');
+        $tag = null; // todo => figure this out
         $result = array (
-            'info' => $response,
+            'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
+            'info' => $response,
         );
         return $result;
     }
@@ -633,8 +641,8 @@ class bibox extends Exchange {
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
         $withdrawFees = array ();
         $info = array ();

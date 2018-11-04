@@ -15,6 +15,7 @@ class ice3x extends Exchange {
             'name' => 'ICE3X',
             'countries' => array ( 'ZA' ), // South Africa
             'rateLimit' => 1000,
+            'version' => 'v1',
             'has' => array (
                 'fetchCurrencies' => true,
                 'fetchTickers' => true,
@@ -25,7 +26,7 @@ class ice3x extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg',
-                'api' => 'https://ice3x.com/api/v1',
+                'api' => 'https://ice3x.com/api',
                 'www' => array (
                     'https://ice3x.com',
                     'https://ice3x.co.za',
@@ -145,7 +146,6 @@ class ice3x extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => true,
-                'lot' => null,
                 'info' => $market,
             );
         }
@@ -203,11 +203,21 @@ class ice3x extends Exchange {
         return $result;
     }
 
-    public function fetch_order_book ($symbol, $params = array ()) {
+    public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetOrderbookInfo (array_merge (array (
+        $request = array (
             'pair_id' => $this->market_id($symbol),
-        ), $params));
+        );
+        if ($limit !== null) {
+            $type = $this->safe_string($params, 'type');
+            if (($type !== 'ask') && ($type !== 'bid')) {
+                // eslint-disable-next-line quotes
+                throw new ExchangeError ($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
+            } else {
+                $request['items_per_page'] = $limit;
+            }
+        }
+        $response = $this->publicGetOrderbookInfo (array_merge ($request, $params));
         $orderbook = $response['response']['entities'];
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
@@ -398,7 +408,7 @@ class ice3x extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);

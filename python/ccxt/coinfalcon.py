@@ -18,16 +18,18 @@ class coinfalcon (Exchange):
             'name': 'CoinFalcon',
             'countries': ['GB'],
             'rateLimit': 1000,
+            'version': 'v1',
             'has': {
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com/api/v1',
+                'api': 'https://coinfalcon.com',
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
+                'referral': 'https://coinfalcon.com/?ref=CFJSVGTUPASB',
             },
             'api': {
                 'public': {
@@ -41,20 +43,22 @@ class coinfalcon (Exchange):
                     'get': [
                         'user/accounts',
                         'user/orders',
+                        'user/orders/{id}',
                         'user/trades',
                     ],
                     'post': [
                         'user/orders',
                     ],
                     'delete': [
-                        'user/orders',
+                        'user/orders/{id}',
                     ],
                 },
             },
             'fees': {
                 'trading': {
-                    'maker': 0.0025,
-                    'taker': 0.0025,
+                    'tierBased': True,
+                    'maker': 0.0,
+                    'taker': 0.002,  # tiered fee starts at 0.2%
                 },
             },
             'precision': {
@@ -106,9 +110,11 @@ class coinfalcon (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         if market is None:
-            marketId = ticker['name']
-            market = self.marketsById[marketId]
-        symbol = market['symbol']
+            marketId = self.safe_string(ticker, 'name')
+            market = self.safe_value(self.markets_by_id, marketId, market)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.milliseconds()
         last = float(ticker['last_price'])
         return {
@@ -196,26 +202,33 @@ class coinfalcon (Exchange):
         balances = response['data']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            currency = self.common_currency_code(currencyId)
+            currencyId = self.safe_string(balance, 'currency_code')
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            if uppercase in self.currencies_by_id:
+                code = self.currencies_by_id[uppercase]['code']
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['hold']),
+                'free': float(balance['available_balance']),
+                'used': float(balance['hold_balance']),
                 'total': float(balance['balance']),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         if market is None:
-            market = self.marketsById[order['market']]
-        symbol = market['symbol']
+            marketId = self.safe_string(order, 'market')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.parse8601(order['created_at'])
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'size_filled')
-        remaining = self.amount_to_precision(symbol, amount - filled)
-        cost = self.price_to_precision(symbol, amount * price)
+        remaining = float(self.amount_to_precision(symbol, amount - filled))
+        cost = float(self.price_to_precision(symbol, amount * price))
         # pending, open, partially_filled, fullfilled, canceled
         status = order['status']
         if status == 'fulfilled':
@@ -247,14 +260,14 @@ class coinfalcon (Exchange):
         self.load_markets()
         market = self.market(symbol)
         # price/size must be string
-        amount = self.amount_to_precision(symbol, float(amount))
+        amount = self.amount_to_precision(symbol, amount)
         request = {
             'market': market['id'],
-            'size': str(amount),
+            'size': amount,
             'order_type': side,
         }
         if type == 'limit':
-            price = self.price_to_precision(symbol, float(price))
+            price = self.price_to_precision(symbol, price)
             request['price'] = str(price)
         request['operation_type'] = type + '_order'
         response = self.privatePostUserOrders(self.extend(request, params))
@@ -265,11 +278,18 @@ class coinfalcon (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateDeleteUserOrders(self.extend({
+        response = self.privateDeleteUserOrdersId(self.extend({
             'id': id,
         }, params))
         market = self.market(symbol)
         return self.parse_order(response['data'], market)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        response = self.privateGetUserOrdersId(self.extend({
+            'id': id,
+        }, params))
+        return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -286,23 +306,21 @@ class coinfalcon (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api'] + request
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            query = self.urlencode(query)
-            if len(query):
-                url += '?' + query
+            if query:
+                url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             if method == 'GET':
-                url += '?' + self.urlencode(query)
+                if query:
+                    url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
             seconds = str(self.seconds())
-            requestPath = url.split('/')
-            requestPath = requestPath[3:]
-            requestPath = '/' + '/'.join(requestPath)
-            payload = '|'.join([seconds, method, requestPath])
+            payload = '|'.join([seconds, method, request])
             if body:
                 payload += '|' + body
             signature = self.hmac(self.encode(payload), self.encode(self.secret))

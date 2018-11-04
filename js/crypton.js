@@ -177,7 +177,8 @@ module.exports = class crypton extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
+        let response = await this.publicGetTickers (params);
+        let tickers = response['result'];
         let keys = Object.keys (tickers);
         let result = {};
         for (let i = 0; i < keys.length; i++) {
@@ -207,7 +208,7 @@ module.exports = class crypton extends Exchange {
                 symbol = this.parseSymbol (marketId);
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let fee = undefined;
@@ -238,7 +239,7 @@ module.exports = class crypton extends Exchange {
         let request = {
             'id': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.publicGetMarketsIdTrades (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
@@ -248,7 +249,7 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privateGetFills (this.extend (request, params));
         let trades = this.parseTrades (response['result'], market, since, limit);
@@ -269,7 +270,6 @@ module.exports = class crypton extends Exchange {
             symbol = this.parseSymbol (marketId);
         }
         let timestamp = this.parse8601 (order['createdAt']);
-        let iso8601 = this.iso8601 (timestamp);
         let fee = undefined;
         if ('fee' in order) {
             fee = {
@@ -286,7 +286,7 @@ module.exports = class crypton extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -316,7 +316,7 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             request['market'] = this.marketId (symbol);
         }
         let response = await this.privateGetOrders (this.extend (request, params));

@@ -83,16 +83,20 @@ class bxinth extends Exchange {
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets[$keys[$p]];
             $id = (string) $market['pairing_id'];
-            $base = $market['secondary_currency'];
-            $quote = $market['primary_currency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = $market['secondary_currency'];
+            $quoteId = $market['primary_currency'];
+            $active = $market['active'];
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
                 'info' => $market,
             );
         }
@@ -184,7 +188,7 @@ class bxinth extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['trade_date']);
+        $timestamp = $this->parse8601 ($trade['trade_date'] . '+07:00'); // Thailand UTC+7 offset
         return array (
             'id' => $trade['trade_id'],
             'info' => $trade,

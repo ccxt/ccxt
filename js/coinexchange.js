@@ -554,6 +554,7 @@ module.exports = class coinexchange extends Exchange {
                 'IBC': 'RCoin',
                 'MARS': 'MarsBux',
                 'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
                 'PUT': 'PutinCoin',
                 'RUB': 'RubbleCoin',
                 'UP': 'UpscaleToken',
@@ -611,7 +612,7 @@ module.exports = class coinexchange extends Exchange {
             let id = market['MarketID'];
             let baseId = this.safeString (market, 'MarketAssetCode');
             let quoteId = this.safeString (market, 'BaseCurrencyCode');
-            if (typeof baseId !== 'undefined' && typeof quoteId !== 'undefined') {
+            if (baseId !== undefined && quoteId !== undefined) {
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 let symbol = base + '/' + quote;
@@ -632,7 +633,7 @@ module.exports = class coinexchange extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = ticker['MarketID'];
             if (marketId in this.markets_by_id)
                 market = this.markets_by_id[marketId];

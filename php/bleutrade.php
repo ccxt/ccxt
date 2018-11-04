@@ -16,6 +16,7 @@ class bleutrade extends bittrex {
             'countries' => array ( 'BR' ), // Brazil
             'rateLimit' => 1000,
             'version' => 'v2',
+            'certified' => false,
             'has' => array (
                 'CORS' => true,
                 'fetchTickers' => true,
@@ -129,7 +130,6 @@ class bleutrade extends bittrex {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'info' => $market,
-                'lot' => pow (10, -$precision['amount']),
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (

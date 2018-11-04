@@ -254,7 +254,7 @@ module.exports = class quadrigacx extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
@@ -402,7 +402,7 @@ module.exports = class quadrigacx extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let error = this.safeValue (response, 'error');
-            if (typeof error !== 'undefined') {
+            if (error !== undefined) {
                 //
                 // {"error":{"code":101,"message":"Invalid API Code or Invalid Signature"}}
                 //

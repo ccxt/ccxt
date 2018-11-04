@@ -15,6 +15,7 @@ module.exports = class bleutrade extends bittrex {
             'countries': [ 'BR' ], // Brazil
             'rateLimit': 1000,
             'version': 'v2',
+            'certified': false,
             'has': {
                 'CORS': true,
                 'fetchTickers': true,
@@ -128,7 +129,6 @@ module.exports = class bleutrade extends bittrex {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -169,7 +169,7 @@ module.exports = class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             await this.loadMarkets ();
             market = this.market (symbol);
         } else {
@@ -194,7 +194,7 @@ module.exports = class bleutrade extends bittrex {
             'market': this.marketId (symbol),
             'type': 'ALL',
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['depth'] = limit; // 50
         let response = await this.publicGetOrderbook (this.extend (request, params));
         let orderbook = this.safeValue (response, 'result');

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -74,6 +74,9 @@ module.exports = class bit2c extends Exchange {
                     'taker': 0.5 / 100,
                 },
             },
+            'options': {
+                'fetchTradesMethod': 'public_get_exchanges_pair_lasttrades',
+            },
         });
     }
 
@@ -137,7 +140,8 @@ module.exports = class bit2c extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         let market = this.market (symbol);
-        let response = await this.publicGetExchangesPairTrades (this.extend ({
+        let method = this.options['fetchTradesMethod'];
+        let response = await this[method] (this.extend ({
             'pair': market['id'],
         }, params));
         return this.parseTrades (response, market, since, limit);
@@ -170,7 +174,10 @@ module.exports = class bit2c extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            url += '.json';
+            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
+            if (path.indexOf ('lasttrades') < 0) {
+                url += '.json';
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -188,8 +195,8 @@ module.exports = class bit2c extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOpenOrders() requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privateGetOrderMyOrders (this.extend ({
             'pair': market['id'],
@@ -206,7 +213,7 @@ module.exports = class bit2c extends Exchange {
         let amount = order['amount'];
         let cost = price * amount;
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeValue (order, 'type');
         if (side === 0) {
@@ -241,14 +248,14 @@ module.exports = class bit2c extends Exchange {
         let market = undefined;
         let method = 'privateGetOrderOrderhistory';
         let request = {};
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['take'] = limit;
         request['take'] = limit;
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['toTime'] = this.ymd (this.milliseconds (), '.');
             request['fromTime'] = this.ymd (since, '.');
         }
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -265,12 +272,12 @@ module.exports = class bit2c extends Exchange {
         let feeCost = undefined;
         let side = undefined;
         let reference = this.safeString (trade, 'reference');
-        if (typeof reference !== 'undefined') {
+        if (reference !== undefined) {
             timestamp = this.safeInteger (trade, 'ticks') * 1000;
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'firstAmount');
             let reference_parts = reference.split ('|'); // reference contains: 'pair|orderId|tradeId'
-            if (typeof market === 'undefined') {
+            if (market === undefined) {
                 let marketId = this.safeString (trade, 'pair');
                 if (marketId in this.markets_by_id[marketId]) {
                     market = this.markets_by_id[marketId];
@@ -294,7 +301,7 @@ module.exports = class bit2c extends Exchange {
             amount = this.safeFloat (trade, 'amount');
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         return {
             'info': trade,

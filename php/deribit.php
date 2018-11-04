@@ -235,51 +235,52 @@ class deribit extends Exchange {
             'filled' => 'closed',
         );
         if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
-            return $statuses['status'];
+            return $statuses[$status];
         }
         return $status;
     }
 
     public function parse_order ($order, $market = null) {
-        // .
+        //
         //     {
-        //         "success" => true,  // true or false
-        //         "message" => "",    // empty or text message, e.g. error message
-        //         "result" => array (       // list of open orders
-        //         {
-        //                 "orderId" => 5258039,          // ID of the $order
-        //                 "instrument" => "BTC-26MAY17", // instrument name
-        //                 "direction" => "sell",         // $order direction, "buy" or "sell"
-        //                 "$price" => 1860,               // float, USD for futures, BTC for options
-        //                 "label" => "",                 // label set by the owner, up to 32 chars
-        //                 "quantity" => 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //                 "filledQuantity" => 3,         // $filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //                 "avgPrice" => 1860,            // average fill $price of the $order
-        //                 "commission" => -0.000001613,  // in BTC units
-        //                 "created" => 1494491899308,    // creation $timestamp
-        //                 "state" => "open",             // open, cancelled, etc
-        //                 "postOnly" => false            // true for post-only orders only
+        //         "orderId" => 5258039,          // ID of the $order
+        //         "$type" => "limit",             // not documented, but present in the actual response
+        //         "instrument" => "BTC-26MAY17", // instrument name ($market $id)
+        //         "direction" => "sell",         // $order direction, "buy" or "sell"
+        //         "$price" => 1860,               // float, USD for futures, BTC for options
+        //         "label" => "",                 // label set by the owner, up to 32 chars
+        //         "quantity" => 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //         "filledQuantity" => 3,         // $filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //         "avgPrice" => 1860,            // $average fill $price of the $order
+        //         "commission" => -0.000001613,  // in BTC units
+        //         "created" => 1494491899308,    // creation $timestamp
+        //         "state" => "open",             // open, cancelled, etc
+        //         "postOnly" => false            // true for post-only orders only
         // open orders --------------------------------------------------------
-        //                 "$lastUpdate" => 1494491988754, // $timestamp of the last $order state change (before this cancelorder of course)
+        //         "$lastUpdate" => 1494491988754, // $timestamp of the last $order state change (before this cancelorder of course)
         // closed orders ------------------------------------------------------
-        //                 "tstamp" => 1494492913288,    // $timestamp of the last $order state change
-        //                 "$modified" => 1494492913289,  // $timestamp of the last db write operation, e.g. trade that doesn't change $order $status
-        //                 "adv" => false                // advanced type (false, or "usd" or "implv")
-        //             }
-        //         )
+        //         "tstamp" => 1494492913288,     // $timestamp of the last $order state change, documented, but may be missing in the actual response
+        //         "modified" => 1494492913289,   // $timestamp of the last db write operation, e.g. trade that doesn't change $order $status, documented, but may missing in the actual response
+        //         "adv" => false                 // advanced $type (false, or "usd" or "implv")
+        //         "trades" => array (),                // not documented, injected from the outside of the parseOrder method into the $order
         //     }
         //
         $timestamp = $this->safe_integer($order, 'created');
         $lastUpdate = $this->safe_integer($order, 'lastUpdate');
-        $lastUpdate = $this->safe_integer($order, 'tstamp', $lastUpdate);
-        $modified = $this->safe_integer($order, 'modified');
-        $lastTradeTimestamp = max ($lastUpdate, $modified);
+        $lastTradeTimestamp = $this->safe_integer_2($order, 'tstamp', 'modified');
         $id = $this->safe_string($order, 'orderId');
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'amount');
+        $average = $this->safe_float($order, 'avgPrice');
+        $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'filledQuantity');
+        if ($lastTradeTimestamp === null) {
+            if ($filled !== null) {
+                if ($filled > 0) {
+                    $lastTradeTimestamp = $lastUpdate;
+                }
+            }
+        }
         $remaining = null;
-        $price = $this->safe_float($order, 'avgPrice', $price);
         $cost = null;
         if ($filled !== null) {
             if ($amount !== null) {
@@ -289,8 +290,7 @@ class deribit extends Exchange {
                 $cost = $price * $filled;
             }
         }
-        $status = $this->safe_string($order, 'state');
-        $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'direction');
         if ($side !== null) {
             $side = strtolower ($side);
@@ -303,6 +303,7 @@ class deribit extends Exchange {
             'cost' => $feeCost,
             'currency' => 'BTC',
         );
+        $type = $this->safe_string($order, 'type');
         return array (
             'info' => $order,
             'id' => $id,
@@ -310,20 +311,22 @@ class deribit extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $order['instrument'],
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'average' => $average,
             'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
-            'trades' => null,
+            'trades' => null, // todo => parse trades
         );
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetOrderstate (array ( 'orderId' => $id ));
         return $this->parse_order($response['result']);
     }
@@ -339,7 +342,11 @@ class deribit extends Exchange {
             $request['price'] = $price;
         $method = 'privatePost' . $this->capitalize ($side);
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parse_order($response['result']);
+        $order = $this->safe_value($response['result'], 'order');
+        if ($order === null) {
+            return $response;
+        }
+        return $this->parse_order($order);
     }
 
     public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
@@ -414,7 +421,7 @@ class deribit extends Exchange {
                 $auth .= '&' . $this->urlencode ($params);
             }
             $hash = $this->hash ($this->encode ($auth), 'sha256', 'base64');
-            $signature = $this->apiKey . '.' . $nonce . '.' . $hash;
+            $signature = $this->apiKey . '.' . $nonce . '.' . $this->decode ($hash);
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'x-deribit-sig' => $signature,

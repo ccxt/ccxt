@@ -319,7 +319,7 @@ class bitbank extends Exchange {
             throw new InvalidOrder ($this->id . ' createOrder requires a $price argument for both $market and limit orders');
         $request = array (
             'pair' => $market['id'],
-            'amount' => $this->amount_to_string($symbol, $amount),
+            'amount' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
             'side' => $side,
             'type' => $type,
@@ -516,6 +516,8 @@ class bitbank extends Exchange {
                 '70004' => 'We are unable to accept orders as the transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
+                '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
             $errorClasses = $this->exceptions;
             $code = $this->safe_string($data, 'code');

@@ -3,8 +3,9 @@
 /*  ------------------------------------------------------------------------ */
 
 const [processPath, , argument = null] = process.argv.filter (x => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose') || false
-const strict  = process.argv.includes ('--strict')  || false
+    , verbose = process.argv.includes ('--verbose') || false
+    , strict  = process.argv.includes ('--strict')  || false
+    , compact = process.argv.includes ('--compact') || false
 
 
 /*  ------------------------------------------------------------------------ */
@@ -57,10 +58,18 @@ const checkAgainst = strict ?
 
 ;(async function test () {
 
+    const { Agent } = require ('https')
+
     let exchanges = await Promise.all (ccxt.exchanges.map (async id => {
 
+        const agent = new Agent ({
+            ecdhCurve: 'auto',
+        })
+
         // instantiate the exchange
-        let exchange = new ccxt[id] (localKeysFile ? (keys[id] || {}) : {}) // set up keys and settings, if any
+        let exchange = new ccxt[id] (ccxt.extend (localKeysFile ? (keys[id] || {}) : {}, {
+            agent, // set up keys and settings, if any
+        }))
 
         if (exchange.has.publicAPI) {
 
@@ -100,7 +109,13 @@ const checkAgainst = strict ?
             checkAgainst (market['id'].toString (), argument))
 
 
-    log (asTable (markets.map (market => ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ]))))
+    log (asTable (markets.map (market => {
+        market = ccxt.omit (market, [ 'info', 'limits', 'precision', 'tiers' ])
+        return (!compact) ? market : {
+            'symbol': market['symbol'],
+            'exchange': market['exchange'],
+        };
+    })))
 
     log ("\n---------------------------------------------------------------\n")
 

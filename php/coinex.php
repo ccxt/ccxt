@@ -23,6 +23,7 @@ class coinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchMyTrades' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1min',
@@ -69,7 +70,8 @@ class coinex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'balance',
+                        'balance/coin/withdraw',
+                        'balance/info',
                         'order',
                         'order/pending',
                         'order/finished',
@@ -77,10 +79,12 @@ class coinex extends Exchange {
                         'order/user/deals',
                     ),
                     'post' => array (
+                        'balance/coin/withdraw',
                         'order/limit',
                         'order/market',
                     ),
                     'delete' => array (
+                        'balance/coin/withdraw',
                         'order/pending',
                     ),
                 ),
@@ -111,23 +115,10 @@ class coinex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             ),
+            'options' => array (
+                'createMarketBuyOrderRequiresPrice' => true,
+            ),
         ));
-    }
-
-    public function cost_to_precision ($symbol, $cost) {
-        return $this->decimal_to_precision($cost, ROUND, $this->markets[$symbol]['precision']['price']);
-    }
-
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price']);
-    }
-
-    public function amount_to_precision ($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount']);
-    }
-
-    public function fee_to_precision ($currency, $fee) {
-        return $this->decimal_to_precision($fee, ROUND, $this->currencies[$currency]['precision']);
     }
 
     public function fetch_markets () {
@@ -251,22 +242,40 @@ class coinex extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         // this method parses both public and private trades
-        $timestamp = $this->safe_integer($trade, 'create_time') * 1000;
+        $timestamp = $this->safe_integer($trade, 'create_time');
         if ($timestamp === null) {
             $timestamp = $this->safe_integer($trade, 'date_ms');
+        } else {
+            $timestamp = $timestamp * 1000;
         }
         $tradeId = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $symbol = $market['symbol'];
+        $marketId = $this->safe_string($trade, 'market');
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $cost = $this->safe_float($trade, 'deal_money');
-        if (!$cost)
+        if (!$cost) {
             $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-        $fee = array (
-            'cost' => $this->safe_float($trade, 'fee'),
-            'currency' => $this->safe_string($trade, 'fee_asset'),
-        );
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
+            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+            $feeCurrencyCode = null;
+            if ($feeCurrency !== null) {
+                $feeCurrencyCode = $feeCurrency['code'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $side = $this->safe_string($trade, 'type');
         return array (
@@ -297,7 +306,7 @@ class coinex extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv[0],
+            $ohlcv[0] * 1000,
             floatval ($ohlcv[1]),
             floatval ($ohlcv[3]),
             floatval ($ohlcv[4]),
@@ -318,7 +327,27 @@ class coinex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalance ($params);
+        $response = $this->privateGetBalanceInfo ($params);
+        //
+        //     {
+        //       "code" => 0,
+        //       "data" => {
+        //         "BCH" => array (                     # BCH $account
+        //           "available" => "13.60109",   # Available BCH
+        //           "frozen" => "0.00000"        # Frozen BCH
+        //         ),
+        //         "BTC" => array (                     # BTC $account
+        //           "available" => "32590.16",   # Available BTC
+        //           "frozen" => "7000.00"        # Frozen BTC
+        //         ),
+        //         "ETH" => array (                     # ETH $account
+        //           "available" => "5.06000",    # Available ETH
+        //           "frozen" => "0.00000"        # Frozen ETH
+        //         }
+        //       ),
+        //       "message" => "Ok"
+        //     }
+        //
         $result = array ( 'info' => $response );
         $balances = $response['data'];
         $currencies = is_array ($balances) ? array_keys ($balances) : array ();
@@ -350,15 +379,55 @@ class coinex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        // TODO => check if it's actually milliseconds, since examples were in seconds
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "$amount" => "0.1",
+        //         "asset_fee" => "0.22736197736197736197",
+        //         "avg_price" => "196.85000000000000000000",
+        //         "create_time" => 1537270135,
+        //         "deal_amount" => "0.1",
+        //         "deal_fee" => "0",
+        //         "deal_money" => "19.685",
+        //         "fee_asset" => "CET",
+        //         "fee_discount" => "0.5",
+        //         "id" => 1788259447,
+        //         "left" => "0",
+        //         "maker_fee_rate" => "0",
+        //         "$market" => "ETHUSDT",
+        //         "order_type" => "limit",
+        //         "$price" => "170.00000000",
+        //         "$status" => "done",
+        //         "taker_fee_rate" => "0.0005",
+        //         "$type" => "sell",
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'create_time') * 1000;
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'deal_money');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
-        $symbol = $market['symbol'];
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
-        $status = $this->parse_order_status($order['status']);
+        $average = $this->safe_float($order, 'avg_price');
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'market');
+        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $feeCurrency = null;
+        $feeCurrencyId = $this->safe_string($order, 'fee_asset');
+        $currency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+        if ($currency !== null) {
+            $feeCurrency = $currency['code'];
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if ($feeCurrency === null) {
+                $feeCurrency = $market['quote'];
+            }
+        }
+        $remaining = $this->safe_float($order, 'left');
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $type = $this->safe_string($order, 'order_type');
+        $side = $this->safe_string($order, 'type');
         return array (
             'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -366,16 +435,17 @@ class coinex extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['order_type'],
-            'side' => $order['type'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => array (
-                'currency' => $market['quote'],
+                'currency' => $feeCurrency,
                 'cost' => $this->safe_float($order, 'deal_fee'),
             ),
             'info' => $order,
@@ -383,17 +453,30 @@ class coinex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $amount = floatval ($amount); // this line is deprecated
+        if ($type === 'market') {
+            // for $market buy it requires the $amount of quote currency to spend
+            if ($side === 'buy') {
+                if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $price = floatval ($price); // this line is deprecated
+                        $amount = $amount * $price;
+                    }
+                }
+            }
+        }
         $this->load_markets();
         $method = 'privatePostOrder' . $this->capitalize ($type);
         $market = $this->market ($symbol);
-        $amount = floatval ($amount);
         $request = array (
             'market' => $market['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
         );
         if ($type === 'limit') {
-            $price = floatval ($price);
+            $price = floatval ($price); // this line is deprecated
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -414,48 +497,105 @@ class coinex extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetOrder (array_merge (array (
             'id' => $id,
             'market' => $market['id'],
         ), $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array (
+        //             "amount" => "0.1",
+        //             "asset_fee" => "0.22736197736197736197",
+        //             "avg_price" => "196.85000000000000000000",
+        //             "create_time" => 1537270135,
+        //             "deal_amount" => "0.1",
+        //             "deal_fee" => "0",
+        //             "deal_money" => "19.685",
+        //             "fee_asset" => "CET",
+        //             "fee_discount" => "0.5",
+        //             "$id" => 1788259447,
+        //             "left" => "0",
+        //             "maker_fee_rate" => "0",
+        //             "$market" => "ETHUSDT",
+        //             "order_type" => "limit",
+        //             "price" => "170.00000000",
+        //             "status" => "done",
+        //             "taker_fee_rate" => "0.0005",
+        //             "type" => "sell",
+        //         ),
+        //         "message" => "Ok"
+        //     }
+        //
         return $this->parse_order($response['data'], $market);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
+        if ($limit === null) {
+            $limit = 100;
+        }
         $request = array (
-            'market' => $market['id'],
+            'page' => 1,
+            'limit' => $limit,
         );
-        if ($limit !== null)
-            $request['limit'] = $limit;
-        $response = $this->privateGetOrderPending (array_merge ($request, $params));
-        return $this->parse_orders($response['data']['data'], $market);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
+        $method = 'privateGetOrder' . $this->capitalize ($status);
+        $response = $this->$method (array_merge ($request, $params));
+        return $this->parse_orders($response['data']['data'], $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_orders_by_status ('pending', $symbol, $since, $limit, $params);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-        );
-        if ($limit !== null)
-            $request['limit'] = $limit;
-        $response = $this->privateGetOrderFinished (array_merge ($request, $params));
-        return $this->parse_orders($response['data']['data'], $market);
+        return $this->fetch_orders_by_status ('finished', $symbol, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOrderUserDeals (array_merge (array (
-            'market' => $market['id'],
+        if ($limit === null) {
+            $limit = 100;
+        }
+        $request = array (
             'page' => 1,
-            'limit' => 100,
-        ), $params));
+            'limit' => $limit,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->privateGetOrderUserDeals (array_merge ($request, $params));
         return $this->parse_trades($response['data']['data'], $market, $since, $limit);
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        if ($tag)
+            $address = $address . ':' . $tag;
+        $request = array (
+            'coin_type' => $currency['id'],
+            'coin_address' => $address,
+            'actual_amount' => floatval ($amount),
+        );
+        $response = $this->privatePostBalanceCoinWithdraw (array_merge ($request, $params));
+        return array (
+            'info' => $response,
+            'id' => $this->safe_string($response, 'coin_withdraw_id'),
+        );
     }
 
     public function nonce () {

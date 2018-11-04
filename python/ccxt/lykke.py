@@ -137,15 +137,33 @@ class lykke (Exchange):
 
     def fetch_markets(self):
         markets = self.publicGetAssetPairs()
+        #
+        #     [{               Id: "AEBTC",
+        #                      Name: "AE/BTC",
+        #                  Accuracy:  6,
+        #          InvertedAccuracy:  8,
+        #               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        #            QuotingAssetId: "BTC",
+        #                 MinVolume:  0.4,
+        #         MinInvertedVolume:  0.0001                                 },
+        #       {               Id: "AEETH",
+        #                      Name: "AE/ETH",
+        #                  Accuracy:  6,
+        #          InvertedAccuracy:  8,
+        #               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        #            QuotingAssetId: "ETH",
+        #                 MinVolume:  0.4,
+        #         MinInvertedVolume:  0.001                                  }]
+        #
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
             id = market['Id']
-            base = market['BaseAssetId']
-            quote = market['QuotingAssetId']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
-            symbol = market['Name']
+            name = market['Name']
+            baseId, quoteId = name.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             precision = {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
@@ -157,7 +175,6 @@ class lykke (Exchange):
                 'quote': quote,
                 'active': True,
                 'info': market,
-                'lot': math.pow(10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -167,6 +184,10 @@ class lykke (Exchange):
                     'price': {
                         'min': math.pow(10, -precision['price']),
                         'max': math.pow(10, precision['price']),
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
                     },
                 },
             })
@@ -210,39 +231,26 @@ class lykke (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):
-        if status == 'Pending':
-            return 'open'
-        elif status == 'InOrderBook':
-            return 'open'
-        elif status == 'Processing':
-            return 'open'
-        elif status == 'Matched':
-            return 'closed'
-        elif status == 'Cancelled':
-            return 'canceled'
-        elif status == 'NotEnoughFunds':
-            return 'NotEnoughFunds'
-        elif status == 'NoLiquidity':
-            return 'NoLiquidity'
-        elif status == 'UnknownAsset':
-            return 'UnknownAsset'
-        elif status == 'LeadToNegativeSpread':
-            return 'LeadToNegativeSpread'
-        return status
+        statuses = {
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        status = self.parse_order_status(order['Status'])
+        status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if market is None:
-            if 'AssetPairId' in order:
-                if order['AssetPairId'] in self.markets_by_id:
-                    market = self.markets_by_id[order['AssetPairId']]
+            marketId = self.safe_string(order, 'AssetPairId')
+            market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
+        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
-        if ('LastMatchTime' in list(order.keys())) and(order['LastMatchTime']):
-            timestamp = self.parse8601(order['LastMatchTime'])
-        elif ('Registered' in list(order.keys())) and(order['Registered']):
+        if ('Registered' in list(order.keys())) and(order['Registered']):
             timestamp = self.parse8601(order['Registered'])
         elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
@@ -256,7 +264,7 @@ class lykke (Exchange):
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': None,
             'side': None,

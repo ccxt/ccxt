@@ -141,15 +141,33 @@ module.exports = class lykke extends Exchange {
 
     async fetchMarkets () {
         let markets = await this.publicGetAssetPairs ();
+        //
+        //     [ {                Id: "AEBTC",
+        //                      Name: "AE/BTC",
+        //                  Accuracy:  6,
+        //          InvertedAccuracy:  8,
+        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId: "BTC",
+        //                 MinVolume:  0.4,
+        //         MinInvertedVolume:  0.0001                                 },
+        //       {                Id: "AEETH",
+        //                      Name: "AE/ETH",
+        //                  Accuracy:  6,
+        //          InvertedAccuracy:  8,
+        //               BaseAssetId: "6f75280b-a005-4016-a3d8-03dc644e8912",
+        //            QuotingAssetId: "ETH",
+        //                 MinVolume:  0.4,
+        //         MinInvertedVolume:  0.001                                  } ]
+        //
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
             let id = market['Id'];
-            let base = market['BaseAssetId'];
-            let quote = market['QuotingAssetId'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = market['Name'];
+            let name = market['Name'];
+            let [ baseId, quoteId ] = name.split ('/');
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = base + '/' + quote;
             let precision = {
                 'amount': market['Accuracy'],
                 'price': market['InvertedAccuracy'],
@@ -161,7 +179,6 @@ module.exports = class lykke extends Exchange {
                 'quote': quote,
                 'active': true,
                 'info': market,
-                'lot': Math.pow (10, -precision['amount']),
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -171,6 +188,10 @@ module.exports = class lykke extends Exchange {
                     'price': {
                         'min': Math.pow (10, -precision['price']),
                         'max': Math.pow (10, precision['price']),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
             });
@@ -218,42 +239,28 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrderStatus (status) {
-        if (status === 'Pending') {
-            return 'open';
-        } else if (status === 'InOrderBook') {
-            return 'open';
-        } else if (status === 'Processing') {
-            return 'open';
-        } else if (status === 'Matched') {
-            return 'closed';
-        } else if (status === 'Cancelled') {
-            return 'canceled';
-        } else if (status === 'NotEnoughFunds') {
-            return 'NotEnoughFunds';
-        } else if (status === 'NoLiquidity') {
-            return 'NoLiquidity';
-        } else if (status === 'UnknownAsset') {
-            return 'UnknownAsset';
-        } else if (status === 'LeadToNegativeSpread') {
-            return 'LeadToNegativeSpread';
-        }
-        return status;
+        let statuses = {
+            'Pending': 'open',
+            'InOrderBook': 'open',
+            'Processing': 'open',
+            'Matched': 'closed',
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (order['Status']);
+        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
-        if (typeof market === 'undefined') {
-            if ('AssetPairId' in order)
-                if (order['AssetPairId'] in this.markets_by_id)
-                    market = this.markets_by_id[order['AssetPairId']];
+        if (market === undefined) {
+            let marketId = this.safeString (order, 'AssetPairId');
+            market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market)
             symbol = market['symbol'];
+        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
         let timestamp = undefined;
-        if (('LastMatchTime' in order) && (order['LastMatchTime'])) {
-            timestamp = this.parse8601 (order['LastMatchTime']);
-        } else if (('Registered' in order) && (order['Registered'])) {
+        if (('Registered' in order) && (order['Registered'])) {
             timestamp = this.parse8601 (order['Registered']);
         } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
@@ -268,7 +275,7 @@ module.exports = class lykke extends Exchange {
             'id': order['Id'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
@@ -333,7 +340,7 @@ module.exports = class lykke extends Exchange {
                 orderbook['asks'] = this.arrayConcat (orderbook['asks'], side['Prices']);
             }
             let sideTimestamp = this.parse8601 (side['Timestamp']);
-            timestamp = (typeof timestamp === 'undefined') ? sideTimestamp : Math.max (timestamp, sideTimestamp);
+            timestamp = (timestamp === undefined) ? sideTimestamp : Math.max (timestamp, sideTimestamp);
         }
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume');
     }

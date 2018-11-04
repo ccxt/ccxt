@@ -17,6 +17,7 @@ let verbose = false
 
 let wikiPath = 'wiki'
 let gitWikiPath = 'ccxt.wiki'
+let ccxtCertifiedBadge = '[![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification)'
 
 if (!fs.existsSync (gitWikiPath)) {
 
@@ -36,9 +37,16 @@ function replaceInFile (filename, regex, replacement) {
 
 // ---------------------------------------------------------------------------
 
+const includedIds = fs.readFileSync ('exchanges.cfg')
+                        .toString () // Buffer → String
+                        .split ('\n') // String → Array
+                        .map (line => line.split ('#')[0].trim ()) // trim comments
+                        .filter (exchange => exchange); // filter empty lines
+
+const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
 try {
 
-    exchanges = require ('./config')
+    exchanges = require ('./config').ids.filter (isIncluded)
 
 } catch (e) {
 
@@ -47,6 +55,7 @@ try {
     const ids = fs.readdirSync ('./js/')
                   .filter (file => file.includes ('.js'))
                   .map (file => file.slice (0, -3))
+                  .filter (isIncluded);
 
     const pad = function (string, n) {
         return (string + ' '.repeat (n)).slice (0, n)
@@ -69,12 +78,12 @@ try {
             replacement: ids.map (id => pad ('from ccxt.' + id + ' import ' + id, 60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
-            regex: /(?:from ccxt\.async\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => pad ('from ccxt.async.' + id + ' import ' + id, 64) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => pad ('from ccxt.async_support.' + id + ' import ' + id, 74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async/__init__.py',
+            file: './python/ccxt/async_support/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
@@ -107,6 +116,7 @@ const ccxt = require ('./ccxt.js')
 // ----------------------------------------------------------------------------
 
 for (let id in exchanges) {
+    ccxt[id].prototype.checkRequiredDependencies = () => {}
     exchanges[id] = new (ccxt)[id] (exchanges[id])
     exchanges[id].verbose = verbose
 }
@@ -114,7 +124,7 @@ for (let id in exchanges) {
 // console.log (Object.values (ccxt).length)
 
 var countryName = function (code) {
-    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
+    return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
 let sleep = async ms => await new Promise (resolve => setTimeout (resolve, ms))
@@ -136,6 +146,7 @@ let values = Object.values (exchanges).map (exchange => {
         '': '![' + exchange.id + '](' + logo + ')',
         'id': exchange.id,
         'name': '[' + exchange.name + '](' + url + ')',
+        'certified': exchange.certified ? ccxtCertifiedBadge : '',
         'ver': version,
         'doc': '[API](' + doc + ')',
         'countries': countries,
@@ -161,7 +172,7 @@ let changeInFile = (filename, prefix = '') => {
     let oldContent = fs.readFileSync (filename, 'utf8')
     let beginning = prefix + "The ccxt library currently supports the following "
     let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-    let regex = new RegExp ("[^\n]+[\n][\n]\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
+    let regex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
     let totalString = beginning + numExchanges + ending
     let replacement = totalString + lines + "$1"
     let newContent = oldContent.replace(/[\r]/, '').replace (regex, replacement)
@@ -204,6 +215,7 @@ Object.keys (countries).forEach (code => {
                 'logo': ' ![' + exchange.id + '](' + logo + ') ',
                 'id': exchange.id,
                 'name': '[' + exchange.name + '](' + url + ')',
+                'certified': exchange.certified ? ccxtCertifiedBadge : '',
                 'ver': version,
                 'doc': ' [API](' + doc + ') ',
             })

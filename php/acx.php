@@ -107,14 +107,25 @@ class acx extends Exchange {
             $market = $markets[$p];
             $id = $market['id'];
             $symbol = $market['name'];
-            list ($base, $quote) = explode ('/', $symbol);
+            $baseId = $this->safe_string($market, 'base_unit');
+            $quoteId = $this->safe_string($market, 'quote_unit');
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
+            // todo => find out their undocumented $precision and limits
+            $precision = array (
+                'amount' => 8,
+                'price' => 8,
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'precision' => $precision,
                 'info' => $market,
             );
         }
@@ -345,14 +356,18 @@ class acx extends Exchange {
         return $order;
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $result = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+        $currency = $this->currency ($code);
+        // they have XRP but no docs on memo/$tag
+        $request = array (
+            'currency' => $currency['id'],
             'sum' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        $result = $this->privatePostWithdraw (array_merge ($request, $params));
+        // withdrawal response is undocumented
         return array (
             'info' => $result,
             'id' => null,

@@ -145,7 +145,7 @@ module.exports = class deribit extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeInteger (ticker, 'created');
-        let iso8601 = (typeof timestamp === 'undefined') ? undefined : this.iso8601 (timestamp);
+        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
         let symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
         let last = this.safeFloat (ticker, 'last');
         return {
@@ -184,7 +184,7 @@ module.exports = class deribit extends Exchange {
     parseTrade (trade, market = undefined) {
         let id = this.safeString (trade, 'tradeId');
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (trade, 'timeStamp');
         return {
@@ -207,7 +207,7 @@ module.exports = class deribit extends Exchange {
         let request = {
             'instrument': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit'] = limit;
         } else {
             request['limit'] = 10000;
@@ -234,74 +234,75 @@ module.exports = class deribit extends Exchange {
             'filled': 'closed',
         };
         if (status in statuses) {
-            return statuses['status'];
+            return statuses[status];
         }
         return status;
     }
 
     parseOrder (order, market = undefined) {
-        // .
+        //
         //     {
-        //         "success": true,  // true or false
-        //         "message": "",    // empty or text message, e.g. error message
-        //         "result": [       // list of open orders
-        //         {
-        //                 "orderId": 5258039,          // ID of the order
-        //                 "instrument": "BTC-26MAY17", // instrument name
-        //                 "direction": "sell",         // order direction, "buy" or "sell"
-        //                 "price": 1860,               // float, USD for futures, BTC for options
-        //                 "label": "",                 // label set by the owner, up to 32 chars
-        //                 "quantity": 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //                 "filledQuantity": 3,         // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
-        //                 "avgPrice": 1860,            // average fill price of the order
-        //                 "commission": -0.000001613,  // in BTC units
-        //                 "created": 1494491899308,    // creation timestamp
-        //                 "state": "open",             // open, cancelled, etc
-        //                 "postOnly": false            // true for post-only orders only
+        //         "orderId": 5258039,          // ID of the order
+        //         "type": "limit",             // not documented, but present in the actual response
+        //         "instrument": "BTC-26MAY17", // instrument name (market id)
+        //         "direction": "sell",         // order direction, "buy" or "sell"
+        //         "price": 1860,               // float, USD for futures, BTC for options
+        //         "label": "",                 // label set by the owner, up to 32 chars
+        //         "quantity": 10,              // quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //         "filledQuantity": 3,         // filled quantity, in contracts ($10 per contract for futures, ฿1 — for options)
+        //         "avgPrice": 1860,            // average fill price of the order
+        //         "commission": -0.000001613,  // in BTC units
+        //         "created": 1494491899308,    // creation timestamp
+        //         "state": "open",             // open, cancelled, etc
+        //         "postOnly": false            // true for post-only orders only
         // open orders --------------------------------------------------------
-        //                 "lastUpdate": 1494491988754, // timestamp of the last order state change (before this cancelorder of course)
+        //         "lastUpdate": 1494491988754, // timestamp of the last order state change (before this cancelorder of course)
         // closed orders ------------------------------------------------------
-        //                 "tstamp": 1494492913288,    // timestamp of the last order state change
-        //                 "modified": 1494492913289,  // timestamp of the last db write operation, e.g. trade that doesn't change order status
-        //                 "adv": false                // advanced type (false, or "usd" or "implv")
-        //             }
-        //         ]
+        //         "tstamp": 1494492913288,     // timestamp of the last order state change, documented, but may be missing in the actual response
+        //         "modified": 1494492913289,   // timestamp of the last db write operation, e.g. trade that doesn't change order status, documented, but may missing in the actual response
+        //         "adv": false                 // advanced type (false, or "usd" or "implv")
+        //         "trades": [],                // not documented, injected from the outside of the parseOrder method into the order
         //     }
         //
         let timestamp = this.safeInteger (order, 'created');
         let lastUpdate = this.safeInteger (order, 'lastUpdate');
-        lastUpdate = this.safeInteger (order, 'tstamp', lastUpdate);
-        let modified = this.safeInteger (order, 'modified');
-        let lastTradeTimestamp = Math.max (lastUpdate, modified);
+        let lastTradeTimestamp = this.safeInteger2 (order, 'tstamp', 'modified');
         let id = this.safeString (order, 'orderId');
         let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount');
+        let average = this.safeFloat (order, 'avgPrice');
+        let amount = this.safeFloat (order, 'quantity');
         let filled = this.safeFloat (order, 'filledQuantity');
+        if (lastTradeTimestamp === undefined) {
+            if (filled !== undefined) {
+                if (filled > 0) {
+                    lastTradeTimestamp = lastUpdate;
+                }
+            }
+        }
         let remaining = undefined;
-        price = this.safeFloat (order, 'avgPrice', price);
         let cost = undefined;
-        if (typeof filled !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (filled !== undefined) {
+            if (amount !== undefined) {
                 remaining = amount - filled;
             }
-            if (typeof price !== 'undefined') {
+            if (price !== undefined) {
                 cost = price * filled;
             }
         }
-        let status = this.safeString (order, 'state');
-        status = this.parseOrderStatus (status);
+        let status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'direction');
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             side = side.toLowerCase ();
         }
         let feeCost = this.safeFloat (order, 'commission');
-        if (typeof feeCost !== 'undefined') {
+        if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
         let fee = {
             'cost': feeCost,
             'currency': 'BTC',
         };
+        let type = this.safeString (order, 'type');
         return {
             'info': order,
             'id': id,
@@ -309,20 +310,22 @@ module.exports = class deribit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': order['instrument'],
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
-            'trades': undefined,
+            'trades': undefined, // todo: parse trades
         };
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateGetOrderstate ({ 'orderId': id });
         return this.parseOrder (response['result']);
     }
@@ -334,11 +337,15 @@ module.exports = class deribit extends Exchange {
             'quantity': amount,
             'type': type,
         };
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             request['price'] = price;
         let method = 'privatePost' + this.capitalize (side);
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response['result']);
+        let order = this.safeValue (response['result'], 'order');
+        if (order === undefined) {
+            return response;
+        }
+        return this.parseOrder (order);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -346,9 +353,9 @@ module.exports = class deribit extends Exchange {
         let request = {
             'orderId': id,
         };
-        if (typeof amount !== 'undefined')
+        if (amount !== undefined)
             request['quantity'] = amount;
-        if (typeof price !== 'undefined')
+        if (price !== undefined)
             request['price'] = price;
         let response = await this.privatePostEdit (this.extend (request, params));
         return this.parseOrder (response['result']);
@@ -386,7 +393,7 @@ module.exports = class deribit extends Exchange {
         let request = {
             'instrument': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['count'] = limit; // default = 20
         }
         let response = await this.privateGetTradehistory (this.extend (request, params));
@@ -413,7 +420,7 @@ module.exports = class deribit extends Exchange {
                 auth += '&' + this.urlencode (params);
             }
             let hash = this.hash (this.encode (auth), 'sha256', 'base64');
-            let signature = this.apiKey + '.' + nonce + '.' + hash;
+            let signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'x-deribit-sig': signature,

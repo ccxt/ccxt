@@ -113,17 +113,14 @@ class allcoin extends okcoinusd {
     }
 
     public function parse_order_status ($status) {
-        if ($status === -1)
-            return 'canceled';
-        if ($status === 0)
-            return 'open';
-        if ($status === 1)
-            return 'open'; // partially filled
-        if ($status === 2)
-            return 'closed';
-        if ($status === 10)
-            return 'canceled';
-        return $status;
+        $statuses = array (
+            '-1' => 'canceled',
+            '0' => 'open',
+            '1' => 'open',
+            '2' => 'closed',
+            '10' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function get_create_date_field () {

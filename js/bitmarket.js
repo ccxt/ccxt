@@ -293,7 +293,7 @@ module.exports = class bitmarket extends Exchange {
         let result = {
             'info': response,
         };
-        if ('id' in response['order'])
+        if ('id' in response['data'])
             result['id'] = response['id'];
         return result;
     }
@@ -310,15 +310,16 @@ module.exports = class bitmarket extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let method = undefined;
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat (code)) {
             method = 'privatePostWithdrawFiat';
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal

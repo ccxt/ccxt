@@ -144,6 +144,9 @@ module.exports = class coinegg extends Exchange {
             'options': {
                 'quoteIds': [ 'btc', 'eth', 'usc', 'usdt' ],
             },
+            'commonCurrencies': {
+                'JBC': 'JubaoCoin',
+            },
         });
     }
 
@@ -155,7 +158,7 @@ module.exports = class coinegg extends Exchange {
             let bases = await this.webGetQuoteAllcoin ({
                 'quote': quoteId,
             });
-            if (typeof bases === 'undefined')
+            if (bases === undefined)
                 throw new ExchangeNotAvailable (this.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + this.json (bases) + '"');
             let baseIds = Object.keys (bases);
             let numBaseIds = baseIds.length;
@@ -174,7 +177,6 @@ module.exports = class coinegg extends Exchange {
                     'amount': 8,
                     'price': 8,
                 };
-                let lot = Math.pow (10, -precision['amount']);
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -183,11 +185,10 @@ module.exports = class coinegg extends Exchange {
                     'baseId': baseId,
                     'quoteId': quoteId,
                     'active': true,
-                    'lot': lot,
                     'precision': precision,
                     'limits': {
                         'amount': {
-                            'min': lot,
+                            'min': Math.pow (10, -precision['amount']),
                             'max': Math.pow (10, precision['amount']),
                         },
                         'price': {
@@ -214,7 +215,7 @@ module.exports = class coinegg extends Exchange {
         let open = undefined;
         let change = undefined;
         let average = undefined;
-        if (typeof percentage !== 'undefined') {
+        if (percentage !== undefined) {
             let relativeChange = percentage / 100;
             open = last / this.sum (1, relativeChange);
             change = last - open;
@@ -450,7 +451,7 @@ module.exports = class coinegg extends Exchange {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = since / 1000;
         let orders = await this.privatePostTradeListRegionQuote (this.extend (request, params));
         return this.parseOrders (orders['data'], market, since, limit);
@@ -514,7 +515,7 @@ module.exports = class coinegg extends Exchange {
         // {"result":false,"code":"103"} - failure
         // {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         let result = this.safeValue (response, 'result');
-        if (typeof result === 'undefined')
+        if (result === undefined)
             // public endpoint ← this comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
             // we should just check the code and don't rely on the result at all here...
             return;

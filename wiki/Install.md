@@ -11,13 +11,14 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [`./python/`](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [`ccxt.php`](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
 
-You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
+You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
+manually into your working directory with language extension appropriate for your environment.
 
 ```shell
 git clone https://github.com/ccxt/ccxt.git
 ```
 
-An alternative way of installing this library into your code is to copy a single file manually into your working directory with language extension appropriate for your environment.
+An alternative way of installing this library is to build a custom bundle from source. Choose exchanges you need in `exchanges.cfg`.
 
 ### JavaScript (NPM)
 
@@ -34,6 +35,24 @@ var ccxt = require ('ccxt')
 
 console.log (ccxt.exchanges) // print all available exchanges
 ```
+
+#### Node.js + Windows
+
+Windows users having difficulties installing `w3`, `scrypt` or `node-gyp` dependencies for the ccxt library, try installing `scrypt` first:
+
+```
+npm install -g web3 --unsafe-perm=true --allow-root
+```
+
+or
+
+```
+sudo npm install -g web3 --unsafe-perm=true --allow-root
+```
+
+Then install ccxt as usual with `npm install ccxt`.
+
+If that does not help, please, follow here: https://github.com/nodejs/node-gyp#on-windows
 
 ### JavaScript (for use with the `<script>` tag):
 
@@ -65,7 +84,7 @@ print(ccxt.exchanges) # print a list of all available exchange classes
 The library supports concurrent asynchronous mode with asyncio and async/await in Python 3.5.3+
 
 ```Python
-import ccxt.async as ccxt # link against the asynchronous version of ccxt
+import ccxt.async_support as ccxt # link against the asynchronous version of ccxt
 ```
 
 ### PHP
@@ -80,6 +99,7 @@ It requires common PHP modules:
 - mbstring (using UTF-8 is highly recommended)
 - PCRE
 - iconv
+- gmp (this is a built-in extension as of PHP 7.2+)
 
 ```PHP
 include "ccxt.php";
@@ -125,8 +145,8 @@ You can also set them programmatically:
 import ccxt
 exchange = ccxt.poloniex({
     'proxies': {
-        'http': 'http://10.10.1.10:3128',
-        'https': 'http://10.10.1.10:1080',
+        'http': 'http://10.10.1.10:3128',  # these proxies won't work for you, they are here for example
+        'https': 'https://10.10.1.10:1080',
     },
 })
 ```
@@ -137,8 +157,8 @@ Or
 import ccxt
 exchange = ccxt.poloniex()
 exchange.proxies = {
-  'http': 'http://10.10.1.10:3128',
-  'https': 'http://10.10.1.10:1080',
+  'http': 'http://10.10.1.10:3128', # these proxies won't work for you, they are here for example
+  'https': 'https://10.10.1.10:1080',
 }
 ```
 
@@ -193,7 +213,7 @@ pprint(exchange.fetch_ticker('ETH/BTC'))
 import asyncio
 import os
 import sys
-import ccxt.async as ccxt
+import ccxt.async_support as ccxt
 from pprint import pprint
 
 

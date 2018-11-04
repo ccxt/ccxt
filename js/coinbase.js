@@ -325,7 +325,7 @@ module.exports = class coinbase extends Exchange {
             //
             let exceptions = this.exceptions;
             let errorCode = this.safeString (response, 'error');
-            if (typeof errorCode !== 'undefined') {
+            if (errorCode !== undefined) {
                 if (errorCode in exceptions) {
                     throw new exceptions[errorCode] (feedback);
                 } else {
@@ -333,12 +333,12 @@ module.exports = class coinbase extends Exchange {
                 }
             }
             let errors = this.safeValue (response, 'errors');
-            if (typeof errors !== 'undefined') {
+            if (errors !== undefined) {
                 if (Array.isArray (errors)) {
                     let numErrors = errors.length;
                     if (numErrors > 0) {
                         errorCode = this.safeString (errors[0], 'id');
-                        if (typeof errorCode !== 'undefined') {
+                        if (errorCode !== undefined) {
                             if (errorCode in exceptions) {
                                 throw new exceptions[errorCode] (feedback);
                             } else {
@@ -349,7 +349,7 @@ module.exports = class coinbase extends Exchange {
                 }
             }
             let data = this.safeValue (response, 'data');
-            if (typeof data === 'undefined')
+            if (data === undefined)
                 throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
     }

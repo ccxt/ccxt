@@ -23,6 +23,12 @@ assert (decimalToPrecision ('12.3456', TRUNCATE, 2, DECIMAL_PLACES) === '12.34')
 assert (decimalToPrecision ('12.3456', TRUNCATE, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', TRUNCATE, 0, DECIMAL_PLACES) === '12');
 
+assert (decimalToPrecision ('0.0000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.0000001');
+assert (decimalToPrecision ('0.00000001', TRUNCATE, 8, DECIMAL_PLACES) === '0.00000001');
+
+assert (decimalToPrecision ('0.000000000', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000000');
+assert (decimalToPrecision ('0.000000001', TRUNCATE, 9, DECIMAL_PLACES, PAD_WITH_ZERO) === '0.000000001');
+
 // assert (decimalToPrecision ('12.3456', TRUNCATE, -1, DECIMAL_PLACES) === '10');  // not yet supported
 // assert (decimalToPrecision ('123.456', TRUNCATE, -2, DECIMAL_PLACES) === '120'); // not yet supported
 // assert (decimalToPrecision ('123.456', TRUNCATE, -3, DECIMAL_PLACES) === '100'); // not yet supported
@@ -53,6 +59,10 @@ assert (decimalToPrecision ('123.0000987654', TRUNCATE, 2, SIGNIFICANT_DIGITS) =
 assert (decimalToPrecision ('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS) === '100');
 assert (decimalToPrecision ('123.0000987654', TRUNCATE, 1, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '100');
 
+assert (decimalToPrecision ('1234', TRUNCATE, 5, SIGNIFICANT_DIGITS) === '1234');
+assert (decimalToPrecision ('1234', TRUNCATE, 5, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1234.0');
+assert (decimalToPrecision ('1234', TRUNCATE, 4, SIGNIFICANT_DIGITS) === '1234');
+assert (decimalToPrecision ('1234', TRUNCATE, 4, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '1234');
 assert (decimalToPrecision ('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS) === '0');
 assert (decimalToPrecision ('1234.69', TRUNCATE, 0, SIGNIFICANT_DIGITS, PAD_WITH_ZERO) === '0');
 
@@ -66,6 +76,10 @@ assert (decimalToPrecision ('12.3456', ROUND, 3, DECIMAL_PLACES) === '12.346');
 assert (decimalToPrecision ('12.3456', ROUND, 2, DECIMAL_PLACES) === '12.35');
 assert (decimalToPrecision ('12.3456', ROUND, 1, DECIMAL_PLACES) === '12.3');
 assert (decimalToPrecision ('12.3456', ROUND, 0, DECIMAL_PLACES) === '12');
+
+// a problematic case in PHP
+assert (decimalToPrecision ('10000', ROUND, 6, DECIMAL_PLACES) === '10000');
+assert (decimalToPrecision ('0.00003186', ROUND, 8, DECIMAL_PLACES) === '0.00003186');
 
 // assert (decimalToPrecision ('12.3456', ROUND, -1, DECIMAL_PLACES) === '10');   // not yet supported
 // assert (decimalToPrecision ('123.456', ROUND, -1, DECIMAL_PLACES) === '120');  // not yet supported

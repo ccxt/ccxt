@@ -54,6 +54,7 @@ class braziliex extends Exchange {
             ),
             'commonCurrencies' => array (
                 'EPC' => 'Epacoin',
+                'ABC' => 'Anti Bureaucracy Coin',
             ),
             'fees' => array (
                 'trading' => array (
@@ -149,7 +150,6 @@ class braziliex extends Exchange {
                 'amount' => 8,
                 'price' => 8,
             );
-            $lot = pow (10, -$precision['amount']);
             $result[] = array (
                 'id' => $id,
                 'symbol' => strtoupper ($symbol),
@@ -158,11 +158,10 @@ class braziliex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
-                'lot' => $lot,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $lot,
+                        'min' => pow (10, -$precision['amount']),
                         'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
@@ -324,7 +323,7 @@ class braziliex extends Exchange {
         $amount = $this->safe_float($order, 'amount');
         $filledPercentage = $this->safe_float($order, 'progress');
         $filled = $amount * $filledPercentage;
-        $remaining = $this->amount_to_precision($symbol, $amount - $filled);
+        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
         $info = $order;
         if (is_array ($info) && array_key_exists ('info', $info))
             $info = $order['info'];
