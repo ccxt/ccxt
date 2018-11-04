@@ -623,10 +623,12 @@ module.exports = class cobinhood extends Exchange {
         }
         let response = await this.privatePostWalletDepositAddresses (this.extend (request, params));
         let address = this.safeString (response['result']['deposit_address'], 'address');
+        let tag = this.safeString (response['result']['deposit_address'], 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
