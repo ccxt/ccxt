@@ -236,7 +236,7 @@ module.exports = class quadrigacx extends Exchange {
             'info': ticker,
         };
     }
-    
+
     getMarketById (id) {
         let symbol = id;
         let market = undefined;
