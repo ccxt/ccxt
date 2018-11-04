@@ -18,7 +18,7 @@ Current feature list:
 - all currencies, altcoins and symbols, prices, order books, trades, tickers, etc...
 - optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 - an out-of-the box unified all-in-one API extremely easy to integrate
-- works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
+- works in Node 7.6+, Python 2 and 3, PHP 5.4+, web browsers
 
 ## Sponsored Promotion
 
@@ -187,7 +187,7 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v7.6+)
 - [ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt) (Python 2 and 3.5.3+)
-- [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+)
+- [ccxt in **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -254,7 +254,7 @@ import ccxt.async_support as ccxt # link against the asynchronous version of ccx
 
 ### PHP
 
-[ccxt in PHP with **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.3+)
+[ccxt in PHP with **Packagist/Composer**](https://packagist.org/packages/ccxt/ccxt) (PHP 5.4+)
 
 It requires common PHP modules:
 

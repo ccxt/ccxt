@@ -2051,7 +2051,7 @@ class Exchange {
         //     return strpos($key, 'has') !== false && $key !== 'has';
         // }, ARRAY_FILTER_USE_KEY), CASE_LOWER);
 
-        // the above rewritten for PHP 5.3+
+        // the above rewritten for PHP 5.4+
         $nonfiltered = get_object_vars ($this);
         $filtered = array ();
         foreach ($nonfiltered as $key => $value) {
