@@ -23,6 +23,7 @@ class bitstamp extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchTransactions' => true,
+                'fetchWithdrawals' => true,
                 'withdraw' => true,
             ),
             'urls' => array (
@@ -258,11 +259,15 @@ class bitstamp extends Exchange {
         //         "eur" => 0.0
         //     }
         //
+        if (is_array ($transaction) && array_key_exists ('currency', $transaction)) {
+            return strtolower ($transaction['currency']);
+        }
         $transaction = $this->omit ($transaction, array (
             'fee',
             'price',
             'datetime',
             'type',
+            'status',
             'id',
         ));
         $ids = is_array ($transaction) ? array_keys ($transaction) : array ();
@@ -531,9 +536,45 @@ class bitstamp extends Exchange {
         return $this->parseTransactions ($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction ($transaction, $currency = null) {
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array ();
+        if ($since !== null) {
+            $request['timedelta'] = $this->milliseconds () - $since;
+        }
+        $response = $this->privatePostWithdrawalRequests (array_merge ($request, $params));
         //
         //     array (
+        //         array (
+        //             status => 2,
+        //             datetime => '2018-10-17 10:58:13',
+        //             currency => 'BTC',
+        //             amount => '0.29669259',
+        //             address => 'aaaaa',
+        //             type => 1,
+        //             id => 111111,
+        //             transaction_id => 'xxxx',
+        //         ),
+        //         array (
+        //             status => 2,
+        //             datetime => '2018-10-17 10:55:17',
+        //             currency => 'ETH',
+        //             amount => '1.11010664',
+        //             address => 'aaaa',
+        //             type => 16,
+        //             id => 222222,
+        //             transaction_id => 'xxxxx',
+        //         ),
+        //     )
+        //
+        return $this->parseTransactions ($response, null, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        //
+        // fetchTransactions
+        //
+        //     {
         //         "fee" => "0.00000000",
         //         "btc_usd" => "0.00",
         //         "$id" => 1234567894,
@@ -543,7 +584,20 @@ class bitstamp extends Exchange {
         //         "$type" => "1",
         //         "xrp" => "-20.00000000",
         //         "eur" => 0,
-        //     ),
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         $status => 2,
+        //         datetime => '2018-10-17 10:58:13',
+        //         $currency => 'BTC',
+        //         $amount => '0.29669259',
+        //         $address => 'aaaaa',
+        //         $type => 1,
+        //         $id => 111111,
+        //         transaction_id => 'xxxx',
+        //     }
         //
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
         $code = null;
@@ -570,24 +624,32 @@ class bitstamp extends Exchange {
             // withdrawals have a negative $amount
             $amount = abs ($amount);
         }
+        $status = $this->parse_transaction_status_by_type ($this->safe_string($transaction, 'status'));
         $type = $this->safe_string($transaction, 'type');
-        if ($type === '0') {
-            $type = 'deposit';
-        } else if ($type === '1') {
+        if ($status === null) {
+            if ($type === '0') {
+                $type = 'deposit';
+            } else if ($type === '1') {
+                $type = 'withdrawal';
+            }
+        } else {
             $type = 'withdrawal';
         }
+        $txid = $this->safe_string($transaction, 'transaction_id');
+        $address = $this->safe_string($transaction, 'address');
+        $tag = null; // not documented
         return array (
             'info' => $transaction,
             'id' => $id,
-            'txid' => null, // ?
+            'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'address' => null,
-            'tag' => null,
+            'address' => $address,
+            'tag' => $tag,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
-            'status' => null,
+            'status' => $status,
             'updated' => null,
             'fee' => array (
                 'currency' => $feeCurrency,
@@ -595,6 +657,19 @@ class bitstamp extends Exchange {
                 'rate' => null,
             ),
         );
+    }
+
+    public function parse_transaction_status_by_type ($status) {
+        // withdrawals:
+        // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        $statuses = array (
+            '0' => 'pending', // Open
+            '1' => 'pending', // In process
+            '2' => 'ok', // Finished
+            '3' => 'canceled', // Canceled
+            '4' => 'failed', // Failed
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
