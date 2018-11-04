@@ -117,7 +117,7 @@ module.exports = class quadrigacx extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let request = { 
+        let request = {
             'id': id,
         };
         let response = await this.privatePostLookupOrder (this.extend (request, params));
