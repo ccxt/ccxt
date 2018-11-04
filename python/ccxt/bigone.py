@@ -510,18 +510,19 @@ class bigone (Exchange):
         request = {'order_id': id}
         response = self.privateGetOrdersOrderId(self.extend(request, params))
         #
-        #  {
-        #     "data": {
-        #         "id": 10,
-        #         "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
-        #         "price": "10.00",
-        #         "amount": "10.00",
-        #         "filled_amount": "9.0",
-        #         "avg_deal_price": "12.0",
-        #         "side": "ASK",
-        #         "state": "FILLED"
+        #     {
+        #       "data":
+        #         {
+        #           "id": 10,
+        #           "market_uuid": "BTC-EOS",
+        #           "price": "10.00",
+        #           "amount": "10.00",
+        #           "filled_amount": "9.0",
+        #           "avg_deal_price": "12.0",
+        #           "side": "ASK",
+        #           "state": "FILLED"
+        #         }
         #     }
-        #  }
         #
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
