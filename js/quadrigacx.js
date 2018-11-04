@@ -296,17 +296,30 @@ module.exports = class quadrigacx extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
+        let id = this.safeString (trade, 'tid');
+        let side = this.safeString (trade, 'side');
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': trade['tid'].toString (),
+            'id': id,
             'order': undefined,
             'type': undefined,
-            'side': trade['side'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
