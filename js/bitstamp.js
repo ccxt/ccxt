@@ -402,45 +402,6 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let timedelta = undefined;
-        if (since) {
-            timedelta = this.milliseconds () - since;
-        }
-        let response = await this.privatePostWithdrawalRequests (this.extend ({ 'timedelta': timedelta }, params));
-        let result = [];
-        let currency = undefined;
-        if (code) {
-            currency = this.currency (code);
-            for (let i = 0; i < response.length; i++) {
-                let withdrawal = response[i];
-                if (withdrawal['currency'].toLowerCase () === code.toLowerCase ()) {
-                    result.append (withdrawal);
-                }
-            }
-        } else {
-            result = response;
-        }
-        //   [ { status: 2,
-        //   datetime: '2018-10-17 10:58:13',
-        //   currency: 'BTC',
-        //   amount: '0.29669259',
-        //   address: 'aaaaa',
-        //   type: 1,
-        //   id: 111111,
-        //   transaction_id: 'xxxx' },
-        // { status: 2,
-        //   datetime: '2018-10-17 10:55:17',
-        //   currency: 'ETH',
-        //   amount: '1.11010664',
-        //   address: 'aaaa',
-        //   type: 16,
-        //   id: 222222,
-        //   transaction_id: 'xxxxx' }]
-        return this.parseTransactions (response, currency, since, limit);
-    }
-
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         let balance = await this.privatePostBalance ();
@@ -583,7 +544,43 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let request = {};
+        if (since) {
+            request['timedelta'] = this.milliseconds () - since;
+        }
+        let response = await this.privatePostWithdrawalRequests (this.extend (request, params));
+        //
+        //     [
+        //         { 
+        //             status: 2,
+        //             datetime: '2018-10-17 10:58:13',
+        //             currency: 'BTC',
+        //             amount: '0.29669259',
+        //             address: 'aaaaa',
+        //             type: 1,
+        //             id: 111111,
+        //             transaction_id: 'xxxx',
+        //         },
+        //         {
+        //             status: 2,
+        //             datetime: '2018-10-17 10:55:17',
+        //             currency: 'ETH',
+        //             amount: '1.11010664',
+        //             address: 'aaaa',
+        //             type: 16,
+        //             id: 222222,
+        //             transaction_id: 'xxxxx',
+        //         },
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
     parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchTransactions
         //
         //     {
         //         "fee": "0.00000000",
@@ -595,7 +592,20 @@ module.exports = class bitstamp extends Exchange {
         //         "type": "1",
         //         "xrp": "-20.00000000",
         //         "eur": 0,
-        //     },
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     { 
+        //         status: 2,
+        //         datetime: '2018-10-17 10:58:13',
+        //         currency: 'BTC',
+        //         amount: '0.29669259',
+        //         address: 'aaaaa',
+        //         type: 1,
+        //         id: 111111,
+        //         transaction_id: 'xxxx',
+        //     }
         //
         let timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         let code = undefined;
@@ -622,21 +632,27 @@ module.exports = class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Math.abs (amount);
         }
+        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
         let type = this.safeString (transaction, 'type');
-        if (type === '0') {
-            type = 'deposit';
-        } else if (type === '1') {
+        if (status === undefined) {
+            if (type === '0') {
+                type = 'deposit';
+            } else if (type === '1') {
+                type = 'withdrawal';
+            }
+        } else {
             type = 'withdrawal';
         }
         let txid = this.safeString (transaction, 'transaction_id');
-        let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+        let address = this.safeString (transaction, 'address');
+        let tag = undefined; // not documented
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined,
+            'address': address,
             'tag': undefined,
             'type': type,
             'amount': amount,
