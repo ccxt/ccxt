@@ -541,8 +541,8 @@ module.exports = class bigone extends Exchange {
         //         }
         //     }
         //
-        let order = self.safeValue (response, 'data');
-        return self.parseOrder (order);
+        let order = this.safeValue (response, 'data');
+        return this.parseOrder (order);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
