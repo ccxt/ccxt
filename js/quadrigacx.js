@@ -99,59 +99,6 @@ module.exports = class quadrigacx extends Exchange {
         return this.parseBalance (result);
     }
 
-    getMarketById (id) {
-        let symbol = id;
-        let market = undefined;
-        if (id in this.markets_by_id) {
-            market = this.markets_by_id[id];
-            symbol = market['symbol'];
-        } else {
-            let [ baseId, quoteId ] = id.split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (base);
-            symbol = base + '/' + quote;
-            market = {
-                'symbol': symbol,
-            };
-        }
-        return market;
-    }
-
-    parseMyTrade (trade) {
-        let market = {};
-        let keys = Object.keys (trade);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (trade[key] === trade['rate'] && key !== 'rate') {
-                market = this.getMarketById (key);
-            }
-        }
-        let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
-        let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
-        let result = {
-            'info': trade,
-            'id': trade['id'].toString (),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': this.safeString (trade, 'order_id'),
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': Math.abs (this.safeFloat (trade, market['base'].toLowerCase ())),
-            'cost': Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ())),
-            'fee': {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': side === 'buy' ? market['base'] : market['quote'],
-                'rate': market['maker'],
-            },
-        };
-        return result;
-    }
-
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let book = undefined;
         if (symbol !== undefined) {
@@ -288,6 +235,59 @@ module.exports = class quadrigacx extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
+    }
+    
+    getMarketById (id) {
+        let symbol = id;
+        let market = undefined;
+        if (id in this.markets_by_id) {
+            market = this.markets_by_id[id];
+            symbol = market['symbol'];
+        } else {
+            let [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (base);
+            symbol = base + '/' + quote;
+            market = {
+                'symbol': symbol,
+            };
+        }
+        return market;
+    }
+
+    parseMyTrade (trade) {
+        let market = {};
+        let keys = Object.keys (trade);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (trade[key] === trade['rate'] && key !== 'rate') {
+                market = this.getMarketById (key);
+            }
+        }
+        let side = this.safeFloat (trade, market['base']) > 0 ? 'buy' : 'sell';
+        let timestamp = this.parse8601 (this.safeString (trade, 'datetime'));
+        let result = {
+            'info': trade,
+            'id': trade['id'].toString (),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'order_id'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': this.safeFloat (trade, 'rate'),
+            'amount': Math.abs (this.safeFloat (trade, market['base'].toLowerCase ())),
+            'cost': Math.abs (this.safeFloat (trade, market['quote'].toLowerCase ())),
+            'fee': {
+                'cost': this.safeFloat (trade, 'fee'),
+                'currency': side === 'buy' ? market['base'] : market['quote'],
+                'rate': market['maker'],
+            },
+        };
+        return result;
     }
 
     parseTrade (trade, market) {
