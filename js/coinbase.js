@@ -219,6 +219,15 @@ module.exports = class coinbase extends Exchange {
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            'created': 'pending',
+            'completed': 'ok',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (transaction, market = undefined) {
         //
         //    DEPOSIT
@@ -290,11 +299,10 @@ module.exports = class coinbase extends Exchange {
             'cost': feeCost,
             'currency': feeCurrency,
         };
-        let status = undefined;
-        if (transaction['committed'] === true) {
-            status = 'ok';
-        } else {
-            status = 'pending';
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        if (status === undefined) {
+            let committed = this.safeValue (transaction, 'committed');
+            status = committed ? 'ok' : 'pending';
         }
         return {
             'info': transaction,
