@@ -181,7 +181,7 @@ module.exports = class quadrigacx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
