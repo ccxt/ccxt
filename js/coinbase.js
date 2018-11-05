@@ -291,7 +291,7 @@ module.exports = class coinbase extends Exchange {
             'currency': feeCurrency,
         };
         let status = undefined;
-        if (transaction['comitted'] === true) {
+        if (transaction['committed'] === true) {
             status = 'ok';
         } else {
             status = 'pending';
