@@ -275,23 +275,6 @@ module.exports = class quadrigacx extends Exchange {
         };
     }
 
-    getMarketById (id) {
-        let market = undefined;
-        if (id in this.markets_by_id) {
-            market = this.markets_by_id[id];
-        } else {
-            let [ baseId, quoteId ] = id.split ('_');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (base);
-            market = {
-                'symbol': base + '/' + quote,
-            };
-        }
-        return market;
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
