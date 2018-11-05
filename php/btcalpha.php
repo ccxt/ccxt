@@ -252,21 +252,28 @@ class btcalpha extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if (!$market)
             $market = $this->safe_value($this->marketsById, $order['pair']);
         if ($market)
             $symbol = $market['symbol'];
-        $timestamp = intval ($order['date'] * 1000);
+        $timestamp = $this->safe_integer($order, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $price = floatval ($order['price']);
         $amount = $this->safe_float($order, 'amount');
-        $status = $this->safe_string($order, 'status');
-        $statuses = array (
-            '1' => 'open',
-            '2' => 'canceled',
-            '3' => 'closed',
-        );
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'oid');
         if (!$id)
             $id = $this->safe_string($order, 'id');
@@ -278,7 +285,7 @@ class btcalpha extends Exchange {
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'status' => $this->safe_string($statuses, $status),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
