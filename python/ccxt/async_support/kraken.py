@@ -525,8 +525,39 @@ class kraken (Exchange):
         id = None
         order = None
         fee = None
-        if not market:
-            market = self.find_market_by_altname_or_id(trade['pair'])
+        marketId = self.safe_string(trade, 'pair')
+        foundMarket = self.find_market_by_altname_or_id(marketId)
+        symbol = None
+        if foundMarket is not None:
+            market = foundMarket
+        elif marketId is not None:
+            baseIdStart = 0
+            baseIdEnd = 3
+            quoteIdStart = 3
+            quoteIdEnd = 6
+            if len(marketId) == 8:
+                baseIdEnd = 4
+                quoteIdStart = 4
+                quoteIdEnd = 8
+            elif len(marketId) == 7:
+                baseIdEnd = 4
+                quoteIdStart = 4
+                quoteIdEnd = 7
+            baseId = marketId[baseIdStart:baseIdEnd]
+            quoteId = marketId[quoteIdStart:quoteIdEnd]
+            base = baseId
+            quote = quoteId
+            if len(base) > 3:
+                if (base[0] == 'X') or (base[0] == 'Z'):
+                    base = base[1:]
+            if len(quote) > 3:
+                if (quote[0] == 'X') or (quote[0] == 'Z'):
+                    quote = quote[1:]
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
+        if market is not None:
+            symbol = market['symbol']
         if 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
@@ -552,7 +583,6 @@ class kraken (Exchange):
             tradeLength = len(trade)
             if tradeLength > 6:
                 id = trade[6]  # artificially added as per  #1794
-        symbol = market['symbol'] if (market) else None
         return {
             'id': id,
             'order': order,
@@ -575,7 +605,17 @@ class kraken (Exchange):
         response = await self.publicGetTrades(self.extend({
             'pair': id,
         }, params))
-        # {result: {marketid: [... trades]}, last: "last_trade_id"}
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "XETHXXBT": [
+        #                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
+        #             ],
+        #             "last": "1541439421200678657"
+        #         }
+        #     }
+        #
         result = response['result']
         trades = result[id]
         # trades is a sorted array: last(most recent trade) goes last
@@ -733,6 +773,31 @@ class kraken (Exchange):
         if since is not None:
             request['start'] = int(since / 1000)
         response = await self.privatePostTradesHistory(self.extend(request, params))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "trades": {
+        #                 "GJ3NYQ-XJRTF-THZABF": {
+        #                     "ordertxid": "TKH2SE-ZIF5E-CFI7LT",
+        #                     "postxid": "OEN3VX-M7IF5-JNBJAM",
+        #                     "pair": "XICNXETH",
+        #                     "time": 1527213229.4491,
+        #                     "type": "sell",
+        #                     "ordertype": "limit",
+        #                     "price": "0.001612",
+        #                     "cost": "0.025792",
+        #                     "fee": "0.000026",
+        #                     "vol": "16.00000000",
+        #                     "margin": "0.000000",
+        #                     "misc": ""
+        #                 },
+        #                 ...
+        #             },
+        #             "count": 9760,
+        #         },
+        #     }
+        #
         trades = response['result']['trades']
         ids = list(trades.keys())
         for i in range(0, len(ids)):
