@@ -149,6 +149,14 @@ class bitstamp extends Exchange {
             ),
             'exceptions' => array (
                 'No permission found' => '\\ccxt\\PermissionDenied',
+                'API key not found' => '\\ccxt\\AuthenticationError',
+                'IP address not allowed' => '\\ccxt\\PermissionDenied',
+                'Invalid nonce' => '\\ccxt\\InvalidNonce',
+                'Invalid signature' => '\\ccxt\\AuthenticationError',
+                'Authentication failed' => '\\ccxt\\AuthenticationError',
+                'Missing key, signature and nonce parameters' => '\\ccxt\\AuthenticationError',
+                'Your account is frozen' => '\\ccxt\\PermissionDenied',
+                'Please update your profile with your FATCA information, before using API.' => '\\ccxt\\PermissionDenied',
             ),
         ));
     }
