@@ -133,29 +133,63 @@ module.exports = class quadrigacx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
+        let id = this.safeString (order, 'id');
         let price = this.safeFloat (order, 'price');
-        let responseAmount = this.safeFloat (order, 'amount');
-        let market = this.getMarketById (this.safeString (order, 'book'));
-        let side = this.safeString (order, 'type') === '0' ? 'buy' : 'sell';
-        let status = undefined;
-        let responseStatus = this.parseOrderStatus (this.safeString (order, 'status'));
+        let amount = undefined;
+        let filled = undefined;
+        let remaining = this.safeFloat (order, 'amount');
+        let cost = undefined;
+        let symbol = undefined;
+        let marketId = this.safeString (order, 'book');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else {
+            let [ baseId, quoteId ] = marketId.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            symbol = base + '/' + quote;
+        }
+        let side = this.safeString (order, 'type');
+        if (side === '0') {
+            side = 'buy';
+        } else {
+            side = 'sell';
+        }
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let timestamp = this.parse8601 (this.safeString (order, 'created'));
+        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updated'));
+        let type = (price === 0.0) ? 'market' : 'limit';
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        if (status === 'closed') {
+            amount = remaining;
+            filled = remaining;
+            remaining = 0;
+        }
+        if ((type === 'limit') && (price !== undefined)) {
+            if (filled !== undefined) {
+                cost = price * filled;
+            }
+        }
         let result = {
             'info': order,
-            'id': this.safeString (order, 'id'),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastorderTimestamp': this.parse8601 (this.safeString (order, 'updated')),
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
-            'type': price === 0 ? 'market' : 'limit',
+            'type': type,
             'side': side,
             'price': price,
-            'cost': undefined,
+            'cost': cost,
             'average': undefined,
-            'amount': status === 'closed' ? responseAmount : undefined,
-            'filled': status === 'closed' ? responseAmount : undefined,
-            'remaining': status === 'closed' ? 0 : responseAmount,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
         };
