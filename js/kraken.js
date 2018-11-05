@@ -568,6 +568,11 @@ module.exports = class kraken extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             symbol = base + '/' + quote;
+            market = {
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+            };
         }
         if (market !== undefined) {
             symbol = market['symbol'];
