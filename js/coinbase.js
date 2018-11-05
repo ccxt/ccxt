@@ -280,7 +280,7 @@ module.exports = class coinbase extends Exchange {
         let updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
         let orderId = undefined;
         let type = this.safeString (transaction, 'resource');
-        let amount = this.safeFloat2 (amountObject, 'amount');
+        let amount = this.safeFloat (amountObject, 'amount');
         let currencyId = this.safeString (amountObject, 'currency');
         let currency = this.commonCurrencyCode (currencyId);
         let feeCost = this.safeFloat (feeObject, 'amount');
@@ -374,7 +374,7 @@ module.exports = class coinbase extends Exchange {
         let side = this.safeString (trade, 'resource');
         let type = undefined;
         let cost = this.safeFloat (subtotalObject, 'amount');
-        let amount = this.safeFloat2 (amountObject, 'amount');
+        let amount = this.safeFloat (amountObject, 'amount');
         let price = undefined;
         if (cost !== undefined) {
             if (amount !== undefined) {
