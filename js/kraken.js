@@ -195,6 +195,7 @@ module.exports = class kraken extends Exchange {
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
+                'delistedMarketsById': {},
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
