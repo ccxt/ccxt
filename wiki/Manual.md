@@ -2229,7 +2229,7 @@ To place an order you will need the following information:
 
 - `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
 - `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, ccxt currently supports `market` and `limit` orders
+- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params and https://github.com/ccxt/ccxt/wiki/Manual#other-order-types
 - `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
 - `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
 
@@ -2242,7 +2242,7 @@ A successful call to a unified method for placing market or limit orders returns
 }
 ```
 
-**Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+- **Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 #### Market Orders
 
@@ -2328,6 +2328,54 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+#### Other Order Types
+
+The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params.
+
+The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
+
+```JavaScript
+const symbol = 'ETH/BTC'
+const type = 'limit' // or 'market', other types aren't unified yet
+const side = 'sell'
+const amount = 123.45 // your amount
+const price = 54.321 // your price
+// overrides
+const params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market', other types aren't unified yet
+side = 'sell'
+amount = 123.45  # your amount
+price = 54.321  # your price
+# overrides
+params = {
+    'stopPrice': 123.45,  # your stop price
+    'type': 'stopLimit',
+}
+order = exchange.create_order(symbol, type, side, amount, price, params)
+```
+
+```PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market', other types aren't unified yet
+$side = 'sell';
+$amount = 123.45; // your amount
+$price = 54.321; // your price
+// overrides
+$params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
 ### Canceling Orders
