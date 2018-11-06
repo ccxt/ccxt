@@ -538,42 +538,8 @@ class kraken extends Exchange {
         if ($foundMarket !== null) {
             $market = $foundMarket;
         } else if ($marketId !== null) {
-            // this codepath is to be rewritten
-            $baseIdStart = 0;
-            $baseIdEnd = 3;
-            $quoteIdStart = 3;
-            $quoteIdEnd = 6;
-            if (strlen ($marketId) === 8) {
-                $baseIdEnd = 4;
-                $quoteIdStart = 4;
-                $quoteIdEnd = 8;
-            } else if (strlen ($marketId) === 7) {
-                $baseIdEnd = 4;
-                $quoteIdStart = 4;
-                $quoteIdEnd = 7;
-            }
-            $baseId = mb_substr ($marketId, $baseIdStart, $baseIdEnd);
-            $quoteId = mb_substr ($marketId, $quoteIdStart, $quoteIdEnd);
-            $base = $baseId;
-            $quote = $quoteId;
-            if (strlen ($base) > 3) {
-                if (($base[0] === 'X') || ($base[0] === 'Z')) {
-                    $base = mb_substr ($base, 1);
-                }
-            }
-            if (strlen ($quote) > 3) {
-                if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
-                    $quote = mb_substr ($quote, 1);
-                }
-            }
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
-            $symbol = $base . '/' . $quote;
-            $market = array (
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-            );
+            // delisted $market ids go here
+            $market = $this->get_delisted_market_by_id ($marketId);
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -723,13 +689,68 @@ class kraken extends Exchange {
         return null;
     }
 
+    public function get_delisted_market_by_id ($id) {
+        if ($id === null) {
+            return $id;
+        }
+        $market = $this->safe_value($this->options['delistedMarketsById'], $id);
+        if ($market !== null) {
+            return $market;
+        }
+        $baseIdStart = 0;
+        $baseIdEnd = 3;
+        $quoteIdStart = 3;
+        $quoteIdEnd = 6;
+        if (strlen ($id) === 8) {
+            $baseIdEnd = 4;
+            $quoteIdStart = 4;
+            $quoteIdEnd = 8;
+        } else if (strlen ($id) === 7) {
+            $baseIdEnd = 4;
+            $quoteIdStart = 4;
+            $quoteIdEnd = 7;
+        }
+        $baseId = mb_substr ($id, $baseIdStart, $baseIdEnd);
+        $quoteId = mb_substr ($id, $quoteIdStart, $quoteIdEnd);
+        $base = $baseId;
+        $quote = $quoteId;
+        if (strlen ($base) > 3) {
+            if (($base[0] === 'X') || ($base[0] === 'Z')) {
+                $base = mb_substr ($base, 1);
+            }
+        }
+        if (strlen ($quote) > 3) {
+            if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
+                $quote = mb_substr ($quote, 1);
+            }
+        }
+        $base = $this->common_currency_code($base);
+        $quote = $this->common_currency_code($quote);
+        $symbol = $base . '/' . $quote;
+        $market = array (
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+        );
+        $this->options['delistedMarketsByIds'][$id] = $market;
+        return $market;
+    }
+
     public function parse_order ($order, $market = null) {
         $description = $order['descr'];
         $side = $description['type'];
         $type = $description['ordertype'];
+        $marketId = $this->safe_string($description, 'pair');
+        $foundMarket = $this->find_market_by_altname_or_id ($marketId);
         $symbol = null;
-        if ($market === null)
-            $market = $this->find_market_by_altname_or_id ($description['pair']);
+        if ($foundMarket !== null) {
+            $market = $foundMarket;
+        } else if ($marketId !== null) {
+            // delisted $market ids go here
+            $market = $this->get_delisted_market_by_id ($marketId);
+        }
         $timestamp = intval ($order['opentm'] * 1000);
         $amount = $this->safe_float($order, 'vol');
         $filled = $this->safe_float($order, 'vol_exec');
