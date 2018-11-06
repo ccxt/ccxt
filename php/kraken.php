@@ -195,6 +195,7 @@ class kraken extends Exchange {
             'options' => array (
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods' => array (),
+                'delistedMarketsById' => array (),
             ),
             'exceptions' => array (
                 'EAPI:Invalid key' => '\\ccxt\\AuthenticationError',

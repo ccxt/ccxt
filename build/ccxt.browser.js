@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.476'
+const version = '1.17.477'
 
 Exchange.ccxtVersion = version
 
@@ -44219,6 +44219,7 @@ module.exports = class kraken extends Exchange {
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
+                'delistedMarketsById': {},
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
