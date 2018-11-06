@@ -349,7 +349,8 @@ class quadrigacx extends Exchange {
                 $cost = abs ($cost);
             }
             if ($side === null) {
-                if ($this->safe_float($trade, $market['base']) > 0) {
+                $baseValue = $this->safe_float($trade, $market['baseId']);
+                if (($baseValue !== null) && ($baseValue > 0)) {
                     $side = 'buy';
                 } else {
                     $side = 'sell';
