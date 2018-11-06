@@ -309,7 +309,8 @@ module.exports = class quadrigacx extends Exchange {
         let rate = this.safeFloat (trade, 'rate');
         for (let i = 0; i < keys.length; i++) {
             let marketId = keys[i];
-            if (trade[marketId] === rate) {
+            let floatValue = this.safeFloat (trade, marketId);
+            if (floatValue === rate) {
                 if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 } else {
