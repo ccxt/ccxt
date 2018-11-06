@@ -556,6 +556,11 @@ class kraken (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            market = {
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+            }
         if market is not None:
             symbol = market['symbol']
         if 'ordertxid' in trade:

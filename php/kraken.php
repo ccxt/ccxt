@@ -568,6 +568,11 @@ class kraken extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $market = array (
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+            );
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
