@@ -656,6 +656,9 @@ class liquid extends Exchange {
                 return;
             }
         }
+        if ($code === 429) {
+            throw new DDoSProtection ($this->id . ' ' . $body);
+        }
         if (!$this->is_json_encoded_object($body)) {
             return; // fallback to default error handler
         }
