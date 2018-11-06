@@ -531,6 +531,7 @@ class kraken (Exchange):
         if foundMarket is not None:
             market = foundMarket
         elif marketId is not None:
+            # self codepath is to be rewritten
             baseIdStart = 0
             baseIdEnd = 3
             quoteIdStart = 3
