@@ -595,7 +595,8 @@ class bittrex (Exchange):
         amount = self.safe_float(transaction, 'Amount')
         address = self.safe_string_2(transaction, 'CryptoAddress', 'Address')
         txid = self.safe_string(transaction, 'TxId')
-        timestamp = self.parse8601(self.safe_string(transaction, 'Opened'))
+        updated = self.parse8601(self.safe_value(transaction, 'LastUpdated'))
+        timestamp = self.parse8601(self.safe_string(transaction, 'Opened'), updated)
         type = 'withdrawal' if (timestamp is not None) else 'deposit'
         code = None
         currencyId = self.safe_string(transaction, 'Currency')
@@ -630,7 +631,6 @@ class bittrex (Exchange):
                 status = 'pending'
             elif authorized and(txid is not None):
                 status = 'ok'
-        updated = self.parse8601(self.safe_value(transaction, 'LastUpdated'))
         feeCost = self.safe_float(transaction, 'TxCost')
         if feeCost is None:
             if type == 'deposit':
