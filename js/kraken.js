@@ -539,42 +539,7 @@ module.exports = class kraken extends Exchange {
             market = foundMarket;
         } else if (marketId !== undefined) {
             // delisted market ids go here
-            // this codepath is to be rewritten
-            let baseIdStart = 0;
-            let baseIdEnd = 3;
-            let quoteIdStart = 3;
-            let quoteIdEnd = 6;
-            if (marketId.length === 8) {
-                baseIdEnd = 4;
-                quoteIdStart = 4;
-                quoteIdEnd = 8;
-            } else if (marketId.length === 7) {
-                baseIdEnd = 4;
-                quoteIdStart = 4;
-                quoteIdEnd = 7;
-            }
-            let baseId = marketId.slice (baseIdStart, baseIdEnd);
-            let quoteId = marketId.slice (quoteIdStart, quoteIdEnd);
-            let base = baseId;
-            let quote = quoteId;
-            if (base.length > 3) {
-                if ((base[0] === 'X') || (base[0] === 'Z')) {
-                    base = base.slice (1);
-                }
-            }
-            if (quote.length > 3) {
-                if ((quote[0] === 'X') || (quote[0] === 'Z')) {
-                    quote = quote.slice (1);
-                }
-            }
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            symbol = base + '/' + quote;
-            market = {
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-            };
+            market = this.getDelistedMarketById (marketId);
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -724,13 +689,68 @@ module.exports = class kraken extends Exchange {
         return undefined;
     }
 
+    getDelistedMarketById (id) {
+        if (id === undefined) {
+            return id;
+        }
+        let market = this.safeValue (this.options['delistedMarketsById'], id);
+        if (market !== undefined) {
+            return market;
+        }
+        let baseIdStart = 0;
+        let baseIdEnd = 3;
+        let quoteIdStart = 3;
+        let quoteIdEnd = 6;
+        if (id.length === 8) {
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 8;
+        } else if (id.length === 7) {
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 7;
+        }
+        let baseId = id.slice (baseIdStart, baseIdEnd);
+        let quoteId = id.slice (quoteIdStart, quoteIdEnd);
+        let base = baseId;
+        let quote = quoteId;
+        if (base.length > 3) {
+            if ((base[0] === 'X') || (base[0] === 'Z')) {
+                base = base.slice (1);
+            }
+        }
+        if (quote.length > 3) {
+            if ((quote[0] === 'X') || (quote[0] === 'Z')) {
+                quote = quote.slice (1);
+            }
+        }
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        let symbol = base + '/' + quote;
+        market = {
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+        };
+        this.options['delistedMarketsByIds'][id] = market;
+        return market;
+    }
+
     parseOrder (order, market = undefined) {
         let description = order['descr'];
         let side = description['type'];
         let type = description['ordertype'];
+        let marketId = this.safeString (description, 'pair');
+        let foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
-        if (market === undefined)
-            market = this.findMarketByAltnameOrId (description['pair']);
+        if (foundMarket !== undefined) {
+            market = foundMarket;
+        } else if (marketId !== undefined) {
+            // delisted market ids go here
+            market = this.getDelistedMarketById (marketId);
+        }
         let timestamp = parseInt (order['opentm'] * 1000);
         let amount = this.safeFloat (order, 'vol');
         let filled = this.safeFloat (order, 'vol_exec');
