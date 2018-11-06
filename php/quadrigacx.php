@@ -310,7 +310,8 @@ class quadrigacx extends Exchange {
         $rate = $this->safe_float($trade, 'rate');
         for ($i = 0; $i < count ($keys); $i++) {
             $marketId = $keys[$i];
-            if ($trade[$marketId] === $rate) {
+            $floatValue = $this->safe_float($trade, $marketId);
+            if ($floatValue === $rate) {
                 if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$marketId];
                 } else {

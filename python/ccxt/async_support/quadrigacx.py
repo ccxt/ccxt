@@ -296,7 +296,8 @@ class quadrigacx (Exchange):
         rate = self.safe_float(trade, 'rate')
         for i in range(0, len(keys)):
             marketId = keys[i]
-            if trade[marketId] == rate:
+            floatValue = self.safe_float(trade, marketId)
+            if floatValue == rate:
                 if marketId in self.markets_by_id:
                     market = self.markets_by_id[marketId]
                 else:
