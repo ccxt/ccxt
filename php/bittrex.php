@@ -611,7 +611,8 @@ class bittrex extends Exchange {
         $amount = $this->safe_float($transaction, 'Amount');
         $address = $this->safe_string_2($transaction, 'CryptoAddress', 'Address');
         $txid = $this->safe_string($transaction, 'TxId');
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Opened'));
+        $updated = $this->parse8601 ($this->safe_value($transaction, 'LastUpdated'));
+        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'Opened'), $updated);
         $type = ($timestamp !== null) ? 'withdrawal' : 'deposit';
         $code = null;
         $currencyId = $this->safe_string($transaction, 'Currency');
@@ -650,7 +651,6 @@ class bittrex extends Exchange {
                 $status = 'ok';
             }
         }
-        $updated = $this->parse8601 ($this->safe_value($transaction, 'LastUpdated'));
         $feeCost = $this->safe_float($transaction, 'TxCost');
         if ($feeCost === null) {
             if ($type === 'deposit') {
