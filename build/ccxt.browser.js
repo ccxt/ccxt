@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.473'
+const version = '1.17.474'
 
 Exchange.ccxtVersion = version
 
@@ -44562,6 +44562,7 @@ module.exports = class kraken extends Exchange {
         if (foundMarket !== undefined) {
             market = foundMarket;
         } else if (marketId !== undefined) {
+            // this codepath is to be rewritten
             let baseIdStart = 0;
             let baseIdEnd = 3;
             let quoteIdStart = 3;

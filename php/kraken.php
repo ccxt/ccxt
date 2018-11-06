@@ -538,6 +538,7 @@ class kraken extends Exchange {
         if ($foundMarket !== null) {
             $market = $foundMarket;
         } else if ($marketId !== null) {
+            // this codepath is to be rewritten
             $baseIdStart = 0;
             $baseIdEnd = 3;
             $quoteIdStart = 3;
