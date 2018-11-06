@@ -611,7 +611,8 @@ module.exports = class bittrex extends Exchange {
         const amount = this.safeFloat (transaction, 'Amount');
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'));
+        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'), updated);
         const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
@@ -650,7 +651,6 @@ module.exports = class bittrex extends Exchange {
                 status = 'ok';
             }
         }
-        let updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
         let feeCost = this.safeFloat (transaction, 'TxCost');
         if (feeCost === undefined) {
             if (type === 'deposit') {
