@@ -20,7 +20,7 @@ Current feature list:
 -  all currencies, altcoins and symbols, prices, order books, trades, tickers, etc…
 -  optional normalized data for cross-exchange or cross-currency analytics and arbitrage
 -  an out-of-the box unified all-in-one API extremely easy to integrate
--  works in Node 7.6+, Python 2 and 3, PHP 5.3+, web browsers
+-  works in Node 7.6+, Python 2 and 3, PHP 5.4+, web browsers
 
 Sponsored Promotion
 -------------------
@@ -146,7 +146,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |cobinhood|          | cobinhood          | `COBINHOOD <https://cobinhood.com>`__                                                   |                                                                      | 1     | `API <https://cobinhood.github.io/api-public>`__                                                    | Taiwan                                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |coinbase|           | coinbase           | `coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__                   |                                                                      | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                    | US                                       |
+| |coinbase|           | coinbase           | `Coinbase <https://www.coinbase.com/join/58cbe25a355148797479dbd2>`__                   |                                                                      | 2     | `API <https://developers.coinbase.com/api/v2>`__                                                    | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |coinbaseprime|      | coinbaseprime      | `Coinbase Prime <https://prime.coinbase.com>`__                                         |                                                                      | \*    | `API <https://docs.prime.coinbase.com>`__                                                           | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -280,7 +280,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |qryptos|            | qryptos            | `QRYPTOS <https://www.liquid.com>`__                                                    |                                                                      | 2     | `API <https://developers.quoine.com>`__                                                             | Japan, China, Taiwan                     |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |quadrigacx|         | quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com>`__                                             |                                                                      | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                       | Canada                                   |
+| |quadrigacx|         | quadrigacx         | `QuadrigaCX <https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk>`__               |                                                                      | 2     | `API <https://www.quadrigacx.com/api_info>`__                                                       | Canada                                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |quoinex|            | quoinex            | `QUOINEX <https://www.liquid.com>`__                                                    |                                                                      | 2     | `API <https://developers.quoine.com>`__                                                             | Japan, China, Taiwan                     |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -332,7 +332,7 @@ The easiest way to install the ccxt library is to use builtin package managers:
 
 -  `ccxt in NPM <http://npmjs.com/package/ccxt>`__ (JavaScript / Node v7.6+)
 -  `ccxt in PyPI <https://pypi.python.org/pypi/ccxt>`__ (Python 2 and 3.5.3+)
--  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+)
+-  `ccxt in Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -403,7 +403,7 @@ The library supports concurrent asynchronous mode with asyncio and async/await i
 PHP
 ~~~
 
-`ccxt in PHP with Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.3+)
+`ccxt in PHP with Packagist/Composer <https://packagist.org/packages/ccxt/ccxt>`__ (PHP 5.4+)
 
 It requires common PHP modules:
 

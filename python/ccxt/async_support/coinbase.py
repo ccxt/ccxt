@@ -14,6 +14,7 @@ except NameError:
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import DDoSProtection
 
 
@@ -22,7 +23,7 @@ class coinbase (Exchange):
     def describe(self):
         return self.deep_extend(super(coinbase, self).describe(), {
             'id': 'coinbase',
-            'name': 'coinbase',
+            'name': 'Coinbase',
             'countries': ['US'],
             'rateLimit': 400,  # 10k calls per hour
             'version': 'v2',
@@ -41,7 +42,7 @@ class coinbase (Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchMarkets': False,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': False,
                 'fetchOpenOrders': False,
                 'fetchOrder': False,
@@ -53,8 +54,8 @@ class coinbase (Exchange):
                 'fetchTrades': False,
                 'withdraw': False,
                 'fetchTransactions': False,
-                'fetchDeposits': False,
-                'fetchWithdrawals': False,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -166,6 +167,242 @@ class coinbase (Exchange):
         response = await self.publicGetTime()
         data = response['data']
         return self.parse8601(data['iso'])
+
+    async def load_accounts(self, reload=False):
+        if reload:
+            self.accounts = await self.fetch_accounts()
+        else:
+            if self.accounts:
+                return self.accounts
+            else:
+                self.accounts = await self.fetch_accounts()
+                self.accountsById = self.index_by(self.accounts, 'id')
+        return self.accounts
+
+    async def fetch_accounts(self):
+        await self.load_markets()
+        response = await self.privateGetAccounts()
+        return response['data']
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        if accountId is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.')
+        await self.load_markets()
+        query = self.omit(params, ['account_id', 'accountId'])
+        buys = await self.privateGetAccountsAccountIdBuys(self.extend({
+            'account_id': accountId,
+        }, query))
+        sells = await self.privateGetAccountsAccountIdSells(self.extend({
+            'account_id': accountId,
+        }, query))
+        parsedBuys = self.parse_trades(buys['data'], None, since, limit)
+        parsedSells = self.parse_trades(sells['data'], None, since, limit)
+        result = self.array_concat(parsedBuys, parsedSells)
+        sortedResult = self.sort_by(result, 'timestamp')
+        return self.filter_by_symbol_since_limit(sortedResult, symbol, since, limit)
+
+    async def fetch_transactions_with_method(self, method, code=None, since=None, limit=None, params={}):
+        accountId = self.safe_string_2(params, 'account_id', 'accountId')
+        if accountId is None:
+            raise ArgumentsRequired(self.id + ' fetchTransactionsWithMethod requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.')
+        await self.load_markets()
+        query = self.omit(params, ['account_id', 'accountId'])
+        response = await getattr(self, method)(self.extend({
+            'account_id': accountId,
+        }, query))
+        return self.parseTransactions(response['data'], None, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', code, since, limit, params)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', code, since, limit, params)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'created': 'pending',
+            'completed': 'ok',
+            'canceled': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, transaction, market=None):
+        #
+        #    DEPOSIT
+        #        id: '406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        #        status: 'completed',
+        #        payment_method: [Object],
+        #        transaction: [Object],
+        #        user_reference: 'JQKBN85B',
+        #        created_at: '2018-10-01T14:58:21Z',
+        #        updated_at: '2018-10-01T17:57:27Z',
+        #        resource: 'deposit',
+        #        resource_path: '/v2/accounts/7702be4f-de96-5f08-b13b-32377c449ecf/deposits/406176b1-92cf-598f-ab6e-7d87e4a6cac1',
+        #        committed: True,
+        #        payout_at: '2018-10-01T14:58:34Z',
+        #        instant: True,
+        #        fee: [Object],
+        #        amount: [Object],
+        #        subtotal: [Object],
+        #        hold_until: '2018-10-04T07:00:00Z',
+        #        hold_days: 3
+        #
+        #    WITHDRAWAL
+        #       {
+        #           "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #           "status": "completed",
+        #           "payment_method": {
+        #             "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #             "resource": "payment_method",
+        #             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #           },
+        #           "transaction": {
+        #             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #             "resource": "transaction",
+        #             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #           },
+        #           "amount": {
+        #             "amount": "10.00",
+        #             "currency": "USD"
+        #           },
+        #           "subtotal": {
+        #             "amount": "10.00",
+        #             "currency": "USD"
+        #           },
+        #           "created_at": "2015-01-31T20:49:02Z",
+        #           "updated_at": "2015-02-11T16:54:02-08:00",
+        #           "resource": "withdrawal",
+        #           "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/withdrawals/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #           "committed": True,
+        #           "fee": {
+        #             "amount": "0.00",
+        #             "currency": "USD"
+        #           },
+        #           "payout_at": "2015-02-18T16:54:00-08:00"
+        #         }
+        amountObject = self.safe_value(transaction, 'amount', {})
+        feeObject = self.safe_value(transaction, 'fee', {})
+        id = self.safe_string(transaction, 'id')
+        timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
+        updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
+        orderId = None
+        type = self.safe_string(transaction, 'resource')
+        amount = self.safe_float(amountObject, 'amount')
+        currencyId = self.safe_string(amountObject, 'currency')
+        currency = self.common_currency_code(currencyId)
+        feeCost = self.safe_float(feeObject, 'amount')
+        feeCurrencyId = self.safe_string(feeObject, 'currency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        }
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        if status is None:
+            committed = self.safe_value(transaction, 'committed')
+            status = 'ok' if committed else 'pending'
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': None,
+            'tag': None,
+            'type': type,
+            'amount': amount,
+            'currency': currency,
+            'status': status,
+            'updated': updated,
+            'fee': fee,
+        }
+
+    def parse_trade(self, trade, market=None):
+        #
+        #     {
+        #       "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #       "status": "completed",
+        #       "payment_method": {
+        #         "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        #         "resource": "payment_method",
+        #         "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        #       },
+        #       "transaction": {
+        #         "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        #         "resource": "transaction",
+        #         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        #       },
+        #       "amount": {
+        #         "amount": "1.00000000",
+        #         "currency": "BTC"
+        #       },
+        #       "total": {
+        #         "amount": "10.25",
+        #         "currency": "USD"
+        #       },
+        #       "subtotal": {
+        #         "amount": "10.10",
+        #         "currency": "USD"
+        #       },
+        #       "created_at": "2015-01-31T20:49:02Z",
+        #       "updated_at": "2015-02-11T16:54:02-08:00",
+        #       "resource": "buy",
+        #       "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        #       "committed": True,
+        #       "instant": False,
+        #       "fee": {
+        #         "amount": "0.15",
+        #         "currency": "USD"
+        #       },
+        #       "payout_at": "2015-02-18T16:54:00-08:00"
+        #     }
+        #
+        symbol = None
+        totalObject = self.safe_value(trade, 'total', {})
+        amountObject = self.safe_value(trade, 'amount', {})
+        subtotalObject = self.safe_value(trade, 'subtotal', {})
+        feeObject = self.safe_value(trade, 'fee', {})
+        id = self.safe_string(trade, 'id')
+        timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
+        if market is None:
+            baseId = self.safe_string(totalObject, 'currency')
+            quoteId = self.safe_string(amountObject, 'currency')
+            if (baseId is not None) and(quoteId is not None):
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        orderId = None
+        side = self.safe_string(trade, 'resource')
+        type = None
+        cost = self.safe_float(subtotalObject, 'amount')
+        amount = self.safe_float(amountObject, 'amount')
+        price = None
+        if cost is not None:
+            if amount is not None:
+                price = cost / amount
+        feeCost = self.safe_float(feeObject, 'amount')
+        feeCurrencyId = self.safe_string(feeObject, 'currency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
+        fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+        }
+        return {
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        }
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetCurrencies(params)

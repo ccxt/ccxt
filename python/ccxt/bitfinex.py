@@ -758,9 +758,10 @@ class bitfinex (Exchange):
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
+            'info': response['info'],
             'currency': code,
             'address': address,
-            'info': response['info'],
+            'tag': None,
         }
 
     def fetch_deposit_address(self, code, params={}):

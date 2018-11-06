@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.17.459';
+$version = '1.17.473';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -50,7 +50,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.17.459';
+    const VERSION = '1.17.473';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -528,15 +528,15 @@ class Exchange {
         return preg_replace (array ('#[=]+$#u', '#\+#u', '#\\/#'), array ('', '-', '_'), base64_encode ($string));
     }
 
-    public static function urlencode ($string) {
-        return http_build_query ($string);
+    public function urlencode ($string) {
+        return http_build_query ($string, "", $this->urlencode_glue);
     }
 
-    public static function rawencode ($string) {
-        return urldecode (http_build_query ($string));
+    public function rawencode ($string) {
+        return urldecode (http_build_query ($string, "", $this->urlencode_glue));
     }
 
-    public static function encode_uri_component ($string) {
+    public function encode_uri_component ($string) {
         return urlencode ($string);
     }
 
@@ -873,6 +873,9 @@ class Exchange {
             'DRK' => 'DASH'
         );
 
+        $this->urlencode_glue = ini_get ('arg_separator.output'); // can be overrided by exchange constructor params
+        $this->urlencode_glue_warning = true;
+
         $options = array_replace_recursive ($this->describe(), $options);
 
         if ($options)
@@ -881,6 +884,16 @@ class Exchange {
                     (property_exists ($this, $key) && is_array ($this->{$key}) && is_array ($value)) ?
                         array_replace_recursive ($this->{$key}, $value) :
                         $value;
+
+        if ($this->urlencode_glue !== '&') {
+            if ($this->urlencode_glue_warning) {
+                throw new ExchangeError (this.id . " warning! The glue symbol for HTTP queries " .
+                    " is changed from its default value & to " .  $this->urlencode_glue . " in php.ini" .
+                    " (arg_separator.output) or with a call to ini_set prior to this message. If that" .
+                    " was the intent, you can acknowledge this warning and silence it by setting" .
+                    " 'urlencode_glue_warning' => false or 'urlencode_glue' => '&' with exchange constructor params");
+            }
+        }
 
         if ($this->api)
             $this->define_rest_api ($this->api, 'request');
@@ -2051,7 +2064,7 @@ class Exchange {
         //     return strpos($key, 'has') !== false && $key !== 'has';
         // }, ARRAY_FILTER_USE_KEY), CASE_LOWER);
 
-        // the above rewritten for PHP 5.3+
+        // the above rewritten for PHP 5.4+
         $nonfiltered = get_object_vars ($this);
         $filtered = array ();
         foreach ($nonfiltered as $key => $value) {
