@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.477'
+const version = '1.17.478'
 
 Exchange.ccxtVersion = version
 
@@ -54615,7 +54615,8 @@ module.exports = class quadrigacx extends Exchange {
                 cost = Math.abs (cost);
             }
             if (side === undefined) {
-                if (this.safeFloat (trade, market['base']) > 0) {
+                let baseValue = this.safeFloat (trade, market['baseId']);
+                if ((baseValue !== undefined) && (baseValue > 0)) {
                     side = 'buy';
                 } else {
                     side = 'sell';

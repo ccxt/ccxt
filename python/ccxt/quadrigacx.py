@@ -328,7 +328,8 @@ class quadrigacx (Exchange):
             if cost is not None:
                 cost = abs(cost)
             if side is None:
-                if self.safe_float(trade, market['base']) > 0:
+                baseValue = self.safe_float(trade, market['baseId'])
+                if (baseValue is not None) and(baseValue > 0):
                     side = 'buy'
                 else:
                     side = 'sell'
