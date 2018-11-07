@@ -49,6 +49,16 @@ module.exports = class blockbid extends Exchange {
                 'doc': 'https://docs.blockbid.io',
                 'logo': 'https://platform.blockbid.io/static/logo.svg',
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'uid': false,
+                'login': false,
+                'password': false,
+                'twofa': false,
+                'privateKey': false,
+                'walletAddress': false,
+            },
             'api': {
                 'public': {
                     'get': ['markets', 'tickers', 'ohlc', 'orderbook', 'trades'],
@@ -100,8 +110,8 @@ module.exports = class blockbid extends Exchange {
                 'exact': {
                     'server_error': ExchangeNotAvailable,
                     'internal_error': ExchangeError,
-                    'view_order_failed': OrderNotFound, // ?
-                    'order_failed': InvalidOrder, // on price <= 0
+                    'view_order_failed': OrderNotFound,
+                    'order_failed': InvalidOrder,
                     'rate_limited': DDoSProtection,
                 },
             },
