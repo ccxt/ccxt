@@ -228,18 +228,7 @@ module.exports = class blockbid extends Exchange {
             request['bids_limit'] = limit;
         }
         let response = await this.publicGetOrderbook (this.extend (request, params));
-        let preParseBook = {};
-        let arrBids = [];
-        let arrAsks = [];
-        for (let i = 0; i < response['bids'].length; i++) {
-            arrBids.push ([response['bids'][i]['price'], response['bids'][i]['volume'], []]);
-        }
-        for (let i = 0; i < response['asks'].length; i++) {
-            arrAsks.push ([response['asks'][i]['price'], response['asks'][i]['volume'], []]);
-        }
-        preParseBook['bids'] = arrBids;
-        preParseBook['asks'] = arrAsks;
-        return this.parseOrderBook (preParseBook, undefined, 'bids', 'asks', 0, 1);
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'volume');
     }
 
     parseTrade (trade, market = undefined) {
