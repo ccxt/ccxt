@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.479'
+const version = '1.17.480'
 
 Exchange.ccxtVersion = version
 
@@ -48418,7 +48418,7 @@ module.exports = class liqui extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, InsufficientFunds, AuthenticationError, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -49069,6 +49069,9 @@ module.exports = class liquid extends Exchange {
             } else {
                 return;
             }
+        }
+        if (code === 429) {
+            throw new DDoSProtection (this.id + ' ' + body);
         }
         if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
