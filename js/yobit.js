@@ -133,7 +133,7 @@ module.exports = class yobit extends liqui {
             },
             'options': {
                 'fetchOrdersRequiresSymbol': true,
-                'fetchTickersMaxLength': 512
+                'fetchTickersMaxLength': 512,
             },
         });
     }
