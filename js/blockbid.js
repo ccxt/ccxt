@@ -572,20 +572,18 @@ module.exports = class blockbid extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body) {
-        if (body.length < 2) {
-            return;
-        }
-        if (body[0] === '{') {
-            const response = JSON.parse (body);
-            if (response.error) {
-                const errorCode = response.error.name;
-                const errorMessage = response.error.message;
-                const exact = this.exceptions['exact'];
-                if (errorCode in exact) {
-                    throw new exact[errorCode] (errorMessage);
-                }
-                throw new ExchangeError (errorCode + ' - ' + errorMessage); // unknown message
+        if (!this.isJsonEncodedObject (body))
+            return; // fallback to default error handler
+        const response = JSON.parse (body);
+        const error = this.safeValue (response, 'error');
+        if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
+            const code = this.safeString (error, 'name');
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
             }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 
