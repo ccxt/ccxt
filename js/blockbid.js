@@ -515,10 +515,10 @@ module.exports = class blockbid extends Exchange {
             }
         }
         let method = isFiat ? 'privateGetWithdrawsFiat' : 'privateGetWithdrawsCrypto';
-        let response = await this.privateGetWithdrawsFiat (this.extend (request, params));
+        let response = await this[method] (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
-    
+
     parseTransactionStatuses (status) {
         const statuses = {
         };
