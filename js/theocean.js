@@ -14,6 +14,7 @@ module.exports = class theocean extends Exchange {
             'version': 'v0',
             'certified': true,
             'parseJsonResponse': false,
+            'requiresWeb3': true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',

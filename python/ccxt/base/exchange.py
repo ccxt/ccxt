@@ -236,6 +236,8 @@ class Exchange(object):
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+
+    requiresWeb3 = False
     web3 = None
 
     commonCurrencies = {
@@ -298,7 +300,7 @@ class Exchange(object):
         self.session = self.session if self.session else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if Web3 and not self.web3:
+        if self.requiresWeb3 and Web3 and not self.web3:
             # self.web3 = w3 if w3 else Web3(HTTPProvider())
             self.web3 = Web3(HTTPProvider())
 

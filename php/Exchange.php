@@ -867,6 +867,8 @@ class Exchange {
         $this->last_json_response = null;
         $this->last_response_headers = null;
 
+        $this->requiresWeb3 = false;
+
         $this->commonCurrencies = array (
             'XBT' => 'BTC',
             'BCC' => 'BCH',

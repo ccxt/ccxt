@@ -318,6 +318,8 @@ module.exports = class Exchange {
         this.trades      = {}
         this.transactions = {}
 
+        this.requiresWeb3 = false
+
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
@@ -361,7 +363,7 @@ module.exports = class Exchange {
             journal (() => this.journal, this, Object.keys (this.has))
         }
 
-        if (!this.web3 && Web3) {
+        if (this.requiresWeb3 && !this.web3 && Web3) {
             this.web3 = new Web3 (new Web3.providers.HttpProvider ())
         }
     }
