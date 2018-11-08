@@ -179,8 +179,11 @@ module.exports = class blockbid extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {"timestamp":"2018-11-08T23:32:28.000Z","market":"btcaud","last":8821.15382691}
+        //
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'market');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -193,32 +196,31 @@ module.exports = class blockbid extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let datetime = this.safeString (ticker, 'timestamp');
-        let timestamp = this.parse8601 (datetime);
+        let timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'high': this.safeFloat (ticker, '24h_high'),
-            'low': this.safeFloat (ticker, '24h_low'),
-            'bid': this.safeFloat (ticker, 'highest_bid'),
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'lowest_ask'),
+            'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'percentChanged24hr'),
+            'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, '24h_volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quote_volume'),
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
