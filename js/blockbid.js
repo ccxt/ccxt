@@ -462,8 +462,7 @@ module.exports = class blockbid extends Exchange {
             request['limit'] = limit;
         }
         let result = await this.privateGetOrders (this.extend (request, params));
-        let orders = this.parseOrders (result, undefined, since, limit);
-        return orders;
+        return this.parseOrders (result, undefined, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -495,45 +494,52 @@ module.exports = class blockbid extends Exchange {
                 isFiat = true;
             }
         }
-        if (isFiat) {
-            let response = await this.privateGetWithdrawsFiat (this.extend (request, params));
-            return this.parseTransactions (response, currency);
-        } else {
-            let response = await this.privateGetWithdrawsCrypto (this.extend (request, params));
-            return this.parseTransactions (response, currency);
-        }
+        let method = isFiat ? 'privateGetWithdrawsFiat' : 'privateGetWithdrawsCrypto';
+        let response = await this.privateGetWithdrawsFiat (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+    
+    parseTransactionStatuses (status) {
+        const statuses = {
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let datetime = this.safeString (transaction, 'timeCreated');
-        let timestamp = this.parse8601 (datetime);
+        const id = this.safeString (transaction, 'withdrawID');
+        const txid = this.safeString (transaction, 'txid');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'timeCreated'));
         let code = undefined;
-        if (typeof currency === 'undefined') {
-            let currencyId = this.safeString (transaction, 'currency');
-            if (currencyId in this.currencies_by_id) {
-                currency = this.currencies_by_id[currencyId];
-            }
+        const currencyId = this.safeString (transaction, 'currency');
+        const address = this.safeString (transaction, 'address');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        if (typeof currency !== 'undefined') {
-            code = currency['code'];
-        }
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const updated = this.safeString (transaction, 'timeUpdated');
+        const fee = {
+            'cost': this.safeFloat (transaction, 'fee'),
+            'currency': code,
+            'rate': undefined,
+        };
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'withdrawID'),
-            'txid': this.safeString (transaction, 'txid'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'address': this.safeString (transaction, 'address'), // or is it defined?
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined, // or is it defined?
             'type': undefined, // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': amount,
             'currency': code,
-            'status': transaction['state'],
-            'updated': this.safeString (transaction, 'timeUpdated'),
-            'fee': {
-                'cost': this.safeFloat (transaction, 'fee'),
-                'rate': undefined,
-            },
+            'status': status,
+            'updated': updated,
+            'fee': fee,
         };
     }
 
