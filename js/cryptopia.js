@@ -108,6 +108,8 @@ module.exports = class cryptopia extends Exchange {
                 'FT': 'Fabric Token',
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'HC': 'HarvestCoin',
+                'HSR': 'HC',
                 'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
