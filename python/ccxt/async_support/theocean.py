@@ -40,6 +40,7 @@ class theocean (Exchange):
             'version': 'v0',
             'certified': True,
             'parseJsonResponse': False,
+            'requiresWeb3': True,
             # add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.484'
+const version = '1.17.485'
 
 Exchange.ccxtVersion = version
 
@@ -1664,6 +1664,8 @@ module.exports = class Exchange {
         this.trades      = {}
         this.transactions = {}
 
+        this.requiresWeb3 = false
+
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
@@ -1707,7 +1709,7 @@ module.exports = class Exchange {
             journal (() => this.journal, this, Object.keys (this.has))
         }
 
-        if (!this.web3 && Web3) {
+        if (this.requiresWeb3 && !this.web3 && Web3) {
             this.web3 = new Web3 (new Web3.providers.HttpProvider ())
         }
     }
@@ -55965,6 +55967,7 @@ module.exports = class theocean extends Exchange {
             'version': 'v0',
             'certified': true,
             'parseJsonResponse': false,
+            'requiresWeb3': true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
