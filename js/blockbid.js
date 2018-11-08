@@ -224,10 +224,17 @@ module.exports = class blockbid extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTickers (params);
+        let response = await this.publicGetTickers (params);
+        //
+        //     [
+        //         {"timestamp":"2018-11-08T23:32:28.000Z","market":"btcaud","last":8821.15382691},
+        //         {"timestamp":"2018-11-08T23:32:28.000Z","market":"ethaud","last":291.45242072},
+        //         ...
+        //     ]
+        //
         let result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            result.push (this.parseTicker (tickers[i]));
+        for (let i = 0; i < response.length; i++) {
+            result.push (this.parseTicker (response[i]));
         }
         return this.indexBy (result, 'symbol');
     }
