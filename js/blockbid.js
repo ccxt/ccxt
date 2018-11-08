@@ -429,6 +429,7 @@ module.exports = class blockbid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         let response = await this.privateDeleteOrdersId (this.extend ({
             'id': id,
         }, params));
@@ -436,11 +437,12 @@ module.exports = class blockbid extends Exchange {
     }
 
     async cancelOrders (side = undefined, params = {}) {
-        let req = {};
+        await this.loadMarkets ();
+        let request = {};
         if (typeof side !== 'undefined') {
-            req['side'] = side;
+            request['side'] = side;
         }
-        let response = await this.privateDeleteOrders (this.extend (req, params));
+        let response = await this.privateDeleteOrders (this.extend (request, params));
         return this.parseOrders (response);
     }
 
