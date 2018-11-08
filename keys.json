@@ -1,5 +1,4 @@
 {
-    "_1broker":      { "skip": true, "apiKey": "A0f79063a5e91e6d62fbcbbbbdd63258" },
     "_1btcxe":       { "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
     "allcoin":       { "skip": true },
     "anxpro":        { "skip": true },
@@ -28,7 +27,6 @@
     "btctradeim":    { "skip": true },
     "btctradeua":    { "skip": true, "apiKey": "dd5de6b608f21776665da9098232bfb47445cc42485a7258350a2d426a14367c", "secret": "e7aa669524e3d28b922ebe6f273c277a649da10c85e9d12092a1feebe40491db" },
     "btcturk":       { "skip": true },
-    "btcx":          { "skip": true, "apiKey": "F2KKX-DJQSP-ZV8RG-RCL1Y-ODEQV-GX8EH-EJDOT", "secret": "dikdi6nqy7xhnsipkevvuf38u7kuet2i4hlff1x7zofhdoyosofiuchlbsbgh6oe" },
     "bter":          { "skip": true, "apiKey": "9600DEB4-B499-417C-B496-5925953236E5", "secret": "c7853b8c94b1ab1b1ce4a9c2e7318cb3bbe9777168ab9b1d0eceb73969b64291" },
     "bxinth":        { "skip": true, "apiKey": "484a63e83ccd", "secret": "80c6c46d100a" },
     "ccex":          { "skip": true },
