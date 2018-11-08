@@ -172,7 +172,9 @@ module.exports = class blockbid extends Exchange {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                let [baseId, quoteId] = marketId.split ('-');
+                let pairArray = marketId.split ('-');
+                let baseId = pairArray[0];
+                let quoteId = pairArray[1];
                 let base = this.commonCurrencyCode (baseId);
                 let quote = this.commonCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
