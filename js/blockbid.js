@@ -267,7 +267,7 @@ module.exports = class blockbid extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (market) {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
@@ -300,22 +300,22 @@ module.exports = class blockbid extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        let request = {
             'market': market['id'],
             'limit': limit,
-        }, params));
+        }
+        let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
-        let datetime = this.parse8601 (ohlcv['timestamp']);
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            datetime,
-            parseFloat (ohlcv['open']),
-            parseFloat (ohlcv['high']),
-            parseFloat (ohlcv['low']),
-            parseFloat (ohlcv['close']),
-            parseFloat (ohlcv['volume']),
+            this.parse8601 (this.safeString (ohlcv, 'timestamp')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
