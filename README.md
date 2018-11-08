@@ -22,9 +22,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![TheOcean](https://user-images.githubusercontent.com/1294454/43154255-65ccf050-8f7c-11e8-9288-46765eea372d.png)](https://theocean.trade)
+Want this place? Contact us: info@ccxt.trade
 
-Learn more about **[The Ocean](https://theocean.trade)** in [CCXT v1.17 Release Announcement](https://github.com/ccxt/ccxt/issues/3476).
+![Placehodler](https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png)
 
 ## Certified Cryptocurrency Exchanges
 
