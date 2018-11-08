@@ -12,7 +12,7 @@ module.exports = class blockbid extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'blockbid',
             'name': 'Blockbid',
-            'countries': ['AU'],
+            'countries': [ 'AU' ],
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
@@ -61,7 +61,13 @@ module.exports = class blockbid extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': ['markets', 'tickers', 'ohlc', 'orderbook', 'trades'],
+                    'get': [
+                        'markets',
+                        'tickers',
+                        'ohlc',
+                        'orderbook',
+                        'trades',
+                    ],
                 },
                 'private': {
                     'get': [
@@ -244,20 +250,26 @@ module.exports = class blockbid extends Exchange {
         if (market) {
             symbol = market['symbol'];
         }
-        let datetime = trade['createdAt'];
-        let timestamp = this.parse8601 (datetime);
+        let timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'volume');
-        let cost = price * amount;
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let side = this.safeString (trade, 'side');
+        let id = this.safeString (trade, 'id');
         return {
             'info': trade,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': trade['id'],
+            'id': id,
             'order': undefined,
             'type': undefined,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
