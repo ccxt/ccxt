@@ -303,7 +303,7 @@ module.exports = class blockbid extends Exchange {
         let request = {
             'market': market['id'],
             'limit': limit,
-        }
+        };
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
