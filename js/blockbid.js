@@ -125,10 +125,17 @@ module.exports = class blockbid extends Exchange {
     }
 
     async fetchMarkets () {
-        let markets = await this.publicGetMarkets ();
+        let response = await this.publicGetMarkets ();
+        //
+        //     [
+        //         {"id":"btcaud","name":"BTC/AUD"},
+        //         {"id":"ethaud","name":"ETH/AUD"},
+        //         ...
+        //     ]
+        //
         let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
+        for (let i = 0; i < response.length; i++) {
+            let market = response[i];
             let id = market['id'];
             let name = market['name'];
             let pairArray = name.split ('/');
