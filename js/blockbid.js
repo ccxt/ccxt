@@ -213,13 +213,7 @@ module.exports = class blockbid extends Exchange {
     async fetchTicker (symbol = undefined, params = {}) {
         await this.loadMarkets ();
         let tickers = await this.publicGetTickers (params);
-        const marketId = this.marketId (symbol);
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            if (ticker['market'] === marketId) {
-                return this.parseTicker (ticker);
-            }
-        }
+        return this.safeValue (tickers, symbol);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
