@@ -25,9 +25,12 @@ Current feature list:
 Sponsored Promotion
 -------------------
 
-`TheOcean <https://theocean.trade>`__
+Want this place? Contact us: info@ccxt.trade
 
-Learn more about `The Ocean <https://theocean.trade>`__ in `CCXT v1.17 Release Announcement <https://github.com/ccxt/ccxt/issues/3476>`__.
+.. figure:: https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png
+   :alt: Placehodler
+
+   Placehodler
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
