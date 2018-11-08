@@ -478,6 +478,7 @@ module.exports = class blockbid extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let currency = this.currency (code);
         let request = {
             'currency': currency['id'],
