@@ -19,7 +19,7 @@ module.exports = class blockbid extends Exchange {
                 'cancelOrders': true,
                 'fetchDepositAddress': true,
                 'fetchL2OrderBook': false, // this probably needs to be implemented
-                'fetchDeposits': true,
+                'fetchDeposits': false,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
