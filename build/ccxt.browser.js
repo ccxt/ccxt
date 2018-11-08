@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.482'
+const version = '1.17.483'
 
 Exchange.ccxtVersion = version
 
@@ -16514,7 +16514,7 @@ module.exports = class bitz extends Exchange {
             }
         } else {
             if (since !== undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument to be supplied along with the limit argument');
+                throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
             }
         }
         let response = await this.marketGetKline (this.extend (request, params));
