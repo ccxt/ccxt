@@ -354,7 +354,7 @@ module.exports = class blockbid extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'filled': 'closed',
             'rejected': 'closed',
             'partially_filled': 'open',
@@ -366,10 +366,7 @@ module.exports = class blockbid extends Exchange {
             'cancelled': 'canceled',
             'triggered': 'triggered',
         };
-        if (status in statuses) {
-            return statuses[status];
-        }
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
