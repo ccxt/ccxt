@@ -270,7 +270,7 @@ module.exports = class bitbay extends Exchange {
             // request['bic'] = '';
         } else {
             method = 'privatePostTransfer';
-            if (typeof tag !== 'undefined')
+            if (tag !== undefined)
                 address += '?dt=' + tag.toString ();
             request['address'] = address;
         }

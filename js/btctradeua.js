@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -163,13 +163,13 @@ module.exports = class btctradeua extends Exchange {
             let start = Math.max (tickerLength - 48, 0);
             for (let t = start; t < ticker.length; t++) {
                 let candle = ticker[t];
-                if (typeof result['open'] === 'undefined')
+                if (result['open'] === undefined)
                     result['open'] = candle[1];
-                if ((typeof result['high'] === 'undefined') || (result['high'] < candle[2]))
+                if ((result['high'] === undefined) || (result['high'] < candle[2]))
                     result['high'] = candle[2];
-                if ((typeof result['low'] === 'undefined') || (result['low'] > candle[3]))
+                if ((result['low'] === undefined) || (result['low'] > candle[3]))
                     result['low'] = candle[3];
-                if (typeof result['baseVolume'] === 'undefined')
+                if (result['baseVolume'] === undefined)
                     result['baseVolume'] = -candle[5];
                 else
                     result['baseVolume'] -= candle[5];
@@ -302,8 +302,8 @@ module.exports = class btctradeua extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         let market = this.market (symbol);
         let response = await this.privatePostMyOrdersSymbol (this.extend ({
             'symbol': market['id'],

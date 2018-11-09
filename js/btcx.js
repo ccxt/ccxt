@@ -72,7 +72,7 @@ module.exports = class btcx extends Exchange {
         let request = {
             'id': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit; // 1000
         let orderbook = await this.publicGetDepthIdLimit (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');

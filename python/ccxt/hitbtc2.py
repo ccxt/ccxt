@@ -19,6 +19,8 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
 
 class hitbtc2 (hitbtc):
@@ -559,7 +561,7 @@ class hitbtc2 (hitbtc):
         })
 
     def fee_to_precision(self, symbol, fee):
-        return self.truncate(fee, 8)
+        return self.decimal_to_precision(fee, TRUNCATE, 8, DECIMAL_PLACES)
 
     def fetch_markets(self):
         markets = self.publicGetSymbol()
@@ -578,7 +580,7 @@ class hitbtc2 (hitbtc):
                 'price': self.precision_from_string(market['tickSize']),
                 # FIXME: for lots > 1 the following line returns 0
                 # 'amount': self.precision_from_string(market['quantityIncrement']),
-                'amount': -1 * math.log10(lot),
+                'amount': -1 * int(math.log10(lot)),
             }
             taker = self.safe_float(market, 'takeLiquidityRate')
             maker = self.safe_float(market, 'provideLiquidityRate')
@@ -835,6 +837,7 @@ class hitbtc2 (hitbtc):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
+            request['sort'] = 'ASC'
             request['from'] = self.iso8601(since)
         response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
@@ -879,7 +882,7 @@ class hitbtc2 (hitbtc):
             'requestClientId': requestClientId,
         }
         if amount is not None:
-            request['quantity'] = self.amount_to_precision(symbol, float(amount))
+            request['quantity'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePatchOrderClientOrderId(self.extend(request, params))
@@ -895,12 +898,8 @@ class hitbtc2 (hitbtc):
         return self.parse_order(response)
 
     def parse_order(self, order, market=None):
-        created = None
-        if 'createdAt' in order:
-            created = self.parse8601(order['createdAt'])
-        updated = None
-        if 'updatedAt' in order:
-            updated = self.parse8601(order['updatedAt'])
+        created = self.parse8601(self.safe_string(order, 'createdAt'))
+        updated = self.parse8601(self.safe_string(order, 'updatedAt'))
         if not market:
             market = self.markets_by_id[order['symbol']]
         symbol = market['symbol']

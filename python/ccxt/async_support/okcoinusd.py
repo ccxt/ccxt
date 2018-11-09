@@ -8,6 +8,7 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -57,6 +58,7 @@ class okcoinusd (Exchange):
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
+                        'spot/user-level',
                     ],
                 },
                 'public': {
@@ -539,13 +541,13 @@ class okcoinusd (Exchange):
         volumeIndex = 6 if (numElements > 6) else 5
         return [
             ohlcv[0],  # timestamp
-            ohlcv[1],  # Open
-            ohlcv[2],  # High
-            ohlcv[3],  # Low
-            ohlcv[4],  # Close
-            # ohlcv[5],  # quote volume
-            # ohlcv[6],  # base volume
-            ohlcv[volumeIndex],  # okex will return base volume in the 7th element for future markets
+            float(ohlcv[1]),  # Open
+            float(ohlcv[2]),  # High
+            float(ohlcv[3]),  # Low
+            float(ohlcv[4]),  # Close
+            # float(ohlcv[5]),  # quote volume
+            # float(ohlcv[6]),  # base volume
+            float(ohlcv[volumeIndex]),  # okex will return base volume in the 7th element for future markets
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -659,7 +661,7 @@ class okcoinusd (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -676,19 +678,15 @@ class okcoinusd (Exchange):
         return response
 
     def parse_order_status(self, status):
-        if status == -1:
-            return 'canceled'
-        if status == 0:
-            return 'open'
-        if status == 1:
-            return 'open'
-        if status == 2:
-            return 'closed'
-        if status == 3:
-            return 'open'
-        if status == 4:
-            return 'canceled'
-        return status
+        statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        }
+        return self.safe_value(statuses, status, status)
 
     def parse_order_side(self, side):
         if side == 1:
@@ -718,7 +716,7 @@ class okcoinusd (Exchange):
                 side = self.parse_order_side(order['type'])
                 if ('contract_name' in list(order.keys())) or ('lever_rate' in list(order.keys())):
                     type = 'margin'
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'symbol')

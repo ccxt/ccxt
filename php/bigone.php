@@ -89,6 +89,7 @@ class bigone extends Exchange {
             'exceptions' => array (
                 'codes' => array (
                     '401' => '\\ccxt\\AuthenticationError',
+                    '10030' => '\\ccxt\\InvalidNonce', // array ("message":"invalid nonce, nonce should be a 19bits number","code":10030)
                 ),
                 'detail' => array (
                     'Internal server error' => '\\ccxt\\ExchangeNotAvailable',
@@ -548,7 +549,7 @@ class bigone extends Exchange {
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -616,6 +617,10 @@ class bigone extends Exchange {
         ), $params));
     }
 
+    public function nonce () {
+        return $this->microseconds () * 1000;
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
@@ -624,7 +629,7 @@ class bigone extends Exchange {
                 $url .= '?' . $this->urlencode ($query);
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce () * 1000000000;
+            $nonce = $this->nonce ();
             $request = array (
                 'type' => 'OpenAPI',
                 'sub' => $this->apiKey,
@@ -654,6 +659,7 @@ class bigone extends Exchange {
             $response = json_decode ($body, $as_associative_array = true);
             //
             //      array ("$errors":{"detail":"Internal server $error")}
+            //      array ("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}
             //
             $error = $this->safe_value($response, 'error');
             $errors = $this->safe_value($response, 'errors');
@@ -666,8 +672,12 @@ class bigone extends Exchange {
                 }
                 $exceptions = $this->exceptions['codes'];
                 if ($errors !== null) {
-                    $code = $this->safe_string($errors, 'detail');
-                    $exceptions = $this->exceptions['detail'];
+                    if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
+                        $code = $this->safe_string($errors[0], 'code');
+                    } else {
+                        $code = $this->safe_string($errors, 'detail');
+                        $exceptions = $this->exceptions['detail'];
+                    }
                 }
                 if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
                     throw new $exceptions[$code] ($feedback);

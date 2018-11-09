@@ -72,7 +72,7 @@ module.exports = class foxbit extends Exchange {
         });
         let balances = this.safeValue (response['Responses'], this.options['brokerId']);
         let result = { 'info': response };
-        if (typeof balances !== 'undefined') {
+        if (balances !== undefined) {
             let currencyIds = Object.keys (this.currencies_by_id);
             for (let i = 0; i < currencyIds.length; i++) {
                 let currencyId = currencyIds[i];

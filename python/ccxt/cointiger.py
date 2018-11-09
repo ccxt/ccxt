@@ -16,12 +16,12 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.decimal_to_precision import ROUND
-from ccxt.base.decimal_to_precision import TRUNCATE
 
 
 class cointiger (huobipro):
@@ -31,13 +31,13 @@ class cointiger (huobipro):
             'id': 'cointiger',
             'name': 'CoinTiger',
             'countries': ['CN'],
-            'hostname': 'api.cointiger.pro',
+            'hostname': 'cointiger.pro',
             'has': {
                 'fetchCurrencies': False,
                 'fetchTickers': True,
                 'fetchTradingLimits': False,
                 'fetchOrder': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': False,  # not tested yet
@@ -49,11 +49,11 @@ class cointiger (huobipro):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg',
                 'api': {
-                    'public': 'https://api.cointiger.pro/exchange/trading/api/market',
-                    'private': 'https://api.cointiger.pro/exchange/trading/api',
-                    'exchange': 'https://www.cointiger.pro/exchange',
-                    'v2public': 'https://api.cointiger.pro/exchange/trading/api/v2',
-                    'v2': 'https://api.cointiger.pro/exchange/trading/api/v2',
+                    'public': 'https://api.{hostname}/exchange/trading/api/market',
+                    'private': 'https://api.{hostname}/exchange/trading/api',
+                    'exchange': 'https://www.{hostname}/exchange',
+                    'v2public': 'https://api.{hostname}/exchange/trading/api/v2',
+                    'v2': 'https://api.{hostname}/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
                 'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
@@ -121,7 +121,7 @@ class cointiger (huobipro):
                 #    {"code":"1","msg":"系统错误","data":null}
                 #    {"code":"1","msg":"Balance insufficient,余额不足","data":null}
                 '1': ExchangeError,
-                '2': ExchangeError,
+                '2': BadRequest,  # {"code":"2","msg":"Parameter error","data":null}
                 '5': InvalidOrder,
                 '6': InvalidOrder,
                 '8': OrderNotFound,
@@ -345,7 +345,10 @@ class cointiger (huobipro):
         if feeCost is not None:
             feeCurrency = None
             if market is not None:
-                feeCurrency = market['base']
+                if side == 'buy':
+                    feeCurrency = market['base']
+                elif side == 'sell':
+                    feeCurrency = market['quote']
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -387,7 +390,7 @@ class cointiger (huobipro):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -447,7 +450,7 @@ class cointiger (huobipro):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrderTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -473,9 +476,9 @@ class cointiger (huobipro):
         #
         return self.parse_trades(response['data'], market, since, limit)
 
-    def fetch_orders_by_status(self, status=None, symbol=None, since=None, limit=None, params={}):
+    def fetch_orders_by_status_v1(self, status=None, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
@@ -495,11 +498,37 @@ class cointiger (huobipro):
             result.append(self.parse_order(order, market))
         return result
 
+    def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status_v1('open', symbol, since, limit, params)
+
+    def fetch_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_status_v1(None, symbol, since, limit, params)
+
+    def fetch_orders_by_states_v2(self, states, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        if limit is None:
+            limit = 50
+        response = self.v2GetOrderOrders(self.extend({
+            'symbol': market['id'],
+            # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
+            'states': states,  # 'new,part_filled,filled,canceled,expired'
+            # 'from': '0',  # id
+            'direct': 'next',  # or 'prev'
+            'size': limit,
+        }, params))
+        return self.parse_orders(response['data'], market, since, limit)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_by_states_v2('new,part_filled,filled,canceled,expired', symbol, since, limit, params)
+
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('open', symbol, since, limit, params)
+        return self.fetch_orders_by_states_v2('new,part_filled', symbol, since, limit, params)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('closed', symbol, since, limit, params)
+        return self.fetch_orders_by_states_v2('filled,canceled', symbol, since, limit, params)
 
     def fetch_order(self, id, symbol=None, params={}):
         #
@@ -521,7 +550,7 @@ class cointiger (huobipro):
         #                    status:  2              }}
         #
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -584,9 +613,8 @@ class cointiger (huobipro):
         side = self.safe_string(order, 'side')
         type = None
         orderType = self.safe_string(order, 'type')
-        status = self.safe_string(order, 'status')
-        timestamp = self.safe_integer(order, 'created_at')
-        timestamp = self.safe_integer(order, 'ctime', timestamp)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        timestamp = self.safe_integer_2(order, 'created_at', 'ctime')
         lastTradeTimestamp = self.safe_integer_2(order, 'mtime', 'finished-at')
         symbol = None
         if market is None:
@@ -631,7 +659,6 @@ class cointiger (huobipro):
                         'cost': feeCost,
                         'currency': feeCurrency,
                     }
-            status = self.parse_order_status(status)
         if amount is not None:
             if remaining is not None:
                 if filled is None:
@@ -641,8 +668,9 @@ class cointiger (huobipro):
                 if remaining is None:
                     remaining = max(0, amount - filled)
         if status is None:
-            if (remaining is not None) and(remaining > 0):
-                status = 'open'
+            if remaining is not None:
+                if remaining == 0:
+                    status = 'closed'
         result = {
             'info': order,
             'id': id,
@@ -664,18 +692,6 @@ class cointiger (huobipro):
         }
         return result
 
-    def cost_to_precision(self, symbol, cost):
-        return self.decimal_to_precision(cost, ROUND, self.markets[symbol]['precision']['price'])
-
-    def price_to_precision(self, symbol, price):
-        return self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'])
-
-    def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'])
-
-    def fee_to_precision(self, currency, fee):
-        return self.decimal_to_precision(fee, ROUND, self.currencies[currency]['precision'])
-
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         if not self.password:
@@ -693,7 +709,7 @@ class cointiger (huobipro):
         if (type == 'market') and(side == 'buy'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules')
-            order['volume'] = self.amount_to_precision(symbol, amount * price)
+            order['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
             order['price'] = self.price_to_precision(symbol, price)
         else:
@@ -728,7 +744,7 @@ class cointiger (huobipro):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
         response = self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
@@ -743,7 +759,7 @@ class cointiger (huobipro):
     def cancel_orders(self, ids, symbol=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument')
         market = self.market(symbol)
         marketId = market['id']
         orderIdList = {}
@@ -758,7 +774,10 @@ class cointiger (huobipro):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         self.check_required_credentials()
-        url = self.urls['api'][api] + '/' + self.implode_params(path, params)
+        url = self.implode_params(self.urls['api'][api], {
+            'hostname': self.hostname,
+        })
+        url += '/' + self.implode_params(path, params)
         if api == 'private' or api == 'v2':
             timestamp = str(self.milliseconds())
             query = self.keysort(self.extend({
@@ -818,8 +837,10 @@ class cointiger (huobipro):
                             elif code == '2':
                                 if message == 'offsetNot Null':
                                     raise ExchangeError(feedback)
+                                elif message == 'api_keyNot EXIST':
+                                    raise AuthenticationError(feedback)
                                 elif message == 'Parameter error':
-                                    raise ExchangeError(feedback)
+                                    raise BadRequest(feedback)
                             raise exceptions[code](feedback)
                         else:
                             raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))

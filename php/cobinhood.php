@@ -509,7 +509,7 @@ class cobinhood extends Exchange {
             'trading_pair_id' => $market['id'],
             'type' => $type, // $market, limit, stop, stop_limit
             'side' => $side,
-            'size' => $this->amount_to_string($symbol, $amount),
+            'size' => $this->amount_to_precision($symbol, $amount),
         );
         if ($type !== 'market')
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -524,7 +524,7 @@ class cobinhood extends Exchange {
         $response = $this->privatePutTradingOrdersOrderId (array_merge (array (
             'order_id' => $id,
             'price' => $this->price_to_precision($symbol, $price),
-            'size' => $this->amount_to_string($symbol, $amount),
+            'size' => $this->amountToString ($symbol, $amount),
         ), $params));
         return $this->parse_order(array_merge ($response, array (
             'id' => $id,
@@ -598,15 +598,27 @@ class cobinhood extends Exchange {
         $response = $this->privateGetWalletDepositAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
+        //
+        //     { success =>    true,
+        //        result => { deposit_addresses => array ( {       $address => "abcdefg",
+        //                                         blockchain_id => "eosio",
+        //                                            created_at =>  1536768050235,
+        //                                              $currency => "EOS",
+        //                                                  memo => "12345678",
+        //                                                  type => "exchange"      } ) } }
+        //
         $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
         $address = null;
+        $tag = null;
         if (strlen ($addresses) > 0) {
             $address = $this->safe_string($addresses[0], 'address');
+            $tag = $this->safe_string_2($addresses[0], 'memo', 'tag');
         }
         $this->check_address($address);
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => $tag,
             'info' => $response,
         );
     }
@@ -661,20 +673,16 @@ class cobinhood extends Exchange {
             'tx_pending' => 'pending',
             'tx_sent' => 'pending',
             'tx_cancelled' => 'canceled',
-            'tx_timeout' => 'error',
-            'tx_invalid' => 'error',
-            'tx_rejected' => 'error',
+            'tx_timeout' => 'failed',
+            'tx_invalid' => 'failed',
+            'tx_rejected' => 'failed',
             'tx_confirmed' => 'ok',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : strtolower ($status);
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $datetime = null;
-        if ($timestamp !== null) {
-            $datetime = $this->iso8601 ($timestamp);
-        }
         $code = null;
         if ($currency === null) {
             $currencyId = $this->safe_string($transaction, 'currency');
@@ -687,19 +695,31 @@ class cobinhood extends Exchange {
         if ($currency !== null) {
             $code = $currency['code'];
         }
-        $type = $this->safe_string($transaction, 'type');
-        if ($type !== null) {
-            $typeParts = explode ('_', $type);
-            $type = $typeParts[0];
+        $id = null;
+        $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
+        $depositId = $this->safe_string($transaction, 'deposit_id');
+        $type = null;
+        $address = null;
+        if ($withdrawalId !== null) {
+            $type = 'withdrawal';
+            $id = $withdrawalId;
+            $address = $this->safe_string($transaction, 'to_address');
+        } else if ($depositId !== null) {
+            $type = 'deposit';
+            $id = $depositId;
+            $address = $this->safe_string($transaction, 'from_address');
         }
+        $additionalInfo = $this->safe_value($transaction, 'additional_info', array ());
+        $tag = $this->safe_string($additionalInfo, 'memo');
         return array (
             'info' => $transaction,
-            'id' => $this->safe_string($transaction, 'withdrawal_id'),
+            'id' => $id,
             'txid' => $this->safe_string($transaction, 'txhash'),
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
-            'address' => null, // or is it defined?
-            'type' => $type, // direction of the $transaction, ('deposit' | 'withdraw')
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $address,
+            'tag' => $tag, // refix it properly
+            'type' => $type,
             'amount' => $this->safe_float($transaction, 'amount'),
             'currency' => $code,
             'status' => $this->parse_transaction_status ($transaction['status']),

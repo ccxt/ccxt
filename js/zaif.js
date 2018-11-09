@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -96,6 +96,13 @@ module.exports = class zaif extends Exchange {
                         'trades/{group_id}/{pair}',
                         'depth/{group_id}/{pair}',
                     ],
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'unsupported currency_pair': BadRequest, // {"error": "unsupported currency_pair"}
+                },
+                'broad': {
                 },
             },
         });
@@ -311,7 +318,7 @@ module.exports = class zaif extends Exchange {
             // 'is_token': false,
             // 'is_token_both': false,
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
@@ -332,7 +339,7 @@ module.exports = class zaif extends Exchange {
             // 'end': 1503821051,
             // 'is_token': false,
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
@@ -393,13 +400,30 @@ module.exports = class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'api', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('error' in response)
-            throw new ExchangeError (this.id + ' ' + response['error']);
-        if ('success' in response)
-            if (!response['success'])
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-        return response;
+    handleErrors (httpCode, reason, url, method, headers, body) {
+        if (!this.isJsonEncodedObject (body))
+            return; // fallback to default error handler
+        const response = JSON.parse (body);
+        //
+        //     {"error": "unsupported currency_pair"}
+        //
+        const feedback = this.id + ' ' + body;
+        const error = this.safeString (response, 'error');
+        if (error !== undefined) {
+            const exact = this.exceptions['exact'];
+            if (error in exact) {
+                throw new exact[error] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
+        const success = this.safeValue (response, 'success', true);
+        if (!success) {
+            throw new ExchangeError (feedback);
+        }
     }
 };

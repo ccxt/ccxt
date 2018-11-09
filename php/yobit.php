@@ -83,7 +83,6 @@ class yobit extends liqui {
                 'COV' => 'Coven Coin',
                 'COVX' => 'COV',
                 'CPC' => 'Capricoin',
-                'CRC' => 'CryCash',
                 'CS' => 'CryptoSpots',
                 'DCT' => 'Discount',
                 'DGD' => 'DarkGoldCoin',

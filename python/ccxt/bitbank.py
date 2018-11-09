@@ -309,7 +309,7 @@ class bitbank (Exchange):
             raise InvalidOrder(self.id + ' createOrder requires a price argument for both market and limit orders')
         request = {
             'pair': market['id'],
-            'amount': self.amount_to_string(symbol, amount),
+            'amount': self.amount_to_precision(symbol, amount),
             'price': self.price_to_precision(symbol, price),
             'side': side,
             'type': type,

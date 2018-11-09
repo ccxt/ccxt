@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 
 
 class gemini (Exchange):
@@ -296,7 +297,7 @@ class gemini (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -334,9 +335,6 @@ class gemini (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
-        datetime = None
-        if timestamp is not None:
-            datetime = self.iso8601(timestamp)
         code = None
         if currency is None:
             currencyId = self.safe_string(transaction, 'currency')
@@ -356,8 +354,9 @@ class gemini (Exchange):
             'id': self.safe_string(transaction, 'eid'),
             'txid': self.safe_string(transaction, 'txHash'),
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'address': None,  # or is it defined?
+            'tag': None,  # or is it defined?
             'type': type,  # direction of the transaction,('deposit' | 'withdraw')
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,

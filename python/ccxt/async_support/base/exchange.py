@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.223'
+__version__ = '1.17.351'
 
 # -----------------------------------------------------------------------------
 
@@ -76,8 +76,8 @@ class Exchange(BaseExchange):
             # Create our SSL context object with our CA cert file
             context = ssl.create_default_context(cafile=certifi.where())
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl_context=context, loop=self.asyncio_loop)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector)
+            connector = aiohttp.TCPConnector(ssl=context, loop=self.asyncio_loop)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         if self.session is not None:
@@ -136,13 +136,16 @@ class Exchange(BaseExchange):
                                       proxy=self.aiohttp_proxy) as response:
                 http_status_code = response.status
                 text = await response.text()
-                self.last_http_response = text
-                self.last_response_headers = response.headers
-                self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+                if self.enableLastHttpResponse:
+                    self.last_http_response = text
+                headers = response.headers
+                if self.enableLastResponseHeaders:
+                    self.last_response_headers = headers
+                self.handle_errors(http_status_code, text, url, method, headers, text)
                 self.handle_rest_errors(None, http_status_code, text, url, method)
                 if self.verbose:
-                    print("\nResponse:", method, url, str(http_status_code), str(response.headers), self.last_http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, response.headers, self.last_http_response)
+                    print("\nResponse:", method, url, str(http_status_code), str(headers), text)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, text)
 
         except socket.gaierror as e:
             self.raise_error(ExchangeNotAvailable, url, method, e, None)
@@ -156,7 +159,7 @@ class Exchange(BaseExchange):
         except aiohttp.client_exceptions.ClientError as e:
             self.raise_error(ExchangeError, url, method, e, None)
 
-        self.handle_errors(http_status_code, text, url, method, self.last_response_headers, text)
+        self.handle_errors(http_status_code, text, url, method, headers, text)
         return self.handle_rest_response(text, url, method, headers, body)
 
     async def load_markets(self, reload=False):
@@ -247,12 +250,8 @@ class Exchange(BaseExchange):
         if self.has['fetchTradingLimits']:
             if reload or not('limitsLoaded' in list(self.options.keys())):
                 response = await self.fetch_trading_limits(symbols)
-                limits = response['limits']
-                keys = list(limits.keys())
-                for i in range(0, len(keys)):
-                    symbol = keys[i]
-                    self.markets[symbol] = self.deep_extend(self.markets[symbol], {
-                        'limits': limits[symbol],
-                    })
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
+                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets

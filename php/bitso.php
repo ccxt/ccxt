@@ -312,7 +312,7 @@ class bitso extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $side = $order['side'];
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $order['book'];

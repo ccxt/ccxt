@@ -164,7 +164,7 @@ module.exports = class tidebit extends Exchange {
         let request = {
             'market': market['id'],
         };
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             request['limit'] = limit; // default = 300
         request['market'] = market['id'];
         let orderbook = await this.publicGetV2Depth (this.extend (request, params));
@@ -176,7 +176,7 @@ module.exports = class tidebit extends Exchange {
         let timestamp = ticker['at'] * 1000;
         ticker = ticker['ticker'];
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let last = this.safeFloat (ticker, 'last');
         return {
@@ -278,14 +278,14 @@ module.exports = class tidebit extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 30; // default is 30
         let request = {
             'market': market['id'],
             'period': this.timeframes[timeframe],
             'limit': limit,
         };
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['timestamp'] = since;
         } else {
             request['timestamp'] = 1800000;
@@ -296,7 +296,7 @@ module.exports = class tidebit extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         } else {
             let marketId = order['market'];

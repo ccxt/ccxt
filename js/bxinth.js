@@ -237,13 +237,13 @@ module.exports = class bxinth extends Exchange {
     async parseOrder (order, market = undefined) {
         let side = this.safeString (order, 'order_type');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'pairing_id');
-            if (typeof marketId !== 'undefined')
+            if (marketId !== undefined)
                 if (marketId in this.markets_by_id)
                     market = this.markets_by_id[marketId];
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.parse8601 (order['date']);
         let price = this.safeFloat (order, 'rate');
@@ -265,7 +265,7 @@ module.exports = class bxinth extends Exchange {
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pairing'] = market['id'];
         }

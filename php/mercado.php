@@ -184,33 +184,85 @@ class mercado extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        return $this->privatePostCancelOrder (array_merge (array (
+        $response = $this->privatePostCancelOrder (array_merge (array (
             'coin_pair' => $market['id'],
             'order_id' => $id,
         ), $params));
+        //
+        //     {         response_data => { order => array (           order_id =>    2176769,
+        //                                                  coin_pair =>   "BRLBCH",
+        //                                                 order_type =>    2,
+        //                                                     status =>    3,
+        //                                                  has_fills =>    false,
+        //                                                   quantity =>   "0.10000000",
+        //                                                limit_price =>   "1996.15999",
+        //                                          executed_quantity =>   "0.00000000",
+        //                                         executed_price_avg =>   "0.00000",
+        //                                                        fee =>   "0.00000000",
+        //                                          created_timestamp =>   "1536956488",
+        //                                          updated_timestamp =>   "1536956499",
+        //                                                 operations => array ()              } ),
+        //                 status_code =>    100,
+        //       server_unix_timestamp =>   "1536956499"                                      }
+        //
+        return $this->parse_order($response['response_data']['order'], $market);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '2' => 'open',
+            '3' => 'canceled',
+            '4' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
+        //
+        //     {
+        //         "order_id" => 4,
+        //         "coin_pair" => "BRLBTC",
+        //         "order_type" => 1,
+        //         "$status" => 2,
+        //         "has_fills" => true,
+        //         "quantity" => "2.00000000",
+        //         "limit_price" => "900.00000",
+        //         "executed_quantity" => "1.00000000",
+        //         "executed_price_avg" => "900.00000",
+        //         "$fee" => "0.00300000",
+        //         "created_timestamp" => "1453838494",
+        //         "updated_timestamp" => "1453838494",
+        //         "operations" => array (
+        //             array (
+        //                 "operation_id" => 1,
+        //                 "quantity" => "1.00000000",
+        //                 "$price" => "900.00000",
+        //                 "fee_rate" => "0.30",
+        //                 "executed_timestamp" => "1453838494",
+        //             ),
+        //         ),
+        //     }
+        //
+        $id = $this->safe_string($order, 'order_id');
         $side = null;
         if (is_array ($order) && array_key_exists ('order_type', $order))
             $side = ($order['order_type'] === 1) ? 'buy' : 'sell';
-        $status = $order['status'];
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
-            if (is_array ($order) && array_key_exists ('coin_pair', $order))
-                if (is_array ($this->markets_by_id) && array_key_exists ($order['coin_pair'], $this->markets_by_id))
-                    $market = $this->markets_by_id[$order['coin_pair']];
+            $marketId = $this->safe_string($order, 'coin_pair');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
         }
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = null;
-        if (is_array ($order) && array_key_exists ('created_timestamp', $order))
-            $timestamp = intval ($order['created_timestamp']) * 1000;
-        if (is_array ($order) && array_key_exists ('updated_timestamp', $order))
-            $timestamp = intval ($order['updated_timestamp']) * 1000;
+        }
+        $timestamp = $this->safe_integer($order, 'created_timestamp');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
         $fee = array (
             'cost' => $this->safe_float($order, 'fee'),
             'currency' => $market['quote'],
@@ -222,12 +274,16 @@ class mercado extends Exchange {
         $filled = $this->safe_float($order, 'executed_quantity');
         $remaining = $amount - $filled;
         $cost = $amount * $average;
+        $lastTradeTimestamp = $this->safe_integer($order, 'updated_timestamp');
+        if ($lastTradeTimestamp !== null) {
+            $lastTradeTimestamp = $lastTradeTimestamp * 1000;
+        }
         $result = array (
             'info' => $order,
-            'id' => (string) $order['order_id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'lastTradeTimestamp' => null,
+            'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
@@ -239,13 +295,14 @@ class mercado extends Exchange {
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
+            'trades' => null, // todo parse trades (operations)
         );
         return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = null;

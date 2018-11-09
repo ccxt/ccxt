@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.17.223'
+__version__ = '1.17.351'
 
 # ----------------------------------------------------------------------------
 
@@ -55,6 +55,8 @@ from ccxt.base.errors import RequestTimeout                 # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable           # noqa: F401
 from ccxt.base.errors import InvalidAddress                 # noqa: F401
 from ccxt.base.errors import AddressPending                 # noqa: F401
+from ccxt.base.errors import ArgumentsRequired              # noqa: F401
+from ccxt.base.errors import BadRequest                     # noqa: F401
 from ccxt.base.errors import BadResponse                    # noqa: F401
 from ccxt.base.errors import NullResponse                   # noqa: F401
 from ccxt.base.errors import OrderImmediatelyFillable       # noqa: F401
@@ -159,6 +161,7 @@ from ccxt.kuna import kuna                                  # noqa: F401
 from ccxt.lakebtc import lakebtc                            # noqa: F401
 from ccxt.lbank import lbank                                # noqa: F401
 from ccxt.liqui import liqui                                # noqa: F401
+from ccxt.liquid import liquid                              # noqa: F401
 from ccxt.livecoin import livecoin                          # noqa: F401
 from ccxt.luno import luno                                  # noqa: F401
 from ccxt.lykke import lykke                                # noqa: F401
@@ -292,6 +295,7 @@ exchanges = [
     'lakebtc',
     'lbank',
     'liqui',
+    'liquid',
     'livecoin',
     'luno',
     'lykke',

@@ -343,7 +343,7 @@ class indodax extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $side = $this->safe_value($params, 'side');
         if ($side === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires an extra "$side" param');

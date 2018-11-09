@@ -50,6 +50,7 @@ class okcoinusd extends Exchange {
                         'spot/markets/currencies',
                         'spot/markets/products',
                         'spot/markets/tickers',
+                        'spot/user-level',
                     ),
                 ),
                 'public' => array (
@@ -550,13 +551,13 @@ class okcoinusd extends Exchange {
         $volumeIndex = ($numElements > 6) ? 6 : 5;
         return [
             $ohlcv[0], // timestamp
-            $ohlcv[1], // Open
-            $ohlcv[2], // High
-            $ohlcv[3], // Low
-            $ohlcv[4], // Close
-            // $ohlcv[5], // quote volume
-            // $ohlcv[6], // base volume
-            $ohlcv[$volumeIndex], // okex will return base volume in the 7th element for future markets
+            floatval ($ohlcv[1]), // Open
+            floatval ($ohlcv[2]), // High
+            floatval ($ohlcv[3]), // Low
+            floatval ($ohlcv[4]), // Close
+            // floatval ($ohlcv[5]), // quote volume
+            // floatval ($ohlcv[6]), // base volume
+            floatval ($ohlcv[$volumeIndex]), // okex will return base volume in the 7th element for future markets
         ];
     }
 
@@ -684,7 +685,7 @@ class okcoinusd extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -703,19 +704,15 @@ class okcoinusd extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === -1)
-            return 'canceled';
-        if ($status === 0)
-            return 'open';
-        if ($status === 1)
-            return 'open';
-        if ($status === 2)
-            return 'closed';
-        if ($status === 3)
-            return 'open';
-        if ($status === 4)
-            return 'canceled';
-        return $status;
+        $statuses = array (
+            '-1' => 'canceled',
+            '0' => 'open',
+            '1' => 'open',
+            '2' => 'closed',
+            '3' => 'open',
+            '4' => 'canceled',
+        );
+        return $this->safe_value($statuses, $status, $status);
     }
 
     public function parse_order_side ($side) {
@@ -749,7 +746,7 @@ class okcoinusd extends Exchange {
                     $type = 'margin';
             }
         }
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');

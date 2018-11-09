@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import OrderNotFound
 
 
@@ -241,7 +242,7 @@ class bitflyer (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         return await self.privatePostCancelchildorder(self.extend({
             'product_code': self.market_id(symbol),
@@ -258,7 +259,7 @@ class bitflyer (Exchange):
         }
         if status in statuses:
             return statuses[status]
-        return status.lower()
+        return status
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(order['child_order_date'])
@@ -267,7 +268,7 @@ class bitflyer (Exchange):
         filled = self.safe_float(order, 'executed_size')
         price = self.safe_float(order, 'price')
         cost = price * filled
-        status = self.parse_order_status(order['child_order_state'])
+        status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
         type = order['child_order_type'].lower()
         side = order['side'].lower()
         symbol = None
@@ -306,7 +307,7 @@ class bitflyer (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -333,7 +334,7 @@ class bitflyer (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         orders = await self.fetch_orders(symbol)
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
@@ -342,7 +343,7 @@ class bitflyer (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

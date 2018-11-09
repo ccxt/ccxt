@@ -17,6 +17,7 @@ class kraken extends Exchange {
             'version' => '0',
             'rateLimit' => 3000,
             'certified' => true,
+            'parseJsonResponse' => false,
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
@@ -205,25 +206,15 @@ class kraken extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['amount']);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_min_order_sizes () {
-        $html = null;
-        $oldParseJsonResponse = $this->parseJsonResponse;
-        try {
-            $this->parseJsonResponse = false;
-            $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
-            $this->parseJsonResponse = $oldParseJsonResponse;
-        } catch (Exception $e) {
-            // ensure parseJsonResponse is restored no matter what
-            $this->parseJsonResponse = $oldParseJsonResponse;
-            throw $e;
-        }
+        $html = $this->zendeskGet205893708WhatIsTheMinimumOrderSize ();
         $parts = explode ('ul>', $html);
         $ul = $parts[1];
         $listItems = explode ('</li', $ul);
@@ -680,6 +671,7 @@ class kraken extends Exchange {
             $price = $this->safe_float($description, 'price2');
         if (($price === null) || ($price === 0))
             $price = $this->safe_float($order, 'price', $price);
+        $average = $this->safe_float($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array ($order) && array_key_exists ('fee', $order)) {
@@ -710,6 +702,7 @@ class kraken extends Exchange {
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
+            'average' => $average,
             'remaining' => $remaining,
             'fee' => $fee,
             // 'trades' => $this->parse_trades($order['trades'], $market),
@@ -934,5 +927,10 @@ class kraken extends Exchange {
                 }
             }
         }
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        return $this->parse_if_json_encoded_object($response);
     }
 }

@@ -216,9 +216,9 @@ module.exports = class southxchange extends Exchange {
         let remaining = this.safeFloat (order, 'Amount');
         let filled = undefined;
         let cost = undefined;
-        if (typeof amount !== 'undefined') {
+        if (amount !== undefined) {
             cost = price * amount;
-            if (typeof remaining !== 'undefined')
+            if (remaining !== undefined)
                 filled = amount - remaining;
         }
         let orderType = order['Type'].toLowerCase ();
@@ -245,7 +245,7 @@ module.exports = class southxchange extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             market = this.market (symbol);
         let response = await this.privatePostListOrders ();
         return this.parseOrders (response, market, since, limit);
@@ -304,7 +304,7 @@ module.exports = class southxchange extends Exchange {
             'address': address,
             'amount': amount,
         };
-        if (typeof tag !== 'undefined')
+        if (tag !== undefined)
             request['address'] = address + '|' + tag;
         let response = await this.privatePostWithdraw (this.extend (request, params));
         return {

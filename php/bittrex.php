@@ -169,11 +169,11 @@ class bittrex extends Exchange {
     }
 
     public function cost_to_precision ($symbol, $cost) {
-        return $this->truncate (floatval ($cost), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($cost, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fee_to_precision ($symbol, $fee) {
-        return $this->truncate (floatval ($fee), $this->markets[$symbol]['precision']['price']);
+        return $this->decimal_to_precision($fee, TRUNCATE, $this->markets[$symbol]['precision']['price'], DECIMAL_PLACES);
     }
 
     public function fetch_markets () {
@@ -268,11 +268,9 @@ class bittrex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_string($ticker, 'TimeStamp');
-        $iso8601 = null;
         if (gettype ($timestamp) === 'string') {
             if (strlen ($timestamp) > 0) {
                 $timestamp = $this->parse8601 ($timestamp);
-                $iso8601 = $this->iso8601 ($timestamp);
             }
         }
         $symbol = null;
@@ -291,7 +289,7 @@ class bittrex extends Exchange {
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'High'),
             'low' => $this->safe_float($ticker, 'Low'),
             'bid' => $this->safe_float($ticker, 'Bid'),
@@ -536,7 +534,7 @@ class bittrex extends Exchange {
         if ((is_array ($order) && array_key_exists ('CancelInitiated', $order)) && $order['CancelInitiated'])
             $status = 'canceled';
         if ((is_array ($order) && array_key_exists ('Status', $order)) && $this->options['parseOrderStatus'])
-            $status = $this->parse_order_status($order['Status']);
+            $status = $this->parse_order_status($this->safe_string($order, 'Status'));
         $symbol = null;
         if (is_array ($order) && array_key_exists ('Exchange', $order)) {
             $marketId = $order['Exchange'];
@@ -563,7 +561,6 @@ class bittrex extends Exchange {
             $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
         if ($timestamp === null)
             $timestamp = $lastTradeTimestamp;
-        $iso8601 = ($timestamp !== null) ? $this->iso8601 ($timestamp) : null;
         $fee = null;
         $commission = null;
         if (is_array ($order) && array_key_exists ('Commission', $order)) {
@@ -610,7 +607,7 @@ class bittrex extends Exchange {
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => 'limit',

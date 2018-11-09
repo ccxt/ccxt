@@ -26,7 +26,8 @@ const {
     , sleep
     , timeout
     , TimedOut
-    , buildOHLCVC } = functions
+    , buildOHLCVC
+    , decimalToPrecision } = functions
 
 const {
     ExchangeError
@@ -37,7 +38,7 @@ const {
     , RequestTimeout
     , ExchangeNotAvailable } = require ('./errors')
 
-const { DECIMAL_PLACES } = functions.precisionConstants
+const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
 const defaultFetch = typeof (fetch) === "undefined" ? require ('fetch-ponyfill') ().fetch : fetch
 
@@ -155,6 +156,29 @@ module.exports = class Exchange {
             'parseJsonResponse': true, // whether a reply is required to be in JSON or not
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
+            'httpExceptions': {
+                '422': ExchangeError,
+                '418': DDoSProtection,
+                '429': DDoSProtection,
+                '404': ExchangeNotAvailable,
+                '409': ExchangeNotAvailable,
+                '500': ExchangeNotAvailable,
+                '501': ExchangeNotAvailable,
+                '502': ExchangeNotAvailable,
+                '520': ExchangeNotAvailable,
+                '521': ExchangeNotAvailable,
+                '522': ExchangeNotAvailable,
+                '525': ExchangeNotAvailable,
+                '400': ExchangeNotAvailable,
+                '403': ExchangeNotAvailable,
+                '405': ExchangeNotAvailable,
+                '503': ExchangeNotAvailable,
+                '530': ExchangeNotAvailable,
+                '408': RequestTimeout,
+                '504': RequestTimeout,
+                '401': AuthenticationError,
+                '511': AuthenticationError,
+            },
             // some exchanges report only 'free' on `fetchBlance` call (i.e. report no 'used' funds)
             // in this case ccxt will try to infer 'used' funds from open order cache, which might be stale
             // still, some exchanges report number of open orders together with balance
@@ -285,6 +309,9 @@ module.exports = class Exchange {
         this.trades      = {}
         this.transactions = {}
 
+        this.enableLastJsonResponse = true
+        this.enableLastHttpResponse = true
+        this.enableLastResponseHeaders = true
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
@@ -355,7 +382,7 @@ module.exports = class Exchange {
 
     checkAddress (address) {
 
-        if (typeof address === 'undefined')
+        if (address === undefined)
             throw new InvalidAddress (this.id + ' address is undefined')
 
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
@@ -523,12 +550,23 @@ module.exports = class Exchange {
         }
     }
 
+    // a helper for matching error strings exactly vs broadly
+    findBroadlyMatchedKey (broad, string) {
+        const keys = Object.keys (broad);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (string.indexOf (key) >= 0)
+                return key;
+        }
+        return undefined;
+    }
+
     handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, json) {
         // override me
     }
 
     defaultErrorHandler (response, responseBody, url, method) {
-        const { status: code, statusText: reason } = response
+        let { status: code, statusText: reason } = response
         if ((code >= 200) && (code <= 299))
             return
         let error = undefined
@@ -536,16 +574,11 @@ module.exports = class Exchange {
         let match = responseBody.match (/<title>([^<]+)/i)
         if (match)
             details = match[1].trim ();
-        if ([ 418, 429 ].includes (code)) {
-            error = DDoSProtection
-        } else if ([ 404, 409, 500, 501, 502, 520, 521, 522, 525 ].includes (code)) {
-            error = ExchangeNotAvailable
-        } else if ([ 400, 403, 405, 503, 530 ].includes (code)) {
-            let ddosProtection = responseBody.match (/cloudflare|incapsula/i)
-            if (ddosProtection) {
+        error = this.httpExceptions[code.toString ()] || ExchangeError
+        if (error === ExchangeNotAvailable) {
+            if (responseBody.match (/cloudflare|incapsula|overload|ddos/i)) {
                 error = DDoSProtection
             } else {
-                error = ExchangeNotAvailable
                 details += ' (possible reasons: ' + [
                     'invalid API keys',
                     'bad or old nonce',
@@ -555,14 +588,12 @@ module.exports = class Exchange {
                     'rate-limiting',
                 ].join (', ') + ')'
             }
-        } else if ([ 408, 504 ].includes (code)) {
-            error = RequestTimeout
-        } else if ([ 401, 511 ].includes (code)) {
-            error = AuthenticationError
-        } else {
-            error = ExchangeError
         }
         throw new error ([ this.id, method, url, code, reason, details ].join (' '))
+    }
+
+    parseIfJsonEncodedObject (input) {
+        return (this.isJsonEncodedObject (input) ? JSON.parse (input) : input)
     }
 
     isJsonEncodedObject (object) {
@@ -589,9 +620,17 @@ module.exports = class Exchange {
 
             let responseHeaders = this.getResponseHeaders (response)
 
-            this.last_response_headers = responseHeaders
-            this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
-            this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            if (this.enableLastResponseHeaders) {
+                this.last_response_headers = responseHeaders
+            }
+
+            if (this.enableLastHttpResponse) {
+                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
+            }
+
+            if (this.enableLastJsonResponse) {
+                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
+            }
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
@@ -621,7 +660,7 @@ module.exports = class Exchange {
                 values.filter (market => 'base' in market)
                     .map (market => ({
                         id: market.baseId || market.base,
-                        numericId: (typeof market.baseNumericId !== 'undefined') ? market.baseNumericId : undefined,
+                        numericId: (market.baseNumericId !== undefined) ? market.baseNumericId : undefined,
                         code: market.base,
                         precision: market.precision ? (market.precision.base || market.precision.amount) : 8,
                     }))
@@ -629,7 +668,7 @@ module.exports = class Exchange {
                 values.filter (market => 'quote' in market)
                     .map (market => ({
                         id: market.quoteId || market.quote,
-                        numericId: (typeof market.quoteNumericId !== 'undefined') ? market.quoteNumericId : undefined,
+                        numericId: (market.quoteNumericId !== undefined) ? market.quoteNumericId : undefined,
                         code: market.quote,
                         precision: market.precision ? (market.precision.quote || market.precision.price) : 8,
                     }))
@@ -751,6 +790,18 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchMyTrades not supported yet');
     }
 
+    fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchTransactions not supported yet');
+    }
+
+    fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDeposits not supported yet');
+    }
+
+    fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchWithdrawals not supported yet');
+    }
+
     fetchCurrencies (params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -788,7 +839,7 @@ module.exports = class Exchange {
 
     currencyId (commonCode) {
 
-        if (typeof this.currencies === 'undefined') {
+        if (this.currencies === undefined) {
             throw new ExchangeError (this.id + ' currencies not loaded')
         }
 
@@ -808,7 +859,7 @@ module.exports = class Exchange {
 
     currency (code) {
 
-        if (typeof this.currencies === 'undefined')
+        if (this.currencies === undefined)
             throw new ExchangeError (this.id + ' currencies not loaded')
 
         if ((typeof code === 'string') && (code in this.currencies))
@@ -819,7 +870,7 @@ module.exports = class Exchange {
 
     findMarket (string) {
 
-        if (typeof this.markets === 'undefined')
+        if (this.markets === undefined)
             throw new ExchangeError (this.id + ' markets not loaded')
 
         if (typeof string === 'string') {
@@ -836,7 +887,7 @@ module.exports = class Exchange {
 
     findSymbol (string, market = undefined) {
 
-        if (typeof market === 'undefined')
+        if (market === undefined)
             market = this.findMarket (string)
 
         if (typeof market === 'object')
@@ -847,7 +898,7 @@ module.exports = class Exchange {
 
     market (symbol) {
 
-        if (typeof this.markets === 'undefined')
+        if (this.markets === undefined)
             throw new ExchangeError (this.id + ' markets not loaded')
 
         if ((typeof symbol === 'string') && (symbol in this.markets))
@@ -858,7 +909,7 @@ module.exports = class Exchange {
 
     marketId (symbol) {
         let market = this.market (symbol)
-        return (typeof market !== 'undefined' ? market['id'] : symbol)
+        return (market !== undefined ? market['id'] : symbol)
     }
 
     marketIds (symbols) {
@@ -917,7 +968,7 @@ module.exports = class Exchange {
             'bids': sortBy ((bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : [], 0, true),
             'asks': sortBy ((asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : [], 0),
             'timestamp': timestamp,
-            'datetime': (typeof timestamp !== 'undefined') ? this.iso8601 (timestamp) : undefined,
+            'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         }
     }
@@ -943,7 +994,7 @@ module.exports = class Exchange {
 
         currencies.forEach ((currency) => {
 
-            if (typeof balance[currency].used === 'undefined') {
+            if (balance[currency].used === undefined) {
                 // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
 
                 if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
@@ -991,13 +1042,9 @@ module.exports = class Exchange {
         if (this.has['fetchTradingLimits']) {
             if (reload || !('limitsLoaded' in this.options)) {
                 let response = await this.fetchTradingLimits (symbols);
-                let limits = response['limits'];
-                let keys = Object.keys (limits);
-                for (let i = 0; i < keys.length; i++) {
-                    let symbol = keys[i];
-                    this.markets[symbol] = this.deepExtend (this.markets[symbol], {
-                        'limits': limits[symbol],
-                    });
+                for (let i = 0; i < symbols.length; i++) {
+                    let symbol = symbols[i];
+                    this.markets[symbol] = this.deepExtend (this.markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds ();
             }
@@ -1006,17 +1053,17 @@ module.exports = class Exchange {
     }
 
     filterBySinceLimit (array, since = undefined, limit = undefined) {
-        if (typeof since !== 'undefined' && since !== null)
+        if (since !== undefined && since !== null)
             array = array.filter (entry => entry.timestamp >= since)
-        if (typeof limit !== 'undefined' && limit !== null)
+        if (limit !== undefined && limit !== null)
             array = array.slice (0, limit)
         return array
     }
 
     filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined) {
 
-        const valueIsDefined = typeof value !== 'undefined' && value !== null
-        const sinceIsDefined = typeof since !== 'undefined' && since !== null
+        const valueIsDefined = value !== undefined && value !== null
+        const sinceIsDefined = since !== undefined && since !== null
 
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined)
@@ -1024,7 +1071,7 @@ module.exports = class Exchange {
                 ((valueIsDefined ? (entry[field] === value)   : true) &&
                  (sinceIsDefined ? (entry.timestamp >= since) : true)))
 
-        if (typeof limit !== 'undefined' && limit !== null)
+        if (limit !== undefined && limit !== null)
             array = Object.values (array).slice (0, limit)
 
         return array
@@ -1043,7 +1090,7 @@ module.exports = class Exchange {
         objects = Object.values (objects)
 
         // return all of them if no values were passed
-        if (typeof values === 'undefined' || values === null)
+        if (values === undefined || values === null)
             return indexed ? indexBy (objects, key) : objects
 
         let result = []
@@ -1058,26 +1105,26 @@ module.exports = class Exchange {
     parseTrades (trades, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (trades || []).map (trade => this.parseTrade (trade, market))
         result = sortBy (result, 'timestamp')
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
+        let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
     parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined) {
-        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency));
+        let result = Object.values (transactions || []).map (transaction => this.parseTransaction (transaction, currency))
         result = this.sortBy (result, 'timestamp');
-        let code = (typeof currency !== 'undefined') ? currency['code'] : undefined;
+        let code = (currency !== undefined) ? currency['code'] : undefined;
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
     parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
         let result = Object.values (orders).map (order => this.parseOrder (order, market))
         result = sortBy (result, 'timestamp')
-        let symbol = (typeof market !== 'undefined') ? market['symbol'] : undefined
+        let symbol = (market !== undefined) ? market['symbol'] : undefined
         return this.filterBySymbolSinceLimit (result, symbol, since, limit)
     }
 
     filterBySymbol (array, symbol = undefined) {
-        return ((typeof symbol !== 'undefined') ? array.filter (entry => entry.symbol === symbol) : array)
+        return ((symbol !== undefined) ? array.filter (entry => entry.symbol === symbol) : array)
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -1141,32 +1188,94 @@ module.exports = class Exchange {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params)
     }
 
-    fromWei (amount, unit = 'ether') {
-        return (typeof amount === 'undefined') ? amount : parseFloat (this.web3.utils.fromWei ((new BigNumber (amount)).toFixed (), unit))
+    ethDecimals (unit = 'ether') {
+        const units = {
+            'wei': 0,          // 1
+            'kwei': 3,         // 1000
+            'babbage': 3,      // 1000
+            'femtoether': 3,   // 1000
+            'mwei': 6,         // 1000000
+            'lovelace': 6,     // 1000000
+            'picoether': 6,    // 1000000
+            'gwei': 9,         // 1000000000
+            'shannon': 9,      // 1000000000
+            'nanoether': 9,    // 1000000000
+            'nano': 9,         // 1000000000
+            'szabo': 12,       // 1000000000000
+            'microether': 12,  // 1000000000000
+            'micro': 12,       // 1000000000000
+            'finney': 15,      // 1000000000000000
+            'milliether': 15,  // 1000000000000000
+            'milli': 15,       // 1000000000000000
+            'ether': 18,       // 1000000000000000000
+            'kether': 21,      // 1000000000000000000000
+            'grand': 21,       // 1000000000000000000000
+            'mether': 24,      // 1000000000000000000000000
+            'gether': 27,      // 1000000000000000000000000000
+            'tether': 30,      // 1000000000000000000000000000000
+        }
+        return this.safeValue (units, unit)
     }
 
-    toWei (amount, unit = 'ether') {
-        return (typeof amount === 'undefined') ? amount : (this.web3.utils.toWei (this.numberToString (amount), unit))
+    ethUnit (decimals = 18) {
+        const units = {
+            0: 'wei',      // 1000000000000000000
+            3: 'kwei',     // 1000000000000000
+            6: 'mwei',     // 1000000000000
+            9: 'gwei',     // 1000000000
+            12: 'szabo',   // 1000000
+            15: 'finney',  // 1000
+            18: 'ether',   // 1
+            21: 'kether',  // 0.001
+            24: 'mether',  // 0.000001
+            27: 'gether',  // 0.000000001
+            30: 'tether',  // 0.000000000001
+        }
+        return this.safeValue (units, decimals)
+    }
+
+    fromWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (amount).times (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = new BigNumber (amount).toFixed ()
+        }
+        return parseFloat (this.web3.utils.fromWei (amount, unit))
+    }
+
+    toWei (amount, unit = 'ether', decimals = 18) {
+        if (amount === undefined) {
+            return amount
+        }
+        if (decimals !== 18) {
+            amount = new BigNumber (this.numberToString (amount)).div (new BigNumber (10 ** (18 - decimals))).toFixed ()
+        } else {
+            amount = this.numberToString (amount)
+        }
+        return this.web3.utils.toWei (amount, unit)
     }
 
     costToPrecision (symbol, cost) {
-        return parseFloat (cost).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (cost, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     priceToPrecision (symbol, price) {
-        return parseFloat (price).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (price, ROUND, this.markets[symbol].precision.price, this.precisionMode)
     }
 
     amountToPrecision (symbol, amount) {
-        return this.truncate (amount, this.markets[symbol].precision.amount)
-    }
-
-    amountToString (symbol, amount) {
-        return this.truncate_to_string (amount, this.markets[symbol].precision.amount)
+        return decimalToPrecision (amount, TRUNCATE, this.markets[symbol].precision.amount, this.precisionMode)
     }
 
     feeToPrecision (symbol, fee) {
-        return parseFloat (fee).toFixed (this.markets[symbol].precision.price)
+        return decimalToPrecision (fee, ROUND, this.markets[symbol].precision.price, this.precisionMode)
+    }
+
+    currencyToPrecision (currency, fee) {
+        return this.decimalToPrecision (fee, ROUND, this.currencies[currency]['precision'], this.precisionMode);
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {

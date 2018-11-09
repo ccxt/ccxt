@@ -156,13 +156,24 @@ class poloniex extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
-                'Permission denied' => '\\ccxt\\PermissionDenied',
-                'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
-                'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
-                'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
-                'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
-                'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+                'exact' => array (
+                    'Invalid order number, or you are not the person who placed the order.' => '\\ccxt\\OrderNotFound',
+                    'Permission denied' => '\\ccxt\\PermissionDenied',
+                    'Connection timed out. Please try again.' => '\\ccxt\\RequestTimeout',
+                    'Internal error. Please try again.' => '\\ccxt\\ExchangeNotAvailable',
+                    'Order not found, or you are not the person who placed it.' => '\\ccxt\\OrderNotFound',
+                    'Invalid API key/secret pair.' => '\\ccxt\\AuthenticationError',
+                    'Please do not make more than 8 API calls per second.' => '\\ccxt\\DDoSProtection',
+                    'Rate must be greater than zero.' => '\\ccxt\\InvalidOrder', // array ("error":"Rate must be greater than zero.")
+                ),
+                'broad' => array (
+                    'Total must be at least' => '\\ccxt\\InvalidOrder', // array ("error":"Total must be at least 0.0001.")
+                    'This account is frozen.' => '\\ccxt\\AccountSuspended',
+                    'Not enough' => '\\ccxt\\InsufficientFunds',
+                    'Nonce must be greater' => '\\ccxt\\InvalidNonce',
+                    'You have already called cancelOrder or moveOrder on this order.' => '\\ccxt\\CancelPending',
+                    'Amount must be at least' => '\\ccxt\\InvalidOrder', // array ("error":"Amount must be at least 0.000001.")
+                ),
             ),
         ));
     }
@@ -224,28 +235,29 @@ class poloniex extends Exchange {
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $minCost = $this->safe_float($this->options['limits']['cost']['min'], $quote, 0.0);
+            $precision = array (
+                'amount' => 6,
+                'price' => 8,
+            );
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'active' => true,
-                'precision' => array (
-                    'amount' => 8,
-                    'price' => 8,
-                ),
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => 0.00000001,
-                        'max' => 1000000000,
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => null,
                     ),
                     'price' => array (
-                        'min' => 0.00000001,
-                        'max' => 1000000000,
+                        'min' => pow (10, -$precision['price']),
+                        'max' => null,
                     ),
                     'cost' => array (
                         'min' => $minCost,
-                        'max' => 1000000000,
+                        'max' => null,
                     ),
                 ),
                 'info' => $market,
@@ -691,13 +703,12 @@ class poloniex extends Exchange {
         $this->load_markets();
         $method = 'privatePost' . $this->capitalize ($side);
         $market = $this->market ($symbol);
-        $price = floatval ($price);
-        $amount = floatval ($amount);
-        $response = $this->$method (array_merge (array (
+        $request = array (
             'currencyPair' => $market['id'],
             'rate' => $this->price_to_precision($symbol, $price),
             'amount' => $this->amount_to_precision($symbol, $amount),
-        ), $params));
+        );
+        $response = $this->$method (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         $order = $this->parse_order(array_merge (array (
             'timestamp' => $timestamp,
@@ -720,7 +731,6 @@ class poloniex extends Exchange {
             'rate' => $this->price_to_precision($symbol, $price),
         );
         if ($amount !== null) {
-            $amount = floatval ($amount);
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         $response = $this->privatePostMoveOrder (array_merge ($request, $params));
@@ -875,22 +885,16 @@ class poloniex extends Exchange {
         if (is_array ($response) && array_key_exists ('error', $response)) {
             $message = $response['error'];
             $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                throw new $exceptions[$message] ($feedback);
-            } else if (mb_strpos ($message, 'Total must be at least') !== false) {
-                throw new InvalidOrder ($feedback);
-            } else if (mb_strpos ($message, 'This account is frozen.') !== false) {
-                throw new AccountSuspended ($feedback);
-            } else if (mb_strpos ($message, 'Not enough') !== false) {
-                throw new InsufficientFunds ($feedback);
-            } else if (mb_strpos ($message, 'Nonce must be greater') !== false) {
-                throw new InvalidNonce ($feedback);
-            } else if (mb_strpos ($message, 'You have already called cancelOrder or moveOrder on this order.') !== false) {
-                throw new CancelPending ($feedback);
-            } else {
-                throw new ExchangeError ($this->id . ' unknown error ' . $this->json ($response));
+            $exact = $this->exceptions['exact'];
+            if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                throw new $exact[$message] ($feedback);
             }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey] ($feedback);
+            }
+            throw new ExchangeError ($feedback); // unknown $message
         }
     }
 }

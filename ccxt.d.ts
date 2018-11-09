@@ -410,6 +410,7 @@ declare module 'ccxt' {
     export class lakebtc extends Exchange {}
     export class lbank extends Exchange {}
     export class liqui extends Exchange {}
+    export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
@@ -422,9 +423,9 @@ declare module 'ccxt' {
     export class okex extends okcoinusd {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends Exchange {}
+    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends qryptos {}
+    export class quoinex extends liquid {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}

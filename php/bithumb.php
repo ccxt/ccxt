@@ -154,7 +154,16 @@ class bithumb extends Exchange {
             $symbol = $market['symbol'];
         $open = $this->safe_float($ticker, 'opening_price');
         $close = $this->safe_float($ticker, 'closing_price');
-        $change = $close - $open;
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if (($close !== null) && ($open !== null)) {
+            $change = $close - $open;
+            if ($open > 0) {
+                $percentage = $change / $open * 100;
+            }
+            $average = $this->sum ($open, $close) / 2;
+        }
         $vwap = $this->safe_float($ticker, 'average_price');
         $baseVolume = $this->safe_float($ticker, 'volume_1day');
         return array (
@@ -173,8 +182,8 @@ class bithumb extends Exchange {
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $change / $open * 100,
-            'average' => $this->sum ($open, $close) / 2,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,

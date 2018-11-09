@@ -169,9 +169,6 @@ class bibox extends Exchange {
         $open = null;
         if (($last !== null) && ($change !== null))
             $open = $last - $change;
-        $iso8601 = null;
-        if ($timestamp !== null)
-            $iso8601 = $this->iso8601 ($timestamp);
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace ('%', '', $percentage);
@@ -180,7 +177,7 @@ class bibox extends Exchange {
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'buy'),
@@ -214,9 +211,12 @@ class bibox extends Exchange {
     public function parse_tickers ($rawTickers, $symbols = null) {
         $tickers = array ();
         for ($i = 0; $i < count ($rawTickers); $i++) {
-            $tickers[] = $this->parse_ticker($rawTickers[$i]);
+            $ticker = $this->parse_ticker($rawTickers[$i]);
+            if (($symbols === null) || ($this->in_array($ticker['symbol'], $symbols))) {
+                $tickers[] = $ticker;
+            }
         }
-        return $this->filter_by_array($tickers, 'symbol', $symbols);
+        return $tickers;
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
@@ -498,9 +498,7 @@ class bibox extends Exchange {
                 $cost = $price * $filled;
         }
         $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
@@ -532,7 +530,7 @@ class bibox extends Exchange {
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
         );
-        return $this->safe_string($statuses, $status, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -559,7 +557,7 @@ class bibox extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrderpending (array (
@@ -577,7 +575,7 @@ class bibox extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;
@@ -642,8 +640,8 @@ class bibox extends Exchange {
     }
 
     public function fetch_funding_fees ($codes = null, $params = array ()) {
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
+        // by default it will try load withdrawal fees of all currencies (with separate requests)
+        // however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
         $withdrawFees = array ();
         $info = array ();
