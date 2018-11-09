@@ -370,49 +370,51 @@ module.exports = class blockbid extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
-            let marketId = this.safeString (order, 'market');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (typeof market !== 'undefined') {
+        const marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let datetime = this.safeString (order, 'createdAt');
-        let price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'averagePrice');
-        let amount = this.safeFloat (order, 'volume');
-        let filled = this.safeFloat (order, 'executedVolume');
-        let remaining = this.safeFloat (order, 'remainingVolume');
+        const price = this.safeFloat (order, 'price');
+        const average = this.safeFloat (order, 'averagePrice');
+        const amount = this.safeFloat (order, 'volume');
+        const filled = this.safeFloat (order, 'executedVolume');
+        const remaining = this.safeFloat (order, 'remainingVolume');
         let cost = undefined;
-        if (typeof filled !== 'undefined' && typeof average !== 'undefined') {
-            cost = average * filled;
-        } else if (typeof average !== 'undefined') {
-            cost = average * amount;
+        if (average !== undefined) {
+            if (filled !== undefined) {
+                cost = average * filled;
+            } else {
+                cost = average * amount;
+            }
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'side');
         if (side === 'bid') {
             side = 'buy';
         } else if (side === 'ask') {
             side = 'sell';
         }
-        let timestamp = this.parse8601 (datetime);
+        const type = this.safeString (order, 'orderType');
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const trades = undefined; // not to be confused with trades count
         return {
-            'id': this.safeString (order, 'id'),
-            'datetime': datetime,
+            'id': ,
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': this.safeString (order, 'orderType'),
+            'type': type,
             'side': side,
             'price': price,
             'cost': cost,
             'average': average,
             'amount': amount,
             'filled': filled,
-            'trades': this.safeString (order, 'tradesCount'),
+            'trades': trades,
             'remaining': remaining,
             'fee': undefined,
             'info': order,
@@ -423,26 +425,22 @@ module.exports = class blockbid extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePostOrders';
-        let order = {
-            'market': market['id'],
-            'orders': [
-                {
-                    'side': side,
-                    'volume': amount,
-                },
-            ],
+        const order = {
+            'side': side,
+            'volume': amount,
         };
-        if (typeof type !== 'undefined') {
-            order['orders'][0]['orderType'] = type;
+        if (type !== undefined) {
+            order['orderType'] = type;
         }
-        if (typeof price !== 'undefined') {
-            order['orders'][0]['price'] = price;
+        if (price !== undefined) {
+            order['price'] = price;
         }
-        let response = await this[method] (this.extend (order, params));
-        order = this.parseOrder (response[0], market);
-        let id = order['id'];
-        this.orders[id] = order;
-        return order;
+        let request = {
+            'market': market['id'],
+            'orders': [ order ],
+        };
+        let response = await this[method] (this.extend (request, params));
+        return this.parseOrder (response[0], market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
