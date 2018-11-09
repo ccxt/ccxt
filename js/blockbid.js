@@ -401,7 +401,7 @@ module.exports = class blockbid extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
         const trades = undefined; // not to be confused with trades count
         return {
-            'id': ,
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
