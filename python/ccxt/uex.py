@@ -42,6 +42,9 @@ class uex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -1067,6 +1070,29 @@ class uex (Exchange):
             '6': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.load_markets()
+        fee = self.safe_float(params, 'fee')
+        if fee is None:
+            raise ArgumentsRequired(self.id + 'requires a "fee" extra parameter in its last argument')
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'address': address,  # only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'fee': fee,  # balance >= self.sum(amount, fee)
+        }
+        if tag is not None:
+            request['tag'] = tag
+        # https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Withdraw
+        response = self.privatePostCreateWithdraw(self.extend(request, params))
+        id = None
+        return {
+            'info': response,
+            'id': id,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)

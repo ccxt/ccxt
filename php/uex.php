@@ -26,6 +26,9 @@ class uex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array (
                 '1m' => '1',
@@ -1124,6 +1127,32 @@ class uex extends Exchange {
             '6' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
+        $this->load_markets();
+        $fee = $this->safe_float($params, 'fee');
+        if ($fee === null) {
+            throw new ArgumentsRequired ($this->id . 'requires a "$fee" extra parameter in its last argument');
+        }
+        $this->check_address($address);
+        $currency = $this->currency ($code);
+        $request = array (
+            'coin' => $currency['id'],
+            'address' => $address, // only supports existing addresses in your withdraw $address list
+            'amount' => $amount,
+            'fee' => $fee, // balance >= $this->sum ($amount, $fee)
+        );
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Withdraw
+        $response = $this->privatePostCreateWithdraw (array_merge ($request, $params));
+        $id = null;
+        return array (
+            'info' => $response,
+            'id' => $id,
+        );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
