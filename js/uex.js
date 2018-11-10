@@ -931,6 +931,7 @@ module.exports = class uex extends Exchange {
         let request = {
             'coin': currency['id'],
         };
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-address-of-assigned-token
         let response = await this.privateGetDepositAddressList (this.extend (request, params));
         //
         //     {
@@ -940,7 +941,7 @@ module.exports = class uex extends Exchange {
         //             "addressList": [
         //                 {
         //                     "address": "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
-        //                     "tag":"",
+        //                     "tag": "",
         //                 },
         //             ],
         //         },
@@ -968,6 +969,160 @@ module.exports = class uex extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
+        }
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit; // default 10
+        }
+        const transactionType = (type === 'deposit') ? 'deposit' : 'withdraw'; // instead of withdrawal...
+        const method = 'privateGet' + this.capitalize (transactionType) + 'History';
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-record-of-assigned-token
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-withdraw-record-of-assigned-token
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     { code:   "0",
+        //        msg:   "suc",
+        //       data: { depositList: [ {     createdAt:  1533615955000,
+        //                                       amount: "0.01",
+        //                                     updateAt:  1533616311000,
+        //                                         txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        //                                          tag: "",
+        //                                confirmations:  30,
+        //                                    addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //                                       status:  1,
+        //                                         coin: "ETH"                                                           } ] } }
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "suc",
+        //         "data": {
+        //             "withdrawList": [{
+        //                 "updateAt": 1540344965000,
+        //                 "createdAt": 1539311971000,
+        //                 "status": 0,
+        //                 "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        //                 "tag": "100128877",
+        //                 "id": 5,
+        //                 "txid": "",
+        //                 "fee": 0.0,
+        //                 "amount": "1",
+        //                 "symbol": "XTZ"
+        //             }]
+        //         }
+        //     }
+        //
+        const transactions = this.safeValue (response['data'], transactionType + 'List');
+        return this.parseTransactionsByType (type, transactions, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const transaction = this.parseTransaction (this.extend ({
+                'type': type,
+            }, transactions[i]));
+            result.push (transaction);
+        }
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // deposits
+        //
+        //      {     createdAt:  1533615955000,
+        //               amount: "0.01",
+        //             updateAt:  1533616311000,
+        //                 txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        //                  tag: "",
+        //        confirmations:  30,
+        //            addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //               status:  1,
+        //                 coin: "ETH"                                                           } ] } }
+        //
+        // withdrawals
+        //
+        //     {
+        //         "updateAt": 1540344965000,
+        //         "createdAt": 1539311971000,
+        //         "status": 0,
+        //         "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        //         "tag": "100128877",
+        //         "id": 5,
+        //         "txid": "",
+        //         "fee": 0.0,
+        //         "amount": "1",
+        //         "symbol": "XTZ"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        const txid = this.safeString (transaction, 'txid');
+        let timestamp = this.safeInteger (transaction, 'createdAt');
+        let updated = this.safeInteger (transaction, 'updateAt');
+        let code = undefined;
+        let currencyId = this.safeString2 (transaction, 'symbol', 'coin');
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const address = this.safeString (transaction, 'addressTo');
+        const tag = this.safeString (transaction, 'tag');
+        const amount = this.safeFloat (transaction, 'amount');
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const type = this.safeString (transaction, 'type'); // injected from the outside
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if ((type === 'deposit') && (feeCost === undefined)) {
+            feeCost = 0;
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            '0': 'pending', // unaudited
+            '1': 'ok', // audited
+            '2': 'failed', // audit failed
+            '3': 'pending', // "payment"
+            '4': 'failed', // payment failed
+            '5': 'ok',
+            '6': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
