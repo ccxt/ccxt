@@ -27,6 +27,7 @@ module.exports = class uex extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1125,6 +1126,32 @@ module.exports = class uex extends Exchange {
             '6': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        const fee = this.safeFloat (params, 'fee');
+        if (fee === undefined) {
+            throw new ArgumentsRequired (this.id + 'requires a "fee" extra parameter in its last argument');
+        }
+        this.checkAddress (address);
+        let currency = this.currency (code);
+        let request = {
+            'coin': currency['id'],
+            'address': address, // only supports existing addresses in your withdraw address list
+            'amount': amount,
+            'fee': fee, // balance >= this.sum (amount, fee)
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Withdraw
+        let response = await this.privatePostCreateWithdraw (this.extend (request, params));
+        let id = undefined;
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
