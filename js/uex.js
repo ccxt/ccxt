@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InvalidAddress, InsufficientFunds, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -24,6 +24,7 @@ module.exports = class uex extends Exchange {
                 'fetchOrder': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -49,6 +50,7 @@ module.exports = class uex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'common/coins', // funding limits
                         'common/symbols',
                         'get_records', // ohlcvs
                         'get_ticker',
@@ -58,17 +60,21 @@ module.exports = class uex extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'deposit_list',
+                        'deposit_address_list',
+                        'withdraw_address_list',
+                        'deposit_history',
+                        'withdraw_history',
                         'user/account',
                         'market', // an assoc array of market ids to corresponding prices traded most recently (prices of last trades per market)
                         'order_info',
-                        'new_order', // open orders
+                        'new_order', // a list of currently open orders
                         'all_order',
                         'all_trade',
                     ],
                     'post': [
                         'create_order',
                         'cancel_order',
+                        'create_withdraw',
                     ],
                 },
             },
@@ -917,6 +923,51 @@ module.exports = class uex extends Exchange {
         //
         let trades = this.safeValue (response['data'], 'resultList', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'coin': currency['id'],
+        };
+        let response = await this.privateGetDepositAddressList (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "suc",
+        //         "data": {
+        //             "addressList": [
+        //                 {
+        //                     "address": "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        //                     "tag":"",
+        //                 },
+        //             ],
+        //         },
+        //     }
+        //
+        let data = this.safeValue (response, 'data');
+        if (data === undefined) {
+            throw new InvalidAddress (this.id + ' privateGetDepositAddressList() returned no data');
+        }
+        let addressList = this.safeValue (data, 'addressList');
+        if (addressList === undefined) {
+            throw new InvalidAddress (this.id + ' privateGetDepositAddressList() returned no address list');
+        }
+        let numAddresses = addressList.length;
+        if (numAddresses < 1) {
+            throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
+        }
+        let firstAddress = addressList[0];
+        let address = this.safeString (firstAddress, 'address');
+        let tag = this.safeString (firstAddress, 'tag');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
