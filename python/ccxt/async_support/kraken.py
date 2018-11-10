@@ -993,7 +993,7 @@ class kraken (Exchange):
         #                   aclass: "currency",
         #                    asset: "XETH",
         #                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        #                     txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        #                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
         #                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
         #                   amount: "9.9950000000",
         #                      fee: "0.0050000000",

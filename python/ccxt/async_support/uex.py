@@ -17,6 +17,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
@@ -40,6 +41,7 @@ class uex (Exchange):
                 'fetchOrder': True,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
+                'fetchDepositAddress': True,
             },
             'timeframes': {
                 '1m': '1',
@@ -65,6 +67,7 @@ class uex (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'common/coins',  # funding limits
                         'common/symbols',
                         'get_records',  # ohlcvs
                         'get_ticker',
@@ -74,17 +77,21 @@ class uex (Exchange):
                 },
                 'private': {
                     'get': [
-                        'deposit_list',
+                        'deposit_address_list',
+                        'withdraw_address_list',
+                        'deposit_history',
+                        'withdraw_history',
                         'user/account',
                         'market',  # an assoc array of market ids to corresponding prices traded most recently(prices of last trades per market)
                         'order_info',
-                        'new_order',  # open orders
+                        'new_order',  # a list of currently open orders
                         'all_order',
                         'all_trade',
                     ],
                     'post': [
                         'create_order',
                         'cancel_order',
+                        'create_withdraw',
                     ],
                 },
             },
@@ -875,6 +882,191 @@ class uex (Exchange):
         #
         trades = self.safe_value(response['data'], 'resultList', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        # https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-address-of-assigned-token
+        response = await self.privateGetDepositAddressList(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "suc",
+        #         "data": {
+        #             "addressList": [
+        #                 {
+        #                     "address": "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        #                     "tag": "",
+        #                 },
+        #             ],
+        #         },
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        if data is None:
+            raise InvalidAddress(self.id + ' privateGetDepositAddressList() returned no data')
+        addressList = self.safe_value(data, 'addressList')
+        if addressList is None:
+            raise InvalidAddress(self.id + ' privateGetDepositAddressList() returned no address list')
+        numAddresses = len(addressList)
+        if numAddresses < 1:
+            raise InvalidAddress(self.id + ' privatePostDepositAddresses() returned no addresses')
+        firstAddress = addressList[0]
+        address = self.safe_string(firstAddress, 'address')
+        tag = self.safe_string(firstAddress, 'tag')
+        self.check_address(address)
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    async def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals requires a currency code argument')
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+        }
+        if limit is not None:
+            request['pageSize'] = limit  # default 10
+        transactionType = 'deposit' if (type == 'deposit') else 'withdraw'  # instead of withdrawal...
+        method = 'privateGet' + self.capitalize(transactionType) + 'History'
+        # https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-record-of-assigned-token
+        # https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-withdraw-record-of-assigned-token
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {code:   "0",
+        #        msg:   "suc",
+        #       data: {depositList: [{    createdAt:  1533615955000,
+        #                                       amount: "0.01",
+        #                                     updateAt:  1533616311000,
+        #                                         txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        #                                          tag: "",
+        #                                confirmations:  30,
+        #                                    addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        #                                       status:  1,
+        #                                         coin: "ETH"                                                           }]} }
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "suc",
+        #         "data": {
+        #             "withdrawList": [{
+        #                 "updateAt": 1540344965000,
+        #                 "createdAt": 1539311971000,
+        #                 "status": 0,
+        #                 "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        #                 "tag": "100128877",
+        #                 "id": 5,
+        #                 "txid": "",
+        #                 "fee": 0.0,
+        #                 "amount": "1",
+        #                 "symbol": "XTZ"
+        #             }]
+        #         }
+        #     }
+        #
+        transactions = self.safe_value(response['data'], transactionType + 'List')
+        return self.parse_transactions_by_type(type, transactions, code, since, limit)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('deposit', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('withdrawal', code, since, limit, params)
+
+    def parse_transactions_by_type(self, type, transactions, code=None, since=None, limit=None):
+        result = []
+        for i in range(0, len(transactions)):
+            transaction = self.parse_transaction(self.extend({
+                'type': type,
+            }, transactions[i]))
+            result.append(transaction)
+        return self.filterByCurrencySinceLimit(result, code, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # deposits
+        #
+        #      {    createdAt:  1533615955000,
+        #               amount: "0.01",
+        #             updateAt:  1533616311000,
+        #                 txid: "0x0922fde6ab8270fe6eb31cb5a37dc732d96dc8193f81cf46c4ab29fde…",
+        #                  tag: "",
+        #        confirmations:  30,
+        #            addressTo: "0x198803ef8e0df9e8812c0105421885e843e6d2e2",
+        #               status:  1,
+        #                 coin: "ETH"                                                           }]} }
+        #
+        # withdrawals
+        #
+        #     {
+        #         "updateAt": 1540344965000,
+        #         "createdAt": 1539311971000,
+        #         "status": 0,
+        #         "addressTo": "tz1d7DXJXU3AKWh77gSmpP7hWTeDYs8WF18q",
+        #         "tag": "100128877",
+        #         "id": 5,
+        #         "txid": "",
+        #         "fee": 0.0,
+        #         "amount": "1",
+        #         "symbol": "XTZ"
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(transaction, 'txid')
+        timestamp = self.safe_integer(transaction, 'createdAt')
+        updated = self.safe_integer(transaction, 'updateAt')
+        code = None
+        currencyId = self.safe_string_2(transaction, 'symbol', 'coin')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is not None:
+            code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
+        address = self.safe_string(transaction, 'addressTo')
+        tag = self.safe_string(transaction, 'tag')
+        amount = self.safe_float(transaction, 'amount')
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        type = self.safe_string(transaction, 'type')  # injected from the outside
+        feeCost = self.safe_float(transaction, 'fee')
+        if (type == 'deposit') and(feeCost is None):
+            feeCost = 0
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+            },
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            '0': 'pending',  # unaudited
+            '1': 'ok',  # audited
+            '2': 'failed',  # audit failed
+            '3': 'pending',  # "payment"
+            '4': 'failed',  # payment failed
+            '5': 'ok',
+            '6': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
