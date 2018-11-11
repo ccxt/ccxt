@@ -735,7 +735,7 @@ class kraken extends Exchange {
             'baseId' => $baseId,
             'quoteId' => $quoteId,
         );
-        $this->options['delistedMarketsByIds'][$id] = $market;
+        $this->options['delistedMarketsById'][$id] = $market;
         return $market;
     }
 

@@ -705,7 +705,7 @@ class kraken (Exchange):
             'baseId': baseId,
             'quoteId': quoteId,
         }
-        self.options['delistedMarketsByIds'][id] = market
+        self.options['delistedMarketsById'][id] = market
         return market
 
     def parse_order(self, order, market=None):
