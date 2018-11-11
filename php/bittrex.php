@@ -897,14 +897,17 @@ class bittrex extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
         } else {
             $this->check_required_credentials();
-            $nonce = $this->nonce ();
             $url .= $api . '/';
             if ((($api === 'account') && ($path !== 'withdraw')) || ($path === 'openorders'))
                 $url .= strtolower ($method);
-            $url .= $path . '?' . $this->urlencode (array_merge (array (
-                'nonce' => $nonce,
+            $request = array (
                 'apikey' => $this->apiKey,
-            ), $params));
+            );
+            $disableNonce = $this->safe_value($this->options, 'disableNonce');
+            if (($disableNonce === null) || !$disableNonce) {
+                $request['nonce'] = $this->nonce ();
+            }
+            $url .= $path . '?' . $this->urlencode (array_merge ($request, $params));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
             $headers = array ( 'apisign' => $signature );
         }

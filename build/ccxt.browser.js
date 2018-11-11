@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.488'
+const version = '1.17.489'
 
 Exchange.ccxtVersion = version
 
@@ -15785,14 +15785,17 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
             url += api + '/';
             if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
                 url += method.toLowerCase ();
-            url += path + '?' + this.urlencode (this.extend ({
-                'nonce': nonce,
+            const request = {
                 'apikey': this.apiKey,
-            }, params));
+            };
+            const disableNonce = this.safeValue (this.options, 'disableNonce');
+            if ((disableNonce === undefined) || !disableNonce) {
+                request['nonce'] = this.nonce ();
+            }
+            url += path + '?' + this.urlencode (this.extend (request, params));
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
         }
@@ -17263,6 +17266,7 @@ module.exports = class bleutrade extends bittrex {
             },
             'options': {
                 'parseOrderStatus': true,
+                'disableNonce': false,
             },
         });
     }

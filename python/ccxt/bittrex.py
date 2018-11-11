@@ -851,14 +851,16 @@ class bittrex (Exchange):
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            nonce = self.nonce()
             url += api + '/'
             if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):
                 url += method.lower()
-            url += path + '?' + self.urlencode(self.extend({
-                'nonce': nonce,
+            request = {
                 'apikey': self.apiKey,
-            }, params))
+            }
+            disableNonce = self.safe_value(self.options, 'disableNonce')
+            if (disableNonce is None) or not disableNonce:
+                request['nonce'] = self.nonce()
+            url += path + '?' + self.urlencode(self.extend(request, params))
             signature = self.hmac(self.encode(url), self.encode(self.secret), hashlib.sha512)
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

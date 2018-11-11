@@ -96,6 +96,7 @@ class bleutrade extends bittrex {
             ),
             'options' => array (
                 'parseOrderStatus' => true,
+                'disableNonce' => false,
             ),
         ));
     }
