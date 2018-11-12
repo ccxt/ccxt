@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const bittrex = require ('./bittrex.js');
-const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -214,7 +214,7 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (!('orderid' in params)) {
-            throw new Error ('"orderid" field missing from params');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades required parameter "orderid"');
         }
         await this.loadMarkets ();
         let market = this.markets[symbol];
