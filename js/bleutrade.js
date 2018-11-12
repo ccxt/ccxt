@@ -97,6 +97,7 @@ module.exports = class bleutrade extends bittrex {
             'options': {
                 'parseOrderStatus': true,
                 'disableNonce': false,
+                'symbolSeparator': '_',
             },
         });
     }
@@ -188,13 +189,6 @@ module.exports = class bleutrade extends bittrex {
 
     getOrderIdField () {
         return 'orderid';
-    }
-
-    parseSymbol (id) {
-        let [ quote, base ] = id.split ('_');
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return base + '/' + quote;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
