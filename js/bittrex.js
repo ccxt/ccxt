@@ -399,9 +399,7 @@ module.exports = class bittrex extends Exchange {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        let id = this.safeString (trade, 'Id', 'ID');
         let symbol = undefined;
         if (market !== undefined)
             symbol = market['symbol'];
