@@ -15,6 +15,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class binance (Exchange):
@@ -380,16 +381,19 @@ class binance (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
+        precision = market['precision']['price']
         if side == 'sell':
             cost *= price
         else:
             key = 'base'
+            precision = market['precision']['amount']
+        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(cost),
         }
 
     def fetch_balance(self, params={}):
