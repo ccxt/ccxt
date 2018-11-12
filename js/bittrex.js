@@ -401,12 +401,15 @@ module.exports = class bittrex extends Exchange {
         let id = undefined;
         if ('Id' in trade)
             id = trade['Id'].toString ();
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
             'price': this.safeFloat (trade, 'Price'),
@@ -922,7 +925,7 @@ module.exports = class bittrex extends Exchange {
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             if (typeof success === 'string')
-                // bleutrade uses string instead of boolean
+            // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
             if (!success) {
                 const message = this.safeString (response, 'message');
