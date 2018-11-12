@@ -213,19 +213,18 @@ module.exports = class bleutrade extends bittrex {
     }
 
     async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if(!('orderid' in params)) {
-            throw Error(`"orderid" field missing from params`);
+        if (!('orderid' in params)) {
+            throw new Error ('"orderid" field missing from params');
         }
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let response = await this.accountGetOrderhistory (params);
         let trades = this.parseTrades (response['result'], market, since, limit);
-        for(let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
             trade.id = trade.info.ID;
             trade.order = params.orderid;
         }
         return trades;
     }
-
 };
