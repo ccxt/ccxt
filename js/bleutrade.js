@@ -224,6 +224,9 @@ module.exports = class bleutrade extends bittrex {
             let trade = trades[i];
             trade.id = trade.info.ID;
             trade.order = params.orderid;
+            if (trade.symbol === undefined) {
+                trade.symbol = symbol;
+            }
         }
         return trades;
     }
