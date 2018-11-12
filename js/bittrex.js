@@ -924,9 +924,10 @@ module.exports = class bittrex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            if (typeof success === 'string')
-            // bleutrade uses string instead of boolean
+            if (typeof success === 'string') {
+                // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
+            }
             if (!success) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
