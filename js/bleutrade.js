@@ -206,18 +206,14 @@ module.exports = class bleutrade extends bittrex {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let orderId = this.safeString (params, 'orderid');
-        if (orderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an "orderid" extra parameter');
-        }
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let response = await this.accountGetOrderhistory (params);
         let trades = this.parseTrades (response['result'], market, since, limit);
         for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
-            trade['order'] = orderId;
+            trade['order'] = id;
             if (trade['symbol'] === undefined) {
                 trade['symbol'] = symbol;
             }
