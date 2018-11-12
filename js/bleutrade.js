@@ -189,6 +189,13 @@ module.exports = class bleutrade extends bittrex {
         return 'orderid';
     }
 
+    parseSymbol (id) {
+        let [ quote, base ] = id.split ('_');
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
