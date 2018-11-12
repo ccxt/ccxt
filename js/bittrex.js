@@ -163,6 +163,7 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -684,7 +685,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
