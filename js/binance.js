@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError } = require ('./base/errors');
+const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -377,17 +378,20 @@ module.exports = class binance extends Exchange {
         let market = this.markets[symbol];
         let key = 'quote';
         let rate = market[takerOrMaker];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
+        let cost = amount * rate;
+        let precision = market['precision']['price'];
         if (side === 'sell') {
             cost *= price;
         } else {
             key = 'base';
+            precision = market['precision']['amount'];
         }
+        cost = this.decimalToPrecision (cost, ROUND, precision, this.precisionMode);
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': parseFloat (this.feeToPrecision (symbol, cost)),
+            'cost': parseFloat (cost),
         };
     }
 
