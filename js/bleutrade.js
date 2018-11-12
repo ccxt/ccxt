@@ -21,6 +21,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -210,4 +211,21 @@ module.exports = class bleutrade extends bittrex {
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
+
+    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if(!('orderid' in params)) {
+            throw Error(`"orderid" field missing from params`);
+        }
+        await this.loadMarkets ();
+        let market = this.markets[symbol];
+        let response = await this.accountGetOrderhistory (params);
+        let trades = this.parseTrades (response['result'], market, since, limit);
+        for(let i = 0; i < trades.length; i++) {
+            let trade = trades[i];
+            trade.id = trade.info.ID;
+            trade.order = params.orderid;
+        }
+        return trades;
+    }
+
 };
