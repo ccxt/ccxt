@@ -21,7 +21,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
-                'fetchMyTrades': true,
+                'fetchOrderTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -97,6 +97,7 @@ module.exports = class bleutrade extends bittrex {
             'options': {
                 'parseOrderStatus': true,
                 'disableNonce': false,
+                'symbolSeparator': '_',
             },
         });
     }
@@ -218,19 +219,16 @@ module.exports = class bleutrade extends bittrex {
         return parsedTrade;
     }
 
-    async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        if (!('orderid' in params)) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades required parameter "orderid"');
-        }
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
+        let market = this.market (symbol);
         let response = await this.accountGetOrderhistory (params);
         let trades = this.parseTrades (response['result'], market, since, limit);
         for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
-            trade.order = params.orderid;
-            if (trade.symbol === undefined) {
-                trade.symbol = symbol;
+            trade['order'] = id;
+            if (trade['symbol'] === undefined) {
+                trade['symbol'] = symbol;
             }
         }
         return trades;
