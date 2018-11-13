@@ -3,9 +3,8 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
-
 // ---------------------------------------------------------------------------
 
 module.exports = class hitbtc2 extends hitbtc {
@@ -849,12 +848,32 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsWithMethod (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactionsWithMethod requires a transaction type');
+        }
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let response = await this.privateGetAccountTransactions (this.extend (request, params));
+        let filtered = response.filter (entry => entry.type === type);
+        return filtered;
+        // return this.parseTransactions (filtered, undefined, since, limit);
+    }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsWithMethod ('payin', code, since, limit, params);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        
+        return await this.fetchTransactionsWithMethod ('payout', code, since, limit, params);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
