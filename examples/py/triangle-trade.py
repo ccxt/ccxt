@@ -1,3 +1,4 @@
+import socket
 import ccxt
 import time
 import os
@@ -30,7 +31,9 @@ query_times = 3
 # good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR']
 
 good_exchange_name = ['uex']
-good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR', 'LBA', 'RATING']
+# good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'XLM', 'LTC', 'ADA', 'XMR', 'TRX', 'BNB', 'ONT', 'NEO', 'DCR', 'LBA', 'RATING']
+good_coin = ['ETH', 'XRP', 'BCH', 'EOS', 'RATING']
+
 
 has_config_exchange = ['uex']
 config_key = dict()
@@ -46,7 +49,10 @@ reserve_ratio_quote = 0.3
 reserve_ratio_mid = 0.3
 
 # 最小成交量比例设定
-min_trade_unit = 0.2
+min_trade_percent = 0.2
+
+# 是否真正下单，默认否
+order_flag = False
 
 
 def set_proxy():
@@ -59,9 +65,19 @@ def get_exchange_list(good_list):
     exchange_list = []
     for exchange_name in good_list:
         exchange = getattr(ccxt,exchange_name)()
-        if exchange :
+        if exchange:
             exchange_list.append(exchange)
     return exchange_list
+
+
+# 设置交易所key
+def set_exchange_key(exchange):
+    if exchange.id in has_config_exchange:
+        exchange.apiKey = config_key[exchange.id][0]
+        exchange.secret = config_key[exchange.id][1]
+        print('set_exchange_key name is {},key is {},secret is {}'.format(exchange.name,exchange.apiKey,exchange.secret))
+    else:
+        print('set_exchange_key name is {} no key'.format(exchange.name))
 
 
 # 在指定交易所寻找三角套利机会，根据P3与P2/P1大小关系进行套利，暂不考虑滑点和手续费，目标保持base,quote数量不变，使mid数量增多
@@ -127,9 +143,11 @@ def find_trade_chance(exchange,base='LTC',quote='BTC',mid='USDT'):
         price_diff = price_quote_mid_ask1*(price_base_mid_bid1/price_quote_mid_ask1 - price_base_quote_ask1)
         profit = trade_size*price_diff
         print('++++++发现正套利机会 profit is {},price_diff is {},trade_size is {},P3: {} < P2/P1: {},time:{}\n\n'.format(
-            profit, price_diff,trade_size, price_base_quote_ask1, price_base_mid_bid1/price_quote_mid_ask1, date_time))
+            profit, price_diff, trade_size, price_base_quote_ask1, price_base_mid_bid1/price_quote_mid_ask1, date_time))
         # 开始正循环套利
-        postive_trade(exchange,cur_base_quote,cur_base_mid,cur_quote_mid,trade_size,price_base_quote_ask1, price_base_mid_bid1, price_quote_mid_ask1)
+        if order_flag:
+            postive_trade(exchange, cur_base_quote, cur_base_mid, cur_quote_mid, trade_size, price_base_quote_ask1,
+                          price_base_mid_bid1, price_quote_mid_ask1)
         # 检查逆循环套利
         '''
             P3>P2/P1
@@ -139,18 +157,20 @@ def find_trade_chance(exchange,base='LTC',quote='BTC',mid='USDT'):
             利润：Q3*P1*(P3-P2/P1)
         '''
     elif price_base_quote_bid1 > price_base_mid_ask1/price_quote_mid_bid1:
-        trade_size = min(size_base_quote_bid1,size_base_mid_ask1,size_quote_mid_bid1/price_base_quote_bid1)
+        # trade_size = min(size_base_quote_bid1,size_base_mid_ask1,size_quote_mid_bid1/price_base_quote_bid1)
+        trade_size = get_sell_size(free_base, free_quote, free_mid, size_base_quote_bid1, size_base_mid_ask1, 
+                                   price_base_mid_ask1, price_base_quote_ask1)
         price_diff = price_quote_mid_bid1*(price_base_quote_bid1-price_base_mid_ask1/price_quote_mid_bid1)
         profit = trade_size*price_diff
         print('++++++发现逆套利机会 profit is {},price_diff is {},trade_size is {},P3: {} > P2/P1: {},time:{}\n\n'.format(
             profit, price_diff, trade_size, price_base_quote_bid1, price_base_mid_ask1/price_quote_mid_bid1, date_time))
         # 开始逆循环套利
-        negative_trade()
+        if order_flag:
+            negative_trade(exchange, cur_base_quote, cur_base_mid, cur_quote_mid, trade_size, price_base_quote_bid1,
+                           price_base_mid_ask1, price_quote_mid_bid1)
     else:
         print('在交易所{}没有找到三角套利机会,time:{}\n\n'.format(exchange.name,date_time))
 
-
-# 正循环套利
 '''
     正循环套利
     正循环套利的顺序如下：
@@ -163,7 +183,9 @@ def find_trade_chance(exchange,base='LTC',quote='BTC',mid='USDT'):
 '''
 
 
-def postive_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_base_quote_ask1, price_base_mid_bid1, price_quote_mid_ask1):
+# 正循环套利
+def postive_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_base_quote_ask1, price_base_mid_bid1,
+                  price_quote_mid_ask1):
     print('开始正向套利 postive_trade base_quote:{}, base_mid:{}, quote_mid:{}, trade_size:{}, '
           'price_base_quote_ask1:{}, price_base_mid_bid1:{}, price_quote_mid_ask1:{}'
           .format(base_quote, base_mid, quote_mid, trade_size, price_base_quote_ask1, price_base_mid_bid1, price_quote_mid_ask1))
@@ -175,7 +197,7 @@ def postive_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_b
     while retry <= query_times:
         if retry == query_times:
             # cancel order
-            print('正向套利 postive_trade，达到轮询上限仍未完成交易，取消订单')
+            print('正向套利 postive_trade，达到轮询上限仍未完成交易，取消订单,retry is {}'.format(retry))
             exchange.cancel_order(result['id'], base_quote)
             break
         time.sleep(delay)
@@ -185,7 +207,7 @@ def postive_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_b
         amount = order['amount']
         already_hedged_amount = filled
         # 实际成交比例小于设定比例
-        if filled/amount < min_trade_unit:
+        if filled/amount < min_trade_percent:
             retry += 1
             continue
         # 对冲卖P2 base_mid
@@ -201,6 +223,60 @@ def postive_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_b
             retry += 1
     print('结束正向套利 postive_trade already_hedged_amount is {},trade_size is {}'.format(already_hedged_amount,trade_size))
 
+
+'''
+    逆循环套利
+    逆循环套利的顺序如下：
+    先去LTC/BTC吃单卖出LTC，买入BTC，然后根据LTC/BTC的成交量，使用多线程，
+    同时在LTC/USDT和BTC/USDT市场进行对冲。
+    LTC/USDT市场吃单买入LTC，BTC/USDT市场吃单卖出BTC。
+    P3>P2/P1
+    base_quote>base_mid/quote_mid
+    操作：卖-买/卖
+
+'''
+
+
+# 逆循环套利
+def negative_trade(exchange, base_quote, base_mid, quote_mid, trade_size, price_base_quote_bid1, price_base_mid_ask1,
+                   price_quote_mid_bid1):
+    print('开始逆循环套利 negative_trade base_quote:{}, base_mid:{}, quote_mid:{}, trade_size:{}, '
+          'price_base_quote_bid1:{}, price_base_mid_ask1:{}, price_quote_mid_bid1:{}'
+          .format(base_quote, base_mid, quote_mid, trade_size, price_base_quote_bid1, price_base_mid_ask1,
+                  price_quote_mid_bid1))
+    # 卖出LTC 卖P3
+    result = exchange.create_order(base_quote, 'limit', 'sell', trade_size, price_base_quote_bid1)
+    
+    retry = 0
+    already_hedged_amount = 0
+    while retry <= query_times:
+        if retry == query_times:
+            # cancel order
+            print('逆向套利 negative_trade，达到轮询上限仍未完成交易，取消订单,retry is {}'.format(retry))
+            exchange.cancel_order(result['id'], base_quote)
+            break
+        time.sleep(delay)
+        # 延时delay后查询订单成交量
+        order = exchange.fetch_order(result['id'], base_quote)
+        filled = order['filled']
+        amount = order['amount']
+        already_hedged_amount = filled
+        # 实际成交比例小于设定比例
+        if filled / amount < min_trade_percent:
+            retry += 1
+            continue
+        # 对冲买LTC P2
+        hedge_buy(exchange, base_mid, filled, price_base_mid_ask1)
+        # 对冲卖BTC P1
+        hedge_sell(exchange, quote_mid, filled, price_quote_mid_bid1)
+        # 实际成交量完成目标，退出轮询
+        if already_hedged_amount >= trade_size:
+            print('逆向套利 negative_trade 实际成交量完成目标，退出轮询')
+            break
+        else:
+            retry += 1
+    print('结束逆向套利 negative_trade already_hedged_amount is {},trade_size is {}'.format(already_hedged_amount, trade_size))
+        
 
 # 对冲卖
 def hedge_sell(exchange, symbol, sell_size, price):
@@ -238,23 +314,23 @@ def hedge_buy(exchange, symbol, buy_size, price):
         base:LTC, quote:BTC, mid:USDT
         1.	LTC/BTC卖方盘口吃单数量：ltc_btc_sell1_quantity*order_ratio_ltc_btc，其中ltc_btc_sell1_quantity 代表LTC/BTC卖一档的数量，
             order_ratio_ltc_btc代表本策略在LTC/BTC盘口的吃单比例
-        2.	LTC/USDT买方盘口吃单数量：ltc_cny_buy1_quantity*order_ratio_ltc_cny，其中order_ratio_ltc_cny代表本策略在LTC/USDT盘口的吃单比例
+        2.	LTC/USDT买方盘口吃单数量：ltc_usdt_buy1_quantity*order_ratio_ltc_usdt，其中order_ratio_ltc_usdt代表本策略在LTC/USDT盘口的吃单比例
         3.	LTC/BTC账户中可以用来买LTC的BTC额度及可以置换的LTC个数：
             btc_available - btc_reserve，可以置换成
             (btc_available – btc_reserve)/ltc_btc_sell1_price个LTC
             其中，btc_available表示该账户中可用的BTC数量，btc_reserve表示该账户中应该最少预留的BTC数量
             （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
-        4.	BTC/USDT账户中可以用来买BTC的USDT额度及可以置换的BTC个数和对应的LTC个数：
-            cny_available - cny_reserve, 可以置换成
-            (cny_available-cny_reserve)/btc_cny_sell1_price个BTC，
-            相当于
-            (cny_available-cny_reserve)/btc_cny_sell1_price/ltc_btc_sell1_price
-            个LTC
-            其中：cny_available表示该账户中可用的人民币数量，cny_reserve表示该账户中应该最少预留的人民币数量
-            （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
-        5.	LTC/USDT账户中可以用来卖的LTC额度：
+        4.	LTC/USDT账户中可以用来卖的LTC额度：
             ltc_available – ltc_reserve
             其中，ltc_available表示该账户中可用的LTC数量，ltc_reserve表示该账户中应该最少预留的LTC数量
+            （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
+        5.	BTC/USDT账户中可以用来买BTC的USDT额度及可以置换的BTC个数和对应的LTC个数：
+            usdt_available - usdt_reserve, 可以置换成
+            (usdt_available-usdt_reserve)/btc_usdt_sell1_price个BTC，
+            相当于
+            (usdt_available-usdt_reserve)/btc_usdt_sell1_price/ltc_btc_sell1_price
+            个LTC
+            其中：usdt_available表示该账户中可用的人民币数量，usdt_reserve表示该账户中应该最少预留的人民币数量
             （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
 '''
 
@@ -262,44 +338,77 @@ def hedge_buy(exchange, symbol, buy_size, price):
 # 获取下单买入数量 需要跟账户可用余额结合起来，数量单位统一使用base(P3:LTC）来计算
 def get_buy_size(free_base, free_quote, free_mid, size_base_quote_ask1, size_base_mid_bid1, price_base_quote_ask1, price_quote_mid_ask1):
 
-    # 1. LTC/BTC卖方盘口吃单数量 P3
+    # 1. LTC/BTC卖方盘口吃单数量 P3 卖BTC得LTC
     base_quote_to_buy_size = size_base_quote_ask1 * order_ratio
-    # 2. LTC/USDT买方盘口吃单数量 P2
+    # 2. LTC/USDT买方盘口吃单数量 P2 卖LTC得USDT
     base_mid_to_sell_size = size_base_mid_bid1 * order_ratio
-    # 3. LTC/BTC账户中可以用来买LTC的BTC额度及可以置换的LTC个数 P3
-    base_quote_can_buy_size = free_quote*(1-reserve_ratio_quote)/price_base_quote_ask1
-    # 4. BTC/USDT账户中可以用来买BTC的USDT额度及可以置换的BTC个数和对应的LTC个数 P1
-    quote_mid_can_buy_size = free_mid*(1-reserve_ratio_mid)/price_quote_mid_ask1
-    # 5. LTC/USDT账户中可以用来卖的LTC额度
-    base_mid_can_sell_size = free_base*(1-reserve_ratio_base)
+    # 3. LTC/BTC账户中可以用来买LTC的BTC额度及可以置换的LTC个数 P3 卖BTC得LTC
+    base_quote_can_buy_size = free_quote * (1-reserve_ratio_quote) / price_base_quote_ask1
+    # 4. LTC/USDT账户中可以用来卖的LTC额度 P2 卖LTC得USDT
+    base_mid_can_sell_size = free_base * (1-reserve_ratio_base)
+    # 5. BTC/USDT账户中可以用来买BTC的USDT额度及可以置换的BTC个数和对应的LTC个数 P1 卖USDT得BTC
+    quote_mid_can_buy_size = free_mid * (1 - reserve_ratio_mid) / price_quote_mid_ask1 / price_base_quote_ask1
     return min(base_quote_to_buy_size, base_mid_to_sell_size, base_quote_can_buy_size, quote_mid_can_buy_size, 
                base_mid_can_sell_size)
 
 '''
-    逆循环套利
-    逆循环套利的顺序如下：
-    先去LTC/BTC吃单卖出LTC，买入BTC，然后根据LTC/BTC的成交量，使用多线程，
-    同时在LTC/USDT和BTC/USDT市场进行对冲。
-    LTC/USDT市场吃单买入LTC，BTC/USDT市场吃单卖出BTC。
-    P3>P2/P1
-    操作：卖-买/卖
+        P3>P2/P1
+        操作：卖-买/卖
+        base:LTC, quote:BTC, mid:USDT
+        卖出的下单保险数量计算
+        假设BTC/USDT盘口流动性好
+        1. LTC/BTC买方盘口吃单数量：ltc_btc_buy1_quantity*order_ratio_ltc_btc，其中ltc_btc_buy1_quantity 代表LTC/BTC买一档的数量，
+           order_ratio_ltc_btc代表本策略在LTC/BTC盘口的吃单比例
+        2. LTC/USDT卖方盘口卖单数量：ltc_usdt_sell1_quantity*order_ratio_ltc_usdt，其中order_ratio_ltc_usdt代表本策略在LTC/USDT盘口的吃单比例
+        3. LTC/BTC账户中可以用来卖LTC的数量：
+           ltc_available - ltc_reserve，
+           其中，ltc_available表示该账户中可用的LTC数量，ltc_reserve表示该账户中应该最少预留的LTC数量
+          （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
+        4.	LTC/USDT账户中可以用来卖的usdt额度：
+            usdt_available – usdt_reserve，相当于
+            (usdt_available – usdt_reserve) / ltc_usdt_sell1_price个LTC
+            其中，usdt_available表示该账户中可用的人民币数量，usdt_reserve表示该账户中应该最少预留的人民币数量
+            （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
+        5.	BTC/USDT账户中可以用来卖BTC的BTC额度和对应的LTC个数：
+            btc_available - btc_reserve, 可以置换成
+            (btc_available-btc_reserve) / ltc_btc_sell1_price个LTC
+            其中：btc_available表示该账户中可用的BTC数量，btc_reserve表示该账户中应该最少预留的BTC数量
+           （这个数值由用户根据自己的风险偏好来设置，越高代表用户风险偏好越低）。
 
-'''
+    '''
 
 
-# TODO 逆循环套利
-def negative_trade():
-    pass
+# 获取下单卖出数量 需要跟账户可用余额结合起来，数量单位统一使用base(P3:LTC）来计算
+def get_sell_size(free_base, free_quote, free_mid, size_base_quote_bid1, size_base_mid_ask1, price_base_mid_ask1, price_base_quote_ask1):
+    # 1 LTC/BTC 买方盘口吃单数量P3 卖LTC得BTC
+    base_quote_to_sell = size_base_quote_bid1 * order_ratio
+    # 2 LTC/USDT 卖方盘口吃单数量P2 卖USDT得LTC
+    base_mid_to_buy = size_base_mid_ask1 * order_ratio
+    # 3 LTC/BTC 账户LTC中可以用来卖出LTC的数量P3，卖LTC得BTC
+    base_quote_can_sell = free_base * (1-reserve_ratio_base)
+    # 4 LTC/USDT 账户USDT中可以用来购买LTC的数量P2，卖USDT得LTC
+    base_mid_can_buy = free_mid * (1-reserve_ratio_mid) / price_base_mid_ask1
+    # 5 BTC/USDT 账户中可以用来卖出BTC的数量，转换为LTC数量(卖BTC得LTC)P1，卖BTC得USDT
+    quote_mid_can_sell = free_quote * (1-reserve_ratio_quote) / price_base_quote_ask1
+    return min(base_quote_to_sell,base_mid_to_buy,base_quote_can_sell,base_mid_can_buy,quote_mid_can_sell)
 
 
-# TODO 获取下单卖出数量 需要跟账户可用余额结合起来
-def get_sell_size():
-    pass
-
+def get_host_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+    return ip
 
 if __name__ == '__main__':
+    print('before proxy ip is {}'.format(get_host_ip()))
     set_proxy()
+    print('after proxy ip is {}'.format(get_host_ip()))
     good_exchange_list = get_exchange_list(good_exchange_name)
+    for exchange in good_exchange_list:
+        set_exchange_key(exchange)
     # 在good_coin作为base，quote=BTC,mid=USDT 在good_exchange_list交易所列表中寻找套利机会
     for symbol in good_coin:
         for exchange in good_exchange_list:
