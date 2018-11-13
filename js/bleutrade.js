@@ -222,7 +222,7 @@ module.exports = class bleutrade extends bittrex {
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.markets[symbol];
-        let response = await this.accountGetOrderhistory ({orderid: id});
+        let response = await this.accountGetOrderhistory ({ 'orderid': id });
         let trades = this.parseTrades (response['result'], market, since, limit);
         for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
@@ -232,5 +232,88 @@ module.exports = class bleutrade extends bittrex {
             }
         }
         return trades;
+    }
+
+    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.accountGetDeposithistory (params);
+        let transactions = this.parseTransactions (response['result'], symbol, since, limit);
+        for (let i = 0; i < transactions.length; i++) {
+            transactions[i]['type'] = 'deposit';
+        }
+        return transactions;
+    }
+
+    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.accountGetWithdrawhistory (params);
+        let transactions = this.parseTransactions (response['result'], symbol, since, limit);
+        for (let i = 0; i < transactions.length; i++) {
+            transactions[i]['type'] = 'withdrawal';
+        }
+        return transactions;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //  deposit:
+        // { Id: '96974373',
+        //     Coin: 'DOGE',
+        //     Amount: '12.05752192',
+        //     TimeStamp: '2017-09-29 08:10:09',
+        //     Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE' }
+        // };
+        //
+        // withdrawal:
+        // { Id: '98009125',
+        //     Coin: 'DOGE',
+        //     Amount: '-483858.64312050',
+        //     TimeStamp: '2017-11-22 22:29:05',
+        //     Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
+        //     TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432' },
+        //
+        let id = this.safeString (transaction, 'Id');
+        let amount = this.safeFloat (transaction, 'Amount');
+        let coin = this.safeString (transaction, 'Coin');
+        let code = undefined;
+        let ccy = this.safeValue (this.currencies_by_id, coin);
+        if (ccy !== undefined) {
+            code = ccy['code'];
+        } else {
+            code = this.commonCurrencyCode (coin);
+        }
+        let label = this.safeString (transaction, 'Label');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
+        let txid = this.safeString (transaction, 'TransactionId');
+        let address = undefined;
+        let feeCost = undefined;
+        let labelParts = label.split (';');
+        if (labelParts.length === 3) {
+            amount = labelParts[0];
+            address = labelParts[1];
+            feeCost = labelParts[2];
+        } else {
+            address = label;
+        }
+        let fee = undefined;
+        if (feeCost !== undefined)
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        return {
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': undefined,
+            'type': undefined,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+            'info': transaction,
+        };
     }
 };
