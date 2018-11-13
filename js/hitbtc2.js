@@ -31,6 +31,8 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchOrderTrades': false, // not implemented yet
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -845,6 +847,14 @@ module.exports = class hitbtc2 extends hitbtc {
             'cost': cost,
             'fee': fee,
         };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
