@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.491'
+const version = '1.17.492'
 
 Exchange.ccxtVersion = version
 
@@ -56438,7 +56438,10 @@ module.exports = class theocean extends Exchange {
         }
         let price = this.safeFloat (trade, 'price');
         let orderId = this.safeString (trade, 'order');
-        let id = this.safeString2 (trade, 'transactionHash', 'txHash');
+        let id = this.safeString (trade, 'id');
+        if (id === undefined) {
+            id = this.safeString2 (trade, 'transactionHash', 'txHash');
+        }
         let symbol = undefined;
         let base = undefined;
         if (market !== undefined) {
