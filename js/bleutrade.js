@@ -221,7 +221,7 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        let market = this.markets[symbol];
         let response = await this.accountGetOrderhistory ({orderid: id});
         let trades = this.parseTrades (response['result'], market, since, limit);
         for (let i = 0; i < trades.length; i++) {
