@@ -212,6 +212,12 @@ module.exports = class bleutrade extends bittrex {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
+    parseTrade (trade, market = undefined) {
+        let parsedTrade = super.parseTrade (trade, market);
+        parsedTrade.id = trade['ID'];
+        return parsedTrade;
+    }
+
     async fetchMyTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (!('orderid' in params)) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades required parameter "orderid"');
@@ -222,7 +228,6 @@ module.exports = class bleutrade extends bittrex {
         let trades = this.parseTrades (response['result'], market, since, limit);
         for (let i = 0; i < trades.length; i++) {
             let trade = trades[i];
-            trade.id = trade.info.ID;
             trade.order = params.orderid;
             if (trade.symbol === undefined) {
                 trade.symbol = symbol;
