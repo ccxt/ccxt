@@ -192,7 +192,7 @@ module.exports = class bleutrade extends bittrex {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('_');
+        let [ base, quote ] = id.split (this.options['symbolSeparator']);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
