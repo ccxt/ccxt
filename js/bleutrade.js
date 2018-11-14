@@ -249,21 +249,27 @@ module.exports = class bleutrade extends bittrex {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
         //  deposit:
-        // { Id: '96974373',
-        //     Coin: 'DOGE',
-        //     Amount: '12.05752192',
-        //     TimeStamp: '2017-09-29 08:10:09',
-        //     Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE' }
-        // };
+        //
+        //     {
+        //         Id: '96974373',
+        //         Coin: 'DOGE',
+        //         Amount: '12.05752192',
+        //         TimeStamp: '2017-09-29 08:10:09',
+        //         Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE',
+        //     }
         //
         // withdrawal:
-        // { Id: '98009125',
-        //     Coin: 'DOGE',
-        //     Amount: '-483858.64312050',
-        //     TimeStamp: '2017-11-22 22:29:05',
-        //     Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
-        //     TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432' },
+        //
+        //     {
+        //         Id: '98009125',
+        //         Coin: 'DOGE',
+        //         Amount: '-483858.64312050',
+        //         TimeStamp: '2017-11-22 22:29:05',
+        //         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
+        //         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
+        //     }
         //
         let id = this.safeString (transaction, 'Id');
         let amount = this.safeFloat (transaction, 'Amount');
