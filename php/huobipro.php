@@ -802,6 +802,7 @@ class huobipro extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -837,8 +838,9 @@ class huobipro extends Exchange {
             'amount' => $amount,
             'currency' => strtolower ($currency['id']),
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
+        }
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;
         if (is_array ($response) && array_key_exists ('data', $response)) {

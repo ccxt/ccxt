@@ -378,17 +378,20 @@ class binance extends Exchange {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];
-        $cost = floatval ($this->cost_to_precision($symbol, $amount * $rate));
+        $cost = $amount * $rate;
+        $precision = $market['precision']['price'];
         if ($side === 'sell') {
             $cost *= $price;
         } else {
             $key = 'base';
+            $precision = $market['precision']['amount'];
         }
+        $cost = $this->decimal_to_precision($cost, ROUND, $precision, $this->precisionMode);
         return array (
             'type' => $takerOrMaker,
             'currency' => $market[$key],
             'rate' => $rate,
-            'cost' => floatval ($this->fee_to_precision($symbol, $cost)),
+            'cost' => floatval ($cost),
         );
     }
 

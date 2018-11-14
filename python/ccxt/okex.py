@@ -32,6 +32,7 @@ class okex (okcoinusd):
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
             },

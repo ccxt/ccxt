@@ -195,6 +195,7 @@ module.exports = class kraken extends Exchange {
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
                 'depositMethods': {},
+                'delistedMarketsById': {},
             },
             'exceptions': {
                 'EAPI:Invalid key': AuthenticationError,
@@ -532,8 +533,18 @@ module.exports = class kraken extends Exchange {
         let id = undefined;
         let order = undefined;
         let fee = undefined;
-        if (!market)
-            market = this.findMarketByAltnameOrId (trade['pair']);
+        let marketId = this.safeString (trade, 'pair');
+        let foundMarket = this.findMarketByAltnameOrId (marketId);
+        let symbol = undefined;
+        if (foundMarket !== undefined) {
+            market = foundMarket;
+        } else if (marketId !== undefined) {
+            // delisted market ids go here
+            market = this.getDelistedMarketById (marketId);
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
             id = this.safeString2 (trade, 'id', 'postxid');
@@ -561,7 +572,6 @@ module.exports = class kraken extends Exchange {
             if (tradeLength > 6)
                 id = trade[6]; // artificially added as per #1794
         }
-        let symbol = (market) ? market['symbol'] : undefined;
         return {
             'id': id,
             'order': order,
@@ -585,7 +595,17 @@ module.exports = class kraken extends Exchange {
         let response = await this.publicGetTrades (this.extend ({
             'pair': id,
         }, params));
-        // { result: { marketid: [ ... trades ] }, last: "last_trade_id"}
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "XETHXXBT": [
+        //                 ["0.032310","4.28169434",1541390792.763,"s","l",""]
+        //             ],
+        //             "last": "1541439421200678657"
+        //         }
+        //     }
+        //
         let result = response['result'];
         let trades = result[id];
         // trades is a sorted array: last (most recent trade) goes last
@@ -670,13 +690,68 @@ module.exports = class kraken extends Exchange {
         return undefined;
     }
 
+    getDelistedMarketById (id) {
+        if (id === undefined) {
+            return id;
+        }
+        let market = this.safeValue (this.options['delistedMarketsById'], id);
+        if (market !== undefined) {
+            return market;
+        }
+        let baseIdStart = 0;
+        let baseIdEnd = 3;
+        let quoteIdStart = 3;
+        let quoteIdEnd = 6;
+        if (id.length === 8) {
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 8;
+        } else if (id.length === 7) {
+            baseIdEnd = 4;
+            quoteIdStart = 4;
+            quoteIdEnd = 7;
+        }
+        let baseId = id.slice (baseIdStart, baseIdEnd);
+        let quoteId = id.slice (quoteIdStart, quoteIdEnd);
+        let base = baseId;
+        let quote = quoteId;
+        if (base.length > 3) {
+            if ((base[0] === 'X') || (base[0] === 'Z')) {
+                base = base.slice (1);
+            }
+        }
+        if (quote.length > 3) {
+            if ((quote[0] === 'X') || (quote[0] === 'Z')) {
+                quote = quote.slice (1);
+            }
+        }
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        let symbol = base + '/' + quote;
+        market = {
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+        };
+        this.options['delistedMarketsById'][id] = market;
+        return market;
+    }
+
     parseOrder (order, market = undefined) {
         let description = order['descr'];
         let side = description['type'];
         let type = description['ordertype'];
+        let marketId = this.safeString (description, 'pair');
+        let foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
-        if (market === undefined)
-            market = this.findMarketByAltnameOrId (description['pair']);
+        if (foundMarket !== undefined) {
+            market = foundMarket;
+        } else if (marketId !== undefined) {
+            // delisted market ids go here
+            market = this.getDelistedMarketById (marketId);
+        }
         let timestamp = parseInt (order['opentm'] * 1000);
         let amount = this.safeFloat (order, 'vol');
         let filled = this.safeFloat (order, 'vol_exec');
@@ -761,6 +836,31 @@ module.exports = class kraken extends Exchange {
         if (since !== undefined)
             request['start'] = parseInt (since / 1000);
         let response = await this.privatePostTradesHistory (this.extend (request, params));
+        //
+        //     {
+        //         "error": [],
+        //         "result": {
+        //             "trades": {
+        //                 "GJ3NYQ-XJRTF-THZABF": {
+        //                     "ordertxid": "TKH2SE-ZIF5E-CFI7LT",
+        //                     "postxid": "OEN3VX-M7IF5-JNBJAM",
+        //                     "pair": "XICNXETH",
+        //                     "time": 1527213229.4491,
+        //                     "type": "sell",
+        //                     "ordertype": "limit",
+        //                     "price": "0.001612",
+        //                     "cost": "0.025792",
+        //                     "fee": "0.000026",
+        //                     "vol": "16.00000000",
+        //                     "margin": "0.000000",
+        //                     "misc": ""
+        //                 },
+        //                 ...
+        //             },
+        //             "count": 9760,
+        //         },
+        //     }
+        //
         let trades = response['result']['trades'];
         let ids = Object.keys (trades);
         for (let i = 0; i < ids.length; i++) {
@@ -948,7 +1048,7 @@ module.exports = class kraken extends Exchange {
         //                   aclass: "currency",
         //                    asset: "XETH",
         //                    refid: "A2BF34S-O7LBNQ-UE4Y4O",
-        //                     txid: "0x288b83c6b0904d8400ef44e1c9e2187b5c8f7ea3d838222d53f701a15b5c274d",
+        //                     txid: "0x298c83c7b0904d8400ef43e1c9e2287b518f7ea3d838822d53f704a1565c274d",
         //                     info: "0x7cb275a5e07ba943fee972e165d80daa67cb2dd0",
         //                   amount: "9.9950000000",
         //                      fee: "0.0050000000",
@@ -997,10 +1097,12 @@ module.exports = class kraken extends Exchange {
         if (numResults < 1)
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
         let address = this.safeString (result[0], 'address');
+        let tag = this.safeString2 (result[0], 'tag', 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }

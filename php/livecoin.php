@@ -582,7 +582,7 @@ class livecoin extends Exchange {
         if ($tag !== null)
             $wallet .= '::' . $tag;
         $request = array (
-            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $this->currencies[$currency]['precision'], DECIMAL_PLACES),
+            'amount' => $this->decimal_to_precision($amount, TRUNCATE, $currency['precision'], DECIMAL_PLACES),
             'currency' => $currency['id'],
             'wallet' => $wallet,
         );

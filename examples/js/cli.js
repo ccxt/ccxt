@@ -13,6 +13,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , details = process.argv.includes ('--details')
     , no_table = process.argv.includes ('--no-table')
     , iso8601 = process.argv.includes ('--iso8601')
+    , cors = process.argv.includes ('--cors')
 
 //-----------------------------------------------------------------------------
 
@@ -149,6 +150,7 @@ function printSupportedExchanges () {
     log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print tabulated fetch responses')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
+    log ('--cors            use CORS proxy for debugging')
 }
 
 //-----------------------------------------------------------------------------
@@ -223,6 +225,11 @@ async function main () {
 
         if (cfscrape)
             exchange.headers = cfscrapeCookies (www)
+
+        if (cors) {
+            exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
+            exchange.origin = exchange.uuid ()
+        }
 
         no_load_markets = no_send ? true : no_load_markets
 

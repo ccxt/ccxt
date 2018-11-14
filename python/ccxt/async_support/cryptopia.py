@@ -125,6 +125,8 @@ class cryptopia (Exchange):
                 'FT': 'Fabric Token',
                 'FUEL': 'FC2',  # FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'HC': 'Harvest Masternode Coin',  # != HyperCash
+                'HSR': 'HC',
                 'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
@@ -647,12 +649,14 @@ class cryptopia (Exchange):
             'Currency': currency['id'],
         }, params))
         address = self.safe_string(response['Data'], 'BaseAddress')
-        if not address:
-            address = self.safe_string(response['Data'], 'Address')
+        tag = self.safe_string(response['Data'], 'Address')
+        if address is None:
+            address = tag
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 

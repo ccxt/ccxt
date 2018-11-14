@@ -801,6 +801,7 @@ module.exports = class huobipro extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -836,8 +837,9 @@ module.exports = class huobipro extends Exchange {
             'amount': amount,
             'currency': currency['id'].toLowerCase (),
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
+        }
         let response = await this.privatePostDwWithdrawApiCreate (this.extend (request, params));
         let id = undefined;
         if ('data' in response) {

@@ -611,7 +611,8 @@ module.exports = class bittrex extends Exchange {
         const amount = this.safeFloat (transaction, 'Amount');
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'));
+        const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'), updated);
         const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
@@ -650,7 +651,6 @@ module.exports = class bittrex extends Exchange {
                 status = 'ok';
             }
         }
-        let updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
         let feeCost = this.safeFloat (transaction, 'TxCost');
         if (feeCost === undefined) {
             if (type === 'deposit') {
@@ -897,14 +897,17 @@ module.exports = class bittrex extends Exchange {
                 url += '?' + this.urlencode (params);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
             url += api + '/';
             if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders'))
                 url += method.toLowerCase ();
-            url += path + '?' + this.urlencode (this.extend ({
-                'nonce': nonce,
+            const request = {
                 'apikey': this.apiKey,
-            }, params));
+            };
+            const disableNonce = this.safeValue (this.options, 'disableNonce');
+            if ((disableNonce === undefined) || !disableNonce) {
+                request['nonce'] = this.nonce ();
+            }
+            url += path + '?' + this.urlencode (this.extend (request, params));
             let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
             headers = { 'apisign': signature };
         }

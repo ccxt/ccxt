@@ -40,6 +40,7 @@ class theocean (Exchange):
             'version': 'v0',
             'certified': True,
             'parseJsonResponse': False,
+            'requiresWeb3': True,
             # add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes': {
                 '5m': '300',
@@ -472,7 +473,9 @@ class theocean (Exchange):
             timestamp = timestamp * 1000
         price = self.safe_float(trade, 'price')
         orderId = self.safe_string(trade, 'order')
-        id = self.safe_string_2(trade, 'transactionHash', 'txHash')
+        id = self.safe_string(trade, 'id')
+        if id is None:
+            id = self.safe_string_2(trade, 'transactionHash', 'txHash')
         symbol = None
         base = None
         if market is not None:

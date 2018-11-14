@@ -99,6 +99,7 @@ class bleutrade (bittrex):
             },
             'options': {
                 'parseOrderStatus': True,
+                'disableNonce': False,
             },
         })
 

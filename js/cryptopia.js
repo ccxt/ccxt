@@ -108,6 +108,8 @@ module.exports = class cryptopia extends Exchange {
                 'FT': 'Fabric Token',
                 'FUEL': 'FC2', // FuelCoin != FUEL
                 'HAV': 'Havecoin',
+                'HC': 'Harvest Masternode Coin', // != HyperCash
+                'HSR': 'HC',
                 'KARM': 'KARMA',
                 'LBTC': 'LiteBitcoin',
                 'LDC': 'LADACoin',
@@ -695,12 +697,15 @@ module.exports = class cryptopia extends Exchange {
             'Currency': currency['id'],
         }, params));
         let address = this.safeString (response['Data'], 'BaseAddress');
-        if (!address)
-            address = this.safeString (response['Data'], 'Address');
+        let tag = this.safeString (response['Data'], 'Address');
+        if (address === undefined) {
+            address = tag;
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }

@@ -19,6 +19,7 @@ class theocean extends Exchange {
             'version' => 'v0',
             'certified' => true,
             'parseJsonResponse' => false,
+            'requiresWeb3' => true,
             // add GET https://api.staging.theocean.trade/api/v0/candlesticks/intervals to fetchMarkets
             'timeframes' => array (
                 '5m' => '300',
@@ -480,7 +481,10 @@ class theocean extends Exchange {
         }
         $price = $this->safe_float($trade, 'price');
         $orderId = $this->safe_string($trade, 'order');
-        $id = $this->safe_string_2($trade, 'transactionHash', 'txHash');
+        $id = $this->safe_string($trade, 'id');
+        if ($id === null) {
+            $id = $this->safe_string_2($trade, 'transactionHash', 'txHash');
+        }
         $symbol = null;
         $base = null;
         if ($market !== null) {

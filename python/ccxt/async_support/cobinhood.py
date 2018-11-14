@@ -589,14 +589,20 @@ class cobinhood (Exchange):
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostWalletDepositAddresses({
+        # 'ledger_type' is required, see: https://cobinhood.github.io/api-public/#create-new-deposit-address
+        ledgerType = self.safe_string(params, 'ledger_type', 'exchange')
+        request = {
             'currency': currency['id'],
-        })
+            'ledger_type': ledgerType,
+        }
+        response = await self.privatePostWalletDepositAddresses(self.extend(request, params))
         address = self.safe_string(response['result']['deposit_address'], 'address')
+        tag = self.safe_string(response['result']['deposit_address'], 'memo')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 

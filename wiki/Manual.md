@@ -53,7 +53,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 
 # Exchanges
 
-The ccxt library currently supports the following 134 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 133 cryptocurrency exchange markets and trading APIs:
 
 |                                                                                                                           | id                 | name                                                                                 | certified                                                                                                                   | ver   | doc                                                                                              | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------:|:-----:|--------------------------------------------------------------------------------------------------|-----------------------------------------|
@@ -96,7 +96,6 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 |![btctradeim](https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg)         | btctradeim         | [BtcTrade.im](https://www.btctrade.im)                                               |                                                                                                                             | *     | [API](https://www.btctrade.im/help.api.html)                                                     | Hong Kong                               |
 |![btctradeua](https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg)         | btctradeua         | [BTC Trade UA](https://btc-trade.com.ua)                                             |                                                                                                                             | *     | [API](https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit)      | Ukraine                                 |
 |![btcturk](https://user-images.githubusercontent.com/1294454/27992709-18e15646-64a3-11e7-9fa2-b0950ec7712f.jpg)            | btcturk            | [BTCTurk](https://www.btcturk.com)                                                   |                                                                                                                             | *     | [API](https://github.com/BTCTrader/broker-api-docs)                                              | Turkey                                  |
-|![btcx](https://user-images.githubusercontent.com/1294454/27766385-9fdcc98c-5ed6-11e7-8f14-66d5e5cd47e6.jpg)               | btcx               | [BTCX](https://btc-x.is)                                                             |                                                                                                                             | 1     | [API](https://btc-x.is/custom/api-document.html)                                                 | Iceland, US, EU                         |
 |![buda](https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg)               | buda               | [Buda](https://www.buda.com)                                                         |                                                                                                                             | 2     | [API](https://api.buda.com)                                                                      | Argentina, Chile, Colombia, Peru        |
 |![bxinth](https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg)             | bxinth             | [BX.in.th](https://bx.in.th)                                                         |                                                                                                                             | *     | [API](https://bx.in.th/info/api)                                                                 | Thailand                                |
 |![ccex](https://user-images.githubusercontent.com/1294454/27766433-16881f90-5ed8-11e7-92f8-3d92cc747a6c.jpg)               | ccex               | [C-CEX](https://c-cex.com)                                                           |                                                                                                                             | *     | [API](https://c-cex.com/?id=api)                                                                 | Germany, EU                             |
@@ -104,7 +103,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 |![chbtc](https://user-images.githubusercontent.com/1294454/28555659-f0040dc2-7109-11e7-9d99-688a438bf9f4.jpg)              | chbtc              | [CHBTC](https://vip.zb.com/user/register?recommendCode=bn070u)                       |                                                                                                                             | 1     | [API](https://www.chbtc.com/i/developer)                                                         | China                                   |
 |![chilebit](https://user-images.githubusercontent.com/1294454/27991414-1298f0d8-647f-11e7-9c40-d56409266336.jpg)           | chilebit           | [ChileBit](https://chilebit.net)                                                     |                                                                                                                             | 1     | [API](https://blinktrade.com/docs)                                                               | Chile                                   |
 |![cobinhood](https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg)          | cobinhood          | [COBINHOOD](https://cobinhood.com)                                                   |                                                                                                                             | 1     | [API](https://cobinhood.github.io/api-public)                                                    | Taiwan                                  |
-|![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)           | coinbase           | [coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                   |                                                                                                                             | 2     | [API](https://developers.coinbase.com/api/v2)                                                    | US                                      |
+|![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)           | coinbase           | [Coinbase](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                   |                                                                                                                             | 2     | [API](https://developers.coinbase.com/api/v2)                                                    | US                                      |
 |![coinbaseprime](https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg)      | coinbaseprime      | [Coinbase Prime](https://prime.coinbase.com)                                         |                                                                                                                             | *     | [API](https://docs.prime.coinbase.com)                                                           | US                                      |
 |![coinbasepro](https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg)        | coinbasepro        | [Coinbase Pro](https://pro.coinbase.com/)                                            |                                                                                                                             | *     | [API](https://docs.pro.coinbase.com/)                                                            | US                                      |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                                                   |                                                                                                                             | *     | [API](https://coincheck.com/documents/exchange/api)                                              | Japan, Indonesia                        |
@@ -171,7 +170,7 @@ The ccxt library currently supports the following 134 cryptocurrency exchange ma
 |![paymium](https://user-images.githubusercontent.com/1294454/27790564-a945a9d4-5ff9-11e7-9d2d-b635763f2f24.jpg)            | paymium            | [Paymium](https://www.paymium.com)                                                   |                                                                                                                             | 1     | [API](https://github.com/Paymium/api-documentation)                                              | France, EU                              |
 |![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)           | poloniex           | [Poloniex](https://poloniex.com)                                                     |                                                                                                                             | *     | [API](https://poloniex.com/support/api/)                                                         | US                                      |
 |![qryptos](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)            | qryptos            | [QRYPTOS](https://www.liquid.com)                                                    |                                                                                                                             | 2     | [API](https://developers.quoine.com)                                                             | Japan, China, Taiwan                    |
-|![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com)                                             |                                                                                                                             | 2     | [API](https://www.quadrigacx.com/api_info)                                                       | Canada                                  |
+|![quadrigacx](https://user-images.githubusercontent.com/1294454/27766825-98a6d0de-5ee7-11e7-9fa4-38e11a2c6f52.jpg)         | quadrigacx         | [QuadrigaCX](https://www.quadrigacx.com/?ref=laiqgbp6juewva44finhtmrk)               |                                                                                                                             | 2     | [API](https://www.quadrigacx.com/api_info)                                                       | Canada                                  |
 |![quoinex](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)            | quoinex            | [QUOINEX](https://www.liquid.com)                                                    |                                                                                                                             | 2     | [API](https://developers.quoine.com)                                                             | Japan, China, Taiwan                    |
 |![rightbtc](https://user-images.githubusercontent.com/1294454/42633917-7d20757e-85ea-11e8-9f53-fffe9fbb7695.jpg)           | rightbtc           | [RightBTC](https://www.rightbtc.com)                                                 |                                                                                                                             | *     | [API](https://52.53.159.206/api/trader/)                                                         | United Arab Emirates                    |
 |![southxchange](https://user-images.githubusercontent.com/1294454/27838912-4f94ec8a-60f6-11e7-9e5d-bbf9bd50a559.jpg)       | southxchange       | [SouthXchange](https://www.southxchange.com)                                         |                                                                                                                             | *     | [API](https://www.southxchange.com/Home/Api)                                                     | Argentina                               |
@@ -2230,7 +2229,7 @@ To place an order you will need the following information:
 
 - `symbol`, a string literal symbol of the market you wish to trade on, like `BTC/USD`, `ZEC/ETH`, `DOGE/DASH`, etc... Make sure the symbol in question exists with the target exchange and is available for trading.
 - `side`, a string literal for the direction of your order, `buy` or `sell`. When you place a buy order you give quote currency and receive base currency. For example, buying `BTC/USD` means that you will receive bitcoins for your dollars. When you are selling `BTC/USD` the outcome is the opposite and you receive dollars for your bitcoins.
-- `type`, a string literal type of order, ccxt currently supports `market` and `limit` orders
+- `type`, a string literal type of order, **ccxt currently unifies `market` and `limit` orders only**, see https://github.com/ccxt/ccxt/wiki/Manual#custom-order-params and https://github.com/ccxt/ccxt/wiki/Manual#other-order-types
 - `amount`, how much of currency you want to trade. This usually refers to base currency of the trading pair symbol, though some exchanges require the amount in quote currency and a few of them require base or quote amount depending on the side of the order. See their API docs for details.
 - `price`, how much quote currency you are willing to pay for a trade lot of base currency (for limit orders only)
 
@@ -2243,7 +2242,7 @@ A successful call to a unified method for placing market or limit orders returns
 }
 ```
 
-**Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
+- **Some exchanges will allow to trade with limit orders only.** See [their docs](https://github.com/ccxt/ccxt/wiki/Manual#exchanges) for details.
 
 #### Market Orders
 
@@ -2329,6 +2328,54 @@ kraken.create_market_buy_order('BTC/USD', 1, {'trading_agreement': 'agree'})
 // PHP
 // add custom user id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+#### Other Order Types
+
+The `type` can be either `limit` or `market`, if you want a `stopLimit` type, use params overrides, as described here: https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params.
+
+The following is a generic example for overriding the order type, however, you must read the docs for the exchange in question in order to specify proper arguments and values. Order types other than `limit` or `market` are currently not unified, therefore for other order types one has to override the unified params as shown below.
+
+```JavaScript
+const symbol = 'ETH/BTC'
+const type = 'limit' // or 'market', other types aren't unified yet
+const side = 'sell'
+const amount = 123.45 // your amount
+const price = 54.321 // your price
+// overrides
+const params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+const order = await exchange.createOrder (symbol, type, side, amount, price, params)
+```
+
+```Python
+symbol = 'ETH/BTC'
+type = 'limit'  # or 'market', other types aren't unified yet
+side = 'sell'
+amount = 123.45  # your amount
+price = 54.321  # your price
+# overrides
+params = {
+    'stopPrice': 123.45,  # your stop price
+    'type': 'stopLimit',
+}
+order = exchange.create_order(symbol, type, side, amount, price, params)
+```
+
+```PHP
+$symbol = 'ETH/BTC';
+$type = 'limit'; // or 'market', other types aren't unified yet
+$side = 'sell';
+$amount = 123.45; // your amount
+$price = 54.321; // your price
+// overrides
+$params = {
+    'stopPrice': 123.45, // your stop price
+    'type': 'stopLimit',
+}
+$order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);
 ```
 
 ### Canceling Orders
