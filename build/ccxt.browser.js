@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.492'
+const version = '1.17.495'
 
 Exchange.ccxtVersion = version
 
@@ -8693,6 +8693,7 @@ module.exports = class bitfinex extends Exchange {
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'EUR': 'EURT',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -29467,6 +29468,9 @@ module.exports = class coolcoin extends coinegg {
                     },
                 },
             },
+            'options': {
+                'quoteIds': ['btc', 'usdt'],
+            },
         });
     }
 };
@@ -34477,7 +34481,7 @@ module.exports = class fcoin extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': false,
-                'fetchOHCLV': false,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,

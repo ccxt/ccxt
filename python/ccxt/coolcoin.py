@@ -62,4 +62,7 @@ class coolcoin (coinegg):
                     },
                 },
             },
+            'options': {
+                'quoteIds': ['btc', 'usdt'],
+            },
         })
