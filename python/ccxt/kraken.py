@@ -433,7 +433,9 @@ class kraken (Exchange):
             symbol = market['symbol']
         baseVolume = float(ticker['v'][1])
         vwap = float(ticker['p'][1])
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = float(ticker['c'][0])
         return {
             'symbol': symbol,

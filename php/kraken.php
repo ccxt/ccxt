@@ -433,7 +433,9 @@ class kraken extends Exchange {
             $symbol = $market['symbol'];
         $baseVolume = floatval ($ticker['v'][1]);
         $vwap = floatval ($ticker['p'][1]);
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = floatval ($ticker['c'][0]);
         return array (
             'symbol' => $symbol,

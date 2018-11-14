@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.492'
+const version = '1.17.497'
 
 Exchange.ccxtVersion = version
 
@@ -8261,7 +8261,9 @@ module.exports = class bitbay extends Exchange {
         let timestamp = this.milliseconds ();
         let baseVolume = this.safeFloat (ticker, 'volume');
         let vwap = this.safeFloat (ticker, 'vwap');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -8693,6 +8695,7 @@ module.exports = class bitfinex extends Exchange {
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'EUR': 'EURT',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -11954,7 +11957,9 @@ module.exports = class bitmarket extends Exchange {
         let timestamp = this.milliseconds ();
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -13376,7 +13381,9 @@ module.exports = class bitso extends Exchange {
         let timestamp = this.parse8601 (ticker['created_at']);
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -13957,7 +13964,9 @@ module.exports = class bitstamp extends Exchange {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -14718,7 +14727,9 @@ module.exports = class bitstamp1 extends Exchange {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -29467,6 +29478,9 @@ module.exports = class coolcoin extends coinegg {
                     },
                 },
             },
+            'options': {
+                'quoteIds': ['btc', 'usdt'],
+            },
         });
     }
 };
@@ -34477,7 +34491,7 @@ module.exports = class fcoin extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchDepositAddress': false,
-                'fetchOHCLV': false,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
@@ -36012,7 +36026,9 @@ module.exports = class gatecoin extends Exchange {
             symbol = market['symbol'];
         let baseVolume = this.safeFloat (ticker, 'volume');
         let vwap = this.safeFloat (ticker, 'vwap');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -41892,8 +41908,10 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let id = currency['currency_id'];
-            let code = this.commonCurrencyCode (currency['iso'].toUpperCase ());
+            let id = this.safeString (currency, 'currency_id');
+            let code = this.safeString (currency, 'iso');
+            code = code.toUpperCase ();
+            code = this.commonCurrencyCode (code);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -41930,9 +41948,9 @@ module.exports = class ice3x extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['pair_id'];
-            let baseId = market['currency_id_from'].toString ();
-            let quoteId = market['currency_id_to'].toString ();
+            let id = this.safeString (market, 'pair_id');
+            let baseId = this.safeString (market, 'currency_id_from');
+            let quoteId = this.safeString (market, 'currency_id_to');
             let baseCurrency = this.currencies_by_id[baseId];
             let quoteCurrency = this.currencies_by_id[quoteId];
             let base = this.commonCurrencyCode (baseCurrency['code']);
@@ -41996,9 +42014,12 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = this.marketsById[ticker['pair_id']];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            let marketId = this.safeString (ticker, 'pair_id');
+            let market = this.safeValue (this.marketsById, marketId);
+            if (market !== undefined) {
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }
@@ -44472,7 +44493,9 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         let baseVolume = parseFloat (ticker['v'][1]);
         let vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,
@@ -49437,7 +49460,9 @@ module.exports = class livecoin extends Exchange {
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -53022,7 +53047,9 @@ module.exports = class paymium extends Exchange {
         let timestamp = ticker['at'] * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
@@ -54535,7 +54562,9 @@ module.exports = class quadrigacx extends Exchange {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -61042,7 +61071,9 @@ module.exports = class zaif extends Exchange {
         let timestamp = this.milliseconds ();
         let vwap = ticker['vwap'];
         let baseVolume = ticker['volume'];
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = ticker['last'];
         return {
             'symbol': symbol,
