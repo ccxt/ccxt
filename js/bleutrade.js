@@ -274,6 +274,15 @@ module.exports = class bleutrade extends bittrex {
         //         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
         //     }
         //
+        //     {
+        //         "Id": "95820181",
+        //         "Coin": "BTC",
+        //         "Amount": "-0.71300000",
+        //         "TimeStamp": "2017-07-19 17:14:24",
+        //         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
+        //         "TransactionId": "CANCELED"
+        //     }
+        //
         let id = this.safeString (transaction, 'Id');
         let amount = this.safeFloat (transaction, 'Amount');
         let coin = this.safeString (transaction, 'Coin');
@@ -303,13 +312,16 @@ module.exports = class bleutrade extends bittrex {
                 'currency': code,
                 'cost': feeCost,
             };
+        let status = 'ok';
+        if("CANCELED" === txid)
+            status = 'canceled';
         return {
             'id': id,
             'currency': code,
             'amount': amount,
             'address': address,
             'tag': undefined,
-            'status': undefined,
+            'status': status,
             'type': undefined,
             'updated': undefined,
             'txid': txid,
