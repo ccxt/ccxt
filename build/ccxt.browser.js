@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.494'
+const version = '1.17.495'
 
 Exchange.ccxtVersion = version
 
@@ -29467,6 +29467,9 @@ module.exports = class coolcoin extends coinegg {
                         'BT2': '1%',
                     },
                 },
+            },
+            'options': {
+                'quoteIds': ['btc', 'usdt'],
             },
         });
     }
