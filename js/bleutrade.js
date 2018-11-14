@@ -313,8 +313,10 @@ module.exports = class bleutrade extends bittrex {
                 'cost': feeCost,
             };
         let status = 'ok';
-        if("CANCELED" === txid)
+        if("CANCELED" === txid) {
+            txid = undefined;
             status = 'canceled';
+        }
         return {
             'id': id,
             'currency': code,
