@@ -224,6 +224,9 @@ module.exports = class bleutrade extends bittrex {
             if (trade['symbol'] === undefined) {
                 trade['symbol'] = symbol;
             }
+            if(trade.price !== undefined && trade.amount !== undefined) {
+                trade['cost'] = trade.price * trade.amount;
+            }
         }
         return trades;
     }
