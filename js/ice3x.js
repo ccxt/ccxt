@@ -195,7 +195,7 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = this.marketsById[ticker['pair_id']];
+            let market = this.marketsById[parseInt(ticker['pair_id'])];
             let symbol = market['symbol'];
             result[symbol] = this.parseTicker (ticker, market);
         }
