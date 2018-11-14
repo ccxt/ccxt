@@ -61,6 +61,9 @@ module.exports = class coolcoin extends coinegg {
                     },
                 },
             },
+            'options': {
+                'quoteIds': ['btc', 'usdt'],
+            },
         });
     }
 };
