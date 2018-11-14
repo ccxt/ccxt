@@ -94,7 +94,7 @@ module.exports = class ice3x extends Exchange {
             let id = this.safeString (currency, 'currency_id');
             let code = this.safeString (currency, 'iso');
             code = code.toUpperCase ();
-            let code = this.commonCurrencyCode (code);
+            code = this.commonCurrencyCode (code);
             result[code] = {
                 'id': id,
                 'code': code,
