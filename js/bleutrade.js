@@ -213,12 +213,6 @@ module.exports = class bleutrade extends bittrex {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    parseTrade (trade, market = undefined) {
-        let parsedTrade = super.parseTrade (trade, market);
-        parsedTrade.id = trade['ID'];
-        return parsedTrade;
-    }
-
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.markets[symbol];
