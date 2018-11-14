@@ -115,6 +115,7 @@ class coinmarketcap (Exchange):
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
             'GuccioneCoin': 'GuccioneCoin',  # conflict with GCC(Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin',  # conflict with HMC(Hi Mutual Society)
+            'Harvest Masternode Coin': 'Harvest Masternode Coin',  # conflict with HC(HyperCash)
             'Hydro Protocol': 'Hydro Protocol',  # conflict with HOT(Holo)
             'Huncoin': 'Huncoin',  # conflict with HNC(Helleniccoin)
             'iCoin': 'iCoin',

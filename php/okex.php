@@ -33,6 +33,7 @@ class okex extends okcoinusd {
             'commonCurrencies' => array (
                 'FAIR' => 'FairGame',
                 'HOT' => 'Hydro Protocol',
+                'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'YOYO' => 'YOYOW',
             ),

@@ -628,7 +628,7 @@ class bitz (Exchange):
                 request['to'] = since + limit * duration * 1000
         else:
             if since is not None:
-                raise ExchangeError(self.id + ' fetchOHLCV requires a since argument to be supplied along with the limit argument')
+                raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = await self.marketGetKline(self.extend(request, params))
         #
         #     {   status:    200,

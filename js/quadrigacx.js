@@ -348,7 +348,8 @@ module.exports = class quadrigacx extends Exchange {
                 cost = Math.abs (cost);
             }
             if (side === undefined) {
-                if (this.safeFloat (trade, market['base']) > 0) {
+                let baseValue = this.safeFloat (trade, market['baseId']);
+                if ((baseValue !== undefined) && (baseValue > 0)) {
                     side = 'buy';
                 } else {
                     side = 'sell';
