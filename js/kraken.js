@@ -433,7 +433,9 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         let baseVolume = parseFloat (ticker['v'][1]);
         let vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,
