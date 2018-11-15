@@ -218,37 +218,48 @@ module.exports = class bleutrade extends bittrex {
         let market = this.markets[symbol];
         let response = await this.accountGetOrderhistory ({ 'orderid': id });
         let trades = this.parseTrades (response['result'], market, since, limit);
+        let result = [];
         for (let i = 0; i < trades.length; i++) {
-            let trade = trades[i];
-            trade['order'] = id;
+            let trade = this.extend (trades[i], {
+                'order': id,
+            });
             if (trade['symbol'] === undefined) {
                 trade['symbol'] = symbol;
             }
-            if(trade.price !== undefined && trade.amount !== undefined) {
+            if (trade.price !== undefined && trade.amount !== undefined) {
                 trade['cost'] = trade.price * trade.amount;
             }
+            result.push (trade);
         }
-        return trades;
+        return result;
     }
 
     async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetDeposithistory (params);
         let transactions = this.parseTransactions (response['result'], symbol, since, limit);
+        let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i]['type'] = 'deposit';
+            let transaction = this.extend (transactions[i], {
+                'type': 'deposit',
+            });
+            result.push (transaction);
         }
-        return transactions;
+        return result;
     }
 
     async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.accountGetWithdrawhistory (params);
         let transactions = this.parseTransactions (response['result'], symbol, since, limit);
+        let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i]['type'] = 'withdrawal';
+            let transaction = this.extend (transactions[i], {
+                'type': 'withdrawal',
+            });
+            result.push (transaction);
         }
-        return transactions;
+        return result;
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -313,12 +324,12 @@ module.exports = class bleutrade extends bittrex {
                 'cost': feeCost,
             };
         let status = 'ok';
-        if("CANCELED" === txid) {
+        if (txid === 'CANCELED') {
             txid = undefined;
             status = 'canceled';
         }
-        if(amount !== undefined)
-            amount = Math.abs(amount);
+        if (amount !== undefined)
+            amount = Math.abs (amount);
         return {
             'id': id,
             'currency': code,
