@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, OrderNotCached, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, OrderNotCached, InvalidNonce, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -398,6 +398,103 @@ module.exports = class cryptopia extends Exchange {
         let response = await this.publicGetGetMarketHistoryIdHours (this.extend (request, params));
         let trades = response['Data'];
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTransaction (transaction) {
+        // {   Id: 937355,
+        //     Currency: 'BTC',
+        //     TxId: '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
+        //     Type: 'Withdraw',
+        //     Amount: 0.7,
+        //     Fee: 0,
+        //     Status: 'Complete',
+        //     Confirmations: 0,
+        //     Timestamp: '2017-10-10T18:39:03.8928376',
+        //     Address: '14KyZTusAZZGEmZzxsWf4pee7ThtA2iv2E' },
+        //
+        //     { Id: 7833741,
+        //     Currency: 'BCH',
+        //     TxId: '0000000000000000011865af4122fe3b144e2cbeea86142e8ff2fb4107352d43',
+        //     Type: 'Deposit',
+        //     Amount: 0.0003385,
+        //     Fee: 0,
+        //     Status: 'Confirmed',
+        //     Confirmations: 6,
+        //     Timestamp: '2017-08-01T16:19:24',
+        //     Address: null },
+        let timestamp = this.safeInteger (transaction, 'Timestamp');
+        let code = undefined;
+        let currencyId = this.safeString (transaction, 'Currency');
+        let currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency === undefined) {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let status = this.safeString (transaction, 'Status');
+        let txid = this.safeString (transaction, 'TxId');
+        if (status !== undefined) {
+            status = this.parseTransactionStatus (status);
+        }
+        const id = this.safeString (transaction, 'Id');
+        const type = this.parseTransactionType (this.safeString (transaction, 'Type'));
+        const amount = this.safeFloat (transaction, 'Amount');
+        const address = this.safeString (transaction, 'Address');
+        let feeCost = this.safeFloat (transaction, 'Fee');
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': undefined,
+                'cost': feeCost,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Confirmed': 'ok',
+            'Complete': 'ok',
+            'Pending': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransactionType (type) {
+        const types = {
+            'Withdraw': 'withdrawal',
+            'Deposit': 'deposit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    async fetchTransactions (type = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.privatePostGetTransactions (this.extend ({
+            'type': type,
+        }));
+        let transactions = this.parseTransactions (response['Data'], since, limit);
+        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), since, limit);
+    }
+
+    async fetchWithdrawals (since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactions ('witdrawal', since, limit, params);
+        return this.filterByCurrencySinceLimit (response, since, limit);
+    }
+
+    async fetchDeposits (since = undefined, limit = undefined, params = {}) {
+        let response = await this.fetchTransactions ('deposit', since, limit, params);
+        return this.filterByCurrencySinceLimit (response, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
