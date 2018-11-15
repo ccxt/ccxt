@@ -189,7 +189,9 @@ module.exports = class zaif extends Exchange {
         let timestamp = this.milliseconds ();
         let vwap = ticker['vwap'];
         let baseVolume = ticker['volume'];
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = ticker['last'];
         return {
             'symbol': symbol,

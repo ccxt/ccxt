@@ -107,7 +107,9 @@ module.exports = class paymium extends Exchange {
         let timestamp = ticker['at'] * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,

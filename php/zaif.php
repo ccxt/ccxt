@@ -190,7 +190,9 @@ class zaif extends Exchange {
         $timestamp = $this->milliseconds ();
         $vwap = $ticker['vwap'];
         $baseVolume = $ticker['volume'];
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $ticker['last'];
         return array (
             'symbol' => $symbol,
