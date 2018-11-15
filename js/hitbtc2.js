@@ -30,8 +30,9 @@ module.exports = class hitbtc2 extends hitbtc {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchOrderTrades': false, // not implemented yet
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': true,
             },
             'timeframes': {
                 '1m': 'M1',
