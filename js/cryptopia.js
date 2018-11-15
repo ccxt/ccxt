@@ -482,12 +482,12 @@ module.exports = class cryptopia extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransactions (type = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactions (code = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
         let response = await this.privatePostGetTransactions (this.extend ({
             'type': type,
-        }));
-        let transactions = this.parseTransactions (response['Data'], since, limit);
-        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), since, limit);
+        }, params));
+        let transactions = this.parseTransactions (response['Data'], code, since, limit);
+        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
