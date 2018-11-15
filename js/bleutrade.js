@@ -213,14 +213,11 @@ module.exports = class bleutrade extends bittrex {
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
-    /**
-     * Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
-     * determined (if the side of the trade is differen to the side of the order then the trade is maker).
-     * Similarly, the correct 'side' is that of the order, but it cannot be set here.
-     *
-     * The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
-     */
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
+        // determined (if the side of the trade is different to the side of the order, then the trade is maker).
+        // Similarly, the correct 'side' for the trade is that of the order.
+        // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         await this.loadMarkets ();
         let market = this.markets[symbol];
         let response = await this.accountGetOrderhistory ({ 'orderid': id });
