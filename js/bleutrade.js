@@ -317,6 +317,8 @@ module.exports = class bleutrade extends bittrex {
             txid = undefined;
             status = 'canceled';
         }
+        if(amount !== undefined)
+            amount = Math.abs(amount);
         return {
             'id': id,
             'currency': code,
