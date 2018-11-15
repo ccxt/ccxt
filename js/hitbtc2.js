@@ -848,10 +848,7 @@ module.exports = class hitbtc2 extends hitbtc {
         };
     }
 
-    async fetchTransactionsWithMethod (type, code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactionsWithMethod requires a transaction type');
-        }
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
         const request = {};
@@ -863,17 +860,88 @@ module.exports = class hitbtc2 extends hitbtc {
             request['startTime'] = since;
         }
         let response = await this.privateGetAccountTransactions (this.extend (request, params));
-        let filtered = response.filter (entry => entry.type === type);
-        return filtered;
-        // return this.parseTransactions (filtered, undefined, since, limit);
+        return this.parseTransactions (response);
     }
 
-    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('payin', code, since, limit, params);
+    parseTransaction (transaction, currency = undefined) {
+        /**
+        {   id: 'd53ee9df-89bf-4d09-886e-849f8be64647',
+            index: 1044718371,
+            type: 'payout',
+            status: 'success',
+            currency: 'ETH',
+            amount: '4.522683200000000000000000',
+            createdAt: '2018-06-07T00:43:32.426Z',
+            updatedAt: '2018-06-07T00:45:36.447Z',
+            hash: '0x973e5683dfdf80a1fb1e0b96e19085b6489221d2ddf864daa46903c5ec283a0f',
+            address: '0xC5a59b21948C1d230c8C54f05590000Eb3e1252c',
+            fee: '0.00958' }
+            { id: 'e6c63331-467e-4922-9edc-019e75d20ba3',
+            index: 1044714672,
+            type: 'exchangeToBank',
+            status: 'success',
+            currency: 'ETH',
+            amount: '4.532263200000000000',
+            createdAt: '2018-06-07T00:42:39.543Z',
+            updatedAt: '2018-06-07T00:42:39.683Z' }
+            { id: '3b052faa-bf97-4636-a95c-3b5260015a10',
+            index: 1009280164,
+            type: 'bankToExchange',
+            status: 'success',
+            currency: 'CAS',
+            amount: '104797.875800000000000000',
+            createdAt: '2018-05-19T02:34:36.750Z',
+            updatedAt: '2018-05-19T02:34:36.857Z' }
+            { id: 'd525249f-7498-4c81-ba7b-b6ae2037dc08',
+            index: 1009279948,
+            type: 'payin',
+            status: 'success',
+            currency: 'CAS',
+            amount: '104797.875800000000000000',
+            createdAt: '2018-05-19T02:30:16.698Z',
+            updatedAt: '2018-05-19T02:34:28.159Z',
+            hash: '0xa6530e1231de409cf1f282196ed66533b103eac1df2aa4a7739d56b02c5f0388',
+            address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b' }
+        */
+        const id = this.safeString (transaction, 'id');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
+        let code = undefined;
+        const currencyId = this.safeString (transaction, 'currency');
+        if (currencyId in this.currencies_by_id) {
+            currency = this.currencies_by_id[currencyId];
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeFloat (transaction, 'amount');
+        let type = this.safeString (transaction, 'type');
+        let address = this.safeString (transaction, 'address');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
     }
 
-    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsWithMethod ('payout', code, since, limit, params);
+    parseTransactionStatus (status) {
+        let statuses = {
+            'pending': 'pending',
+            'failed': 'failed',
+            'success': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
