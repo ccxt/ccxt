@@ -244,7 +244,7 @@ module.exports = class exmo extends Exchange {
             let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
             let withdrawalFee = this.safeString (item, 'wd');
             let depositFee = this.safeString (item, 'dep');
-            if (withdrawalFee !== undefined)
+            if (withdrawalFee !== undefined) {
                 if (withdrawalFee.length > 0) {
                     withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
                 }
