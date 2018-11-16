@@ -244,11 +244,15 @@ module.exports = class exmo extends Exchange {
             let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
             let withdrawalFee = this.safeString (item, 'wd');
             let depositFee = this.safeString (item, 'dep');
-            if ((withdrawalFee !== undefined) && (withdrawalFee.length > 0)) {
-                withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
+            if (withdrawalFee !== undefined)
+                if (withdrawalFee.length > 0) {
+                    withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
+                }
             }
-            if ((depositFee !== undefined) && (depositFee.length > 0)) {
-                deposit[code] = this.parseFixedFloatValue (depositFee);
+            if (depositFee !== undefined) {
+                if (depositFee.length > 0) {
+                    deposit[code] = this.parseFixedFloatValue (depositFee);
+                }
             }
         }
         const result = {
