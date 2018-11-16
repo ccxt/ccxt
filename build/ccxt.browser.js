@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.498'
+const version = '1.17.500'
 
 Exchange.ccxtVersion = version
 
@@ -1710,7 +1710,8 @@ module.exports = class Exchange {
         }
 
         if (this.requiresWeb3 && !this.web3 && Web3) {
-            this.web3 = new Web3 (new Web3.providers.HttpProvider ())
+            const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
+            this.web3 = new Web3 (Web3.givenProvider || provider)
         }
     }
 
@@ -23138,7 +23139,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchMarkets': false,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -23152,6 +23153,8 @@ module.exports = class coinbase extends Exchange {
                 'fetchTransactions': false,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchMySells': true,
+                'fetchMyBuys': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
@@ -23286,7 +23289,22 @@ module.exports = class coinbase extends Exchange {
         return response['data'];
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // they don't have an endpoint for all historical trades
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        await this.loadMarkets ();
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
+            'account_id': accountId,
+        }, query));
+        return this.parseTrades (sells['data'], undefined, since, limit);
+    }
+
+    async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // they don't have an endpoint for all historical trades
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
@@ -23296,14 +23314,7 @@ module.exports = class coinbase extends Exchange {
         const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
             'account_id': accountId,
         }, query));
-        const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
-            'account_id': accountId,
-        }, query));
-        const parsedBuys = this.parseTrades (buys['data'], undefined, since, limit);
-        const parsedSells = this.parseTrades (sells['data'], undefined, since, limit);
-        let result = this.arrayConcat (parsedBuys, parsedSells);
-        let sortedResult = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
+        return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -33234,8 +33245,18 @@ module.exports = class exmo extends Exchange {
         for (let i = 0; i < items.length; i++) {
             let item = items[i];
             let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
-            withdraw[code] = this.parseFixedFloatValue (this.safeString (item, 'wd'));
-            deposit[code] = this.parseFixedFloatValue (this.safeString (item, 'dep'));
+            let withdrawalFee = this.safeString (item, 'wd');
+            let depositFee = this.safeString (item, 'dep');
+            if (withdrawalFee !== undefined) {
+                if (withdrawalFee.length > 0) {
+                    withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
+                }
+            }
+            if (depositFee !== undefined) {
+                if (depositFee.length > 0) {
+                    deposit[code] = this.parseFixedFloatValue (depositFee);
+                }
+            }
         }
         const result = {
             'info': response,
