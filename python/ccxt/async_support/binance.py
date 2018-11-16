@@ -107,7 +107,6 @@ class binance (Exchange):
                 },
                 'public': {
                     'get': [
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
