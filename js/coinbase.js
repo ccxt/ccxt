@@ -208,6 +208,19 @@ module.exports = class coinbase extends Exchange {
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+        }
+        await this.loadMarkets ();
+        const query = this.omit (params, [ 'account_id', 'accountId' ]);
+        const response = await this.privateGetAccountsAccountIdTransactions (this.extend ({
+            'account_id': accountId,
+        }, query));
+        return this.parseTransactions (response['data'], undefined, since, limit);
+    }
+
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         if (accountId === undefined) {
