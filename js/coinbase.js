@@ -190,9 +190,7 @@ module.exports = class coinbase extends Exchange {
         const sells = await this.privateGetAccountsAccountIdSells (this.extend ({
             'account_id': accountId,
         }, query));
-        const result = this.parseTrades (sells['data'], undefined, since, limit);
-        let sortedResult = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
+        return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
     async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -205,10 +203,8 @@ module.exports = class coinbase extends Exchange {
         const buys = await this.privateGetAccountsAccountIdBuys (this.extend ({
             'account_id': accountId,
         }, query));
-        const result = this.parseTrades (buys['data'], undefined, since, limit);
-        let sortedResult = this.sortBy (result, 'timestamp');
-        return this.filterBySymbolSinceLimit (sortedResult, symbol, since, limit);
-    }
+        return this.parseTrades (buys['data'], undefined, since, limit);
+  }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
