@@ -41,7 +41,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchBidsAsks': false,
                 'fetchTrades': false,
                 'withdraw': false,
-                'fetchTransactions': false,
+                'fetchTransactions': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
                 'fetchMySells': true,
