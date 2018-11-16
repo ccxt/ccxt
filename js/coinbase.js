@@ -414,12 +414,6 @@ module.exports = class coinbase extends Exchange {
         } else if (typeString === 'send' && amountFloat >= 0) {
             type = 'withdrawal';
             amount = amountFloat;
-        } else if (typeString === 'exchange_deposit') {
-            type = 'deposit';
-            amount = amountFloat;
-        } else if (typeString === 'exchange_withdrawal') {
-            type = 'withdrawal';
-            amount = amountFloat;
         } else {
             type = typeString;
             amount = amountFloat;
