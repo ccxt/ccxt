@@ -247,6 +247,11 @@ module.exports = class coinbase extends Exchange {
             'created': 'pending',
             'completed': 'ok',
             'canceled': 'canceled',
+            'pending': 'pending',
+            'failed': 'failed',
+            'expired': 'failed',
+            'waiting_for_signature': 'pending',
+            'waiting_for_clearing': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
@@ -305,14 +310,113 @@ module.exports = class coinbase extends Exchange {
         //           },
         //           "payout_at": "2015-02-18T16:54:00-08:00"
         //         }
+        //
+        //  SELL
+        // {   id: 'c219ab4a-f2f4-5873-a63c-63a72e7f0441',
+        //     type: 'sell',
+        //     status: 'completed',
+        //     amount: { amount: '-0.04870016', currency: 'ETH' },
+        //     native_amount: { amount: '-38.01', currency: 'USD' },
+        //     description: null,
+        //     created_at: '2018-02-07T21:25:09Z',
+        //     updated_at: '2018-02-07T21:25:09Z',
+        //     resource: 'transaction',
+        //     resource_path: '/v2/accounts/61c6714f-836d-5385-a0e8-c3e6c128ff6c/transactions/c219ab4a-f2f4-5873-a63c-63a72e7f0441',
+        //     instant_exchange: false,
+        //     sell:
+        //     { id: '2566461c-8552-5c28-8b6f-2e9eea8daa77',
+        //         resource: 'sell',
+        //         resource_path: '/v2/accounts/61c6714f-836d-5385-a0e8-c3e6c128ff6c/sells/2566461c-8552-5c28-8b6f-2e9eea8daa77' },
+        //     details:
+        //     { title: 'Sold Ethereum',
+        //         subtitle: 'Using USD Wallet',
+        //         payment_method_name: 'USD Wallet' } }
+
+        // BUY
+        // {   id: '4830a95d-d12c-585d-b1b0-652faef5852f',
+        //     type: 'buy',
+        //     status: 'completed',
+        //     amount: { amount: '0.00512077', currency: 'ETH' },
+        //     native_amount: { amount: '5.00', currency: 'USD' },
+        //     description: null,
+        //     created_at: '2018-02-06T22:07:14Z',
+        //     updated_at: '2018-02-06T22:07:16Z',
+        //     resource: 'transaction',
+        //     resource_path: '/v2/accounts/61c6714f-836d-5385-a0e8-c3e6c128ff6c/transactions/4830a95d-d12c-585d-b1b0-652faef5852f',
+        //     instant_exchange: false,
+        //     buy:
+        //     { id: '1962a33d-1b61-5536-95c4-2fa3765dfd29',
+        //         resource: 'buy',
+        //         resource_path: '/v2/accounts/61c6714f-836d-5385-a0e8-c3e6c128ff6c/buys/1962a33d-1b61-5536-95c4-2fa3765dfd29' },
+        //     details:
+        //     { title: 'Bought Ethereum',
+        //         subtitle: 'Using Visa debit ********7131',
+        //         payment_method_name: 'Visa debit ********7131' } }
+
+        // SEND
+        //   { id: '0cc7b118-07ca-52b7-82e3-38a72d2da60f',
+        //     type: 'send',
+        //     status: 'completed',
+        //     amount: { amount: '-0.09000423', currency: 'BTC' },
+        //     native_amount: { amount: '-585.47', currency: 'USD' },
+        //     description: null,
+        //     created_at: '2018-08-24T00:46:24Z',
+        //     updated_at: '2018-08-24T00:58:55Z',
+        //     resource: 'transaction',
+        //     resource_path: '/v2/accounts/76a66302-e7e0-5cb4-8b91-9ffcd06e3d37/transactions/0cc7b118-07ca-52b7-82e3-38a72d2da60f',
+        //     instant_exchange: false,
+        //     network:
+        //     { status: 'confirmed',
+        //         hash: '428d6b115768df5b8a11307e5b5c2372c32c498663df33560b5fd1a717c6ff7d',
+        //         transaction_fee: { amount: '0.00000423', currency: 'BTC' },
+        //         transaction_amount: { amount: '0.09000000', currency: 'BTC' },
+        //         confirmations: 12132 },
+        //     to:
+        //     { resource: 'bitcoin_address',
+        //         address: '3Qp4WXe18HGbtNa5LBNXAvmyRWgSNpmM2f',
+        //         currency: 'BTC' },
+        //     idem: '070144C6-1099-4EEF-AD01-BFCFE49EF201',
+        //     application:
+        //     { id: '1b7deae8-528e-5f2e-ac90-c3e7b242429b',
+        //         resource: 'application',
+        //         resource_path: '/v2/applications/1b7deae8-528e-5f2e-ac90-c3e7b242429b' },
+        //     details: { title: 'Sent Bitcoin', subtitle: 'To Bitcoin address' } }
+        // RECEIVED
+        //     { id: 'e94e4e90-cc7a-5c02-a4c4-cc375a0323b9',
+        //     type: 'send',
+        //     status: 'completed',
+        //     amount: { amount: '0.00149760', currency: 'BTC' },
+        //     native_amount: { amount: '9.78', currency: 'USD' },
+        //     description: null,
+        //     created_at: '2018-08-24T13:55:51Z',
+        //     updated_at: '2018-08-24T16:08:58Z',
+        //     resource: 'transaction',
+        //     resource_path: '/v2/accounts/76a66302-e7e0-5cb4-8b91-9ffcd06e3d37/transactions/e94e4e90-cc7a-5c02-a4c4-cc375a0323b9',
+        //     instant_exchange: false,
+        //     network:
+        //     { status: 'confirmed',
+        //         hash: '01c4030f735f1fcaa6f00dfbfdd8d4f6b923a4733ae0ac6e46f7731759c8a422' },
+        //     from: { resource: 'bitcoin_network', currency: 'BTC' },
+        //     details: { title: 'Received Bitcoin', subtitle: 'From Bitcoin address' } }
         let amountObject = this.safeValue (transaction, 'amount', {});
         let feeObject = this.safeValue (transaction, 'fee', {});
         let id = this.safeString (transaction, 'id');
         let timestamp = this.parse8601 (this.safeValue (transaction, 'created_at'));
         let updated = this.parse8601 (this.safeValue (transaction, 'updated_at'));
         let orderId = undefined;
-        let type = this.safeString (transaction, 'resource');
-        let amount = this.safeFloat (amountObject, 'amount');
+        let typeString = this.safeString (transaction, 'type');
+        let amountFloat = this.safeFloat (amountObject, 'amount');
+        let type = undefined;
+        let amount = undefined;
+        if (typeString === 'send' && amountFloat < 0) {
+            type = 'deposit';
+            amount = Math.abs (amountFloat);
+        } else if (typeString === 'send' && amountFloat >= 0) {
+            type = 'withdrawal';
+            amount = amountFloat;
+        } else {
+            type = typeString;
+        }
         let currencyId = this.safeString (amountObject, 'currency');
         let currency = this.commonCurrencyCode (currencyId);
         let feeCost = this.safeFloat (feeObject, 'amount');
