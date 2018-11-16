@@ -243,8 +243,18 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($items); $i++) {
             $item = $items[$i];
             $code = $this->common_currency_code($this->safe_string($item, 'prov'));
-            $withdraw[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'wd'));
-            $deposit[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'dep'));
+            $withdrawalFee = $this->safe_string($item, 'wd');
+            $depositFee = $this->safe_string($item, 'dep');
+            if ($withdrawalFee !== null) {
+                if (strlen ($withdrawalFee) > 0) {
+                    $withdraw[$code] = $this->parse_fixed_float_value ($withdrawalFee);
+                }
+            }
+            if ($depositFee !== null) {
+                if (strlen ($depositFee) > 0) {
+                    $deposit[$code] = $this->parse_fixed_float_value ($depositFee);
+                }
+            }
         }
         $result = array (
             'info' => $response,
