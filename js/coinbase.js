@@ -206,7 +206,7 @@ module.exports = class coinbase extends Exchange {
             'account_id': accountId,
         }, query));
         return this.parseTrades (buys['data'], undefined, since, limit);
-  }
+    }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
