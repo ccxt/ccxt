@@ -307,7 +307,7 @@ module.exports = class bleutrade extends bittrex {
         }
         let currencyId = this.safeString (transaction, 'Coin');
         let code = undefined;
-        let currency = this.safeValue (this.currencies_by_id, currencyId);
+        currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
         } else {
