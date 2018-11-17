@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -79,6 +79,7 @@ module.exports = class quadrigacx extends Exchange {
             },
             'exceptions': {
                 '101': AuthenticationError,
+                '106': OrderNotFound, // {"id":"fddsafsd","error":{"code":106,"message":"Cannot perform request - not found"}}
             },
         });
     }
