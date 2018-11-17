@@ -80,6 +80,7 @@ class quadrigacx extends Exchange {
             ),
             'exceptions' => array (
                 '101' => '\\ccxt\\AuthenticationError',
+                '106' => '\\ccxt\\OrderNotFound', // array ( 'code':106, 'message' => 'Cannot perform request - not found' )
             ),
         ));
     }
