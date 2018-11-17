@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.500'
+const version = '1.17.501'
 
 Exchange.ccxtVersion = version
 
@@ -568,6 +568,11 @@ module.exports = class acx extends Exchange {
             let symbol = market['name'];
             let baseId = this.safeString (market, 'base_unit');
             let quoteId = this.safeString (market, 'quote_unit');
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                let ids = symbol.split ('/');
+                baseId = ids[0].toLowerCase ();
+                quoteId = ids[1].toLowerCase ();
+            }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
