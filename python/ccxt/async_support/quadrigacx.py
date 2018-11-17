@@ -14,6 +14,7 @@ except NameError:
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import OrderNotFound
 
 
 class quadrigacx (Exchange):
@@ -89,6 +90,7 @@ class quadrigacx (Exchange):
             },
             'exceptions': {
                 '101': AuthenticationError,
+                '106': OrderNotFound,  # {'code':106, 'message': 'Cannot perform request - not found'}
             },
         })
 
