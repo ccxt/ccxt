@@ -79,7 +79,7 @@ module.exports = class quadrigacx extends Exchange {
             },
             'exceptions': {
                 '101': AuthenticationError,
-                '106': OrderNotFound, // {"id":"fddsafsd","error":{"code":106,"message":"Cannot perform request - not found"}}
+                '106': OrderNotFound, // { 'code':106, 'message': 'Cannot perform request - not found' }
             },
         });
     }
