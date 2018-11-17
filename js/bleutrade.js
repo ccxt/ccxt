@@ -231,7 +231,7 @@ module.exports = class bleutrade extends bittrex {
                 trade['symbol'] = symbol;
             }
             if (trade.price !== undefined && trade.amount !== undefined) {
-                trade['cost'] = trade.price * trade.amount;
+                trade['cost'] = trade['price'] * trade['amount'];
             }
             result.push (trade);
         }
@@ -300,13 +300,18 @@ module.exports = class bleutrade extends bittrex {
         //
         let id = this.safeString (transaction, 'Id');
         let amount = this.safeFloat (transaction, 'Amount');
-        let coin = this.safeString (transaction, 'Coin');
+        let type = 'deposit';
+        if (amount < 0) {
+            amount = Math.abs (amount);
+            type = 'withdrawal';
+        }
+        let currencyId = this.safeString (transaction, 'Coin');
         let code = undefined;
-        let ccy = this.safeValue (this.currencies_by_id, coin);
-        if (ccy !== undefined) {
-            code = ccy['code'];
+        let currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
         } else {
-            code = this.commonCurrencyCode (coin);
+            code = this.commonCurrencyCode (currencyId);
         }
         let label = this.safeString (transaction, 'Label');
         let timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
@@ -332,22 +337,20 @@ module.exports = class bleutrade extends bittrex {
             txid = undefined;
             status = 'canceled';
         }
-        if (amount !== undefined)
-            amount = Math.abs (amount);
         return {
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'id': id,
             'currency': code,
             'amount': amount,
             'address': address,
             'tag': undefined,
             'status': status,
-            'type': undefined,
+            'type': type,
             'updated': undefined,
             'txid': txid,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'fee': fee,
-            'info': transaction,
         };
     }
 };
