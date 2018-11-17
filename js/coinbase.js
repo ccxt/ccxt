@@ -408,12 +408,12 @@ module.exports = class coinbase extends Exchange {
         let amountFloat = this.safeFloat (amountObject, 'amount');
         let type = undefined;
         let amount = undefined;
-        if (typeString === 'send' && amountFloat < 0) {
+        if (typeString === 'send' && amountFloat > 0) {
             type = 'deposit';
             amount = Math.abs (amountFloat);
-        } else if (typeString === 'send' && amountFloat >= 0) {
+        } else if (typeString === 'send' && amountFloat <= 0) {
             type = 'withdrawal';
-            amount = amountFloat;
+            amount = Math.abs (amountFloat);
         } else {
             type = typeString;
             amount = amountFloat;
