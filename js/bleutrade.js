@@ -34,6 +34,21 @@ module.exports = class bleutrade extends bittrex {
                 'doc': 'https://bleutrade.com/help/API',
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
             },
+            'api': {
+                'account': {
+                    'get': [
+                        'balance',
+                        'balances',
+                        'depositaddress',
+                        'deposithistory',
+                        'order',
+                        'orders',
+                        'orderhistory',
+                        'withdrawhistory',
+                        'withdraw',
+                    ],
+                },
+            },
             'fees': {
                 'funding': {
                     'withdraw': {
