@@ -245,17 +245,21 @@ module.exports = class bleutrade extends bittrex {
         }
         return result;
     }
-
-    async fetchDeposits (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.accountGetDeposithistory (params);
-        return this.parseTransactions (response['result'], symbol, since, limit);
+        let method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory;
+        let response = await this[method] (params);
+        let result = this.parseTransactions (response['result']);
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        let response = await this.accountGetWithdrawhistory (params);
-        return this.parseTransactions (response['result'], symbol, since, limit);
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
     parseTransaction (transaction, currency = undefined) {
