@@ -234,17 +234,13 @@ module.exports = class bleutrade extends bittrex {
         // Similarly, the correct 'side' for the trade is that of the order.
         // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         await this.loadMarkets ();
-        let market = this.markets[symbol];
         let response = await this.accountGetOrderhistory ({ 'orderid': id });
-        let trades = this.parseTrades (response['result'], market, since, limit);
+        let trades = this.parseTrades (response['result'], undefined, since, limit);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
             let trade = this.extend (trades[i], {
                 'order': id,
             });
-            if (trade['symbol'] === undefined) {
-                trade['symbol'] = symbol;
-            }
             result.push (trade);
         }
         return result;
