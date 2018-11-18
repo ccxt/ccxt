@@ -89,7 +89,7 @@ module.exports = class bittrex extends Exchange {
                         'order',
                         'orders',
                         'orderhistory',
-                        'withdrawhistory',
+                        'withdrawalhistory',
                         'withdraw',
                     ],
                 },
