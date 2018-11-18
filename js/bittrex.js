@@ -404,6 +404,14 @@ module.exports = class bittrex extends Exchange {
         let symbol = undefined;
         if (market !== undefined)
             symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
             'info': trade,
@@ -412,8 +420,10 @@ module.exports = class bittrex extends Exchange {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
