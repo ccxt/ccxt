@@ -163,6 +163,7 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -398,19 +399,30 @@ module.exports = class bittrex extends Exchange {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        let id = this.safeString2 (trade, 'Id', 'ID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -681,7 +693,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
@@ -921,9 +933,10 @@ module.exports = class bittrex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            if (typeof success === 'string')
+            if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
+            }
             if (!success) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
