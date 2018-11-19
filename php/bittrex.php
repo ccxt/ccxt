@@ -166,6 +166,8 @@ class bittrex extends Exchange {
                 'symbolSeparator' => '-',
             ),
             'commonCurrencies' => array (
+                'BCH' => 'BCHABC',
+                'BSV' => 'BCHSV',
                 'BITS' => 'SWIFT',
                 'CPC' => 'CapriCoin',
             ),
