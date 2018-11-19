@@ -14,6 +14,10 @@ import (
 // unmarshal as a time.Time.
 type JSONTime time.Time
 
+func (t JSONTime) T() time.Time {
+	return time.Time(t)
+}
+
 func (t JSONTime) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.FormatInt(time.Time(t).UnixNano()/1e6, 10)), nil
 }
