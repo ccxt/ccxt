@@ -585,7 +585,7 @@ module.exports = class bitmex extends Exchange {
                     const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + body;
                     const exact = this.exceptions['exact'];
-                    if (code in exact) {
+                    if (message in exact) {
                         throw new exact[code] (feedback);
                     }
                     const broad = this.exceptions['broad'];
