@@ -83,6 +83,7 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
                 'Nonce is too small': InvalidNonce,
                 'Order not found': OrderNotFound,

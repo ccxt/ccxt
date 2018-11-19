@@ -311,7 +311,9 @@ class gatecoin (Exchange):
             symbol = market['symbol']
         baseVolume = self.safe_float(ticker, 'volume')
         vwap = self.safe_float(ticker, 'vwap')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

@@ -22,6 +22,9 @@ class cryptopia extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchMyTrades' => true,
+                'fetchTransactions' => false,
+                'fetchWithdrawals' => true,
+                'fetchDeposits' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => 'emulated',
                 'fetchOrderBooks' => true,
@@ -399,6 +402,110 @@ class cryptopia extends Exchange {
         $response = $this->publicGetGetMarketHistoryIdHours (array_merge ($request, $params));
         $trades = $response['Data'];
         return $this->parse_trades($trades, $market, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction) {
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         Id => 937355,
+        //         Currency => 'BTC',
+        //         TxId => '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
+        //         Type => 'Withdraw',
+        //         Amount => 0.7,
+        //         Fee => 0,
+        //         Status => 'Complete',
+        //         Confirmations => 0,
+        //         Timestamp => '2017-10-10T18:39:03.8928376',
+        //         Address => '14KyZTusAZZGEmZzxsWf4pee7ThtA2iv2E',
+        //     }
+        //
+        // fetchDeposits
+        //     {
+        //         Id => 7833741,
+        //         Currency => 'BCH',
+        //         TxId => '0000000000000000011865af4122fe3b144e2cbeea86142e8ff2fb4107352d43',
+        //         Type => 'Deposit',
+        //         Amount => 0.0003385,
+        //         Fee => 0,
+        //         Status => 'Confirmed',
+        //         Confirmations => 6,
+        //         Timestamp => '2017-08-01T16:19:24',
+        //         Address => null
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'Timestamp');
+        $code = null;
+        $currencyId = $this->safe_string($transaction, 'Currency');
+        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+        if ($currency === null) {
+            $code = $this->common_currency_code($currencyId);
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $status = $this->safe_string($transaction, 'Status');
+        $txid = $this->safe_string($transaction, 'TxId');
+        if ($status !== null) {
+            $status = $this->parse_transaction_status ($status);
+        }
+        $id = $this->safe_string($transaction, 'Id');
+        $type = $this->parse_transaction_type ($this->safe_string($transaction, 'Type'));
+        $amount = $this->safe_float($transaction, 'Amount');
+        $address = $this->safe_string($transaction, 'Address');
+        $feeCost = $this->safe_float($transaction, 'Fee');
+        return array (
+            'info' => $transaction,
+            'id' => $id,
+            'currency' => $code,
+            'amount' => $amount,
+            'address' => $address,
+            'tag' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => null,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'Confirmed' => 'ok',
+            'Complete' => 'ok',
+            'Pending' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type ($type) {
+        $types = array (
+            'Withdraw' => 'withdrawal',
+            'Deposit' => 'deposit',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function fetch_transactions_by_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
+        $request = array (
+            'type' => ($type === 'deposit') ? 'Deposit' : 'Withdraw',
+        );
+        $response = $this->privatePostGetTransactions (array_merge ($request, $params));
+        return $this->parseTransactions ($response['Data'], $code, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('deposit', $code, $since, $limit, $params);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        return $this->fetch_transactions_by_type ('withdraw', $code, $since, $limit, $params);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {

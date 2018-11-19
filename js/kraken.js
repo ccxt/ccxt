@@ -236,12 +236,11 @@ module.exports = class kraken extends Exchange {
             if (amountAndCode !== 'To Be Announced') {
                 let pieces = amountAndCode.split (' ');
                 let numPieces = pieces.length;
-                if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                if (numPieces === 2) {
+                    let amount = parseFloat (pieces[0]);
+                    let code = this.commonCurrencyCode (pieces[1]);
+                    result[code] = amount;
                 }
-                let amount = parseFloat (pieces[0]);
-                let code = this.commonCurrencyCode (pieces[1]);
-                result[code] = amount;
             }
         }
         return result;
@@ -433,7 +432,9 @@ module.exports = class kraken extends Exchange {
             symbol = market['symbol'];
         let baseVolume = parseFloat (ticker['v'][1]);
         let vwap = parseFloat (ticker['p'][1]);
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = parseFloat (ticker['c'][0]);
         return {
             'symbol': symbol,

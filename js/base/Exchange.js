@@ -364,7 +364,8 @@ module.exports = class Exchange {
         }
 
         if (this.requiresWeb3 && !this.web3 && Web3) {
-            this.web3 = new Web3 (new Web3.providers.HttpProvider ())
+            const provider = (this.web3ProviderURL) ? new Web3.providers.HttpProvider (this.web3ProviderURL) : new Web3.providers.HttpProvider ()
+            this.web3 = new Web3 (Web3.givenProvider || provider)
         }
     }
 

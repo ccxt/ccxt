@@ -255,11 +255,10 @@ class kraken (Exchange):
             if amountAndCode != 'To Be Announced':
                 pieces = amountAndCode.split(' ')
                 numPieces = len(pieces)
-                if numPieces != 2:
-                    raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
-                amount = float(pieces[0])
-                code = self.common_currency_code(pieces[1])
-                result[code] = amount
+                if numPieces == 2:
+                    amount = float(pieces[0])
+                    code = self.common_currency_code(pieces[1])
+                    result[code] = amount
         return result
 
     async def fetch_markets(self):
@@ -433,7 +432,9 @@ class kraken (Exchange):
             symbol = market['symbol']
         baseVolume = float(ticker['v'][1])
         vwap = float(ticker['p'][1])
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = float(ticker['c'][0])
         return {
             'symbol': symbol,

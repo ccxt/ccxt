@@ -186,7 +186,9 @@ class zaif (Exchange):
         timestamp = self.milliseconds()
         vwap = ticker['vwap']
         baseVolume = ticker['volume']
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = ticker['last']
         return {
             'symbol': symbol,

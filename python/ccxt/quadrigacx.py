@@ -14,6 +14,7 @@ except NameError:
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import OrderNotFound
 
 
 class quadrigacx (Exchange):
@@ -89,6 +90,7 @@ class quadrigacx (Exchange):
             },
             'exceptions': {
                 '101': AuthenticationError,
+                '106': OrderNotFound,  # {'code':106, 'message': 'Cannot perform request - not found'}
             },
         })
 
@@ -239,7 +241,9 @@ class quadrigacx (Exchange):
         timestamp = int(ticker['timestamp']) * 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

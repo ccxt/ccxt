@@ -163,8 +163,11 @@ class bittrex extends Exchange {
                 ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
+                'symbolSeparator' => '-',
             ),
             'commonCurrencies' => array (
+                'BCH' => 'BCHABC',
+                'BSV' => 'BCHSV',
                 'BITS' => 'SWIFT',
                 'CPC' => 'CapriCoin',
             ),
@@ -398,19 +401,30 @@ class bittrex extends Exchange {
         } else if ($trade['OrderType'] === 'SELL') {
             $side = 'sell';
         }
-        $id = null;
-        if (is_array ($trade) && array_key_exists ('Id', $trade))
-            $id = (string) $trade['Id'];
+        $id = $this->safe_string_2($trade, 'Id', 'ID');
+        $symbol = null;
+        if ($market !== null)
+            $symbol = $market['symbol'];
+        $cost = null;
+        $price = $this->safe_float($trade, 'Price');
+        $amount = $this->safe_float($trade, 'Quantity');
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
-            'price' => $this->safe_float($trade, 'Price'),
-            'amount' => $this->safe_float($trade, 'Quantity'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -681,7 +695,7 @@ class bittrex extends Exchange {
     }
 
     public function parse_symbol ($id) {
-        list ($quote, $base) = explode ('-', $id);
+        list ($quote, $base) = explode ($this->options['symbolSeparator'], $id);
         $base = $this->common_currency_code($base);
         $quote = $this->common_currency_code($quote);
         return $base . '/' . $quote;
@@ -921,9 +935,10 @@ class bittrex extends Exchange {
             $success = $this->safe_value($response, 'success');
             if ($success === null)
                 throw new ExchangeError ($this->id . ' => malformed $response => ' . $this->json ($response));
-            if (gettype ($success) === 'string')
+            if (gettype ($success) === 'string') {
                 // bleutrade uses string instead of boolean
                 $success = ($success === 'true') ? true : false;
+            }
             if (!$success) {
                 $message = $this->safe_string($response, 'message');
                 $feedback = $this->id . ' ' . $this->json ($response);
