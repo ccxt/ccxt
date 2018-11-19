@@ -21,7 +21,7 @@ module.exports = class cryptopia extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
-                'fetchTransactions': true,
+                'fetchTransactions': false,
                 'fetchWithdrawals': true,
                 'fetchDeposits': true,
                 'fetchOHLCV': true,
@@ -404,27 +404,36 @@ module.exports = class cryptopia extends Exchange {
     }
 
     parseTransaction (transaction) {
-        // {   Id: 937355,
-        //     Currency: 'BTC',
-        //     TxId: '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
-        //     Type: 'Withdraw',
-        //     Amount: 0.7,
-        //     Fee: 0,
-        //     Status: 'Complete',
-        //     Confirmations: 0,
-        //     Timestamp: '2017-10-10T18:39:03.8928376',
-        //     Address: '14KyZTusAZZGEmZzxsWf4pee7ThtA2iv2E' },
         //
-        //     { Id: 7833741,
-        //     Currency: 'BCH',
-        //     TxId: '0000000000000000011865af4122fe3b144e2cbeea86142e8ff2fb4107352d43',
-        //     Type: 'Deposit',
-        //     Amount: 0.0003385,
-        //     Fee: 0,
-        //     Status: 'Confirmed',
-        //     Confirmations: 6,
-        //     Timestamp: '2017-08-01T16:19:24',
-        //     Address: null },
+        // fetchWithdrawals
+        //
+        //     {   
+        //         Id: 937355,
+        //         Currency: 'BTC',
+        //         TxId: '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
+        //         Type: 'Withdraw',
+        //         Amount: 0.7,
+        //         Fee: 0,
+        //         Status: 'Complete',
+        //         Confirmations: 0,
+        //         Timestamp: '2017-10-10T18:39:03.8928376',
+        //         Address: '14KyZTusAZZGEmZzxsWf4pee7ThtA2iv2E',
+        //     }
+        //
+        // fetchDeposits
+        //     {
+        //         Id: 7833741,
+        //         Currency: 'BCH',
+        //         TxId: '0000000000000000011865af4122fe3b144e2cbeea86142e8ff2fb4107352d43',
+        //         Type: 'Deposit',
+        //         Amount: 0.0003385,
+        //         Fee: 0,
+        //         Status: 'Confirmed',
+        //         Confirmations: 6,
+        //         Timestamp: '2017-08-01T16:19:24',
+        //         Address: null
+        //     }
+        //
         let timestamp = this.safeInteger (transaction, 'Timestamp');
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
@@ -459,7 +468,7 @@ module.exports = class cryptopia extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': {
-                'currency': undefined,
+                'currency': code,
                 'cost': feeCost,
             },
         };
@@ -482,23 +491,20 @@ module.exports = class cryptopia extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.privatePostGetTransactions (params);
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        let request = {
+            'type': (type === 'deposit') ? 'Deposit' : 'Withdraw',
+        };
+        let response = await this.privatePostGetTransactions (this.extend (request, params));
         return this.parseTransactions (response['Data'], code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const typeObj = {
-            'type': 'Withdraw',
-        };
-        return await this.fetchTransactions (code, since, limit, this.extend (params, typeObj));
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const typeObj = {
-            'type': 'Deposit',
-        };
-        return await this.fetchTransactions (code, since, limit, this.extend (params, typeObj));
+        return await this.fetchTransactionsByType ('withdraw', code, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
