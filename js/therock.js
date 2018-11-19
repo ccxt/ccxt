@@ -315,6 +315,18 @@ module.exports = class therock extends Exchange {
         }, params));
     }
 
+    parseOrderStatus (status) {
+        let statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            //'conditional': '?', //don't know what this status means
+        };
+        if (status in statuses)
+            return statuses[status];
+        return status;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
