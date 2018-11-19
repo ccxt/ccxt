@@ -555,11 +555,12 @@ class bitmex (Exchange):
             if body:
                 if body[0] == '{':
                     response = json.loads(body)
-                    message = self.safe_string(response, 'error')
+                    error = self.safe_value(response, 'error', {})
+                    message = self.safe_string(error, 'message')
                     feedback = self.id + ' ' + body
                     exact = self.exceptions['exact']
                     if message in exact:
-                        raise exact[code](feedback)
+                        raise exact[message](feedback)
                     broad = self.exceptions['broad']
                     broadKey = self.findBroadlyMatchedKey(broad, message)
                     if broadKey is not None:
