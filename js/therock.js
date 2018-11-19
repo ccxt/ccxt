@@ -320,7 +320,8 @@ module.exports = class therock extends Exchange {
             'active': 'open',
             'executed': 'closed',
             'deleted': 'canceled',
-            //'conditional': '?', //don't know what this status means
+            //don't know what this status means
+            //'conditional': '?',
         };
         if (status in statuses)
             return statuses[status];
