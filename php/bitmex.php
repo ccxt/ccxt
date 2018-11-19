@@ -583,11 +583,12 @@ class bitmex extends Exchange {
             if ($body) {
                 if ($body[0] === '{') {
                     $response = json_decode ($body, $as_associative_array = true);
-                    $message = $this->safe_string($response, 'error');
+                    $error = $this->safe_value($response, 'error', array ());
+                    $message = $this->safe_string($error, 'message');
                     $feedback = $this->id . ' ' . $body;
                     $exact = $this->exceptions['exact'];
-                    if (is_array ($exact) && array_key_exists ($code, $exact)) {
-                        throw new $exact[$code] ($feedback);
+                    if (is_array ($exact) && array_key_exists ($message, $exact)) {
+                        throw new $exact[$message] ($feedback);
                     }
                     $broad = $this->exceptions['broad'];
                     $broadKey = $this->findBroadlyMatchedKey ($broad, $message);

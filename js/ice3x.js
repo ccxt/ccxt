@@ -91,8 +91,10 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
             let currency = currencies[i];
-            let id = currency['currency_id'];
-            let code = this.commonCurrencyCode (currency['iso'].toUpperCase ());
+            let id = this.safeString (currency, 'currency_id');
+            let code = this.safeString (currency, 'iso');
+            code = code.toUpperCase ();
+            code = this.commonCurrencyCode (code);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -129,9 +131,9 @@ module.exports = class ice3x extends Exchange {
         let result = [];
         for (let i = 0; i < markets.length; i++) {
             let market = markets[i];
-            let id = market['pair_id'];
-            let baseId = market['currency_id_from'].toString ();
-            let quoteId = market['currency_id_to'].toString ();
+            let id = this.safeString (market, 'pair_id');
+            let baseId = this.safeString (market, 'currency_id_from');
+            let quoteId = this.safeString (market, 'currency_id_to');
             let baseCurrency = this.currencies_by_id[baseId];
             let quoteCurrency = this.currencies_by_id[quoteId];
             let base = this.commonCurrencyCode (baseCurrency['code']);
@@ -195,9 +197,12 @@ module.exports = class ice3x extends Exchange {
         let result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
-            let market = this.marketsById[ticker['pair_id']];
-            let symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+            let marketId = this.safeString (ticker, 'pair_id');
+            let market = this.safeValue (this.marketsById, marketId);
+            if (market !== undefined) {
+                let symbol = market['symbol'];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
         }
         return result;
     }

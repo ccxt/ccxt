@@ -34,7 +34,7 @@ module.exports = (exchange, trade, symbol, now) => {
     const exchangesExcludedFromTimestampCheck = [
         'gdax',
         'coinbasepro',
-        // 'coinbaseprime', // ... as well, probably
+        'coinbaseprime', // ... as well, probably
     ]
 
     if (!exchangesExcludedFromTimestampCheck.includes (exchange.id))

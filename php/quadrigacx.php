@@ -80,6 +80,7 @@ class quadrigacx extends Exchange {
             ),
             'exceptions' => array (
                 '101' => '\\ccxt\\AuthenticationError',
+                '106' => '\\ccxt\\OrderNotFound', // array ( 'code':106, 'message' => 'Cannot perform request - not found' )
             ),
         ));
     }
@@ -250,7 +251,9 @@ class quadrigacx extends Exchange {
         $timestamp = intval ($ticker['timestamp']) * 1000;
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

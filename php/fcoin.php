@@ -23,7 +23,7 @@ class fcoin extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchDepositAddress' => false,
-                'fetchOHCLV' => false,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,

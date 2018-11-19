@@ -110,6 +110,10 @@ class acx (Exchange):
             symbol = market['name']
             baseId = self.safe_string(market, 'base_unit')
             quoteId = self.safe_string(market, 'quote_unit')
+            if (baseId is None) or (quoteId is None):
+                ids = symbol.split('/')
+                baseId = ids[0].lower()
+                quoteId = ids[1].lower()
             base = baseId.upper()
             quote = quoteId.upper()
             base = self.common_currency_code(base)
