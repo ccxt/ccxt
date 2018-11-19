@@ -582,7 +582,8 @@ module.exports = class bitmex extends Exchange {
             if (body) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    const message = this.safeString (response.error, 'message');
+                    const error = this.safeValue (response, 'error', {});
+                    const message = this.safeString (error, 'message');
                     const feedback = this.id + ' ' + body;
                     const exact = this.exceptions['exact'];
                     if (message in exact) {
