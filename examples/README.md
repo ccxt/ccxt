@@ -55,6 +55,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [A n00bs Guide To Deep Cryptocurrency Trading](https://medium.com/@LeonFedden/deep-cryptocurrency-trading-1e64af6d280a) – An article @ Medium on deep neural trading using ccxt for backend tasks.
 
+[A Video Crash-Course On using CCXT](https://www.youtube.com/playlist?list=PLIFBTFgFpoJ-xGRz3v_2nF7f9HKZrfSpj) – A series of awesome video tutorials on getting started with CCXT!
+
 [Let’s write a cryptocurrency bot](https://medium.com/@joeldg/an-advanced-tutorial-a-new-crypto-currency-trading-bot-boilerplate-framework-e777733607ae) – A multi-part advanced tutorial on a new cryptocurrency trading framework also integrating ccxt.
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
