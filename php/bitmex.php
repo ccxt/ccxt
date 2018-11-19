@@ -586,7 +586,7 @@ class bitmex extends Exchange {
                     $message = $this->safe_string($response, 'error');
                     $feedback = $this->id . ' ' . $body;
                     $exact = $this->exceptions['exact'];
-                    if (is_array ($exact) && array_key_exists ($code, $exact)) {
+                    if (is_array ($exact) && array_key_exists ($message, $exact)) {
                         throw new $exact[$code] ($feedback);
                     }
                     $broad = $this->exceptions['broad'];
