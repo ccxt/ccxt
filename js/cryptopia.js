@@ -407,7 +407,7 @@ module.exports = class cryptopia extends Exchange {
         //
         // fetchWithdrawals
         //
-        //     {   
+        //     {
         //         Id: 937355,
         //         Currency: 'BTC',
         //         TxId: '5ba7784576cee48bfb9d1524abf7bdade3de65e0f2f9cdd25f7bef2c506cf296',
