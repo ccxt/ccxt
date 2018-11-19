@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.509'
+const version = '1.17.510'
 
 Exchange.ccxtVersion = version
 
@@ -44486,12 +44486,11 @@ module.exports = class kraken extends Exchange {
             if (amountAndCode !== 'To Be Announced') {
                 let pieces = amountAndCode.split (' ');
                 let numPieces = pieces.length;
-                if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                if (numPieces === 2) {
+                    let amount = parseFloat (pieces[0]);
+                    let code = this.commonCurrencyCode (pieces[1]);
+                    result[code] = amount;
                 }
-                let amount = parseFloat (pieces[0]);
-                let code = this.commonCurrencyCode (pieces[1]);
-                result[code] = amount;
             }
         }
         return result;
