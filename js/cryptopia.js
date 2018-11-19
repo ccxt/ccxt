@@ -482,22 +482,23 @@ module.exports = class cryptopia extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async fetchTransactions (code = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.privatePostGetTransactions (this.extend ({
-            'type': type,
-        }, params));
-        let transactions = this.parseTransactions (response['Data'], code, since, limit);
-        return this.filterByCurrencySinceLimit (this.sortBy (transactions, 'timestamp'), code, since, limit);
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        let response = await this.privatePostGetTransactions (params);
+        return this.parseTransactions (response['Data'], code, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchTransactions ('witdrawal', code, since, limit, params);
-        return this.filterByCurrencySinceLimit (response, code, since, limit);
+        const typeObj = {
+            'type': 'Withdraw',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (params, typeObj));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchTransactions ('deposit', code, since, limit, params);
-        return this.filterByCurrencySinceLimit (response, code, since, limit);
+        const typeObj = {
+            'type': 'Deposit',
+        };
+        return await this.fetchTransactions (code, since, limit, this.extend (params, typeObj));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
