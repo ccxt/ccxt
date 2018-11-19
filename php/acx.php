@@ -109,6 +109,11 @@ class acx extends Exchange {
             $symbol = $market['name'];
             $baseId = $this->safe_string($market, 'base_unit');
             $quoteId = $this->safe_string($market, 'quote_unit');
+            if (($baseId === null) || ($quoteId === null)) {
+                $ids = explode ('/', $symbol);
+                $baseId = strtolower ($ids[0]);
+                $quoteId = strtolower ($ids[1]);
+            }
             $base = strtoupper ($baseId);
             $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);

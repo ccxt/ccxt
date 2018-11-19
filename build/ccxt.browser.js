@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.500'
+const version = '1.17.513'
 
 Exchange.ccxtVersion = version
 
@@ -568,6 +568,11 @@ module.exports = class acx extends Exchange {
             let symbol = market['name'];
             let baseId = this.safeString (market, 'base_unit');
             let quoteId = this.safeString (market, 'quote_unit');
+            if ((baseId === undefined) || (quoteId === undefined)) {
+                let ids = symbol.split ('/');
+                baseId = ids[0].toLowerCase ();
+                quoteId = ids[1].toLowerCase ();
+            }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
             base = this.commonCurrencyCode (base);
@@ -8689,8 +8694,10 @@ module.exports = class bitfinex extends Exchange {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
+                'BAB': 'BCHABC',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
+                'BSV': 'BCHSV',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
@@ -12703,11 +12710,12 @@ module.exports = class bitmex extends Exchange {
             if (body) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    const message = this.safeString (response, 'error');
+                    const error = this.safeValue (response, 'error', {});
+                    const message = this.safeString (error, 'message');
                     const feedback = this.id + ' ' + body;
                     const exact = this.exceptions['exact'];
-                    if (code in exact) {
-                        throw new exact[code] (feedback);
+                    if (message in exact) {
+                        throw new exact[message] (feedback);
                     }
                     const broad = this.exceptions['broad'];
                     const broadKey = this.findBroadlyMatchedKey (broad, message);
@@ -15066,8 +15074,11 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
+                'BCH': 'BCHABC',
+                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },
@@ -15301,19 +15312,30 @@ module.exports = class bittrex extends Exchange {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        let id = undefined;
-        if ('Id' in trade)
-            id = trade['Id'].toString ();
+        let id = this.safeString2 (trade, 'Id', 'ID');
+        let symbol = undefined;
+        if (market !== undefined)
+            symbol = market['symbol'];
+        let cost = undefined;
+        let price = this.safeFloat (trade, 'Price');
+        let amount = this.safeFloat (trade, 'Quantity');
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'Price'),
-            'amount': this.safeFloat (trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -15584,7 +15606,7 @@ module.exports = class bittrex extends Exchange {
     }
 
     parseSymbol (id) {
-        let [ quote, base ] = id.split ('-');
+        let [ quote, base ] = id.split (this.options['symbolSeparator']);
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         return base + '/' + quote;
@@ -15824,9 +15846,10 @@ module.exports = class bittrex extends Exchange {
             let success = this.safeValue (response, 'success');
             if (success === undefined)
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-            if (typeof success === 'string')
+            if (typeof success === 'string') {
                 // bleutrade uses string instead of boolean
                 success = (success === 'true') ? true : false;
+            }
             if (!success) {
                 const message = this.safeString (response, 'message');
                 const feedback = this.id + ' ' + this.json (response);
@@ -17207,6 +17230,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchTickers': true,
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
+                'fetchOrderTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -17218,6 +17242,21 @@ module.exports = class bleutrade extends bittrex {
                 'www': 'https://bleutrade.com',
                 'doc': 'https://bleutrade.com/help/API',
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
+            },
+            'api': {
+                'account': {
+                    'get': [
+                        'balance',
+                        'balances',
+                        'depositaddress',
+                        'deposithistory',
+                        'order',
+                        'orders',
+                        'orderhistory',
+                        'withdrawhistory',
+                        'withdraw',
+                    ],
+                },
             },
             'fees': {
                 'funding': {
@@ -17282,6 +17321,7 @@ module.exports = class bleutrade extends bittrex {
             'options': {
                 'parseOrderStatus': true,
                 'disableNonce': false,
+                'symbolSeparator': '_',
             },
         });
     }
@@ -17375,6 +17415,13 @@ module.exports = class bleutrade extends bittrex {
         return 'orderid';
     }
 
+    parseSymbol (id) {
+        let [ base, quote ] = id.split (this.options['symbolSeparator']);
+        base = this.commonCurrencyCode (base);
+        quote = this.commonCurrencyCode (quote);
+        return base + '/' + quote;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {
@@ -17388,6 +17435,128 @@ module.exports = class bleutrade extends bittrex {
         if (!orderbook)
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
+        // determined (if the side of the trade is different to the side of the order, then the trade is maker).
+        // Similarly, the correct 'side' for the trade is that of the order.
+        // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
+        await this.loadMarkets ();
+        let response = await this.accountGetOrderhistory ({ 'orderid': id });
+        let trades = this.parseTrades (response['result'], undefined, since, limit);
+        let result = [];
+        for (let i = 0; i < trades.length; i++) {
+            let trade = this.extend (trades[i], {
+                'order': id,
+            });
+            result.push (trade);
+        }
+        return result;
+    }
+
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory';
+        let response = await this[method] (params);
+        let result = this.parseTransactions (response['result']);
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposit', code, since, limit, params);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //  deposit:
+        //
+        //     {
+        //         Id: '96974373',
+        //         Coin: 'DOGE',
+        //         Amount: '12.05752192',
+        //         TimeStamp: '2017-09-29 08:10:09',
+        //         Label: 'DQqSjjhzCm3ozT4vAevMUHgv4vsi9LBkoE',
+        //     }
+        //
+        // withdrawal:
+        //
+        //     {
+        //         Id: '98009125',
+        //         Coin: 'DOGE',
+        //         Amount: '-483858.64312050',
+        //         TimeStamp: '2017-11-22 22:29:05',
+        //         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
+        //         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
+        //     }
+        //
+        //     {
+        //         "Id": "95820181",
+        //         "Coin": "BTC",
+        //         "Amount": "-0.71300000",
+        //         "TimeStamp": "2017-07-19 17:14:24",
+        //         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
+        //         "TransactionId": "CANCELED"
+        //     }
+        //
+        let id = this.safeString (transaction, 'Id');
+        let amount = this.safeFloat (transaction, 'Amount');
+        let type = 'deposit';
+        if (amount < 0) {
+            amount = Math.abs (amount);
+            type = 'withdrawal';
+        }
+        let currencyId = this.safeString (transaction, 'Coin');
+        let code = undefined;
+        currency = this.safeValue (this.currencies_by_id, currencyId);
+        if (currency !== undefined) {
+            code = currency['code'];
+        } else {
+            code = this.commonCurrencyCode (currencyId);
+        }
+        let label = this.safeString (transaction, 'Label');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
+        let txid = this.safeString (transaction, 'TransactionId');
+        let address = undefined;
+        let feeCost = undefined;
+        let labelParts = label.split (';');
+        if (labelParts.length === 3) {
+            amount = labelParts[0];
+            address = labelParts[1];
+            feeCost = labelParts[2];
+        } else {
+            address = label;
+        }
+        let fee = undefined;
+        if (feeCost !== undefined)
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+            };
+        let status = 'ok';
+        if (txid === 'CANCELED') {
+            txid = undefined;
+            status = 'canceled';
+        }
+        return {
+            'info': transaction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'txid': txid,
+            'fee': fee,
+        };
     }
 };
 
@@ -36479,6 +36648,7 @@ module.exports = class gateio extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
                 'fetchOrder': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -42719,6 +42889,7 @@ module.exports = class indodax extends Exchange {
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                'referral': 'https://indodax.com/ref/testbitcoincoid/1',
             },
             'api': {
                 'public': {
@@ -42743,6 +42914,8 @@ module.exports = class indodax extends Exchange {
                 },
             },
             'markets': {
+                // HARDCODING IS DEPRECATED
+                // but they don't have a corresponding endpoint in their API
                 'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }}},
                 'ACT/IDR': { 'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
                 'ADA/IDR': { 'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
@@ -44316,12 +44489,11 @@ module.exports = class kraken extends Exchange {
             if (amountAndCode !== 'To Be Announced') {
                 let pieces = amountAndCode.split (' ');
                 let numPieces = pieces.length;
-                if (numPieces !== 2) {
-                    throw new ExchangeError (this.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                if (numPieces === 2) {
+                    let amount = parseFloat (pieces[0]);
+                    let code = this.commonCurrencyCode (pieces[1]);
+                    result[code] = amount;
                 }
-                let amount = parseFloat (pieces[0]);
-                let code = this.commonCurrencyCode (pieces[1]);
-                result[code] = amount;
             }
         }
         return result;
@@ -48556,6 +48728,7 @@ module.exports = class liquid extends Exchange {
             },
             'skipJsonOnStatusCodes': [401],
             'exceptions': {
+                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
                 'Nonce is too small': InvalidNonce,
                 'Order not found': OrderNotFound,
@@ -54336,7 +54509,7 @@ module.exports = class qryptos extends liquid {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -54412,6 +54585,7 @@ module.exports = class quadrigacx extends Exchange {
             },
             'exceptions': {
                 '101': AuthenticationError,
+                '106': OrderNotFound, // { 'code':106, 'message': 'Cannot perform request - not found' }
             },
         });
     }

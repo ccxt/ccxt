@@ -238,7 +238,7 @@ The ccxt library currently supports the following 133 cryptocurrency exchange ma
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |independentreserve| | independentreserve | `Independent Reserve <https://www.independentreserve.com>`__                            |                                                                      | \*    | `API <https://www.independentreserve.com/API>`__                                                    | Australia, New Zealand                   |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
-| |indodax|            | indodax            | `INDODAX <https://www.indodax.com>`__                                                   |                                                                      | 1.8   | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                           | Indonesia                                |
+| |indodax|            | indodax            | `INDODAX <https://indodax.com/ref/testbitcoincoid/1>`__                                 |                                                                      | 1.8   | `API <https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf>`__                           | Indonesia                                |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
 | |itbit|              | itbit              | `itBit <https://www.itbit.com>`__                                                       |                                                                      | 1     | `API <https://api.itbit.com/docs>`__                                                                | US                                       |
 +----------------------+--------------------+-----------------------------------------------------------------------------------------+----------------------------------------------------------------------+-------+-----------------------------------------------------------------------------------------------------+------------------------------------------+
@@ -3164,29 +3164,49 @@ Below is an outline of exception inheritance hierarchy:
    |
    +---+ ExchangeError
    |   |
-   |   +---+ NotSupported
-   |   |
    |   +---+ AuthenticationError
    |   |   |
    |   |   +---+ PermissionDenied
+   |   |   |
+   |   |   +---+ AccountSuspended
+   |   |
+   |   +---+ ArgumentsRequired
+   |   |
+   |   +---+ BadRequest
+   |   |
+   |   +---+ BadResponse
+   |   |   |
+   |   |   +---+ NullResponse
    |   |
    |   +---+ InsufficientFunds
    |   |
    |   +---+ InvalidAddress
+   |   |   |
+   |   |   +---+ AddressPending
    |   |
    |   +---+ InvalidOrder
-   |       |
-   |       +---+ OrderNotFound
+   |   |   |
+   |   |   +---+ OrderNotFound
+   |   |   |
+   |   |   +---+ OrderNotCached
+   |   |   |
+   |   |   +---+ CancelPending
+   |   |   |
+   |   |   +---+ OrderImmediatelyFillable
+   |   |   |
+   |   |   +---+ OrderNotFillable
+   |   |
+   |   +---+ NotSupported
    |
    +---+ NetworkError (recoverable)
        |
        +---+ DDoSProtection
        |
-       +---+ RequestTimeout
-       |
        +---+ ExchangeNotAvailable
        |
        +---+ InvalidNonce
+       |
+       +---+ RequestTimeout
 
 The ``BaseError`` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
 

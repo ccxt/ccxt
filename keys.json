@@ -86,6 +86,7 @@
     "southxchange":  { "skip": true, "apiKey": "owpxVPAjPFGanKyBxLVsnYXXwsrmAg", "secret": "yGNICYpkFgcenQTCyDNXtSPnkOXQBIEsIoLYmEnYqsFuvIQGEU" },
     "surbitcoin":    { "skip": true },
     "theocean":      { "skip": true },
+    "tidebit":       { "skip": true },
     "tidex":         { "skip": true },
     "therock":       { "skip": true },
     "urdubit":       { "skip": true },
