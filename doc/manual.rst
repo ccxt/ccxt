@@ -3164,29 +3164,49 @@ Below is an outline of exception inheritance hierarchy:
    |
    +---+ ExchangeError
    |   |
-   |   +---+ NotSupported
-   |   |
    |   +---+ AuthenticationError
    |   |   |
    |   |   +---+ PermissionDenied
+   |   |   |
+   |   |   +---+ AccountSuspended
+   |   |
+   |   +---+ ArgumentsRequired
+   |   |
+   |   +---+ BadRequest
+   |   |
+   |   +---+ BadResponse
+   |   |   |
+   |   |   +---+ NullResponse
    |   |
    |   +---+ InsufficientFunds
    |   |
    |   +---+ InvalidAddress
+   |   |   |
+   |   |   +---+ AddressPending
    |   |
    |   +---+ InvalidOrder
-   |       |
-   |       +---+ OrderNotFound
+   |   |   |
+   |   |   +---+ OrderNotFound
+   |   |   |
+   |   |   +---+ OrderNotCached
+   |   |   |
+   |   |   +---+ CancelPending
+   |   |   |
+   |   |   +---+ OrderImmediatelyFillable
+   |   |   |
+   |   |   +---+ OrderNotFillable
+   |   |
+   |   +---+ NotSupported
    |
    +---+ NetworkError (recoverable)
        |
        +---+ DDoSProtection
        |
-       +---+ RequestTimeout
-       |
        +---+ ExchangeNotAvailable
        |
        +---+ InvalidNonce
+       |
+       +---+ RequestTimeout
 
 The ``BaseError`` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
 
