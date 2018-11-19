@@ -166,6 +166,8 @@ module.exports = class bittrex extends Exchange {
                 'symbolSeparator': '-',
             },
             'commonCurrencies': {
+                'BCH': 'BCHABC',
+                'BSV': 'BCHSV',
                 'BITS': 'SWIFT',
                 'CPC': 'CapriCoin',
             },
