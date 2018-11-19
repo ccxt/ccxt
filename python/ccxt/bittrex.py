@@ -183,6 +183,7 @@ class bittrex (Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
+                'symbolSeparator': '-',
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -397,19 +398,28 @@ class bittrex (Exchange):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        id = None
-        if 'Id' in trade:
-            id = str(trade['Id'])
+        id = self.safe_string_2(trade, 'Id', 'ID')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        cost = None
+        price = self.safe_float(trade, 'Price')
+        amount = self.safe_float(trade, 'Quantity')
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'price': self.safe_float(trade, 'Price'),
-            'amount': self.safe_float(trade, 'Quantity'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -658,7 +668,7 @@ class bittrex (Exchange):
         }
 
     def parse_symbol(self, id):
-        quote, base = id.split('-')
+        quote, base = id.split(self.options['symbolSeparator'])
         base = self.common_currency_code(base)
         quote = self.common_currency_code(quote)
         return base + '/' + quote
