@@ -236,12 +236,11 @@ class kraken extends Exchange {
             if ($amountAndCode !== 'To Be Announced') {
                 $pieces = explode (' ', $amountAndCode);
                 $numPieces = is_array ($pieces) ? count ($pieces) : 0;
-                if ($numPieces !== 2) {
-                    throw new ExchangeError ($this->id . ' fetchMinOrderAmounts HTML page markup has changed => https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-');
+                if ($numPieces === 2) {
+                    $amount = floatval ($pieces[0]);
+                    $code = $this->common_currency_code($pieces[1]);
+                    $result[$code] = $amount;
                 }
-                $amount = floatval ($pieces[0]);
-                $code = $this->common_currency_code($pieces[1]);
-                $result[$code] = $amount;
             }
         }
         return $result;

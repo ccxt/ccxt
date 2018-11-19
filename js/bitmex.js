@@ -582,11 +582,12 @@ module.exports = class bitmex extends Exchange {
             if (body) {
                 if (body[0] === '{') {
                     let response = JSON.parse (body);
-                    const message = this.safeString (response, 'error');
+                    const error = this.safeValue (response, 'error', {});
+                    const message = this.safeString (error, 'message');
                     const feedback = this.id + ' ' + body;
                     const exact = this.exceptions['exact'];
                     if (message in exact) {
-                        throw new exact[code] (feedback);
+                        throw new exact[message] (feedback);
                     }
                     const broad = this.exceptions['broad'];
                     const broadKey = this.findBroadlyMatchedKey (broad, message);
