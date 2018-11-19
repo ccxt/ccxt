@@ -558,7 +558,7 @@ class bitmex (Exchange):
                     message = self.safe_string(response, 'error')
                     feedback = self.id + ' ' + body
                     exact = self.exceptions['exact']
-                    if code in exact:
+                    if message in exact:
                         raise exact[code](feedback)
                     broad = self.exceptions['broad']
                     broadKey = self.findBroadlyMatchedKey(broad, message)

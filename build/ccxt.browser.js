@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.508'
+const version = '1.17.509'
 
 Exchange.ccxtVersion = version
 
@@ -12713,7 +12713,7 @@ module.exports = class bitmex extends Exchange {
                     const message = this.safeString (response, 'error');
                     const feedback = this.id + ' ' + body;
                     const exact = this.exceptions['exact'];
-                    if (code in exact) {
+                    if (message in exact) {
                         throw new exact[code] (feedback);
                     }
                     const broad = this.exceptions['broad'];
