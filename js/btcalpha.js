@@ -191,7 +191,7 @@ module.exports = class btcalpha extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -234,15 +234,30 @@ module.exports = class btcalpha extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currency = this.commonCurrencyCode (balance['currency']);
-            let account = {
-                'free': parseFloat (balance['balance']),
-                'used': parseFloat (balance['reserve']),
-                'total': 0.0,
+            let used = this.safeFloat (balance, 'reserve');
+            let total = this.safeFloat (balance, 'balance');
+            let free = undefined;
+            if (used !== undefined) {
+                if (total !== undefined) {
+                    free = total - used;
+                }
+            }
+            result[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
             };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
         }
         return this.parseBalance (result);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '1': 'open',
+            '2': 'canceled',
+            '3': 'closed',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -251,29 +266,28 @@ module.exports = class btcalpha extends Exchange {
             market = this.safeValue (this.marketsById, order['pair']);
         if (market)
             symbol = market['symbol'];
-        let timestamp = parseInt (order['date'] * 1000);
+        let timestamp = this.safeInteger (order, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let price = parseFloat (order['price']);
         let amount = this.safeFloat (order, 'amount');
-        let status = this.safeString (order, 'status');
-        let statuses = {
-            '1': 'open',
-            '2': 'canceled',
-            '3': 'closed',
-        };
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeString (order, 'oid');
         if (!id)
             id = this.safeString (order, 'id');
         let trades = this.safeValue (order, 'trades');
         if (trades)
             trades = this.parseTrades (trades, market);
+        const side = this.safeString2 (order, 'my_side', 'type');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'status': this.safeString (statuses, status),
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,

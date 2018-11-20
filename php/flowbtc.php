@@ -197,10 +197,6 @@ class flowbtc extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function price_to_precision ($symbol, $price) {
-        return $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
-    }
-
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $orderType = ($type === 'market') ? 1 : 0;

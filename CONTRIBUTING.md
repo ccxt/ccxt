@@ -35,10 +35,11 @@ If you want to submit an issue and you want your issue to be resolved quickly, h
 
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
-  - `/doc/*`
-  - `/build/*`
+  - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
+  - `/build/*` (these are generated automatically)
   - `/php/*` (except for base classes)
   - `/python/*` (except for base classes)
+
 
   These files are generated ([explained below](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support)) and will be overwritten upon build. Please don't commit them to avoid bloating the repository which is already quite large. Most often, you have to commit just one single source file to submit an edit to the implementation of an exchange.
 
@@ -78,6 +79,7 @@ The following is a set of rules for contributing to the ccxt library codebase.
 
 - [Node.js](https://nodejs.org/en/download/) 8+
 - [Python](https://www.python.org/downloads/) 3.5.3+ and Python 2.7+
+  - tox (`brew install tox` or `pip install tox`)
 - [PHP](http://php.net/downloads.php) 5.3+ with the following extensions installed and enabled:
   - cURL
   - iconv
@@ -340,6 +342,13 @@ node run-tests --python3 kraken # test Kraken with Python 3, requires 'npm run b
 
 We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/ccxt).
 Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.
+
+```
+ETH 0x26a3CB49578F07000575405a57888681249c35Fd (ETH only!)
+BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva
+BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze
+LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP
+```
 
 ## Credits
 

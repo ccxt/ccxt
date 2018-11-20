@@ -162,7 +162,7 @@ module.exports = class lbank extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'symbol');
             if (marketId in this.markets_by_id) {
                 let market = this.marketsById[marketId];
@@ -194,7 +194,7 @@ module.exports = class lbank extends Exchange {
         let open = last / this.sum (1, relativeChange);
         let change = last - open;
         let average = this.sum (last, open) / 2;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         return {
             'symbol': symbol,
@@ -281,9 +281,9 @@ module.exports = class lbank extends Exchange {
             'symbol': market['id'],
             'size': 100,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['time'] = parseInt (since / 1000);
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['size'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -303,9 +303,9 @@ module.exports = class lbank extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (typeof since === 'undefined')
+        if (since === undefined)
             throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument');
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument');
         let request = {
             'symbol': market['id'],
@@ -354,9 +354,9 @@ module.exports = class lbank extends Exchange {
     parseOrder (order, market = undefined) {
         let symbol = undefined;
         let responseMarket = this.safeValue (this.marketsById, order['symbol']);
-        if (typeof responseMarket !== 'undefined') {
+        if (responseMarket !== undefined) {
             symbol = responseMarket['symbol'];
-        } else if (typeof market !== 'undefined') {
+        } else if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (order, 'create_time');
@@ -367,7 +367,7 @@ module.exports = class lbank extends Exchange {
         let filled = this.safeFloat (order, 'deal_amount', 0.0);
         let av_price = this.safeFloat (order, 'avg_price');
         let cost = undefined;
-        if (typeof av_price !== 'undefined') {
+        if (av_price !== undefined) {
             cost = filled * av_price;
         }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -445,7 +445,7 @@ module.exports = class lbank extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof limit === 'undefined') {
+        if (limit === undefined) {
             limit = 100;
         }
         let market = this.market (symbol);
@@ -474,7 +474,7 @@ module.exports = class lbank extends Exchange {
             'amount': amount,
             'account': address,
         };
-        if (typeof tag !== 'undefined') {
+        if (tag !== undefined) {
             request['memo'] = tag;
         }
         let response = this.privatePostWithdraw (this.extend (request, params));

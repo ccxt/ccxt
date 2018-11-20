@@ -25,7 +25,7 @@ matrix:
 build: off
 shallow_clone: true
 before_test:
-  - cinst pandoc
+  - cinst pandoc --version 2.3.1
   - pandoc -v
 test_script:
   - refreshenv

@@ -138,7 +138,7 @@ module.exports = class bithumb extends Exchange {
         let request = {
             'currency': market['base'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['count'] = limit; // max = 50
         let response = await this.publicGetOrderbookCurrency (this.extend (request, params));
         let orderbook = response['data'];
@@ -153,7 +153,16 @@ module.exports = class bithumb extends Exchange {
             symbol = market['symbol'];
         let open = this.safeFloat (ticker, 'opening_price');
         let close = this.safeFloat (ticker, 'closing_price');
-        let change = close - open;
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
+        if ((close !== undefined) && (open !== undefined)) {
+            change = close - open;
+            if (open > 0) {
+                percentage = change / open * 100;
+            }
+            average = this.sum (open, close) / 2;
+        }
         let vwap = this.safeFloat (ticker, 'average_price');
         let baseVolume = this.safeFloat (ticker, 'volume_1day');
         return {
@@ -172,8 +181,8 @@ module.exports = class bithumb extends Exchange {
             'last': close,
             'previousClose': undefined,
             'change': change,
-            'percentage': change / open * 100,
-            'average': this.sum (open, close) / 2,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,
@@ -291,17 +300,22 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currency (code);
         let request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         };
         if (currency === 'XRP' || currency === 'XMR') {
-            let destination = ('destination' in params);
-            if (!destination)
-                throw new ExchangeError (this.id + ' ' + currency + ' withdraw requires an extra destination param');
+            const destination = this.safeString (params, 'destination');
+            if ((tag === undefined) && (destination === undefined)) {
+                throw new ExchangeError (this.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param');
+            } else if (tag !== undefined) {
+                request['destination'] = tag;
+            }
         }
         let response = await this.privatePostTradeBtcWithdrawal (this.extend (request, params));
         return {
@@ -353,7 +367,7 @@ module.exports = class bithumb extends Exchange {
                 //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
                 //
                 let status = this.safeString (response, 'status');
-                if (typeof status !== 'undefined') {
+                if (status !== undefined) {
                     if (status === '0000')
                         return; // no error
                     const feedback = this.id + ' ' + this.json (response);

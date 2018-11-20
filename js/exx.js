@@ -393,7 +393,7 @@ module.exports = class exx extends Exchange {
             const feedback = this.id + ' ' + this.json (response);
             if (code === '100')
                 return;
-            if (typeof code !== 'undefined') {
+            if (code !== undefined) {
                 const exceptions = this.exceptions;
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
@@ -406,7 +406,7 @@ module.exports = class exx extends Exchange {
                 }
             }
             let result = this.safeValue (response, 'result');
-            if (typeof result !== 'undefined') {
+            if (result !== undefined) {
                 if (!result) {
                     if (message === '服务端忙碌') {
                         throw new ExchangeNotAvailable (feedback);

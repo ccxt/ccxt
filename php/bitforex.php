@@ -282,7 +282,7 @@ class bitforex extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $sideId = $this->safe_string($trade, 'direction');
+        $sideId = $this->safe_integer($trade, 'direction');
         $side = $this->parse_side ($sideId);
         return array (
             'info' => $trade,
@@ -389,16 +389,15 @@ class bitforex extends Exchange {
         return $orderbook;
     }
 
-    public function parse_order_status ($orderStatusId) {
-        if ($orderStatusId === 0 || $orderStatusId === 1) {
-            return 'open';
-        } else if ($orderStatusId === 2) {
-            return 'closed';
-        } else if ($orderStatusId === 3 || $orderStatusId === 4) {
-            return 'canceled';
-        } else {
-            return null;
-        }
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '0' => 'open',
+            '1' => 'open',
+            '2' => 'closed',
+            '3' => 'canceled',
+            '4' => 'canceled',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_side ($sideId) {
@@ -413,8 +412,8 @@ class bitforex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'orderId');
-        $timestamp = $this->safe_float_2($order, 'createTime');
-        $lastTradeTimestamp = $this->safe_float_2($order, 'lastTime');
+        $timestamp = $this->safe_float($order, 'createTime');
+        $lastTradeTimestamp = $this->safe_float($order, 'lastTime');
         $symbol = $market['symbol'];
         $sideId = $this->safe_integer($order, 'tradeType');
         $side = $this->parse_side ($sideId);
@@ -424,8 +423,7 @@ class bitforex extends Exchange {
         $amount = $this->safe_float($order, 'orderAmount');
         $filled = $this->safe_float($order, 'dealAmount');
         $remaining = $amount - $filled;
-        $statusId = $this->safe_integer($order, 'orderState');
-        $status = $this->parse_order_status($statusId);
+        $status = $this->parse_order_status($this->safe_string($order, 'orderState'));
         $cost = $filled * $price;
         $fee = $this->safe_float($order, 'tradeFee');
         $result = array (

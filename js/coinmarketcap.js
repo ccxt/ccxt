@@ -25,6 +25,7 @@ module.exports = class coinmarketcap extends Exchange {
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrderBook': false,
+                'fetchL2OrderBook': false,
                 'fetchOHLCV': false,
                 'fetchTrades': false,
                 'fetchTickers': true,
@@ -114,6 +115,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
+            'Harvest Masternode Coin': 'Harvest Masternode Coin', // conflict with HC (HyperCash)
             'Hydro Protocol': 'Hydro Protocol', // conflict with HOT (Holo)
             'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
@@ -182,7 +184,7 @@ module.exports = class coinmarketcap extends Exchange {
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             let priceKey = 'price_' + market['quoteId'];
             if (priceKey in ticker)
                 if (ticker[priceKey])

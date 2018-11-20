@@ -10,6 +10,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bitmex (Exchange):
@@ -137,8 +138,13 @@ class bitmex (Exchange):
                 },
             },
             'exceptions': {
-                'Invalid API Key.': AuthenticationError,
-                'Access Denied': PermissionDenied,
+                'exact': {
+                    'Invalid API Key.': AuthenticationError,
+                    'Access Denied': PermissionDenied,
+                },
+                'broad': {
+                    'overloaded': ExchangeNotAvailable,
+                },
             },
             'options': {
                 'fetchTickerQuotes': False,
@@ -404,19 +410,23 @@ class bitmex (Exchange):
 
     def parse_order_status(self, status):
         statuses = {
-            'new': 'open',
-            'partiallyfilled': 'open',
-            'filled': 'closed',
-            'canceled': 'canceled',
-            'rejected': 'rejected',
-            'expired': 'expired',
+            'New': 'open',
+            'PartiallyFilled': 'open',
+            'Filled': 'closed',
+            'DoneForDay': 'open',
+            'Canceled': 'canceled',
+            'PendingCancel': 'open',
+            'PendingNew': 'open',
+            'Rejected': 'rejected',
+            'Expired': 'expired',
+            'Stopped': 'open',
+            'Untriggered': 'open',
+            'Triggered': 'open',
         }
-        return self.safe_string(statuses, status.lower())
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        status = self.safe_value(order, 'ordStatus')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -425,14 +435,8 @@ class bitmex (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-        datetime_value = None
-        timestamp = None
-        if 'timestamp' in order:
-            datetime_value = order['timestamp']
-        elif 'transactTime' in order:
-            datetime_value = order['transactTime']
-        if datetime_value is not None:
-            timestamp = self.parse8601(datetime_value)
+        timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
+        lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'orderQty')
         filled = self.safe_float(order, 'cumQty', 0.0)
@@ -449,7 +453,7 @@ class bitmex (Exchange):
             'id': str(order['orderID']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': order['ordType'].lower(),
             'side': order['side'].lower(),
@@ -525,10 +529,11 @@ class bitmex (Exchange):
             return True
         return False
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        if currency != 'BTC':
+        # currency = self.currency(code)
+        if code != 'BTC':
             raise ExchangeError(self.id + ' supoprts BTC withdrawals only, other currencies coming soon...')
         request = {
             'currency': 'XBt',  # temporarily
@@ -550,15 +555,17 @@ class bitmex (Exchange):
             if body:
                 if body[0] == '{':
                     response = json.loads(body)
-                    if 'error' in response:
-                        if 'message' in response['error']:
-                            feedback = self.id + ' ' + self.json(response)
-                            message = self.safe_value(response['error'], 'message')
-                            exceptions = self.exceptions
-                            if message is not None:
-                                if message in exceptions:
-                                    raise exceptions[message](feedback)
-                            raise ExchangeError(feedback)
+                    error = self.safe_value(response, 'error', {})
+                    message = self.safe_string(error, 'message')
+                    feedback = self.id + ' ' + body
+                    exact = self.exceptions['exact']
+                    if message in exact:
+                        raise exact[message](feedback)
+                    broad = self.exceptions['broad']
+                    broadKey = self.findBroadlyMatchedKey(broad, message)
+                    if broadKey is not None:
+                        raise broad[broadKey](feedback)
+                    raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
         return self.milliseconds()

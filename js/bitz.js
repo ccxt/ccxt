@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, PermissionDenied, InvalidOrder, AuthenticationError, InsufficientFunds, OrderNotFound, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -152,6 +152,9 @@ module.exports = class bitz extends Exchange {
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                // https://github.com/ccxt/ccxt/issues/3881
+                // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
@@ -345,11 +348,11 @@ module.exports = class bitz extends Exchange {
         //
         let timestamp = undefined;
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'symbol');
             market = this.safeValue (this.markets_by_id, marketId);
         }
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let last = this.safeFloat (ticker, 'now');
@@ -378,7 +381,7 @@ module.exports = class bitz extends Exchange {
     }
 
     parseMicrotime (microtime) {
-        if (typeof microtime === 'undefined') {
+        if (microtime === undefined) {
             return microtime;
         }
         let parts = microtime.split (' ');
@@ -433,7 +436,7 @@ module.exports = class bitz extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (typeof symbols !== 'undefined') {
+        if (symbols !== undefined) {
             let ids = this.marketIds (symbols);
             request['symbols'] = ids.join (',');
         }
@@ -479,8 +482,8 @@ module.exports = class bitz extends Exchange {
             }
             ticker = this.parseTicker (tickers[id], market);
             let symbol = ticker['symbol'];
-            if (typeof symbol === 'undefined') {
-                if (typeof market !== 'undefined') {
+            if (symbol === undefined) {
+                if (market !== undefined) {
                     symbol = market['symbol'];
                 } else {
                     let [ baseId, quoteId ] = id.split ('_');
@@ -491,7 +494,7 @@ module.exports = class bitz extends Exchange {
                     symbol = base + '/' + quote;
                 }
             }
-            if (typeof symbol !== 'undefined') {
+            if (symbol !== undefined) {
                 result[symbol] = this.extend (ticker, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),
@@ -543,13 +546,13 @@ module.exports = class bitz extends Exchange {
         //
         let id = this.safeString (trade, 'id');
         let timestamp = this.safeInteger (trade, 'T');
-        if (typeof timestamp !== 'undefined') {
+        if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
         let price = this.safeFloat (trade, 'p');
         let amount = this.safeFloat (trade, 'n');
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = this.priceToPrecision (symbol, amount * price);
@@ -626,14 +629,14 @@ module.exports = class bitz extends Exchange {
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = Math.min (limit, 300); // 1-300
-            if (typeof since !== 'undefined') {
+            if (since !== undefined) {
                 request['to'] = since + limit * duration * 1000;
             }
         } else {
-            if (typeof since !== 'undefined') {
-                throw new ExchangeError (this.id + ' fetchOHLCV requires a since argument to be supplied along with the limit argument');
+            if (since !== undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV requires a limit argument if the since argument is specified');
             }
         }
         let response = await this.marketGetKline (this.extend (request, params));
@@ -698,10 +701,10 @@ module.exports = class bitz extends Exchange {
         //
         let id = this.safeString (order, 'id');
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let baseId = this.safeString (order, 'coinFrom');
             let quoteId = this.safeString (order, 'coinTo');
-            if ((typeof baseId !== 'undefined') && (typeof quoteId !== 'undefined')) {
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
                 let marketId = baseId + '_' + quoteId;
                 if (marketId in this.markets_by_id) {
                     market = this.safeValue (this.markets_by_id, marketId);
@@ -714,10 +717,10 @@ module.exports = class bitz extends Exchange {
                 }
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let side = this.safeString (order, 'flag');
-        if (typeof side !== 'undefined') {
+        if (side !== undefined) {
             side = (side === 'sale') ? 'sell' : 'buy';
         }
         let price = this.safeFloat (order, 'price');
@@ -725,15 +728,15 @@ module.exports = class bitz extends Exchange {
         let remaining = this.safeFloat (order, 'numberOver');
         let filled = this.safeFloat (order, 'numberDeal');
         let timestamp = this.safeInteger (order, 'timestamp');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             timestamp = this.safeInteger (order, 'created');
-            if (typeof timestamp !== 'undefined') {
+            if (timestamp !== undefined) {
                 timestamp = timestamp * 1000;
             }
         }
         let cost = this.safeFloat (order, 'orderTotalPrice');
-        if (typeof price !== 'undefined') {
-            if (typeof filled !== 'undefined') {
+        if (price !== undefined) {
+            if (filled !== undefined) {
                 cost = filled * price;
             }
         }
@@ -910,8 +913,8 @@ module.exports = class bitz extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOpenOrders requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         let market = this.market (symbol);
         let request = {
@@ -923,11 +926,11 @@ module.exports = class bitz extends Exchange {
             // 'startTime': 1510235730, // optional integer timestamp in seconds
             // 'endTime': 1510235730, // optional integer timestamp in seconds
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['page'] = 1;
             request['pageSize'] = limit;
         }
-        if (typeof since !== 'undefined') {
+        if (since !== undefined) {
             request['startTime'] = parseInt (since / 1000);
             // request['endTime'] = parseInt (since / 1000);
         }
@@ -983,7 +986,12 @@ module.exports = class bitz extends Exchange {
         //         "source": "api"
         //     }
         //
-        return this.parseOrders (response['data']['data'], undefined, since, limit);
+        let orders = this.safeValue (response['data'], 'data');
+        if (orders) {
+            return this.parseOrders (response['data']['data'], undefined, since, limit);
+        } else {
+            return [];
+        }
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1036,7 +1044,7 @@ module.exports = class bitz extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let status = this.safeString (response, 'status');
-            if (typeof status !== 'undefined') {
+            if (status !== undefined) {
                 const feedback = this.id + ' ' + body;
                 const exceptions = this.exceptions;
                 //
@@ -1047,7 +1055,7 @@ module.exports = class bitz extends Exchange {
                     //     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
                     //
                     const code = this.safeInteger (response, 'data');
-                    if (typeof code !== 'undefined') {
+                    if (code !== undefined) {
                         if (code in exceptions) {
                             throw new exceptions[code] (feedback);
                         } else {

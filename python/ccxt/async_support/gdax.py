@@ -9,6 +9,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -36,6 +37,7 @@ class gdax (Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchMyTrades': True,
+                'fetchTransactions': True,
             },
             'timeframes': {
                 '1m': 60,
@@ -136,6 +138,21 @@ class gdax (Exchange):
                         'EUR': 0.15,
                         'USD': 10,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'Insufficient funds': InsufficientFunds,
+                    'NotFound': OrderNotFound,
+                    'Invalid API Key': AuthenticationError,
+                    'invalid signature': AuthenticationError,
+                    'Invalid Passphrase': AuthenticationError,
+                },
+                'broad': {
+                    'Order already done': OrderNotFound,
+                    'order not found': OrderNotFound,
+                    'price too small': InvalidOrder,
+                    'price too precise': InvalidOrder,
                 },
             },
         })
@@ -246,17 +263,11 @@ class gdax (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = None
-        if 'time' in trade:
-            timestamp = self.parse8601(trade['time'])
-        elif 'created_at' in trade:
-            timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string_2(trade, 'time', 'created_at'))
         symbol = None
         if market is None:
-            if 'product_id' in trade:
-                marketId = trade['product_id']
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+            marketId = self.safe_string(trade, 'product_id')
+            market = self.safe_value(self.markets_by_id, marketId)
         if market:
             symbol = market['symbol']
         feeRate = None
@@ -301,7 +312,7 @@ class gdax (Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # as of 2018-08-23
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -358,6 +369,7 @@ class gdax (Exchange):
             'open': 'open',
             'done': 'closed',
             'canceled': 'canceled',
+            'canceling': 'open',
         }
         return self.safe_string(statuses, status, status)
 
@@ -367,7 +379,7 @@ class gdax (Exchange):
         if market is None:
             if order['product_id'] in self.markets_by_id:
                 market = self.markets_by_id[order['product_id']]
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         if amount is None:
@@ -534,7 +546,7 @@ class gdax (Exchange):
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ' fetchTransactions() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
         currency = self.currency(code)
         accountId = None
         accounts = await self.privateGetAccounts()
@@ -547,9 +559,10 @@ class gdax (Exchange):
         if accountId is None:
             raise ExchangeError(self.id + ' fetchTransactions() could not find account id for ' + code)
         request = {
-            'limit': limit,
             'id': accountId,
         }
+        if limit is not None:
+            request['limit'] = limit
         response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
@@ -560,32 +573,48 @@ class gdax (Exchange):
             return 'canceled'
         elif 'completed_at' in transaction and transaction['completed_at']:
             return 'ok'
+        elif ('canceled_at' in list(transaction and not transaction['canceled_at'].keys())) and('completed_at' in list(transaction and not transaction['completed_at'].keys())) and('processed_at' in list(transaction and not transaction['processed_at'].keys())):
+            return 'pending'
         elif 'procesed_at' in transaction and transaction['procesed_at']:
             return 'pending'
         else:
             return 'failed'
 
     def parse_transaction(self, transaction, currency=None):
-        timestamp = self.safe_integer(transaction, 'created_at')
+        details = self.safe_value(transaction, 'details', {})
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(details, 'crypto_transaction_hash')
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
+        updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         code = None
         currencyId = self.safe_string(transaction, 'currency')
         if currencyId in self.currencies_by_id:
             currency = self.currencies_by_id[currencyId]
-        if currency is not None:
             code = currency['code']
+        else:
+            code = self.common_currency_code(currencyId)
         fee = None
+        status = self.parse_transaction_status(transaction)
+        amount = self.safe_float(transaction, 'amount')
+        type = self.safe_string(transaction, 'type')
+        address = self.safe_string(details, 'crypto_address')
+        address = self.safe_string(transaction, 'crypto_address', address)
+        if type == 'withdraw':
+            type = 'withdrawal'
+            address = self.safe_string(details, 'sent_to_address', address)
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
-            'txid': self.safe_string(transaction['details'], 'crypto_transaction_hash'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # or is it defined?
-            'type': self.safe_string(transaction, 'type'),  # direction of the transaction,('deposit' | 'withdraw')
-            'amount': self.safe_float(transaction, 'amount'),
+            'address': address,
+            'tag': None,
+            'type': type,
+            'amount': amount,
             'currency': code,
-            'status': self.parse_transaction_status(transaction),
-            'updated': None,
+            'status': status,
+            'updated': updated,
             'fee': fee,
         }
 
@@ -649,18 +678,15 @@ class gdax (Exchange):
             if body[0] == '{':
                 response = json.loads(body)
                 message = response['message']
-                error = self.id + ' ' + message
-                if message.find('price too small') >= 0:
-                    raise InvalidOrder(error)
-                elif message.find('price too precise') >= 0:
-                    raise InvalidOrder(error)
-                elif message == 'Insufficient funds':
-                    raise InsufficientFunds(error)
-                elif message == 'NotFound':
-                    raise OrderNotFound(error)
-                elif message == 'Invalid API Key':
-                    raise AuthenticationError(error)
-                raise ExchangeError(self.id + ' ' + message)
+                feedback = self.id + ' ' + message
+                exact = self.exceptions['exact']
+                if message in exact:
+                    raise exact[message](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message
             raise ExchangeError(self.id + ' ' + body)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -228,7 +228,7 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
         await this.loadMarkets ();
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 20; // default
         const request = {
             'market': this.marketId (symbol),
@@ -242,7 +242,7 @@ module.exports = class coinex extends Exchange {
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
         let timestamp = this.safeInteger (trade, 'create_time');
-        if (typeof timestamp === 'undefined') {
+        if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date_ms');
         } else {
             timestamp = timestamp * 1000;
@@ -251,14 +251,30 @@ module.exports = class coinex extends Exchange {
         let orderId = this.safeString (trade, 'order_id');
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        let symbol = market['symbol'];
+        let marketId = this.safeString (trade, 'market');
+        market = this.safeValue (this.markets_by_id, marketId, market);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let cost = this.safeFloat (trade, 'deal_money');
-        if (!cost)
+        if (!cost) {
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        let fee = {
-            'cost': this.safeFloat (trade, 'fee'),
-            'currency': this.safeString (trade, 'fee_asset'),
-        };
+        }
+        let fee = undefined;
+        let feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'fee_asset');
+            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         let takerOrMaker = this.safeString (trade, 'role');
         let side = this.safeString (trade, 'type');
         return {
@@ -362,15 +378,55 @@ module.exports = class coinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // TODO: check if it's actually milliseconds, since examples were in seconds
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "amount": "0.1",
+        //         "asset_fee": "0.22736197736197736197",
+        //         "avg_price": "196.85000000000000000000",
+        //         "create_time": 1537270135,
+        //         "deal_amount": "0.1",
+        //         "deal_fee": "0",
+        //         "deal_money": "19.685",
+        //         "fee_asset": "CET",
+        //         "fee_discount": "0.5",
+        //         "id": 1788259447,
+        //         "left": "0",
+        //         "maker_fee_rate": "0",
+        //         "market": "ETHUSDT",
+        //         "order_type": "limit",
+        //         "price": "170.00000000",
+        //         "status": "done",
+        //         "taker_fee_rate": "0.0005",
+        //         "type": "sell",
+        //     }
+        //
         let timestamp = this.safeInteger (order, 'create_time') * 1000;
         let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'deal_money');
         let amount = this.safeFloat (order, 'amount');
         let filled = this.safeFloat (order, 'deal_amount');
-        let symbol = market['symbol'];
-        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
-        let status = this.parseOrderStatus (order['status']);
+        const average = this.safeFloat (order, 'avg_price');
+        let symbol = undefined;
+        let marketId = this.safeString (order, 'market');
+        market = this.safeValue (this.markets_by_id, marketId);
+        let feeCurrency = undefined;
+        let feeCurrencyId = this.safeString (order, 'fee_asset');
+        let currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+        if (currency !== undefined) {
+            feeCurrency = currency['code'];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+            if (feeCurrency === undefined) {
+                feeCurrency = market['quote'];
+            }
+        }
+        let remaining = this.safeFloat (order, 'left');
+        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let type = this.safeString (order, 'order_type');
+        let side = this.safeString (order, 'type');
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -378,16 +434,17 @@ module.exports = class coinex extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': order['order_type'],
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': undefined,
             'fee': {
-                'currency': market['quote'],
+                'currency': feeCurrency,
                 'cost': this.safeFloat (order, 'deal_fee'),
             },
             'info': order,
@@ -400,7 +457,7 @@ module.exports = class coinex extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             if (side === 'buy') {
                 if (this.options['createMarketBuyOrderRequiresPrice']) {
-                    if (typeof price === 'undefined') {
+                    if (price === undefined) {
                         throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                     } else {
                         price = parseFloat (price); // this line is deprecated
@@ -439,8 +496,8 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOrder requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -448,23 +505,52 @@ module.exports = class coinex extends Exchange {
             'id': id,
             'market': market['id'],
         }, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.1",
+        //             "asset_fee": "0.22736197736197736197",
+        //             "avg_price": "196.85000000000000000000",
+        //             "create_time": 1537270135,
+        //             "deal_amount": "0.1",
+        //             "deal_fee": "0",
+        //             "deal_money": "19.685",
+        //             "fee_asset": "CET",
+        //             "fee_discount": "0.5",
+        //             "id": 1788259447,
+        //             "left": "0",
+        //             "maker_fee_rate": "0",
+        //             "market": "ETHUSDT",
+        //             "order_type": "limit",
+        //             "price": "170.00000000",
+        //             "status": "done",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "sell",
+        //         },
+        //         "message": "Ok"
+        //     }
+        //
         return this.parseOrder (response['data'], market);
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
-        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
         let request = {
-            'market': market['id'],
+            'page': 1,
+            'limit': limit,
         };
-        if (typeof limit !== 'undefined')
-            request['limit'] = limit;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
         let method = 'privateGetOrder' + this.capitalize (status);
         let response = await this[method] (this.extend (request, params));
-        return this.parseOrders (response['data']['data'], market);
+        return this.parseOrders (response['data']['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -476,16 +562,20 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
-        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrderUserDeals (this.extend ({
-            'market': market['id'],
+        if (limit === undefined) {
+            limit = 100;
+        }
+        let request = {
             'page': 1,
-            'limit': 100,
-        }, params));
+            'limit': limit,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        let response = await this.privateGetOrderUserDeals (this.extend (request, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
     }
 

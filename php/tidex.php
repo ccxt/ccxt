@@ -24,7 +24,7 @@ class tidex extends liqui {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg',
                 'api' => array (
-                    'web' => 'https://web.tidex.com/api',
+                    'web' => 'https://gate.tidex.com/api',
                     'public' => 'https://api.tidex.com/api/3',
                     'private' => 'https://api.tidex.com/tapi',
                 ),

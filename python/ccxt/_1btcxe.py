@@ -198,14 +198,16 @@ class _1btcxe (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostOrdersCancel({'id': id})
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdrawalsNew(self.extend({
-            'currency': currency,
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        response = self.privatePostWithdrawalsNew(self.extend(request, params))
         return {
             'info': response,
             'id': response['result']['uuid'],

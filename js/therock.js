@@ -128,7 +128,7 @@ module.exports = class therock extends Exchange {
         //
         let markets = this.safeValue (response, 'funds');
         let result = [];
-        if (typeof markets === 'undefined') {
+        if (markets === undefined) {
             throw new ExchangeError (this.id + ' fetchMarkets got an unexpected response');
         } else {
             for (let i = 0; i < markets.length; i++) {
@@ -142,6 +142,7 @@ module.exports = class therock extends Exchange {
                 let buy_fee = this.safeFloat (market, 'buy_fee');
                 let sell_fee = this.safeFloat (market, 'sell_fee');
                 let taker = Math.max (buy_fee, sell_fee);
+                taker = taker / 100;
                 let maker = taker;
                 result.push ({
                     'id': id,
@@ -310,7 +311,19 @@ module.exports = class therock extends Exchange {
         await this.loadMarkets ();
         return await this.privateDeleteFundsFundIdOrdersId (this.extend ({
             'id': id,
+            'fund_id': this.marketId (symbol),
         }, params));
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            // don't know what this status means
+            // 'conditional': '?',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

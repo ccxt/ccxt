@@ -252,14 +252,30 @@ class coinex extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $symbol = $market['symbol'];
+        $marketId = $this->safe_string($trade, 'market');
+        $market = $this->safe_value($this->markets_by_id, $marketId, $market);
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $cost = $this->safe_float($trade, 'deal_money');
-        if (!$cost)
+        if (!$cost) {
             $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
-        $fee = array (
-            'cost' => $this->safe_float($trade, 'fee'),
-            'currency' => $this->safe_string($trade, 'fee_asset'),
-        );
+        }
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
+            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+            $feeCurrencyCode = null;
+            if ($feeCurrency !== null) {
+                $feeCurrencyCode = $feeCurrency['code'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         $takerOrMaker = $this->safe_string($trade, 'role');
         $side = $this->safe_string($trade, 'type');
         return array (
@@ -363,15 +379,55 @@ class coinex extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        // TODO => check if it's actually milliseconds, since examples were in seconds
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "$amount" => "0.1",
+        //         "asset_fee" => "0.22736197736197736197",
+        //         "avg_price" => "196.85000000000000000000",
+        //         "create_time" => 1537270135,
+        //         "deal_amount" => "0.1",
+        //         "deal_fee" => "0",
+        //         "deal_money" => "19.685",
+        //         "fee_asset" => "CET",
+        //         "fee_discount" => "0.5",
+        //         "id" => 1788259447,
+        //         "left" => "0",
+        //         "maker_fee_rate" => "0",
+        //         "$market" => "ETHUSDT",
+        //         "order_type" => "limit",
+        //         "$price" => "170.00000000",
+        //         "$status" => "done",
+        //         "taker_fee_rate" => "0.0005",
+        //         "$type" => "sell",
+        //     }
+        //
         $timestamp = $this->safe_integer($order, 'create_time') * 1000;
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'deal_money');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
-        $symbol = $market['symbol'];
-        $remaining = floatval ($this->amount_to_precision($symbol, $amount - $filled));
-        $status = $this->parse_order_status($order['status']);
+        $average = $this->safe_float($order, 'avg_price');
+        $symbol = null;
+        $marketId = $this->safe_string($order, 'market');
+        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $feeCurrency = null;
+        $feeCurrencyId = $this->safe_string($order, 'fee_asset');
+        $currency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
+        if ($currency !== null) {
+            $feeCurrency = $currency['code'];
+        }
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+            if ($feeCurrency === null) {
+                $feeCurrency = $market['quote'];
+            }
+        }
+        $remaining = $this->safe_float($order, 'left');
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $type = $this->safe_string($order, 'order_type');
+        $side = $this->safe_string($order, 'type');
         return array (
             'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -379,16 +435,17 @@ class coinex extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['order_type'],
-            'side' => $order['type'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
+            'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'trades' => null,
             'fee' => array (
-                'currency' => $market['quote'],
+                'currency' => $feeCurrency,
                 'cost' => $this->safe_float($order, 'deal_fee'),
             ),
             'info' => $order,
@@ -441,7 +498,7 @@ class coinex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -449,23 +506,52 @@ class coinex extends Exchange {
             'id' => $id,
             'market' => $market['id'],
         ), $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array (
+        //             "amount" => "0.1",
+        //             "asset_fee" => "0.22736197736197736197",
+        //             "avg_price" => "196.85000000000000000000",
+        //             "create_time" => 1537270135,
+        //             "deal_amount" => "0.1",
+        //             "deal_fee" => "0",
+        //             "deal_money" => "19.685",
+        //             "fee_asset" => "CET",
+        //             "fee_discount" => "0.5",
+        //             "$id" => 1788259447,
+        //             "left" => "0",
+        //             "maker_fee_rate" => "0",
+        //             "$market" => "ETHUSDT",
+        //             "order_type" => "limit",
+        //             "price" => "170.00000000",
+        //             "status" => "done",
+        //             "taker_fee_rate" => "0.0005",
+        //             "type" => "sell",
+        //         ),
+        //         "message" => "Ok"
+        //     }
+        //
         return $this->parse_order($response['data'], $market);
     }
 
     public function fetch_orders_by_status ($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOrders requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        if ($limit === null) {
+            $limit = 100;
+        }
         $request = array (
-            'market' => $market['id'],
+            'page' => 1,
+            'limit' => $limit,
         );
-        if ($limit !== null)
-            $request['limit'] = $limit;
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
         $method = 'privateGetOrder' . $this->capitalize ($status);
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parse_orders($response['data']['data'], $market);
+        return $this->parse_orders($response['data']['data'], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -477,16 +563,20 @@ class coinex extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
-        }
         $this->load_markets();
-        $market = $this->market ($symbol);
-        $response = $this->privateGetOrderUserDeals (array_merge (array (
-            'market' => $market['id'],
+        if ($limit === null) {
+            $limit = 100;
+        }
+        $request = array (
             'page' => 1,
-            'limit' => 100,
-        ), $params));
+            'limit' => $limit,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['market'] = $market['id'];
+        }
+        $response = $this->privateGetOrderUserDeals (array_merge ($request, $params));
         return $this->parse_trades($response['data']['data'], $market, $since, $limit);
     }
 

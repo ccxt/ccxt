@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ module.exports = class indodax extends Exchange {
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                'referral': 'https://indodax.com/ref/testbitcoincoid/1',
             },
             'api': {
                 'public': {
@@ -58,6 +59,8 @@ module.exports = class indodax extends Exchange {
                 },
             },
             'markets': {
+                // HARDCODING IS DEPRECATED
+                // but they don't have a corresponding endpoint in their API
                 'BTC/IDR': { 'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': 0.0001, 'max': undefined }}},
                 'ACT/IDR': { 'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
                 'ADA/IDR': { 'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': { 'amount': 8, 'price': 0 }, 'limits': { 'amount': { 'min': undefined, 'max': undefined }}},
@@ -160,8 +163,8 @@ module.exports = class indodax extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': parseFloat (ticker[baseVolume]),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
+            'baseVolume': this.safeFloat (ticker, baseVolume),
+            'quoteVolume': this.safeFloat (ticker, quoteVolume),
             'info': ticker,
         };
     }
@@ -206,7 +209,7 @@ module.exports = class indodax extends Exchange {
         let amount = undefined;
         let remaining = undefined;
         let filled = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
             let quoteId = market['quoteId'];
             let baseId = market['baseId'];
@@ -218,7 +221,7 @@ module.exports = class indodax extends Exchange {
             if (cost) {
                 amount = cost / price;
                 let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
-                if (typeof remainingCost !== 'undefined') {
+                if (remainingCost !== undefined) {
                     remaining = remainingCost / price;
                     filled = amount - remaining;
                 }
@@ -256,7 +259,7 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrder requires a symbol');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -273,7 +276,7 @@ module.exports = class indodax extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
@@ -283,7 +286,7 @@ module.exports = class indodax extends Exchange {
         if (!rawOrders)
             return [];
         // { success: 1, return: { orders: [ ... objects ] }} for orders fetched by symbol
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             return this.parseOrders (rawOrders, market, since, limit);
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         let marketIds = Object.keys (rawOrders);
@@ -299,19 +302,19 @@ module.exports = class indodax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new ExchangeError (this.id + ' fetchOrders requires a symbol');
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
         let response = await this.privatePostOrderHistory (this.extend (request, params));
         let orders = this.parseOrders (response['return']['orders'], market, since, limit);
         orders = this.filterBy (orders, 'status', 'closed');
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
@@ -341,10 +344,10 @@ module.exports = class indodax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' cancelOrder requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         let side = this.safeValue (params, 'side');
-        if (typeof side === 'undefined')
+        if (side === undefined)
             throw new ExchangeError (this.id + ' cancelOrder requires an extra "side" param');
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -424,7 +427,7 @@ module.exports = class indodax extends Exchange {
         // { success: 0, error: "invalid order." }
         // or
         // [{ data, ... }, { ... }, ... ]
-        if (typeof response === 'undefined')
+        if (response === undefined)
             if (body[0] === '{' || body[0] === '[')
                 response = JSON.parse (body);
         if (Array.isArray (response))

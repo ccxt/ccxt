@@ -22,6 +22,7 @@ class huobipro extends Exchange {
             'hostname' => 'api.huobi.pro',
             'has' => array (
                 'CORS' => false,
+                'fetchTickers' => true,
                 'fetchDepositAddress' => true,
                 'fetchOHLCV' => true,
                 'fetchOrder' => true,
@@ -46,13 +47,23 @@ class huobipro extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api' => 'https://api.huobi.pro',
+                'api' => array (
+                    'market' => 'https://api.huobi.pro',
+                    'public' => 'https://api.huobi.pro',
+                    'private' => 'https://api.huobi.pro',
+                    'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
+                'zendesk' => array (
+                    'get' => array (
+                        '360000400491-Trade-Limits',
+                    ),
+                ),
                 'market' => array (
                     'get' => array (
                         'history/kline', // 获取K线数据
@@ -61,6 +72,7 @@ class huobipro extends Exchange {
                         'trade', // 获取 Trade Detail 数据
                         'history/trade', // 批量获取最近的交易记录
                         'detail', // 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ),
                 ),
                 'public' => array (
@@ -85,6 +97,9 @@ class huobipro extends Exchange {
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
+                        'points/actions',
+                        'points/orders',
+                        'subuser/aggregate-balance',
                     ),
                     'post' => array (
                         'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
@@ -101,6 +116,7 @@ class huobipro extends Exchange {
                         'dw/transfer-out/margin', // 借贷账户划出至现货账户
                         'margin/orders', // 申请借贷
                         'margin/orders/{id}/repay', // 归还借贷
+                        'subuser/transfer',
                     ),
                 ),
             ),
@@ -123,6 +139,7 @@ class huobipro extends Exchange {
                 'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
                 'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
+                'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array ("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
@@ -258,11 +275,10 @@ class huobipro extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $this->milliseconds ();
-        if (is_array ($ticker) && array_key_exists ('ts', $ticker))
-            $timestamp = $ticker['ts'];
+        }
+        $timestamp = $this->safe_integer($ticker, 'ts');
         $bid = null;
         $ask = null;
         $bidVolume = null;
@@ -287,20 +303,22 @@ class huobipro extends Exchange {
         if (($open !== null) && ($close !== null)) {
             $change = $close - $open;
             $average = $this->sum ($open, $close) / 2;
-            if (($close !== null) && ($close > 0))
+            if (($close !== null) && ($close > 0)) {
                 $percentage = ($change / $open) * 100;
+            }
         }
         $baseVolume = $this->safe_float($ticker, 'amount');
         $quoteVolume = $this->safe_float($ticker, 'vol');
         $vwap = null;
-        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0)
+        if ($baseVolume !== null && $quoteVolume !== null && $baseVolume > 0) {
             $vwap = $quoteVolume / $baseVolume;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['high'],
-            'low' => $ticker['low'],
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
             'bid' => $bid,
             'bidVolume' => $bidVolume,
             'ask' => $ask,
@@ -331,9 +349,9 @@ class huobipro extends Exchange {
                 throw new ExchangeError ($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json ($response));
             }
             $orderbook = $response['tick'];
-            $timestamp = $orderbook['ts'];
-            $orderbook['nonce'] = $orderbook['version'];
-            return $this->parse_order_book($orderbook, $timestamp);
+            $result = $this->parse_order_book($orderbook, $orderbook['ts']);
+            $result['nonce'] = $orderbook['version'];
+            return $result;
         }
         throw new ExchangeError ($this->id . ' fetchOrderBook() returned unrecognized $response => ' . $this->json ($response));
     }
@@ -345,6 +363,27 @@ class huobipro extends Exchange {
             'symbol' => $market['id'],
         ), $params));
         return $this->parse_ticker($response['tick'], $market);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->marketGetTickers ($params);
+        $tickers = $response['data'];
+        $timestamp = $this->safe_integer($response, 'ts');
+        $result = array ();
+        for ($i = 0; $i < count ($tickers); $i++) {
+            $marketId = $this->safe_string($tickers[$i], 'symbol');
+            $market = $this->safe_value($this->markets_by_id, $marketId);
+            $symbol = $marketId;
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+                $ticker = $this->parse_ticker($tickers[$i], $market);
+                $ticker['timestamp'] = $timestamp;
+                $ticker['datetime'] = $this->iso8601 ($timestamp);
+                $result[$symbol] = $ticker;
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -622,18 +661,14 @@ class huobipro extends Exchange {
     }
 
     public function parse_order_status ($status) {
-        if ($status === 'partial-filled') {
-            return 'open';
-        } else if ($status === 'partial-canceled') {
-            return 'canceled';
-        } else if ($status === 'filled') {
-            return 'closed';
-        } else if ($status === 'canceled') {
-            return 'canceled';
-        } else if ($status === 'submitted') {
-            return 'open';
-        }
-        return $status;
+        $statuses = array (
+            'partial-filled' => 'open',
+            'partial-canceled' => 'canceled',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+            'submitted' => 'open',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -767,6 +802,7 @@ class huobipro extends Exchange {
         return array (
             'currency' => $code,
             'address' => $address,
+            'tag' => null,
             'info' => $response,
         );
     }
@@ -802,8 +838,9 @@ class huobipro extends Exchange {
             'amount' => $amount,
             'currency' => strtolower ($currency['id']),
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
+        }
         $response = $this->privatePostDwWithdrawApiCreate (array_merge ($request, $params));
         $id = null;
         if (is_array ($response) && array_key_exists ('data', $response)) {
@@ -817,10 +854,11 @@ class huobipro extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/';
-        if ($api === 'market')
+        if ($api === 'market') {
             $url .= $api;
-        else
+        } else if (($api === 'public') || ($api === 'private')) {
             $url .= $this->version;
+        }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
@@ -853,7 +891,7 @@ class huobipro extends Exchange {
             if ($params)
                 $url .= '?' . $this->urlencode ($params);
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

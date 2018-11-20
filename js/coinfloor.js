@@ -106,12 +106,12 @@ module.exports = class coinfloor extends Exchange {
         // rewrite to get the timestamp from HTTP headers
         let timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
-        if (typeof vwap !== 'undefined') {
+        if (vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
         let last = this.safeFloat (ticker, 'last');
@@ -200,7 +200,7 @@ module.exports = class coinfloor extends Exchange {
         else if (order['type'] === 1)
             side = 'sell';
         let symbol = undefined;
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let id = order['id'].toString ();
         return {
@@ -223,7 +223,7 @@ module.exports = class coinfloor extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
+        if (symbol === undefined)
             throw new NotSupported (this.id + ' fetchOpenOrders requires a symbol param');
         await this.loadMarkets ();
         let market = this.market (symbol);

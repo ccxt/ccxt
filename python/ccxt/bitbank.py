@@ -492,6 +492,8 @@ class bitbank (Exchange):
                 '70004': 'We are unable to accept orders as the transaction is currently suspended',
                 '70005': 'Order can not be accepted because purchase order is currently suspended',
                 '70006': 'We can not accept orders because we are currently unsubscribed ',
+                '70009': 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
+                '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             }
             errorClasses = self.exceptions
             code = self.safe_string(data, 'code')

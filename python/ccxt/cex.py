@@ -11,9 +11,9 @@ try:
     basestring  # Python 3
 except NameError:
     basestring = str  # Python 2
-import math
 import json
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -48,6 +48,7 @@ class cex (Exchange):
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
                 ],
+                'referral': 'https://cex.io/r/0/up105393824/0/',
             },
             'requiredCredentials': {
                 'apiKey': True,
@@ -148,8 +149,8 @@ class cex (Exchange):
                 'base': base,
                 'quote': quote,
                 'precision': {
-                    'price': self.precision_from_string(market['minPrice']),
-                    'amount': -math.log10(market['minLotSize']),
+                    'price': self.precision_from_string(self.safe_string(market, 'minPrice')),
+                    'amount': self.precision_from_string(self.safe_string(market, 'minLotSize')),
                 },
                 'limits': {
                     'amount': {
@@ -445,7 +446,7 @@ class cex (Exchange):
         self.load_markets()
         method = 'privatePostArchivedOrdersPair'
         if symbol is None:
-            raise NotSupported(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
         market = self.market(symbol)
         request = {'pair': market['id']}
         response = getattr(self, method)(self.extend(request, params))

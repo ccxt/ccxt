@@ -153,6 +153,9 @@ class bitz extends Exchange {
                 'lastNonceTimestamp' => 0,
             ),
             'commonCurrencies' => array (
+                // https://github.com/ccxt/ccxt/issues/3881
+                // https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX' => 'BOX Token',
                 'XRB' => 'NANO',
                 'PXC' => 'Pixiecoin',
             ),
@@ -634,7 +637,7 @@ class bitz extends Exchange {
             }
         } else {
             if ($since !== null) {
-                throw new ExchangeError ($this->id . ' fetchOHLCV requires a $since argument to be supplied along with the $limit argument');
+                throw new ExchangeError ($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
             }
         }
         $response = $this->marketGetKline (array_merge ($request, $params));
@@ -912,7 +915,7 @@ class bitz extends Exchange {
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array (
@@ -984,7 +987,12 @@ class bitz extends Exchange {
         //         "source" => "api"
         //     }
         //
-        return $this->parse_orders($response['data']['data'], null, $since, $limit);
+        $orders = $this->safe_value($response['data'], 'data');
+        if ($orders) {
+            return $this->parse_orders($response['data']['data'], null, $since, $limit);
+        } else {
+            return array ();
+        }
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

@@ -312,7 +312,6 @@ declare module 'ccxt' {
 
     /* tslint:disable */
 
-    export class _1broker extends Exchange {}
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
@@ -330,6 +329,7 @@ declare module 'ccxt' {
     export class bitflyer extends Exchange {}
     export class bitforex extends Exchange {}
     export class bithumb extends Exchange {}
+    export class bitibu extends acx {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
@@ -351,7 +351,7 @@ declare module 'ccxt' {
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
-    export class btcx extends Exchange {}
+    export class buda extends Exchange {}
     export class bxinth extends Exchange {}
     export class ccex extends Exchange {}
     export class cex extends Exchange {}
@@ -372,10 +372,10 @@ declare module 'ccxt' {
     export class coinmate extends Exchange {}
     export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
-    export class coinsecure extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}
+    export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class cryptopia extends Exchange {}
     export class deribit extends Exchange {}
@@ -404,12 +404,14 @@ declare module 'ccxt' {
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
     export class jubi extends btcbox {}
+    export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
     export class lbank extends Exchange {}
     export class liqui extends Exchange {}
+    export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
@@ -422,9 +424,9 @@ declare module 'ccxt' {
     export class okex extends okcoinusd {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class qryptos extends Exchange {}
+    export class qryptos extends liquid {}
     export class quadrigacx extends Exchange {}
-    export class quoinex extends qryptos {}
+    export class quoinex extends liquid {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
     export class surbitcoin extends foxbit {}

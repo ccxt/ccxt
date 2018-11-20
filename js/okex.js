@@ -26,11 +26,12 @@ module.exports = class okex extends okcoinusd {
                 },
                 'www': 'https://www.okex.com',
                 'doc': 'https://github.com/okcoin-okex/API-docs-OKEx.com',
-                'fees': 'https://www.okex.com/fees.html',
+                'fees': 'https://www.okex.com/pages/products/fees.html',
             },
             'commonCurrencies': {
                 'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
+                'HSR': 'HC',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
             },

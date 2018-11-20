@@ -13,6 +13,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , details = process.argv.includes ('--details')
     , no_table = process.argv.includes ('--no-table')
     , iso8601 = process.argv.includes ('--iso8601')
+    , cors = process.argv.includes ('--cors')
 
 //-----------------------------------------------------------------------------
 
@@ -27,9 +28,7 @@ const ccxt         = require ('../../ccxt.js')
         title: x => String (x).lightGray,
         dash: '-'.lightGray.dim,
         print: x => {
-            if ((typeof x === 'string') && x.startsWith ('2018-')) {
-                return new Date (x).toLocaleString ()
-            } else if (typeof x === 'object') {
+            if (typeof x === 'object') {
                 const j = JSON.stringify (x).trim ()
                 if (j.length < 100) return j
             }
@@ -43,8 +42,8 @@ const ccxt         = require ('../../ccxt.js')
 
 //-----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
-process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
 // cloudscraper helper
@@ -93,7 +92,17 @@ const enableRateLimit = true
 
 try {
 
-    exchange = new (ccxt)[exchangeId] ({ timeout, enableRateLimit })
+    const { Agent } = require ('https')
+
+    const agent = new Agent ({
+        ecdhCurve: 'auto',
+    })
+
+    exchange = new (ccxt)[exchangeId] ({
+        timeout,
+        enableRateLimit,
+        agent,
+    })
 
 } catch (e) {
 
@@ -141,6 +150,7 @@ function printSupportedExchanges () {
     log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print tabulated fetch responses')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
+    log ('--cors            use CORS proxy for debugging')
 }
 
 //-----------------------------------------------------------------------------
@@ -205,7 +215,7 @@ async function main () {
     } else {
 
         let args = params
-            .map (s => s.match (/[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
+            .map (s => s.match (/^[0-9]{4}[-]?[0-9]{2}[-]?[0-9]{2}[T\s]?[0-9]{2}[:]?[0-9]{2}[:]?[0-9]{2}/g) ? exchange.parse8601 (s) : s)
             .map (s => (() => { try { return eval ('(() => (' + s + ')) ()') } catch (e) { return s } }) ())
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
@@ -215,6 +225,11 @@ async function main () {
 
         if (cfscrape)
             exchange.headers = cfscrapeCookies (www)
+
+        if (cors) {
+            exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
+            exchange.origin = exchange.uuid ()
+        }
 
         no_load_markets = no_send ? true : no_load_markets
 
@@ -278,7 +293,7 @@ async function main () {
                     break;
             }
 
-        } else if (typeof exchange[methodName] === 'undefined') {
+        } else if (exchange[methodName] === undefined) {
 
             log.red (exchange.id + '.' + methodName + ': no such property')
 

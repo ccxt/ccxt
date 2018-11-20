@@ -8,12 +8,14 @@ import math
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import ROUND
 
 
 class binance (Exchange):
@@ -73,10 +75,7 @@ class binance (Exchange):
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                'fees': [
-                    'https://binance.zendesk.com/hc/en-us/articles/115000429332',
-                    'https://support.binance.com/hc/en-us/articles/115000583311',
-                ],
+                'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
                 'web': {
@@ -90,13 +89,14 @@ class binance (Exchange):
                         'withdraw',
                     ],
                     'get': [
-                        'getAllAsset',
                         'depositHistory',
                         'withdrawHistory',
                         'depositAddress',
                         'accountStatus',
                         'systemStatus',
-                        'withdrawFee',
+                        'userAssetDribbletLog',
+                        'tradeFee',
+                        'assetDetail',
                     ],
                 },
                 'v3': {
@@ -107,7 +107,6 @@ class binance (Exchange):
                 },
                 'public': {
                     'get': [
-                        'exchangeInfo',
                         'ping',
                         'time',
                         'depth',
@@ -272,6 +271,7 @@ class binance (Exchange):
             },
             # exchange-specific options
             'options': {
+                'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit',  # or 'limit_maker'
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -380,16 +380,19 @@ class binance (Exchange):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
-        cost = float(self.cost_to_precision(symbol, amount * rate))
+        cost = amount * rate
+        precision = market['precision']['price']
         if side == 'sell':
             cost *= price
         else:
             key = 'base'
+            precision = market['precision']['amount']
+        cost = self.decimal_to_precision(cost, ROUND, precision, self.precisionMode)
         return {
             'type': takerOrMaker,
             'currency': market[key],
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, cost)),
+            'cost': float(cost),
         }
 
     async def fetch_balance(self, params={}):
@@ -426,13 +429,12 @@ class binance (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'closeTime')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'symbol'), market)
         last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'highPrice'),
             'low': self.safe_float(ticker, 'lowPrice'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -473,7 +475,8 @@ class binance (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        rawTickers = await self.publicGetTicker24hr(params)
+        method = self.options['fetchTickersMethod']
+        rawTickers = await getattr(self, method)(params)
         return self.parse_tickers(rawTickers, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -557,7 +560,7 @@ class binance (Exchange):
         }
         if since is not None:
             request['startTime'] = since
-            request['endTime'] = since + 3600000
+            request['endTime'] = self.sum(since, 3600000)
         if limit is not None:
             request['limit'] = limit
         # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
@@ -583,12 +586,10 @@ class binance (Exchange):
             'FILLED': 'closed',
             'CANCELED': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status.lower()
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_order(self, order, market=None):
-        status = self.safe_value(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
         timestamp = None
         if 'time' in order:
@@ -636,9 +637,10 @@ class binance (Exchange):
                 for i in range(1, len(trades)):
                     cost = self.sum(cost, trades[i]['cost'])
                     fee['cost'] = self.sum(fee['cost'], trades[i]['fee']['cost'])
-                if cost and filled:
-                    price = cost / filled
+        average = None
         if cost is not None:
+            if filled:
+                average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
         result = {
@@ -653,6 +655,7 @@ class binance (Exchange):
             'price': price,
             'amount': amount,
             'cost': cost,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -709,7 +712,7 @@ class binance (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         origClientOrderId = self.safe_value(params, 'origClientOrderId')
@@ -725,7 +728,7 @@ class binance (Exchange):
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -734,6 +737,28 @@ class binance (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetAllOrders(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "symbol": "LTCBTC",
+        #             "orderId": 1,
+        #             "clientOrderId": "myOrder1",
+        #             "price": "0.1",
+        #             "origQty": "1.0",
+        #             "executedQty": "0.0",
+        #             "cummulativeQuoteQty": "0.0",
+        #             "status": "NEW",
+        #             "timeInForce": "GTC",
+        #             "type": "LIMIT",
+        #             "side": "BUY",
+        #             "stopPrice": "0.0",
+        #             "icebergQty": "0.0",
+        #             "time": 1499827319559,
+        #             "updateTime": 1499827319559,
+        #             "isWorking": True
+        #         }
+        #     ]
+        #
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -757,7 +782,7 @@ class binance (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         response = await self.privateDeleteOrder(self.extend({
@@ -769,7 +794,7 @@ class binance (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -782,28 +807,57 @@ class binance (Exchange):
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if code is None:
-            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code arguemnt')
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetDepositHistory(self.extend(request, params))
+        #
+        #     {    success:    True,
+        #       depositList: [{insertTime:  1517425007000,
+        #                            amount:  0.3,
+        #                           address: "0x0123456789abcdef",
+        #                        addressTag: "",
+        #                              txId: "0x0123456789abcdef",
+        #                             asset: "ETH",
+        #                            status:  1                                                                    }]}
+        #
         return self.parseTransactions(response['depositList'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        if code is None:
-            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code arguemnt')
-        currency = self.currency(code)
-        request = {
-            'asset': currency['id'],
-        }
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['startTime'] = since
         response = await self.wapiGetWithdrawHistory(self.extend(request, params))
+        #
+        #     {withdrawList: [{     amount:  14,
+        #                             address: "0x0123456789abcdef...",
+        #                         successTime:  1514489710000,
+        #                          addressTag: "",
+        #                                txId: "0x0123456789abcdef...",
+        #                                  id: "0123456789abcdef...",
+        #                               asset: "ETH",
+        #                           applyTime:  1514488724000,
+        #                              status:  6                       },
+        #                       {     amount:  7600,
+        #                             address: "0x0123456789abcdef...",
+        #                         successTime:  1515323226000,
+        #                          addressTag: "",
+        #                                txId: "0x0123456789abcdef...",
+        #                                  id: "0123456789abcdef...",
+        #                               asset: "ICN",
+        #                           applyTime:  1515322539000,
+        #                              status:  6                       }  ],
+        #            success:    True                                         }
+        #
         return self.parseTransactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
@@ -815,28 +869,53 @@ class binance (Exchange):
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',  # different from 1 = ok in deposits
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
-                '6': 'ok',
+                '0': 'pending',  # Email Sent
+                '1': 'canceled',  # Cancelled(different from 1 = ok in deposits)
+                '2': 'pending',  # Awaiting Approval
+                '3': 'failed',  # Rejected
+                '4': 'pending',  # Processing
+                '5': 'failed',  # Failure
+                '6': 'ok',  # Completed
             },
         }
         return statuses[type][status] if (status in list(statuses[type].keys())) else status
 
     def parse_transaction(self, transaction, currency=None):
-        # addressTag = self.safe_string(transaction, 'addressTag')  # set but unused
+        #
+        # fetchDeposits
+        #      {insertTime:  1517425007000,
+        #            amount:  0.3,
+        #           address: "0x0123456789abcdef",
+        #        addressTag: "",
+        #              txId: "0x0123456789abcdef",
+        #             asset: "ETH",
+        #            status:  1                                                                    }
+        #
+        # fetchWithdrawals
+        #
+        #       {     amount:  14,
+        #             address: "0x0123456789abcdef...",
+        #         successTime:  1514489710000,
+        #          addressTag: "",
+        #                txId: "0x0123456789abcdef...",
+        #                  id: "0123456789abcdef...",
+        #               asset: "ETH",
+        #           applyTime:  1514488724000,
+        #              status:  6                       }
+        #
+        id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
+        tag = self.safe_string(transaction, 'addressTag')  # set but unused
+        if tag is not None:
+            if len(tag) < 1:
+                tag = None
         txid = self.safe_value(transaction, 'txId')
         code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
+        currencyId = self.safe_string(transaction, 'asset')
+        if currencyId in self.currencies_by_id:
+            currency = self.currencies_by_id[currencyId]
+        else:
+            code = self.common_currency_code(currencyId)
         if currency is not None:
             code = currency['code']
         timestamp = None
@@ -852,14 +931,19 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        fee = None
+        feeCost = None
+        fee = {
+            'cost': feeCost,
+            'currency': code,
+        }
         return {
             'info': transaction,
-            'id': None,
+            'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': address,
+            'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -886,25 +970,38 @@ class binance (Exchange):
                 }
 
     async def fetch_funding_fees(self, codes=None, params={}):
-        # by default it will try load withdrawal fees of all currencies(with separate requests)
-        # however if you define codes = ['ETH', 'BTC'] in args it will only load those
-        await self.load_markets()
+        response = await self.wapiGetAssetDetail()
+        #
+        #     {
+        #         "success": True,
+        #         "assetDetail": {
+        #             "CTR": {
+        #                 "minWithdrawAmount": "70.00000000",  #min withdraw amount
+        #                 "depositStatus": False,//deposit status
+        #                 "withdrawFee": 35,  # withdraw fee
+        #                 "withdrawStatus": True,  #withdraw status
+        #                 "depositTip": "Delisted, Deposit Suspended"  #reason
+        #             },
+        #             "SKY": {
+        #                 "minWithdrawAmount": "0.02000000",
+        #                 "depositStatus": True,
+        #                 "withdrawFee": 0.01,
+        #                 "withdrawStatus": True
+        #             }
+        #         }
+        #     }
+        #
+        detail = self.safe_value(response, 'assetDetail')
+        ids = list(detail.keys())
         withdrawFees = {}
-        info = {}
-        if codes is None:
-            codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            response = await self.wapiGetWithdrawFee({
-                'asset': currency['id'],
-            })
-            withdrawFees[code] = self.safe_float(response, 'withdrawFee')
-            info[code] = response
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.common_currency_code(id)
+            withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
             'deposit': {},
-            'info': info,
+            'info': response,
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
@@ -971,7 +1068,7 @@ class binance (Exchange):
             if body.find('LOT_SIZE') >= 0:
                 raise InvalidOrder(self.id + ' order amount should be evenly divisible by lot size ' + body)
             if body.find('PRICE_FILTER') >= 0:
-                raise InvalidOrder(self.id + ' order price exceeds allowed price precision or invalid, use self.price_to_precision(symbol, amount) ' + body)
+                raise InvalidOrder(self.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use self.price_to_precision(symbol, amount) ' + body)
         if len(body) > 0:
             if body[0] == '{':
                 response = json.loads(body)

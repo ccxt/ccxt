@@ -170,7 +170,9 @@ class bitso (Exchange):
         timestamp = self.parse8601(ticker['created_at'])
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
-        quoteVolume = baseVolume * vwap
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -307,7 +309,7 @@ class bitso (Exchange):
 
     def parse_order(self, order, market=None):
         side = order['side']
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = None
         if market is None:
             marketId = order['book']

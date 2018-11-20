@@ -223,7 +223,8 @@ class bibox extends Exchange {
         $response = $this->publicGetMdata (array_merge (array (
             'cmd' => 'marketAll',
         ), $params));
-        return $this->parse_tickers ($response['result'], $symbols);
+        $tickers = $this->parse_tickers ($response['result'], $symbols);
+        return $this->index_by($tickers, 'symbol');
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -498,9 +499,7 @@ class bibox extends Exchange {
                 $cost = $price * $filled;
         }
         $side = ($order['order_side'] === 1) ? 'buy' : 'sell';
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $result = array (
             'info' => $order,
             'id' => $this->safe_string($order, 'id'),
@@ -532,7 +531,7 @@ class bibox extends Exchange {
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
         );
-        return $this->safe_string($statuses, $status, strtolower ($status));
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -559,7 +558,7 @@ class bibox extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = 200, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privatePostOrderpending (array (
@@ -577,7 +576,7 @@ class bibox extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $size = ($limit) ? $limit : 200;

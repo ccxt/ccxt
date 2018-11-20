@@ -165,7 +165,9 @@ class bitso extends Exchange {
         $timestamp = $this->parse8601 ($ticker['created_at']);
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
-        $quoteVolume = $baseVolume * $vwap;
+        $quoteVolume = null;
+        if ($baseVolume !== null && $vwap !== null)
+            $quoteVolume = $baseVolume * $vwap;
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -312,7 +314,7 @@ class bitso extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $side = $order['side'];
-        $status = $this->parse_order_status($order['status']);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $marketId = $order['book'];

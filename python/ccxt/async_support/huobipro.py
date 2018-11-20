@@ -37,6 +37,7 @@ class huobipro (Exchange):
             'hostname': 'api.huobi.pro',
             'has': {
                 'CORS': False,
+                'fetchTickers': True,
                 'fetchDepositAddress': True,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
@@ -61,13 +62,23 @@ class huobipro (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
-                'api': 'https://api.huobi.pro',
+                'api': {
+                    'market': 'https://api.huobi.pro',
+                    'public': 'https://api.huobi.pro',
+                    'private': 'https://api.huobi.pro',
+                    'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
+                },
                 'www': 'https://www.huobi.pro',
                 'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
             'api': {
+                'zendesk': {
+                    'get': [
+                        '360000400491-Trade-Limits',
+                    ],
+                },
                 'market': {
                     'get': [
                         'history/kline',  # 获取K线数据
@@ -76,6 +87,7 @@ class huobipro (Exchange):
                         'trade',  # 获取 Trade Detail 数据
                         'history/trade',  # 批量获取最近的交易记录
                         'detail',  # 获取 Market Detail 24小时成交量数据
+                        'tickers',
                     ],
                 },
                 'public': {
@@ -100,6 +112,9 @@ class huobipro (Exchange):
                         'query/deposit-withdraw',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
+                        'points/actions',
+                        'points/orders',
+                        'subuser/aggregate-balance',
                     ],
                     'post': [
                         'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
@@ -116,6 +131,7 @@ class huobipro (Exchange):
                         'dw/transfer-out/margin',  # 借贷账户划出至现货账户
                         'margin/orders',  # 申请借贷
                         'margin/orders/{id}/repay',  # 归还借贷
+                        'subuser/transfer',
                     ],
                 },
             },
@@ -138,6 +154,7 @@ class huobipro (Exchange):
                 'order-queryorder-invalid': OrderNotFound,  # querying a non-existent order
                 'order-update-error': ExchangeNotAvailable,  # undocumented error
                 'api-signature-check-failed': AuthenticationError,
+                'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
@@ -265,11 +282,9 @@ class huobipro (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        timestamp = self.milliseconds()
-        if 'ts' in ticker:
-            timestamp = ticker['ts']
+        timestamp = self.safe_integer(ticker, 'ts')
         bid = None
         ask = None
         bidVolume = None
@@ -301,8 +316,8 @@ class huobipro (Exchange):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['high'],
-            'low': ticker['low'],
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
@@ -331,9 +346,9 @@ class huobipro (Exchange):
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             orderbook = response['tick']
-            timestamp = orderbook['ts']
-            orderbook['nonce'] = orderbook['version']
-            return self.parse_order_book(orderbook, timestamp)
+            result = self.parse_order_book(orderbook, orderbook['ts'])
+            result['nonce'] = orderbook['version']
+            return result
         raise ExchangeError(self.id + ' fetchOrderBook() returned unrecognized response: ' + self.json(response))
 
     async def fetch_ticker(self, symbol, params={}):
@@ -343,6 +358,24 @@ class huobipro (Exchange):
             'symbol': market['id'],
         }, params))
         return self.parse_ticker(response['tick'], market)
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        await self.load_markets()
+        response = await self.marketGetTickers(params)
+        tickers = response['data']
+        timestamp = self.safe_integer(response, 'ts')
+        result = {}
+        for i in range(0, len(tickers)):
+            marketId = self.safe_string(tickers[i], 'symbol')
+            market = self.safe_value(self.markets_by_id, marketId)
+            symbol = marketId
+            if market is not None:
+                symbol = market['symbol']
+                ticker = self.parse_ticker(tickers[i], market)
+                ticker['timestamp'] = timestamp
+                ticker['datetime'] = self.iso8601(timestamp)
+                result[symbol] = ticker
+        return result
 
     def parse_trade(self, trade, market=None):
         symbol = None
@@ -587,17 +620,14 @@ class huobipro (Exchange):
         return self.parse_order(response['data'])
 
     def parse_order_status(self, status):
-        if status == 'partial-filled':
-            return 'open'
-        elif status == 'partial-canceled':
-            return 'canceled'
-        elif status == 'filled':
-            return 'closed'
-        elif status == 'canceled':
-            return 'canceled'
-        elif status == 'submitted':
-            return 'open'
-        return status
+        statuses = {
+            'partial-filled': 'open',
+            'partial-canceled': 'canceled',
+            'filled': 'closed',
+            'canceled': 'canceled',
+            'submitted': 'open',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
@@ -715,6 +745,7 @@ class huobipro (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 
@@ -761,7 +792,7 @@ class huobipro (Exchange):
         url = '/'
         if api == 'market':
             url += api
-        else:
+        elif (api == 'public') or (api == 'private'):
             url += self.version
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -793,7 +824,7 @@ class huobipro (Exchange):
         else:
             if params:
                 url += '?' + self.urlencode(params)
-        url = self.urls['api'] + url
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body):

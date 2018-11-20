@@ -31,6 +31,9 @@ class bitfinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchTickers' => true,
+                'fetchTransactions' => true,
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
                 'withdraw' => true,
             ),
             'timeframes' => array (
@@ -249,12 +252,15 @@ class bitfinex extends Exchange {
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
                 'ATM' => 'ATMI',
+                'BAB' => 'BCHABC',
                 'BCC' => 'CST_BCC',
                 'BCU' => 'CST_BCU',
+                'BSV' => 'BCHSV',
                 'CTX' => 'CTXC',
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
+                'EUR' => 'EURT',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
                 'IOT' => 'IOTA',
@@ -281,7 +287,6 @@ class bitfinex extends Exchange {
                     'No such order found.' => '\\ccxt\\OrderNotFound', // ?
                     'Order price must be positive.' => '\\ccxt\\InvalidOrder', // on price <= 0
                     'Could not find a key matching the given X-BFX-APIKEY.' => '\\ccxt\\AuthenticationError',
-                    'This API key does not have permission for this action' => '\\ccxt\\AuthenticationError', // authenticated but not authorized
                     'Key price should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"' => '\\ccxt\\InvalidOrder', // on isNaN (amount)
                     'ERR_RATE_LIMIT' => '\\ccxt\\DDoSProtection',
@@ -291,6 +296,7 @@ class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
+                    'This API key does not have permission' => '\\ccxt\\PermissionDenied', // authenticated but not authorized
                     'Invalid order => not enough exchange balance for ' => '\\ccxt\\InsufficientFunds', // when buying cost is greater than the available quote currency
                     'Invalid order => minimum size for ' => '\\ccxt\\InvalidOrder', // when amount below limits.amount.min
                     'Invalid order' => '\\ccxt\\InvalidOrder', // ?
@@ -614,7 +620,7 @@ class bitfinex extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array ( 'symbol' => $market['id'] );
@@ -765,27 +771,28 @@ class bitfinex extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function get_currency_name ($currency) {
-        if (is_array ($this->options['currencyNames']) && array_key_exists ($currency, $this->options['currencyNames']))
-            return $this->options['currencyNames'][$currency];
-        throw new NotSupported ($this->id . ' ' . $currency . ' not supported for withdrawal');
+    public function get_currency_name ($code) {
+        if (is_array ($this->options['currencyNames']) && array_key_exists ($code, $this->options['currencyNames']))
+            return $this->options['currencyNames'][$code];
+        throw new NotSupported ($this->id . ' ' . $code . ' not supported for withdrawal');
     }
 
-    public function create_deposit_address ($currency, $params = array ()) {
-        $response = $this->fetch_deposit_address ($currency, array_merge (array (
+    public function create_deposit_address ($code, $params = array ()) {
+        $response = $this->fetch_deposit_address ($code, array_merge (array (
             'renew' => 1,
         ), $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
-            'currency' => $currency,
-            'address' => $address,
             'info' => $response['info'],
+            'currency' => $code,
+            'address' => $address,
+            'tag' => null,
         );
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $name = $this->get_currency_name ($currency);
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $name = $this->get_currency_name ($code);
         $request = array (
             'method' => $name,
             'wallet_name' => 'exchange',
@@ -800,16 +807,110 @@ class bitfinex extends Exchange {
         }
         $this->check_address($address);
         return array (
-            'currency' => $currency,
+            'currency' => $code,
             'address' => $address,
             'tag' => $tag,
             'info' => $response,
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired ($this->id . ' fetchTransactions() requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        if ($since !== null) {
+            $request['since'] = intval ($since / 1000);
+        }
+        $response = $this->privatePostHistoryMovements (array_merge ($request, $params));
+        //
+        //     array (
+        //         {
+        //             "id":581183,
+        //             "txid" => 123456,
+        //             "$currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created" => "1443833327.1",
+        //             "fee" => 0.1,
+        //         }
+        //     )
+        //
+        return $this->parseTransactions ($response, $currency, $since, $limit);
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_float($transaction, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp = intval ($timestamp * 1000);
+        }
+        $updated = $this->safe_float($transaction, 'timestamp');
+        if ($updated !== null) {
+            $updated = intval ($updated * 1000);
+        }
+        $code = null;
+        if ($currency === null) {
+            $currencyId = $this->safe_string($transaction, 'currency');
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        }
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if ($type !== null) {
+            $type = strtolower ($type);
+        }
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $feeCost = $this->safe_float($transaction, 'fee');
+        if ($feeCost !== null) {
+            $feeCost = abs ($feeCost);
+        }
+        return array (
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'address' => $this->safe_string($transaction, 'address'),
+            'tag' => null, // refix it properly for the tag from description
+            'type' => $type,
+            'amount' => $this->safe_float($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $status,
+            'updated' => $updated,
+            'fee' => array (
+                'currency' => $code,
+                'cost' => $feeCost,
+                'rate' => null,
+            ),
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'CANCELED' => 'canceled',
+            'ZEROCONFIRMED' => 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED' => 'ok',
+        );
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+    }
+
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
-        $name = $this->get_currency_name ($currency);
+        $name = $this->get_currency_name ($code);
         $request = array (
             'withdraw_type' => $name,
             'walletselected' => 'exchange',

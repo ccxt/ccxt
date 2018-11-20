@@ -31,6 +31,7 @@ class exmo extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchFundingFees' => true,
                 'fetchCurrencies' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -242,8 +243,18 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($items); $i++) {
             $item = $items[$i];
             $code = $this->common_currency_code($this->safe_string($item, 'prov'));
-            $withdraw[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'wd'));
-            $deposit[$code] = $this->parse_fixed_float_value ($this->safe_string($item, 'dep'));
+            $withdrawalFee = $this->safe_string($item, 'wd');
+            $depositFee = $this->safe_string($item, 'dep');
+            if ($withdrawalFee !== null) {
+                if (strlen ($withdrawalFee) > 0) {
+                    $withdraw[$code] = $this->parse_fixed_float_value ($withdrawalFee);
+                }
+            }
+            if ($depositFee !== null) {
+                if (strlen ($depositFee) > 0) {
+                    $deposit[$code] = $this->parse_fixed_float_value ($depositFee);
+                }
+            }
         }
         $result = array (
             'info' => $response,
@@ -496,7 +507,7 @@ class exmo extends Exchange {
             } else if (($side === 'sell') && ($cost !== null)) {
                 $fee = array (
                     'currency' => $market['quote'],
-                    'cost' => $amount * $market['taker'],
+                    'cost' => $cost * $market['taker'],
                     'rate' => $market['taker'],
                 );
             }
@@ -839,15 +850,17 @@ class exmo extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
             'amount' => $amount,
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['invoice'] = $tag;
+        }
         $result = $this->privatePostWithdrawCrypt (array_merge ($request, $params));
         return array (
             'info' => $result,
@@ -922,17 +935,19 @@ class exmo extends Exchange {
             }
         }
         return array (
+            'info' => $transaction,
             'id' => null,
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
+            'tag' => null, // refix it properly
             'status' => $status,
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
             'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
-            'info' => $transaction,
         );
     }
 

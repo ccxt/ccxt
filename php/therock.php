@@ -143,6 +143,7 @@ class therock extends Exchange {
                 $buy_fee = $this->safe_float($market, 'buy_fee');
                 $sell_fee = $this->safe_float($market, 'sell_fee');
                 $taker = max ($buy_fee, $sell_fee);
+                $taker = $taker / 100;
                 $maker = $taker;
                 $result[] = array (
                     'id' => $id,
@@ -311,7 +312,19 @@ class therock extends Exchange {
         $this->load_markets();
         return $this->privateDeleteFundsFundIdOrdersId (array_merge (array (
             'id' => $id,
+            'fund_id' => $this->market_id($symbol),
         ), $params));
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'active' => 'open',
+            'executed' => 'closed',
+            'deleted' => 'canceled',
+            // don't know what this $status means
+            // 'conditional' => '?',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

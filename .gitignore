@@ -19,7 +19,6 @@ coverage
 .nyc_output
 travis-keys.sh
 ccxt.wiki/
-package-lock.json
 exchanges.json
 ccxt.sublime-workspace
 .idea

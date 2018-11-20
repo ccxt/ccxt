@@ -12,7 +12,7 @@ const log       = require ('ololog')
 
 module.exports = (exchange, trade, symbol, now) => {
     assert.isOk (trade)
-    assert (typeof trade.id === 'undefined' || typeof trade.id === 'string')
+    assert (trade.id === undefined || typeof trade.id === 'string')
     assert (typeof trade.timestamp === 'number')
     assert (trade.timestamp > 1230940800000) // 03 Jan 2009 - first block
 
@@ -33,6 +33,8 @@ module.exports = (exchange, trade, symbol, now) => {
 
     const exchangesExcludedFromTimestampCheck = [
         'gdax',
+        'coinbasepro',
+        'coinbaseprime', // ... as well, probably
     ]
 
     if (!exchangesExcludedFromTimestampCheck.includes (exchange.id))
@@ -49,9 +51,9 @@ module.exports = (exchange, trade, symbol, now) => {
     if (!isExchangeLackingFilteringTradesBySymbol)
         assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
 
-    assert (typeof trade.type  === 'undefined' || typeof trade.type === 'string')
-    assert (typeof trade.side  === 'undefined' || trade.side === 'buy' || trade.side === 'sell')
-    assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
+    assert (trade.type  === undefined || typeof trade.type === 'string')
+    assert (trade.side  === undefined || trade.side === 'buy' || trade.side === 'sell')
+    assert (trade.order === undefined || typeof trade.order === 'string')
     assert (typeof trade.price === 'number', 'trade.price is not a number')
     assert (trade.price > 0)
     assert (typeof trade.amount === 'number', 'trade.amount is not a number')

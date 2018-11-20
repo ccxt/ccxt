@@ -49,15 +49,13 @@ if (count ($argv) > 2) {
 
                 $result = call_user_func_array (array ($exchange, $member), $args);
 
-                print_r ($result);
+                echo print_r ($result, true) . "\n";
 
             } catch (\ccxt\NetworkError $e) {
 
                 echo get_class ($e) . ': ' . $e->getMessage () . "\n";
 
             } catch (\ccxt\ExchangeError $e) {
-
-                echo $e->class . "-\n";
 
                 echo get_class ($e) . ': ' . $e->getMessage () . "\n";
             }

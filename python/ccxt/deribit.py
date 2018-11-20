@@ -136,7 +136,7 @@ class deribit (Exchange):
         return {
             'currency': 'BTC',
             'address': account['depositAddress'],
-            'status': 'ok',
+            'tag': None,
             'info': account,
         }
 
@@ -272,8 +272,7 @@ class deribit (Exchange):
                 remaining = amount - filled
             if price is not None:
                 cost = price * filled
-        status = self.safe_string(order, 'state')
-        status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'state'))
         side = self.safe_string(order, 'direction')
         if side is not None:
             side = side.lower()

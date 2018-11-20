@@ -41,7 +41,7 @@ class fcoin (Exchange):
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': False,
-                'fetchOHCLV': False,
+                'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchOrder': True,

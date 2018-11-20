@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported, DDoSProtection, AuthenticationError, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
+const { NotSupported, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, InvalidNonce } = require ('./base/errors');
 const { SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -31,6 +31,9 @@ module.exports = class bitfinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchTransactions': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -249,12 +252,15 @@ module.exports = class bitfinex extends Exchange {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
+                'BAB': 'BCHABC',
                 'BCC': 'CST_BCC',
                 'BCU': 'CST_BCU',
+                'BSV': 'BCHSV',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'EUR': 'EURT',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -281,7 +287,6 @@ module.exports = class bitfinex extends Exchange {
                     'No such order found.': OrderNotFound, // ?
                     'Order price must be positive.': InvalidOrder, // on price <= 0
                     'Could not find a key matching the given X-BFX-APIKEY.': AuthenticationError,
-                    'This API key does not have permission for this action': AuthenticationError, // authenticated but not authorized
                     'Key price should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (price)
                     'Key amount should be a decimal number, e.g. "123.456"': InvalidOrder, // on isNaN (amount)
                     'ERR_RATE_LIMIT': DDoSProtection,
@@ -291,6 +296,7 @@ module.exports = class bitfinex extends Exchange {
                     'Cannot evaluate your available balance, please try again': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'This API key does not have permission': PermissionDenied, // authenticated but not authorized
                     'Invalid order: not enough exchange balance for ': InsufficientFunds, // when buying cost is greater than the available quote currency
                     'Invalid order: minimum size for ': InvalidOrder, // when amount below limits.amount.min
                     'Invalid order': InvalidOrder, // ?
@@ -491,7 +497,7 @@ module.exports = class bitfinex extends Exchange {
         let request = {
             'symbol': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
@@ -524,13 +530,13 @@ module.exports = class bitfinex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeFloat (ticker, 'timestamp') * 1000;
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         } else if ('pair' in ticker) {
             let id = ticker['pair'];
             if (id in this.markets_by_id)
                 market = this.markets_by_id[id];
-            if (typeof market !== 'undefined') {
+            if (market !== undefined) {
                 symbol = market['symbol'];
             } else {
                 let baseId = id.slice (0, 3);
@@ -606,21 +612,21 @@ module.exports = class bitfinex extends Exchange {
             'symbol': market['id'],
             'limit_trades': limit,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['timestamp'] = parseInt (since / 1000);
         let response = await this.publicGetTradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (typeof symbol === 'undefined')
-            throw new ExchangeError (this.id + ' fetchMyTrades requires a symbol argument');
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = { 'symbol': market['id'] };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit_trades'] = limit;
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['timestamp'] = parseInt (since / 1000);
         let response = await this.privatePostMytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
@@ -668,13 +674,13 @@ module.exports = class bitfinex extends Exchange {
             status = 'closed';
         }
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let exchange = order['symbol'].toUpperCase ();
             if (exchange in this.markets_by_id) {
                 market = this.markets_by_id[exchange];
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let orderType = order['type'];
         let exchange = orderType.indexOf ('exchange ') >= 0;
@@ -705,12 +711,12 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             if (!(symbol in this.markets))
                 throw new ExchangeError (this.id + ' has no symbol ' + symbol);
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
     }
@@ -718,11 +724,11 @@ module.exports = class bitfinex extends Exchange {
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             orders = this.filterBy (orders, 'symbol', symbol);
         orders = this.filterBy (orders, 'status', 'closed');
         return orders;
@@ -749,7 +755,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof limit === 'undefined')
+        if (limit === undefined)
             limit = 100;
         let market = this.market (symbol);
         let v2id = 't' + market['id'];
@@ -759,33 +765,34 @@ module.exports = class bitfinex extends Exchange {
             'sort': 1,
             'limit': limit,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start'] = since;
         let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    getCurrencyName (currency) {
-        if (currency in this.options['currencyNames'])
-            return this.options['currencyNames'][currency];
-        throw new NotSupported (this.id + ' ' + currency + ' not supported for withdrawal');
+    getCurrencyName (code) {
+        if (code in this.options['currencyNames'])
+            return this.options['currencyNames'][code];
+        throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    async createDepositAddress (currency, params = {}) {
-        let response = await this.fetchDepositAddress (currency, this.extend ({
+    async createDepositAddress (code, params = {}) {
+        let response = await this.fetchDepositAddress (code, this.extend ({
             'renew': 1,
         }, params));
         let address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
-            'currency': currency,
-            'address': address,
             'info': response['info'],
+            'currency': code,
+            'address': address,
+            'tag': undefined,
         };
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        let name = this.getCurrencyName (currency);
+    async fetchDepositAddress (code, params = {}) {
+        let name = this.getCurrencyName (code);
         let request = {
             'method': name,
             'wallet_name': 'exchange',
@@ -800,16 +807,110 @@ module.exports = class bitfinex extends Exchange {
         }
         this.checkAddress (address);
         return {
-            'currency': currency,
+            'currency': code,
             'address': address,
             'tag': tag,
             'info': response,
         };
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        if (since !== undefined) {
+            request['since'] = parseInt (since / 1000);
+        }
+        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id":581183,
+        //             "txid": 123456,
+        //             "currency":"BTC",
+        //             "method":"BITCOIN",
+        //             "type":"WITHDRAWAL",
+        //             "amount":".01",
+        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status":"COMPLETED",
+        //             "timestamp":"1443833327.0",
+        //             "timestamp_created": "1443833327.1",
+        //             "fee": 0.1,
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeFloat (transaction, 'timestamp_created');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp * 1000);
+        }
+        let updated = this.safeFloat (transaction, 'timestamp');
+        if (updated !== undefined) {
+            updated = parseInt (updated * 1000);
+        }
+        let code = undefined;
+        if (currency === undefined) {
+            let currencyId = this.safeString (transaction, 'currency');
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'tag': undefined, // refix it properly for the tag from description
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'CANCELED': 'canceled',
+            'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
+            'COMPLETED': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let name = this.getCurrencyName (currency);
+        let name = this.getCurrencyName (code);
         let request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -824,7 +925,7 @@ module.exports = class bitfinex extends Exchange {
         let message = response['message'];
         let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
-            if (typeof errorMessage !== 'undefined') {
+            if (errorMessage !== undefined) {
                 let ExceptionClass = this.exceptions['broad'][errorMessage];
                 throw new ExceptionClass (this.id + ' ' + message);
             }
@@ -898,7 +999,7 @@ module.exports = class bitfinex extends Exchange {
                 }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (typeof broadKey !== 'undefined') {
+                if (broadKey !== undefined) {
                     throw new broad[broadKey] (feedback);
                 }
                 throw new ExchangeError (feedback); // unknown message

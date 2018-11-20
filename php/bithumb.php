@@ -154,7 +154,16 @@ class bithumb extends Exchange {
             $symbol = $market['symbol'];
         $open = $this->safe_float($ticker, 'opening_price');
         $close = $this->safe_float($ticker, 'closing_price');
-        $change = $close - $open;
+        $change = null;
+        $percentage = null;
+        $average = null;
+        if (($close !== null) && ($open !== null)) {
+            $change = $close - $open;
+            if ($open > 0) {
+                $percentage = $change / $open * 100;
+            }
+            $average = $this->sum ($open, $close) / 2;
+        }
         $vwap = $this->safe_float($ticker, 'average_price');
         $baseVolume = $this->safe_float($ticker, 'volume_1day');
         return array (
@@ -173,8 +182,8 @@ class bithumb extends Exchange {
             'last' => $close,
             'previousClose' => null,
             'change' => $change,
-            'percentage' => $change / $open * 100,
-            'average' => $this->sum ($open, $close) / 2,
+            'percentage' => $percentage,
+            'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $baseVolume * $vwap,
             'info' => $ticker,
@@ -292,17 +301,22 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
             'units' => $amount,
             'address' => $address,
-            'currency' => $currency,
+            'currency' => $currency['id'],
         );
         if ($currency === 'XRP' || $currency === 'XMR') {
-            $destination = (is_array ($params) && array_key_exists ('destination', $params));
-            if (!$destination)
-                throw new ExchangeError ($this->id . ' ' . $currency . ' withdraw requires an extra $destination param');
+            $destination = $this->safe_string($params, 'destination');
+            if (($tag === null) && ($destination === null)) {
+                throw new ExchangeError ($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+            } else if ($tag !== null) {
+                $request['destination'] = $tag;
+            }
         }
         $response = $this->privatePostTradeBtcWithdrawal (array_merge ($request, $params));
         return array (

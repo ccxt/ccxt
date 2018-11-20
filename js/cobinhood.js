@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, InsufficientFunds, InvalidNonce, InvalidOrder, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ module.exports = class cobinhood extends Exchange {
                 'createDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
-                'withdraw': false,
+                'withdraw': true,
                 'fetchMyTrades': true,
                 'editOrder': true,
             },
@@ -82,51 +82,86 @@ module.exports = class cobinhood extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'market/fundingbook/precisions/{currency_id}',
+                        'market/fundingbooks/{currency_id}',
                         'market/tickers',
                         'market/currencies',
+                        'market/quote_currencies',
                         'market/trading_pairs',
+                        'market/orderbook/precisions/{trading_pair_id}',
                         'market/orderbooks/{trading_pair_id}',
                         'market/stats',
+                        'market/tickers', // fetchTickers
                         'market/tickers/{trading_pair_id}',
                         'market/trades/{trading_pair_id}',
+                        'market/trades_history/{trading_pair_id}',
+                        'market/trading_pairs',
                         'chart/candles/{trading_pair_id}',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'get': [
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/positions',
+                        'trading/positions/{trading_pair_id}',
+                        'trading/positions/{trading_pair_id}/claimable_size',
                         'trading/trades',
                         'trading/trades/{trade_id}',
                         'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/limits/withdrawal',
                         'wallet/generic_deposits',
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/deposit_addresses/iota',
                         'wallet/withdrawal_addresses',
+                        'wallet/withdrawal_frozen',
                         'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
                         'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ],
+                    'patch': [
+                        'trading/positions/{trading_pair_id}',
+                    ],
                     'post': [
+                        'funding/auto_offerings',
+                        'funding/fundings',
+                        'trading/check_order',
                         'trading/orders',
                         // older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/transfer',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                        'wallet/withdrawals/fee',
                     ],
                     'put': [
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ],
                     'delete': [
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
+                        'trading/positions/{trading_pair_id}',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        'wallet/withdrawal_addresses/{wallet_id}',
                     ],
                 },
             },
@@ -145,6 +180,7 @@ module.exports = class cobinhood extends Exchange {
                 'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+                'invalid_address': InvalidAddress,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
@@ -248,7 +284,7 @@ module.exports = class cobinhood extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'trading_pair_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -259,7 +295,7 @@ module.exports = class cobinhood extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (ticker, 'timestamp');
         let last = this.safeFloat (ticker, 'last_trade_price');
@@ -313,7 +349,7 @@ module.exports = class cobinhood extends Exchange {
         let request = {
             'trading_pair_id': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit; // 100
         let response = await this.publicGetMarketOrderbooksTradingPairId (this.extend (request, params));
         return this.parseOrderBook (response['result']['orderbook'], undefined, 'bids', 'asks', 0, 2);
@@ -386,7 +422,7 @@ module.exports = class cobinhood extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'end_time': endTime,
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['start_time'] = since;
         let response = await this.publicGetChartCandlesTradingPairId (this.extend (request, params));
         let ohlcv = response['result']['candles'];
@@ -449,11 +485,11 @@ module.exports = class cobinhood extends Exchange {
         //     }
         //
         let symbol = undefined;
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString2 (order, 'trading_pair', 'trading_pair_id');
             market = this.safeValue (this.markets_by_id, marketId);
         }
-        if (typeof market !== 'undefined')
+        if (market !== undefined)
             symbol = market['symbol'];
         let timestamp = this.safeInteger (order, 'timestamp');
         let price = this.safeFloat (order, 'price');
@@ -462,13 +498,13 @@ module.exports = class cobinhood extends Exchange {
         let filled = this.safeFloat (order, 'filled');
         let remaining = undefined;
         let cost = undefined;
-        if (typeof filled !== 'undefined' && typeof average !== 'undefined') {
+        if (filled !== undefined && average !== undefined) {
             cost = average * filled;
-        } else if (typeof average !== 'undefined') {
+        } else if (average !== undefined) {
             cost = average * amount;
         }
-        if (typeof amount !== 'undefined') {
-            if (typeof filled !== 'undefined') {
+        if (amount !== undefined) {
+            if (filled !== undefined) {
                 remaining = amount - filled;
             }
         }
@@ -523,7 +559,7 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privatePutTradingOrdersOrderId (this.extend ({
             'order_id': id,
             'price': this.priceToPrecision (symbol, price),
-            'size': this.amountToString (symbol, amount),
+            'size': this.amountToPrecision (symbol, amount),
         }, params));
         return this.parseOrder (this.extend (response, {
             'id': id,
@@ -551,7 +587,7 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let result = await this.privateGetTradingOrders (params);
         let orders = this.parseOrders (result['result']['orders'], undefined, since, limit);
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             return this.filterBySymbol (orders, symbol);
         return orders;
     }
@@ -561,7 +597,7 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetTradingOrdersOrderIdTrades (this.extend ({
             'order_id': id,
         }, params));
-        let market = (typeof symbol === 'undefined') ? undefined : this.market (symbol);
+        let market = (symbol === undefined) ? undefined : this.market (symbol);
         return this.parseTrades (response['result']['trades'], market);
     }
 
@@ -569,7 +605,7 @@ module.exports = class cobinhood extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {};
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             request['trading_pair_id'] = market['id'];
         }
         let response = await this.privateGetTradingTrades (this.extend (request, params));
@@ -579,14 +615,20 @@ module.exports = class cobinhood extends Exchange {
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostWalletDepositAddresses ({
+        // 'ledger_type' is required, see: https://cobinhood.github.io/api-public/#create-new-deposit-address
+        let ledgerType = this.safeString (params, 'ledger_type', 'exchange');
+        let request = {
             'currency': currency['id'],
-        });
+            'ledger_type': ledgerType,
+        };
+        let response = await this.privatePostWalletDepositAddresses (this.extend (request, params));
         let address = this.safeString (response['result']['deposit_address'], 'address');
+        let tag = this.safeString (response['result']['deposit_address'], 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
@@ -597,36 +639,52 @@ module.exports = class cobinhood extends Exchange {
         let response = await this.privateGetWalletDepositAddresses (this.extend ({
             'currency': currency['id'],
         }, params));
+        //
+        //     { success:    true,
+        //        result: { deposit_addresses: [ {       address: "abcdefg",
+        //                                         blockchain_id: "eosio",
+        //                                            created_at:  1536768050235,
+        //                                              currency: "EOS",
+        //                                                  memo: "12345678",
+        //                                                  type: "exchange"      } ] } }
+        //
         let addresses = this.safeValue (response['result'], 'deposit_addresses', []);
         let address = undefined;
+        let tag = undefined;
         if (addresses.length > 0) {
             address = this.safeString (addresses[0], 'address');
+            tag = this.safeString2 (addresses[0], 'memo', 'tag');
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         };
     }
 
-    async withdraw (code, amount, address, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = this.currency (code);
-        let response = await this.privatePostWalletWithdrawals (this.extend ({
+        const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-        }, params));
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        let response = await this.privatePostWalletWithdrawals (this.extend (request, params));
         return {
-            'id': response['result']['withdrawal_id'],
+            'id': undefined,
             'info': response,
         };
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined') {
+        if (code === undefined) {
             throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
         }
         let currency = this.currency (code);
@@ -639,7 +697,7 @@ module.exports = class cobinhood extends Exchange {
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (typeof code === 'undefined') {
+        if (code === undefined) {
             throw new ExchangeError (this.id + ' fetchWithdrawals() requires a currency code arguemnt');
         }
         let currency = this.currency (code);
@@ -665,13 +723,13 @@ module.exports = class cobinhood extends Exchange {
             'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status.toLowerCase ();
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'created_at');
         let code = undefined;
-        if (typeof currency === 'undefined') {
+        if (currency === undefined) {
             let currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
@@ -679,22 +737,34 @@ module.exports = class cobinhood extends Exchange {
                 code = this.commonCurrencyCode (currencyId);
             }
         }
-        if (typeof currency !== 'undefined') {
+        if (currency !== undefined) {
             code = currency['code'];
         }
-        let type = this.safeString (transaction, 'type');
-        if (typeof type !== 'undefined') {
-            let typeParts = type.split ('_');
-            type = typeParts[0];
+        let id = undefined;
+        let withdrawalId = this.safeString (transaction, 'withdrawal_id');
+        let depositId = this.safeString (transaction, 'deposit_id');
+        let type = undefined;
+        let address = undefined;
+        if (withdrawalId !== undefined) {
+            type = 'withdrawal';
+            id = withdrawalId;
+            address = this.safeString (transaction, 'to_address');
+        } else if (depositId !== undefined) {
+            type = 'deposit';
+            id = depositId;
+            address = this.safeString (transaction, 'from_address');
         }
+        const additionalInfo = this.safeValue (transaction, 'additional_info', {});
+        const tag = this.safeString (additionalInfo, 'memo');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'withdrawal_id'),
+            'id': id,
             'txid': this.safeString (transaction, 'txhash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined, // or is it defined?
-            'type': type, // direction of the transaction, ('deposit' | 'withdrawal')
+            'address': address,
+            'tag': tag, // refix it properly
+            'type': type,
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': this.parseTransactionStatus (transaction['status']),

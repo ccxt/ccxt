@@ -4,11 +4,12 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.252'
+__version__ = '1.17.517'
 
 # -----------------------------------------------------------------------------
 
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import DDoSProtection
@@ -95,6 +96,7 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    aiohttp_trust_env = False
     session = None  # Session () by default
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
@@ -123,6 +125,7 @@ class Exchange(object):
     proxy = ''
     origin = '*'  # CORS origin
     proxies = None
+    hostname = None  # in case of inaccessibility of the "main" domain
     apiKey = ''
     secret = ''
     password = ''
@@ -136,6 +139,29 @@ class Exchange(object):
     precision = None
     limits = None
     exceptions = None
+    httpExceptions = {
+        '422': ExchangeError,
+        '418': DDoSProtection,
+        '429': DDoSProtection,
+        '404': ExchangeNotAvailable,
+        '409': ExchangeNotAvailable,
+        '500': ExchangeNotAvailable,
+        '501': ExchangeNotAvailable,
+        '502': ExchangeNotAvailable,
+        '520': ExchangeNotAvailable,
+        '521': ExchangeNotAvailable,
+        '522': ExchangeNotAvailable,
+        '525': ExchangeNotAvailable,
+        '400': ExchangeNotAvailable,
+        '403': ExchangeNotAvailable,
+        '405': ExchangeNotAvailable,
+        '503': ExchangeNotAvailable,
+        '530': ExchangeNotAvailable,
+        '408': RequestTimeout,
+        '504': RequestTimeout,
+        '401': AuthenticationError,
+        '511': AuthenticationError,
+    }
     headers = None
     balance = None
     orderbooks = None
@@ -204,9 +230,14 @@ class Exchange(object):
     rateLimitTokens = 16
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
+    enableLastHttpResponse = True
+    enableLastJsonResponse = True
+    enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None
     last_response_headers = None
+
+    requiresWeb3 = False
     web3 = None
 
     commonCurrencies = {
@@ -269,7 +300,7 @@ class Exchange(object):
         self.session = self.session if self.session else Session()
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
-        if Web3 and not self.web3:
+        if self.requiresWeb3 and Web3 and not self.web3:
             # self.web3 = w3 if w3 else Web3(HTTPProvider())
             self.web3 = Web3(HTTPProvider())
 
@@ -383,6 +414,7 @@ class Exchange(object):
         self.session.cookies.clear()
 
         response = None
+        http_response = None
         try:
             response = self.session.request(
                 method,
@@ -392,11 +424,15 @@ class Exchange(object):
                 timeout=int(self.timeout / 1000),
                 proxies=self.proxies
             )
-            self.last_http_response = response.text
-            self.last_response_headers = response.headers
+            http_response = response.text
+            if self.enableLastHttpResponse:
+                self.last_http_response = http_response
+            headers = response.headers
+            if self.enableLastResponseHeaders:
+                self.last_response_headers = headers
             if self.verbose:
-                print("\nResponse:", method, url, str(response.status_code), str(response.headers), self.last_http_response)
-            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, response.headers, self.last_http_response)
+                print("\nResponse:", method, url, str(response.status_code), str(headers), http_response)
+            self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status_code, headers, http_response)
             response.raise_for_status()
 
         except Timeout as e:
@@ -409,44 +445,38 @@ class Exchange(object):
             self.raise_error(ExchangeError, url, method, e)
 
         except HTTPError as e:
-            self.handle_errors(response.status_code, response.reason, url, method, self.last_response_headers, self.last_http_response)
-            self.handle_rest_errors(e, response.status_code, self.last_http_response, url, method)
-            self.raise_error(ExchangeError, url, method, e, self.last_http_response)
+            self.handle_errors(response.status_code, response.reason, url, method, headers, http_response)
+            self.handle_rest_errors(e, response.status_code, http_response, url, method)
+            self.raise_error(ExchangeError, url, method, e, http_response)
 
         except RequestException as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e)
+            error_string = str(e)
+            if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
+                self.raise_error(NetworkError, url, method, e)
+            else:
+                self.raise_error(ExchangeError, url, method, e)
 
-        self.handle_errors(response.status_code, response.reason, url, method, None, self.last_http_response)
-        return self.handle_rest_response(self.last_http_response, url, method, headers, body)
+        self.handle_errors(response.status_code, response.reason, url, method, None, http_response)
+        return self.handle_rest_response(http_response, url, method, headers, body)
 
     def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
         error = None
-        if http_status_code in [418, 429]:
-            error = DDoSProtection
-        elif http_status_code in [404, 409, 500, 501, 502, 520, 521, 522, 525]:
-            error = ExchangeNotAvailable
-        elif http_status_code in [422]:
-            error = ExchangeError
-        elif http_status_code in [400, 403, 405, 503, 530]:
-            # special case to detect ddos protection
-            error = ExchangeNotAvailable
-            if response:
-                ddos_protection = re.search('(cloudflare|incapsula)', response, flags=re.IGNORECASE)
-                if ddos_protection:
+        string_code = str(http_status_code)
+        if string_code in self.httpExceptions:
+            error = self.httpExceptions[string_code]
+            if error == ExchangeNotAvailable:
+                if re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE):
                     error = DDoSProtection
-        elif http_status_code in [408, 504]:
-            error = RequestTimeout
-        elif http_status_code in [401, 511]:
-            error = AuthenticationError
         if error:
             self.raise_error(error, url, method, exception if exception else http_status_code, response)
 
     def handle_rest_response(self, response, url, method='GET', headers=None, body=None):
         try:
             if self.parseJsonResponse:
-                last_json_response = json.loads(response) if len(response) > 1 else None
-                self.last_json_response = last_json_response
-                return last_json_response
+                json_response = json.loads(response) if len(response) > 1 else None
+                if self.enableLastJsonResponse:
+                    self.last_json_response = json_response
+                return json_response
             else:
                 return response
         except ValueError as e:  # ValueError == JsonDecodeError
@@ -927,20 +957,6 @@ class Exchange(object):
         currencyIds = {v: k for k, v in self.commonCurrencies.items()}
         return self.safe_string(currencyIds, commonCode, commonCode)
 
-    def fromWei(self, amount, unit='ether'):
-        if Web3 is None:
-            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
-        if amount is None:
-            return amount
-        return float(Web3.fromWei(int(amount), unit))
-
-    def toWei(self, amount, unit='ether'):
-        if Web3 is None:
-            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
-        if amount is None:
-            return amount
-        return str(Web3.toWei(int(amount), unit))
-
     def precision_from_string(self, string):
         parts = re.sub(r'0+$', '', string).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
@@ -1087,8 +1103,8 @@ class Exchange(object):
     def fetch_tickers(self, symbols=None, params={}):
         self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
-    def fetch_order_status(self, id, market=None):
-        order = self.fetch_order(id)
+    def fetch_order_status(self, id, symbol=None, params={}):
+        order = self.fetch_order(id, symbol, params)
         return order['status']
 
     def purge_cached_orders(self, before):
@@ -1216,6 +1232,10 @@ class Exchange(object):
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+
+    def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        result = self.convert_trading_view_to_ohlcv(ohlcvs)
+        return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     def convert_trading_view_to_ohlcv(self, ohlcvs):
         result = []
@@ -1450,6 +1470,82 @@ class Exchange(object):
     # -------------------------------------------------------------------------
     # web3 / 0x methods
 
+    def check_required_dependencies(self):
+        if Web3 is None:
+            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+
+    def eth_decimals(self, unit='ether'):
+        units = {
+            'wei': 0,          # 1
+            'kwei': 3,         # 1000
+            'babbage': 3,      # 1000
+            'femtoether': 3,   # 1000
+            'mwei': 6,         # 1000000
+            'lovelace': 6,     # 1000000
+            'picoether': 6,    # 1000000
+            'gwei': 9,         # 1000000000
+            'shannon': 9,      # 1000000000
+            'nanoether': 9,    # 1000000000
+            'nano': 9,         # 1000000000
+            'szabo': 12,       # 1000000000000
+            'microether': 12,  # 1000000000000
+            'micro': 12,       # 1000000000000
+            'finney': 15,      # 1000000000000000
+            'milliether': 15,  # 1000000000000000
+            'milli': 15,       # 1000000000000000
+            'ether': 18,       # 1000000000000000000
+            'kether': 21,      # 1000000000000000000000
+            'grand': 21,       # 1000000000000000000000
+            'mether': 24,      # 1000000000000000000000000
+            'gether': 27,      # 1000000000000000000000000000
+            'tether': 30,      # 1000000000000000000000000000000
+        }
+        return self.safe_value(units, unit)
+
+    def eth_unit(self, decimals=18):
+        units = {
+            0: 'wei',      # 1000000000000000000
+            3: 'kwei',     # 1000000000000000
+            6: 'mwei',     # 1000000000000
+            9: 'gwei',     # 1000000000
+            12: 'szabo',   # 1000000
+            15: 'finney',  # 1000
+            18: 'ether',   # 1
+            21: 'kether',  # 0.001
+            24: 'mether',  # 0.000001
+            27: 'gether',  # 0.000000001
+            30: 'tether',  # 0.000000000001
+        }
+        return self.safe_value(units, decimals)
+
+    def fromWei(self, amount, unit='ether', decimals=18):
+        if Web3 is None:
+            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
+        if amount is None:
+            return amount
+        if decimals != 18:
+            if decimals % 3:
+                amount = int(amount) * (10 ** (18 - decimals))
+            else:
+                unit = self.eth_unit(decimals)
+        return float(Web3.fromWei(int(amount), unit))
+
+    def toWei(self, amount, unit='ether', decimals=18):
+        if Web3 is None:
+            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
+        if amount is None:
+            return amount
+        if decimals != 18:
+            if decimals % 3:
+                # this case has known yet unsolved problems:
+                #     toWei(1.999, 'ether', 17) == '199900000000000011'
+                #     toWei(1.999, 'ether', 19) == '19989999999999999991'
+                # the best solution should not involve additional dependencies
+                amount = Decimal(amount) / Decimal(10 ** (18 - decimals))
+            else:
+                unit = self.eth_unit(decimals)
+        return str(Web3.toWei(amount, unit))
+
     def decryptAccountFromJSON(self, value, password):
         return self.decryptAccount(json.loads(value) if isinstance(value, basestring) else value, password)
 
@@ -1524,9 +1620,9 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
-    def signZeroExOrder(self, order):
+    def signZeroExOrder(self, order, privateKey):
         orderHash = self.getZeroExOrderHash(order)
-        signature = self.signMessage(orderHash[-64:], self.privateKey)
+        signature = self.signMessage(orderHash[-64:], privateKey)
         return self.extend(order, {
             'orderHash': orderHash,
             'ecSignature': signature,  # todo fix v if needed

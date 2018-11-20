@@ -267,7 +267,7 @@ module.exports = class bitforex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.safeInteger (trade, 'time');
@@ -276,12 +276,12 @@ module.exports = class bitforex extends Exchange {
         let amount = this.safeFloat (trade, 'amount');
         let price = this.safeFloat (trade, 'price');
         let cost = undefined;
-        if (typeof price !== 'undefined') {
-            if (typeof amount !== 'undefined') {
+        if (price !== undefined) {
+            if (amount !== undefined) {
                 cost = amount * price;
             }
         }
-        let sideId = this.safeString (trade, 'direction');
+        let sideId = this.safeInteger (trade, 'direction');
         let side = this.parseSide (sideId);
         return {
             'info': trade,
@@ -304,7 +304,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol': this.marketId (symbol),
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let market = this.market (symbol);
@@ -374,7 +374,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'symbol': marketId,
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['size'] = limit;
         }
         let response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
@@ -388,16 +388,15 @@ module.exports = class bitforex extends Exchange {
         return orderbook;
     }
 
-    parseOrderStatus (orderStatusId) {
-        if (orderStatusId === 0 || orderStatusId === 1) {
-            return 'open';
-        } else if (orderStatusId === 2) {
-            return 'closed';
-        } else if (orderStatusId === 3 || orderStatusId === 4) {
-            return 'canceled';
-        } else {
-            return undefined;
-        }
+    parseOrderStatus (status) {
+        let statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '3': 'canceled',
+            '4': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
     parseSide (sideId) {
@@ -412,8 +411,8 @@ module.exports = class bitforex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let id = this.safeString (order, 'orderId');
-        let timestamp = this.safeFloat2 (order, 'createTime');
-        let lastTradeTimestamp = this.safeFloat2 (order, 'lastTime');
+        let timestamp = this.safeFloat (order, 'createTime');
+        let lastTradeTimestamp = this.safeFloat (order, 'lastTime');
         let symbol = market['symbol'];
         let sideId = this.safeInteger (order, 'tradeType');
         let side = this.parseSide (sideId);
@@ -423,8 +422,7 @@ module.exports = class bitforex extends Exchange {
         let amount = this.safeFloat (order, 'orderAmount');
         let filled = this.safeFloat (order, 'dealAmount');
         let remaining = amount - filled;
-        let statusId = this.safeInteger (order, 'orderState');
-        let status = this.parseOrderStatus (statusId);
+        let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         let cost = filled * price;
         let fee = this.safeFloat (order, 'tradeFee');
         let result = {
@@ -509,7 +507,7 @@ module.exports = class bitforex extends Exchange {
         let request = {
             'orderId': id,
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
         let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
@@ -551,7 +549,7 @@ module.exports = class bitforex extends Exchange {
             let response = JSON.parse (body);
             let feedback = this.id + ' ' + body;
             let success = this.safeValue (response, 'success');
-            if (typeof success !== 'undefined') {
+            if (success !== undefined) {
                 if (!success) {
                     let code = this.safeString (response, 'code');
                     if (code in this.exceptions) {

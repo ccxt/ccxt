@@ -15,6 +15,7 @@ import hashlib
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -48,6 +49,7 @@ class indodax (Exchange):
                 },
                 'www': 'https://www.indodax.com',
                 'doc': 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                'referral': 'https://indodax.com/ref/testbitcoincoid/1',
             },
             'api': {
                 'public': {
@@ -72,6 +74,8 @@ class indodax (Exchange):
                 },
             },
             'markets': {
+                # HARDCODING IS DEPRECATED
+                # but they don't have a corresponding endpoint in their API
                 'BTC/IDR': {'id': 'btc_idr', 'symbol': 'BTC/IDR', 'base': 'BTC', 'quote': 'IDR', 'baseId': 'btc', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': 0.0001, 'max': None}}},
                 'ACT/IDR': {'id': 'act_idr', 'symbol': 'ACT/IDR', 'base': 'ACT', 'quote': 'IDR', 'baseId': 'act', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
                 'ADA/IDR': {'id': 'ada_idr', 'symbol': 'ADA/IDR', 'base': 'ADA', 'quote': 'IDR', 'baseId': 'ada', 'quoteId': 'idr', 'precision': {'amount': 8, 'price': 0}, 'limits': {'amount': {'min': None, 'max': None}}},
@@ -170,8 +174,8 @@ class indodax (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker[baseVolume]),
-            'quoteVolume': float(ticker[quoteVolume]),
+            'baseVolume': self.safe_float(ticker, baseVolume),
+            'quoteVolume': self.safe_float(ticker, quoteVolume),
             'info': ticker,
         }
 
@@ -336,7 +340,7 @@ class indodax (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         side = self.safe_value(params, 'side')
         if side is None:
             raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')

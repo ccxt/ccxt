@@ -96,6 +96,10 @@ assert(decimal_to_precision('12.3456', ROUND, 2, DECIMAL_PLACES) == '12.35')
 assert(decimal_to_precision('12.3456', ROUND, 1, DECIMAL_PLACES) == '12.3')
 assert(decimal_to_precision('12.3456', ROUND, 0, DECIMAL_PLACES) == '12')
 
+# a problematic case in PHP
+assert(decimal_to_precision('10000', ROUND, 6, DECIMAL_PLACES) == '10000')
+assert(decimal_to_precision('0.00003186', ROUND, 8, DECIMAL_PLACES) == '0.00003186')
+
 # assert(decimal_to_precision('12.3456', ROUND, -1, DECIMAL_PLACES) == '10')   # not yet supported
 # assert(decimal_to_precision('123.456', ROUND, -1, DECIMAL_PLACES) == '120')  # not yet supported
 # assert(decimal_to_precision('123.456', ROUND, -2, DECIMAL_PLACES) == '100')  # not yet supported
