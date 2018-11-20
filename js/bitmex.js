@@ -596,7 +596,7 @@ module.exports = class bitmex extends Exchange {
                         throw new broad[broadKey] (feedback);
                     }
                     if (code === 400) {
-                        throw new BadRequest (this.id + ' ' + body);
+                        throw new BadRequest (feedback);
                     }
                     throw new ExchangeError (feedback); // unknown message
                 }
