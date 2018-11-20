@@ -5,8 +5,6 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, RequestTimeout, InvalidOrder, AuthenticationError, InsufficientFunds, NetworkError, ExchangeNotAvailable, DDosProtection, NotSupported } = require ('./base/errors');
 
-
-
 //  ---------------------------------------------------------------------------
 
 module.exports = class dragonex extends Exchange {
@@ -90,12 +88,12 @@ module.exports = class dragonex extends Exchange {
                 '9011': AuthenticationError,
                 '9016': DDosProtection,
             },
-        })
+        });
     }
 
     async fetchMarkets () {
         if (typeof this.accessToken === 'undefined') {
-            await this.authenticate ()
+            await this.authenticate ();
         }
         let response = await this.privateGetSymbolAll ();
         let data = response['data'];
@@ -103,20 +101,20 @@ module.exports = class dragonex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             let info = data[i];
             let id = info['symbol'];
-            let [ base, quote ] = id.split('_');
-            let symbol = base.toUpperCase() + '/' + quote.toUpperCase();
+            let [ base, quote ] = id.split ('_');
+            let symbol = base.toUpperCase () + '/' + quote.toUpperCase ();
             let int_symbol_id = info['symbol_id'];  // store it as a string
-            result.push({
+            result.push ({
                 'id': int_symbol_id,
                 'symbol': symbol,
                 'info': info,
-                })
+            });
         }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.privateGetCoinAll();
+        let response = await this.privateGetCoinAll ();
         let data = response['data'];
         let result = {};
         for (let i = 0; i < data.length; i++) {
@@ -135,7 +133,7 @@ module.exports = class dragonex extends Exchange {
 
     async fetchBalance (params = {}) {
         // They provide no data if you have no balance
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let response = await this.privatePostUserOwn ();
         let result = { 'info': response };
         let data = response['data'];
@@ -173,16 +171,16 @@ module.exports = class dragonex extends Exchange {
         for (let i = 0; i < book.length; i++) {
             let price = this.safeFloat (book[i], 'price');
             let volume = this.safeFloat (book[i], 'volume');
-            new_book.push ([ price, volume ])
+            new_book.push ([ price, volume ]);
         }
         return new_book;
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let id = market['id'];
-        let response = await this.privateGetMarketReal ( this.extend ({ 'symbol_id': id }, params) );
+        let response = await this.privateGetMarketReal (this.extend ({ 'symbol_id': id }, params));
         let data = response['data'][0];
         return this.parseTicker (data, market);
     }
@@ -216,9 +214,9 @@ module.exports = class dragonex extends Exchange {
 
     throwExceptionOnError (body, response) {
         let code = this.safeString (response, 'code');
-        if ( code !== '1') {
-            if ( code in this.exceptions ) {
-                throw new this.exceptions [code] (body);
+        if (code !== '1') {
+            if (code in this.exceptions) {
+                throw new this.exceptions[code] (body);
             } else {
                 throw new ExchangeError (body);
             }
@@ -227,7 +225,6 @@ module.exports = class dragonex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = 0, limit = 100, params = {}) {
         await this.loadMarkets ();
-        console.log('huh');
         let market = this.market (symbol);
         let symbol_id = market['id'];
         let symbolic_timeframe = this.timeframes[timeframe];
@@ -247,46 +244,46 @@ module.exports = class dragonex extends Exchange {
             ohlcv[0] = parseInt (ohlcv[0]);
             ohlcvs.push (ohlcv);
         }
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit)
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if ( type !== 'limit' ) {
+        if (type !== 'limit') {
             throw new NotSupported ('Only limit orders are currently supported');
         }
         let market = this.market (symbol);
         let request = {
             'symbol_id': market['id'],
-            'price': price.toString(),
-            'volume': amount.toString(),  // change to xToPrecision
+            'price': price.toString (),
+            'volume': amount.toString (),  // change to xToPrecision
         };
         let method = 'privatePostOrder' + this.capitalize (side);
-        return await this[method] ( this.extend (request, params) );
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelOrder (symbol, order_id, params = {}) {
-        await this.loadMarkets();
-        let symbol_id = this.market (symboll)['id'];
-        let request =  this.extend ( {'symbol_id': symbol_id, 'order_id': order_id }, params);
+        await this.loadMarkets ();
+        let symbol_id = this.market (symbol)['id'];
+        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': order_id }, params);
         return this.privatePostOrderCancel (request);
     }
 
     async fetchOrder (symbol, order_id, params = {}) {
-        await this.loadMarkets();
-        let market =  this.market (symbol);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let symbol_id = market['id'];
-        let request =  this.extend ( {'symbol_id': symbol_id, 'order_id': order_id }, params);
+        let request = this.extend ({ 'symbol_id': symbol_id, 'order_id': order_id }, params);
         let response = await this.privatePostOrderDetail (request);
         return this.parseOrder (response['data'], market);
     }
 
     async fetchOrders (symbol, since = undefined, limit = 100, params = {}) {
         if (typeof symbol === 'undefined') {
-            throw new ExchangeError ('symbol is required for fetchOrders')
+            throw new ExchangeError ('symbol is required for fetchOrders');
         }
-        await this.loadMarkets();
-        let market =  this.market (symbol);
+        await this.loadMarkets ();
+        let market = this.market (symbol);
         let symbol_id = market['id'];
         let request = {
             'symbol_id': symbol_id,
@@ -298,13 +295,12 @@ module.exports = class dragonex extends Exchange {
 
     async fetchOpenOrders (symbol, since = undefined, limit = 100, params = {}) {
         let response = this.fetchOrders (symbol, since, limit, params);
-        return this.filterByValueSinceLimit (response, 'status', 'open', since, limit)
-
+        return this.filterByValueSinceLimit (response, 'status', 'open', since, limit);
     }
 
     async fetchClosedOrders (symbol, since = undefined, limit = 100, params = {}) {
         let response = this.fetchOrders (symbol, since, limit, params);
-        return this.filterByValueSinceLimit (response, 'status', 'closed', since, limit)
+        return this.filterByValueSinceLimit (response, 'status', 'closed', since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -314,7 +310,7 @@ module.exports = class dragonex extends Exchange {
                 let symbol_id = this.safeInteger (order, 'symbol_id');
                 symbol = this.marketsById[symbol_id]['symbol'];
             } else {
-                throw new ExchangeError ('parseOrder needs a market argument if this.markets is not loaded')
+                throw new ExchangeError ('parseOrder needs a market argument if this.markets is not loaded');
             }
         } else {
             symbol = market['symbol'];
@@ -323,7 +319,7 @@ module.exports = class dragonex extends Exchange {
         let amount = this.safeFloat (order, 'volume');
         let filled = this.safeFloat (order, 'trade_volume');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let timestamp =  this.safeString (trade, 'timestamp');
+        let timestamp = this.safeString (order, 'timestamp');
         return {
             'info': order,
             'symbol': symbol,
@@ -336,7 +332,7 @@ module.exports = class dragonex extends Exchange {
             'remaining': amount - filled,
             'side': side,
             'status': status,
-        }
+        };
     }
 
     parseOrderStatus (status) {
@@ -345,36 +341,36 @@ module.exports = class dragonex extends Exchange {
             '1': 'open',
             '2': 'closed',
             '3': 'cancelled',
-            '4': 'failed'
+            '4': 'failed',
         };
         return this.safeString (statuses, status, 'open');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let market = this.market (symbol);
-        let symbol_id =  market['id'];
-        let response = await this.privatePostDealHistory (this.extend ({ 'symbol_id': symbold_id}, params));
-        return this.parseTrades(response['data']['trades'], market, since, limit);
+        let symbol_id = market['id'];
+        let response = await this.privatePostDealHistory (this.extend ({ 'symbol_id': symbol_id }, params));
+        return this.parseTrades (response['data']['trades'], market, since, limit);
     }
 
-    parseTrade (trade, market = undefined){
+    parseTrade (trade, market = undefined) {
         let symbol = undefined;
         if (typeof market === 'undefined') {
             if (this.markets !== 'undefined') {
                 let symbol_id = this.safeInteger (trade, 'symbol_id');
                 symbol = this.marketsById[symbol_id]['symbol'];
             } else {
-                throw new ExchangeError ('parseTrade needs a market argument if this.markets is not loaded')
+                throw new ExchangeError ('parseTrade needs a market argument if this.markets is not loaded');
             }
         } else {
             symbol = market['symbol'];
         }
         let fee = this.safeString (trade, 'charge');
-        let fee_struct = {'fee': fee};
+        let fee_struct = { 'fee': fee };
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'volume');
-        let timestamp =  this.safeString (trade, 'timestamp');
+        let timestamp = this.safeString (trade, 'timestamp');
         return {
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
@@ -384,7 +380,7 @@ module.exports = class dragonex extends Exchange {
             'cost': price * amount + fee,
             'fee': fee_struct,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
         };
     }
 
@@ -396,7 +392,7 @@ module.exports = class dragonex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         this.checkRequiredCredentials ();
-        if ( method === 'POST') {
+        if (method === 'POST') {
             path += '/';  // don't ask why
             body = this.extend (body, params);
             body = JSON.stringify (body);
@@ -424,6 +420,6 @@ module.exports = class dragonex extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
