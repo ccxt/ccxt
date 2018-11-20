@@ -316,16 +316,14 @@ module.exports = class therock extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'active': 'open',
             'executed': 'closed',
             'deleted': 'canceled',
-            //don't know what this status means
-            //'conditional': '?',
+            // don't know what this status means
+            // 'conditional': '?',
         };
-        if (status in statuses)
-            return statuses[status];
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
