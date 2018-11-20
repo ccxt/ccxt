@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.515'
+const version = '1.17.516'
 
 Exchange.ccxtVersion = version
 
@@ -15537,7 +15537,7 @@ module.exports = class bittrex extends Exchange {
         const address = this.safeString2 (transaction, 'CryptoAddress', 'Address');
         const txid = this.safeString (transaction, 'TxId');
         const updated = this.parse8601 (this.safeValue (transaction, 'LastUpdated'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened'), updated);
+        const timestamp = this.parse8601 (this.safeString (transaction, 'Opened', updated));
         const type = (timestamp !== undefined) ? 'withdrawal' : 'deposit';
         let code = undefined;
         let currencyId = this.safeString (transaction, 'Currency');
