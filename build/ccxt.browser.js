@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.516'
+const version = '1.17.517'
 
 Exchange.ccxtVersion = version
 
@@ -57875,6 +57875,17 @@ module.exports = class therock extends Exchange {
             'id': id,
             'fund_id': this.marketId (symbol),
         }, params));
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            // don't know what this status means
+            // 'conditional': '?',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

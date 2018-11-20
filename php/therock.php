@@ -316,6 +316,17 @@ class therock extends Exchange {
         ), $params));
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'active' => 'open',
+            'executed' => 'closed',
+            'deleted' => 'canceled',
+            // don't know what this $status means
+            // 'conditional' => '?',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
