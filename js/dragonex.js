@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, RequestTimeout, InvalidOrder, AuthenticationError, InsufficientFunds, NetworkError, ExchangeNotAvailable, DDosProtection, NotSupported } = require ('./base/errors');
+const { ExchangeError, RequestTimeout, InvalidOrder, AuthenticationError, InsufficientFunds, NetworkError, ExchangeNotAvailable, DDoSProtection, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -84,9 +84,9 @@ module.exports = class dragonex extends Exchange {
                 '5016': InvalidOrder,
                 '9006': AuthenticationError,
                 '9007': AuthenticationError,
-                '9008': DDosProtection,
+                '9008': DDoSProtection,
                 '9011': AuthenticationError,
-                '9016': DDosProtection,
+                '9016': DDoSProtection,
             },
         });
     }
