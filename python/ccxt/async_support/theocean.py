@@ -305,7 +305,18 @@ class theocean (Exchange):
             raise ArgumentsRequired(self.id + ' parseBidAsk requires a market argument')
         price = float(bidask[priceKey])
         amountDecimals = self.safe_integer(self.options['decimals'], market['base'], 18)
-        amount = self.fromWei(bidask[amountKey], 'ether', amountDecimals)
+        #
+        # the following does not work with self bidask: {"orderHash":"0x8b5d8d34eded1cbf8519733401ae3ced8069089fd16d5431cb3d4b016d7788f2","price":"133.74013659","availableAmount":"4652691526891295598045.34542621578779823835103356911924523765168638519704923461215973053000214547556058831637954647252647510035865072314678676592576536328447541178082827906517347971793654011427890554542683570544867337525450220078254745116898401756810404232673589363421879924390066378804261951784","creationTimestamp":"1542743835","expirationTimestampInSec":"1545339435"}
+        # therefore we apply a dirty string-based patch
+        #
+        # amount = self.fromWei(bidask[amountKey], 'ether', amountDecimals)
+        #
+        amountString = self.safe_string(bidask, amountKey)
+        amountParts = amountString.split('.')
+        numParts = len(amountParts)
+        if numParts == 2:
+            amountString = amountParts[0]
+        amount = self.fromWei(amountString, 'ether', amountDecimals)
         # return [price, amount, bidask]
         return [price, amount]
 
