@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, DDoSProtection, OrderNotFound, AuthenticationError, PermissionDenied } = require ('./base/errors');
+const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -134,6 +134,7 @@ module.exports = class bitmex extends Exchange {
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
+                    'Duplicate clOrdID': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -593,6 +594,9 @@ module.exports = class bitmex extends Exchange {
                     const broadKey = this.findBroadlyMatchedKey (broad, message);
                     if (broadKey !== undefined) {
                         throw new broad[broadKey] (feedback);
+                    }
+                    if (code === 400) {
+                        throw new BadRequest (feedback);
                     }
                     throw new ExchangeError (feedback); // unknown message
                 }
