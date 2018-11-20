@@ -8,6 +8,8 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
@@ -141,6 +143,7 @@ class bitmex (Exchange):
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
                     'Access Denied': PermissionDenied,
+                    'Duplicate clOrdID': InvalidOrder,
                 },
                 'broad': {
                     'overloaded': ExchangeNotAvailable,
@@ -565,6 +568,8 @@ class bitmex (Exchange):
                     broadKey = self.findBroadlyMatchedKey(broad, message)
                     if broadKey is not None:
                         raise broad[broadKey](feedback)
+                    if code == 400:
+                        raise BadRequest(feedback)
                     raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
