@@ -65,6 +65,7 @@ const commonRegexes = [
     [ /\.parseTradesData\s/g, '.parse_trades_data'],
     [ /\.parseTrades\s/g, '.parse_trades'],
     [ /\.parseTrade\s/g, '.parse_trade'],
+    [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
     [ /\.parseOrderBook\s/g, '.parse_order_book'],
     [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
     [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
@@ -122,6 +123,7 @@ const commonRegexes = [
     [ /\.throwExceptionOnError\s/g, '.throw_exception_on_error'],
     [ /\.handleErrors\s/g, '.handle_errors'],
     [ /\.checkRequiredCredentials\s/g, '.check_required_credentials'],
+    [ /\.checkRequiredDependencies\s/g, '.check_required_dependencies'],
     [ /\.checkAddress\s/g, '.check_address'],
     [ /\.convertTradingViewToOHLCV\s/g, '.convert_trading_view_to_ohlcv'],
     [ /\.convertOHLCVToTradingView\s/g, '.convert_ohlcv_to_trading_view'],
@@ -396,7 +398,7 @@ function createPythonClass (className, baseClass, body, methods, async = false) 
     const errorImports = []
 
     for (let error in errors) {
-        const regex = new RegExp ("[^\\']" + error + "[^\\']")
+        const regex = new RegExp ("[^\\'\"]" + error + "[^\\'\"]")
         if (bodyAsString.match (regex))
             errorImports.push ('from ccxt.base.errors import ' + error)
     }

@@ -8,6 +8,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import InvalidNonce
 
@@ -33,7 +34,7 @@ class cobinhood (Exchange):
                 'createDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
-                'withdraw': False,
+                'withdraw': True,
                 'fetchMyTrades': True,
                 'editOrder': True,
             },
@@ -88,51 +89,86 @@ class cobinhood (Exchange):
                 },
                 'public': {
                     'get': [
+                        'market/fundingbook/precisions/{currency_id}',
+                        'market/fundingbooks/{currency_id}',
                         'market/tickers',
                         'market/currencies',
+                        'market/quote_currencies',
                         'market/trading_pairs',
+                        'market/orderbook/precisions/{trading_pair_id}',
                         'market/orderbooks/{trading_pair_id}',
                         'market/stats',
+                        'market/tickers',  # fetchTickers
                         'market/tickers/{trading_pair_id}',
                         'market/trades/{trading_pair_id}',
+                        'market/trades_history/{trading_pair_id}',
+                        'market/trading_pairs',
                         'chart/candles/{trading_pair_id}',
+                        'system/time',
                     ],
                 },
                 'private': {
                     'get': [
+                        'funding/auto_offerings',
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/funding_history',
+                        'funding/fundings',
+                        'funding/loans',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
                         'trading/orders/{order_id}/trades',
                         'trading/orders',
                         'trading/order_history',
+                        'trading/positions',
+                        'trading/positions/{trading_pair_id}',
+                        'trading/positions/{trading_pair_id}/claimable_size',
                         'trading/trades',
                         'trading/trades/{trade_id}',
                         'trading/volume',
                         'wallet/balances',
                         'wallet/ledger',
+                        'wallet/limits/withdrawal',
                         'wallet/generic_deposits',
                         'wallet/generic_deposits/{generic_deposit_id}',
                         'wallet/generic_withdrawals',
                         'wallet/generic_withdrawals/{generic_withdrawal_id}',
                         # older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/deposit_addresses/iota',
                         'wallet/withdrawal_addresses',
+                        'wallet/withdrawal_frozen',
                         'wallet/withdrawals/{withdrawal_id}',
                         'wallet/withdrawals',
                         'wallet/deposits/{deposit_id}',
                         'wallet/deposits',
                     ],
+                    'patch': [
+                        'trading/positions/{trading_pair_id}',
+                    ],
                     'post': [
+                        'funding/auto_offerings',
+                        'funding/fundings',
+                        'trading/check_order',
                         'trading/orders',
                         # older endpoints
                         'wallet/deposit_addresses',
+                        'wallet/transfer',
                         'wallet/withdrawal_addresses',
                         'wallet/withdrawals',
+                        'wallet/withdrawals/fee',
                     ],
                     'put': [
+                        'funding/fundings/{funding_id}',
                         'trading/orders/{order_id}',
                     ],
                     'delete': [
+                        'funding/auto_offerings/{currency_id}',
+                        'funding/fundings/{funding_id}',
+                        'funding/loans/{loan_id}',
                         'trading/orders/{order_id}',
+                        'trading/positions/{trading_pair_id}',
+                        'wallet/generic_withdrawals/{generic_withdrawal_id}',
+                        'wallet/withdrawal_addresses/{wallet_id}',
                     ],
                 },
             },
@@ -151,6 +187,7 @@ class cobinhood (Exchange):
                 'invalid_order_size': InvalidOrder,
                 'invalid_nonce': InvalidNonce,
                 'unauthorized_scope': PermissionDenied,
+                'invalid_address': InvalidAddress,
             },
             'commonCurrencies': {
                 'SMT': 'SocialMedia.Market',
@@ -503,7 +540,7 @@ class cobinhood (Exchange):
         response = await self.privatePutTradingOrdersOrderId(self.extend({
             'order_id': id,
             'price': self.price_to_precision(symbol, price),
-            'size': self.amountToString(symbol, amount),
+            'size': self.amount_to_precision(symbol, amount),
         }, params))
         return self.parse_order(self.extend(response, {
             'id': id,
@@ -552,14 +589,20 @@ class cobinhood (Exchange):
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostWalletDepositAddresses({
+        # 'ledger_type' is required, see: https://cobinhood.github.io/api-public/#create-new-deposit-address
+        ledgerType = self.safe_string(params, 'ledger_type', 'exchange')
+        request = {
             'currency': currency['id'],
-        })
+            'ledger_type': ledgerType,
+        }
+        response = await self.privatePostWalletDepositAddresses(self.extend(request, params))
         address = self.safe_string(response['result']['deposit_address'], 'address')
+        tag = self.safe_string(response['result']['deposit_address'], 'memo')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 
@@ -569,27 +612,42 @@ class cobinhood (Exchange):
         response = await self.privateGetWalletDepositAddresses(self.extend({
             'currency': currency['id'],
         }, params))
+        #
+        #     {success:    True,
+        #        result: {deposit_addresses: [{      address: "abcdefg",
+        #                                         blockchain_id: "eosio",
+        #                                            created_at:  1536768050235,
+        #                                              currency: "EOS",
+        #                                                  memo: "12345678",
+        #                                                  type: "exchange"      }]} }
+        #
         addresses = self.safe_value(response['result'], 'deposit_addresses', [])
         address = None
+        tag = None
         if len(addresses) > 0:
             address = self.safe_string(addresses[0], 'address')
+            tag = self.safe_string_2(addresses[0], 'memo', 'tag')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
+            'tag': tag,
             'info': response,
         }
 
-    async def withdraw(self, code, amount, address, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostWalletWithdrawals(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        if tag is not None:
+            request['memo'] = tag
+        response = await self.privatePostWalletWithdrawals(self.extend(request, params))
         return {
-            'id': response['result']['withdrawal_id'],
+            'id': None,
             'info': response,
         }
 
@@ -630,7 +688,7 @@ class cobinhood (Exchange):
             'tx_rejected': 'failed',
             'tx_confirmed': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status.lower()
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
@@ -643,18 +701,30 @@ class cobinhood (Exchange):
                 code = self.common_currency_code(currencyId)
         if currency is not None:
             code = currency['code']
-        type = self.safe_string(transaction, 'type')
-        if type is not None:
-            typeParts = type.split('_')
-            type = typeParts[0]
+        id = None
+        withdrawalId = self.safe_string(transaction, 'withdrawal_id')
+        depositId = self.safe_string(transaction, 'deposit_id')
+        type = None
+        address = None
+        if withdrawalId is not None:
+            type = 'withdrawal'
+            id = withdrawalId
+            address = self.safe_string(transaction, 'to_address')
+        elif depositId is not None:
+            type = 'deposit'
+            id = depositId
+            address = self.safe_string(transaction, 'from_address')
+        additionalInfo = self.safe_value(transaction, 'additional_info', {})
+        tag = self.safe_string(additionalInfo, 'memo')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'withdrawal_id'),
+            'id': id,
             'txid': self.safe_string(transaction, 'txhash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': None,  # or is it defined?
-            'type': type,  # direction of the transaction,('deposit' | 'withdrawal')
+            'address': address,
+            'tag': tag,  # refix it properly
+            'type': type,
             'amount': self.safe_float(transaction, 'amount'),
             'currency': code,
             'status': self.parse_transaction_status(transaction['status']),

@@ -36,6 +36,7 @@ class cex extends Exchange {
                     'https://cex.io/fee-schedule',
                     'https://cex.io/limits-commissions',
                 ),
+                'referral' => 'https://cex.io/r/0/up105393824/0/',
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -137,8 +138,8 @@ class cex extends Exchange {
                 'base' => $base,
                 'quote' => $quote,
                 'precision' => array (
-                    'price' => $this->precision_from_string($market['minPrice']),
-                    'amount' => -log10 ($market['minLotSize']),
+                    'price' => $this->precision_from_string($this->safe_string($market, 'minPrice')),
+                    'amount' => $this->precision_from_string($this->safe_string($market, 'minLotSize')),
                 ),
                 'limits' => array (
                     'amount' => array (
@@ -470,7 +471,7 @@ class cex extends Exchange {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new NotSupported ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array ( 'pair' => $market['id'] );

@@ -157,7 +157,14 @@ class bithumb (Exchange):
             symbol = market['symbol']
         open = self.safe_float(ticker, 'opening_price')
         close = self.safe_float(ticker, 'closing_price')
-        change = close - open
+        change = None
+        percentage = None
+        average = None
+        if (close is not None) and(open is not None):
+            change = close - open
+            if open > 0:
+                percentage = change / open * 100
+            average = self.sum(open, close) / 2
         vwap = self.safe_float(ticker, 'average_price')
         baseVolume = self.safe_float(ticker, 'volume_1day')
         return {
@@ -176,8 +183,8 @@ class bithumb (Exchange):
             'last': close,
             'previousClose': None,
             'change': change,
-            'percentage': change / open * 100,
-            'average': self.sum(open, close) / 2,
+            'percentage': percentage,
+            'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': baseVolume * vwap,
             'info': ticker,
@@ -284,17 +291,21 @@ class bithumb (Exchange):
             'currency': params['currency'],
         })
 
-    async def withdraw(self, currency, amount, address, tag=None, params={}):
+    async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
         request = {
             'units': amount,
             'address': address,
-            'currency': currency,
+            'currency': currency['id'],
         }
         if currency == 'XRP' or currency == 'XMR':
-            destination = ('destination' in list(params.keys()))
-            if not destination:
-                raise ExchangeError(self.id + ' ' + currency + ' withdraw requires an extra destination param')
+            destination = self.safe_string(params, 'destination')
+            if (tag is None) and(destination is None):
+                raise ExchangeError(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
+            elif tag is not None:
+                request['destination'] = tag
         response = await self.privatePostTradeBtcWithdrawal(self.extend(request, params))
         return {
             'info': response,

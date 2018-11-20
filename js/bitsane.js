@@ -141,7 +141,7 @@ module.exports = class bitsane extends Exchange {
             let limits = this.safeValue (market, 'limits');
             let minLimit = undefined;
             let maxLimit = undefined;
-            if (typeof limits !== 'undefined') {
+            if (limits !== undefined) {
                 minLimit = this.safeFloat (limits, 'minimum');
                 maxLimit = this.safeFloat (limits, 'maximum');
             }
@@ -224,7 +224,7 @@ module.exports = class bitsane extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             let id = marketIds[i];
             let market = this.safeValue (this.marketsById, id);
-            if (typeof market === 'undefined') {
+            if (market === undefined) {
                 continue;
             }
             let symbol = market['symbol'];
@@ -270,9 +270,9 @@ module.exports = class bitsane extends Exchange {
         let request = {
             'pair': market['id'],
         };
-        if (typeof since !== 'undefined')
+        if (since !== undefined)
             request['since'] = parseInt (since / 1000);
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined)
             request['limit'] = limit;
         let response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
@@ -392,6 +392,7 @@ module.exports = class bitsane extends Exchange {
         return {
             'currency': code,
             'address': address,
+            'tag': undefined,
             'info': response,
         };
     }
@@ -443,7 +444,7 @@ module.exports = class bitsane extends Exchange {
         if ((body[0] === '{') || (body[0] === '[')) {
             let response = JSON.parse (body);
             let statusCode = this.safeString (response, 'statusCode');
-            if (typeof statusCode !== 'undefined') {
+            if (statusCode !== undefined) {
                 if (statusCode !== '0') {
                     const feedback = this.id + ' ' + this.json (response);
                     const exceptions = this.exceptions;

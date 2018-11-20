@@ -235,15 +235,30 @@ class btcalpha extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currency = $this->common_currency_code($balance['currency']);
-            $account = array (
-                'free' => floatval ($balance['balance']),
-                'used' => floatval ($balance['reserve']),
-                'total' => 0.0,
+            $used = $this->safe_float($balance, 'reserve');
+            $total = $this->safe_float($balance, 'balance');
+            $free = null;
+            if ($used !== null) {
+                if ($total !== null) {
+                    $free = $total - $used;
+                }
+            }
+            $result[$currency] = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'canceled',
+            '3' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -252,29 +267,28 @@ class btcalpha extends Exchange {
             $market = $this->safe_value($this->marketsById, $order['pair']);
         if ($market)
             $symbol = $market['symbol'];
-        $timestamp = intval ($order['date'] * 1000);
+        $timestamp = $this->safe_integer($order, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $price = floatval ($order['price']);
         $amount = $this->safe_float($order, 'amount');
-        $status = $this->safe_string($order, 'status');
-        $statuses = array (
-            '1' => 'open',
-            '2' => 'canceled',
-            '3' => 'closed',
-        );
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string($order, 'oid');
         if (!$id)
             $id = $this->safe_string($order, 'id');
         $trades = $this->safe_value($order, 'trades');
         if ($trades)
             $trades = $this->parse_trades($trades, $market);
+        $side = $this->safe_string_2($order, 'my_side', 'type');
         return array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
-            'status' => $this->safe_string($statuses, $status),
+            'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $order['type'],
+            'side' => $side,
             'price' => $price,
             'cost' => null,
             'amount' => $amount,

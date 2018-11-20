@@ -55,19 +55,22 @@ class anxpro extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'multiplier' => 100000 ),
-                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD', 'multiplier' => 100000 ),
-                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'multiplier' => 100000 ),
-                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'multiplier' => 100000 ),
-                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'multiplier' => 100000 ),
-                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD', 'multiplier' => 100000 ),
-                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'multiplier' => 100000 ),
-                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'multiplier' => 100000 ),
-                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD', 'multiplier' => 100000 ),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'multiplier' => 100000 ),
-                'STR/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'STR/BTC', 'base' => 'STR', 'quote' => 'BTC', 'multiplier' => 100000000 ),
-                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'multiplier' => 100000000 ),
-                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'multiplier' => 100000000 ),
+                'BTC/USD' => array ( 'id' => 'BTCUSD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/HKD' => array ( 'id' => 'BTCHKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/CAD' => array ( 'id' => 'BTCCAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/AUD' => array ( 'id' => 'BTCAUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/SGD' => array ( 'id' => 'BTCSGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/JPY' => array ( 'id' => 'BTCJPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/GBP' => array ( 'id' => 'BTCGBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'BTC/NZD' => array ( 'id' => 'BTCNZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'multiplier' => 100000, 'limits' => array ( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                // delisting announced
+                'XLM/BTC' => array ( 'id' => 'STRBTC', 'symbol' => 'XLM/BTC', 'base' => 'XLM', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'GNT/BTC' => array ( 'id' => 'GNTBTC', 'symbol' => 'GNT/BTC', 'base' => 'GNT', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'OAX/BTC' => array ( 'id' => 'OAXBTC', 'symbol' => 'OAX/BTC', 'base' => 'OAX', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'XRP/BTC' => array ( 'id' => 'XRPBTC', 'symbol' => 'XRP/BTC', 'base' => 'XRP', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 100000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
+                'DOGE/BTC' => array ( 'id' => 'DOGEBTC', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'multiplier' => 100000000, 'limits' => array ( 'amount' => array ( 'min' => 10000, 'max' => 10000000000 ), 'price' => array ( 'min' => null, 'max' => null ), 'cost' => array ( 'min' => null, 'max' => null ))),
             ),
             'fees' => array (
                 'trading' => array (
@@ -167,30 +170,32 @@ class anxpro extends Exchange {
         return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
     }
 
-    public function get_amount_multiplier ($currency) {
-        if ($currency === 'BTC') {
-            return 100000000;
-        } else if ($currency === 'LTC') {
-            return 100000000;
-        } else if ($currency === 'STR') {
-            return 100000000;
-        } else if ($currency === 'XRP') {
-            return 100000000;
-        } else if ($currency === 'DOGE') {
-            return 100000000;
-        }
-        return 100;
+    public function get_amount_multiplier ($code) {
+        $multipliers = array (
+            'BTC' => 100000000,
+            'LTC' => 100000000,
+            'STR' => 100000000,
+            'XRP' => 100000000,
+            'DOGE' => 100000000,
+        );
+        $defaultValue = 100;
+        return $this->safe_integer($multipliers, $code, $defaultValue);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        $multiplier = $this->get_amount_multiplier ($currency);
-        $response = $this->privatePostMoneyCurrencySendSimple (array_merge (array (
+        $currency = $this->currency ($code);
+        $multiplier = $this->get_amount_multiplier ($code);
+        $request = array (
             'currency' => $currency,
             'amount_int' => intval ($amount * $multiplier),
             'address' => $address,
-        ), $params));
+        );
+        if ($tag !== null) {
+            $request['destinationTag'] = $tag;
+        }
+        $response = $this->privatePostMoneyCurrencySendSimple (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['data']['transactionId'],

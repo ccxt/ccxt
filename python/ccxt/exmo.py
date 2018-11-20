@@ -46,6 +46,7 @@ class exmo (Exchange):
                 'fetchTradingFees': True,
                 'fetchFundingFees': True,
                 'fetchCurrencies': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766491-1b0ea956-5eda-11e7-9225-40d67b481b8d.jpg',
@@ -249,8 +250,14 @@ class exmo (Exchange):
         for i in range(0, len(items)):
             item = items[i]
             code = self.common_currency_code(self.safe_string(item, 'prov'))
-            withdraw[code] = self.parse_fixed_float_value(self.safe_string(item, 'wd'))
-            deposit[code] = self.parse_fixed_float_value(self.safe_string(item, 'dep'))
+            withdrawalFee = self.safe_string(item, 'wd')
+            depositFee = self.safe_string(item, 'dep')
+            if withdrawalFee is not None:
+                if len(withdrawalFee) > 0:
+                    withdraw[code] = self.parse_fixed_float_value(withdrawalFee)
+            if depositFee is not None:
+                if len(depositFee) > 0:
+                    deposit[code] = self.parse_fixed_float_value(depositFee)
         result = {
             'info': response,
             'withdraw': withdraw,
@@ -484,7 +491,7 @@ class exmo (Exchange):
             elif (side == 'sell') and(cost is not None):
                 fee = {
                     'currency': market['quote'],
-                    'cost': amount * market['taker'],
+                    'cost': cost * market['taker'],
                     'rate': market['taker'],
                 }
         return {
@@ -780,11 +787,12 @@ class exmo (Exchange):
             'cost': float(self.fee_to_precision(symbol, cost)),
         }
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
         self.load_markets()
+        currency = self.currency(code)
         request = {
             'amount': amount,
-            'currency': currency,
+            'currency': currency['id'],
             'address': address,
         }
         if tag is not None:
@@ -853,17 +861,19 @@ class exmo (Exchange):
                     'rate': None,
                 }
         return {
+            'info': transaction,
             'id': None,
             'currency': code,
             'amount': amount,
             'address': address,
+            'tag': None,  # refix it properly
             'status': status,
             'type': type,
             'updated': None,
             'txid': txid,
             'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fee': fee,
-            'info': transaction,
         }
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):

@@ -17,6 +17,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -229,7 +230,8 @@ class bibox (Exchange):
         response = self.publicGetMdata(self.extend({
             'cmd': 'marketAll',
         }, params))
-        return self.parse_tickers(response['result'], symbols)
+        tickers = self.parse_tickers(response['result'], symbols)
+        return self.index_by(tickers, 'symbol')
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'time')
@@ -477,9 +479,7 @@ class bibox (Exchange):
             if cost is None:
                 cost = price * filled
         side = 'buy' if (order['order_side'] == 1) else 'sell'
-        status = self.safe_string(order, 'status')
-        if status is not None:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         result = {
             'info': order,
             'id': self.safe_string(order, 'id'),
@@ -510,7 +510,7 @@ class bibox (Exchange):
             '5': 'canceled',  # canceled
             '6': 'canceled',  # canceling
         }
-        return self.safe_string(statuses, status, status.lower())
+        return self.safe_string(statuses, status, status)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         market = None
@@ -534,7 +534,7 @@ class bibox (Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchClosedOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         response = self.privatePostOrderpending({
@@ -551,7 +551,7 @@ class bibox (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         size = limit if (limit) else 200

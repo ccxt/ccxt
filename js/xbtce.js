@@ -265,9 +265,9 @@ module.exports = class xbtce extends Exchange {
         //     let periodicity = minutes.toString ();
         //     await this.loadMarkets ();
         //     let market = this.market (symbol);
-        //     if (typeof since === 'undefined')
+        //     if (since === undefined)
         //         since = this.seconds () - 86400 * 7; // last day by defulat
-        //     if (typeof limit === 'undefined')
+        //     if (limit === undefined)
         //         limit = 1000; // default
         //     let response = await this.privateGetQuotehistorySymbolPeriodicityBarsBid (this.extend ({
         //         'symbol': market['id'],

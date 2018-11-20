@@ -211,7 +211,9 @@ module.exports = class bitmarket extends Exchange {
         let timestamp = this.milliseconds ();
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -310,15 +312,16 @@ module.exports = class bitmarket extends Exchange {
         return false;
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
+        let currency = this.currency (code);
         let method = undefined;
         let request = {
-            'currency': currency,
+            'currency': currency['id'],
             'quantity': amount,
         };
-        if (this.isFiat (currency)) {
+        if (this.isFiat (code)) {
             method = 'privatePostWithdrawFiat';
             if ('account' in params) {
                 request['account'] = params['account']; // bank account code for withdrawal

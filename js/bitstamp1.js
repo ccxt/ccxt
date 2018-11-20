@@ -90,7 +90,9 @@ module.exports = class bitstamp1 extends Exchange {
         let timestamp = parseInt (ticker['timestamp']) * 1000;
         let vwap = this.safeFloat (ticker, 'vwap');
         let baseVolume = this.safeFloat (ticker, 'volume');
-        let quoteVolume = baseVolume * vwap;
+        let quoteVolume = undefined;
+        if (baseVolume !== undefined && vwap !== undefined)
+            quoteVolume = baseVolume * vwap;
         let last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -196,24 +198,27 @@ module.exports = class bitstamp1 extends Exchange {
         return await this.privatePostCancelOrder ({ 'id': id });
     }
 
-    parseOrderStatus (order) {
-        if ((order['status'] === 'Queue') || (order['status'] === 'Open'))
-            return 'open';
-        if (order['status'] === 'Finished')
-            return 'closed';
-        return order['status'];
+    parseOrderStatus (status) {
+        let statuses = {
+            'In Queue': 'open',
+            'Open': 'open',
+            'Finished': 'closed',
+            'Canceled': 'canceled',
+        };
+        return (status in statuses) ? statuses[status] : status;
     }
 
-    async fetchOrderStatus (id, symbol = undefined) {
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderStatus ({ 'id': id });
+        let request = { 'id': id };
+        let response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrderStatus (response);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (typeof symbol !== 'undefined')
+        if (symbol !== undefined)
             market = this.market (symbol);
         let pair = market ? market['id'] : 'all';
         let request = this.extend ({ 'id': pair }, params);

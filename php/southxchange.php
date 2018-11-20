@@ -298,15 +298,18 @@ class southxchange extends Exchange {
         );
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
+        $this->load_markets();
+        $currency = $this->currency ($code);
         $request = array (
-            'currency' => $currency,
+            'currency' => $currency['id'],
             'address' => $address,
             'amount' => $amount,
         );
-        if ($tag !== null)
+        if ($tag !== null) {
             $request['address'] = $address . '|' . $tag;
+        }
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,

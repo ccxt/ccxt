@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.17.252'
+__version__ = '1.17.517'
 
 # -----------------------------------------------------------------------------
 
@@ -37,13 +37,14 @@ from ccxt.base.errors import RequestTimeout                     # noqa: F401
 from ccxt.base.errors import ExchangeNotAvailable               # noqa: F401
 from ccxt.base.errors import InvalidAddress                     # noqa: F401
 from ccxt.base.errors import AddressPending                     # noqa: F401
+from ccxt.base.errors import ArgumentsRequired                  # noqa: F401
+from ccxt.base.errors import BadRequest                         # noqa: F401
 from ccxt.base.errors import BadResponse                        # noqa: F401
 from ccxt.base.errors import NullResponse                       # noqa: F401
 from ccxt.base.errors import OrderImmediatelyFillable           # noqa: F401
 from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 
-from ccxt.async_support._1broker import _1broker                          # noqa: F401
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.allcoin import allcoin                            # noqa: F401
@@ -61,6 +62,7 @@ from ccxt.async_support.bitfinex2 import bitfinex2                        # noqa
 from ccxt.async_support.bitflyer import bitflyer                          # noqa: F401
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
+from ccxt.async_support.bitibu import bitibu                              # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmarket import bitmarket                        # noqa: F401
@@ -82,7 +84,7 @@ from ccxt.async_support.btcmarkets import btcmarkets                      # noqa
 from ccxt.async_support.btctradeim import btctradeim                      # noqa: F401
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
-from ccxt.async_support.btcx import btcx                                  # noqa: F401
+from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bxinth import bxinth                              # noqa: F401
 from ccxt.async_support.ccex import ccex                                  # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
@@ -103,10 +105,10 @@ from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinnest import coinnest                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
-from ccxt.async_support.coinsecure import coinsecure                      # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.cointiger import cointiger                        # noqa: F401
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
+from ccxt.async_support.crex24 import crex24                              # noqa: F401
 from ccxt.async_support.crypton import crypton                            # noqa: F401
 from ccxt.async_support.cryptopia import cryptopia                        # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
@@ -136,12 +138,14 @@ from ccxt.async_support.independentreserve import independentreserve      # noqa
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
 from ccxt.async_support.jubi import jubi                                  # noqa: F401
+from ccxt.async_support.kkex import kkex                                  # noqa: F401
 from ccxt.async_support.kraken import kraken                              # noqa: F401
 from ccxt.async_support.kucoin import kucoin                              # noqa: F401
 from ccxt.async_support.kuna import kuna                                  # noqa: F401
 from ccxt.async_support.lakebtc import lakebtc                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
 from ccxt.async_support.liqui import liqui                                # noqa: F401
+from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.livecoin import livecoin                          # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
 from ccxt.async_support.lykke import lykke                                # noqa: F401
@@ -177,7 +181,6 @@ from ccxt.async_support.zaif import zaif                                  # noqa
 from ccxt.async_support.zb import zb                                      # noqa: F401
 
 exchanges = [
-    '_1broker',
     '_1btcxe',
     'acx',
     'allcoin',
@@ -195,6 +198,7 @@ exchanges = [
     'bitflyer',
     'bitforex',
     'bithumb',
+    'bitibu',
     'bitkk',
     'bitlish',
     'bitmarket',
@@ -216,7 +220,7 @@ exchanges = [
     'btctradeim',
     'btctradeua',
     'btcturk',
-    'btcx',
+    'buda',
     'bxinth',
     'ccex',
     'cex',
@@ -237,10 +241,10 @@ exchanges = [
     'coinmate',
     'coinnest',
     'coinone',
-    'coinsecure',
     'coinspot',
     'cointiger',
     'coolcoin',
+    'crex24',
     'crypton',
     'cryptopia',
     'deribit',
@@ -269,12 +273,14 @@ exchanges = [
     'indodax',
     'itbit',
     'jubi',
+    'kkex',
     'kraken',
     'kucoin',
     'kuna',
     'lakebtc',
     'lbank',
     'liqui',
+    'liquid',
     'livecoin',
     'luno',
     'lykke',

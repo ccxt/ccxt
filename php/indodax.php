@@ -35,6 +35,7 @@ class indodax extends Exchange {
                 ),
                 'www' => 'https://www.indodax.com',
                 'doc' => 'https://indodax.com/downloads/BITCOINCOID-API-DOCUMENTATION.pdf',
+                'referral' => 'https://indodax.com/ref/testbitcoincoid/1',
             ),
             'api' => array (
                 'public' => array (
@@ -59,6 +60,8 @@ class indodax extends Exchange {
                 ),
             ),
             'markets' => array (
+                // HARDCODING IS DEPRECATED
+                // but they don't have a corresponding endpoint in their API
                 'BTC/IDR' => array ( 'id' => 'btc_idr', 'symbol' => 'BTC/IDR', 'base' => 'BTC', 'quote' => 'IDR', 'baseId' => 'btc', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => 0.0001, 'max' => null ))),
                 'ACT/IDR' => array ( 'id' => 'act_idr', 'symbol' => 'ACT/IDR', 'base' => 'ACT', 'quote' => 'IDR', 'baseId' => 'act', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
                 'ADA/IDR' => array ( 'id' => 'ada_idr', 'symbol' => 'ADA/IDR', 'base' => 'ADA', 'quote' => 'IDR', 'baseId' => 'ada', 'quoteId' => 'idr', 'precision' => array ( 'amount' => 8, 'price' => 0 ), 'limits' => array ( 'amount' => array ( 'min' => null, 'max' => null ))),
@@ -161,8 +164,8 @@ class indodax extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker[$baseVolume]),
-            'quoteVolume' => floatval ($ticker[$quoteVolume]),
+            'baseVolume' => $this->safe_float($ticker, $baseVolume),
+            'quoteVolume' => $this->safe_float($ticker, $quoteVolume),
             'info' => $ticker,
         );
     }
@@ -343,7 +346,7 @@ class indodax extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
         $side = $this->safe_value($params, 'side');
         if ($side === null)
             throw new ExchangeError ($this->id . ' cancelOrder requires an extra "$side" param');

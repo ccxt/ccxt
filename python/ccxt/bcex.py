@@ -14,6 +14,7 @@ except NameError:
 import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -484,7 +485,7 @@ class bcex (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
         self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -493,7 +494,7 @@ class bcex (Exchange):
         response = self.privatePostApiOrderOrderInfo(self.extend(request, params))
         order = response['data']
         timestamp = self.safe_integer(order, 'created') * 1000
-        status = self.parse_order_status(order['status'])
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'flag')
         if side == 'sale':
             side = 'sell'
@@ -531,8 +532,7 @@ class bcex (Exchange):
         amount = self.safe_float(order, 'amount')
         remaining = self.safe_float(order, 'amount_outstanding')
         filled = amount - remaining
-        status = self.safe_string(order, 'status')
-        status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = filled * price
         fee = None
         result = {
@@ -596,7 +596,7 @@ class bcex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' cancelOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         request = {}
         if symbol is not None:

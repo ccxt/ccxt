@@ -16,6 +16,7 @@ import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -169,6 +170,9 @@ class bitz (Exchange):
                 'lastNonceTimestamp': 0,
             },
             'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/3881
+                # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
             },
@@ -624,7 +628,7 @@ class bitz (Exchange):
                 request['to'] = since + limit * duration * 1000
         else:
             if since is not None:
-                raise ExchangeError(self.id + ' fetchOHLCV requires a since argument to be supplied along with the limit argument')
+                raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
         response = self.marketGetKline(self.extend(request, params))
         #
         #     {   status:    200,
@@ -883,7 +887,7 @@ class bitz (Exchange):
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchOpenOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         market = self.market(symbol)
         request = {
             'coinFrom': market['baseId'],
@@ -952,7 +956,11 @@ class bitz (Exchange):
         #         "source": "api"
         #     }
         #
-        return self.parse_orders(response['data']['data'], None, since, limit)
+        orders = self.safe_value(response['data'], 'data')
+        if orders:
+            return self.parse_orders(response['data']['data'], None, since, limit)
+        else:
+            return []
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)

@@ -143,6 +143,7 @@ class therock (Exchange):
                 buy_fee = self.safe_float(market, 'buy_fee')
                 sell_fee = self.safe_float(market, 'sell_fee')
                 taker = max(buy_fee, sell_fee)
+                taker = taker / 100
                 maker = taker
                 result.append({
                     'id': id,
@@ -298,7 +299,18 @@ class therock (Exchange):
         await self.load_markets()
         return await self.privateDeleteFundsFundIdOrdersId(self.extend({
             'id': id,
+            'fund_id': self.market_id(symbol),
         }, params))
+
+    def parse_order_status(self, status):
+        statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            # don't know what self status means
+            # 'conditional': '?',
+        }
+        return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

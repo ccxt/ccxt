@@ -495,6 +495,7 @@ class hitbtc (Exchange):
                 'DRK': 'DASH',
                 'EMGO': 'MGO',
                 'GET': 'Themis',
+                'HSR': 'HC',
                 'LNC': 'LinkerCoin',
                 'UNC': 'Unigame',
                 'USD': 'USDT',
@@ -643,6 +644,10 @@ class hitbtc (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
+        side = None
+        tradeLength = len(trade)
+        if tradeLength > 3:
+            side = trade[4]
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -650,7 +655,7 @@ class hitbtc (Exchange):
             'datetime': self.iso8601(trade[3]),
             'symbol': symbol,
             'type': None,
-            'side': trade[4],
+            'side': side,
             'price': float(trade[1]),
             'amount': float(trade[2]),
         }
@@ -688,7 +693,7 @@ class hitbtc (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetSymbolTrades(self.extend({
+        request = {
             'symbol': market['id'],
             # 'from': 0,
             # 'till': 100,
@@ -702,8 +707,14 @@ class hitbtc (Exchange):
             # 'format_tid': 'string',
             # 'format_timestamp': 'millisecond',
             # 'format_wrap': False,
-            'side': 'true',
-        }, params))
+            # 'side': 'true',
+        }
+        if since is not None:
+            request['by'] = 'ts'
+            request['from'] = since
+        if limit is not None:
+            request['max_results'] = limit
+        response = await self.publicGetSymbolTrades(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -758,9 +769,7 @@ class hitbtc (Exchange):
         symbol = None
         if not market:
             market = self.markets_by_id[order['symbol']]
-        status = self.safe_string(order, 'orderStatus')
-        if status:
-            status = self.parse_order_status(status)
+        status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         price = self.safe_float(order, 'orderPrice')
         price = self.safe_float(order, 'price', price)
         price = self.safe_float(order, 'avgPrice', price)
@@ -785,7 +794,8 @@ class hitbtc (Exchange):
         if amountDefined:
             if remainingDefined:
                 filled = amount - remaining
-                cost = price * filled
+                if price is not None:
+                    cost = price * filled
         feeCost = self.safe_float(order, 'fee')
         feeCurrency = None
         if market is not None:

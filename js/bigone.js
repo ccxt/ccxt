@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, ExchangeNotAvailable } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, ExchangeNotAvailable, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -53,6 +53,9 @@ module.exports = class bigone extends Exchange {
                         'accounts',
                         'orders',
                         'orders/{order_id}',
+                        'trades',
+                        'withdrawals',
+                        'deposits',
                     ],
                     'post': [
                         'orders',
@@ -88,6 +91,7 @@ module.exports = class bigone extends Exchange {
             'exceptions': {
                 'codes': {
                     '401': AuthenticationError,
+                    '10030': InvalidNonce, // {"message":"invalid nonce, nonce should be a 19bits number","code":10030}
                 },
                 'detail': {
                     'Internal server error': ExchangeNotAvailable,
@@ -181,14 +185,14 @@ module.exports = class bigone extends Exchange {
         //         }
         //     ]
         //
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (ticker, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.milliseconds ();
@@ -262,14 +266,14 @@ module.exports = class bigone extends Exchange {
         let timestamp = this.parse8601 (node['inserted_at']);
         let price = this.safeFloat (node, 'price');
         let amount = this.safeFloat (node, 'amount');
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (node, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let cost = this.costToPrecision (symbol, price * amount);
@@ -301,7 +305,7 @@ module.exports = class bigone extends Exchange {
         let request = {
             'symbol': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['first'] = limit;
         }
         let response = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
@@ -367,7 +371,7 @@ module.exports = class bigone extends Exchange {
             let total = this.safeFloat (balance, 'balance');
             let used = this.safeFloat (balance, 'locked_balance');
             let free = undefined;
-            if (typeof total !== 'undefined' && typeof used !== 'undefined') {
+            if (total !== undefined && used !== undefined) {
                 free = total - used;
             }
             let account = {
@@ -396,7 +400,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'id');
-        if (typeof market === 'undefined') {
+        if (market === undefined) {
             let marketId = this.safeString (order, 'market_id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
@@ -408,7 +412,7 @@ module.exports = class bigone extends Exchange {
             }
         }
         let symbol = undefined;
-        if (typeof market !== 'undefined') {
+        if (market !== undefined) {
             symbol = market['symbol'];
         }
         let timestamp = this.parse8601 (this.safeString (order, 'inserted_at'));
@@ -495,7 +499,7 @@ module.exports = class bigone extends Exchange {
         return this.parseOrder (order);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
+    async cancelAllOrders (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let response = await this.privatePostOrdersOrderIdCancel (params);
         //
@@ -524,17 +528,21 @@ module.exports = class bigone extends Exchange {
         let response = await this.privateGetOrdersOrderId (this.extend (request, params));
         //
         //     {
-        //         "id": 10,
-        //         "market_uuid": "d2185614-50c3-4588-b146-b8afe7534da6",
-        //         "price": "10.00",
-        //         "amount": "10.00",
-        //         "filled_amount": "9.0",
-        //         "avg_deal_price": "12.0",
-        //         "side": "ASK",
-        //         "state": "FILLED"
+        //       "data":
+        //         {
+        //           "id": 10,
+        //           "market_uuid": "BTC-EOS",
+        //           "price": "10.00",
+        //           "amount": "10.00",
+        //           "filled_amount": "9.0",
+        //           "avg_deal_price": "12.0",
+        //           "side": "ASK",
+        //           "state": "FILLED"
+        //         }
         //     }
         //
-        return this.parseOrder (response);
+        let order = this.safeValue (response, 'data');
+        return this.parseOrder (order);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -546,15 +554,15 @@ module.exports = class bigone extends Exchange {
         // last      slicing count                                         20              false
         // side      order side one of                                     "ASK"/"BID"     false
         // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
-        if (typeof symbol === 'undefined') {
-            throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'market_id': market['id'],
         };
-        if (typeof limit !== 'undefined') {
+        if (limit !== undefined) {
             request['first'] = limit;
         }
         let response = await this.privateGetOrders (this.extend (request, params));
@@ -615,6 +623,10 @@ module.exports = class bigone extends Exchange {
         }, params));
     }
 
+    nonce () {
+        return this.microseconds () * 1000;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
@@ -623,7 +635,7 @@ module.exports = class bigone extends Exchange {
                 url += '?' + this.urlencode (query);
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce () * 1000000000;
+            let nonce = this.nonce ();
             let request = {
                 'type': 'OpenAPI',
                 'sub': this.apiKey,
@@ -653,20 +665,25 @@ module.exports = class bigone extends Exchange {
             let response = JSON.parse (body);
             //
             //      {"errors":{"detail":"Internal server error"}}
+            //      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
             //
             const error = this.safeValue (response, 'error');
             const errors = this.safeValue (response, 'errors');
             const data = this.safeValue (response, 'data');
-            if (typeof error !== 'undefined' || typeof errors !== 'undefined' || typeof data === 'undefined') {
+            if (error !== undefined || errors !== undefined || data === undefined) {
                 const feedback = this.id + ' ' + this.json (response);
                 let code = undefined;
-                if (typeof error !== 'undefined') {
+                if (error !== undefined) {
                     code = this.safeInteger (error, 'code');
                 }
                 let exceptions = this.exceptions['codes'];
-                if (typeof errors !== 'undefined') {
-                    code = this.safeString (errors, 'detail');
-                    exceptions = this.exceptions['detail'];
+                if (errors !== undefined) {
+                    if (Array.isArray (errors)) {
+                        code = this.safeString (errors[0], 'code');
+                    } else {
+                        code = this.safeString (errors, 'detail');
+                        exceptions = this.exceptions['detail'];
+                    }
                 }
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);

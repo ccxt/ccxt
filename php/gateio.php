@@ -28,6 +28,7 @@ class gateio extends Exchange {
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
                 'fetchOrder' => true,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -140,9 +141,9 @@ class gateio extends Exchange {
             $keys = is_array ($market) ? array_keys ($market) : array ();
             $id = $keys[0];
             $details = $market[$id];
-            list ($base, $quote) = explode ('_', $id);
-            $base = strtoupper ($base);
-            $quote = strtoupper ($quote);
+            list ($baseId, $quoteId) = explode ('_', $id);
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -175,6 +176,8 @@ class gateio extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
                 'active' => $active,
                 'maker' => $details['fee'] / 100,
@@ -422,9 +425,7 @@ class gateio extends Exchange {
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
-        $status = $this->safe_string($order, 'status');
-        if ($status !== null)
-            $status = $this->parse_order_status($status);
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $price = $this->safe_float($order, 'filledRate');
         $amount = $this->safe_float($order, 'initialAmount');
@@ -489,7 +490,7 @@ class gateio extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null)
-            throw new ExchangeError ($this->id . ' cancelOrder requires $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' cancelOrder requires $symbol argument');
         $this->load_markets();
         return $this->privatePostCancelOrder (array (
             'orderNumber' => $id,
@@ -541,7 +542,7 @@ class gateio extends Exchange {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -562,11 +563,12 @@ class gateio extends Exchange {
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
-    public function withdraw ($currency, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
+        $currency = $this->currency ($code);
         $response = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+            'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address, // Address must exist in you AddressBook in security settings
         ), $params));
