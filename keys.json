@@ -2,6 +2,7 @@
     "_1btcxe":       { "apiKey": "7SuUd4B6zfGAojPn", "secret": "392WCRKmGpcXdiVzsyQqwengLTOHkhDa" },
     "allcoin":       { "skip": true },
     "anxpro":        { "skip": true },
+    "bcex":          { "skip": true },
     "bibox":         { "skip": true, "apiKey": "bdc062773f5718a8ad03a8d3a4d9d3f0c9005b5f", "secret": "1e98b6fdc6d0d67cce818f871d79952810d40bf1" },
     "bigone":        { "skip": true },
     "binance":       { "skip": true },
