@@ -302,9 +302,8 @@ module.exports = class theocean extends Exchange {
         let amountString = this.safeString (bidask, amountKey);
         let amountParts = amountString.split ('.');
         let numParts = amountParts.length;
-        if (numParts == 2) {
-            let decimalPart = amountParts[1].slice (0, 18);
-            amountString = amountParts[0] + '.' + decimalPart;
+        if (numParts === 2) {
+            amountString = amountParts[0];
         }
         let amount = this.fromWei (amountString, 'ether', amountDecimals);
         // return [ price, amount, bidask ];
