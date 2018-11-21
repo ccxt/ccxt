@@ -39,7 +39,7 @@ Want this place? Contact us: info@ccxt.trade
 
 ## Get listed
 
-Want to get on the list quickly? Contact us: info@ccxt.trade.
+Want to get on the list quickly? Contact us: info@ccxt.trade
 
 
 ## Supported Cryptocurrency Exchange Markets
