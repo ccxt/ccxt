@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.522'
+const version = '1.17.523'
 
 Exchange.ccxtVersion = version
 
@@ -2881,6 +2881,7 @@ module.exports = subclass (
                     'CancelPending': {},
                     'OrderImmediatelyFillable': {},
                     'OrderNotFillable': {},
+                    'DuplicateOrderId': {},
                 },
                 'NotSupported': {},
             },

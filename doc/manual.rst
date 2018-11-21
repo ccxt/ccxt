@@ -3195,6 +3195,8 @@ Below is an outline of exception inheritance hierarchy:
    |   |   +---+ OrderImmediatelyFillable
    |   |   |
    |   |   +---+ OrderNotFillable
+   |   |   |
+   |   |   +---+ DuplicateOrderId
    |   |
    |   +---+ NotSupported
    |
