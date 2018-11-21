@@ -19,6 +19,9 @@ class yobit extends liqui {
             'has' => array (
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => false,
+                'fetchWithdrawals' => false,
+                'fetchTransactions' => false,
                 'CORS' => false,
                 'withdraw' => true,
             ),
