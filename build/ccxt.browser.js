@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.17.521'
+const version = '1.17.522'
 
 Exchange.ccxtVersion = version
 
@@ -60892,6 +60892,9 @@ module.exports = class yobit extends liqui {
             'has': {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': false,
+                'fetchWithdrawals': false,
+                'fetchTransactions': false,
                 'CORS': false,
                 'withdraw': true,
             },

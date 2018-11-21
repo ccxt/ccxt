@@ -23,6 +23,9 @@ class yobit (liqui):
             'has': {
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': False,
+                'fetchWithdrawals': False,
+                'fetchTransactions': False,
                 'CORS': False,
                 'withdraw': True,
             },
