@@ -185,7 +185,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
 
 |                                                                                                                           | id                 | name                                                                         | ver | doc                                                                                          |WsVer| Ws doc                                                                                                                   | Ws Protocol | Ws Features | countries                               |
 |---------------------------------------------------------------------------------------------------------------------------|--------------------|------------------------------------------------------------------------------|:---:|:--------------------------------------------------------------------------------------------:|:---:|:------------------------------------------------------------------------------------------------------------------------:|-------------|-------------|-----------------------------------------|
-|![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com/?ref=10205187)                             | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) |     | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md)                   | raw         | ob          | Japan                                   |
+|![binance](https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg)            | binance            | [Binance](https://www.binance.com/?ref=10205187)                             | *   | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md) |     | [API](https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md)                   | raw         | ob ti tr oh    | Japan                                   |
 |![bitmex](https://user-images.githubusercontent.com/1294454/27766319-f653c6e6-5ed4-11e7-933d-f0bc3699ae8f.jpg)             | bitmex             | [BitMEX](https://www.bitmex.com)                                             | 1   | [API](https://www.bitmex.com/app/apiOverview)                                                |     | [API](https://www.bitmex.com/app/wsAPI)                                                                                  | raw         | ob          | Seychelles                              |
 |![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)                | cex                | [CEX.IO](https://cex.io)                                                     | *   | [API](https://cex.io/cex-api)                                                                |     | [API](https://cex.io/websocket-api)                                                                                      | raw         | ob          | UK, EU, Cyprus, Russia                  |
 |![coincheck](https://user-images.githubusercontent.com/1294454/27766464-3b5c3c74-5ed9-11e7-840e-31b32968e1da.jpg)          | coincheck          | [coincheck](https://coincheck.com)                                           | *   | [API](https://coincheck.com/documents/exchange/api)                                          |     | [API](https://coincheck.com/documents/exchange/api#websocket)                                                            | raw         | ob          | Japan, Indonesia                        |
@@ -202,9 +202,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
 
 **Ws Features:**
 - ob: orderbook
-- ticker: tickers
-- trade: trades
-- ohlcv:
+- ti: tickers
+- tr: trades
+- oh: ohlcv
 
 ## Install
 
