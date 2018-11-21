@@ -80,6 +80,7 @@ module.exports = class theocean extends Exchange {
                     'Order not found': OrderNotFound, // {"message":"Order not found","errors":...}
                 },
                 'broad': {
+                    "Price can't exceed 8 digits in precision.": InvalidOrder, // {"message":"Price can't exceed 8 digits in precision.","type":"paramPrice"}
                     'Order cannot be canceled': InvalidOrder, // {"message":"Order cannot be canceled","type":"General error"}
                     'Greater than available wallet balance.': InsufficientFunds,
                     'Orderbook exhausted for intent': OrderNotFillable, // {"message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g"}
