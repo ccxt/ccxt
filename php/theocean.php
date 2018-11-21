@@ -85,6 +85,7 @@ class theocean extends Exchange {
                     'Order not found' => '\\ccxt\\OrderNotFound', // array ("message":"Order not found","errors":...)
                 ),
                 'broad' => array (
+                    "Price can't exceed 8 digits in precision." => '\\ccxt\\InvalidOrder', // array ("message":"Price can't exceed 8 digits in precision.","type":"paramPrice")
                     'Order cannot be canceled' => '\\ccxt\\InvalidOrder', // array ("message":"Order cannot be canceled","type":"General error")
                     'Greater than available wallet balance.' => '\\ccxt\\InsufficientFunds',
                     'Orderbook exhausted for intent' => '\\ccxt\\OrderNotFillable', // array ("message":"Orderbook exhausted for intent MARKET_INTENT:8yjjzd8b0e8yjjzd8b0fjjzd8b0g")

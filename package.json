@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.17.520",
+  "version": "1.17.521",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 100+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "build/ccxt.browser.js",
